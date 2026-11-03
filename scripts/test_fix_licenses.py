@@ -112,6 +112,34 @@ class TestFixLicenses(unittest.TestCase):
             compliant_header,
         )
 
+        # A shebang should be kept when an incorrect header is stripped
+        shebang_hash_header = (
+            "#!/usr/bin/env python3\n"
+            "# Copyright " + "2023 Some Other Company\n"
+            "# Some other license\n\n"
+            "print('hello')\n"
+        )
+        self.assertEqual(
+            fix_licenses.strip_incorrect_headers(shebang_hash_header),
+            "#!/usr/bin/env python3\nprint('hello')\n",
+        )
+        shebang_c_header = (
+            "#!/usr/bin/env node\n"
+            "/* Copyright " + "2023 Some Other Company */\n"
+            "console.log('hello');\n"
+        )
+        self.assertEqual(
+            fix_licenses.strip_incorrect_headers(shebang_c_header),
+            "#!/usr/bin/env node\nconsole.log('hello');\n",
+        )
+
+        # A shebang followed by a compliant header should remain intact
+        shebang_compliant = "#!/usr/bin/env python3\n" + compliant_header
+        self.assertEqual(
+            fix_licenses.strip_incorrect_headers(shebang_compliant),
+            shebang_compliant,
+        )
+
     @patch("shutil.which")
     def test_find_addlicense_which(self, mock_which):
         mock_which.return_value = "/usr/local/bin/addlicense"

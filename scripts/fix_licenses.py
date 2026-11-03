@@ -96,7 +96,8 @@ def is_generated_file(content: str) -> bool:
     Returns:
         True if the file contains markers indicating it was generated, False otherwise.
     """
-    lines = content.splitlines()[:20]
+    # Split at most 20 times so the rest of the file is not split into lines.
+    lines = content.split("\n", 20)[:20]
     pattern = re.compile(r"generated.*(file|code)|auto-generated", re.IGNORECASE)
     return any(pattern.search(line) for line in lines)
 
@@ -110,8 +111,14 @@ def strip_incorrect_headers(content: str) -> str:
         content: The text content of the file.
 
     Returns:
-        The content with incorrect license headers removed.
+        The content with incorrect license headers removed. A shebang line is
+        kept, because the line comment pattern below would otherwise match it.
     """
+    shebang = ""
+    if content.startswith("#!"):
+        first_line, _, content = content.partition("\n")
+        shebang = first_line + "\n"
+
     # 1. Match C-style block comment at top of file: /* ... */
     c_block = re.match(r"^\s*/\*.*?\*/\s*\n?", content, re.DOTALL)
     if c_block:
@@ -121,7 +128,7 @@ def strip_incorrect_headers(content: str) -> str:
                 "apache license" not in header_text.lower()
                 and "apache.org/licenses" not in header_text.lower()
             ):
-                return content[c_block.end() :]
+                return shebang + content[c_block.end() :]
 
     # 2. Match line comment block at top of file: # or //
     line_block = re.match(
@@ -137,9 +144,9 @@ def strip_incorrect_headers(content: str) -> str:
             "apache license" not in header_text.lower()
             and "apache.org/licenses" not in header_text.lower()
         ):
-            return content[line_block.end() :]
+            return shebang + content[line_block.end() :]
 
-    return content
+    return shebang + content
 
 
 def find_addlicense() -> str | None:
@@ -186,7 +193,9 @@ def ensure_addlicense() -> str:
             gopath = os.environ.get("GOPATH", os.path.expanduser("~/go"))
             gobin_path = os.path.join(gopath, "bin")
             if gobin_path not in os.environ.get("PATH", ""):
-                os.environ["PATH"] = f"{gobin_path}:{os.environ.get('PATH', '')}"
+                os.environ["PATH"] = (
+                    f"{gobin_path}{os.pathsep}{os.environ.get('PATH', '')}"
+                )
             bin_path = find_addlicense()
             if bin_path:
                 return bin_path
@@ -274,13 +283,6 @@ def process_files(repo_root: str, check_mode: bool) -> list[str]:
     )
     # Pattern matching HTTP Apache license URLs
     http_apache_pattern = re.compile(r"http:" + r"//www.apache.org/licenses")
-    # Pattern matching top-of-file copyright headers
-    comment_block_pattern = re.compile(
-        r"^(?:\s*(?:#|//|/\*|\*|\*/).*?\n)*"
-        r"\s*(?:#|//|/\*|\*)\s*Copyright\s+(?:\(c\)|©|\u00a9)?\s*(?:\d{4}|\d{4}-\d{4}).*?\n"
-        r"(?:\s*(?:#|//|/\*|\*|\*/).*?\n)*\s*",
-        re.IGNORECASE,
-    )
 
     for filepath in files:
         rel_path = os.path.relpath(filepath, repo_root)
@@ -290,7 +292,11 @@ def process_files(repo_root: str, check_mode: bool) -> list[str]:
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 original_content = f.read()
-        except Exception:
+        except UnicodeDecodeError:
+            # Binary files have no license header to check.
+            continue
+        except OSError as e:
+            print(f"Warning: Failed to read {rel_path}: {e}", file=sys.stderr)
             continue
 
         content = original_content

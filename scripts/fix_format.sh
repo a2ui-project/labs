@@ -106,12 +106,12 @@ run_package_script() {
 }
 
 OWNED_DIRS=()
-while IFS= read -r package_json; do
+while IFS= read -r -d '' package_json; do
   if node -e 'process.exit(require(process.argv[1]).scripts?.["format:check"] ? 0 : 1)' \
     "$REPO_ROOT/$package_json"; then
     OWNED_DIRS+=("$(dirname "$package_json")")
   fi
-done < <(git ls-files -- '*/package.json')
+done < <(list_files '*/package.json')
 
 for dir in ${OWNED_DIRS[@]+"${OWNED_DIRS[@]}"}; do
   echo "Running the format scripts of $dir..."
