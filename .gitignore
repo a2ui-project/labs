@@ -1,0 +1,53 @@
+# Operating System & IDE files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.bak
+*~
+
+# Node.js
+node_modules/
+dist/
+build/
+.next/
+.wireit/
+*.tsbuildinfo
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/sdks
+.yarn/cache
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Flutter & Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+doc/api/
+pubspec.lock
+
+# Test artifacts
+coverage/
+.playwright/
+test-results/
+
+# Local-only logs and scratches
+*.log
+*.log.*
+.local/
+temp_docs/
+uv.lock
