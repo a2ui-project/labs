@@ -1,0 +1,45 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Generate release notes
+description: Generate release documentation from release note files
+
+inputs:
+  release-branch:
+    description: "The release/X.Y.Z branch to read release notes from"
+    required: true
+  notes-branch:
+    description: "The release-notes/X.Y.Z branch to write generated docs to"
+    required: true
+  version:
+    description: "The release version (e.g. 26.5.0)"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+      with:
+        node-version: 24
+    - name: Install dependencies
+      shell: bash
+      run: yarn workspaces focus actual @actual-app/ci-actions
+    - name: Generate release notes
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        RELEASE_BRANCH: ${{ inputs.release-branch }}
+        NOTES_BRANCH: ${{ inputs.notes-branch }}
+        VERSION: ${{ inputs.version }}
+      run: node packages/ci-actions/bin/release-notes-generate.mjs

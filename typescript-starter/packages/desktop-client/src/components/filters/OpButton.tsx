@@ -1,0 +1,53 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import React from 'react';
+import type {CSSProperties} from 'react';
+
+import {Button} from '@actual-app/components/button';
+import {theme} from '@actual-app/components/theme';
+import {css} from '@emotion/css';
+
+import {friendlyOp} from '#util/rule';
+
+type OpButtonProps = {
+  op: string;
+  isSelected: boolean;
+  onPress: () => void;
+  style?: CSSProperties;
+};
+
+export function OpButton({op, isSelected, style, onPress}: OpButtonProps) {
+  return (
+    <Button
+      variant="bare"
+      style={style}
+      className={css({
+        backgroundColor: theme.pillBackground,
+        ...(isSelected && {
+          color: theme.buttonNormalSelectedText,
+          '&,:hover,:active': {
+            backgroundColor: theme.buttonNormalSelectedBackground,
+            color: theme.buttonNormalSelectedText,
+          },
+        }),
+      })}
+      onPress={onPress}
+    >
+      {friendlyOp(op)}
+    </Button>
+  );
+}

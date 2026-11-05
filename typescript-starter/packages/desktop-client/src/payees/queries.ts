@@ -1,0 +1,111 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {send} from '@actual-app/core/platform/client/connection';
+import {memoizeOne} from '@actual-app/core/shared/memoize';
+import {groupById} from '@actual-app/core/shared/util';
+import type {AccountEntity, NearbyPayeeEntity, PayeeEntity} from '@actual-app/core/types/models';
+import {queryOptions} from '@tanstack/react-query';
+import {t} from 'i18next';
+
+import {getAccountsById} from '#accounts/accountsSlice';
+
+import {locationService} from './location';
+
+export const payeeQueries = {
+  all: () => ['payees'],
+  lists: () => [...payeeQueries.all(), 'lists'],
+  list: () =>
+    queryOptions<PayeeEntity[]>({
+      queryKey: [...payeeQueries.lists()],
+      queryFn: async () => {
+        const payees: PayeeEntity[] = (await send('payees-get')) ?? [];
+        return translatePayees(payees);
+      },
+      placeholderData: [],
+      // Manually invalidated when payees change via sync events
+      staleTime: Infinity,
+    }),
+  listCommon: () =>
+    queryOptions<PayeeEntity[]>({
+      queryKey: [...payeeQueries.lists(), 'common'],
+      queryFn: async () => {
+        const payees: PayeeEntity[] = (await send('common-payees-get')) ?? [];
+        return translatePayees(payees);
+      },
+      placeholderData: [],
+      // Manually invalidated when payees change via sync events
+      staleTime: Infinity,
+    }),
+  listOrphaned: () =>
+    queryOptions<Pick<PayeeEntity, 'id'>[]>({
+      queryKey: [...payeeQueries.lists(), 'orphaned'],
+      queryFn: async () => {
+        const payees: Pick<PayeeEntity, 'id'>[] = (await send('payees-get-orphaned')) ?? [];
+        return payees;
+      },
+      placeholderData: [],
+      // Manually invalidated when payees change via sync events
+      staleTime: Infinity,
+    }),
+  ruleCounts: () =>
+    queryOptions<Map<PayeeEntity['id'], number>>({
+      queryKey: [...payeeQueries.lists(), 'ruleCounts'],
+      queryFn: async () => {
+        const counts = await send('payees-get-rule-counts');
+        return new Map(Object.entries(counts ?? {}));
+      },
+      placeholderData: new Map(),
+    }),
+  listNearby: () =>
+    queryOptions<NearbyPayeeEntity[]>({
+      queryKey: [...payeeQueries.all(), 'nearby'],
+      queryFn: async () => {
+        const position = await locationService.getCurrentPosition();
+        return locationService.getNearbyPayees({
+          latitude: position.latitude,
+          longitude: position.longitude,
+        });
+      },
+      placeholderData: [],
+      // Manually invalidated when payee locations change
+      staleTime: Infinity,
+    }),
+};
+
+export const getActivePayees = memoizeOne((payees: PayeeEntity[], accounts: AccountEntity[]) => {
+  const accountsById = getAccountsById(accounts);
+
+  return translatePayees(
+    payees.filter(payee => {
+      if (payee.transfer_acct) {
+        const account = accountsById[payee.transfer_acct];
+        return account != null && !account.closed;
+      }
+      return true;
+    }),
+  );
+});
+
+export const getPayeesById = memoizeOne((payees: PayeeEntity[] | null | undefined) =>
+  groupById(translatePayees(payees || [])),
+);
+
+function translatePayees(payees: PayeeEntity[]): PayeeEntity[] {
+  return payees.map(payee =>
+    payee.name === 'Starting Balance' ? {...payee, name: t('Starting Balance')} : payee,
+  );
+}

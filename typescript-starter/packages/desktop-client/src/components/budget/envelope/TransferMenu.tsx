@@ -1,0 +1,121 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import React, {useMemo, useState} from 'react';
+import {Form} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
+
+import {Button} from '@actual-app/components/button';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {View} from '@actual-app/components/view';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {CategoryEntity} from '@actual-app/core/types/models';
+
+import {CategoryAutocomplete} from '#components/autocomplete/CategoryAutocomplete';
+import {addToBeBudgetedGroup, removeCategoriesFromGroups} from '#components/budget/util';
+import {FinancialInput} from '#components/util/FinancialInput';
+import {useCategories} from '#hooks/useCategories';
+
+type TransferMenuProps = {
+  categoryId?: CategoryEntity['id'];
+  initialAmount?: IntegerAmount | null;
+  showToBeBudgeted?: boolean;
+  onSubmit: (amount: IntegerAmount, categoryId: CategoryEntity['id']) => void;
+  onClose: () => void;
+};
+
+export function TransferMenu({
+  categoryId,
+  initialAmount = 0,
+  showToBeBudgeted,
+  onSubmit,
+  onClose,
+}: TransferMenuProps) {
+  const {t} = useTranslation();
+
+  const {data: {grouped: originalCategoryGroups} = {grouped: []}} = useCategories();
+  const filteredCategoryGroups = useMemo(() => {
+    const expenseCategoryGroups = originalCategoryGroups.filter(g => !g.is_income);
+    const categoryGroups = showToBeBudgeted
+      ? addToBeBudgetedGroup(expenseCategoryGroups)
+      : expenseCategoryGroups;
+    return categoryId ? removeCategoriesFromGroups(categoryGroups, categoryId) : categoryGroups;
+  }, [originalCategoryGroups, categoryId, showToBeBudgeted]);
+
+  const [amount, setAmount] = useState<IntegerAmount>(Math.max(initialAmount ?? 0, 0));
+  const [toCategoryId, setToCategoryId] = useState<string | null>(null);
+
+  const _onSubmit = () => {
+    if (amount != null && amount > 0 && toCategoryId) {
+      onSubmit(amount, toCategoryId);
+    }
+    onClose();
+  };
+
+  return (
+    <Form
+      onSubmit={e => {
+        e.preventDefault();
+        _onSubmit();
+      }}
+    >
+      <View style={{padding: 10}}>
+        <View style={{marginBottom: 5}}>
+          <Trans>Transfer this amount:</Trans>
+        </View>
+        <View>
+          <InitialFocus>
+            <FinancialInput value={amount} onUpdate={setAmount} />
+          </InitialFocus>
+        </View>
+        <View style={{margin: '10px 0 5px 0'}}>
+          <Trans>To:</Trans>
+        </View>
+
+        <CategoryAutocomplete
+          categoryGroups={filteredCategoryGroups}
+          value={null}
+          openOnFocus
+          onSelect={(id: string | undefined) => setToCategoryId(id || null)}
+          inputProps={{
+            placeholder: t('(none)'),
+          }}
+          showHiddenCategories
+        />
+
+        <View
+          style={{
+            alignItems: 'flex-end',
+            marginTop: 10,
+          }}
+        >
+          <Button
+            type="submit"
+            variant="primary"
+            isDisabled={!toCategoryId || amount <= 0}
+            style={{
+              fontSize: 12,
+              paddingTop: 3,
+              paddingBottom: 3,
+            }}
+          >
+            <Trans>Transfer</Trans>
+          </Button>
+        </View>
+      </View>
+    </Form>
+  );
+}

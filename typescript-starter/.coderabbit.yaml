@@ -1,0 +1,41 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+issue_enrichment:
+  auto_enrich:
+    enabled: true
+reviews:
+  tools:
+    eslint:
+      enabled: false
+  request_changes_workflow: true
+  review_status: false
+  high_level_summary: false
+  finishing_touches:
+    docstrings:
+      enabled: false
+  pre_merge_checks:
+    docstrings:
+      mode: off
+      enabled: false
+  labeling_instructions:
+    - label: "API"
+      instructions: "This issue or PR updates the API in `packages/api`."
+    - label: "documentation"
+      instructions: "This issue updates the documentation in `packages/docs`."
+    - label: "contains DB migrations"
+      instructions: "This issue or PR contains DB migrations in `packages/loot-core/migrations`."
+    - label: "size small"
+      instructions: "This issue or PR is a small change (less than 50 lines of code) that is expected to have a small impact on the codebase."
+  auto_apply_labels: true

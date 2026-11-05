@@ -1,0 +1,34 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import * as React from 'react';
+import type {SVGProps} from 'react';
+export const SvgEditCut = (props: SVGProps<SVGSVGElement>) => (
+  <svg
+    {...props}
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 20 20"
+    style={{
+      color: 'inherit',
+      ...props.style,
+    }}
+  >
+    <path
+      d="m9.77 11.5 5.34 3.91c.44.33 1.24.59 1.79.59H20L6.89 6.38A3.5 3.5 0 1 0 5.5 8.37L7.73 10 5.5 11.63a3.5 3.5 0 1 0 1.38 1.99l2.9-2.12zM3.5 7a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3m0 9a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3M15.1 4.59A3.53 3.53 0 0 1 16.9 4H20l-7.5 5.5L10.45 8z"
+      fill="currentColor"
+    />
+  </svg>
+);
