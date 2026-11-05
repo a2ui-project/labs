@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { generateAccount } from '@actual-app/core/mocks';
-import { describe, expect, it } from 'vitest';
+import {generateAccount} from '@actual-app/core/mocks';
+import {describe, expect, it} from 'vitest';
 
-import { getSyncSourceReadable, groupBankSyncAccounts } from './bankSyncUtils';
+import {getSyncSourceReadable, groupBankSyncAccounts} from './bankSyncUtils';
 
 describe('bankSyncUtils', () => {
   it('groups open accounts by provider and leaves unlinked last', () => {
@@ -57,9 +57,7 @@ describe('bankSyncUtils', () => {
   });
 
   it('returns stable readable provider labels', () => {
-    const readable = getSyncSourceReadable(
-      (key: string) => `translated:${key}`,
-    );
+    const readable = getSyncSourceReadable((key: string) => `translated:${key}`);
 
     expect(readable.goCardless).toBe('GoCardless');
     expect(readable.simpleFin).toBe('SimpleFIN');

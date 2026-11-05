@@ -49,9 +49,7 @@ export type AdmonitionMarker = {
 };
 
 /** Parses the marker text produced by `admonitionsToBlockquotes`. */
-export function parseAdmonitionMarker(
-  text: string | undefined,
-): AdmonitionMarker | undefined {
+export function parseAdmonitionMarker(text: string | undefined): AdmonitionMarker | undefined {
   if (!text || !text.startsWith(MARKER_PREFIX)) {
     return undefined;
   }
@@ -59,11 +57,9 @@ export function parseAdmonitionMarker(
   if (!match) {
     return undefined;
   }
-  const type = ADMONITION_TYPES.find(
-    candidate => candidate === match[1].toLowerCase(),
-  );
+  const type = ADMONITION_TYPES.find(candidate => candidate === match[1].toLowerCase());
   if (!type) {
     return undefined;
   }
-  return { type, title: match[2].trim() };
+  return {type, title: match[2].trim()};
 }

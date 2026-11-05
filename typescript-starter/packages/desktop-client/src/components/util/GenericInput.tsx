@@ -14,37 +14,34 @@
  * limitations under the License.
  */
 
-import type { JSX, Ref } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {JSX, Ref} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { Input } from '@actual-app/components/input';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { View } from '@actual-app/components/view';
-import { getMonthYearFormat } from '@actual-app/core/shared/months';
-import type {
-  RecurConfig,
-  RuleConditionOp,
-} from '@actual-app/core/types/models';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {Input} from '@actual-app/components/input';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {View} from '@actual-app/components/view';
+import {getMonthYearFormat} from '@actual-app/core/shared/months';
+import type {RecurConfig, RuleConditionOp} from '@actual-app/core/types/models';
 
-import { AccountAutocomplete } from '#components/autocomplete/AccountAutocomplete';
-import { Autocomplete } from '#components/autocomplete/Autocomplete';
-import { CategoryAutocomplete } from '#components/autocomplete/CategoryAutocomplete';
-import { CategoryGroupAutocomplete } from '#components/autocomplete/CategoryGroupAutocomplete';
-import { FilterAutocomplete } from '#components/autocomplete/FilterAutocomplete';
-import { PayeeAutocomplete } from '#components/autocomplete/PayeeAutocomplete';
-import { ReportAutocomplete } from '#components/autocomplete/ReportAutocomplete';
-import { Checkbox } from '#components/forms';
-import { hideNativeDateIconClassName } from '#components/mobile/MobileForms';
-import { DateSelect } from '#components/select/DateSelect';
-import { RecurringSchedulePicker } from '#components/select/RecurringSchedulePicker';
-import { useCategories } from '#hooks/useCategories';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {AccountAutocomplete} from '#components/autocomplete/AccountAutocomplete';
+import {Autocomplete} from '#components/autocomplete/Autocomplete';
+import {CategoryAutocomplete} from '#components/autocomplete/CategoryAutocomplete';
+import {CategoryGroupAutocomplete} from '#components/autocomplete/CategoryGroupAutocomplete';
+import {FilterAutocomplete} from '#components/autocomplete/FilterAutocomplete';
+import {PayeeAutocomplete} from '#components/autocomplete/PayeeAutocomplete';
+import {ReportAutocomplete} from '#components/autocomplete/ReportAutocomplete';
+import {Checkbox} from '#components/forms';
+import {hideNativeDateIconClassName} from '#components/mobile/MobileForms';
+import {DateSelect} from '#components/select/DateSelect';
+import {RecurringSchedulePicker} from '#components/select/RecurringSchedulePicker';
+import {useCategories} from '#hooks/useCategories';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
-import { AmountInput } from './AmountInput';
-import { PercentInput } from './PercentInput';
+import {AmountInput} from './AmountInput';
+import {PercentInput} from './PercentInput';
 
 type GenericInputProps = {
   ref?: Ref<HTMLInputElement>;
@@ -134,17 +131,11 @@ type GenericInputProps = {
     ))
 );
 
-export const GenericInput = ({
-  ref,
-  style,
-  inputStyle,
-  ...props
-}: GenericInputProps) => {
+export const GenericInput = ({ref, style, inputStyle, ...props}: GenericInputProps) => {
   const dispatch = useDispatch();
-  const { isNarrowWidth } = useResponsive();
-  const { t } = useTranslation();
-  const { data: { grouped: categoryGroups } = { grouped: [] } } =
-    useCategories();
+  const {isNarrowWidth} = useResponsive();
+  const {t} = useTranslation();
+  const {data: {grouped: categoryGroups} = {grouped: []}} = useCategories();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
 
   let content: JSX.Element | null = null;
@@ -174,7 +165,7 @@ export const GenericInput = ({
               updateOnValueChange={isNarrowWidth}
               inputProps={{
                 ref,
-                ...(showPlaceholder ? { placeholder: t('nothing') } : null),
+                ...(showPlaceholder ? {placeholder: t('nothing')} : null),
                 onClick: () => {
                   if (!isNarrowWidth) {
                     return;
@@ -216,7 +207,7 @@ export const GenericInput = ({
                   updateOnValueChange={isNarrowWidth}
                   inputProps={{
                     ref,
-                    ...(showPlaceholder ? { placeholder: t('nothing') } : null),
+                    ...(showPlaceholder ? {placeholder: t('nothing')} : null),
                     onClick: () => {
                       if (!isNarrowWidth) {
                         return;
@@ -234,8 +225,7 @@ export const GenericInput = ({
                                 }
                                 props.onChange(newValue);
                               },
-                              hiddenAccounts:
-                                props.multi === true ? props.value : undefined,
+                              hiddenAccounts: props.multi === true ? props.value : undefined,
                             },
                           },
                         }),
@@ -258,7 +248,7 @@ export const GenericInput = ({
               showHiddenCategories
               inputProps={{
                 ref,
-                ...(showPlaceholder ? { placeholder: t('nothing') } : null),
+                ...(showPlaceholder ? {placeholder: t('nothing')} : null),
                 onClick: () => {
                   if (!isNarrowWidth) {
                     return;
@@ -299,7 +289,7 @@ export const GenericInput = ({
               showHiddenCategories
               inputProps={{
                 ref,
-                ...(showPlaceholder ? { placeholder: t('nothing') } : null),
+                ...(showPlaceholder ? {placeholder: t('nothing')} : null),
                 onClick: () => {
                   if (!isNarrowWidth) {
                     return;
@@ -333,9 +323,7 @@ export const GenericInput = ({
     }
 
     case 'saved': {
-      const showSavedPlaceholder = props.multi
-        ? props.value.length === 0
-        : true;
+      const showSavedPlaceholder = props.multi ? props.value.length === 0 : true;
       const savedMultiProps =
         props.multi === true
           ? {
@@ -357,9 +345,7 @@ export const GenericInput = ({
               openOnFocus
               inputProps={{
                 ref,
-                ...(showSavedPlaceholder
-                  ? { placeholder: t('nothing') }
-                  : null),
+                ...(showSavedPlaceholder ? {placeholder: t('nothing')} : null),
               }}
             />
           );
@@ -371,9 +357,7 @@ export const GenericInput = ({
               openOnFocus
               inputProps={{
                 ref,
-                ...(showSavedPlaceholder
-                  ? { placeholder: t('nothing') }
-                  : null),
+                ...(showSavedPlaceholder ? {placeholder: t('nothing')} : null),
               }}
             />
           );
@@ -413,7 +397,7 @@ export const GenericInput = ({
             content = (
               <RecurringSchedulePicker
                 value={props.value}
-                buttonStyle={{ justifyContent: 'flex-start' }}
+                buttonStyle={{justifyContent: 'flex-start'}}
                 onChange={props.onChange}
               />
             );
@@ -463,11 +447,7 @@ export const GenericInput = ({
               ref={ref}
               value={props.value}
               onUpdate={props.onChange}
-              sign={
-                props.options?.inflow || props.options?.outflow
-                  ? '+'
-                  : undefined
-              }
+              sign={props.options?.inflow || props.options?.outflow ? '+' : undefined}
               inputStyle={inputStyle}
             />
           );
@@ -504,7 +484,7 @@ export const GenericInput = ({
             type="multi"
             suggestions={[]}
             value={props.value}
-            inputProps={{ ref }}
+            inputProps={{ref}}
             onSelect={props.onChange}
           />
         );
@@ -522,5 +502,5 @@ export const GenericInput = ({
       break;
   }
 
-  return <View style={{ flex: 1, ...style }}>{content}</View>;
+  return <View style={{flex: 1, ...style}}>{content}</View>;
 };

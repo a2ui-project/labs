@@ -14,42 +14,30 @@
  * limitations under the License.
  */
 
-import { Fragment, useRef, useState } from 'react';
-import type { ComponentProps, CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {Fragment, useRef, useState} from 'react';
+import type {ComponentProps, CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import {
-  SvgClose,
-  SvgDotsHorizontalTriple,
-  SvgLockOpen,
-} from '@actual-app/components/icons/v1';
-import { SvgLockClosed, SvgNotesPaper } from '@actual-app/components/icons/v2';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { AccountEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgClose, SvgDotsHorizontalTriple, SvgLockOpen} from '@actual-app/components/icons/v1';
+import {SvgLockClosed, SvgNotesPaper} from '@actual-app/components/icons/v2';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity} from '@actual-app/core/types/models';
 
-import {
-  Modal,
-  ModalCloseButton,
-  ModalHeader,
-  ModalTitle,
-} from '#components/common/Modal';
-import { Notes } from '#components/Notes';
-import { validateAccountName } from '#components/util/accountValidation';
-import { useAccount } from '#hooks/useAccount';
-import { useAccounts } from '#hooks/useAccounts';
-import { useNotes } from '#hooks/useNotes';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {Modal, ModalCloseButton, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {Notes} from '#components/Notes';
+import {validateAccountName} from '#components/util/accountValidation';
+import {useAccount} from '#hooks/useAccount';
+import {useAccounts} from '#hooks/useAccounts';
+import {useNotes} from '#hooks/useNotes';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
-type AccountMenuModalProps = Extract<
-  ModalType,
-  { name: 'account-menu' }
->['options'];
+type AccountMenuModalProps = Extract<ModalType, {name: 'account-menu'}>['options'];
 
 export function AccountMenuModal({
   accountId,
@@ -62,14 +50,12 @@ export function AccountMenuModal({
   onToggleRunningBalance,
   onToggleReconciled,
 }: AccountMenuModalProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const account = useAccount(accountId);
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const originalNotes = useNotes(`account-${accountId}`);
   const [accountNameError, setAccountNameError] = useState('');
-  const [currentAccountName, setCurrentAccountName] = useState(
-    account?.name || t('New Account'),
-  );
+  const [currentAccountName, setCurrentAccountName] = useState(account?.name || t('New Account'));
 
   const onRename = (newName: string) => {
     newName = newName.trim();
@@ -83,11 +69,7 @@ export function AccountMenuModal({
     }
 
     if (newName !== account.name) {
-      const renameAccountError = validateAccountName(
-        newName,
-        accountId,
-        accounts,
-      );
+      const renameAccountError = validateAccountName(newName, accountId, accounts);
       if (renameAccountError) {
         setAccountNameError(renameAccountError);
       } else {
@@ -132,7 +114,7 @@ export function AccountMenuModal({
         },
       }}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             leftContent={
@@ -146,15 +128,9 @@ export function AccountMenuModal({
             }
             title={
               <Fragment>
-                <ModalTitle
-                  isEditable
-                  title={currentAccountName}
-                  onTitleUpdate={onRename}
-                />
+                <ModalTitle isEditable title={currentAccountName} onTitleUpdate={onRename} />
                 {accountNameError && (
-                  <View style={{ color: theme.warningText }}>
-                    {accountNameError}
-                  </View>
+                  <View style={{color: theme.warningText}}>{accountNameError}</View>
                 )}
               </Fragment>
             }
@@ -173,11 +149,7 @@ export function AccountMenuModal({
               }}
             >
               <Notes
-                notes={
-                  originalNotes && originalNotes.length > 0
-                    ? originalNotes
-                    : t('No notes')
-                }
+                notes={originalNotes && originalNotes.length > 0 ? originalNotes : t('No notes')}
                 editable={false}
                 focused={false}
                 getStyle={() => ({
@@ -200,20 +172,12 @@ export function AccountMenuModal({
               }}
             >
               <Button style={buttonStyle} onPress={_onEditNotes}>
-                <SvgNotesPaper
-                  width={20}
-                  height={20}
-                  style={{ paddingRight: 5 }}
-                />
+                <SvgNotesPaper width={20} height={20} style={{paddingRight: 5}} />
                 <Trans>Edit notes</Trans>
               </Button>
               {canReconcile && (
                 <Button style={buttonStyle} onPress={() => onReconcile?.()}>
-                  <SvgLockClosed
-                    width={20}
-                    height={20}
-                    style={{ paddingRight: 5 }}
-                  />
+                  <SvgLockClosed width={20} height={20} style={{paddingRight: 5}} />
                   <Trans>Reconcile</Trans>
                 </Button>
               )}
@@ -240,7 +204,7 @@ function AdditionalAccountMenu({
   onToggleRunningBalance,
   onToggleReconciled,
 }: AdditionalAccountMenuProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const triggerRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const itemStyle: CSSProperties = {
@@ -250,7 +214,7 @@ function AdditionalAccountMenu({
 
   const getItemStyle: ComponentProps<typeof Menu>['getItemStyle'] = item => ({
     ...itemStyle,
-    ...(item.name === 'close' && { color: theme.errorTextMenu }),
+    ...(item.name === 'close' && {color: theme.errorTextMenu}),
   });
   const [showBalances] = useSyncedPref(`show-balances-${account.id}`);
   const [hideReconciled] = useSyncedPref(`hide-reconciled-${account.id}`);
@@ -265,11 +229,7 @@ function AdditionalAccountMenu({
           setMenuOpen(true);
         }}
       >
-        <SvgDotsHorizontalTriple
-          width={17}
-          height={17}
-          style={{ color: 'currentColor' }}
-        />
+        <SvgDotsHorizontalTriple width={17} height={17} style={{color: 'currentColor'}} />
         <Popover
           triggerRef={triggerRef}
           isOpen={menuOpen}
@@ -282,9 +242,7 @@ function AdditionalAccountMenu({
               {
                 name: 'balance',
                 text:
-                  showBalances === 'true'
-                    ? t('Hide running balance')
-                    : t('Show running balance'),
+                  showBalances === 'true' ? t('Hide running balance') : t('Show running balance'),
               },
               {
                 name: 'toggle-reconciled',

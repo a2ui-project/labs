@@ -14,33 +14,27 @@
  * limitations under the License.
  */
 
-import type { ComponentProps, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {ComponentProps, ReactNode} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { DateRangePicker } from '@actual-app/components/date-range-picker';
-import type {
-  DateRangeGranularity,
-  DateRangePreset,
-} from '@actual-app/components/date-range-picker';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {DateRangePicker} from '@actual-app/components/date-range-picker';
+import type {DateRangeGranularity, DateRangePreset} from '@actual-app/components/date-range-picker';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  RuleConditionEntity,
-  TimeFrame,
-} from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import type {RuleConditionEntity, TimeFrame} from '@actual-app/core/types/models';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 
-import { AppliedFilters } from '#components/filters/AppliedFilters';
-import { FilterButton } from '#components/filters/FiltersMenu';
-import { getFirstDayOfWeek } from '#components/select/getFirstDayOfWeek';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useLanguage } from '#hooks/useLocale';
+import {AppliedFilters} from '#components/filters/AppliedFilters';
+import {FilterButton} from '#components/filters/FiltersMenu';
+import {getFirstDayOfWeek} from '#components/select/getFirstDayOfWeek';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useLanguage} from '#hooks/useLocale';
 
-import { buildDateRangePresets } from './dateRangePresets';
-import { calculateTimeRange } from './reportRanges';
+import {buildDateRangePresets} from './dateRangePresets';
+import {calculateTimeRange} from './reportRanges';
 
 type HeaderProps = {
   start: TimeFrame['start'];
@@ -49,7 +43,7 @@ type HeaderProps = {
   show1Month?: boolean;
   showFutureRange?: boolean;
   hideModeToggle?: boolean;
-  allMonths: Array<{ name: string }>;
+  allMonths: Array<{name: string}>;
   earliestTransaction: string;
   latestTransaction: string;
   firstDayOfWeekIdx?: SyncedPrefs['firstDayOfWeekIdx'];
@@ -73,9 +67,7 @@ type HeaderProps = {
       onUpdateFilter: ComponentProps<typeof AppliedFilters>['onUpdate'];
       onDeleteFilter: ComponentProps<typeof AppliedFilters>['onDelete'];
       conditionsOp: 'and' | 'or';
-      onConditionsOpChange: ComponentProps<
-        typeof AppliedFilters
-      >['onConditionsOpChange'];
+      onConditionsOpChange: ComponentProps<typeof AppliedFilters>['onConditionsOpChange'];
     }
   | {
       filters?: never;
@@ -111,8 +103,8 @@ export function Header({
   filterExclude,
   filterInclude,
 }: HeaderProps) {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
   const language = useLanguage();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
 
@@ -166,9 +158,7 @@ export function Header({
             granularities={granularities}
             // allMonths is newest-first and may be empty before reports load.
             minDate={
-              allMonths.length
-                ? allMonths[allMonths.length - 1].name
-                : monthUtils.currentMonth()
+              allMonths.length ? allMonths[allMonths.length - 1].name : monthUtils.currentMonth()
             }
             maxDate={
               showFutureRange
@@ -193,9 +183,7 @@ export function Header({
               dateRange: t('Date range'),
             }}
             presets={presets}
-            onChangeDates={(newStart, newEnd) =>
-              onChangeDates(newStart, newEnd, 'static')
-            }
+            onChangeDates={(newStart, newEnd) => onChangeDates(newStart, newEnd, 'static')}
           />
           {filters && (
             <FilterButton
@@ -224,7 +212,7 @@ export function Header({
       </View>
 
       {filters && filters.length > 0 && (
-        <View style={{ marginTop: 5 }}>
+        <View style={{marginTop: 5}}>
           <AppliedFilters
             conditions={filters}
             onUpdate={onUpdateFilter}

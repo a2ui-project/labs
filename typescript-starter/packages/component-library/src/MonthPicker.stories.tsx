@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
+import {useState} from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
+import type {Meta, StoryObj} from '@storybook/react-vite';
+import {fn} from 'storybook/test';
 
-import { MonthPicker } from './MonthPicker';
+import {MonthPicker} from './MonthPicker';
 
 const meta = {
   title: 'Components/MonthPicker',
@@ -30,7 +30,7 @@ const meta = {
   args: {
     value: '2024-06',
     locale: 'en-US',
-    labels: { previous: 'Previous', next: 'Next' },
+    labels: {previous: 'Previous', next: 'Next'},
     onChange: fn(),
   },
   tags: ['autodocs'],

@@ -15,17 +15,13 @@
  */
 
 import * as db from '#server/db';
-import type { DbSchedule } from '#server/db';
+import type {DbSchedule} from '#server/db';
 
-import { GOAL_PREFIX, TEMPLATE_PREFIX } from './template-notes';
+import {GOAL_PREFIX, TEMPLATE_PREFIX} from './template-notes';
 
-export async function resetCategoryGoalDefsWithNoTemplates(
-  categoryIds?: string[],
-): Promise<void> {
+export async function resetCategoryGoalDefsWithNoTemplates(categoryIds?: string[]): Promise<void> {
   if (categoryIds?.length === 0) return;
-  const scopeClause = categoryIds
-    ? `AND id IN (${categoryIds.map(() => '?').join(',')})`
-    : '';
+  const scopeClause = categoryIds ? `AND id IN (${categoryIds.map(() => '?').join(',')})` : '';
   await db.run(
     `
       UPDATE categories
@@ -51,12 +47,8 @@ export async function getCategoriesWithTemplateNotes(
   categoryIds?: string[],
 ): Promise<CategoryWithTemplateNote[]> {
   if (categoryIds?.length === 0) return [];
-  const scopeClause = categoryIds
-    ? `AND c.id IN (${categoryIds.map(() => '?').join(',')})`
-    : '';
-  return await db.all<
-    Pick<db.DbCategory, 'id' | 'name'> & Pick<db.DbNote, 'note'>
-  >(
+  const scopeClause = categoryIds ? `AND c.id IN (${categoryIds.map(() => '?').join(',')})` : '';
+  return await db.all<Pick<db.DbCategory, 'id' | 'name'> & Pick<db.DbNote, 'note'>>(
     `
       SELECT c.id AS id, c.name as name, n.note AS note
       FROM notes n
@@ -76,13 +68,7 @@ export async function getActiveSchedules() {
   return await db.all<
     Pick<
       DbSchedule,
-      | 'id'
-      | 'rule'
-      | 'active'
-      | 'completed'
-      | 'posts_transaction'
-      | 'tombstone'
-      | 'name'
+      'id' | 'rule' | 'active' | 'completed' | 'posts_transaction' | 'tombstone' | 'name'
     >
   >(
     'SELECT id, rule, active, completed, posts_transaction, tombstone, name from schedules WHERE name NOT NULL AND tombstone = 0',

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Button } from './Button';
-import { SpaceBetween } from './SpaceBetween';
-import { View } from './View';
+import {Button} from './Button';
+import {SpaceBetween} from './SpaceBetween';
+import {View} from './View';
 
 const meta = {
   title: 'Components/SpaceBetween',
@@ -38,7 +38,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const Box = ({ children }: { children: string }) => (
+const Box = ({children}: {children: string}) => (
   <View
     style={{
       padding: '10px 20px',
@@ -65,8 +65,7 @@ export const Horizontal: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'SpaceBetween lays out children horizontally with even spacing by default.',
+        story: 'SpaceBetween lays out children horizontally with even spacing by default.',
       },
     },
   },

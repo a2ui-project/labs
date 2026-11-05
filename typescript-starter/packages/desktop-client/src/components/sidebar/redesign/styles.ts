@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { radius } from '@actual-app/components/tokens';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {radius} from '@actual-app/components/tokens';
 
 export const sectionLabelStyle = {
   fontSize: 13,

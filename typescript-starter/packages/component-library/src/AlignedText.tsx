@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { ComponentProps, CSSProperties, ReactNode } from 'react';
+import type {ComponentProps, CSSProperties, ReactNode} from 'react';
 
-import { Block } from './Block';
-import { View } from './View';
+import {Block} from './Block';
+import {View} from './View';
 
 type AlignedTextProps = ComponentProps<typeof View> & {
   left: ReactNode;
@@ -43,10 +43,7 @@ export function AlignedText({
   };
 
   return (
-    <View
-      style={{ flexDirection: 'row', alignItems: 'center', ...style }}
-      {...nativeProps}
-    >
+    <View style={{flexDirection: 'row', alignItems: 'center', ...style}} {...nativeProps}>
       <Block
         style={{
           marginRight: 10,

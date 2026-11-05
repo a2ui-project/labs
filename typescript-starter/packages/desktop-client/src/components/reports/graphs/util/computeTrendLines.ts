@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import type { DataEntity, LegendEntity } from '@actual-app/core/types/models';
+import type {DataEntity, LegendEntity} from '@actual-app/core/types/models';
 
 export type TrendLineSegment = {
   id: string;
   color: string;
-  start: { x: string; y: number };
-  end: { x: string; y: number };
+  start: {x: string; y: number};
+  end: {x: string; y: number};
 };
 
 export function computeTrendLines(
@@ -34,9 +34,7 @@ export function computeTrendLines(
   const denom = n * sumSquares(n) - sumX ** 2;
   if (denom === 0) return [];
 
-  const rows = intervalData as unknown as ReadonlyArray<
-    Record<string, number | undefined>
-  >;
+  const rows = intervalData as unknown as ReadonlyArray<Record<string, number | undefined>>;
 
   return legend.map(entry => {
     let sumY = 0;
@@ -51,8 +49,8 @@ export function computeTrendLines(
     return {
       id: entry.id ?? entry.dataKey,
       color: entry.color,
-      start: { x: intervalData[0].date, y: intercept },
-      end: { x: intervalData[n - 1].date, y: intercept + slope * (n - 1) },
+      start: {x: intervalData[0].date, y: intercept},
+      end: {x: intervalData[n - 1].date, y: intercept + slope * (n - 1)},
     };
   });
 }

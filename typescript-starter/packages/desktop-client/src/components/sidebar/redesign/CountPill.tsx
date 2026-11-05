@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { radius, spacing } from '@actual-app/components/tokens';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {radius, spacing} from '@actual-app/components/tokens';
 
 type CountPillProps = {
   count: number;
 };
 
-export function CountPill({ count }: CountPillProps) {
+export function CountPill({count}: CountPillProps) {
   return (
     <Text
       style={{

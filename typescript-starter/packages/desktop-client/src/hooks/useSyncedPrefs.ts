@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 
-import { saveSyncedPrefs } from '#prefs/prefsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {saveSyncedPrefs} from '#prefs/prefsSlice';
+import {useDispatch, useSelector} from '#redux';
 
 type SetSyncedPrefsAction = (value: Partial<SyncedPrefs>) => void;
 
@@ -28,7 +28,7 @@ export function useSyncedPrefs(): [SyncedPrefs, SetSyncedPrefsAction] {
   const dispatch = useDispatch();
   const setPrefs = useCallback<SetSyncedPrefsAction>(
     newValue => {
-      void dispatch(saveSyncedPrefs({ prefs: newValue }));
+      void dispatch(saveSyncedPrefs({prefs: newValue}));
     },
     [dispatch],
   );

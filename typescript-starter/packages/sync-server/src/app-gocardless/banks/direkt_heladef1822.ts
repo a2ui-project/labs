@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -23,11 +23,10 @@ export default {
   institutionIds: ['DIREKT_HELADEF1822'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     editedTrans.remittanceInformationUnstructured =
-      transaction.remittanceInformationUnstructured ??
-      transaction.remittanceInformationStructured;
+      transaction.remittanceInformationUnstructured ?? transaction.remittanceInformationStructured;
 
     return Fallback.normalizeTransaction(transaction, booked, editedTrans);
   },

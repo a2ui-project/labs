@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 import {
   useLocation,
   // oxlint-disable-next-line eslint/no-restricted-imports
   useNavigate as useNavigateReactRouter,
 } from 'react-router';
-import type {
-  Location,
-  NavigateFunction,
-  NavigateOptions,
-  To,
-} from 'react-router';
+import type {Location, NavigateFunction, NavigateOptions, To} from 'react-router';
 
 export function useNavigate(): NavigateFunction {
   const location = useLocation();
@@ -36,8 +31,7 @@ export function useNavigate(): NavigateFunction {
         void navigate(to);
       } else {
         const optionsWithPrevLocation: NavigateOptions = {
-          replace:
-            options.replace || isSamePath(to, location) ? true : undefined,
+          replace: options.replace || isSamePath(to, location) ? true : undefined,
           ...options,
           state: {
             ...options?.state,
@@ -45,14 +39,12 @@ export function useNavigate(): NavigateFunction {
           },
         };
 
-        const { previousLocation, ...previousOriginalState } =
-          location.state || {};
+        const {previousLocation, ...previousOriginalState} = location.state || {};
 
         if (
           previousLocation == null ||
           !isSamePath(to, previousLocation) ||
-          JSON.stringify(options?.state || {}) !==
-            JSON.stringify(previousOriginalState)
+          JSON.stringify(options?.state || {}) !== JSON.stringify(previousOriginalState)
         ) {
           void navigate(to, optionsWithPrevLocation);
         } else {

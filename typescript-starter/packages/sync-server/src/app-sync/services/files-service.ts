@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { isAdmin } from '#account-db';
-import { FileNotFound, GenericFileError } from '#app-sync/errors';
-import type { WrappedDatabase } from '#db';
-import { isValidFileId, isValidGroupId } from '#util/paths';
-import type { FileId, GroupId } from '#util/paths';
+import {isAdmin} from '#account-db';
+import {FileNotFound, GenericFileError} from '#app-sync/errors';
+import type {WrappedDatabase} from '#db';
+import {isValidFileId, isValidGroupId} from '#util/paths';
+import type {FileId, GroupId} from '#util/paths';
 
 class FileBase {
   name: string | null | undefined;
@@ -180,14 +180,12 @@ class FilesService {
     );
   }
 
-  find({ userId, limit = 1000 }: { userId: string; limit?: number }) {
+  find({userId, limit = 1000}: {userId: string; limit?: number}) {
     const canSeeAll = isAdmin(userId);
 
     return (
       canSeeAll
-        ? this.accountDb.all('SELECT * FROM files WHERE deleted = 0 LIMIT ?', [
-            limit,
-          ])
+        ? this.accountDb.all('SELECT * FROM files WHERE deleted = 0 LIMIT ?', [limit])
         : this.accountDb.all(
             `SELECT files.*
         FROM files
@@ -269,14 +267,14 @@ class FilesService {
       const res = this.accountDb.mutate(query, params);
 
       if (res.changes !== 1) {
-        throw new GenericFileError('Could not update File', { id });
+        throw new GenericFileError('Could not update File', {id});
       }
     }
 
     // Return the modified object
     const rawFile = this.getRaw(id);
     if (!rawFile) {
-      throw new GenericFileError('File not found', { id });
+      throw new GenericFileError('File not found', {id});
     }
     return this.validate(rawFile);
   }
@@ -288,7 +286,7 @@ class FilesService {
   validate(rawFile: RawFile) {
     const fileId = rawFile.id;
     if (!isValidFileId(fileId)) {
-      throw new GenericFileError('Invalid file ID', { fileId });
+      throw new GenericFileError('Invalid file ID', {fileId});
     }
 
     let groupId: GroupId | null = null;
@@ -316,4 +314,4 @@ class FilesService {
   }
 }
 
-export { FilesService, File, FileUpdate };
+export {FilesService, File, FileUpdate};

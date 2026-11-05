@@ -289,7 +289,7 @@ const sidebars = {
         {
           type: 'category',
           label: 'API',
-          link: { type: 'doc', id: 'api/index' },
+          link: {type: 'doc', id: 'api/index'},
           items: [
             'api/reference',
             'api/cli',

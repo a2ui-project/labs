@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-import { createApp } from '#server/app';
-import { aqlQuery } from '#server/aql';
+import {createApp} from '#server/app';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { APIError } from '#server/errors';
-import { categoryGroupModel, categoryModel } from '#server/models';
-import { mutator } from '#server/mutators';
+import {APIError} from '#server/errors';
+import {categoryGroupModel, categoryModel} from '#server/models';
+import {mutator} from '#server/mutators';
 import * as sheet from '#server/sheet';
-import { resolveName } from '#server/spreadsheet/util';
-import { batchMessages } from '#server/sync';
-import { undoable } from '#server/undo';
+import {resolveName} from '#server/spreadsheet/util';
+import {batchMessages} from '#server/sync';
+import {undoable} from '#server/undo';
 import * as monthUtils from '#shared/months';
-import { q } from '#shared/query';
-import type { CategoryEntity, CategoryGroupEntity } from '#types/models';
+import {q} from '#shared/query';
+import type {CategoryEntity, CategoryGroupEntity} from '#types/models';
 
 import * as actions from './actions';
 import * as budget from './base';
 import * as cleanupGroupActions from './cleanup-groups';
 import * as cleanupActions from './cleanup-template';
-import { storeNoteCleanups } from './cleanup-template-notes';
+import {storeNoteCleanups} from './cleanup-template-notes';
 import * as goalActions from './goal-template';
-import { sortCategories } from './sort-categories';
+import {sortCategories} from './sort-categories';
 import * as goalNoteActions from './template-notes';
 
 export type BudgetHandlers = {
@@ -88,76 +88,34 @@ export type BudgetHandlers = {
 export const app = createApp<BudgetHandlers>();
 
 app.method('budget/budget-amount', mutator(undoable(actions.setBudget)));
-app.method(
-  'budget/copy-previous-month',
-  mutator(undoable(actions.copyPreviousMonth)),
-);
-app.method(
-  'budget/copy-single-month',
-  mutator(undoable(actions.copySinglePreviousMonth)),
-);
+app.method('budget/copy-previous-month', mutator(undoable(actions.copyPreviousMonth)));
+app.method('budget/copy-single-month', mutator(undoable(actions.copySinglePreviousMonth)));
 app.method('budget/set-zero', mutator(undoable(actions.setZero)));
 app.method('budget/set-3month-avg', mutator(undoable(actions.set3MonthAvg)));
 app.method('budget/set-6month-avg', mutator(undoable(actions.set6MonthAvg)));
 app.method('budget/set-12month-avg', mutator(undoable(actions.set12MonthAvg)));
 app.method('budget/set-n-month-avg', mutator(undoable(actions.setNMonthAvg)));
-app.method(
-  'budget/check-templates',
-  mutator(undoable(goalActions.runCheckTemplates)),
-);
-app.method(
-  'budget/apply-goal-template',
-  mutator(undoable(goalActions.applyTemplate)),
-);
+app.method('budget/check-templates', mutator(undoable(goalActions.runCheckTemplates)));
+app.method('budget/apply-goal-template', mutator(undoable(goalActions.applyTemplate)));
 app.method(
   'budget/apply-multiple-templates',
   mutator(undoable(goalActions.applyMultipleCategoryTemplates)),
 );
-app.method(
-  'budget/overwrite-goal-template',
-  mutator(undoable(goalActions.overwriteTemplate)),
-);
+app.method('budget/overwrite-goal-template', mutator(undoable(goalActions.overwriteTemplate)));
 app.method(
   'budget/apply-single-template',
   mutator(undoable(goalActions.applySingleCategoryTemplate)),
 );
-app.method(
-  'budget/cleanup-goal-template',
-  mutator(undoable(cleanupActions.cleanupTemplate)),
-);
-app.method(
-  'budget/hold-for-next-month',
-  mutator(undoable(actions.holdForNextMonth)),
-);
+app.method('budget/cleanup-goal-template', mutator(undoable(cleanupActions.cleanupTemplate)));
+app.method('budget/hold-for-next-month', mutator(undoable(actions.holdForNextMonth)));
 app.method('budget/reset-hold', mutator(undoable(actions.resetHold)));
-app.method(
-  'budget/cover-overspending',
-  mutator(undoable(actions.coverOverspending)),
-);
-app.method(
-  'budget/transfer-available',
-  mutator(undoable(actions.transferAvailable)),
-);
-app.method(
-  'budget/cover-overbudgeted',
-  mutator(undoable(actions.coverOverbudgeted)),
-);
-app.method(
-  'budget/transfer-category',
-  mutator(undoable(actions.transferCategory)),
-);
-app.method(
-  'budget/copy-until-year-end',
-  mutator(undoable(actions.copyUntilYearEnd)),
-);
-app.method(
-  'budget/set-carryover',
-  mutator(undoable(actions.setCategoryCarryover)),
-);
-app.method(
-  'budget/reset-income-carryover',
-  mutator(undoable(actions.resetIncomeCarryover)),
-);
+app.method('budget/cover-overspending', mutator(undoable(actions.coverOverspending)));
+app.method('budget/transfer-available', mutator(undoable(actions.transferAvailable)));
+app.method('budget/cover-overbudgeted', mutator(undoable(actions.coverOverbudgeted)));
+app.method('budget/transfer-category', mutator(undoable(actions.transferCategory)));
+app.method('budget/copy-until-year-end', mutator(undoable(actions.copyUntilYearEnd)));
+app.method('budget/set-carryover', mutator(undoable(actions.setCategoryCarryover)));
+app.method('budget/reset-income-carryover', mutator(undoable(actions.resetIncomeCarryover)));
 app.method('get-categories', getCategories);
 app.method('get-budget-bounds', getBudgetBounds);
 app.method('envelope-budget-month', envelopeBudgetMonth);
@@ -174,22 +132,10 @@ app.method('category-group-move', mutator(undoable(moveCategoryGroup)));
 app.method('category-group-delete', mutator(undoable(deleteCategoryGroup)));
 app.method('must-category-transfer', isCategoryTransferRequired);
 
-app.method(
-  'budget/get-category-automations',
-  goalActions.getTemplatesForCategory,
-);
-app.method(
-  'budget/set-category-automations',
-  mutator(undoable(goalActions.storeTemplates)),
-);
-app.method(
-  'budget/dry-run-category-template',
-  goalActions.dryRunCategoryTemplate,
-);
-app.method(
-  'budget/store-note-templates',
-  mutator(goalNoteActions.storeNoteTemplates),
-);
+app.method('budget/get-category-automations', goalActions.getTemplatesForCategory);
+app.method('budget/set-category-automations', mutator(undoable(goalActions.storeTemplates)));
+app.method('budget/dry-run-category-template', goalActions.dryRunCategoryTemplate);
+app.method('budget/store-note-templates', mutator(goalNoteActions.storeNoteTemplates));
 app.method('budget/store-note-cleanups', mutator(storeNoteCleanups));
 app.method('budget/render-note-templates', goalNoteActions.unparse);
 app.method(
@@ -198,15 +144,15 @@ app.method(
 );
 
 // Server must return AQL entities not the raw DB data
-async function getCategories({ hidden }: { hidden?: boolean } = {}) {
-  const categoryGroups = await getCategoryGroups({ hidden });
+async function getCategories({hidden}: {hidden?: boolean} = {}) {
+  const categoryGroups = await getCategoryGroups({hidden});
   let list: CategoryEntity[];
   if (hidden === true) {
     // A hidden category can live in a visible group, so when the caller
     // explicitly asks for hidden categories the flat list must look beyond
     // the (already hidden-filtered) groups returned above.
-    const { data }: { data: CategoryEntity[] } = await aqlQuery(
-      q('categories').filter({ hidden: true }).select('*'),
+    const {data}: {data: CategoryEntity[]} = await aqlQuery(
+      q('categories').filter({hidden: true}).select('*'),
     );
     list = data;
   } else {
@@ -222,13 +168,13 @@ async function getBudgetBounds() {
   return await budget.createAllBudgets();
 }
 
-async function envelopeBudgetMonth({ month }: { month: string }) {
+async function envelopeBudgetMonth({month}: {month: string}) {
   const groups = await db.getCategoriesGrouped();
   const sheetName = monthUtils.sheetForMonth(month);
 
   function value(name: string) {
     const v = sheet.getCellValue(sheetName, name);
-    return { value: v === '' ? 0 : v, name: resolveName(sheetName, name) };
+    return {value: v === '' ? 0 : v, name: resolveName(sheetName, name)};
   }
 
   let values = [
@@ -276,13 +222,13 @@ async function envelopeBudgetMonth({ month }: { month: string }) {
   return values;
 }
 
-async function trackingBudgetMonth({ month }: { month: string }) {
+async function trackingBudgetMonth({month}: {month: string}) {
   const groups = await db.getCategoriesGrouped();
   const sheetName = monthUtils.sheetForMonth(month);
 
   function value(name: string) {
     const v = sheet.getCellValue(sheetName, name);
-    return { value: v === '' ? 0 : v, name: resolveName(sheetName, name) };
+    return {value: v === '' ? 0 : v, name: resolveName(sheetName, name)};
   }
 
   let values = [
@@ -354,14 +300,8 @@ async function updateCategory(category: CategoryEntity): Promise<void> {
       }),
     );
   } catch (e) {
-    if (
-      e instanceof Error &&
-      e.message.toLowerCase().includes('unique constraint')
-    ) {
-      throw new Error(
-        `A category with the name "${category.name}" already exists.`,
-        { cause: e },
-      );
+    if (e instanceof Error && e.message.toLowerCase().includes('unique constraint')) {
+      throw new Error(`A category with the name "${category.name}" already exists.`, {cause: e});
     }
     throw e;
   }
@@ -406,12 +346,7 @@ async function deleteCategory({
 
     if (transferId && !transfer) {
       throw new Error(`Transfer category with id ${transferId} not found.`);
-    } else if (
-      transferId &&
-      row &&
-      transfer &&
-      row.is_income !== transfer.is_income
-    ) {
+    } else if (transferId && row && transfer && row.is_income !== transfer.is_income) {
       throw new Error('Cannot transfer between income and expense categories.');
     }
 
@@ -423,16 +358,15 @@ async function deleteCategory({
       }
     }
 
-    await db.deleteCategory({ id }, transferId);
+    await db.deleteCategory({id}, transferId);
   });
 }
 
 // Server must return AQL entities not the raw DB data
-async function getCategoryGroups({ hidden }: { hidden?: boolean } = {}) {
+async function getCategoryGroups({hidden}: {hidden?: boolean} = {}) {
   const baseQuery = q('category_groups').select('*');
-  const query = hidden === undefined ? baseQuery : baseQuery.filter({ hidden });
-  const { data: categoryGroups }: { data: CategoryGroupEntity[] } =
-    await aqlQuery(query);
+  const query = hidden === undefined ? baseQuery : baseQuery.filter({hidden});
+  const {data: categoryGroups}: {data: CategoryGroupEntity[]} = await aqlQuery(query);
   if (hidden === undefined) {
     return categoryGroups;
   }
@@ -493,16 +427,12 @@ async function deleteCategoryGroup({
         transferId,
       );
     }
-    await db.deleteCategoryGroup({ id }, transferId);
+    await db.deleteCategoryGroup({id}, transferId);
   });
 }
 
-async function isCategoryTransferRequired({
-  id,
-}: {
-  id: CategoryEntity['id'];
-}) {
-  const res = db.runQuery<{ count: number }>(
+async function isCategoryTransferRequired({id}: {id: CategoryEntity['id']}) {
+  const res = db.runQuery<{count: number}>(
     `SELECT count(t.id) as count FROM transactions t
        LEFT JOIN category_mapping cm ON cm.id = t.category
        WHERE cm.transferId = ? AND t.tombstone = 0`,

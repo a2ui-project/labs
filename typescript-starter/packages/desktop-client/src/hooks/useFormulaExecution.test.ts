@@ -14,29 +14,17 @@
  * limitations under the License.
  */
 
-import {
-  clearServer,
-  initServer,
-} from '@actual-app/core/platform/client/connection';
-import { getCurrency } from '@actual-app/core/shared/currencies';
-import type {
-  RuleConditionEntity,
-  TimeFrame,
-} from '@actual-app/core/types/models';
-import { renderHook, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {clearServer, initServer} from '@actual-app/core/platform/client/connection';
+import {getCurrency} from '@actual-app/core/shared/currencies';
+import type {RuleConditionEntity, TimeFrame} from '@actual-app/core/types/models';
+import {renderHook, waitFor} from '@testing-library/react';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { TestProviders } from '#mocks';
+import {TestProviders} from '#mocks';
 
-import {
-  buildFilteredTransactionsQuery,
-  useFormulaExecution,
-} from './useFormulaExecution';
+import {buildFilteredTransactionsQuery, useFormulaExecution} from './useFormulaExecution';
 
-vi.mock(
-  '@actual-app/core/platform/client/connection',
-  () => import('#mocks/connection'),
-);
+vi.mock('@actual-app/core/platform/client/connection', () => import('#mocks/connection'));
 
 type SerializedQuery = {
   filterExpressions: ReadonlyArray<Record<string, unknown>>;
@@ -74,13 +62,8 @@ function queryHasCategory(query: SerializedQuery, categoryId: string) {
   });
 }
 
-function findQueryByCategory(
-  queryPayloads: SerializedQuery[],
-  categoryId: string,
-) {
-  const query = queryPayloads.find(payload =>
-    queryHasCategory(payload, categoryId),
-  );
+function findQueryByCategory(queryPayloads: SerializedQuery[], categoryId: string) {
+  const query = queryPayloads.find(payload => queryHasCategory(payload, categoryId));
   if (!query) {
     throw new Error(`No query found for category ${categoryId}`);
   }
@@ -93,10 +76,8 @@ function expectQueryDateRange(
   startDate: string,
   endDate: string,
 ) {
-  expect(
-    findQueryByCategory(queryPayloads, categoryId).filterExpressions[0],
-  ).toEqual({
-    $and: [{ date: { $gte: startDate } }, { date: { $lte: endDate } }],
+  expect(findQueryByCategory(queryPayloads, categoryId).filterExpressions[0]).toEqual({
+    $and: [{date: {$gte: startDate}}, {date: {$lte: endDate}}],
   });
 }
 
@@ -139,19 +120,19 @@ describe('formula query timeframes', () => {
         currencySymbolPosition: 'before',
         currencySpaceBetweenAmountAndSymbol: false,
       }),
-      'make-filters-from-conditions': async ({ conditions }) => {
+      'make-filters-from-conditions': async ({conditions}) => {
         const ruleConditions = Array.isArray(conditions) ? conditions : [];
 
         return {
           filters: ruleConditions.map(condition => {
-            const { field, value } = condition as RuleConditionEntity;
-            return { [field]: value };
+            const {field, value} = condition as RuleConditionEntity;
+            return {[field]: value};
           }),
         };
       },
       query: async payload => {
         queryPayloads.push(payload as unknown as SerializedQuery);
-        return { data: queryPayloads.length * 100, dependencies: [] };
+        return {data: queryPayloads.length * 100, dependencies: []};
       },
     });
   });
@@ -171,10 +152,7 @@ describe('formula query timeframes', () => {
 
     expect(query.serialize().filterExpressions).toEqual([
       {
-        $and: [
-          { date: { $gte: '2016-10-01' } },
-          { date: { $lte: '2017-01-31' } },
-        ],
+        $and: [{date: {$gte: '2016-10-01'}}, {date: {$lte: '2017-01-31'}}],
       },
     ]);
   });
@@ -188,10 +166,7 @@ describe('formula query timeframes', () => {
 
     expect(query.serialize().filterExpressions).toEqual([
       {
-        $and: [
-          { date: { $gte: '2016-12-01' } },
-          { date: { $lte: '2016-12-31' } },
-        ],
+        $and: [{date: {$gte: '2016-12-01'}}, {date: {$lte: '2016-12-31'}}],
       },
     ]);
   });
@@ -200,14 +175,9 @@ describe('formula query timeframes', () => {
     async function executeFormula() {
       queryPayloads = [];
 
-      const { result, unmount } = renderHook(
-        () =>
-          useFormulaExecution(
-            '=QUERY("Income") + QUERY("Expenses")',
-            formulaQueries,
-            0,
-          ),
-        { wrapper: TestProviders },
+      const {result, unmount} = renderHook(
+        () => useFormulaExecution('=QUERY("Income") + QUERY("Expenses")', formulaQueries, 0),
+        {wrapper: TestProviders},
       );
 
       await waitFor(() => expect(result.current.result).toBe(3));
@@ -220,23 +190,13 @@ describe('formula query timeframes', () => {
     const juneQueries = await executeFormula();
 
     expectQueryDateRange(juneQueries, 'income-cat', '2026-04-01', '2026-06-30');
-    expectQueryDateRange(
-      juneQueries,
-      'expense-cat',
-      '2026-06-01',
-      '2026-06-30',
-    );
+    expectQueryDateRange(juneQueries, 'expense-cat', '2026-06-01', '2026-06-30');
 
     global.currentMonth = '2026-07';
     const julyQueries = await executeFormula();
 
     expectQueryDateRange(julyQueries, 'income-cat', '2026-05-01', '2026-07-31');
-    expectQueryDateRange(
-      julyQueries,
-      'expense-cat',
-      '2026-07-01',
-      '2026-07-31',
-    );
+    expectQueryDateRange(julyQueries, 'expense-cat', '2026-07-01', '2026-07-31');
   });
 });
 
@@ -258,7 +218,7 @@ describe('BALANCE_OF in query mode', () => {
       }),
       query: async payload => {
         queryPayloads.push(payload as unknown as SerializedQuery);
-        return { data: 12345, dependencies: [] };
+        return {data: 12345, dependencies: []};
       },
     });
   });
@@ -268,50 +228,50 @@ describe('BALANCE_OF in query mode', () => {
   });
 
   it('resolves an account by id and queries its balance', async () => {
-    const { result } = renderHook(
+    const {result} = renderHook(
       () =>
         useFormulaExecution('=BALANCE_OF("acc1")', {}, 0, undefined, [
-          { id: 'acc1', name: 'Checking' },
+          {id: 'acc1', name: 'Checking'},
         ]),
-      { wrapper: TestProviders },
+      {wrapper: TestProviders},
     );
 
     await waitFor(() => expect(result.current.result).toBe(123.45));
 
     const balanceQuery = queryPayloads.find(payload =>
       payload.filterExpressions.some(
-        expression => (expression as { account?: string }).account === 'acc1',
+        expression => (expression as {account?: string}).account === 'acc1',
       ),
     );
     expect(balanceQuery).toBeDefined();
   });
 
   it('resolves an account by exact name', async () => {
-    const { result } = renderHook(
+    const {result} = renderHook(
       () =>
         useFormulaExecution('=BALANCE_OF("Checking")', {}, 0, undefined, [
-          { id: 'acc1', name: 'Checking' },
+          {id: 'acc1', name: 'Checking'},
         ]),
-      { wrapper: TestProviders },
+      {wrapper: TestProviders},
     );
 
     await waitFor(() => expect(result.current.result).toBe(123.45));
 
     const balanceQuery = queryPayloads.find(payload =>
       payload.filterExpressions.some(
-        expression => (expression as { account?: string }).account === 'acc1',
+        expression => (expression as {account?: string}).account === 'acc1',
       ),
     );
     expect(balanceQuery).toBeDefined();
   });
 
   it('returns 0 for an unknown account', async () => {
-    const { result } = renderHook(
+    const {result} = renderHook(
       () =>
         useFormulaExecution('=BALANCE_OF("nope")', {}, 0, undefined, [
-          { id: 'acc1', name: 'Checking' },
+          {id: 'acc1', name: 'Checking'},
         ]),
-      { wrapper: TestProviders },
+      {wrapper: TestProviders},
     );
 
     await waitFor(() => expect(result.current.result).toBe(0));
@@ -350,12 +310,12 @@ describe('formula execution stability', () => {
     // objects have a fresh identity on every render. Keying the effect on
     // identity would re-execute forever, flickering the card between value and
     // skeleton.
-    const { result, rerender } = renderHook(
+    const {result, rerender} = renderHook(
       () =>
-        useFormulaExecution('=SUM(1, 2, 3)', {}, undefined, { RESULT: 0 }, [
-          { id: 'acc1', name: 'Checking' },
+        useFormulaExecution('=SUM(1, 2, 3)', {}, undefined, {RESULT: 0}, [
+          {id: 'acc1', name: 'Checking'},
         ]),
-      { wrapper: TestProviders },
+      {wrapper: TestProviders},
     );
 
     await waitFor(() => expect(result.current.result).toBe(6));
@@ -370,34 +330,31 @@ describe('formula execution stability', () => {
   });
 
   it('re-executes when the queries contents actually change', async () => {
-    const { result, rerender } = renderHook(
-      ({ conditionValue }: { conditionValue: string }) =>
+    const {result, rerender} = renderHook(
+      ({conditionValue}: {conditionValue: string}) =>
         useFormulaExecution('=SUM(1, 2, 3)', {
-          Income: { conditions: [categoryCondition(conditionValue)] },
+          Income: {conditions: [categoryCondition(conditionValue)]},
         }),
       {
         wrapper: TestProviders,
-        initialProps: { conditionValue: 'income-cat' },
+        initialProps: {conditionValue: 'income-cat'},
       },
     );
 
     await waitFor(() => expect(result.current.result).toBe(6));
     expect(executionCount).toBe(1);
 
-    rerender({ conditionValue: 'other-cat' });
+    rerender({conditionValue: 'other-cat'});
 
     await waitFor(() => expect(executionCount).toBe(2));
   });
 
   it('clears the loading state for a formula that does not start with =', async () => {
-    const { result } = renderHook(
-      () => useFormulaExecution('SUM(1, 2, 3)', {}),
-      { wrapper: TestProviders },
-    );
+    const {result} = renderHook(() => useFormulaExecution('SUM(1, 2, 3)', {}), {
+      wrapper: TestProviders,
+    });
 
-    await waitFor(() =>
-      expect(result.current.error).toBe('Formula must start with ='),
-    );
+    await waitFor(() => expect(result.current.error).toBe('Formula must start with ='));
     expect(result.current.isLoading).toBe(false);
   });
 });

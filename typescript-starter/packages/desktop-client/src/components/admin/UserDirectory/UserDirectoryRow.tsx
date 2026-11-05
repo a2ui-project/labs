@@ -15,18 +15,18 @@
  */
 
 // @ts-strict-ignore
-import React, { memo } from 'react';
-import { Trans } from 'react-i18next';
+import React, {memo} from 'react';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { PossibleRoles } from '@actual-app/core/shared/user';
-import type { UserEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {PossibleRoles} from '@actual-app/core/shared/user';
+import type {UserEntity} from '@actual-app/core/types/models';
 
-import { Checkbox } from '#components/forms';
-import { Cell, Row, SelectCell } from '#components/table';
-import { useSelectedDispatch } from '#hooks/useSelected';
+import {Checkbox} from '#components/forms';
+import {Cell, Row, SelectCell} from '#components/table';
+import {useSelectedDispatch} from '#hooks/useSelected';
 
 type UserDirectoryProps = {
   user: UserEntity;
@@ -37,7 +37,7 @@ type UserDirectoryProps = {
 };
 
 export const UserDirectoryRow = memo(
-  ({ user, hovered, selected, onHover, onEditUser }: UserDirectoryProps) => {
+  ({user, hovered, selected, onHover, onEditUser}: UserDirectoryProps) => {
     const dispatchSelected = useSelectedDispatch();
     const borderColor = selected ? theme.tableBorderSelected : 'none';
     const backgroundFocus = hovered;
@@ -73,19 +73,9 @@ export const UserDirectoryRow = memo(
             selected={selected}
           />
         )}
-        {user.owner && (
-          <Cell
-            width={20}
-            style={{ alignItems: 'center', userSelect: 'none' }}
-          />
-        )}
+        {user.owner && <Cell width={20} style={{alignItems: 'center', userSelect: 'none'}} />}
 
-        <Cell
-          name="userName"
-          width="flex"
-          plain
-          style={{ color: theme.tableText }}
-        >
+        <Cell name="userName" width="flex" plain style={{color: theme.tableText}}>
           <View
             style={{
               alignSelf: 'flex-start',
@@ -96,12 +86,7 @@ export const UserDirectoryRow = memo(
           </View>
         </Cell>
 
-        <Cell
-          name="displayName"
-          width={250}
-          plain
-          style={{ color: theme.tableText }}
-        >
+        <Cell name="displayName" width={250} plain style={{color: theme.tableText}}>
           <View
             style={{
               alignSelf: 'flex-start',
@@ -112,41 +97,21 @@ export const UserDirectoryRow = memo(
           </View>
         </Cell>
 
-        <Cell
-          name="role"
-          width={100}
-          plain
-          style={{ padding: '0 15px', paddingLeft: 5 }}
-        >
+        <Cell name="role" width={100} plain style={{padding: '0 15px', paddingLeft: 5}}>
           <View>{PossibleRoles[user.role]}</View>
         </Cell>
 
-        <Cell
-          name="enabled"
-          width={100}
-          plain
-          style={{ padding: '0 15px', paddingLeft: 5 }}
-        >
+        <Cell name="enabled" width={100} plain style={{padding: '0 15px', paddingLeft: 5}}>
           <Checkbox checked={user.enabled} disabled />
         </Cell>
 
-        <Cell
-          name="owner"
-          width={100}
-          plain
-          style={{ padding: '0 15px', paddingLeft: 5 }}
-        >
+        <Cell name="owner" width={100} plain style={{padding: '0 15px', paddingLeft: 5}}>
           <Checkbox checked={user.owner} disabled />
         </Cell>
 
-        <Cell
-          name="edit"
-          width={80}
-          plain
-          style={{ padding: 0, paddingLeft: 5 }}
-        >
+        <Cell name="edit" width={80} plain style={{padding: 0, paddingLeft: 5}}>
           <Button
-            style={{ margin: 4, fontSize: 14, color: theme.pageTextLink }}
+            style={{margin: 4, fontSize: 14, color: theme.pageTextLink}}
             variant="bare"
             onPress={() => onEditUser?.(user)}
           >

@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 
 import * as asyncStorage from '#platform/server/asyncStorage';
 import * as aql from '#server/aql';
 import * as db from '#server/db';
-import { handlers } from '#server/main';
-import { runHandler } from '#server/mutators';
-import { Action } from '#server/rules/action';
+import {handlers} from '#server/main';
+import {runHandler} from '#server/mutators';
+import {Action} from '#server/rules/action';
 
-import {
-  ensureFormulaPreferencesLoaded,
-  resetFormulaPreferencesCache,
-} from './bootstrap';
-import { loadUserPreferencesForFormulas } from './customFunctionsPreferences';
+import {ensureFormulaPreferencesLoaded, resetFormulaPreferencesCache} from './bootstrap';
+import {loadUserPreferencesForFormulas} from './customFunctionsPreferences';
 
 function executeFormula(formula: string) {
-  const action = new Action('set', 'notes', null, { formula });
-  const transaction = { notes: '' };
+  const action = new Action('set', 'notes', null, {formula});
+  const transaction = {notes: ''};
 
   action.exec(transaction);
 
@@ -143,10 +140,7 @@ describe('formula preference bootstrap', () => {
     vi.mocked(asyncStorage.getItem).mockResolvedValue('de-DE');
     await ensureFormulaPreferencesLoaded();
 
-    expect(vi.mocked(asyncStorage.setItem)).toHaveBeenCalledWith(
-      'language',
-      'de-DE',
-    );
+    expect(vi.mocked(asyncStorage.setItem)).toHaveBeenCalledWith('language', 'de-DE');
     expect(executeFormula('=FORMATNUMBER(1234.5, 2)')).toBe('1.234,50');
   });
 });

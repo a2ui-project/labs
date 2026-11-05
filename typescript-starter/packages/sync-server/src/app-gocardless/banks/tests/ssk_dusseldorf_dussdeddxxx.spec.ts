@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { MockInstance } from 'vitest';
+import type {MockInstance} from 'vitest';
 
 import SskDusseldorfDussdeddxxx from '#app-gocardless/banks/ssk_dusseldorf_dussdeddxxx';
 
@@ -60,33 +60,21 @@ describe('ssk_dusseldorf_dussdeddxxx', () => {
 
     it('properly combines remittance information', () => {
       expect(
-        SskDusseldorfDussdeddxxx.normalizeTransaction(
-          bookedTransactionOne,
-          true,
-        )?.notes,
+        SskDusseldorfDussdeddxxx.normalizeTransaction(bookedTransactionOne, true)?.notes,
       ).toEqual('unstructured information some additional information');
 
       expect(
-        SskDusseldorfDussdeddxxx.normalizeTransaction(
-          bookedTransactionTwo,
-          true,
-        )?.notes,
+        SskDusseldorfDussdeddxxx.normalizeTransaction(bookedTransactionTwo, true)?.notes,
       ).toEqual('structured information some additional information');
     });
 
     it('prioritizes creditor names correctly', () => {
       expect(
-        SskDusseldorfDussdeddxxx.normalizeTransaction(
-          bookedTransactionOne,
-          true,
-        )?.payeeName,
+        SskDusseldorfDussdeddxxx.normalizeTransaction(bookedTransactionOne, true)?.payeeName,
       ).toEqual('A Useful Creditor Name');
 
       expect(
-        SskDusseldorfDussdeddxxx.normalizeTransaction(
-          bookedTransactionTwo,
-          true,
-        )?.payeeName,
+        SskDusseldorfDussdeddxxx.normalizeTransaction(bookedTransactionTwo, true)?.payeeName,
       ).toEqual('Ultimate Creditor');
     });
 
@@ -102,12 +90,7 @@ describe('ssk_dusseldorf_dussdeddxxx', () => {
     };
 
     it('returns null for unbooked transactions', () => {
-      expect(
-        SskDusseldorfDussdeddxxx.normalizeTransaction(
-          unbookedTransaction,
-          false,
-        ),
-      ).toBeNull();
+      expect(SskDusseldorfDussdeddxxx.normalizeTransaction(unbookedTransaction, false)).toBeNull();
 
       expect(consoleSpy).toHaveBeenCalledWith(
         'Skipping unbooked transaction:',

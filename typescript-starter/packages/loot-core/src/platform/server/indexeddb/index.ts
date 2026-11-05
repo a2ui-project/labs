@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 
 let openedDb: null | ReturnType<typeof _openDatabase> = _openDatabase();
 
@@ -40,7 +40,7 @@ function _openDatabase() {
         db.createObjectStore('asyncStorage');
       }
       if (!db.objectStoreNames.contains('files')) {
-        db.createObjectStore('files', { keyPath: 'filepath' });
+        db.createObjectStore('files', {keyPath: 'filepath'});
       }
     };
 
@@ -74,17 +74,14 @@ function _openDatabase() {
   });
 }
 
-type Data = { filepath: string; contents: string };
+type Data = {filepath: string; contents: string};
 
 export const getStore = function (db: IDBDatabase, name: string) {
   const trans = db.transaction([name], 'readwrite');
-  return { trans, store: trans.objectStore(name) };
+  return {trans, store: trans.objectStore(name)};
 };
 
-export const get = async function (
-  store: IDBObjectStore,
-  key: IDBValidKey | IDBKeyRange,
-) {
+export const get = async function (store: IDBObjectStore, key: IDBValidKey | IDBKeyRange) {
   return new Promise<Data>((resolve, reject) => {
     const req = store.get(key);
     req.onsuccess = () => {

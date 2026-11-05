@@ -18,10 +18,10 @@
 
 import * as connection from '#platform/server/connection';
 import * as db from '#server/db';
-import { incrFetch, whereIn } from '#server/db/util';
-import { batchMessages } from '#server/sync';
-import type { Diff } from '#shared/util';
-import type { PayeeEntity, TransactionEntity } from '#types/models';
+import {incrFetch, whereIn} from '#server/db/util';
+import {batchMessages} from '#server/sync';
+import type {Diff} from '#shared/util';
+import type {PayeeEntity, TransactionEntity} from '#types/models';
 
 import * as rules from './transaction-rules';
 import * as transfer from './transfer';
@@ -38,9 +38,7 @@ async function idsWithChildren(ids: string[]) {
   return [...set];
 }
 
-async function getTransactionsByIds(
-  ids: string[],
-): Promise<TransactionEntity[]> {
+async function getTransactionsByIds(ids: string[]): Promise<TransactionEntity[]> {
   // TODO: convert to whereIn
   //
   // or better yet, use ActualQL
@@ -68,17 +66,14 @@ export async function batchUpdateTransactions({
   // Track the ids of each type of transaction change (see below for why)
   let addedIds = [];
   const updatedIds = updated ? updated.map(u => u.id) : [];
-  const deletedIds = deleted
-    ? await idsWithChildren(deleted.map(d => d.id))
-    : [];
+  const deletedIds = deleted ? await idsWithChildren(deleted.map(d => d.id)) : [];
 
   const oldPayees = new Set<PayeeEntity['id']>();
 
   // Accounts are only needed to clear the category of off-budget
   // transactions, so skip the read for edits that don't set an account
   const needsAccounts =
-    (added?.length ?? 0) > 0 ||
-    (updated?.some(transaction => transaction.account) ?? false);
+    (added?.length ?? 0) > 0 || (updated?.some(transaction => transaction.account) ?? false);
   const accounts = needsAccounts
     ? await db.all<db.DbAccount>('SELECT * FROM accounts WHERE tombstone = 0')
     : [];
@@ -86,9 +81,7 @@ export async function batchUpdateTransactions({
   // We need to get all the payees of updated transactions _before_
   // making changes
   if (updated) {
-    const descUpdatedIds = updated
-      .filter(update => update.payee)
-      .map(update => update.id);
+    const descUpdatedIds = updated.filter(update => update.payee).map(update => update.id);
 
     const transactions = await getTransactionsByIds(descUpdatedIds);
 
@@ -120,7 +113,7 @@ export async function batchUpdateTransactions({
         // inconsistency of the delete APIs is annoying and should
         // be fixed (it should only take an id)
         deletedIds.map(async id => {
-          await db.deleteTransaction({ id });
+          await db.deleteTransaction({id});
         }),
       );
     }
@@ -159,9 +152,7 @@ export async function batchUpdateTransactions({
   const pickTransactions = (ids: string[]) =>
     [...new Set(ids)]
       .map(id => changedById.get(id))
-      .filter((transaction): transaction is TransactionEntity =>
-        Boolean(transaction),
-      );
+      .filter((transaction): transaction is TransactionEntity => Boolean(transaction));
   const allAdded = pickTransactions(addedIds);
   const allUpdated = pickTransactions(updatedIds);
   const allDeleted = pickTransactions(deletedIds);
@@ -179,9 +170,9 @@ export async function batchUpdateTransactions({
       await Promise.all(allAdded.map(t => transfer.onInsert(t)));
 
       // Return any updates from here
-      transfersUpdated = (
-        await Promise.all(allUpdated.map(t => transfer.onUpdate(t)))
-      ).filter(Boolean);
+      transfersUpdated = (await Promise.all(allUpdated.map(t => transfer.onUpdate(t)))).filter(
+        Boolean,
+      );
 
       await Promise.all(allDeleted.map(t => transfer.onDelete(t)));
     });
@@ -192,13 +183,9 @@ export async function batchUpdateTransactions({
     // the user's activity
     const ids = new Set([
       ...(added ? added.filter(add => add.category).map(add => add.id) : []),
-      ...(updated
-        ? updated.filter(update => update.category).map(update => update.id)
-        : []),
+      ...(updated ? updated.filter(update => update.category).map(update => update.id) : []),
     ]);
-    await rules.updateCategoryRules(
-      allAdded.concat(allUpdated).filter(trans => ids.has(trans.id)),
-    );
+    await rules.updateCategoryRules(allAdded.concat(allUpdated).filter(trans => ids.has(trans.id)));
   }
 
   if (detectOrphanPayees) {

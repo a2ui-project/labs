@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 import {
   getHistoricalMixStats,
@@ -38,9 +38,7 @@ import type {
   MonteCarloPot,
 } from './monteCarloSimulation';
 
-function makeContribution(
-  overrides: Partial<MonteCarloContribution> = {},
-): MonteCarloContribution {
+function makeContribution(overrides: Partial<MonteCarloContribution> = {}): MonteCarloContribution {
   return {
     id: 'contribution-1',
     name: 'Test contribution',
@@ -55,9 +53,7 @@ function makeContribution(
   };
 }
 
-function makeIncomeStream(
-  overrides: Partial<MonteCarloIncomeStream> = {},
-): MonteCarloIncomeStream {
+function makeIncomeStream(overrides: Partial<MonteCarloIncomeStream> = {}): MonteCarloIncomeStream {
   return {
     id: 'income-1',
     name: 'Test income',
@@ -95,11 +91,11 @@ function makePot(overrides: Partial<MonteCarloPot> = {}): MonteCarloPot {
 }
 
 function makeParams(
-  overrides: Partial<MonteCarloParams> & { annualWithdrawal?: number } = {},
+  overrides: Partial<MonteCarloParams> & {annualWithdrawal?: number} = {},
   potOverrides: Partial<MonteCarloPot> = {},
 ): MonteCarloParams {
   // Convenience: a plain annualWithdrawal becomes a single spending phase
-  const { annualWithdrawal = 2_000_000, ...rest } = overrides;
+  const {annualWithdrawal = 2_000_000, ...rest} = overrides;
   return {
     pots: [makePot(potOverrides)],
     withdrawalStrategy: 'proportional',
@@ -107,9 +103,7 @@ function makeParams(
     withdrawalRule: WITHDRAWAL_RULE_DEFAULTS,
     minimumSpending: 0,
     currentAge: 60,
-    spendingPhases: [
-      { id: 'phase-1', name: '', fromAge: null, annualWithdrawal },
-    ],
+    spendingPhases: [{id: 'phase-1', name: '', fromAge: null, annualWithdrawal}],
     contributions: [],
     incomeStreams: [],
     inflationMean: null,
@@ -149,10 +143,7 @@ function deterministicDepletionYear(
 
 describe('surplus pot defaults', () => {
   it('starts new plans with a surplus cash pot ahead of an ordinary pot', () => {
-    expect(MONTE_CARLO_DEFAULTS.pots.map(pot => pot.isSurplus)).toEqual([
-      true,
-      false,
-    ]);
+    expect(MONTE_CARLO_DEFAULTS.pots.map(pot => pot.isSurplus)).toEqual([true, false]);
     expect(MONTE_CARLO_DEFAULTS.pots[0]).toMatchObject({
       startingBalance: 0,
       accessAge: null,
@@ -165,7 +156,7 @@ describe('surplus pot defaults', () => {
 
   it('keeps saved plans without a surplus pot unchanged', () => {
     const config = monteCarloConfigFromMeta({
-      pots: [{ id: 'saved-pot', startingBalance: 500_000 }],
+      pots: [{id: 'saved-pot', startingBalance: 500_000}],
     });
     expect(config.pots.map(pot => pot.isSurplus)).toEqual([false]);
   });
@@ -176,56 +167,34 @@ describe('surplus pot defaults', () => {
     const pots = MONTE_CARLO_DEFAULTS.pots;
     expect(getMonteCarloPotLabel(pots, 0, translate)).toBe('Surplus cash');
     expect(getMonteCarloPotLabel(pots, 1, translate)).toBe('Pot 1');
-    expect(
-      getMonteCarloPotLabel(
-        [...pots, { ...pots[1], name: 'ISA' }],
-        2,
-        translate,
-      ),
-    ).toBe('ISA');
+    expect(getMonteCarloPotLabel([...pots, {...pots[1], name: 'ISA'}], 2, translate)).toBe('ISA');
   });
 });
 
 describe('getMonteCarloHorizonYears', () => {
   it('derives the horizon from the configured ages', () => {
-    expect(getMonteCarloHorizonYears({ currentAge: 60, targetAge: 90 })).toBe(
-      30,
-    );
-    expect(getMonteCarloHorizonYears({ currentAge: 62.4, targetAge: 90 })).toBe(
-      28,
-    );
+    expect(getMonteCarloHorizonYears({currentAge: 60, targetAge: 90})).toBe(30);
+    expect(getMonteCarloHorizonYears({currentAge: 62.4, targetAge: 90})).toBe(28);
   });
 
   it('clamps degenerate and oversized ranges', () => {
-    expect(getMonteCarloHorizonYears({ currentAge: 90, targetAge: 60 })).toBe(
-      MIN_HORIZON_YEARS,
-    );
-    expect(getMonteCarloHorizonYears({ currentAge: 70, targetAge: 70 })).toBe(
-      MIN_HORIZON_YEARS,
-    );
-    expect(getMonteCarloHorizonYears({ currentAge: 0, targetAge: 500 })).toBe(
-      MAX_HORIZON_YEARS,
-    );
+    expect(getMonteCarloHorizonYears({currentAge: 90, targetAge: 60})).toBe(MIN_HORIZON_YEARS);
+    expect(getMonteCarloHorizonYears({currentAge: 70, targetAge: 70})).toBe(MIN_HORIZON_YEARS);
+    expect(getMonteCarloHorizonYears({currentAge: 0, targetAge: 500})).toBe(MAX_HORIZON_YEARS);
   });
 });
 
 describe('runMonteCarloSimulation', () => {
   it('matches the closed-form depletion year with zero volatility', () => {
     const params = makeParams(
-      { annualWithdrawal: 10_000, horizonYears: 30 },
+      {annualWithdrawal: 10_000, horizonYears: 30},
       {
         startingBalance: 100_000,
         expectedReturnMean: 0.05,
         returnStdDev: 0,
       },
     );
-    const expectedYear = deterministicDepletionYear(
-      100_000,
-      10_000,
-      0.05,
-      null,
-      30,
-    );
+    const expectedYear = deterministicDepletionYear(100_000, 10_000, 0.05, null, 30);
     expect(expectedYear).not.toBeNull();
 
     const result = runMonteCarloSimulation(params);
@@ -235,9 +204,7 @@ describe('runMonteCarloSimulation', () => {
     expect(result.earliestDepletionYear).toBe(expectedYear);
     expect(result.latestDepletionYear).toBe(expectedYear);
 
-    const histogramEntry = result.depletionHistogram.find(
-      entry => entry.count > 0,
-    );
+    const histogramEntry = result.depletionHistogram.find(entry => entry.count > 0);
     expect(histogramEntry?.year).toBe(expectedYear);
     expect(histogramEntry?.count).toBe(result.simulationCount);
   });
@@ -245,7 +212,7 @@ describe('runMonteCarloSimulation', () => {
   it('survives the full horizon when returns outpace withdrawals', () => {
     const result = runMonteCarloSimulation(
       makeParams(
-        { annualWithdrawal: 3_000, horizonYears: 30 },
+        {annualWithdrawal: 3_000, horizonYears: 30},
         {
           startingBalance: 100_000,
           expectedReturnMean: 0.05,
@@ -257,23 +224,19 @@ describe('runMonteCarloSimulation', () => {
     expect(result.successRate).toBe(1);
     expect(result.medianDepletionYear).toBeNull();
     expect(result.earliestDepletionYear).toBeNull();
-    expect(result.depletionHistogram.every(entry => entry.count === 0)).toBe(
-      true,
-    );
+    expect(result.depletionHistogram.every(entry => entry.count === 0)).toBe(true);
     // Pot should have grown: withdrawals are 3% of a pot earning 5%
     expect(result.medianEndingBalance).toBeGreaterThan(100_000);
   });
 
   it('always succeeds with no withdrawals', () => {
-    const result = runMonteCarloSimulation(
-      makeParams({ annualWithdrawal: 0 }, { returnStdDev: 0.2 }),
-    );
+    const result = runMonteCarloSimulation(makeParams({annualWithdrawal: 0}, {returnStdDev: 0.2}));
     expect(result.successRate).toBe(1);
   });
 
   it('depletes in year one when the withdrawal exceeds the pot', () => {
     const result = runMonteCarloSimulation(
-      makeParams({ annualWithdrawal: 20_000 }, { startingBalance: 10_000 }),
+      makeParams({annualWithdrawal: 20_000}, {startingBalance: 10_000}),
     );
     expect(result.successRate).toBe(0);
     expect(result.medianDepletionYear).toBe(1);
@@ -288,7 +251,7 @@ describe('runMonteCarloSimulation', () => {
     // y1: 200-50=150 (w -> 100); y2: 150-100=50 (w -> 200); y3: depleted
     const inflated = runMonteCarloSimulation(
       makeParams(
-        { annualWithdrawal: 50, inflationMean: 1, horizonYears: 10 },
+        {annualWithdrawal: 50, inflationMean: 1, horizonYears: 10},
         {
           startingBalance: 200,
           expectedReturnMean: 0,
@@ -302,7 +265,7 @@ describe('runMonteCarloSimulation', () => {
     // which still funds that year, so the shortfall comes in y5
     const flat = runMonteCarloSimulation(
       makeParams(
-        { annualWithdrawal: 50, inflationMean: null, horizonYears: 10 },
+        {annualWithdrawal: 50, inflationMean: null, horizonYears: 10},
         {
           startingBalance: 200,
           expectedReturnMean: 0,
@@ -314,18 +277,16 @@ describe('runMonteCarloSimulation', () => {
   });
 
   it('is deterministic for a given seed', () => {
-    const firstRun = runMonteCarloSimulation(makeParams({ seed: 7 }));
-    const secondRun = runMonteCarloSimulation(makeParams({ seed: 7 }));
+    const firstRun = runMonteCarloSimulation(makeParams({seed: 7}));
+    const secondRun = runMonteCarloSimulation(makeParams({seed: 7}));
     expect(firstRun).toEqual(secondRun);
 
-    const differentSeedRun = runMonteCarloSimulation(makeParams({ seed: 8 }));
+    const differentSeedRun = runMonteCarloSimulation(makeParams({seed: 8}));
     expect(differentSeedRun.successRate).not.toBe(firstRun.successRate);
   });
 
   it('produces ordered percentile bands', () => {
-    const result = runMonteCarloSimulation(
-      makeParams({}, { returnStdDev: 0.15 }),
-    );
+    const result = runMonteCarloSimulation(makeParams({}, {returnStdDev: 0.15}));
     for (const band of result.percentileBands) {
       expect(band.p5).toBeLessThanOrEqual(band.p10);
       expect(band.p10).toBeLessThanOrEqual(band.p25);
@@ -342,39 +303,26 @@ describe('runMonteCarloSimulation', () => {
 
   it('reports cumulative depletion probability', () => {
     const result = runMonteCarloSimulation(
-      makeParams(
-        { annualWithdrawal: 2_500_000 },
-        { startingBalance: 30_000_000, returnStdDev: 0.15 },
-      ),
+      makeParams({annualWithdrawal: 2_500_000}, {startingBalance: 30_000_000, returnStdDev: 0.15}),
     );
     const probabilities = result.depletionProbabilityByYear;
     expect(probabilities[0]).toBe(0);
     for (let year = 1; year < probabilities.length; year++) {
-      expect(probabilities[year]).toBeGreaterThanOrEqual(
-        probabilities[year - 1],
-      );
+      expect(probabilities[year]).toBeGreaterThanOrEqual(probabilities[year - 1]);
     }
-    expect(probabilities[result.horizonYears]).toBeCloseTo(
-      1 - result.successRate,
-      10,
-    );
+    expect(probabilities[result.horizonYears]).toBeCloseTo(1 - result.successRate, 10);
   });
 
   it('tracks the single worst run', () => {
     const result = runMonteCarloSimulation(
-      makeParams(
-        { annualWithdrawal: 2_500_000 },
-        { startingBalance: 30_000_000, returnStdDev: 0.15 },
-      ),
+      makeParams({annualWithdrawal: 2_500_000}, {startingBalance: 30_000_000, returnStdDev: 0.15}),
     );
     expect(result.worstRunPath).toHaveLength(result.horizonYears + 1);
     expect(result.worstRunPath[0]).toBe(30_000_000);
 
     // The worst run is the one that depletes earliest: its path hits zero
     // exactly at the earliest depletion year and stays there
-    const firstZeroYear = result.worstRunPath.findIndex(
-      balance => balance === 0,
-    );
+    const firstZeroYear = result.worstRunPath.findIndex(balance => balance === 0);
     expect(firstZeroYear).toBe(result.earliestDepletionYear);
     for (let year = firstZeroYear; year < result.worstRunPath.length; year++) {
       expect(result.worstRunPath[year]).toBe(0);
@@ -386,7 +334,7 @@ describe('runMonteCarloSimulation', () => {
     // shock
     for (const returnStdDev of [0, 0.15]) {
       const singlePot = runMonteCarloSimulation(
-        makeParams({}, { startingBalance: 50_000_000, returnStdDev }),
+        makeParams({}, {startingBalance: 50_000_000, returnStdDev}),
       );
 
       for (const strategy of ['proportional', 'sequential'] as const) {
@@ -420,8 +368,8 @@ describe('runMonteCarloSimulation', () => {
       makeParams({
         captureRunDetail: 7,
         pots: [
-          makePot({ id: 'isa', startingBalance: 25_000_000 }),
-          makePot({ id: 'pension', startingBalance: 25_000_000 }),
+          makePot({id: 'isa', startingBalance: 25_000_000}),
+          makePot({id: 'pension', startingBalance: 25_000_000}),
         ],
       }),
     );
@@ -479,9 +427,7 @@ describe('runMonteCarloSimulation', () => {
     expect(proportional.medianEndingBalance).toBe(292);
 
     // Draining the low-return pot first should always come out ahead here
-    expect(sequential.medianEndingBalance).toBeGreaterThan(
-      proportional.medianEndingBalance,
-    );
+    expect(sequential.medianEndingBalance).toBeGreaterThan(proportional.medianEndingBalance);
   });
 
   it('matches deterministic growth when bootstrapping a one-year history', () => {
@@ -491,18 +437,16 @@ describe('runMonteCarloSimulation', () => {
       makeParams(
         {
           returnModel: 'historical-bootstrap',
-          historicalReturns: [
-            { year: 2000, stocks: 0.05, bonds: 0.02, cash: 0.01, inflation: 0 },
-          ],
+          historicalReturns: [{year: 2000, stocks: 0.05, bonds: 0.02, cash: 0.01, inflation: 0}],
           annualWithdrawal: 3_000,
           horizonYears: 30,
         },
-        { startingBalance: 100_000, allocationPreset: 'equity-100' },
+        {startingBalance: 100_000, allocationPreset: 'equity-100'},
       ),
     );
     const deterministic = runMonteCarloSimulation(
       makeParams(
-        { annualWithdrawal: 3_000, horizonYears: 30 },
+        {annualWithdrawal: 3_000, horizonYears: 30},
         {
           startingBalance: 100_000,
           expectedReturnMean: 0.05,
@@ -519,13 +463,13 @@ describe('runMonteCarloSimulation', () => {
         {
           returnModel: 'historical-sequence',
           historicalReturns: [
-            { year: 2000, stocks: 1, bonds: 0, cash: 0, inflation: 0 },
-            { year: 2001, stocks: -0.5, bonds: 0, cash: 0, inflation: 0 },
+            {year: 2000, stocks: 1, bonds: 0, cash: 0, inflation: 0},
+            {year: 2001, stocks: -0.5, bonds: 0, cash: 0, inflation: 0},
           ],
           annualWithdrawal: 10,
           horizonYears: 2,
         },
-        { startingBalance: 100, allocationPreset: 'equity-100' },
+        {startingBalance: 100, allocationPreset: 'equity-100'},
       ),
     );
 
@@ -544,8 +488,8 @@ describe('runMonteCarloSimulation', () => {
       {
         returnModel: 'historical-sequence',
         historicalReturns: [
-          { year: 2000, stocks: 0, bonds: 0, cash: 0, inflation: 0.1 },
-          { year: 2001, stocks: 0, bonds: 0, cash: 0, inflation: 0.25 },
+          {year: 2000, stocks: 0, bonds: 0, cash: 0, inflation: 0.1},
+          {year: 2001, stocks: 0, bonds: 0, cash: 0, inflation: 0.25},
         ],
         annualWithdrawal: 0,
         horizonYears: 2,
@@ -554,14 +498,12 @@ describe('runMonteCarloSimulation', () => {
         deflateToTodaysMoney: true,
         captureRunDetail: 0,
       },
-      { startingBalance: 100_000, allocationPreset: 'equity-100' },
+      {startingBalance: 100_000, allocationPreset: 'equity-100'},
     );
     const result = runMonteCarloSimulation(jointInflationParams);
 
     // 100,000 / 1.1 then / (1.1 x 1.25)
-    expect(result.runDetail!.map(row => row.endBalance)).toEqual([
-      90_909, 72_727,
-    ]);
+    expect(result.runDetail!.map(row => row.endBalance)).toEqual([90_909, 72_727]);
     // Each captured year reports the sampled year's rate
     expect(result.runDetail!.map(row => row.inflation)).toEqual([0.1, 0.25]);
 
@@ -583,21 +525,19 @@ describe('runMonteCarloSimulation', () => {
         {
           returnModel: 'historical-sequence',
           historicalReturns: [
-            { year: 2000, stocks: 0, bonds: 0, cash: 0, inflation: 0.5 },
-            { year: 2001, stocks: 0, bonds: 0, cash: 0, inflation: 0.5 },
+            {year: 2000, stocks: 0, bonds: 0, cash: 0, inflation: 0.5},
+            {year: 2001, stocks: 0, bonds: 0, cash: 0, inflation: 0.5},
           ],
           annualWithdrawal: 0,
           horizonYears: 2,
           inflationMean: null,
           captureRunDetail: 0,
         },
-        { startingBalance: 100_000, allocationPreset: 'equity-100' },
+        {startingBalance: 100_000, allocationPreset: 'equity-100'},
       ),
     );
 
-    expect(result.runDetail!.map(row => row.endBalance)).toEqual([
-      100_000, 100_000,
-    ]);
+    expect(result.runDetail!.map(row => row.endBalance)).toEqual([100_000, 100_000]);
     expect(result.runDetail!.map(row => row.inflation)).toEqual([null, null]);
   });
 
@@ -611,13 +551,11 @@ describe('runMonteCarloSimulation', () => {
           inflationStdDev: 0,
           captureRunDetail: 0,
         },
-        { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
-    expect(result.runDetail!.map(row => row.inflation)).toEqual([
-      0.025, 0.025, 0.025,
-    ]);
+    expect(result.runDetail!.map(row => row.inflation)).toEqual([0.025, 0.025, 0.025]);
   });
 
   it('captures the planned spending, inflation-adjusted, on each row', () => {
@@ -630,14 +568,12 @@ describe('runMonteCarloSimulation', () => {
           inflationStdDev: 0,
           captureRunDetail: 0,
         },
-        { startingBalance: 1_000_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 1_000_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
     const rows = result.runDetail!;
-    expect(rows.map(row => row.plannedSpending)).toEqual([
-      10_000, 11_000, 12_100,
-    ]);
+    expect(rows.map(row => row.plannedSpending)).toEqual([10_000, 11_000, 12_100]);
     // Fully funded and untaxed, so the withdrawal matches the plan
     expect(rows.map(row => row.withdrawal)).toEqual([10_000, 11_000, 12_100]);
   });
@@ -667,7 +603,7 @@ describe('runMonteCarloSimulation', () => {
           ],
           captureRunDetail: 0,
         },
-        { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -680,10 +616,7 @@ describe('runMonteCarloSimulation', () => {
     ]);
     // Each year's parts reconcile with the row's contribution total
     for (const row of rows) {
-      const partsTotal = row.contributionAmounts.reduce(
-        (sum, amount) => sum + amount,
-        0,
-      );
+      const partsTotal = row.contributionAmounts.reduce((sum, amount) => sum + amount, 0);
       expect(partsTotal).toBe(row.contributions);
     }
   });
@@ -693,20 +626,18 @@ describe('runMonteCarloSimulation', () => {
       makeParams(
         {
           spendingPhases: [
-            { id: 'phase-1', name: '', fromAge: null, annualWithdrawal: 0 },
-            { id: 'phase-2', name: '', fromAge: 62, annualWithdrawal: 24_000 },
+            {id: 'phase-1', name: '', fromAge: null, annualWithdrawal: 0},
+            {id: 'phase-2', name: '', fromAge: 62, annualWithdrawal: 24_000},
           ],
           horizonYears: 4,
           captureRunDetail: 0,
         },
-        { startingBalance: 1_000_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 1_000_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
     // Ages 60-61 accumulate, ages 62-63 spend
-    expect(result.runDetail!.map(row => row.plannedSpending)).toEqual([
-      0, 0, 24_000, 24_000,
-    ]);
+    expect(result.runDetail!.map(row => row.plannedSpending)).toEqual([0, 0, 24_000, 24_000]);
   });
 
   it('planned spending rises to the floor when the minimum overrides a rule cut', () => {
@@ -720,11 +651,11 @@ describe('runMonteCarloSimulation', () => {
         {
           annualWithdrawal: 4_000,
           horizonYears: 2,
-          withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
+          withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
           minimumSpending: 4_000,
           captureRunDetail: 0,
         },
-        { startingBalance: 100_000, expectedReturnMean: -0.5, returnStdDev: 0 },
+        {startingBalance: 100_000, expectedReturnMean: -0.5, returnStdDev: 0},
       ),
     );
 
@@ -747,7 +678,7 @@ describe('runMonteCarloSimulation', () => {
           horizonYears: 2,
           captureRunDetail: 0,
         },
-        { startingBalance: 5_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 5_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -778,26 +709,19 @@ describe('runMonteCarloSimulation', () => {
           inflationStdDev: 0,
           captureRunDetail: 0,
         },
-        { startingBalance: 15_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 15_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
     const rows = result.runDetail!;
     expect(rows).toHaveLength(4);
     // Year 1 spends 10,000; year 2 needs 11,000 but only 5,000 remains
-    expect(rows.map(row => row.afterDepletion ?? false)).toEqual([
-      false,
-      false,
-      true,
-      true,
-    ]);
+    expect(rows.map(row => row.afterDepletion ?? false)).toEqual([false, false, true, true]);
     expect(rows.map(row => row.withdrawal)).toEqual([10_000, 5_000, 0, 0]);
     // The failure year still realizes its own inflation (cumulative
     // 1.21 after year 2); the unfunded years stay at that level rather
     // than compounding on
-    expect(rows.map(row => row.plannedSpending)).toEqual([
-      10_000, 11_000, 12_100, 12_100,
-    ]);
+    expect(rows.map(row => row.plannedSpending)).toEqual([10_000, 11_000, 12_100, 12_100]);
     // No inflation is realized on synthetic years
     expect(rows[2].inflation).toBeNull();
     expect(rows[3].inflation).toBeNull();
@@ -815,10 +739,10 @@ describe('runMonteCarloSimulation', () => {
         {
           annualWithdrawal: 4_000,
           horizonYears: 12,
-          withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
+          withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
           captureRunDetail: 0,
         },
-        { startingBalance: 100_000, expectedReturnMean: -0.5, returnStdDev: 0 },
+        {startingBalance: 100_000, expectedReturnMean: -0.5, returnStdDev: 0},
       ),
     );
 
@@ -837,15 +761,13 @@ describe('runMonteCarloSimulation', () => {
   it('captures no synthetic rows for a surviving run', () => {
     const result = runMonteCarloSimulation(
       makeParams(
-        { annualWithdrawal: 1_000, horizonYears: 5, captureRunDetail: 0 },
-        { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {annualWithdrawal: 1_000, horizonYears: 5, captureRunDetail: 0},
+        {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
     expect(result.runDetail!).toHaveLength(5);
-    expect(
-      result.runDetail!.every(row => row.afterDepletion === undefined),
-    ).toBe(true);
+    expect(result.runDetail!.every(row => row.afterDepletion === undefined)).toBe(true);
   });
 
   it('keeps custom pots on normal draws in historical modes', () => {
@@ -854,15 +776,13 @@ describe('runMonteCarloSimulation', () => {
       makeParams(
         {
           returnModel: 'historical-bootstrap',
-          historicalReturns: [
-            { year: 2000, stocks: 9, bonds: 9, cash: 9, inflation: 0 },
-          ],
+          historicalReturns: [{year: 2000, stocks: 9, bonds: 9, cash: 9, inflation: 0}],
         },
-        { expectedReturnMean: 0.05, returnStdDev: 0 },
+        {expectedReturnMean: 0.05, returnStdDev: 0},
       ),
     );
     const normal = runMonteCarloSimulation(
-      makeParams({}, { expectedReturnMean: 0.05, returnStdDev: 0 }),
+      makeParams({}, {expectedReturnMean: 0.05, returnStdDev: 0}),
     );
     expect(historical.percentileBands).toEqual(normal.percentileBands);
   });
@@ -871,14 +791,11 @@ describe('runMonteCarloSimulation', () => {
     // A custom 80/20 mix must be indistinguishable from the equity-80
     // preset under a historical model - same blended series, same runs
     const preset = runMonteCarloSimulation(
-      makeParams(
-        { returnModel: 'historical-sequence' },
-        { allocationPreset: 'equity-80' },
-      ),
+      makeParams({returnModel: 'historical-sequence'}, {allocationPreset: 'equity-80'}),
     );
     const customMix = runMonteCarloSimulation(
       makeParams(
-        { returnModel: 'historical-sequence' },
+        {returnModel: 'historical-sequence'},
         {
           allocationPreset: 'custom-mix',
           allocationStocks: 0.8,
@@ -898,9 +815,7 @@ describe('runMonteCarloSimulation', () => {
       makeParams(
         {
           returnModel: 'historical-bootstrap',
-          historicalReturns: [
-            { year: 2000, stocks: 9, bonds: 9, cash: 9, inflation: 0 },
-          ],
+          historicalReturns: [{year: 2000, stocks: 9, bonds: 9, cash: 9, inflation: 0}],
         },
         {
           allocationPreset: 'custom-mix',
@@ -913,7 +828,7 @@ describe('runMonteCarloSimulation', () => {
       ),
     );
     const normal = runMonteCarloSimulation(
-      makeParams({}, { expectedReturnMean: 0.05, returnStdDev: 0 }),
+      makeParams({}, {expectedReturnMean: 0.05, returnStdDev: 0}),
     );
     expect(incomplete.percentileBands).toEqual(normal.percentileBands);
   });
@@ -925,9 +840,7 @@ describe('runMonteCarloSimulation', () => {
       makeParams(
         {
           returnModel: 'historical-bootstrap',
-          historicalReturns: [
-            { year: 2000, stocks: 9, bonds: 9, cash: 9, inflation: 0 },
-          ],
+          historicalReturns: [{year: 2000, stocks: 9, bonds: 9, cash: 9, inflation: 0}],
         },
         {
           allocationPreset: 'custom-mix',
@@ -940,7 +853,7 @@ describe('runMonteCarloSimulation', () => {
       ),
     );
     const normal = runMonteCarloSimulation(
-      makeParams({}, { expectedReturnMean: 0.05, returnStdDev: 0 }),
+      makeParams({}, {expectedReturnMean: 0.05, returnStdDev: 0}),
     );
     expect(historical.percentileBands).toEqual(normal.percentileBands);
   });
@@ -962,7 +875,7 @@ describe('runMonteCarloSimulation', () => {
       ),
     );
     const custom = runMonteCarloSimulation(
-      makeParams({}, { expectedReturnMean: 0.05, returnStdDev: 0 }),
+      makeParams({}, {expectedReturnMean: 0.05, returnStdDev: 0}),
     );
     expect(customMix.percentileBands).toEqual(custom.percentileBands);
   });
@@ -971,19 +884,17 @@ describe('runMonteCarloSimulation', () => {
     // 4% initial rate with steady 20% growth: the withdrawal rate quickly
     // falls below 80% of the initial rate, triggering prosperity increases
     const base = makeParams(
-      { annualWithdrawal: 4_000, horizonYears: 20 },
-      { startingBalance: 100_000, expectedReturnMean: 0.2, returnStdDev: 0 },
+      {annualWithdrawal: 4_000, horizonYears: 20},
+      {startingBalance: 100_000, expectedReturnMean: 0.2, returnStdDev: 0},
     );
     const withoutRule = runMonteCarloSimulation(base);
     const withRule = runMonteCarloSimulation({
       ...base,
-      withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
+      withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
     });
 
     expect(withoutRule.medianTotalWithdrawn).toBe(20 * 4_000);
-    expect(withRule.medianTotalWithdrawn).toBeGreaterThan(
-      withoutRule.medianTotalWithdrawn,
-    );
+    expect(withRule.medianTotalWithdrawn).toBeGreaterThan(withoutRule.medianTotalWithdrawn);
     expect(withRule.successRate).toBe(1);
   });
 
@@ -996,7 +907,7 @@ describe('runMonteCarloSimulation', () => {
         {
           horizonYears: 13,
           captureRunDetail: 0,
-          withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
+          withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
           spendingPhases: [
             {
               id: 'phase-1',
@@ -1004,10 +915,10 @@ describe('runMonteCarloSimulation', () => {
               fromAge: null,
               annualWithdrawal: 10_000,
             },
-            { id: 'phase-2', name: '', fromAge: 70, annualWithdrawal: 20_000 },
+            {id: 'phase-2', name: '', fromAge: 70, annualWithdrawal: 20_000},
           ],
         },
-        { startingBalance: 1_000_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 1_000_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -1022,15 +933,15 @@ describe('runMonteCarloSimulation', () => {
     // 10% withdrawal rate on a flat pot empties it in year 10, so year
     // 11 is the first that can't be funded
     const base = makeParams(
-      { annualWithdrawal: 10_000, horizonYears: 30 },
-      { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+      {annualWithdrawal: 10_000, horizonYears: 30},
+      {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
     );
     const withoutRule = runMonteCarloSimulation(base);
     expect(withoutRule.medianDepletionYear).toBe(11);
 
     const withRule = runMonteCarloSimulation({
       ...base,
-      withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'boundaries' },
+      withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'boundaries'},
     });
     expect(withRule.medianDepletionYear ?? Infinity).toBeGreaterThan(11);
     // The extra years come at the cost of income
@@ -1049,7 +960,7 @@ describe('runMonteCarloSimulation', () => {
           horizonYears: 30,
           currentAge: 55,
           spendingPhases: [
-            { id: 'working', name: '', fromAge: null, annualWithdrawal: 0 },
+            {id: 'working', name: '', fromAge: null, annualWithdrawal: 0},
             {
               id: 'retired',
               name: '',
@@ -1082,9 +993,7 @@ describe('runMonteCarloSimulation', () => {
     const anchorRate = 60_000 / (1_000_000 * 1.05 ** 10);
     const anchorExplanation = rows[10].ruleExplanation;
     if (anchorExplanation?.kind !== 'anchor') {
-      throw new Error(
-        'expected an anchor explanation on the first spending year',
-      );
+      throw new Error('expected an anchor explanation on the first spending year');
     }
     expect(anchorExplanation.rate).toBeCloseTo(anchorRate, 12);
     // Zero-spend years carry no explanation
@@ -1121,7 +1030,7 @@ describe('runMonteCarloSimulation', () => {
           horizonYears: 12,
           currentAge: 55,
           spendingPhases: [
-            { id: 'working', name: '', fromAge: null, annualWithdrawal: 0 },
+            {id: 'working', name: '', fromAge: null, annualWithdrawal: 0},
             {
               id: 'retired',
               name: '',
@@ -1129,7 +1038,7 @@ describe('runMonteCarloSimulation', () => {
               annualWithdrawal: 40_000,
             },
           ],
-          withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'boundaries' },
+          withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'boundaries'},
           captureRunDetail: 0,
         },
         {
@@ -1166,7 +1075,7 @@ describe('runMonteCarloSimulation', () => {
           horizonYears: 10,
           currentAge: 60,
           spendingPhases: [
-            { id: 'working', name: '', fromAge: null, annualWithdrawal: 0 },
+            {id: 'working', name: '', fromAge: null, annualWithdrawal: 0},
             {
               id: 'retired',
               name: '',
@@ -1174,7 +1083,7 @@ describe('runMonteCarloSimulation', () => {
               annualWithdrawal: 10_000,
             },
           ],
-          withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'ratcheting' },
+          withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'ratcheting'},
           captureRunDetail: 0,
         },
         {
@@ -1209,8 +1118,8 @@ describe('runMonteCarloSimulation', () => {
 
   it('floor-ceiling scales withdrawals with the pot within limits', () => {
     const base = makeParams(
-      { annualWithdrawal: 10_000, horizonYears: 30 },
-      { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+      {annualWithdrawal: 10_000, horizonYears: 30},
+      {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
     );
     const withRule = runMonteCarloSimulation({
       ...base,
@@ -1229,8 +1138,8 @@ describe('runMonteCarloSimulation', () => {
 
   it('ratcheting increases withdrawals after consecutive years above the threshold', () => {
     const base = makeParams(
-      { annualWithdrawal: 1_000, horizonYears: 20 },
-      { startingBalance: 100_000, expectedReturnMean: 0.3, returnStdDev: 0 },
+      {annualWithdrawal: 1_000, horizonYears: 20},
+      {startingBalance: 100_000, expectedReturnMean: 0.3, returnStdDev: 0},
     );
     const withoutRule = runMonteCarloSimulation(base);
     const withRule = runMonteCarloSimulation({
@@ -1245,9 +1154,7 @@ describe('runMonteCarloSimulation', () => {
     });
 
     expect(withoutRule.medianTotalWithdrawn).toBe(20 * 1_000);
-    expect(withRule.medianTotalWithdrawn).toBeGreaterThan(
-      withoutRule.medianTotalWithdrawn,
-    );
+    expect(withRule.medianTotalWithdrawn).toBeGreaterThan(withoutRule.medianTotalWithdrawn);
   });
 
   it('keeps the spending floor on the unfunded tail after a failure', () => {
@@ -1260,38 +1167,34 @@ describe('runMonteCarloSimulation', () => {
           annualWithdrawal: 2_000,
           horizonYears: 8,
           inflationMean: null,
-          withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
+          withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
           minimumSpending: 1_800,
           captureRunDetail: 0,
         },
-        { startingBalance: 5_000, expectedReturnMean: -0.5, returnStdDev: 0 },
+        {startingBalance: 5_000, expectedReturnMean: -0.5, returnStdDev: 0},
       ),
     );
 
     const rows = result.runDetail!;
     const tailRows = rows.filter(row => row.afterDepletion);
     expect(tailRows.length).toBeGreaterThan(0);
-    expect(tailRows.map(row => row.plannedSpending)).toEqual(
-      tailRows.map(() => 1_800),
-    );
+    expect(tailRows.map(row => row.plannedSpending)).toEqual(tailRows.map(() => 1_800));
   });
 
   it('minimum spending floor neutralizes rule cuts', () => {
     const base = makeParams(
-      { annualWithdrawal: 10_000, horizonYears: 30 },
-      { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+      {annualWithdrawal: 10_000, horizonYears: 30},
+      {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
     );
     const withoutRule = runMonteCarloSimulation(base);
     const cutsFloored = runMonteCarloSimulation({
       ...base,
-      withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'boundaries' },
+      withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'boundaries'},
       minimumSpending: 10_000,
     });
 
     expect(cutsFloored.percentileBands).toEqual(withoutRule.percentileBands);
-    expect(cutsFloored.medianTotalWithdrawn).toBe(
-      withoutRule.medianTotalWithdrawn,
-    );
+    expect(cutsFloored.medianTotalWithdrawn).toBe(withoutRule.medianTotalWithdrawn);
   });
 
   it('takes nothing in zero-spend phases even with a minimum spending floor', () => {
@@ -1307,13 +1210,13 @@ describe('runMonteCarloSimulation', () => {
           horizonYears: 8,
           captureRunDetail: 0,
           minimumSpending: 15_000,
-          withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
+          withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
           spendingPhases: [
-            { id: 'working', name: '', fromAge: null, annualWithdrawal: 0 },
-            { id: 'retired', name: '', fromAge: 65, annualWithdrawal: 40_000 },
+            {id: 'working', name: '', fromAge: null, annualWithdrawal: 0},
+            {id: 'retired', name: '', fromAge: 65, annualWithdrawal: 40_000},
           ],
         },
-        { startingBalance: 500_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 500_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -1348,7 +1251,7 @@ describe('runMonteCarloSimulation', () => {
             preservationCutPct: 0.5,
           },
         },
-        { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -1435,12 +1338,8 @@ describe('runMonteCarloSimulation', () => {
   });
 
   it('treats an access age at or below the current age as immediate', () => {
-    const immediate = runMonteCarloSimulation(
-      makeParams({}, { accessAge: null }),
-    );
-    const alreadyReached = runMonteCarloSimulation(
-      makeParams({}, { accessAge: 40 }),
-    );
+    const immediate = runMonteCarloSimulation(makeParams({}, {accessAge: null}));
+    const alreadyReached = runMonteCarloSimulation(makeParams({}, {accessAge: 40}));
     expect(alreadyReached).toEqual(immediate);
   });
 
@@ -1528,10 +1427,10 @@ describe('runMonteCarloSimulation', () => {
         returnModel: 'historical-sequence',
         captureRunDetail: 0,
         historicalReturns: [
-          { year: 2001, stocks: -0.5, bonds: 0, cash: 0, inflation: 0 },
-          { year: 2002, stocks: 1, bonds: 0, cash: 0, inflation: 0 },
-          { year: 2003, stocks: -0.5, bonds: 0, cash: 0, inflation: 0 },
-          { year: 2004, stocks: 1, bonds: 0, cash: 0, inflation: 0 },
+          {year: 2001, stocks: -0.5, bonds: 0, cash: 0, inflation: 0},
+          {year: 2002, stocks: 1, bonds: 0, cash: 0, inflation: 0},
+          {year: 2003, stocks: -0.5, bonds: 0, cash: 0, inflation: 0},
+          {year: 2004, stocks: 1, bonds: 0, cash: 0, inflation: 0},
         ],
         pots: [
           makePot({
@@ -1564,21 +1463,19 @@ describe('runMonteCarloSimulation', () => {
     // Identical pots share every market shock, so their returns always
     // tie and best-performer must behave exactly like draining in order
     const pots = [
-      makePot({ id: 'a', startingBalance: 25_000_000 }),
-      makePot({ id: 'b', startingBalance: 25_000_000 }),
+      makePot({id: 'a', startingBalance: 25_000_000}),
+      makePot({id: 'b', startingBalance: 25_000_000}),
     ];
     const sequential = runMonteCarloSimulation(
-      makeParams({ withdrawalStrategy: 'sequential', pots }),
+      makeParams({withdrawalStrategy: 'sequential', pots}),
     );
     const bestPerformer = runMonteCarloSimulation(
-      makeParams({ withdrawalStrategy: 'best-performer', pots }),
+      makeParams({withdrawalStrategy: 'best-performer', pots}),
     );
 
     expect(bestPerformer.successRate).toBe(sequential.successRate);
     expect(bestPerformer.percentileBands).toEqual(sequential.percentileBands);
-    expect(bestPerformer.medianTotalWithdrawn).toBe(
-      sequential.medianTotalWithdrawn,
-    );
+    expect(bestPerformer.medianTotalWithdrawn).toBe(sequential.medianTotalWithdrawn);
   });
 
   it('target-mix order withdraws from overweight pots back toward the mix', () => {
@@ -1626,26 +1523,20 @@ describe('runMonteCarloSimulation', () => {
     // pulling toward the mix and splitting proportionally take the same
     // amounts from the same pots
     const pots = [
-      makePot({ id: 'a', startingBalance: 30_000_000 }),
-      makePot({ id: 'b', startingBalance: 20_000_000 }),
+      makePot({id: 'a', startingBalance: 30_000_000}),
+      makePot({id: 'b', startingBalance: 20_000_000}),
     ];
     const proportional = runMonteCarloSimulation(
-      makeParams({ withdrawalStrategy: 'proportional', pots }),
+      makeParams({withdrawalStrategy: 'proportional', pots}),
     );
-    const targetMix = runMonteCarloSimulation(
-      makeParams({ withdrawalStrategy: 'target-mix', pots }),
-    );
+    const targetMix = runMonteCarloSimulation(makeParams({withdrawalStrategy: 'target-mix', pots}));
 
     expect(targetMix.successRate).toBe(proportional.successRate);
     expect(
-      Math.abs(
-        targetMix.medianEndingBalance - proportional.medianEndingBalance,
-      ),
+      Math.abs(targetMix.medianEndingBalance - proportional.medianEndingBalance),
     ).toBeLessThanOrEqual(1);
     expect(
-      Math.abs(
-        targetMix.medianTotalWithdrawn - proportional.medianTotalWithdrawn,
-      ),
+      Math.abs(targetMix.medianTotalWithdrawn - proportional.medianTotalWithdrawn),
     ).toBeLessThanOrEqual(1);
   });
 
@@ -1658,7 +1549,7 @@ describe('runMonteCarloSimulation', () => {
         annualWithdrawal: 10_000,
         horizonYears: 5,
         captureRunDetail: 0,
-        withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
+        withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
         pots: [
           makePot({
             id: 'bridge',
@@ -1692,7 +1583,7 @@ describe('runMonteCarloSimulation', () => {
         annualWithdrawal: 10_000,
         horizonYears: 5,
         captureRunDetail: 0,
-        withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'ratcheting' },
+        withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'ratcheting'},
         pots: [
           makePot({
             id: 'bridge',
@@ -1718,26 +1609,15 @@ describe('runMonteCarloSimulation', () => {
 
   it('reports per-run summaries consistent with the aggregates', () => {
     const result = runMonteCarloSimulation(
-      makeParams(
-        { annualWithdrawal: 2_500_000 },
-        { startingBalance: 30_000_000, returnStdDev: 0.15 },
-      ),
+      makeParams({annualWithdrawal: 2_500_000}, {startingBalance: 30_000_000, returnStdDev: 0.15}),
     );
 
     expect(result.endingBalances).toHaveLength(result.simulationCount);
-    expect(result.depletionYearBySimulation).toHaveLength(
-      result.simulationCount,
-    );
-    expect(result.totalWithdrawnBySimulation).toHaveLength(
-      result.simulationCount,
-    );
+    expect(result.depletionYearBySimulation).toHaveLength(result.simulationCount);
+    expect(result.totalWithdrawnBySimulation).toHaveLength(result.simulationCount);
 
     let survived = 0;
-    for (
-      let simulationIndex = 0;
-      simulationIndex < result.simulationCount;
-      simulationIndex++
-    ) {
+    for (let simulationIndex = 0; simulationIndex < result.simulationCount; simulationIndex++) {
       if (result.depletionYearBySimulation[simulationIndex] === -1) {
         survived++;
       } else {
@@ -1750,7 +1630,7 @@ describe('runMonteCarloSimulation', () => {
 
   it('captures a run year by year matching the closed-form recurrence', () => {
     const params = makeParams(
-      { annualWithdrawal: 10_000, horizonYears: 30, captureRunDetail: 0 },
+      {annualWithdrawal: 10_000, horizonYears: 30, captureRunDetail: 0},
       {
         startingBalance: 100_000,
         expectedReturnMean: 0.05,
@@ -1788,7 +1668,7 @@ describe('runMonteCarloSimulation', () => {
   });
 
   it('replays a volatile run identically to the original', () => {
-    const base = makeParams({}, { returnStdDev: 0.15 });
+    const base = makeParams({}, {returnStdDev: 0.15});
     const original = runMonteCarloSimulation(base);
 
     const simulationIndex = 123;
@@ -1865,12 +1745,12 @@ describe('runMonteCarloSimulation', () => {
       makeParams(
         {
           spendingPhases: [
-            { id: 'a', name: '', fromAge: null, annualWithdrawal: 30 },
-            { id: 'b', name: '', fromAge: 70, annualWithdrawal: 20 },
+            {id: 'a', name: '', fromAge: null, annualWithdrawal: 30},
+            {id: 'b', name: '', fromAge: 70, annualWithdrawal: 20},
           ],
           horizonYears: 20,
         },
-        { startingBalance: 1_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 1_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -1885,14 +1765,14 @@ describe('runMonteCarloSimulation', () => {
       makeParams(
         {
           spendingPhases: [
-            { id: 'a', name: '', fromAge: null, annualWithdrawal: 10 },
-            { id: 'b', name: '', fromAge: 62, annualWithdrawal: 20 },
+            {id: 'a', name: '', fromAge: null, annualWithdrawal: 10},
+            {id: 'b', name: '', fromAge: 62, annualWithdrawal: 20},
           ],
           inflationMean: 1,
           horizonYears: 3,
           captureRunDetail: 0,
         },
-        { startingBalance: 1_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 1_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -1907,8 +1787,8 @@ describe('runMonteCarloSimulation', () => {
       makeParams(
         {
           spendingPhases: [
-            { id: 'a', name: '', fromAge: null, annualWithdrawal: 1_000 },
-            { id: 'b', name: '', fromAge: 62, annualWithdrawal: 500 },
+            {id: 'a', name: '', fromAge: null, annualWithdrawal: 1_000},
+            {id: 'b', name: '', fromAge: 62, annualWithdrawal: 500},
           ],
           withdrawalRule: {
             ...WITHDRAWAL_RULE_DEFAULTS,
@@ -1921,7 +1801,7 @@ describe('runMonteCarloSimulation', () => {
           horizonYears: 3,
           captureRunDetail: 0,
         },
-        { startingBalance: 10_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 10_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -1942,7 +1822,7 @@ describe('runMonteCarloSimulation', () => {
           minimumSpending: 20_000,
           horizonYears: 10,
         },
-        { startingBalance: 500_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 500_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -1961,7 +1841,7 @@ describe('runMonteCarloSimulation', () => {
           deflateToTodaysMoney: true,
           captureRunDetail: 0,
         },
-        { startingBalance: 1_000_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 1_000_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -1991,7 +1871,7 @@ describe('runMonteCarloSimulation', () => {
     );
     const real = runMonteCarloSimulation(
       makeParams(
-        { annualWithdrawal: 10_000, inflationMean: null, horizonYears: 10 },
+        {annualWithdrawal: 10_000, inflationMean: null, horizonYears: 10},
         {
           startingBalance: 200_000,
           expectedReturnMean: 2.1 / 2 - 1, // 5% real
@@ -2002,30 +1882,25 @@ describe('runMonteCarloSimulation', () => {
 
     for (let year = 0; year <= 10; year++) {
       expect(
-        Math.abs(
-          deflated.percentileBands[year].p50 - real.percentileBands[year].p50,
-        ),
+        Math.abs(deflated.percentileBands[year].p50 - real.percentileBands[year].p50),
       ).toBeLessThanOrEqual(1);
     }
-    expect(
-      Math.abs(deflated.medianEndingBalance - real.medianEndingBalance),
-    ).toBeLessThanOrEqual(1);
+    expect(Math.abs(deflated.medianEndingBalance - real.medianEndingBalance)).toBeLessThanOrEqual(
+      1,
+    );
   });
 
   it('is deterministic with inflation volatility and differs from a fixed rate', () => {
     const volatileParams = makeParams(
-      { inflationMean: 0.025, inflationStdDev: 0.04 },
-      { returnStdDev: 0.15 },
+      {inflationMean: 0.025, inflationStdDev: 0.04},
+      {returnStdDev: 0.15},
     );
     const firstRun = runMonteCarloSimulation(volatileParams);
     const secondRun = runMonteCarloSimulation(volatileParams);
     expect(firstRun).toEqual(secondRun);
 
     const fixed = runMonteCarloSimulation(
-      makeParams(
-        { inflationMean: 0.025, inflationStdDev: 0 },
-        { returnStdDev: 0.15 },
-      ),
+      makeParams({inflationMean: 0.025, inflationStdDev: 0}, {returnStdDev: 0.15}),
     );
     expect(firstRun.successRate).not.toBe(fixed.successRate);
 
@@ -2063,9 +1938,7 @@ describe('runMonteCarloSimulation', () => {
   });
 
   it('clamps out-of-range inputs', () => {
-    const result = runMonteCarloSimulation(
-      makeParams({ simulationCount: 50, horizonYears: 500 }),
-    );
+    const result = runMonteCarloSimulation(makeParams({simulationCount: 50, horizonYears: 500}));
     expect(result.simulationCount).toBe(MIN_SIMULATION_COUNT);
     expect(result.horizonYears).toBe(MAX_HORIZON_YEARS);
   });
@@ -2076,7 +1949,7 @@ describe('runMonteCarloSimulation', () => {
     // 5,000 delivering only 4,000 net
     const result = runMonteCarloSimulation(
       makeParams(
-        { annualWithdrawal: 8_000, horizonYears: 12, captureRunDetail: 0 },
+        {annualWithdrawal: 8_000, horizonYears: 12, captureRunDetail: 0},
         {
           startingBalance: 95_000,
           expectedReturnMean: 0,
@@ -2130,9 +2003,7 @@ describe('runMonteCarloSimulation', () => {
     );
 
     const rows = result.runDetail!;
-    expect(rows.map(row => row.withdrawal)).toEqual([
-      10_000, 10_000, 10_000, 13_333, 13_333,
-    ]);
+    expect(rows.map(row => row.withdrawal)).toEqual([10_000, 10_000, 10_000, 13_333, 13_333]);
     expect(rows.map(row => row.taxPaid)).toEqual([0, 0, 0, 3_333, 3_333]);
     expect(rows[3].potWithdrawals).toEqual([0, 13_333]);
     // Flat-model tax attributes exactly to the pot that paid it; the
@@ -2154,11 +2025,11 @@ describe('runMonteCarloSimulation', () => {
           captureRunDetail: 0,
           taxModel: 'bands',
           taxBands: [
-            { id: 'a', from: 0, rate: 0 },
-            { id: 'b', from: 10_000, rate: 0.2 },
+            {id: 'a', from: 0, rate: 0},
+            {id: 'b', from: 10_000, rate: 0.2},
           ],
         },
-        { startingBalance: 200_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 200_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -2178,8 +2049,8 @@ describe('runMonteCarloSimulation', () => {
         captureRunDetail: 0,
         taxModel: 'bands',
         taxBands: [
-          { id: 'a', from: 0, rate: 0 },
-          { id: 'b', from: 10_000, rate: 0.2 },
+          {id: 'a', from: 0, rate: 0},
+          {id: 'b', from: 10_000, rate: 0.2},
         ],
         pots: [
           makePot({
@@ -2229,42 +2100,34 @@ describe('runMonteCarloSimulation', () => {
           captureRunDetail: 0,
           taxModel: 'bands',
           taxBands: [
-            { id: 'a', from: 0, rate: 0 },
-            { id: 'b', from: 10_000, rate: 0.2 },
+            {id: 'a', from: 0, rate: 0},
+            {id: 'b', from: 10_000, rate: 0.2},
           ],
         },
-        { startingBalance: 500_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 500_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
     const rows = result.runDetail!;
-    expect(rows.map(row => row.withdrawal)).toEqual([
-      20_000, 20_000, 20_000, 20_000,
-    ]);
+    expect(rows.map(row => row.withdrawal)).toEqual([20_000, 20_000, 20_000, 20_000]);
     expect(rows.map(row => row.taxPaid)).toEqual([2_000, 2_000, 2_000, 2_000]);
   });
 
   it('a single tax band behaves like the same flat rate', () => {
-    const flat = runMonteCarloSimulation(
-      makeParams({}, { withdrawalTaxRate: 0.25 }),
-    );
+    const flat = runMonteCarloSimulation(makeParams({}, {withdrawalTaxRate: 0.25}));
     const bands = runMonteCarloSimulation(
       makeParams(
         {
           taxModel: 'bands',
-          taxBands: [{ id: 'a', from: 0, rate: 0.25 }],
+          taxBands: [{id: 'a', from: 0, rate: 0.25}],
         },
-        { taxableFraction: 1 },
+        {taxableFraction: 1},
       ),
     );
 
     expect(bands.successRate).toBe(flat.successRate);
-    expect(
-      Math.abs(bands.medianEndingBalance - flat.medianEndingBalance),
-    ).toBeLessThanOrEqual(1);
-    expect(
-      Math.abs(bands.medianTotalWithdrawn - flat.medianTotalWithdrawn),
-    ).toBeLessThanOrEqual(1);
+    expect(Math.abs(bands.medianEndingBalance - flat.medianEndingBalance)).toBeLessThanOrEqual(1);
+    expect(Math.abs(bands.medianTotalWithdrawn - flat.medianTotalWithdrawn)).toBeLessThanOrEqual(1);
   });
 
   it('zero-rate tax configurations match the untaxed engine exactly', () => {
@@ -2272,7 +2135,7 @@ describe('runMonteCarloSimulation', () => {
     const zeroBands = runMonteCarloSimulation(
       makeParams({
         taxModel: 'bands',
-        taxBands: [{ id: 'a', from: 0, rate: 0 }],
+        taxBands: [{id: 'a', from: 0, rate: 0}],
       }),
     );
 
@@ -2283,7 +2146,7 @@ describe('runMonteCarloSimulation', () => {
   it('deducts a fixed yearly fee at the end of each year', () => {
     const result = runMonteCarloSimulation(
       makeParams(
-        { annualWithdrawal: 0, horizonYears: 3, captureRunDetail: 0 },
+        {annualWithdrawal: 0, horizonYears: 3, captureRunDetail: 0},
         {
           startingBalance: 100_000,
           expectedReturnMean: 0,
@@ -2303,7 +2166,7 @@ describe('runMonteCarloSimulation', () => {
   it('deducts a percentage fee from the end-of-year balance', () => {
     const result = runMonteCarloSimulation(
       makeParams(
-        { annualWithdrawal: 0, horizonYears: 3, captureRunDetail: 0 },
+        {annualWithdrawal: 0, horizonYears: 3, captureRunDetail: 0},
         {
           startingBalance: 100_000,
           expectedReturnMean: 0,
@@ -2359,12 +2222,10 @@ describe('runMonteCarloSimulation', () => {
     expect(rows[1].potStartBalances).toEqual([99_000, 198_000, 50_000]);
     for (const row of rows) {
       expect(row.potFees.reduce((sum, fee) => sum + fee, 0)).toBe(row.feesPaid);
-      expect(
-        row.potStartBalances.reduce((sum, balance) => sum + balance, 0),
-      ).toBe(row.startBalance);
-      expect(row.potBalances.reduce((sum, balance) => sum + balance, 0)).toBe(
-        row.endBalance,
+      expect(row.potStartBalances.reduce((sum, balance) => sum + balance, 0)).toBe(
+        row.startBalance,
       );
+      expect(row.potBalances.reduce((sum, balance) => sum + balance, 0)).toBe(row.endBalance);
     }
   });
 
@@ -2420,9 +2281,7 @@ describe('runMonteCarloSimulation', () => {
         feeAdjustsWithInflation: true,
       }),
     );
-    expect(adjusted.runDetail!.map(row => row.feesPaid)).toEqual([
-      1_000, 1_000, 1_000,
-    ]);
+    expect(adjusted.runDetail!.map(row => row.feesPaid)).toEqual([1_000, 1_000, 1_000]);
 
     // A non-adjusted fee shrinks in real terms as prices rise
     const flat = runMonteCarloSimulation(
@@ -2445,24 +2304,18 @@ describe('runMonteCarloSimulation', () => {
           annualWithdrawal: 0,
           horizonYears: 3,
           captureRunDetail: 0,
-          contributions: [makeContribution({ annualAmount: 10_000 })],
+          contributions: [makeContribution({annualAmount: 10_000})],
         },
-        { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
     const rows = result.runDetail!;
     // No withdrawal rule configured - rows carry no rule explanation
     expect(rows[0].ruleExplanation).toBeUndefined();
-    expect(rows.map(row => row.startBalance)).toEqual([
-      100_000, 110_000, 120_000,
-    ]);
-    expect(rows.map(row => row.contributions)).toEqual([
-      10_000, 10_000, 10_000,
-    ]);
-    expect(rows.map(row => row.endBalance)).toEqual([
-      110_000, 120_000, 130_000,
-    ]);
+    expect(rows.map(row => row.startBalance)).toEqual([100_000, 110_000, 120_000]);
+    expect(rows.map(row => row.contributions)).toEqual([10_000, 10_000, 10_000]);
+    expect(rows.map(row => row.endBalance)).toEqual([110_000, 120_000, 130_000]);
   });
 
   it("an inflation-adjusted contribution stays constant in today's money", () => {
@@ -2493,16 +2346,14 @@ describe('runMonteCarloSimulation', () => {
         potSettings,
       ),
     );
-    expect(adjusted.runDetail!.map(row => row.contributions)).toEqual([
-      10_000, 10_000, 10_000,
-    ]);
+    expect(adjusted.runDetail!.map(row => row.contributions)).toEqual([10_000, 10_000, 10_000]);
 
     // A flat contribution buys less each year as prices rise
     const flat = runMonteCarloSimulation(
       makeParams(
         {
           ...base,
-          contributions: [makeContribution({ annualAmount: 10_000 })],
+          contributions: [makeContribution({annualAmount: 10_000})],
         },
         potSettings,
       ),
@@ -2521,17 +2372,13 @@ describe('runMonteCarloSimulation', () => {
           annualWithdrawal: 0,
           horizonYears: 5,
           captureRunDetail: 0,
-          contributions: [
-            makeContribution({ annualAmount: 10_000, fromAge: 62, toAge: 63 }),
-          ],
+          contributions: [makeContribution({annualAmount: 10_000, fromAge: 62, toAge: 63})],
         },
-        { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
-    expect(result.runDetail!.map(row => row.contributions)).toEqual([
-      0, 0, 10_000, 10_000, 0,
-    ]);
+    expect(result.runDetail!.map(row => row.contributions)).toEqual([0, 0, 10_000, 10_000, 0]);
   });
 
   it('deposits into locked pots - access age only gates withdrawals', () => {
@@ -2540,9 +2387,7 @@ describe('runMonteCarloSimulation', () => {
         annualWithdrawal: 0,
         horizonYears: 2,
         captureRunDetail: 0,
-        contributions: [
-          makeContribution({ potId: 'locked-pot', annualAmount: 10_000 }),
-        ],
+        contributions: [makeContribution({potId: 'locked-pot', annualAmount: 10_000})],
         pots: [
           makePot({
             id: 'open-pot',
@@ -2591,7 +2436,7 @@ describe('runMonteCarloSimulation', () => {
             }),
           ],
         },
-        { startingBalance: 50_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 50_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -2610,9 +2455,7 @@ describe('runMonteCarloSimulation', () => {
         annualWithdrawal: 0,
         horizonYears: 2,
         captureRunDetail: 0,
-        contributions: [
-          makeContribution({ potId: 'deleted-pot', annualAmount: 10_000 }),
-        ],
+        contributions: [makeContribution({potId: 'deleted-pot', annualAmount: 10_000})],
         pots: [
           makePot({
             id: 'pot-a',
@@ -2646,9 +2489,9 @@ describe('runMonteCarloSimulation', () => {
           annualWithdrawal: 0,
           horizonYears: 5,
           captureRunDetail: 0,
-          contributions: [makeContribution({ annualAmount: 10_000 })],
+          contributions: [makeContribution({annualAmount: 10_000})],
         },
-        { startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -2656,11 +2499,7 @@ describe('runMonteCarloSimulation', () => {
     expect(result.runDetail!.map(row => row.endBalance)).toEqual([
       10_000, 20_000, 30_000, 40_000, 50_000,
     ]);
-    for (
-      let simulationIndex = 0;
-      simulationIndex < result.simulationCount;
-      simulationIndex++
-    ) {
+    for (let simulationIndex = 0; simulationIndex < result.simulationCount; simulationIndex++) {
       expect(result.depletionYearBySimulation[simulationIndex]).toBe(-1);
     }
   });
@@ -2675,18 +2514,14 @@ describe('runMonteCarloSimulation', () => {
           annualWithdrawal: 0,
           horizonYears: 5,
           captureRunDetail: 0,
-          contributions: [
-            makeContribution({ annualAmount: 10_000, fromAge: 62 }),
-          ],
+          contributions: [makeContribution({annualAmount: 10_000, fromAge: 62})],
         },
-        { startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
     expect(result.successRate).toBe(1);
-    expect(result.runDetail!.map(row => row.endBalance)).toEqual([
-      0, 0, 10_000, 20_000, 30_000,
-    ]);
+    expect(result.runDetail!.map(row => row.endBalance)).toEqual([0, 0, 10_000, 20_000, 30_000]);
   });
 
   it('a funding shortfall still fails the plan despite pending contributions', () => {
@@ -2697,11 +2532,9 @@ describe('runMonteCarloSimulation', () => {
         {
           annualWithdrawal: 20_000,
           horizonYears: 15,
-          contributions: [
-            makeContribution({ annualAmount: 5_000, fromAge: 70 }),
-          ],
+          contributions: [makeContribution({annualAmount: 5_000, fromAge: 70})],
         },
-        { startingBalance: 10_000, expectedReturnMean: 0, returnStdDev: 0 },
+        {startingBalance: 10_000, expectedReturnMean: 0, returnStdDev: 0},
       ),
     );
 
@@ -2716,7 +2549,7 @@ describe('runMonteCarloSimulation', () => {
           annualWithdrawal: 8_000,
           horizonYears: 3,
           captureRunDetail: 0,
-          contributions: [makeContribution({ annualAmount: 10_000 })],
+          contributions: [makeContribution({annualAmount: 10_000})],
         },
         {
           startingBalance: 100_000,
@@ -2728,20 +2561,12 @@ describe('runMonteCarloSimulation', () => {
     );
 
     const rows = result.runDetail!;
-    expect(rows.map(row => row.endBalance)).toEqual([
-      101_000, 102_000, 103_000,
-    ]);
+    expect(rows.map(row => row.endBalance)).toEqual([101_000, 102_000, 103_000]);
     for (const row of rows) {
       expect(
-        row.startBalance +
-          row.contributions -
-          row.withdrawal +
-          row.growth -
-          row.feesPaid,
+        row.startBalance + row.contributions - row.withdrawal + row.growth - row.feesPaid,
       ).toBe(row.endBalance);
-      expect(
-        row.potContributions.reduce((sum, amount) => sum + amount, 0),
-      ).toBe(row.contributions);
+      expect(row.potContributions.reduce((sum, amount) => sum + amount, 0)).toBe(row.contributions);
     }
   });
 
@@ -2759,8 +2584,8 @@ describe('runMonteCarloSimulation', () => {
       makeParams(
         {
           spendingPhases: [
-            { id: 'phase-1', name: '', fromAge: null, annualWithdrawal: 0 },
-            { id: 'phase-2', name: '', fromAge: 64, annualWithdrawal: 100 },
+            {id: 'phase-1', name: '', fromAge: null, annualWithdrawal: 0},
+            {id: 'phase-2', name: '', fromAge: 64, annualWithdrawal: 100},
           ],
           horizonYears: 6,
         },
@@ -2772,7 +2597,7 @@ describe('runMonteCarloSimulation', () => {
 
     // With nothing to fund, empty pots are not a failure
     const nothingToFund = runMonteCarloSimulation(
-      makeParams({ annualWithdrawal: 0, horizonYears: 5 }, feeDrainedPot),
+      makeParams({annualWithdrawal: 0, horizonYears: 5}, feeDrainedPot),
     );
     expect(nothingToFund.successRate).toBe(1);
     expect(nothingToFund.medianEndingBalance).toBe(0);
@@ -2785,10 +2610,10 @@ describe('runMonteCarloSimulation', () => {
           {
             annualWithdrawal: 4_000,
             horizonYears: 3,
-            incomeStreams: [makeIncomeStream({ annualAmount: 1_200 })],
+            incomeStreams: [makeIncomeStream({annualAmount: 1_200})],
             captureRunDetail: 0,
           },
-          { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
@@ -2820,7 +2645,7 @@ describe('runMonteCarloSimulation', () => {
             ],
             captureRunDetail: 0,
           },
-          { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
@@ -2828,9 +2653,7 @@ describe('runMonteCarloSimulation', () => {
       expect(rows.map(row => row.income)).toEqual([0, 1_000, 1_000, 0]);
       expect(rows.map(row => row.incomeTax)).toEqual([0, 200, 200, 0]);
       // 800 net offsets the 4,000 plan
-      expect(rows.map(row => row.withdrawal)).toEqual([
-        4_000, 3_200, 3_200, 4_000,
-      ]);
+      expect(rows.map(row => row.withdrawal)).toEqual([4_000, 3_200, 3_200, 4_000]);
     });
 
     it('under tax bands, income fills the lower bands and pot withdrawals stack on top', () => {
@@ -2845,13 +2668,13 @@ describe('runMonteCarloSimulation', () => {
             horizonYears: 1,
             taxModel: 'bands',
             taxBands: [
-              { id: 'band-1', from: 0, rate: 0 },
-              { id: 'band-2', from: 1_000, rate: 0.2 },
+              {id: 'band-1', from: 0, rate: 0},
+              {id: 'band-2', from: 1_000, rate: 0.2},
             ],
-            incomeStreams: [makeIncomeStream({ annualAmount: 1_500 })],
+            incomeStreams: [makeIncomeStream({annualAmount: 1_500})],
             captureRunDetail: 0,
           },
-          { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
@@ -2869,9 +2692,7 @@ describe('runMonteCarloSimulation', () => {
           {
             annualWithdrawal: 0,
             horizonYears: 3,
-            incomeStreams: [
-              makeIncomeStream({ annualAmount: 1_000, toAge: 61 }),
-            ],
+            incomeStreams: [makeIncomeStream({annualAmount: 1_000, toAge: 61})],
             contributions: [
               makeContribution({
                 annualAmount: 1_500,
@@ -2880,21 +2701,19 @@ describe('runMonteCarloSimulation', () => {
             ],
             captureRunDetail: 0,
           },
-          { startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
       const rows = result.runDetail!;
       expect(rows.map(row => row.contributions)).toEqual([1_000, 1_000, 0]);
-      expect(rows.map(row => row.contributionAmounts[0])).toEqual([
-        1_000, 1_000, 0,
-      ]);
+      expect(rows.map(row => row.contributionAmounts[0])).toEqual([1_000, 1_000, 0]);
       expect(rows.map(row => row.unspentIncome)).toEqual([0, 0, 0]);
       expect(result.medianEndingBalance).toBe(2_000);
     });
 
     it('a before-tax contribution reduces the income tax; an after-tax one does not', () => {
-      const income = makeIncomeStream({ annualAmount: 1_000, taxRate: 0.2 });
+      const income = makeIncomeStream({annualAmount: 1_000, taxRate: 0.2});
       const sourced = (beforeTax: boolean) =>
         runMonteCarloSimulation(
           makeParams(
@@ -2911,7 +2730,7 @@ describe('runMonteCarloSimulation', () => {
               ],
               captureRunDetail: 0,
             },
-            { startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0 },
+            {startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0},
           ),
         ).runDetail![0];
 
@@ -2935,10 +2754,10 @@ describe('runMonteCarloSimulation', () => {
             horizonYears: 1,
             taxModel: 'bands',
             taxBands: [
-              { id: 'band-1', from: 0, rate: 0 },
-              { id: 'band-2', from: 1_000, rate: 0.2 },
+              {id: 'band-1', from: 0, rate: 0},
+              {id: 'band-2', from: 1_000, rate: 0.2},
             ],
-            incomeStreams: [makeIncomeStream({ annualAmount: 1_500 })],
+            incomeStreams: [makeIncomeStream({annualAmount: 1_500})],
             contributions: [
               makeContribution({
                 annualAmount: 600,
@@ -2948,7 +2767,7 @@ describe('runMonteCarloSimulation', () => {
             ],
             captureRunDetail: 0,
           },
-          { startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
@@ -2965,10 +2784,10 @@ describe('runMonteCarloSimulation', () => {
           {
             annualWithdrawal: 400,
             horizonYears: 2,
-            incomeStreams: [makeIncomeStream({ annualAmount: 1_000 })],
+            incomeStreams: [makeIncomeStream({annualAmount: 1_000})],
             captureRunDetail: 0,
           },
-          { startingBalance: 5_000, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 5_000, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
@@ -2984,9 +2803,9 @@ describe('runMonteCarloSimulation', () => {
           {
             annualWithdrawal: 800,
             horizonYears: 10,
-            incomeStreams: [makeIncomeStream({ annualAmount: 1_000 })],
+            incomeStreams: [makeIncomeStream({annualAmount: 1_000})],
           },
-          { startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
@@ -3002,11 +2821,11 @@ describe('runMonteCarloSimulation', () => {
           {
             annualWithdrawal: 4_000,
             horizonYears: 3,
-            withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
-            incomeStreams: [makeIncomeStream({ annualAmount: 2_000 })],
+            withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
+            incomeStreams: [makeIncomeStream({annualAmount: 2_000})],
             captureRunDetail: 0,
           },
-          { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
@@ -3029,9 +2848,9 @@ describe('runMonteCarloSimulation', () => {
           {
             annualWithdrawal: 2_000,
             horizonYears: 4,
-            withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
+            withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
             minimumSpending: 1_800,
-            incomeStreams: [makeIncomeStream({ annualAmount: 1_000 })],
+            incomeStreams: [makeIncomeStream({annualAmount: 1_000})],
             captureRunDetail: 0,
           },
           {
@@ -3044,12 +2863,7 @@ describe('runMonteCarloSimulation', () => {
 
       const rows = result.runDetail!;
       expect(rows.map(row => row.withdrawal)).toEqual([1_000, 900, 810, 800]);
-      expect(rows.map(row => row.minimumApplied ?? false)).toEqual([
-        false,
-        false,
-        false,
-        true,
-      ]);
+      expect(rows.map(row => row.minimumApplied ?? false)).toEqual([false, false, false, true]);
       expect(rows[3].plannedSpending).toBe(1_800);
       expect(rows[3].spent).toBe(1_800);
     });
@@ -3060,12 +2874,12 @@ describe('runMonteCarloSimulation', () => {
           {
             annualWithdrawal: 2_000,
             horizonYears: 2,
-            withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
+            withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
             minimumSpending: 3_000,
-            incomeStreams: [makeIncomeStream({ annualAmount: 2_000 })],
+            incomeStreams: [makeIncomeStream({annualAmount: 2_000})],
             captureRunDetail: 0,
           },
-          { startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 100_000, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
@@ -3082,23 +2896,17 @@ describe('runMonteCarloSimulation', () => {
           {
             annualWithdrawal: 1_000,
             horizonYears: 3,
-            incomeStreams: [makeIncomeStream({ annualAmount: 400 })],
+            incomeStreams: [makeIncomeStream({annualAmount: 400})],
             captureRunDetail: 0,
           },
-          { startingBalance: 500, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 500, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
       const rows = result.runDetail!;
-      expect(rows.map(row => row.afterDepletion ?? false)).toEqual([
-        false,
-        true,
-        true,
-      ]);
+      expect(rows.map(row => row.afterDepletion ?? false)).toEqual([false, true, true]);
       expect(rows.map(row => row.income)).toEqual([400, 400, 400]);
-      expect(rows.map(row => row.plannedSpending)).toEqual([
-        1_000, 1_000, 1_000,
-      ]);
+      expect(rows.map(row => row.plannedSpending)).toEqual([1_000, 1_000, 1_000]);
       expect(rows[2].unspentIncome).toBe(0);
     });
 
@@ -3110,25 +2918,19 @@ describe('runMonteCarloSimulation', () => {
           {
             annualWithdrawal: 4_000,
             horizonYears: 3,
-            incomeStreams: [makeIncomeStream({ annualAmount: 1_200 })],
+            incomeStreams: [makeIncomeStream({annualAmount: 1_200})],
             captureRunDetail: 0,
           },
-          { startingBalance: 5_000, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 5_000, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
       const rows = result.runDetail!;
-      expect(rows.map(row => row.plannedSpending)).toEqual([
-        4_000, 4_000, 4_000,
-      ]);
+      expect(rows.map(row => row.plannedSpending)).toEqual([4_000, 4_000, 4_000]);
       // Year 2 fails: the remaining 2,200 plus the income is all that's
       // spent; year 3 is the unfunded tail with only the income
       expect(rows.map(row => row.spent)).toEqual([4_000, 3_400, 1_200]);
-      expect(rows.map(row => row.afterDepletion ?? false)).toEqual([
-        false,
-        false,
-        true,
-      ]);
+      expect(rows.map(row => row.afterDepletion ?? false)).toEqual([false, false, true]);
     });
 
     it('saves unspent income into the surplus pot and draws on it first', () => {
@@ -3142,11 +2944,9 @@ describe('runMonteCarloSimulation', () => {
           // zero-return history to keep the arithmetic exact; the custom
           // main pot keeps its own draws under historical models
           returnModel: 'historical-bootstrap',
-          historicalReturns: [
-            { year: 2000, stocks: 0, bonds: 0, cash: 0, inflation: 0 },
-          ],
+          historicalReturns: [{year: 2000, stocks: 0, bonds: 0, cash: 0, inflation: 0}],
           horizonYears: 4,
-          incomeStreams: [makeIncomeStream({ annualAmount: 1_000, toAge: 61 })],
+          incomeStreams: [makeIncomeStream({annualAmount: 1_000, toAge: 61})],
           pots: [
             makePot({
               id: 'surplus',
@@ -3203,13 +3003,11 @@ describe('runMonteCarloSimulation', () => {
           // zero-return history to keep the arithmetic exact; the custom
           // main pot keeps its own draws under historical models
           returnModel: 'historical-bootstrap',
-          historicalReturns: [
-            { year: 2000, stocks: 0, bonds: 0, cash: 0, inflation: 0 },
-          ],
+          historicalReturns: [{year: 2000, stocks: 0, bonds: 0, cash: 0, inflation: 0}],
           horizonYears: 4,
-          withdrawalRule: { ...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails' },
+          withdrawalRule: {...WITHDRAWAL_RULE_DEFAULTS, type: 'guardrails'},
           minimumSpending: 1_800,
-          incomeStreams: [makeIncomeStream({ annualAmount: 1_000 })],
+          incomeStreams: [makeIncomeStream({annualAmount: 1_000})],
           pots: [
             makePot({
               id: 'surplus',
@@ -3245,9 +3043,7 @@ describe('runMonteCarloSimulation', () => {
         makeParams({
           annualWithdrawal: 40_000,
           horizonYears: 5,
-          incomeStreams: [
-            makeIncomeStream({ id: 'salary', annualAmount: 40_000 }),
-          ],
+          incomeStreams: [makeIncomeStream({id: 'salary', annualAmount: 40_000})],
           contributions: [
             makeContribution({
               potId: 'cash',
@@ -3270,9 +3066,7 @@ describe('runMonteCarloSimulation', () => {
       expect(result.successRate).toBe(1);
       const rows = result.runDetail!;
       expect(rows).toHaveLength(5);
-      expect(rows.map(row => row.withdrawal)).toEqual(
-        new Array(5).fill(40_000),
-      );
+      expect(rows.map(row => row.withdrawal)).toEqual(new Array(5).fill(40_000));
       expect(rows.map(row => row.spent)).toEqual(new Array(5).fill(40_000));
       expect(rows.map(row => row.endBalance)).toEqual(new Array(5).fill(0));
     });
@@ -3287,7 +3081,7 @@ describe('runMonteCarloSimulation', () => {
             inflationStdDev: 0,
             deflateToTodaysMoney: true,
             incomeStreams: [
-              makeIncomeStream({ id: 'income-1', annualAmount: 1_001 }),
+              makeIncomeStream({id: 'income-1', annualAmount: 1_001}),
               makeIncomeStream({
                 id: 'income-2',
                 annualAmount: 333,
@@ -3296,14 +3090,12 @@ describe('runMonteCarloSimulation', () => {
             ],
             captureRunDetail: 0,
           },
-          { startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0 },
+          {startingBalance: 0, expectedReturnMean: 0, returnStdDev: 0},
         ),
       );
 
       for (const row of result.runDetail!) {
-        expect(row.incomeAmounts.reduce((sum, amount) => sum + amount, 0)).toBe(
-          row.income,
-        );
+        expect(row.incomeAmounts.reduce((sum, amount) => sum + amount, 0)).toBe(row.income);
       }
     });
   });
@@ -3337,17 +3129,11 @@ describe('runMonteCarloSimulation', () => {
       expect(band.p5).toBeGreaterThanOrEqual(0);
       expect(band.p90).toBeLessThanOrEqual(maxFormattable);
     }
-    for (
-      let simulationIndex = 0;
-      simulationIndex < result.simulationCount;
-      simulationIndex++
-    ) {
-      expect(result.endingBalances[simulationIndex]).toBeLessThanOrEqual(
+    for (let simulationIndex = 0; simulationIndex < result.simulationCount; simulationIndex++) {
+      expect(result.endingBalances[simulationIndex]).toBeLessThanOrEqual(maxFormattable);
+      expect(result.totalWithdrawnBySimulation[simulationIndex]).toBeLessThanOrEqual(
         maxFormattable,
       );
-      expect(
-        result.totalWithdrawnBySimulation[simulationIndex],
-      ).toBeLessThanOrEqual(maxFormattable);
     }
     for (const row of result.runDetail!) {
       const values = [
@@ -3368,8 +3154,8 @@ describe('runMonteCarloSimulation', () => {
 
 describe('getHistoricalPresetStats', () => {
   const history = [
-    { year: 2000, stocks: 0.1, bonds: 0.05, cash: 0.02, inflation: 0 },
-    { year: 2001, stocks: -0.1, bonds: 0.01, cash: 0.02, inflation: 0 },
+    {year: 2000, stocks: 0.1, bonds: 0.05, cash: 0.02, inflation: 0},
+    {year: 2001, stocks: -0.1, bonds: 0.01, cash: 0.02, inflation: 0},
   ];
 
   it('blends the series by the preset weights', () => {
@@ -3397,10 +3183,7 @@ describe('getHistoricalPresetStats', () => {
 
   it('matches getHistoricalMixStats for the same weights', () => {
     const presetStats = getHistoricalPresetStats('equity-60', history);
-    const mixStats = getHistoricalMixStats(
-      { stocks: 0.6, bonds: 0.4, cash: 0 },
-      history,
-    );
+    const mixStats = getHistoricalMixStats({stocks: 0.6, bonds: 0.4, cash: 0}, history);
     expect(mixStats).toEqual(presetStats);
   });
 });
@@ -3415,15 +3198,15 @@ describe('getPotAssetWeights', () => {
     });
 
   it('returns the fixed mix behind a preset', () => {
-    expect(
-      getPotAssetWeights(makePot({ allocationPreset: 'equity-80' })),
-    ).toEqual({ stocks: 0.8, bonds: 0.2, cash: 0 });
+    expect(getPotAssetWeights(makePot({allocationPreset: 'equity-80'}))).toEqual({
+      stocks: 0.8,
+      bonds: 0.2,
+      cash: 0,
+    });
   });
 
   it('returns null for custom pots', () => {
-    expect(
-      getPotAssetWeights(makePot({ allocationPreset: 'custom' })),
-    ).toBeNull();
+    expect(getPotAssetWeights(makePot({allocationPreset: 'custom'}))).toBeNull();
   });
 
   it('returns a complete custom mix as-is', () => {

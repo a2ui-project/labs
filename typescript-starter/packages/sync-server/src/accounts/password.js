@@ -16,11 +16,11 @@
 
 import * as argon2 from 'argon2';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { clearExpiredSessions, getAccountDb } from '#account-db';
-import { config } from '#load-config';
-import { TOKEN_EXPIRATION_NEVER } from '#util/validate-user';
+import {clearExpiredSessions, getAccountDb} from '#account-db';
+import {config} from '#load-config';
+import {TOKEN_EXPIRATION_NEVER} from '#util/validate-user';
 
 // https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#argon2id
 const ARGON2_OPTIONS = {
@@ -74,7 +74,7 @@ export function setPasswordHash(hashed) {
 
 export async function bootstrapPassword(password) {
   if (!isValidPassword(password)) {
-    return { error: 'invalid-password' };
+    return {error: 'invalid-password'};
   }
 
   const hashed = await hashPassword(password);
@@ -85,23 +85,21 @@ export async function bootstrapPassword(password) {
 
 export async function loginWithPassword(password) {
   if (!isValidPassword(password)) {
-    return { error: 'invalid-password' };
+    return {error: 'invalid-password'};
   }
 
   const accountDb = getAccountDb();
-  const { extra_data: passwordHash } =
-    accountDb.first('SELECT extra_data FROM auth WHERE method = ?', [
-      'password',
-    ]) || {};
+  const {extra_data: passwordHash} =
+    accountDb.first('SELECT extra_data FROM auth WHERE method = ?', ['password']) || {};
 
   if (!passwordHash) {
-    return { error: 'invalid-password' };
+    return {error: 'invalid-password'};
   }
 
   const confirmed = await verifyPassword(password, passwordHash);
 
   if (!confirmed) {
-    return { error: 'invalid-password' };
+    return {error: 'invalid-password'};
   }
 
   if (isLegacyHash(passwordHash)) {
@@ -112,16 +110,11 @@ export async function loginWithPassword(password) {
     );
   }
 
-  const sessionRow = accountDb.first(
-    'SELECT * FROM sessions WHERE auth_method = ?',
-    ['password'],
-  );
+  const sessionRow = accountDb.first('SELECT * FROM sessions WHERE auth_method = ?', ['password']);
 
   const token = sessionRow ? sessionRow.token : uuidv4();
 
-  const { totalOfUsers } = accountDb.first(
-    'SELECT count(*) as totalOfUsers FROM users',
-  );
+  const {totalOfUsers} = accountDb.first('SELECT count(*) as totalOfUsers FROM users');
   let userId = null;
   if (totalOfUsers === 0) {
     userId = uuidv4();
@@ -130,15 +123,12 @@ export async function loginWithPassword(password) {
       [userId, '', '', 'ADMIN'],
     );
   } else {
-    const { id: userIdFromDb } = accountDb.first(
-      'SELECT id FROM users WHERE user_name = ?',
-      [''],
-    );
+    const {id: userIdFromDb} = accountDb.first('SELECT id FROM users WHERE user_name = ?', ['']);
 
     userId = userIdFromDb;
 
     if (!userId) {
-      return { error: 'user-not-found' };
+      return {error: 'user-not-found'};
     }
   }
 
@@ -148,8 +138,7 @@ export async function loginWithPassword(password) {
     config.get('token_expiration') !== 'openid-provider' &&
     typeof config.get('token_expiration') === 'number'
   ) {
-    expiration =
-      Math.floor(Date.now() / 1000) + config.get('token_expiration') * 60;
+    expiration = Math.floor(Date.now() / 1000) + config.get('token_expiration') * 60;
   }
 
   if (!sessionRow) {
@@ -158,31 +147,31 @@ export async function loginWithPassword(password) {
       [token, expiration, userId, 'password'],
     );
   } else {
-    accountDb.mutate(
-      'UPDATE sessions SET user_id = ?, expires_at = ? WHERE token = ?',
-      [userId, expiration, token],
-    );
+    accountDb.mutate('UPDATE sessions SET user_id = ?, expires_at = ? WHERE token = ?', [
+      userId,
+      expiration,
+      token,
+    ]);
   }
 
   clearExpiredSessions();
 
-  return { token };
+  return {token};
 }
 
 export async function changePassword(newPassword) {
   const accountDb = getAccountDb();
 
   if (!isValidPassword(newPassword)) {
-    return { error: 'invalid-password' };
+    return {error: 'invalid-password'};
   }
 
   const hashed = await hashPassword(newPassword);
-  const result = accountDb.mutate(
-    "UPDATE auth SET extra_data = ? WHERE method = 'password'",
-    [hashed],
-  );
+  const result = accountDb.mutate("UPDATE auth SET extra_data = ? WHERE method = 'password'", [
+    hashed,
+  ]);
   if (result.changes === 0) {
-    return { error: 'no-password-method' };
+    return {error: 'no-password-method'};
   }
   return {};
 }
@@ -193,10 +182,8 @@ export async function checkPassword(password) {
   }
 
   const accountDb = getAccountDb();
-  const { extra_data: passwordHash } =
-    accountDb.first('SELECT extra_data FROM auth WHERE method = ?', [
-      'password',
-    ]) || {};
+  const {extra_data: passwordHash} =
+    accountDb.first('SELECT extra_data FROM auth WHERE method = ?', ['password']) || {};
 
   if (!passwordHash) {
     return false;

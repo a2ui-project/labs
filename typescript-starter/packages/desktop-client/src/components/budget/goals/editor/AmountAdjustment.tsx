@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Select } from '@actual-app/components/select';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { amountToInteger, integerToAmount } from '@actual-app/core/shared/util';
-import type {
-  AverageTemplate,
-  ScheduleTemplate,
-} from '@actual-app/core/types/models/templates';
+import {Select} from '@actual-app/components/select';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {amountToInteger, integerToAmount} from '@actual-app/core/shared/util';
+import type {AverageTemplate, ScheduleTemplate} from '@actual-app/core/types/models/templates';
 
-import { updateTemplate } from '#components/budget/goals/actions';
-import type { Action } from '#components/budget/goals/actions';
-import { FormField, FormLabel } from '#components/forms';
-import { AmountInput } from '#components/util/AmountInput';
-import { PercentInput } from '#components/util/PercentInput';
-import { useFormat } from '#hooks/useFormat';
+import {updateTemplate} from '#components/budget/goals/actions';
+import type {Action} from '#components/budget/goals/actions';
+import {FormField, FormLabel} from '#components/forms';
+import {AmountInput} from '#components/util/AmountInput';
+import {PercentInput} from '#components/util/PercentInput';
+import {useFormat} from '#hooks/useFormat';
 
 type AdjustableTemplate = ScheduleTemplate | AverageTemplate;
 type AdjustmentType = 'percent' | 'fixed';
@@ -51,11 +48,8 @@ type AmountAdjustmentProps = {
 // dropdown turns the adjustment on and off and picks percentage vs fixed
 // amount. A percentage uses an increase/decrease selector for the direction;
 // a fixed amount uses AmountInput, whose own sign is the direction.
-export const AmountAdjustment = ({
-  template,
-  dispatch,
-}: AmountAdjustmentProps) => {
-  const { t } = useTranslation();
+export const AmountAdjustment = ({template, dispatch}: AmountAdjustmentProps) => {
+  const {t} = useTranslation();
   const format = useFormat();
 
   const enabled = template.adjustment !== undefined;
@@ -64,10 +58,7 @@ export const AmountAdjustment = ({
   const increasing = adjustment >= 0;
   const magnitude = Math.abs(adjustment);
 
-  const apply = (
-    next: number | undefined,
-    type: AdjustmentType | undefined,
-  ) => {
+  const apply = (next: number | undefined, type: AdjustmentType | undefined) => {
     if (template.type === 'schedule') {
       dispatch(
         updateTemplate({
@@ -102,8 +93,8 @@ export const AmountAdjustment = ({
   };
 
   return (
-    <SpaceBetween gap={50} style={{ marginTop: 10 }}>
-      <FormField style={{ flex: 1 }}>
+    <SpaceBetween gap={50} style={{marginTop: 10}}>
+      <FormField style={{flex: 1}}>
         <FormLabel title={t('Adjustment')} htmlFor="adjustment-unit-field" />
         <SpaceBetween align="center" gap={12}>
           <Select
@@ -115,24 +106,18 @@ export const AmountAdjustment = ({
               ['fixed', t('Fixed amount')],
               ['percent', t('Percentage')],
             ]}
-            style={{ width: 160 }}
+            style={{width: 160}}
           />
           {enabled &&
             (adjustmentType === 'fixed' ? (
               <AmountInput
                 id="adjustment-amount-field"
                 zeroSign="+"
-                value={amountToInteger(
-                  adjustment,
-                  format.currency.decimalPlaces,
-                )}
+                value={amountToInteger(adjustment, format.currency.decimalPlaces)}
                 onUpdate={next =>
-                  apply(
-                    integerToAmount(next, format.currency.decimalPlaces),
-                    'fixed',
-                  )
+                  apply(integerToAmount(next, format.currency.decimalPlaces), 'fixed')
                 }
-                style={{ flex: 'none', width: 140 }}
+                style={{flex: 'none', width: 140}}
               />
             ) : (
               <>
@@ -144,16 +129,14 @@ export const AmountAdjustment = ({
                     ['increase', t('Increase')],
                     ['decrease', t('Decrease')],
                   ]}
-                  style={{ width: 150 }}
+                  style={{width: 150}}
                 />
                 <PercentInput
                   id="adjustment-amount-field"
                   max={MAX_PERCENT}
                   value={magnitude}
-                  onUpdatePercent={percent =>
-                    apply(increasing ? percent : -percent, 'percent')
-                  }
-                  style={{ flex: 'none', width: 120 }}
+                  onUpdatePercent={percent => apply(increasing ? percent : -percent, 'percent')}
+                  style={{flex: 'none', width: 120}}
                 />
               </>
             ))}

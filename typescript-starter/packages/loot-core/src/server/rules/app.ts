@@ -15,20 +15,16 @@
  */
 
 // @ts-strict-ignore
-import { logger } from '#platform/server/log';
-import { createApp } from '#server/app';
-import { RuleError } from '#server/errors';
-import { mutator } from '#server/mutators';
-import { batchMessages } from '#server/sync';
+import {logger} from '#platform/server/log';
+import {createApp} from '#server/app';
+import {RuleError} from '#server/errors';
+import {mutator} from '#server/mutators';
+import {batchMessages} from '#server/sync';
 import * as rules from '#server/transactions/transaction-rules';
-import { undoable } from '#server/undo';
-import type {
-  RuleActionEntity,
-  RuleEntity,
-  TransactionEntity,
-} from '#types/models';
+import {undoable} from '#server/undo';
+import type {RuleActionEntity, RuleEntity, TransactionEntity} from '#types/models';
 
-import { Action, Condition, rankRules } from '.';
+import {Action, Condition, rankRules} from '.';
 
 function validateRule(rule: Partial<RuleEntity>) {
   // Returns an array of errors, the array is the same link as the
@@ -47,9 +43,7 @@ function validateRule(rule: Partial<RuleEntity>) {
       return null;
     });
 
-    return result.filter((res): res is string => typeof res === 'string').length
-      ? result
-      : null;
+    return result.filter((res): res is string => typeof res === 'string').length ? result : null;
   }
 
   const conditionErrors = runValidation(
@@ -111,31 +105,27 @@ app.method('rules-get', getRules);
 app.method('rule-get', getRule);
 app.method('rules-run', runRules);
 
-async function ruleValidate(
-  rule: Partial<RuleEntity>,
-): Promise<{ error: ValidationError | null }> {
+async function ruleValidate(rule: Partial<RuleEntity>): Promise<{error: ValidationError | null}> {
   const error = validateRule(rule);
-  return { error };
+  return {error};
 }
 
 async function addRule(
   rule: Omit<RuleEntity, 'id'>,
-): Promise<{ error: ValidationError } | RuleEntity> {
+): Promise<{error: ValidationError} | RuleEntity> {
   const error = validateRule(rule);
   if (error) {
-    return { error };
+    return {error};
   }
 
   const id = await rules.insertRule(rule);
-  return { id, ...rule };
+  return {id, ...rule};
 }
 
-async function updateRule(
-  rule: RuleEntity,
-): Promise<{ error: ValidationError } | RuleEntity> {
+async function updateRule(rule: RuleEntity): Promise<{error: ValidationError} | RuleEntity> {
   const error = validateRule(rule);
   if (error) {
-    return { error };
+    return {error};
   }
 
   await rules.updateRule(rule);
@@ -148,7 +138,7 @@ async function deleteRule(id: RuleEntity['id']) {
 
 async function deleteAllRules(
   ids: Array<RuleEntity['id']>,
-): Promise<{ someDeletionsFailed: boolean }> {
+): Promise<{someDeletionsFailed: boolean}> {
   let someDeletionsFailed = false;
 
   await batchMessages(async () => {
@@ -160,7 +150,7 @@ async function deleteAllRules(
     }
   });
 
-  return { someDeletionsFailed };
+  return {someDeletionsFailed};
 }
 
 async function applyRuleActions({
@@ -187,11 +177,7 @@ async function addRulePayeeRename({
   return rules.updatePayeeRenameRule(fromNames, to);
 }
 
-async function getRule({
-  id,
-}: {
-  id: RuleEntity['id'];
-}): Promise<RuleEntity | null> {
+async function getRule({id}: {id: RuleEntity['id']}): Promise<RuleEntity | null> {
   const rule = rules.getRules().find(rule => rule.id === id);
   return rule ? rule.serialize() : null;
 }

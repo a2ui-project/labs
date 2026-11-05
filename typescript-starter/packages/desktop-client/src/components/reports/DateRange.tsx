@@ -15,17 +15,17 @@
  */
 
 import React from 'react';
-import type { ReactElement } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import type {ReactElement} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
+import {Block} from '@actual-app/components/block';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
 import * as monthUtils from '@actual-app/core/shared/months';
 import * as d from 'date-fns';
 
-import { useLocale } from '#hooks/useLocale';
+import {useLocale} from '#hooks/useLocale';
 
 type DateRangeProps = {
   start: string;
@@ -43,13 +43,8 @@ function checkDate(date: string) {
   }
 }
 
-export function DateRange({
-  start,
-  end,
-  type,
-  comparisonLabel,
-}: DateRangeProps): ReactElement {
-  const { t } = useTranslation();
+export function DateRange({start, end, type, comparisonLabel}: DateRangeProps): ReactElement {
+  const {t} = useTranslation();
   const locale = useLocale();
   const checkStart = checkDate(start);
   const checkEnd = checkDate(end);
@@ -61,19 +56,18 @@ export function DateRange({
     endDate = d.parseISO(checkEnd);
   } else {
     return (
-      <Text style={{ ...styles.mediumText, color: theme.errorText }}>
+      <Text style={{...styles.mediumText, color: theme.errorText}}>
         <Trans>There was a problem loading your date range</Trans>
       </Text>
     );
   }
 
-  const formattedStartDate = d.format(startDate, 'MMM yyyy', { locale });
-  const formattedEndDate = d.format(endDate, 'MMM yyyy', { locale });
+  const formattedStartDate = d.format(startDate, 'MMM yyyy', {locale});
+  const formattedEndDate = d.format(endDate, 'MMM yyyy', {locale});
   let typeOrFormattedEndDate: string;
 
   if (type && ['budget', 'average'].includes(type)) {
-    typeOrFormattedEndDate =
-      comparisonLabel ?? (type === 'budget' ? t('budgeted') : t('average'));
+    typeOrFormattedEndDate = comparisonLabel ?? (type === 'budget' ? t('budgeted') : t('average'));
   } else {
     typeOrFormattedEndDate = formattedEndDate;
   }
@@ -83,7 +77,7 @@ export function DateRange({
     content = (
       <div>
         <Trans>
-          Compare {{ formattedStartDate }} to {{ typeOrFormattedEndDate }}
+          Compare {{formattedStartDate}} to {{typeOrFormattedEndDate}}
         </Trans>
       </div>
     );
@@ -95,7 +89,7 @@ export function DateRange({
       <div>
         {type ? (
           <Trans>
-            Compare {{ formattedStartDate }} to {{ typeOrFormattedEndDate }}
+            Compare {{formattedStartDate}} to {{typeOrFormattedEndDate}}
           </Trans>
         ) : (
           <>
@@ -105,8 +99,8 @@ export function DateRange({
       </div>
     );
   } else {
-    content = d.format(endDate, 'MMMM yyyy', { locale });
+    content = d.format(endDate, 'MMMM yyyy', {locale});
   }
 
-  return <Block style={{ color: theme.pageTextSubdued }}>{content}</Block>;
+  return <Block style={{color: theme.pageTextSubdued}}>{content}</Block>;
 }

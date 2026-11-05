@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import type { ComponentProps } from 'react';
-import { FocusScope } from 'react-aria';
-import { Form } from 'react-aria-components';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useEffect, useMemo, useReducer, useRef, useState} from 'react';
+import type {ComponentProps} from 'react';
+import {FocusScope} from 'react-aria';
+import {Form} from 'react-aria-components';
+import {useHotkeys} from 'react-hotkeys-hook';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { Select } from '@actual-app/components/select';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import { getMonthYearFormat } from '@actual-app/core/shared/months';
+import {Button} from '@actual-app/components/button';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {Select} from '@actual-app/components/select';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import {getMonthYearFormat} from '@actual-app/core/shared/months';
 import {
   deserializeField,
   FIELD_TYPES,
@@ -40,41 +40,32 @@ import {
   getValidOps,
   unparse,
 } from '@actual-app/core/shared/rules';
-import { titleFirst } from '@actual-app/core/shared/util';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type { RuleConditionEntity } from '@actual-app/core/types/models';
-import {
-  format as formatDate,
-  isValid as isDateValid,
-  parse as parseDate,
-} from 'date-fns';
+import {titleFirst} from '@actual-app/core/shared/util';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {RuleConditionEntity} from '@actual-app/core/types/models';
+import {format as formatDate, isValid as isDateValid, parse as parseDate} from 'date-fns';
 
-import { TagMultiAutocomplete } from '#components/autocomplete/TagMultiAutocomplete';
-import { AmountInput } from '#components/util/AmountInput';
-import { GenericInput } from '#components/util/GenericInput';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
-import { usePayees } from '#hooks/usePayees';
-import { useTransactionFilters } from '#hooks/useTransactionFilters';
-import { mapField } from '#util/rule';
+import {TagMultiAutocomplete} from '#components/autocomplete/TagMultiAutocomplete';
+import {AmountInput} from '#components/util/AmountInput';
+import {GenericInput} from '#components/util/GenericInput';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
+import {usePayees} from '#hooks/usePayees';
+import {useTransactionFilters} from '#hooks/useTransactionFilters';
+import {mapField} from '#util/rule';
 
-import { CompactFiltersButton } from './CompactFiltersButton';
-import { FiltersButton } from './FiltersButton';
-import { OpButton } from './OpButton';
-import { PayeeFilter } from './PayeeFilter';
-import { subfieldFromFilter } from './subfieldFromFilter';
-import { subfieldToOptions } from './subfieldToOptions';
-import { updateFilterReducer } from './updateFilterReducer';
+import {CompactFiltersButton} from './CompactFiltersButton';
+import {FiltersButton} from './FiltersButton';
+import {OpButton} from './OpButton';
+import {PayeeFilter} from './PayeeFilter';
+import {subfieldFromFilter} from './subfieldFromFilter';
+import {subfieldToOptions} from './subfieldToOptions';
+import {updateFilterReducer} from './updateFilterReducer';
 
-type FilterReducerState<T extends RuleConditionEntity> = Pick<
-  T,
-  'value' | 'op' | 'field'
->;
-type FilterReducerAction =
-  | { type: 'close' }
-  | Parameters<typeof updateFilterReducer>[1];
+type FilterReducerState<T extends RuleConditionEntity> = Pick<T, 'value' | 'op' | 'field'>;
+type FilterReducerAction = {type: 'close'} | Parameters<typeof updateFilterReducer>[1];
 
 type AmountInputRef = HTMLInputElement & {
   getCurrentAmount: () => IntegerAmount;
@@ -94,13 +85,12 @@ const filterFields = [
   'transfer',
 ].map(field => [field, mapField(field)]);
 
-type ConfigureFieldProps<T extends RuleConditionEntity> =
-  FilterReducerState<T> &
-    Pick<T, 'options'> & {
-      initialSubfield?: string;
-      dispatch: (action: FilterReducerAction) => void;
-      onApply: (cond: T) => void;
-    };
+type ConfigureFieldProps<T extends RuleConditionEntity> = FilterReducerState<T> &
+  Pick<T, 'options'> & {
+    initialSubfield?: string;
+    dispatch: (action: FilterReducerAction) => void;
+    onApply: (cond: T) => void;
+  };
 
 function ConfigureField<T extends RuleConditionEntity>({
   field: initialField,
@@ -110,7 +100,7 @@ function ConfigureField<T extends RuleConditionEntity>({
   dispatch,
   onApply,
 }: ConfigureFieldProps<T>) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
   const accounts = useAccounts();
@@ -162,18 +152,15 @@ function ConfigureField<T extends RuleConditionEntity>({
   }, [value, field, subfield, dateFormat]);
 
   // For ops that filter based on IDs
-  const isIdOp = (op: T['op']) =>
-    ['is', 'isNot', 'oneOf', 'notOneOf'].includes(op);
+  const isIdOp = (op: T['op']) => ['is', 'isNot', 'oneOf', 'notOneOf'].includes(op);
   // For ops that use exact matching with a single stored ID value
   const isSingleIdOp = (op: T['op']) => ['is', 'isNot'].includes(op);
   // For ops that use exact matching with multiple stored ID values
   const isMultiIdOp = (op: T['op']) => ['oneOf', 'notOneOf'].includes(op);
   // For ops that use text matching and expect a string input
-  const isTextOp = (op: T['op']) =>
-    ['contains', 'matches', 'doesNotContain'].includes(op);
+  const isTextOp = (op: T['op']) => ['contains', 'matches', 'doesNotContain'].includes(op);
   // For account ops that do not use an input value but should preserve the current value in state
-  const isNoValueAccountOp = (op: T['op']) =>
-    ['onBudget', 'offBudget'].includes(op);
+  const isNoValueAccountOp = (op: T['op']) => ['onBudget', 'offBudget'].includes(op);
   const isTagOp = (op: T['op']) => ['hasAnyTag', 'hasTags'].includes(op);
 
   // Convert stored ID value into text
@@ -195,9 +182,7 @@ function ConfigureField<T extends RuleConditionEntity>({
     }
     if (field === 'category' && subfield === 'category') {
       for (const group of categories.data?.grouped || []) {
-        const category = group.categories?.find(
-          category => category.id === value,
-        );
+        const category = group.categories?.find(category => category.id === value);
         if (category) {
           return category.name;
         }
@@ -212,8 +197,7 @@ function ConfigureField<T extends RuleConditionEntity>({
       return null;
     }
     if (field === 'account') {
-      const matches =
-        accounts.data?.filter(account => account.name === value) ?? [];
+      const matches = accounts.data?.filter(account => account.name === value) ?? [];
       return matches.length === 1 ? matches[0].id : null;
     }
     if (field === 'payee') {
@@ -221,8 +205,7 @@ function ConfigureField<T extends RuleConditionEntity>({
       return matches.length === 1 ? matches[0].id : null;
     }
     if (field === 'category' && subfield === 'category_group') {
-      const matches =
-        categories.data?.grouped.filter(group => group.name === value) ?? [];
+      const matches = categories.data?.grouped.filter(group => group.name === value) ?? [];
       return matches.length === 1 ? matches[0].id : null;
     }
     if (field === 'category' && subfield === 'category') {
@@ -239,8 +222,7 @@ function ConfigureField<T extends RuleConditionEntity>({
     return null;
   };
 
-  const isIdField =
-    field === 'account' || field === 'payee' || field === 'category';
+  const isIdField = field === 'account' || field === 'payee' || field === 'category';
 
   // Converting values when switching between ops is a bit tricky, so we have some specific rules:
   const setOp = (nextOp: T['op']) => {
@@ -291,10 +273,7 @@ function ConfigureField<T extends RuleConditionEntity>({
       if (Array.isArray(value)) {
         dispatch({
           type: 'set-value',
-          value:
-            value.length === 1
-              ? resolveIdToText(field, subfield, value[0]) || ''
-              : '',
+          value: value.length === 1 ? resolveIdToText(field, subfield, value[0]) || '' : '',
         });
       } else {
         dispatch({
@@ -337,7 +316,7 @@ function ConfigureField<T extends RuleConditionEntity>({
         });
       }
     }
-    dispatch({ type: 'set-op', op: nextOp });
+    dispatch({type: 'set-op', op: nextOp});
   };
 
   const subfieldSelectOptions = (
@@ -371,8 +350,8 @@ function ConfigureField<T extends RuleConditionEntity>({
 
   return (
     <FocusScope>
-      <View style={{ marginBottom: 10 }}>
-        <SpaceBetween style={{ alignItems: 'flex-start' }}>
+      <View style={{marginBottom: 10}}>
+        <SpaceBetween style={{alignItems: 'flex-start'}}>
           {field === 'amount' || field === 'date' || field === 'category' ? (
             <Select
               options={subfieldSelectOptions(field)}
@@ -381,7 +360,7 @@ function ConfigureField<T extends RuleConditionEntity>({
                 setSubfield(sub);
 
                 if (sub === 'month' || sub === 'year') {
-                  dispatch({ type: 'set-op', op: 'is' });
+                  dispatch({type: 'set-op', op: 'is'});
                 }
               }}
             />
@@ -394,7 +373,7 @@ function ConfigureField<T extends RuleConditionEntity>({
                 padding: 0,
               }}
             >
-              <View style={{ flexGrow: 1 }}>{titleFirst(mapField(field))}</View>
+              <View style={{flexGrow: 1}}>{titleFirst(mapField(field))}</View>
             </View>
           )}
         </SpaceBetween>
@@ -409,10 +388,7 @@ function ConfigureField<T extends RuleConditionEntity>({
         {field === 'saved' && t('Existing filters will be cleared')}
       </View>
 
-      <SpaceBetween
-        gap={5}
-        style={{ alignItems: 'flex-start', marginBottom: 15 }}
-      >
+      <SpaceBetween gap={5} style={{alignItems: 'flex-start', marginBottom: 15}}>
         {type === 'boolean' ? (
           <>
             <OpButton
@@ -420,8 +396,8 @@ function ConfigureField<T extends RuleConditionEntity>({
               op="true"
               isSelected={value === true}
               onPress={() => {
-                dispatch({ type: 'set-op', op: 'is' });
-                dispatch({ type: 'set-value', value: true });
+                dispatch({type: 'set-op', op: 'is'});
+                dispatch({type: 'set-value', value: true});
               }}
             />
             <OpButton
@@ -429,8 +405,8 @@ function ConfigureField<T extends RuleConditionEntity>({
               op="false"
               isSelected={value === false}
               onPress={() => {
-                dispatch({ type: 'set-op', op: 'is' });
-                dispatch({ type: 'set-value', value: false });
+                dispatch({type: 'set-op', op: 'is'});
+                dispatch({type: 'set-value', value: false});
               }}
             />
           </>
@@ -474,9 +450,7 @@ function ConfigureField<T extends RuleConditionEntity>({
                   submitValue = value; // keep previous if parsing failed
                 } else {
                   submitValue =
-                    fieldOptions?.inflow || fieldOptions?.outflow
-                      ? Math.abs(parsed)
-                      : parsed;
+                    fieldOptions?.inflow || fieldOptions?.outflow ? Math.abs(parsed) : parsed;
                 }
               }
             } catch {
@@ -502,11 +476,9 @@ function ConfigureField<T extends RuleConditionEntity>({
             ref={inputRef}
             value={typeof value === 'number' ? value : 0}
             zeroSign="+"
-            sign={
-              fieldOptions?.inflow || fieldOptions?.outflow ? '+' : undefined
-            }
-            style={{ marginTop: 10 }}
-            onUpdate={v => dispatch({ type: 'set-value', value: v })}
+            sign={fieldOptions?.inflow || fieldOptions?.outflow ? '+' : undefined}
+            style={{marginTop: 10}}
+            onUpdate={v => dispatch({type: 'set-value', value: v})}
           />
         )}
         {field !== 'amount' &&
@@ -517,32 +489,24 @@ function ConfigureField<T extends RuleConditionEntity>({
             <GenericInput
               ref={inputRef}
               // @ts-expect-error - fix me
-              field={
-                field === 'date' || field === 'category' ? subfield : field
-              }
+              field={field === 'date' || field === 'category' ? subfield : field}
               // @ts-expect-error - fix me
               type={
-                type === 'id' &&
-                (op === 'contains' ||
-                  op === 'matches' ||
-                  op === 'doesNotContain')
+                type === 'id' && (op === 'contains' || op === 'matches' || op === 'doesNotContain')
                   ? 'string'
                   : type
               }
               numberFormatType="currency"
               // @ts-expect-error - fix me
-              value={
-                formattedValue ??
-                (op === 'oneOf' || op === 'notOneOf' ? [] : '')
-              }
+              value={formattedValue ?? (op === 'oneOf' || op === 'notOneOf' ? [] : '')}
               // @ts-expect-error - fix me
               multi={op === 'oneOf' || op === 'notOneOf'}
               op={op}
               options={fieldOptions}
-              style={{ marginTop: 10 }}
+              style={{marginTop: 10}}
               // oxlint-disable-next-line typescript/no-explicit-any
               onChange={(v: any) => {
-                dispatch({ type: 'set-value', value: v });
+                dispatch({type: 'set-value', value: v});
               }}
             />
           )}
@@ -552,14 +516,14 @@ function ConfigureField<T extends RuleConditionEntity>({
             value={formattedValue}
             // @ts-expect-error - fix me
             op={op}
-            onChange={v => dispatch({ type: 'set-value', value: v })}
+            onChange={v => dispatch({type: 'set-value', value: v})}
           />
         )}
         {field === 'notes' && isTagOp(op) && (
           <TagMultiAutocomplete
             // @ts-expect-error - fix me
             value={formattedValue}
-            setValue={(v: string) => dispatch({ type: 'set-value', value: v })}
+            setValue={(v: string) => dispatch({type: 'set-value', value: v})}
           />
         )}
         <SpaceBetween
@@ -569,7 +533,7 @@ function ConfigureField<T extends RuleConditionEntity>({
             alignItems: 'center',
           }}
         >
-          <View style={{ flex: 1 }} />
+          <View style={{flex: 1}} />
           <Button variant="primary" type="submit">
             <Trans>Apply</Trans>
           </Button>
@@ -599,11 +563,7 @@ type FilterButtonProps<T extends RuleConditionEntity> = {
  * If both `include` and `exclude` are provided, `include` acts as the
  * allowlist before `exclude` is applied.
  */
-function shouldShowFilterField(
-  field: string,
-  include?: string[],
-  exclude?: string[],
-) {
+function shouldShowFilterField(field: string, include?: string[], exclude?: string[]) {
   if (include && !include.includes(field)) {
     return false;
   }
@@ -621,7 +581,7 @@ export function FilterButton<T extends RuleConditionEntity>({
   exclude,
   include,
 }: FilterButtonProps<T>) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const filters = useTransactionFilters();
   const triggerRef = useRef<HTMLDivElement>(null);
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
@@ -645,16 +605,13 @@ export function FilterButton<T extends RuleConditionEntity>({
         fieldsOpen: boolean;
         condOpen: boolean;
       },
-      action:
-        | FilterReducerAction
-        | { type: 'select-field' }
-        | { type: 'configure'; field: string },
+      action: FilterReducerAction | {type: 'select-field'} | {type: 'configure'; field: string},
     ) => {
       switch (action.type) {
         case 'select-field':
-          return { ...state, fieldsOpen: true, condOpen: false };
+          return {...state, fieldsOpen: true, condOpen: false};
         case 'configure': {
-          const { field } = deserializeField(action.field);
+          const {field} = deserializeField(action.field);
           const type = FIELD_TYPES.get(field);
           const ops = getValidOps(field);
           return {
@@ -667,17 +624,17 @@ export function FilterButton<T extends RuleConditionEntity>({
           };
         }
         case 'close':
-          return { fieldsOpen: false, condOpen: false, value: null };
+          return {fieldsOpen: false, condOpen: false, value: null};
         default:
           return updateFilterReducer(state, action);
       }
     },
-    { fieldsOpen: false, condOpen: false, field: null, value: null },
+    {fieldsOpen: false, condOpen: false, field: null, value: null},
   );
 
   async function onValidateAndApply(cond: T) {
     // @ts-expect-error - fix me
-    cond = unparse({ ...cond, type: FIELD_TYPES.get(cond.field) });
+    cond = unparse({...cond, type: FIELD_TYPES.get(cond.field)});
 
     if (cond.type === 'date' && cond.options) {
       if (cond.options.month) {
@@ -705,9 +662,9 @@ export function FilterButton<T extends RuleConditionEntity>({
       }
     }
 
-    const { error } =
+    const {error} =
       cond.field === 'saved'
-        ? { error: null }
+        ? {error: null}
         : await send('rule-validate', {
             conditions: [cond],
             actions: [],
@@ -721,10 +678,10 @@ export function FilterButton<T extends RuleConditionEntity>({
     } else {
       // @ts-expect-error - fix me
       onApply(saved ? saved : cond);
-      dispatch({ type: 'close' });
+      dispatch({type: 'close'});
     }
   }
-  useHotkeys('f', () => dispatch({ type: 'select-field' }), {
+  useHotkeys('f', () => dispatch({type: 'select-field'}), {
     scopes: ['app'],
   });
 
@@ -732,11 +689,12 @@ export function FilterButton<T extends RuleConditionEntity>({
     .filter(([field]) => shouldShowFilterField(field, include, exclude))
     .sort((a, b) => a[0].localeCompare(b[0]));
 
-  const filterMenuItems: ComponentProps<typeof Menu>['items'] =
-    visibleFilterFields.map(([name, text]) => ({
+  const filterMenuItems: ComponentProps<typeof Menu>['items'] = visibleFilterFields.map(
+    ([name, text]) => ({
       name,
       text: titleFirst(text),
-    }));
+    }),
+  );
 
   if (shouldShowFilterField('saved', include, exclude)) {
     filterMenuItems.push(Menu.line);
@@ -766,11 +724,9 @@ export function FilterButton<T extends RuleConditionEntity>({
           }}
         >
           {compact ? (
-            <CompactFiltersButton
-              onPress={() => dispatch({ type: 'select-field' })}
-            />
+            <CompactFiltersButton onPress={() => dispatch({type: 'select-field'})} />
           ) : (
-            <FiltersButton onPress={() => dispatch({ type: 'select-field' })} />
+            <FiltersButton onPress={() => dispatch({type: 'select-field'})} />
           )}
         </Tooltip>
       </View>
@@ -779,12 +735,12 @@ export function FilterButton<T extends RuleConditionEntity>({
         triggerRef={triggerRef}
         placement="bottom start"
         isOpen={state.fieldsOpen}
-        onOpenChange={() => dispatch({ type: 'close' })}
+        onOpenChange={() => dispatch({type: 'close'})}
         data-testid="filters-select-tooltip"
       >
         <Menu
           onMenuSelect={name => {
-            dispatch({ type: 'configure', field: name as string });
+            dispatch({type: 'configure', field: name as string});
           }}
           items={filterMenuItems}
         />
@@ -795,7 +751,7 @@ export function FilterButton<T extends RuleConditionEntity>({
         placement="bottom start"
         isOpen={state.condOpen}
         onOpenChange={() => {
-          dispatch({ type: 'close' });
+          dispatch({type: 'close'});
         }}
         shouldCloseOnInteractOutside={element => {
           // Datepicker selections for some reason register 2x clicks
@@ -859,7 +815,7 @@ export function FilterEditor<T extends RuleConditionEntity>({
   onClose,
 }: FilterEditorProps<T>) {
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const [state, dispatch] = useReducer(
     (state: FilterReducerState<T>, action: FilterReducerAction) => {
@@ -871,20 +827,20 @@ export function FilterEditor<T extends RuleConditionEntity>({
           return updateFilterReducer(state, action);
       }
     },
-    { field, op, value },
+    {field, op, value},
   );
 
   return (
     <ConfigureField
       field={state.field}
-      initialSubfield={subfieldFromFilter({ field, options, value })}
+      initialSubfield={subfieldFromFilter({field, options, value})}
       op={state.op}
       value={state.value}
       options={options}
       dispatch={dispatch}
       onApply={cond => {
         // @ts-expect-error - fix me
-        cond = unparse({ ...cond, type: FIELD_TYPES.get(cond.field) });
+        cond = unparse({...cond, type: FIELD_TYPES.get(cond.field)});
 
         if (cond.type === 'date' && cond.options) {
           if (
@@ -892,11 +848,7 @@ export function FilterEditor<T extends RuleConditionEntity>({
             typeof cond.value === 'string' &&
             !/\d{4}-\d{2}/.test(cond.value)
           ) {
-            const date = parseDate(
-              cond.value,
-              getMonthYearFormat(dateFormat),
-              new Date(),
-            );
+            const date = parseDate(cond.value, getMonthYearFormat(dateFormat), new Date());
             if (isDateValid(date)) {
               cond.value = formatDate(date, 'yyyy-MM');
             } else {

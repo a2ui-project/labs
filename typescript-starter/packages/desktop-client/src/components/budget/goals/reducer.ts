@@ -20,10 +20,10 @@ import {
   firstDayOfMonth,
   monthFromDate,
 } from '@actual-app/core/shared/months';
-import type { Template } from '@actual-app/core/types/models/templates';
+import type {Template} from '@actual-app/core/types/models/templates';
 
-import type { Action } from './actions';
-import type { DisplayTemplateType, ReducerState } from './constants';
+import type {Action} from './actions';
+import type {DisplayTemplateType, ReducerState} from './constants';
 
 export const DEFAULT_PRIORITY = 1;
 
@@ -68,7 +68,7 @@ export const getInitialState = (template: Template | null): ReducerState => {
       return {
         template:
           template.annual !== undefined && template.repeat == null
-            ? { ...template, repeat: 1 }
+            ? {...template, repeat: 1}
             : template,
         displayType: 'by',
       };
@@ -101,16 +101,11 @@ export const getInitialState = (template: Template | null): ReducerState => {
     case 'error':
       throw new Error('An error occurred while parsing the template');
     default:
-      throw new Error(
-        `Unknown template type: ${String(type satisfies undefined)}`,
-      );
+      throw new Error(`Unknown template type: ${String(type satisfies undefined)}`);
   }
 };
 
-const changeType = (
-  prevState: ReducerState,
-  visualType: DisplayTemplateType,
-): ReducerState => {
+const changeType = (prevState: ReducerState, visualType: DisplayTemplateType): ReducerState => {
   switch (visualType) {
     case 'limit':
       if (prevState.template.type === 'limit') {
@@ -186,10 +181,7 @@ const changeType = (
         },
       };
     case 'historical':
-      if (
-        prevState.template.type === 'copy' ||
-        prevState.template.type === 'average'
-      ) {
+      if (prevState.template.type === 'copy' || prevState.template.type === 'average') {
         return prevState;
       }
       return {
@@ -203,10 +195,7 @@ const changeType = (
       };
     case 'by':
       // 'spend' shares displayType 'by'; preserve it instead of discarding
-      if (
-        prevState.template.type === 'by' ||
-        prevState.template.type === 'spend'
-      ) {
+      if (prevState.template.type === 'by' || prevState.template.type === 'spend') {
         return prevState;
       }
       return {
@@ -248,9 +237,7 @@ const changeType = (
       };
     default:
       // Make sure we're not missing any cases
-      throw new Error(
-        `Unknown display type: ${String(visualType satisfies never)}`,
-      );
+      throw new Error(`Unknown display type: ${String(visualType satisfies never)}`);
   }
 };
 
@@ -323,7 +310,7 @@ function mapTemplateTypesForUpdate(
       switch (template.type) {
         case 'by': {
           // toggling spend-down off: drop `from`, keep everything else
-          const { from: _from, ...rest } = state.template;
+          const {from: _from, ...rest} = state.template;
           void _from;
           return {
             ...state,
@@ -351,16 +338,11 @@ function mapTemplateTypesForUpdate(
     };
   }
 
-  console.error(
-    `Template type mismatch: ${state.template.type} !== ${template.type}`,
-  );
+  console.error(`Template type mismatch: ${state.template.type} !== ${template.type}`);
   return state;
 }
 
-export const templateReducer = (
-  state: ReducerState,
-  action: Action,
-): ReducerState => {
+export const templateReducer = (state: ReducerState, action: Action): ReducerState => {
   const type = action.type;
   switch (type) {
     case 'set-type':

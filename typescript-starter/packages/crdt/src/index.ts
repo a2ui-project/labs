@@ -39,4 +39,4 @@ export {
   SyncResponseSchema,
 } from './proto/sync_pb';
 
-export { create, fromBinary, toBinary } from '@bufbuild/protobuf';
+export {create, fromBinary, toBinary} from '@bufbuild/protobuf';

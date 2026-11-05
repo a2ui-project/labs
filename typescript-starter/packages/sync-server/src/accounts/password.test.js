@@ -16,7 +16,7 @@
 
 import * as bcrypt from 'bcrypt';
 
-import { getAccountDb } from '#account-db';
+import {getAccountDb} from '#account-db';
 
 import {
   bootstrapPassword,
@@ -32,9 +32,7 @@ import {
 const FALLBACK_OWNER_ID = 'password-test-owner';
 
 function getStoredPasswordHash() {
-  const row = getAccountDb().first(
-    "SELECT extra_data FROM auth WHERE method = 'password'",
-  );
+  const row = getAccountDb().first("SELECT extra_data FROM auth WHERE method = 'password'");
   return row ? row.extra_data : null;
 }
 
@@ -164,7 +162,7 @@ describe('bootstrapPassword / changePassword', () => {
   });
 
   it('rejects an empty password on bootstrap', async () => {
-    expect(await bootstrapPassword('')).toEqual({ error: 'invalid-password' });
+    expect(await bootstrapPassword('')).toEqual({error: 'invalid-password'});
   });
 
   it('replaces the stored hash on changePassword and verifies the new one', async () => {
@@ -181,13 +179,13 @@ describe('bootstrapPassword / changePassword', () => {
   });
 
   it('rejects an empty password on changePassword', async () => {
-    expect(await changePassword('')).toEqual({ error: 'invalid-password' });
+    expect(await changePassword('')).toEqual({error: 'invalid-password'});
   });
 });
 
 describe('changePassword on an OIDC-only instance', () => {
   it('reports an error instead of silently succeeding', async () => {
-    insertOpenIdAuth({ issuer: 'https://issuer.example.com' });
+    insertOpenIdAuth({issuer: 'https://issuer.example.com'});
 
     expect(await changePassword('new password')).toEqual({
       error: 'no-password-method',
@@ -196,11 +194,11 @@ describe('changePassword on an OIDC-only instance', () => {
   });
 
   it('does not disable the existing openid method', async () => {
-    insertOpenIdAuth({ issuer: 'https://issuer.example.com' });
+    insertOpenIdAuth({issuer: 'https://issuer.example.com'});
 
     await changePassword('new password');
 
-    expect(getAuthMethods()).toEqual([{ method: 'openid', active: 1 }]);
+    expect(getAuthMethods()).toEqual([{method: 'openid', active: 1}]);
   });
 });
 

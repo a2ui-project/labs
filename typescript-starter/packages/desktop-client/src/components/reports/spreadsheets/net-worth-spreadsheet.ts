@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
+import {q} from '@actual-app/core/shared/query';
 import type {
   AccountEntity,
   RuleConditionEntity,
   TransactionEntity,
 } from '@actual-app/core/types/models';
 import * as d from 'date-fns';
-import type { Locale } from 'date-fns';
-import { keyBy } from 'es-toolkit';
+import type {Locale} from 'date-fns';
+import {keyBy} from 'es-toolkit';
 
-import { getIntervalFormat } from '#components/reports/ReportOptions';
-import type { FormatType } from '#hooks/useFormat';
-import type { useSpreadsheet } from '#hooks/useSpreadsheet';
-import { aqlQuery } from '#queries/aqlQuery';
+import {getIntervalFormat} from '#components/reports/ReportOptions';
+import type {FormatType} from '#hooks/useFormat';
+import type {useSpreadsheet} from '#hooks/useSpreadsheet';
+import {aqlQuery} from '#queries/aqlQuery';
 
 type Balance = {
   date: string;
@@ -43,10 +43,7 @@ type AccountBalanceData = {
   starting: number;
 };
 
-type TransferLeg = Pick<
-  TransactionEntity,
-  'id' | 'account' | 'amount' | 'date'
-> & {
+type TransferLeg = Pick<TransactionEntity, 'id' | 'account' | 'amount' | 'date'> & {
   transfer_id: string;
 };
 
@@ -73,7 +70,7 @@ export function createSpreadsheet(
     spreadsheet: ReturnType<typeof useSpreadsheet>,
     setData: (data: ReturnType<typeof recalculate>) => void,
   ) => {
-    const { filters } = await send('make-filters-from-conditions', {
+    const {filters} = await send('make-filters-from-conditions', {
       conditions: conditions.filter(cond => !cond.customName),
     });
     const conditionsOpKey = conditionsOp === 'or' ? '$or' : '$and';
@@ -85,10 +82,7 @@ export function createSpreadsheet(
     if (interval === 'Daily') {
       startDate = monthUtils.dayFromDate(d.subDays(rangeStart, 1));
     } else if (interval === 'Weekly') {
-      startDate = monthUtils.weekFromDate(
-        d.subDays(rangeStart, 1),
-        firstDayOfWeekIdx,
-      );
+      startDate = monthUtils.weekFromDate(d.subDays(rangeStart, 1), firstDayOfWeekIdx);
     } else {
       // Monthly or yearly
       startDate = monthUtils.firstDayOfMonth(monthUtils.prevMonth(start));
@@ -98,17 +92,11 @@ export function createSpreadsheet(
     // month, the prior period lookback would be empty (all zeros). Skip it to
     // avoid rendering an empty data point.
     const earliestTransaction = await send('get-earliest-transaction');
-    if (
-      earliestTransaction &&
-      earliestTransaction.date >= monthUtils.firstDayOfMonth(start)
-    ) {
+    if (earliestTransaction && earliestTransaction.date >= monthUtils.firstDayOfMonth(start)) {
       if (interval === 'Daily') {
         startDate = earliestTransaction.date;
       } else if (interval === 'Weekly') {
-        startDate = monthUtils.weekFromDate(
-          earliestTransaction.date,
-          firstDayOfWeekIdx,
-        );
+        startDate = monthUtils.weekFromDate(earliestTransaction.date, firstDayOfWeekIdx);
       } else {
         // Monthly or Yearly
         startDate = monthUtils.firstDayOfMonth(start);
@@ -143,12 +131,12 @@ export function createSpreadsheet(
                 [conditionsOpKey]: filters,
               })
               .filter({
-                account: { $oneof: accountIds },
-                transfer_id: { $ne: null },
-                date: { $lte: endDate },
+                account: {$oneof: accountIds},
+                transfer_id: {$ne: null},
+                date: {$lte: endDate},
               })
               .select(['id', 'account', 'amount', 'date', 'transfer_id']),
-          ).then(({ data }: { data: TransferLeg[] }) => data);
+          ).then(({data}: {data: TransferLeg[]}) => data);
 
     const accountDataPromise = Promise.all(
       accounts.map(async acct => {
@@ -158,10 +146,10 @@ export function createSpreadsheet(
               .filter({
                 [conditionsOpKey]: filters,
                 account: acct.id,
-                date: { $lt: startDate },
+                date: {$lt: startDate},
               })
-              .calculate({ $sum: '$amount' }),
-          ).then(({ data }) => data),
+              .calculate({$sum: '$amount'}),
+          ).then(({data}) => data),
 
           aqlQuery(
             q('transactions')
@@ -170,30 +158,27 @@ export function createSpreadsheet(
               })
               .filter({
                 account: acct.id,
-                $and: [
-                  { date: { $gte: startDate } },
-                  { date: { $lte: endDate } },
-                ],
+                $and: [{date: {$gte: startDate}}, {date: {$lte: endDate}}],
               })
               .groupBy(
                 interval === 'Yearly'
-                  ? { $year: '$date' }
+                  ? {$year: '$date'}
                   : interval === 'Daily' || interval === 'Weekly'
                     ? 'date'
-                    : { $month: '$date' },
+                    : {$month: '$date'},
               )
               .select([
                 {
                   date:
                     interval === 'Yearly'
-                      ? { $year: '$date' }
+                      ? {$year: '$date'}
                       : interval === 'Daily' || interval === 'Weekly'
                         ? 'date'
-                        : { $month: '$date' },
+                        : {$month: '$date'},
                 },
-                { amount: { $sum: '$amount' } },
+                {amount: {$sum: '$amount'}},
               ]),
-          ).then(({ data }) => data),
+          ).then(({data}) => data),
         ]);
 
         // For weekly intervals, transform dates to week format and properly aggregate
@@ -203,14 +188,13 @@ export function createSpreadsheet(
           const weeklyBalances: Record<string, number> = {};
           balances.forEach(b => {
             const weekDate = monthUtils.weekFromDate(b.date, firstDayOfWeekIdx);
-            weeklyBalances[weekDate] =
-              (weeklyBalances[weekDate] || 0) + b.amount;
+            weeklyBalances[weekDate] = (weeklyBalances[weekDate] || 0) + b.amount;
           });
 
           // Convert back to Balance format
           processedBalances = {};
           Object.entries(weeklyBalances).forEach(([date, amount]) => {
-            processedBalances[date] = { date, amount };
+            processedBalances[date] = {date, amount};
           });
         } else {
           processedBalances = keyBy(balances, b => b.date);
@@ -224,18 +208,11 @@ export function createSpreadsheet(
         };
       }),
     );
-    const [data, transferLegs] = await Promise.all([
-      accountDataPromise,
-      transferLegsPromise,
-    ]);
+    const [data, transferLegs] = await Promise.all([accountDataPromise, transferLegsPromise]);
 
     const loadedTransferIds = new Set(transferLegs.map(leg => leg.id));
     const missingCounterpartIds = [
-      ...new Set(
-        transferLegs
-          .map(leg => leg.transfer_id)
-          .filter(id => !loadedTransferIds.has(id)),
-      ),
+      ...new Set(transferLegs.map(leg => leg.transfer_id).filter(id => !loadedTransferIds.has(id))),
     ];
 
     let allTransferLegs = transferLegs;
@@ -246,12 +223,12 @@ export function createSpreadsheet(
             [conditionsOpKey]: filters,
           })
           .filter({
-            id: { $oneof: missingCounterpartIds },
-            account: { $oneof: accountIds },
-            transfer_id: { $ne: null },
+            id: {$oneof: missingCounterpartIds},
+            account: {$oneof: accountIds},
+            transfer_id: {$ne: null},
           })
           .select(['id', 'account', 'amount', 'date', 'transfer_id']),
-      ).then(({ data }: { data: TransferLeg[] }) => data);
+      ).then(({data}: {data: TransferLeg[]}) => data);
       allTransferLegs = [...transferLegs, ...counterpartLegs];
     }
 
@@ -312,8 +289,7 @@ function alignInternalTransferDates(
       return;
     }
 
-    const [earlier, later] =
-      leg.date < counterpart.date ? [leg, counterpart] : [counterpart, leg];
+    const [earlier, later] = leg.date < counterpart.date ? [leg, counterpart] : [counterpart, leg];
 
     const account = accountsById.get(earlier.account);
     if (account) {
@@ -328,7 +304,7 @@ function moveTransferLeg(
   laterDate: string,
   range: IntervalRange,
 ) {
-  const { startDate, endDate, interval, firstDayOfWeekIdx } = range;
+  const {startDate, endDate, interval, firstDayOfWeekIdx} = range;
   if (laterDate < startDate) {
     return;
   }
@@ -356,15 +332,11 @@ function moveTransferLeg(
   if (balance) {
     balance.amount += leg.amount;
   } else {
-    account.balances[intervalKey] = { date: intervalKey, amount: leg.amount };
+    account.balances[intervalKey] = {date: intervalKey, amount: leg.amount};
   }
 }
 
-function getIntervalKey(
-  date: string,
-  interval: string,
-  firstDayOfWeekIdx: string,
-) {
+function getIntervalKey(date: string, interval: string, firstDayOfWeekIdx: string) {
   if (interval === 'Daily') {
     return date;
   }
@@ -395,10 +367,7 @@ function recalculate(
         ? monthUtils.dayRangeInclusive(startDate, endDate)
         : interval === 'Yearly'
           ? monthUtils.yearRangeInclusive(startDate, endDate)
-          : monthUtils.rangeInclusive(
-              monthUtils.getMonth(startDate),
-              monthUtils.getMonth(endDate),
-            );
+          : monthUtils.rangeInclusive(monthUtils.getMonth(startDate), monthUtils.getMonth(endDate));
 
   const accountBalances = data.map(account => {
     let balance = account.starting;
@@ -410,10 +379,7 @@ function recalculate(
     });
   });
 
-  const priorPeriodNetWorth = data.reduce(
-    (sum, account) => sum + account.starting,
-    0,
-  );
+  const priorPeriodNetWorth = data.reduce((sum, account) => sum + account.starting, 0);
 
   let hasNegative = false;
   let startNetWorth = 0;
@@ -485,13 +451,13 @@ function recalculate(
             : 'MMMM yyyy';
 
     const graphPoint = {
-      x: d.format(x, displayFormat, { locale }),
+      x: d.format(x, displayFormat, {locale}),
       y: total,
       assets: format(assets, 'financial'),
       debt: `-${format(debt, 'financial')}`,
       change: format(change, 'financial'),
       networth: format(total, 'financial'),
-      date: d.format(x, tooltipFormat, { locale }),
+      date: d.format(x, tooltipFormat, {locale}),
       ...balances,
     };
 
@@ -508,9 +474,7 @@ function recalculate(
     return arr;
   }, []);
 
-  const hasBalance = accountBalances.map(balances =>
-    balances.some(b => b !== 0),
-  );
+  const hasBalance = accountBalances.map(balances => balances.some(b => b !== 0));
 
   return {
     graphData: {
@@ -523,8 +487,6 @@ function recalculate(
     totalChange: endNetWorth - startNetWorth,
     lowestNetWorth,
     highestNetWorth,
-    accounts: data
-      .filter((_, i) => hasBalance[i])
-      .map(d => ({ id: d.id, name: d.name })),
+    accounts: data.filter((_, i) => hasBalance[i]).map(d => ({id: d.id, name: d.name})),
   };
 }

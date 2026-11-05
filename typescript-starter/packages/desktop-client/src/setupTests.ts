@@ -15,9 +15,9 @@
  */
 
 import '@testing-library/jest-dom/vitest';
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
-import { resetTestProviders } from './mocks';
+import {resetTestProviders} from './mocks';
 
 global.IS_TESTING = true;
 global.Actual = {} as typeof global.Actual;
@@ -37,7 +37,7 @@ global.ResizeObserver = class {
   }
 };
 
-type Size = { height: number; width: number };
+type Size = {height: number; width: number};
 
 type AutoSizerProps = {
   renderProp?: (size: Size) => ReactNode;
@@ -47,7 +47,7 @@ type AutoSizerProps = {
 vi.mock('react-virtualized-auto-sizer', () => {
   const AutoSizer = (props: AutoSizerProps) => {
     const render = props.renderProp ?? props.children;
-    return render ? render({ height: 1000, width: 600 }) : null;
+    return render ? render({height: 1000, width: 600}) : null;
   };
 
   return {

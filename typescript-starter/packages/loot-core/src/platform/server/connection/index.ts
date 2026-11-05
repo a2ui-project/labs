@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-import { captureException } from '#platform/exceptions';
-import { logger } from '#platform/server/log';
+import {captureException} from '#platform/exceptions';
+import {logger} from '#platform/server/log';
 // @ts-strict-ignore
-import { APIError } from '#server/errors';
-import { isMutating, runHandler } from '#server/mutators';
+import {APIError} from '#server/errors';
+import {isMutating, runHandler} from '#server/mutators';
 
-import { postErrorReply } from './errors';
+import {postErrorReply} from './errors';
 import type * as T from './index-types';
-import { safePost } from './shared';
-import type { Message } from './shared';
+import {safePost} from './shared';
+import type {Message} from './shared';
 
 function getGlobalObject() {
-  const obj =
-    typeof window !== 'undefined'
-      ? window
-      : typeof self !== 'undefined'
-        ? self
-        : null;
+  const obj = typeof window !== 'undefined' ? window : typeof self !== 'undefined' ? self : null;
   if (!obj) {
     throw new Error('Cannot get global object');
   }
@@ -67,15 +62,15 @@ export const init: T.Init = function (serverChn, handlers) {
         return;
       }
 
-      const { id, name, args, undoTag, catchErrors } = msg;
+      const {id, name, args, undoTag, catchErrors} = msg;
 
       if (handlers[name]) {
-        runHandler(handlers[name], args, { undoTag, name }).then(
+        runHandler(handlers[name], args, {undoTag, name}).then(
           result => {
             post({
               type: 'reply',
               id,
-              result: catchErrors ? { data: result, error: null } : result,
+              result: catchErrors ? {data: result, error: null} : result,
               mutated: isMutating(handlers[name]),
               undoTag,
             });
@@ -83,7 +78,7 @@ export const init: T.Init = function (serverChn, handlers) {
           nativeError => {
             const error = postErrorReply(
               message => serverChannel.postMessage(message),
-              { id, name, catchErrors },
+              {id, name, catchErrors},
               nativeError,
             );
 
@@ -107,7 +102,7 @@ export const init: T.Init = function (serverChn, handlers) {
           post({
             type: 'reply',
             id,
-            result: { error: unknownMethodError, data: null },
+            result: {error: unknownMethodError, data: null},
           });
         } else {
           post({
@@ -127,7 +122,7 @@ export const init: T.Init = function (serverChn, handlers) {
 
   const reconnectToClientInterval = setInterval(() => {
     logger.info('Backend: Trying to connect to client');
-    serverChannel.postMessage({ type: 'connect' });
+    serverChannel.postMessage({type: 'connect'});
     reconnectAttempts++;
     if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
       // Failed to connect to client - signal server error
@@ -138,7 +133,7 @@ export const init: T.Init = function (serverChn, handlers) {
 };
 
 export const send: T.Send = function (name, args) {
-  const { __globalServerChannel } = getGlobalObject();
+  const {__globalServerChannel} = getGlobalObject();
   if (__globalServerChannel) {
     safePost(msg => __globalServerChannel.postMessage(msg), {
       type: 'push',

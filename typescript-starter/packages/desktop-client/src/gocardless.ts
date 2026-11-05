@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type {
-  AccountEntity,
-  GoCardlessToken,
-} from '@actual-app/core/types/models';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {AccountEntity, GoCardlessToken} from '@actual-app/core/types/models';
 
-import { pushModal } from './modals/modalsSlice';
-import type { AppDispatch } from './redux/store';
+import {pushModal} from './modals/modalsSlice';
+import type {AppDispatch} from './redux/store';
 
 function _authorize(
   dispatch: AppDispatch,
@@ -38,7 +35,7 @@ function _authorize(
       modal: {
         name: 'gocardless-external-msg',
         options: {
-          onMoveExternal: async ({ institutionId }) => {
+          onMoveExternal: async ({institutionId}) => {
             const resp = await send('gocardless-create-web-token', {
               institutionId,
               accessValidForDays: 90,
@@ -46,9 +43,9 @@ function _authorize(
 
             if ('error' in resp) return resp;
             if ('error_code' in resp) {
-              return { error: 'unknown', message: resp.error_type };
+              return {error: 'unknown', message: resp.error_type};
             }
-            const { link, requisitionId } = resp;
+            const {link, requisitionId} = resp;
             window.Actual.openURLInBrowser(link);
 
             return send('gocardless-poll-web-token', {

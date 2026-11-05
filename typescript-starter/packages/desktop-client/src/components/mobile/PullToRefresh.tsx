@@ -15,11 +15,11 @@
  */
 
 import React from 'react';
-import type { ComponentProps } from 'react';
+import type {ComponentProps} from 'react';
 import BasePullToRefresh from 'react-simple-pull-to-refresh';
 
-import type { CSSProperties } from '@actual-app/components/styles';
-import { css } from '@emotion/css';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {css} from '@emotion/css';
 
 type PullToRefreshProps = ComponentProps<typeof BasePullToRefresh> & {
   style?: CSSProperties;
@@ -27,7 +27,7 @@ type PullToRefreshProps = ComponentProps<typeof BasePullToRefresh> & {
 
 export function PullToRefresh(props: PullToRefreshProps) {
   return (
-    <div style={{ overflow: 'auto', flex: 1 }}>
+    <div style={{overflow: 'auto', flex: 1}}>
       <BasePullToRefresh
         pullDownThreshold={80}
         resistance={2}

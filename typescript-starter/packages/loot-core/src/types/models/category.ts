@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { CategoryGroupEntity } from './category-group';
+import type {CategoryGroupEntity} from './category-group';
 
 export type CategoryEntity = {
   id: string;
@@ -23,7 +23,7 @@ export type CategoryEntity = {
   group: CategoryGroupEntity['id'];
   goal_def?: string;
   cleanup_def?: string;
-  template_settings?: { source: 'notes' | 'ui' };
+  template_settings?: {source: 'notes' | 'ui'};
   sort_order?: number;
   tombstone?: boolean;
   hidden?: boolean;

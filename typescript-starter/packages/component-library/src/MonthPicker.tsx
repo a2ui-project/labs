@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-import { useRef, useState } from 'react';
+import {useRef, useState} from 'react';
 
-import { Button } from '#Button';
-import { Popover } from '#Popover';
-import type { CSSProperties } from '#styles';
-import { View } from '#View';
+import {Button} from '#Button';
+import {Popover} from '#Popover';
+import type {CSSProperties} from '#styles';
+import {View} from '#View';
 
-import { MonthGrid } from './date-range-picker/MonthGrid';
-import { NavRow } from './date-range-picker/NavRow';
-import {
-  currentMonth,
-  formatDate,
-  getMonth,
-  getYear,
-} from './date-range-picker/util';
+import {MonthGrid} from './date-range-picker/MonthGrid';
+import {NavRow} from './date-range-picker/NavRow';
+import {currentMonth, formatDate, getMonth, getYear} from './date-range-picker/util';
 
 export type MonthPickerLabels = {
   previous: string;
@@ -67,9 +62,7 @@ export function MonthPicker({
   const max = maxDate ? getMonth(maxDate) : NO_MAX;
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [viewYear, setViewYear] = useState(() =>
-    getYear(month || currentMonth()),
-  );
+  const [viewYear, setViewYear] = useState(() => getYear(month || currentMonth()));
 
   function openPopover() {
     setViewYear(getYear(month || currentMonth()));
@@ -77,7 +70,7 @@ export function MonthPicker({
   }
 
   const label = month
-    ? formatDate(month, locale, { month: 'short', year: 'numeric' })
+    ? formatDate(month, locale, {month: 'short', year: 'numeric'})
     : (placeholder ?? '');
 
   return (
@@ -87,7 +80,7 @@ export function MonthPicker({
         ref={triggerRef}
         data-testid="month-picker-trigger"
         onPress={() => (isOpen ? setIsOpen(false) : openPopover())}
-        style={{ justifyContent: 'flex-start', ...style }}
+        style={{justifyContent: 'flex-start', ...style}}
       >
         {label}
       </Button>
@@ -98,7 +91,7 @@ export function MonthPicker({
         isOpen={isOpen}
         onOpenChange={setIsOpen}
       >
-        <View style={{ padding: 15, minWidth: 180 }}>
+        <View style={{padding: 15, minWidth: 180}}>
           <NavRow
             label={viewYear}
             previousLabel={labels.previous}

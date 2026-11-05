@@ -15,23 +15,19 @@
  */
 
 import React from 'react';
-import type { ReactNode } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import type {ReactNode} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {View} from '@actual-app/components/view';
 
-import { Page } from '#components/Page';
-import { useNavigate } from '#hooks/useNavigate';
+import {Page} from '#components/Page';
+import {useNavigate} from '#hooks/useNavigate';
 
-import { UserDirectory } from './UserDirectory';
+import {UserDirectory} from './UserDirectory';
 
-export function UserDirectoryPage({
-  bottomContent,
-}: {
-  bottomContent?: ReactNode;
-}) {
-  const { t } = useTranslation();
+export function UserDirectoryPage({bottomContent}: {bottomContent?: ReactNode}) {
+  const {t} = useTranslation();
 
   return (
     <Page
@@ -60,7 +56,7 @@ export function BackToFileListButton() {
   const navigate = useNavigate();
 
   return (
-    <Button style={{ maxWidth: '200px' }} onPress={() => navigate('/')}>
+    <Button style={{maxWidth: '200px'}} onPress={() => navigate('/')}>
       <Trans>Back to file list</Trans>
     </Button>
   );

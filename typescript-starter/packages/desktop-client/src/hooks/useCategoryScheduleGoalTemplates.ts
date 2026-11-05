@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
+import {useMemo} from 'react';
 
-import type { ScheduleStatuses } from '@actual-app/core/shared/schedules';
-import type {
-  CategoryEntity,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
+import type {ScheduleStatuses} from '@actual-app/core/shared/schedules';
+import type {CategoryEntity, ScheduleEntity} from '@actual-app/core/types/models';
 
-import { useCachedSchedules } from './useCachedSchedules';
-import { useFeatureFlag } from './useFeatureFlag';
-import type { ScheduleStatusLabels } from './useSchedules';
+import {useCachedSchedules} from './useCachedSchedules';
+import {useFeatureFlag} from './useFeatureFlag';
+import type {ScheduleStatusLabels} from './useSchedules';
 
 type ScheduleGoalDefinition = {
   type: 'schedule';
@@ -86,30 +83,18 @@ export function useCategoryScheduleGoalTemplates({
     }
 
     const schedules = allSchedules.filter(s =>
-      scheduleGoalDefinitions.some(g =>
-        g.scheduleId ? g.scheduleId === s.id : g.name === s.name,
-      ),
+      scheduleGoalDefinitions.some(g => (g.scheduleId ? g.scheduleId === s.id : g.name === s.name)),
     );
 
     const scheduleIds = new Set(schedules.map(s => s.id));
 
-    const statuses = new Map(
-      [...allStatuses].filter(([id]) => scheduleIds.has(id)),
-    );
-    const statusLabels = new Map(
-      [...allStatusLabels].filter(([id]) => scheduleIds.has(id)),
-    );
+    const statuses = new Map([...allStatuses].filter(([id]) => scheduleIds.has(id)));
+    const statusLabels = new Map([...allStatusLabels].filter(([id]) => scheduleIds.has(id)));
 
     return {
       schedules,
       statuses,
       statusLabels,
     };
-  }, [
-    allSchedules,
-    allStatusLabels,
-    allStatuses,
-    category,
-    isGoalTemplatesEnabled,
-  ]);
+  }, [allSchedules, allStatusLabels, allStatuses, category, isGoalTemplatesEnabled]);
 }

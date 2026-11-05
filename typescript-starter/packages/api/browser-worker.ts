@@ -22,18 +22,14 @@
 // files and configure no bundler — just `import` the package and `init()`.
 
 import * as connection from '@actual-app/core/platform/server/connection';
-import { setWasmBinary } from '@actual-app/core/platform/server/sqlite';
-import { handlers, init } from '@actual-app/core/server/main';
-import type { InitConfig } from '@actual-app/core/server/main';
+import {setWasmBinary} from '@actual-app/core/platform/server/sqlite';
+import {handlers, init} from '@actual-app/core/server/main';
+import type {InitConfig} from '@actual-app/core/server/main';
 // Runtime assets, base64-embedded at build time so the worker is fully
 // self-contained (no PUBLIC_URL fetches). The bytes come from loot-core's
 // `default-filesystem` helper via the `actual-embedded-assets` Vite plugin, so
 // they can never drift from what the Node build ships.
-import {
-  dataFiles,
-  dataIndex,
-  wasmBase64,
-} from 'virtual:actual-embedded-assets';
+import {dataFiles, dataIndex, wasmBase64} from 'virtual:actual-embedded-assets';
 
 function base64ToBytes(b64: string): Uint8Array<ArrayBuffer> {
   const bin = atob(b64);
@@ -56,12 +52,7 @@ self.fetch = function patchedFetch(
   input: RequestInfo | URL,
   fetchInit?: RequestInit,
 ): Promise<Response> {
-  const url =
-    typeof input === 'string'
-      ? input
-      : input instanceof URL
-        ? input.href
-        : input.url;
+  const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
   if (url.startsWith(EMBEDDED_BASE)) {
     const rel = url.slice(EMBEDDED_BASE.length);
     if (rel === 'data-file-index.txt') {
@@ -73,18 +64,17 @@ self.fetch = function patchedFetch(
         return Promise.resolve(new Response(base64ToBytes(b64)));
       }
     }
-    return Promise.resolve(new Response(null, { status: 404 }));
+    return Promise.resolve(new Response(null, {status: 404}));
   }
   return realFetch(input, fetchInit);
 } as typeof fetch;
 
 // Worker-local handler, not part of the shared Handlers type.
-(handlers as Record<string, (args?: unknown) => Promise<unknown>>)[
-  'api-browser/init'
-] = async function (args?: unknown) {
-  const { config } = (args ?? {}) as { config?: InitConfig };
-  // There is no meaningful `process.cwd()` to fall back to in a worker
-  await init({ dataDir: '/documents', ...config });
-};
+(handlers as Record<string, (args?: unknown) => Promise<unknown>>)['api-browser/init'] =
+  async function (args?: unknown) {
+    const {config} = (args ?? {}) as {config?: InitConfig};
+    // There is no meaningful `process.cwd()` to fall back to in a worker
+    await init({dataDir: '/documents', ...config});
+  };
 
 connection.init(self, handlers);

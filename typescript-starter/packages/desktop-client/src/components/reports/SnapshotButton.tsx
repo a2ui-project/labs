@@ -15,13 +15,13 @@
  */
 
 import React from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import type {CSSProperties, ReactNode} from 'react';
 
-import { Button } from '@actual-app/components/button';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
+import {Button} from '@actual-app/components/button';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
 
 type SnapshotButtonProps = {
   selected?: boolean;
@@ -31,18 +31,12 @@ type SnapshotButtonProps = {
   title?: string;
 };
 
-export function SnapshotButton({
-  selected,
-  children,
-  style,
-  onSelect,
-  title,
-}: SnapshotButtonProps) {
+export function SnapshotButton({selected, children, style, onSelect, title}: SnapshotButtonProps) {
   return (
     <Tooltip
       placement="bottom start"
       content={<Text>{title}</Text>}
-      style={{ ...styles.tooltip, lineHeight: 1.5, padding: '6px 10px' }}
+      style={{...styles.tooltip, lineHeight: 1.5, padding: '6px 10px'}}
     >
       <Button
         variant="bare"

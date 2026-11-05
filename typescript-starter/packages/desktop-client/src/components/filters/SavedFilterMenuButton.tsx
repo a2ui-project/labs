@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-import React, { useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgExpandArrow } from '@actual-app/components/icons/v0';
-import { Popover } from '@actual-app/components/popover';
-import { Text } from '@actual-app/components/text';
-import { View } from '@actual-app/components/view';
-import { send, sendCatch } from '@actual-app/core/platform/client/connection';
-import type {
-  RuleConditionEntity,
-  TransactionFilterEntity,
-} from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgExpandArrow} from '@actual-app/components/icons/v0';
+import {Popover} from '@actual-app/components/popover';
+import {Text} from '@actual-app/components/text';
+import {View} from '@actual-app/components/view';
+import {send, sendCatch} from '@actual-app/core/platform/client/connection';
+import type {RuleConditionEntity, TransactionFilterEntity} from '@actual-app/core/types/models';
 
-import { FilterMenu } from './FilterMenu';
-import { NameFilter } from './NameFilter';
+import {FilterMenu} from './FilterMenu';
+import {NameFilter} from './NameFilter';
 
 export type SavedFilter = {
   conditions?: RuleConditionEntity[];
@@ -54,7 +51,7 @@ export function SavedFilterMenuButton({
   onReloadSavedFilter: (savedFilter: SavedFilter, value?: string) => void;
   savedFilters: TransactionFilterEntity[];
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [nameOpen, setNameOpen] = useState(false);
   const [adding, setAdding] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -183,7 +180,7 @@ export function SavedFilterMenuButton({
         <Button
           ref={triggerRef}
           variant="bare"
-          style={{ marginTop: 10 }}
+          style={{marginTop: 10}}
           onPress={() => {
             setMenuOpen(true);
           }}
@@ -204,7 +201,7 @@ export function SavedFilterMenuButton({
               <Trans>(modified)</Trans>&nbsp;
             </Text>
           )}
-          <SvgExpandArrow width={8} height={8} style={{ marginRight: 5 }} />
+          <SvgExpandArrow width={8} height={8} style={{marginRight: 5}} />
         </Button>
       )}
 
@@ -212,19 +209,16 @@ export function SavedFilterMenuButton({
         triggerRef={triggerRef}
         isOpen={menuOpen}
         onOpenChange={() => setMenuOpen(false)}
-        style={{ width: 200 }}
+        style={{width: 200}}
       >
-        <FilterMenu
-          filterId={filterId}
-          onFilterMenuSelect={onFilterMenuSelect}
-        />
+        <FilterMenu filterId={filterId} onFilterMenuSelect={onFilterMenuSelect} />
       </Popover>
 
       <Popover
         triggerRef={triggerRef}
         isOpen={nameOpen}
         onOpenChange={() => setNameOpen(false)}
-        style={{ width: 325 }}
+        style={{width: 325}}
       >
         <NameFilter
           menuItem={menuItem}

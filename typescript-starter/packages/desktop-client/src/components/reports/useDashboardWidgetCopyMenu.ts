@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import type { ComponentProps } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {ComponentProps} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import type { Menu } from '@actual-app/components/menu';
+import type {Menu} from '@actual-app/components/menu';
 
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
 type DashboardWidgetCopyMenuResult = {
   /** Menu items to add to the card's menu */
@@ -32,7 +32,7 @@ type DashboardWidgetCopyMenuResult = {
 export function useDashboardWidgetCopyMenu(
   onCopy: (targetDashboardId: string) => void,
 ): DashboardWidgetCopyMenuResult {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
 
   const menuItems: ComponentProps<typeof Menu<string>>['items'] = [

@@ -1,6 +1,6 @@
-import { exec } from 'node:child_process';
-import { existsSync, writeFile } from 'node:fs';
-import { exit } from 'node:process';
+import {exec} from 'node:child_process';
+import {existsSync, writeFile} from 'node:fs';
+import {exit} from 'node:process';
 
 import prompts from 'prompts';
 
@@ -11,9 +11,7 @@ async function run() {
   );
   const activePr = await getActivePr(username);
   if (activePr) {
-    console.log(
-      `Found potentially matching PR ${activePr.number}: ${activePr.title}`,
-    );
+    console.log(`Found potentially matching PR ${activePr.number}: ${activePr.title}`);
   }
 
   const branchName = await execAsync('git rev-parse --abbrev-ref HEAD');
@@ -41,10 +39,10 @@ async function run() {
       message: 'Release Note Type',
       type: 'select',
       choices: [
-        { title: '✨ Features', value: 'Features' },
-        { title: '👍 Enhancements', value: 'Enhancements' },
-        { title: '🐛 Bugfixes', value: 'Bugfixes' },
-        { title: '⚙️  Maintenance', value: 'Maintenance' },
+        {title: '✨ Features', value: 'Features'},
+        {title: '👍 Enhancements', value: 'Enhancements'},
+        {title: '🐛 Bugfixes', value: 'Bugfixes'},
+        {title: '⚙️  Maintenance', value: 'Maintenance'},
       ],
     },
     {
@@ -73,7 +71,7 @@ async function run() {
 
   const filepath = `./upcoming-release-notes/${result.filenameSlug}.md`;
   if (existsSync(filepath)) {
-    const { confirm } = await prompts({
+    const {confirm} = await prompts({
       name: 'confirm',
       type: 'confirm',
       message: `This will overwrite the existing release note ${filepath} Are you sure?`,
@@ -104,9 +102,7 @@ function slugify(input: string): string {
 }
 
 // makes an attempt to find an existing open PR from <username>:<branch>
-async function getActivePr(
-  username: string,
-): Promise<{ number: number; title: string } | undefined> {
+async function getActivePr(username: string): Promise<{number: number; title: string} | undefined> {
   if (!username) {
     return undefined;
   }
@@ -120,14 +116,13 @@ async function getActivePr(
 
 async function getPrNumberFromHead(
   head: string,
-): Promise<{ number: number; title: string } | undefined> {
+): Promise<{number: number; title: string} | undefined> {
   try {
     // head is a weird query parameter in this API call. If nothing matches, it
     // will return as if the head query parameter doesn't exist. To get around
     // this, we make the page size 2 and only return the number if the length.
     const resp = await fetch(
-      'https://api.github.com/repos/actualbudget/actual/pulls?state=open&per_page=2&head=' +
-        head,
+      'https://api.github.com/repos/actualbudget/actual/pulls?state=open&per_page=2&head=' + head,
     );
     if (!resp.ok) {
       console.warn('error fetching from github pulls api:', resp.status);

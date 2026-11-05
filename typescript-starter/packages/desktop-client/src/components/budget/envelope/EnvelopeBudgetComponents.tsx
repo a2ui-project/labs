@@ -14,59 +14,54 @@
  * limitations under the License.
  */
 
-import React, { memo, useRef, useState } from 'react';
-import type { ComponentProps, CSSProperties, MouseEvent } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {memo, useRef, useState} from 'react';
+import type {ComponentProps, CSSProperties, MouseEvent} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgCheveronDown } from '@actual-app/components/icons/v1';
-import {
-  SvgArrowsSynchronize,
-  SvgCalendar3,
-} from '@actual-app/components/icons/v2';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgCheveronDown} from '@actual-app/components/icons/v1';
+import {SvgArrowsSynchronize, SvgCalendar3} from '@actual-app/components/icons/v2';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import { BalanceWithCarryover } from '#components/budget/BalanceWithCarryover';
-import { makeAmountGrey } from '#components/budget/util';
-import { NotesButton } from '#components/NotesButton';
-import { CellValue, CellValueText } from '#components/spreadsheet/CellValue';
-import { Field, Row, SheetCell } from '#components/table';
-import type { SheetCellProps } from '#components/table';
-import { useCategoryScheduleGoalTemplateIndicator } from '#hooks/useCategoryScheduleGoalTemplateIndicator';
-import { useFormat } from '#hooks/useFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { useSheetName } from '#hooks/useSheetName';
-import { useSheetValue } from '#hooks/useSheetValue';
-import { useUndo } from '#hooks/useUndo';
-import type { Binding, SheetFields } from '#spreadsheet';
-import { envelopeBudget } from '#spreadsheet/bindings';
-import type { CategoryGroupMonthProps, CategoryMonthProps } from '..';
+import {BalanceWithCarryover} from '#components/budget/BalanceWithCarryover';
+import {makeAmountGrey} from '#components/budget/util';
+import {NotesButton} from '#components/NotesButton';
+import {CellValue, CellValueText} from '#components/spreadsheet/CellValue';
+import {Field, Row, SheetCell} from '#components/table';
+import type {SheetCellProps} from '#components/table';
+import {useCategoryScheduleGoalTemplateIndicator} from '#hooks/useCategoryScheduleGoalTemplateIndicator';
+import {useFormat} from '#hooks/useFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {useSheetName} from '#hooks/useSheetName';
+import {useSheetValue} from '#hooks/useSheetValue';
+import {useUndo} from '#hooks/useUndo';
+import type {Binding, SheetFields} from '#spreadsheet';
+import {envelopeBudget} from '#spreadsheet/bindings';
+import type {CategoryGroupMonthProps, CategoryMonthProps} from '..';
 
-import { BalanceMovementMenu } from './BalanceMovementMenu';
-import { BudgetMenu } from './BudgetMenu';
-import { IncomeMenu } from './IncomeMenu';
+import {BalanceMovementMenu} from './BalanceMovementMenu';
+import {BudgetMenu} from './BudgetMenu';
+import {IncomeMenu} from './IncomeMenu';
 
-export function useEnvelopeSheetName<
-  FieldName extends SheetFields<'envelope-budget'>,
->(binding: Binding<'envelope-budget', FieldName>) {
+export function useEnvelopeSheetName<FieldName extends SheetFields<'envelope-budget'>>(
+  binding: Binding<'envelope-budget', FieldName>,
+) {
   return useSheetName(binding);
 }
 
-export function useEnvelopeSheetValue<
-  FieldName extends SheetFields<'envelope-budget'>,
->(binding: Binding<'envelope-budget', FieldName>) {
+export function useEnvelopeSheetValue<FieldName extends SheetFields<'envelope-budget'>>(
+  binding: Binding<'envelope-budget', FieldName>,
+) {
   return useSheetValue(binding);
 }
 
-export const EnvelopeCellValue = <
-  FieldName extends SheetFields<'envelope-budget'>,
->(
+export const EnvelopeCellValue = <FieldName extends SheetFields<'envelope-budget'>>(
   props: ComponentProps<typeof CellValue<'envelope-budget', FieldName>>,
 ) => {
   return <CellValue {...props} />;
@@ -102,20 +97,15 @@ export const BudgetTotalsMonth = memo(function BudgetTotalsMonth() {
       }}
     >
       <View style={headerLabelStyle}>
-        <Text style={{ color: theme.tableHeaderText }}>
+        <Text style={{color: theme.tableHeaderText}}>
           <Trans>Budgeted</Trans>
         </Text>
-        <EnvelopeCellValue
-          binding={envelopeBudget.totalBudgeted}
-          type="financial"
-        >
-          {props => (
-            <CellValueText {...props} value={-props.value} style={cellStyle} />
-          )}
+        <EnvelopeCellValue binding={envelopeBudget.totalBudgeted} type="financial">
+          {props => <CellValueText {...props} value={-props.value} style={cellStyle} />}
         </EnvelopeCellValue>
       </View>
       <View style={headerLabelStyle}>
-        <Text style={{ color: theme.tableHeaderText }}>
+        <Text style={{color: theme.tableHeaderText}}>
           <Trans>Spent</Trans>
         </Text>
         <EnvelopeCellValue binding={envelopeBudget.totalSpent} type="financial">
@@ -123,13 +113,10 @@ export const BudgetTotalsMonth = memo(function BudgetTotalsMonth() {
         </EnvelopeCellValue>
       </View>
       <View style={headerLabelStyle}>
-        <Text style={{ color: theme.tableHeaderText }}>
+        <Text style={{color: theme.tableHeaderText}}>
           <Trans>Balance</Trans>
         </Text>
-        <EnvelopeCellValue
-          binding={envelopeBudget.totalBalance}
-          type="financial"
-        >
+        <EnvelopeCellValue binding={envelopeBudget.totalBalance} type="financial">
           {props => <CellValueText {...props} style={cellStyle} />}
         </EnvelopeCellValue>
       </View>
@@ -147,7 +134,7 @@ export function IncomeHeaderMonth() {
         backgroundColor: theme.budgetCurrentMonth,
       }}
     >
-      <View style={{ flex: 1, textAlign: 'right' }}>
+      <View style={{flex: 1, textAlign: 'right'}}>
         <Trans>Received</Trans>
       </View>
     </Row>
@@ -158,7 +145,7 @@ export const ExpenseGroupMonth = memo(function ExpenseGroupMonth({
   month,
   group,
 }: CategoryGroupMonthProps) {
-  const { id } = group;
+  const {id} = group;
 
   return (
     <View
@@ -174,7 +161,7 @@ export const ExpenseGroupMonth = memo(function ExpenseGroupMonth({
         name="budgeted"
         width="flex"
         textAlign="right"
-        style={{ fontWeight: 600, ...styles.tnum }}
+        style={{fontWeight: 600, ...styles.tnum}}
         valueProps={{
           binding: envelopeBudget.groupBudgeted(id),
           type: 'financial',
@@ -184,7 +171,7 @@ export const ExpenseGroupMonth = memo(function ExpenseGroupMonth({
         name="spent"
         width="flex"
         textAlign="right"
-        style={{ fontWeight: 600, ...styles.tnum }}
+        style={{fontWeight: 600, ...styles.tnum}}
         valueProps={{
           binding: envelopeBudget.groupSumAmount(id),
           type: 'financial',
@@ -216,7 +203,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
   onBudgetAction,
   onShowActivity,
 }: CategoryMonthProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
   const budgetMenuTriggerRef = useRef(null);
@@ -227,7 +214,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
     offset: 0,
   });
   const resetBudgetPosition = (crossOffset = 0, offset = 0) =>
-    setBudgetPosition({ crossOffset, offset });
+    setBudgetPosition({crossOffset, offset});
 
   const handleBudgetContextMenu = (e: MouseEvent) => {
     e.preventDefault();
@@ -245,7 +232,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
     offset: 0,
   });
   const resetBalancePosition = (crossOffset = 0, offset = 0) =>
-    setBalancePosition({ crossOffset, offset });
+    setBalancePosition({crossOffset, offset});
 
   const handleBalanceContextMenu = (e: MouseEvent) => {
     e.preventDefault();
@@ -262,11 +249,11 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
     setBudgetMenuOpen(false);
   };
 
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
 
   const navigate = useNavigate();
 
-  const { schedule, scheduleStatus, isScheduleRecurring, description } =
+  const {schedule, scheduleStatus, isScheduleRecurring, description} =
     useCategoryScheduleGoalTemplateIndicator({
       category,
       month,
@@ -324,10 +311,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
                 borderColor: theme.tableBorder,
               }}
             >
-              <NotesButton
-                id={`${category.id}-${month}`}
-                defaultColor={theme.pageTextLight}
-              />
+              <NotesButton id={`${category.id}-${month}`} defaultColor={theme.pageTextLight} />
             </View>
             <View
               className={`hover-expand ${budgetMenuOpen ? 'force-visible' : ''}`}
@@ -352,18 +336,14 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
                   padding: 3,
                 }}
               >
-                <SvgCheveronDown
-                  width={14}
-                  height={14}
-                  className="hover-visible"
-                />
+                <SvgCheveronDown width={14} height={14} className="hover-visible" />
               </Button>
               <Popover
                 triggerRef={budgetMenuTriggerRef}
                 placement="bottom left"
                 isOpen={budgetMenuOpen}
                 onOpenChange={() => setBudgetMenuOpen(false)}
-                style={{ width: 200 }}
+                style={{width: 200}}
                 isNonModal
                 {...budgetPosition}
               >
@@ -377,11 +357,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
                     });
                   }}
                   onSetMonthsAverage={numberOfMonths => {
-                    if (
-                      numberOfMonths !== 3 &&
-                      numberOfMonths !== 6 &&
-                      numberOfMonths !== 12
-                    ) {
+                    if (numberOfMonths !== 3 && numberOfMonths !== 6 && numberOfMonths !== 12) {
                       return;
                     }
 
@@ -389,10 +365,9 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
                       category: category.id,
                     });
                     showUndoNotification({
-                      message: t(
-                        'Budget set to {{numberOfMonths}}-month average.',
-                        { numberOfMonths },
-                      ),
+                      message: t('Budget set to {{numberOfMonths}}-month average.', {
+                        numberOfMonths,
+                      }),
                     });
                   }}
                   onApplyBudgetTemplate={() => {
@@ -414,7 +389,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
           focused={editing}
           width="flex"
           onExpose={() => onEdit(category.id, month)}
-          style={{ ...(editing && { zIndex: 100 }), ...styles.tnum }}
+          style={{...(editing && {zIndex: 100}), ...styles.tnum}}
           textAlign="right"
           valueStyle={{
             cursor: 'default',
@@ -449,16 +424,14 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
           }}
         />
       </View>
-      <Field name="spent" width="flex" style={{ textAlign: 'right' }}>
+      <Field name="spent" width="flex" style={{textAlign: 'right'}}>
         <View
           data-testid="category-month-spent"
           onClick={() => onShowActivity(category.id, month)}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: showScheduleIndicator
-              ? 'space-between'
-              : 'flex-end',
+            justifyContent: showScheduleIndicator ? 'space-between' : 'flex-end',
             gap: 2,
           }}
         >
@@ -481,23 +454,20 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
                 }
               >
                 {isScheduleRecurring ? (
-                  <SvgArrowsSynchronize style={{ width: 12, height: 12 }} />
+                  <SvgArrowsSynchronize style={{width: 12, height: 12}} />
                 ) : (
-                  <SvgCalendar3 style={{ width: 12, height: 12 }} />
+                  <SvgCalendar3 style={{width: 12, height: 12}} />
                 )}
               </Button>
             </View>
           )}
-          <EnvelopeCellValue
-            binding={envelopeBudget.catSumAmount(category.id)}
-            type="financial"
-          >
+          <EnvelopeCellValue binding={envelopeBudget.catSumAmount(category.id)} type="financial">
             {props => (
               <CellValueText
                 {...props}
                 className={css({
                   cursor: 'pointer',
-                  ':hover': { textDecoration: 'underline' },
+                  ':hover': {textDecoration: 'underline'},
                   ...makeAmountGrey(props.value),
                 })}
               />
@@ -509,7 +479,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
         ref={balanceMenuTriggerRef}
         name="balance"
         width="flex"
-        style={{ paddingRight: styles.monthRightPadding, textAlign: 'right' }}
+        style={{paddingRight: styles.monthRightPadding, textAlign: 'right'}}
       >
         <Button
           variant="bare"
@@ -521,10 +491,7 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
             handleBalanceContextMenu(e);
             // We need to calculate differently from the hook due to being aligned to the right
             const rect = e.currentTarget.getBoundingClientRect();
-            resetBalancePosition(
-              e.clientX - rect.right + 200 - 8,
-              e.clientY - rect.bottom - 8,
-            );
+            resetBalancePosition(e.clientX - rect.right + 200 - 8, e.clientY - rect.bottom - 8);
           }}
           style={{
             justifyContent: 'flex-end',
@@ -570,9 +537,9 @@ export const ExpenseCategoryMonth = memo(function ExpenseCategoryMonth({
 type IncomeGroupMonthProps = {
   month: string;
 };
-export function IncomeGroupMonth({ month }: IncomeGroupMonthProps) {
+export function IncomeGroupMonth({month}: IncomeGroupMonthProps) {
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{flex: 1}}>
       <EnvelopeSheetCell
         name="received"
         width="flex"
@@ -608,7 +575,7 @@ export function IncomeCategoryMonth({
     offset: 0,
   });
   const resetIncomePosition = (crossOffset = 0, offset = 0) =>
-    setIncomePosition({ crossOffset, offset });
+    setIncomePosition({crossOffset, offset});
 
   const handleIncomeContextMenu = (e: MouseEvent) => {
     e.preventDefault();
@@ -621,7 +588,7 @@ export function IncomeCategoryMonth({
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{flex: 1}}>
       <Field
         name="received"
         width="flex"
@@ -629,7 +596,7 @@ export function IncomeCategoryMonth({
         ref={incomeMenuTriggerRef}
         style={{
           textAlign: 'right',
-          ...(isLast && { borderBottomWidth: 0 }),
+          ...(isLast && {borderBottomWidth: 0}),
           backgroundColor: monthUtils.isCurrentMonth(month)
             ? theme.budgetCurrentMonth
             : theme.budgetOtherMonth,
@@ -655,10 +622,7 @@ export function IncomeCategoryMonth({
               handleIncomeContextMenu(e);
               // We need to calculate differently from the hook due to being aligned to the right
               const rect = e.currentTarget.getBoundingClientRect();
-              resetIncomePosition(
-                e.clientX - rect.right + 200 - 8,
-                e.clientY - rect.bottom - 8,
-              );
+              resetIncomePosition(e.clientX - rect.right + 200 - 8, e.clientY - rect.bottom - 8);
             }}
             style={{
               background: 'transparent',
@@ -679,7 +643,7 @@ export function IncomeCategoryMonth({
             placement="bottom end"
             isOpen={incomeMenuOpen}
             onOpenChange={() => setIncomeMenuOpen(false)}
-            style={{ margin: 1 }}
+            style={{margin: 1}}
             isNonModal
             {...incomePosition}
           >
@@ -697,4 +661,4 @@ export function IncomeCategoryMonth({
   );
 }
 
-export { BudgetSummary } from './budgetsummary/BudgetSummary';
+export {BudgetSummary} from './budgetsummary/BudgetSummary';

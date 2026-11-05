@@ -24,10 +24,7 @@ import type {
   Institution,
   Requisition,
 } from '#app-gocardless/gocardless-node.types';
-import type {
-  GetBalances,
-  GetTransactionsResponse,
-} from '#app-gocardless/gocardless.types';
+import type {GetBalances, GetTransactionsResponse} from '#app-gocardless/gocardless.types';
 
 const BASE_URL = 'https://bankaccountdata.gocardless.com/api/v2';
 const ALLOWED_ORIGIN = new URL(BASE_URL).origin;
@@ -60,13 +57,9 @@ export class GoCardlessApiError extends Error {
     data?: unknown;
   };
 
-  constructor(
-    message: string,
-    status: number,
-    headers: Record<string, string>,
-  ) {
+  constructor(message: string, status: number, headers: Record<string, string>) {
     super(message);
-    this.response = { status, headers };
+    this.response = {status, headers};
   }
 }
 
@@ -75,13 +68,7 @@ export class GoCardlessApi {
   #secretKey: string | null;
   #token: string | null = null;
 
-  constructor({
-    secretId,
-    secretKey,
-  }: {
-    secretId: string | null;
-    secretKey: string | null;
-  }) {
+  constructor({secretId, secretKey}: {secretId: string | null; secretKey: string | null}) {
     this.#secretId = secretId;
     this.#secretKey = secretKey;
   }
@@ -133,9 +120,7 @@ export class GoCardlessApi {
       ...(body
         ? {
             body: JSON.stringify(
-              Object.fromEntries(
-                Object.entries(body).filter(([, v]) => v != null),
-              ),
+              Object.fromEntries(Object.entries(body).filter(([, v]) => v != null)),
             ),
           }
         : {}),
@@ -172,24 +157,16 @@ export class GoCardlessApi {
     return data;
   }
 
-  async exchangeToken({
-    refreshToken,
-  }: {
-    refreshToken: string;
-  }): Promise<TokenResponse> {
+  async exchangeToken({refreshToken}: {refreshToken: string}): Promise<TokenResponse> {
     const data = await this.#request<TokenResponse>('/token/refresh/', {
       method: 'POST',
-      body: { refresh: refreshToken },
+      body: {refresh: refreshToken},
     });
     this.#token = data.access;
     return data;
   }
 
-  async getInstitutions({
-    country,
-  }: {
-    country: string;
-  }): Promise<Institution[]> {
+  async getInstitutions({country}: {country: string}): Promise<Institution[]> {
     return this.#request<Institution[]>(`/institutions/?country=${country}`);
   }
 
@@ -231,15 +208,13 @@ export class GoCardlessApi {
     });
   }
 
-  async getRequisitionById(
-    requisitionId: GoCardlessRequisitionId,
-  ): Promise<Requisition> {
+  async getRequisitionById(requisitionId: GoCardlessRequisitionId): Promise<Requisition> {
     return this.#request<Requisition>(`/requisitions/${requisitionId}/`);
   }
 
   async deleteRequisition(
     requisitionId: GoCardlessRequisitionId,
-  ): Promise<{ summary: string; detail: string }> {
+  ): Promise<{summary: string; detail: string}> {
     return this.#request(`/requisitions/${requisitionId}/`, {
       method: 'DELETE',
     });
@@ -267,23 +242,15 @@ export class GoCardlessApi {
     });
   }
 
-  async getAccountMetadata(
-    accountId: GoCardlessAccountId,
-  ): Promise<GoCardlessAccountMetadata> {
+  async getAccountMetadata(accountId: GoCardlessAccountId): Promise<GoCardlessAccountMetadata> {
     return this.#request<GoCardlessAccountMetadata>(`/accounts/${accountId}/`);
   }
 
-  async getAccountDetails(
-    accountId: GoCardlessAccountId,
-  ): Promise<AccountDetailsResponse> {
-    return this.#request<AccountDetailsResponse>(
-      `/accounts/${accountId}/details/`,
-    );
+  async getAccountDetails(accountId: GoCardlessAccountId): Promise<AccountDetailsResponse> {
+    return this.#request<AccountDetailsResponse>(`/accounts/${accountId}/details/`);
   }
 
-  async getAccountBalances(
-    accountId: GoCardlessAccountId,
-  ): Promise<GetBalances> {
+  async getAccountBalances(accountId: GoCardlessAccountId): Promise<GetBalances> {
     return this.#request<GetBalances>(`/accounts/${accountId}/balances/`);
   }
 

@@ -21,16 +21,13 @@ import * as fetchClient from '#platform/client/connection';
 import * as sqlite from '#platform/server/sqlite';
 import * as db from '#server/db';
 import type * as MigrationsType from '#server/migrate/migrations';
-import {
-  disableGlobalMutations,
-  enableGlobalMutations,
-} from '#server/mutators';
-import { setServer } from '#server/server-config';
+import {disableGlobalMutations, enableGlobalMutations} from '#server/mutators';
+import {setServer} from '#server/server-config';
 import * as sheet from '#server/sheet';
-import { setSyncingMode } from '#server/sync';
+import {setSyncingMode} from '#server/sync';
 import * as rules from '#server/transactions/transaction-rules';
-import { updateVersion } from '#server/update';
-import { resetTracer, tracer } from '#shared/test-helpers';
+import {updateVersion} from '#server/update';
+import {resetTracer, tracer} from '#shared/test-helpers';
 
 vi.mock('#platform/client/connection');
 vi.mock('#platform/exceptions');
@@ -80,9 +77,7 @@ vi.mock('uuid', () => ({
   },
 }));
 vi.mock('#server/migrate/migrations', async () => {
-  const realMigrations = await vi.importActual<typeof MigrationsType>(
-    '#server/migrate/migrations',
-  );
+  const realMigrations = await vi.importActual<typeof MigrationsType>('#server/migrate/migrations');
   return {
     ...realMigrations,
     migrate: async db => {
@@ -95,7 +90,7 @@ vi.mock('#server/migrate/migrations', async () => {
 
 global.getDatabaseDump = async function (tables) {
   if (!tables) {
-    const rows = sqlite.runQuery<{ name }>(
+    const rows = sqlite.runQuery<{name}>(
       db.getDatabase(),
       "SELECT name FROM sqlite_master WHERE type='table'",
       [],

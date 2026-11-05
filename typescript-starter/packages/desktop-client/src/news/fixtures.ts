@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { NEWS_FEED_SCHEMA_VERSION } from './types';
-import type { NewsFeed } from './types';
+import {NEWS_FEED_SCHEMA_VERSION} from './types';
+import type {NewsFeed} from './types';
 
 /**
  * Deterministic feed returned instead of a network request when running

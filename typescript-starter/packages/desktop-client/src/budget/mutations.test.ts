@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type { TFunction } from 'i18next';
+import type {TFunction} from 'i18next';
 import i18next from 'i18next';
-import { beforeAll, describe, expect, it } from 'vitest';
+import {beforeAll, describe, expect, it} from 'vitest';
 
-import { translateBudgetTemplateNotification } from './mutations';
+import {translateBudgetTemplateNotification} from './mutations';
 
 const t = ((key: string, options?: Record<string, unknown>) => {
   if (!options) {
@@ -49,75 +49,45 @@ beforeAll(async () => {
         },
       },
     },
-    interpolation: { escapeValue: false },
+    interpolation: {escapeValue: false},
   });
 });
 
 describe('translateBudgetTemplateNotification', () => {
   it('translates static budget template notification keys', () => {
     expect(
-      translateBudgetTemplateNotification(
-        { message: 'templates-check-passed' },
-        t,
-      ).message,
+      translateBudgetTemplateNotification({message: 'templates-check-passed'}, t).message,
     ).toBe('translated:All templates passed! 🎉');
-    expect(
-      translateBudgetTemplateNotification({ message: 'template-errors' }, t)
-        .message,
-    ).toBe('translated:There were errors interpreting some templates:');
+    expect(translateBudgetTemplateNotification({message: 'template-errors'}, t).message).toBe(
+      'translated:There were errors interpreting some templates:',
+    );
   });
 
   it('translates template notification counts', () => {
     expect(
-      translateBudgetTemplateNotification(
-        { message: 'templates-applied', count: 3 },
-        t,
-      ).message,
-    ).toBe(
-      'Successfully applied templates to {{count}} categories:{"count":3}',
-    );
+      translateBudgetTemplateNotification({message: 'templates-applied', count: 3}, t).message,
+    ).toBe('Successfully applied templates to {{count}} categories:{"count":3}');
   });
 
   it('leaves non-template notifications unchanged', () => {
-    expect(
-      translateBudgetTemplateNotification({ message: 'Already translated' }, t)
-        .message,
-    ).toBe('Already translated');
+    expect(translateBudgetTemplateNotification({message: 'Already translated'}, t).message).toBe(
+      'Already translated',
+    );
   });
 
   it('translates cleanup notifications with i18next nesting', () => {
     const cases = [
-      [
-        0,
-        0,
-        'Successfully returned funds from 0 sources and funded 0 sinking funds.',
-      ],
-      [
-        1,
-        1,
-        'Successfully returned funds from 1 source and funded 1 sinking fund.',
-      ],
-      [
-        1,
-        2,
-        'Successfully returned funds from 1 source and funded 2 sinking funds.',
-      ],
-      [
-        2,
-        1,
-        'Successfully returned funds from 2 sources and funded 1 sinking fund.',
-      ],
-      [
-        2,
-        2,
-        'Successfully returned funds from 2 sources and funded 2 sinking funds.',
-      ],
+      [0, 0, 'Successfully returned funds from 0 sources and funded 0 sinking funds.'],
+      [1, 1, 'Successfully returned funds from 1 source and funded 1 sinking fund.'],
+      [1, 2, 'Successfully returned funds from 1 source and funded 2 sinking funds.'],
+      [2, 1, 'Successfully returned funds from 2 sources and funded 1 sinking fund.'],
+      [2, 2, 'Successfully returned funds from 2 sources and funded 2 sinking funds.'],
     ] as const;
 
     for (const [sourceCount, sinkCount, expected] of cases) {
       expect(
         translateBudgetTemplateNotification(
-          { message: 'cleanup-applied', sourceCount, sinkCount },
+          {message: 'cleanup-applied', sourceCount, sinkCount},
           pluralT,
         ).message,
       ).toBe(expected);

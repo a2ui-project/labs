@@ -16,8 +16,8 @@
 
 import * as childProcess from 'node:child_process';
 import * as fs from 'node:fs/promises';
-import { join } from 'node:path';
-import { promisify } from 'node:util';
+import {join} from 'node:path';
+import {promisify} from 'node:util';
 
 import matter from 'gray-matter';
 import listify from 'listify';
@@ -30,27 +30,19 @@ export const categoryAutocorrections = {
   Bugfix: 'Bugfixes',
 };
 
-export const categoryOrder = [
-  'Features',
-  'Enhancements',
-  'Bugfixes',
-  'Maintenance',
-];
+export const categoryOrder = ['Features', 'Enhancements', 'Bugfixes', 'Maintenance'];
 
 export async function parseReleaseNotes(dir, owner, repo, historyRef, only) {
   const allowed = only == null ? null : new Set(only);
   const files = (await fs.readdir(dir)).filter(
-    f =>
-      f.endsWith('.md') &&
-      f !== 'README.md' &&
-      (allowed == null || allowed.has(f)),
+    f => f.endsWith('.md') && f !== 'README.md' && (allowed == null || allowed.has(f)),
   );
   const notes = files.map(async name => {
     const content = await fs.readFile(join(dir, name), 'utf-8');
-    const { data, content: body } = matter(content);
+    const {data, content: body} = matter(content);
     const authors = listify(
       data.authors.map(a => `@${a}`),
-      { finalWord: '&' },
+      {finalWord: '&'},
     );
     const number = await resolvePrNumber(dir, name, historyRef);
     const prefix = number
@@ -74,7 +66,7 @@ export async function parseReleaseNotes(dir, owner, repo, historyRef, only) {
     Object.fromEntries(categoryOrder.map(c => [c, []])),
   );
 
-  return { notesByCategory, files };
+  return {notesByCategory, files};
 }
 
 async function resolvePrNumber(dir, name, historyRef = 'HEAD') {
@@ -85,7 +77,7 @@ async function resolvePrNumber(dir, name, historyRef = 'HEAD') {
 
   let subject;
   try {
-    const { stdout } = await execFile('git', [
+    const {stdout} = await execFile('git', [
       'log',
       '-1',
       '--diff-filter=A',
@@ -96,9 +88,7 @@ async function resolvePrNumber(dir, name, historyRef = 'HEAD') {
     ]);
     subject = stdout.trim();
   } catch (e) {
-    console.log(
-      `WARNING: failed to read commit subject for ${name}: ${e.message}`,
-    );
+    console.log(`WARNING: failed to read commit subject for ${name}: ${e.message}`);
     return null;
   }
 
@@ -106,9 +96,7 @@ async function resolvePrNumber(dir, name, historyRef = 'HEAD') {
   // so we can recover the PR number without touching the network.
   const match = subject.match(/\(#(\d+)\)\s*$/);
   if (!match) {
-    console.log(
-      `WARNING: no "(#N)" suffix in commit subject for ${name}; skipping PR link`,
-    );
+    console.log(`WARNING: no "(#N)" suffix in commit subject for ${name}; skipping PR link`);
     return null;
   }
   return match[1];

@@ -15,12 +15,12 @@
  */
 
 import React from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {ComponentPropsWithoutRef} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
+import {Menu} from '@actual-app/components/menu';
 
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
 
 type BudgetMonthMenuProps = Omit<
   ComponentPropsWithoutRef<typeof Menu>,
@@ -43,7 +43,7 @@ export function BudgetMonthMenu({
   onOverwriteWithBudgetTemplates,
   ...props
 }: BudgetMonthMenuProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const isGoalTemplatesEnabled = useFeatureFlag('goalTemplatesEnabled');
   return (
     <Menu
@@ -79,8 +79,8 @@ export function BudgetMonthMenu({
         }
       }}
       items={[
-        { name: 'copy-last', text: t("Copy last month's budget") },
-        { name: 'set-zero', text: t('Set budgets to zero') },
+        {name: 'copy-last', text: t("Copy last month's budget")},
+        {name: 'set-zero', text: t('Set budgets to zero')},
         {
           name: 'set-3-avg',
           text: t('Set budgets to 3 month average'),

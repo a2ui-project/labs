@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import type { Handlers } from '#types/handlers';
-import type { ServerEvents } from '#types/server-events';
+import type {Handlers} from '#types/handlers';
+import type {ServerEvents} from '#types/server-events';
 
 /**
  * Connect to the backend. Reads the socket from
@@ -31,9 +31,9 @@ export type ConnectionError = {
   name?: string;
   cause?: unknown;
 } & (
-  | { type: 'APIError'; message: string }
+  | {type: 'APIError'; message: string}
   // A ServerError can be built from a rejection without a message
-  | { type: 'ServerError'; message?: string }
+  | {type: 'ServerError'; message?: string}
 );
 
 /**
@@ -50,15 +50,15 @@ export type ConnectionError = {
 export declare function send<K extends keyof Handlers>(
   name: K,
   args: Parameters<Handlers[K]>[0],
-  options: { catchErrors: true },
+  options: {catchErrors: true},
 ): Promise<
-  | { data: Awaited<ReturnType<Handlers[K]>>; error: undefined }
-  | { data: undefined; error: ConnectionError }
+  | {data: Awaited<ReturnType<Handlers[K]>>; error: undefined}
+  | {data: undefined; error: ConnectionError}
 >;
 export declare function send<K extends keyof Handlers>(
   name: K,
   args?: Parameters<Handlers[K]>[0],
-  options?: { catchErrors?: boolean },
+  options?: {catchErrors?: boolean},
 ): Promise<Awaited<ReturnType<Handlers[K]>>>;
 export type Send = typeof send;
 
@@ -74,8 +74,8 @@ export declare function sendCatch<K extends keyof Handlers>(
   name: K,
   args?: Parameters<Handlers[K]>[0],
 ): Promise<
-  | { data: Awaited<ReturnType<Handlers[K]>>; error: undefined }
-  | { data: undefined; error: ConnectionError }
+  | {data: Awaited<ReturnType<Handlers[K]>>; error: undefined}
+  | {data: undefined; error: ConnectionError}
 >;
 export type SendCatch = typeof sendCatch;
 

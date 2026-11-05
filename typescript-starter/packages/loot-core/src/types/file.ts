@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-import type { UsersWithAccess } from '#server/cloud-storage';
+import type {UsersWithAccess} from '#server/cloud-storage';
 
-import type { Budget } from './budget';
+import type {Budget} from './budget';
 
-export type FileState =
-  | 'local'
-  | 'remote'
-  | 'synced'
-  | 'detached'
-  | 'broken'
-  | 'unknown';
+export type FileState = 'local' | 'remote' | 'synced' | 'detached' | 'broken' | 'unknown';
 
 export type LocalFile = Omit<Budget, 'cloudFileId' | 'groupId'> & {
   state: 'local';

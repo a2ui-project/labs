@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { format } from 'date-fns';
+import {format} from 'date-fns';
 
-import { aqlQuery } from '#server/aql';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { runRules } from '#server/transactions/transaction-rules';
+import {runRules} from '#server/transactions/transaction-rules';
 import * as monthUtils from '#shared/months';
-import { q } from '#shared/query';
+import {q} from '#shared/query';
 import {
   extractScheduleConds,
   getNextDate,
@@ -28,15 +28,12 @@ import {
   indexPostedScheduleTransactions,
   isScheduleOccurrencePosted,
 } from '#shared/schedules';
-import type { RuleConditionEntity, TransactionEntity } from '#types/models';
-import type { RecurConfig } from '#types/models/schedule';
+import type {RuleConditionEntity, TransactionEntity} from '#types/models';
+import type {RecurConfig} from '#types/models/schedule';
 
-import type {
-  AccountWithComputedBalance,
-  DbAccountForRules,
-} from './forecast-accounts';
-import { enrichForecastFilterObjects } from './forecast-filters';
-import type { ForecastFilterObject } from './forecast-filters';
+import type {AccountWithComputedBalance, DbAccountForRules} from './forecast-accounts';
+import {enrichForecastFilterObjects} from './forecast-filters';
+import type {ForecastFilterObject} from './forecast-filters';
 
 /** Synthetic account for schedules with no account; combined forecast only when explicitly included. */
 export const FORECAST_UNASSIGNED_ACCOUNT_ID = '__unassigned_schedule__';
@@ -54,8 +51,8 @@ type ScheduleDataBase = {
 };
 
 export type ScheduleData =
-  | (ScheduleDataBase & { _date: string })
-  | (ScheduleDataBase & { _date: RecurConfig });
+  | (ScheduleDataBase & {_date: string})
+  | (ScheduleDataBase & {_date: RecurConfig});
 
 type RawScheduleData = {
   id: string;
@@ -65,7 +62,7 @@ type RawScheduleData = {
   posts_transaction?: boolean;
   _payee?: string | null;
   _account?: string | null;
-  _amount?: number | { num1: number; num2: number } | null;
+  _amount?: number | {num1: number; num2: number} | null;
   _date?: string | RecurConfig | null;
   _conditions?: RuleConditionEntity[];
 };
@@ -95,9 +92,7 @@ async function getSchedules() {
   return result.data as RawScheduleData[];
 }
 
-export function normalizeSchedule(
-  schedule: RawScheduleData,
-): ScheduleData | null {
+export function normalizeSchedule(schedule: RawScheduleData): ScheduleData | null {
   const conditions = extractScheduleConds(schedule._conditions || []);
   const accountId =
     schedule._account ??
@@ -138,32 +133,28 @@ async function getTransferPayeesByAccountIds(accountIds: string[]) {
     return new Map<string, TransferPayee>();
   }
 
-  const { data: payees } = await aqlQuery(
+  const {data: payees} = await aqlQuery(
     q('payees')
-      .filter({ transfer_acct: { $oneof: accountIds } })
+      .filter({transfer_acct: {$oneof: accountIds}})
       .select(['id', 'name', 'transfer_acct']),
   );
 
   return new Map(
     (payees as TransferPayee[])
       .filter(
-        (payee): payee is TransferPayee & { transfer_acct: string } =>
-          payee.transfer_acct != null,
+        (payee): payee is TransferPayee & {transfer_acct: string} => payee.transfer_acct != null,
       )
       .map(payee => [payee.transfer_acct, payee]),
   );
 }
 
-export function getFutureOccurrenceDates(
-  schedule: ScheduleData,
-  endDate: Date,
-) {
+export function getFutureOccurrenceDates(schedule: ScheduleData, endDate: Date) {
   if (typeof schedule._date === 'string') {
     const singleDate = monthUtils.parseDate(schedule._date);
     return singleDate <= endDate ? [format(singleDate, 'yyyy-MM-dd')] : [];
   }
 
-  const dateCondition = { op: 'is', field: 'date', value: schedule._date };
+  const dateCondition = {op: 'is', field: 'date', value: schedule._date};
   const maxIterations = 10_000;
   const dates = [schedule.next_date];
   const seenDates = new Set(dates);
@@ -173,8 +164,7 @@ export function getFutureOccurrenceDates(
   while (day <= endDate && iterations < maxIterations) {
     iterations++;
     const nextDate = getNextDate(dateCondition, day);
-    const parsedNextDate =
-      nextDate != null ? monthUtils.parseDate(nextDate) : null;
+    const parsedNextDate = nextDate != null ? monthUtils.parseDate(nextDate) : null;
 
     if (!nextDate || !parsedNextDate || parsedNextDate > endDate) {
       break;
@@ -200,8 +190,7 @@ export async function buildFutureScheduleOccurrences(
   ruleAccountsById: Map<string, DbAccountForRules>,
   postedTransactions: TransactionEntity[],
 ) {
-  const postedByScheduleId =
-    indexPostedScheduleTransactions(postedTransactions);
+  const postedByScheduleId = indexPostedScheduleTransactions(postedTransactions);
   const transferPayeesByAccountId = await getTransferPayeesByAccountIds([
     ...ruleAccountsById.keys(),
   ]);
@@ -239,10 +228,7 @@ export async function buildFutureScheduleOccurrences(
         schedule: schedule.id,
         cleared: false,
       };
-      const sourceTransaction = await runRules(
-        baseTransaction,
-        ruleAccountsById,
-      );
+      const sourceTransaction = await runRules(baseTransaction, ruleAccountsById);
       simulatedTransactions.push(sourceTransaction);
       occurrences.push({
         accountId: sourceTransaction.account,
@@ -267,16 +253,11 @@ export async function buildFutureScheduleOccurrences(
       }
       const transferAccountId = transferPayee?.transfer_acct;
 
-      if (
-        !transferAccountId ||
-        transferAccountId === sourceTransaction.account
-      ) {
+      if (!transferAccountId || transferAccountId === sourceTransaction.account) {
         continue;
       }
 
-      const reverseTransferPayee = transferPayeesByAccountId.get(
-        sourceTransaction.account,
-      );
+      const reverseTransferPayee = transferPayeesByAccountId.get(sourceTransaction.account);
       const transferTransaction = await runRules(
         {
           id: `${sourceTransaction.id}-transfer`,
@@ -325,9 +306,7 @@ export async function buildFutureScheduleOccurrences(
   );
 
   return occurrences.map(occurrence => {
-    const filterObject = filterObjectsByTransactionId.get(
-      occurrence.transactionId,
-    );
+    const filterObject = filterObjectsByTransactionId.get(occurrence.transactionId);
     const transaction = transactionsById.get(occurrence.transactionId);
 
     if (!filterObject || !transaction) {

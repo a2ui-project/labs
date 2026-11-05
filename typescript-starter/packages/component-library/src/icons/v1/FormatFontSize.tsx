@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgFormatFontSize = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -26,9 +26,6 @@ export const SvgFormatFontSize = (props: SVGProps<SVGSVGElement>) => (
       ...props.style,
     }}
   >
-    <path
-      d="M16 9v8h-2V9h-4V7h10v2zM8 5v12H6V5H0V3h15v2z"
-      fill="currentColor"
-    />
+    <path d="M16 9v8h-2V9h-4V7h10v2zM8 5v12H6V5H0V3h15v2z" fill="currentColor" />
   </svg>
 );

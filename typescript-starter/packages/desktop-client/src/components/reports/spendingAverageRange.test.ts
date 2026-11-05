@@ -25,8 +25,7 @@ import {
 const t = (key: string, options?: Record<string, string | number>) =>
   options
     ? Object.entries(options).reduce(
-        (message, [optionKey, value]) =>
-          message.replace(`{{${optionKey}}}`, String(value)),
+        (message, [optionKey, value]) => message.replace(`{{${optionKey}}}`, String(value)),
         key,
       )
     : key;
@@ -64,27 +63,20 @@ describe('resolveSpendingAverageRange', () => {
   it('uses months before the selected compare month for last-n-months ranges', () => {
     expect(
       resolveSpendingAverageRange({
-        averageRange: { mode: 'last-n-months', months: 6 },
+        averageRange: {mode: 'last-n-months', months: 6},
         compare: '2026-05',
       }),
     ).toEqual({
       startMonth: '2025-11',
       endMonth: '2026-04',
-      months: [
-        '2025-11',
-        '2025-12',
-        '2026-01',
-        '2026-02',
-        '2026-03',
-        '2026-04',
-      ],
+      months: ['2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04'],
     });
   });
 
   it('uses elapsed months in the compare year for year-to-date ranges', () => {
     expect(
       resolveSpendingAverageRange({
-        averageRange: { mode: 'year-to-date' },
+        averageRange: {mode: 'year-to-date'},
         compare: '2026-05',
       }),
     ).toEqual({
@@ -97,7 +89,7 @@ describe('resolveSpendingAverageRange', () => {
   it('returns an empty range for year-to-date January comparisons', () => {
     expect(
       resolveSpendingAverageRange({
-        averageRange: { mode: 'year-to-date' },
+        averageRange: {mode: 'year-to-date'},
         compare: '2026-01',
       }),
     ).toEqual({
@@ -110,7 +102,7 @@ describe('resolveSpendingAverageRange', () => {
   it('uses all complete months before compare for all-time ranges', () => {
     expect(
       resolveSpendingAverageRange({
-        averageRange: { mode: 'all-time' },
+        averageRange: {mode: 'all-time'},
         compare: '2026-05',
         earliestMonth: '2024-02',
       }),
@@ -152,7 +144,7 @@ describe('resolveSpendingAverageRange', () => {
   it('returns an empty all-time range when there are no complete months before compare', () => {
     expect(
       resolveSpendingAverageRange({
-        averageRange: { mode: 'all-time' },
+        averageRange: {mode: 'all-time'},
         compare: '2026-05',
         earliestMonth: '2026-05',
       }),
@@ -168,7 +160,7 @@ describe('getSpendingAverageSummaryLabel', () => {
   it('describes current-month average MTD by selected range', () => {
     expect(
       getSpendingAverageSummaryLabel({
-        averageRange: { mode: 'all-time' },
+        averageRange: {mode: 'all-time'},
         isCurrentMonth: true,
         t,
       }),
@@ -178,7 +170,7 @@ describe('getSpendingAverageSummaryLabel', () => {
   it('describes completed-month averages by selected range', () => {
     expect(
       getSpendingAverageSummaryLabel({
-        averageRange: { mode: 'last-n-months', months: 12 },
+        averageRange: {mode: 'last-n-months', months: 12},
         isCurrentMonth: false,
         t,
       }),

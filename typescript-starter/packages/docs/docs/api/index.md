@@ -182,9 +182,7 @@ async function run() {
     let acctId = await api.createAccount(convertAccount(account));
     await api.addTransactions(
       acctId,
-      data.transactions
-        .filter(t => t.acctId === acctId)
-        .map(convertTransaction),
+      data.transactions.filter(t => t.acctId === acctId).map(convertTransaction),
     );
   }
 }

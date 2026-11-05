@@ -19,11 +19,11 @@ import type {
   CategoryEntity,
   CategoryGroupEntity,
 } from '@actual-app/core/types/models';
-import { describe, expect, it, vi } from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 
-import { showActivity } from './showActivity';
+import {showActivity} from './showActivity';
 
-const categories: { grouped: CategoryGroupEntity[]; list: CategoryEntity[] } = {
+const categories: {grouped: CategoryGroupEntity[]; list: CategoryEntity[]} = {
   grouped: [],
   list: [],
 };
@@ -38,7 +38,7 @@ describe('showActivity', () => {
       categories,
       accounts,
       balanceTypeOp: 'totalAssets',
-      filters: [{ field: 'account', op: 'is', value: 'acct-1', type: 'id' }],
+      filters: [{field: 'account', op: 'is', value: 'acct-1', type: 'id'}],
       showHiddenCategories: true,
       showOffBudget: true,
       type: 'totals',
@@ -118,7 +118,7 @@ describe('showActivity', () => {
     const [, options] = navigate.mock.calls[0];
 
     expect(
-      options.state.filterConditions.filter((f: { field: string }) =>
+      options.state.filterConditions.filter((f: {field: string}) =>
         ['category', 'category_group'].includes(f.field),
       ),
     ).toHaveLength(0);

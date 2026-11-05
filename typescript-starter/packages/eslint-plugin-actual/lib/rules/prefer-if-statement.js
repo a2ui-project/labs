@@ -18,16 +18,14 @@
 // Rule Definition
 //------------------------------------------------------------------------------
 
-const suggestion =
-  'Consider using an if statement or optional chaining instead.';
+const suggestion = 'Consider using an if statement or optional chaining instead.';
 
 /** @type {import('eslint').Rule.RuleModule} */
 module.exports = {
   meta: {
     type: 'suggestion',
     docs: {
-      description:
-        'Detects usage of logical or ternary expressions at the statement level',
+      description: 'Detects usage of logical or ternary expressions at the statement level',
     },
     fixable: 'code',
     schema: [],
@@ -52,15 +50,9 @@ module.exports = {
       if (node.right.type !== 'CallExpression') return null;
 
       // foo.bar && foo.bar(...)
-      if (
-        context.sourceCode.getText(node.left) ===
-        context.sourceCode.getText(node.right.callee)
-      ) {
+      if (context.sourceCode.getText(node.left) === context.sourceCode.getText(node.right.callee)) {
         return fixer =>
-          fixer.replaceTextRange(
-            [node.left.range[1], node.right.callee.range[1]],
-            '?.',
-          );
+          fixer.replaceTextRange([node.left.range[1], node.right.callee.range[1]], '?.');
       }
 
       // foo.bar && foo.bar.baz(...)
@@ -70,10 +62,7 @@ module.exports = {
           context.sourceCode.getText(node.right.callee.object)
       ) {
         return fixer =>
-          fixer.replaceTextRange(
-            [node.left.range[1], node.right.callee.object.range[1]],
-            '?',
-          );
+          fixer.replaceTextRange([node.left.range[1], node.right.callee.object.range[1]], '?');
       }
 
       return null;
@@ -89,11 +78,11 @@ module.exports = {
           context.report({
             node,
             messageId: 'logical',
-            data: { op: node.expression.operator },
+            data: {op: node.expression.operator},
             fix: makeFixer(node.expression),
           });
         } else if (node.expression.type === 'ConditionalExpression') {
-          context.report({ node, messageId: 'ternary' });
+          context.report({node, messageId: 'ternary'});
         }
       },
     };

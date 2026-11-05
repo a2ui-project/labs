@@ -19,21 +19,21 @@ import type {
   CategoryGroupEntity,
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { filterCategoriesByConditions } from './budgetDataQuery';
+import {filterCategoriesByConditions} from './budgetDataQuery';
 
 const categoryGroups = [
-  { id: 'group-bills', name: 'Bills' },
-  { id: 'group-fun', name: 'Fun Money' },
-  { id: 'group-savings', name: 'Savings' },
+  {id: 'group-bills', name: 'Bills'},
+  {id: 'group-fun', name: 'Fun Money'},
+  {id: 'group-savings', name: 'Savings'},
 ] as CategoryGroupEntity[];
 
 const categories = [
-  { id: 'cat-rent', name: 'Rent', group: 'group-bills' },
-  { id: 'cat-electric', name: 'Electric', group: 'group-bills' },
-  { id: 'cat-dining', name: 'Dining Out', group: 'group-fun' },
-  { id: 'cat-emergency', name: 'Emergency Fund', group: 'group-savings' },
+  {id: 'cat-rent', name: 'Rent', group: 'group-bills'},
+  {id: 'cat-electric', name: 'Electric', group: 'group-bills'},
+  {id: 'cat-dining', name: 'Dining Out', group: 'group-fun'},
+  {id: 'cat-emergency', name: 'Emergency Fund', group: 'group-savings'},
 ] as CategoryEntity[];
 
 describe('filterCategoriesByConditions', () => {
@@ -51,10 +51,7 @@ describe('filterCategoriesByConditions', () => {
       'and',
     );
 
-    expect(result.map(category => category.id)).toEqual([
-      'cat-rent',
-      'cat-electric',
-    ]);
+    expect(result.map(category => category.id)).toEqual(['cat-rent', 'cat-electric']);
   });
 
   it('supports selecting one of multiple category groups', () => {
@@ -71,10 +68,7 @@ describe('filterCategoriesByConditions', () => {
       'and',
     );
 
-    expect(result.map(category => category.id)).toEqual([
-      'cat-dining',
-      'cat-emergency',
-    ]);
+    expect(result.map(category => category.id)).toEqual(['cat-dining', 'cat-emergency']);
   });
 
   it('combines category and category group filters with and', () => {

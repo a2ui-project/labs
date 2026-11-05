@@ -16,9 +16,9 @@
 
 import React from 'react';
 
-import { theme } from '@actual-app/components/theme';
+import {theme} from '@actual-app/components/theme';
 
-import { LoadComponent } from './util/LoadComponent';
+import {LoadComponent} from './util/LoadComponent';
 
 export function Background() {
   return (
@@ -56,17 +56,10 @@ export function Background() {
             gradientUnits="userSpaceOnUse"
           >
             <stop stopColor={theme.pageBackgroundTopLeft} />
-            <stop
-              offset="1"
-              stopColor={theme.pageBackgroundBottomRight}
-              stopOpacity="0.5"
-            />
+            <stop offset="1" stopColor={theme.pageBackgroundBottomRight} stopOpacity="0.5" />
           </linearGradient>
         </defs>
-        <LoadComponent
-          importer={() => import('./BackgroundImage')}
-          name="BackgroundImage"
-        />
+        <LoadComponent importer={() => import('./BackgroundImage')} name="BackgroundImage" />
       </svg>
     </div>
   );

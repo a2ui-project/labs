@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { afterEach, describe, expect, it } from 'vitest';
+import {afterEach, describe, expect, it} from 'vitest';
 
 import {
   __resetFormulaBadgeParserForTests,
@@ -75,11 +75,7 @@ describe('getFormulaBadgeRanges', () => {
     const formula = '=IF(account_name=payee_name, account_name, payee_name)';
     const firstAccountName = rangeFor(formula, 'account_name');
     const payeeName = rangeFor(formula, 'payee_name');
-    const secondAccountName = rangeFor(
-      formula,
-      'account_name',
-      firstAccountName.to,
-    );
+    const secondAccountName = rangeFor(formula, 'account_name', firstAccountName.to);
     const secondPayeeName = rangeFor(formula, 'payee_name', payeeName.to);
 
     expect(
@@ -161,11 +157,7 @@ describe('getFormulaBadgeRanges', () => {
         variant: 'query-name',
       },
       {
-        ...rangeFor(
-          formula,
-          '"Groceries"',
-          formula.indexOf('QUERY_EXTRACT_CATEGORIES'),
-        ),
+        ...rangeFor(formula, '"Groceries"', formula.indexOf('QUERY_EXTRACT_CATEGORIES')),
         label: 'Groceries',
         variant: 'query-name',
       },
@@ -173,8 +165,7 @@ describe('getFormulaBadgeRanges', () => {
   });
 
   it('badges direct budget query dimensions, category arrays, and timeframes', () => {
-    const formula =
-      '=BUDGET_QUERY("spent", {"cat-a"; "cat-b"}, "2026-01", "2026-03")';
+    const formula = '=BUDGET_QUERY("spent", {"cat-a"; "cat-b"}, "2026-01", "2026-03")';
 
     expect(
       getFormulaBadgeRanges({
@@ -195,13 +186,13 @@ describe('getFormulaBadgeRanges', () => {
         ...rangeFor(formula, '"cat-a"'),
         label: 'Food -> Groceries',
         variant: 'budget-category-list',
-        categories: [{ id: 'cat-a', label: 'Food -> Groceries' }],
+        categories: [{id: 'cat-a', label: 'Food -> Groceries'}],
       },
       {
         ...rangeFor(formula, '"cat-b"'),
         label: 'Bills -> Rent',
         variant: 'budget-category-list',
-        categories: [{ id: 'cat-b', label: 'Bills -> Rent' }],
+        categories: [{id: 'cat-b', label: 'Bills -> Rent'}],
       },
       {
         ...rangeFor(formula, '"2026-01"'),
@@ -269,8 +260,8 @@ describe('getFormulaBadgeRanges', () => {
         label: 'Food -> Groceries, Bills -> Rent',
         variant: 'budget-category-list',
         categories: [
-          { id: firstCategoryId, label: 'Food -> Groceries' },
-          { id: secondCategoryId, label: 'Bills -> Rent' },
+          {id: firstCategoryId, label: 'Food -> Groceries'},
+          {id: secondCategoryId, label: 'Bills -> Rent'},
         ],
       },
     ]);
@@ -296,8 +287,8 @@ describe('getFormulaBadgeRanges', () => {
         label: 'Food -> Groceries, Bills -> Rent',
         variant: 'budget-category-list',
         categories: [
-          { id: firstCategoryId, label: 'Food -> Groceries' },
-          { id: secondCategoryId, label: 'Bills -> Rent' },
+          {id: firstCategoryId, label: 'Food -> Groceries'},
+          {id: secondCategoryId, label: 'Bills -> Rent'},
         ],
       },
     ]);
@@ -311,14 +302,14 @@ describe('getFormulaBadgeRanges', () => {
     const result = getFormulaBadgeRangeResult({
       formula: validFormula,
       mode: 'query',
-      queries: { abc: {} },
-      categoryBadges: { 'cat-a': 'Food -> Groceries' },
+      queries: {abc: {}},
+      categoryBadges: {'cat-a': 'Food -> Groceries'},
     });
     const invalidResult = getFormulaBadgeRangeResult({
       formula: invalidFormula,
       mode: 'query',
-      queries: { abc: {} },
-      categoryBadges: { 'cat-a': 'Food -> Groceries' },
+      queries: {abc: {}},
+      categoryBadges: {'cat-a': 'Food -> Groceries'},
     });
 
     expect(result.status).toBe('ok');
@@ -341,7 +332,7 @@ describe('getFormulaBadgeRanges', () => {
         ...rangeFor(invalidFormula, '"cat-a"'),
         label: 'Food -> Groceries',
         variant: 'budget-category-list',
-        categories: [{ id: 'cat-a', label: 'Food -> Groceries' }],
+        categories: [{id: 'cat-a', label: 'Food -> Groceries'}],
       },
       {
         ...rangeFor(invalidFormula, '"2026-01"'),
@@ -405,11 +396,7 @@ describe('getFormulaBadgeRanges', () => {
         variant: 'named-expression',
       },
       {
-        ...rangeFor(
-          formula,
-          'account',
-          formula.indexOf('account_name') + 'account_name'.length,
-        ),
+        ...rangeFor(formula, 'account', formula.indexOf('account_name') + 'account_name'.length),
         label: 'account',
         variant: 'named-expression',
       },

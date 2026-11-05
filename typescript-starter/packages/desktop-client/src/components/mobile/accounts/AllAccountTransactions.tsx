@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useTranslation} from 'react-i18next';
+import {useLocation} from 'react-router';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { Query } from '@actual-app/core/shared/query';
-import { isPreviewId } from '@actual-app/core/shared/transactions';
-import type {
-  RuleConditionEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {Query} from '@actual-app/core/shared/query';
+import {isPreviewId} from '@actual-app/core/shared/transactions';
+import type {RuleConditionEntity, TransactionEntity} from '@actual-app/core/types/models';
 
-import { TransactionListWithBalances } from '#components/mobile/transactions/TransactionListWithBalances';
-import { SchedulesProvider } from '#hooks/useCachedSchedules';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { usePreviewTransactions } from '#hooks/usePreviewTransactions';
-import { getSchedulesQuery } from '#hooks/useSchedules';
-import { useTransactions } from '#hooks/useTransactions';
-import { useTransactionsSearch } from '#hooks/useTransactionsSearch';
-import { collapseModals, pushModal } from '#modals/modalsSlice';
+import {TransactionListWithBalances} from '#components/mobile/transactions/TransactionListWithBalances';
+import {SchedulesProvider} from '#hooks/useCachedSchedules';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {usePreviewTransactions} from '#hooks/usePreviewTransactions';
+import {getSchedulesQuery} from '#hooks/useSchedules';
+import {useTransactions} from '#hooks/useTransactions';
+import {useTransactionsSearch} from '#hooks/useTransactionsSearch';
+import {collapseModals, pushModal} from '#modals/modalsSlice';
 import * as queries from '#queries';
-import { useDispatch } from '#redux';
+import {useDispatch} from '#redux';
 import * as bindings from '#spreadsheet/bindings';
 
 export function AllAccountTransactions() {
@@ -50,34 +47,29 @@ export function AllAccountTransactions() {
 }
 
 function TransactionListWithPreviews() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const location = useLocation();
   // Filter conditions passed by drill-downs (e.g. report activity)
   const filterConditions = location?.state?.filterConditions || [];
   const isFiltered = filterConditions.length > 0;
 
   const makeRootTransactionsQuery = useCallback(
-    () => queries.transactions().options({ splits: 'all' }).select('*'),
+    () => queries.transactions().options({splits: 'all'}).select('*'),
     [],
   );
 
   const [currentQuery, setCurrentQuery] = useState<Query | undefined>(() =>
     isFiltered ? undefined : makeRootTransactionsQuery(),
   );
-  const [transactionsQuery, setTransactionsQuery] = useState<Query | undefined>(
-    currentQuery,
-  );
+  const [transactionsQuery, setTransactionsQuery] = useState<Query | undefined>(currentQuery);
 
   useEffect(() => {
     let isStale = false;
 
     const applyFilters = async (conditions: RuleConditionEntity[]) => {
-      const { filters: queryFilters } = await send(
-        'make-filters-from-conditions',
-        { conditions },
-      );
+      const {filters: queryFilters} = await send('make-filters-from-conditions', {conditions});
       const rootQuery = makeRootTransactionsQuery();
-      const query = rootQuery.filter({ $and: queryFilters });
+      const query = rootQuery.filter({$and: queryFilters});
       if (!isStale) {
         setCurrentQuery(query);
         setTransactionsQuery(query);
@@ -102,16 +94,14 @@ function TransactionListWithPreviews() {
   } = useTransactions({
     query: transactionsQuery,
   });
-  const { previewTransactions, isLoading: isPreviewTransactionsLoading } =
-    usePreviewTransactions();
+  const {previewTransactions, isLoading: isPreviewTransactionsLoading} = usePreviewTransactions();
 
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { isSearching, search: onSearch } = useTransactionsSearch({
-    updateQuery: updateFn =>
-      setTransactionsQuery(query => (query ? updateFn(query) : query)),
+  const {isSearching, search: onSearch} = useTransactionsSearch({
+    updateQuery: updateFn => setTransactionsQuery(query => (query ? updateFn(query) : query)),
     resetQuery: () => setTransactionsQuery(currentQuery),
     dateFormat,
   });
@@ -141,7 +131,7 @@ function TransactionListWithPreviews() {
                 },
                 onSkip: async transactionId => {
                   const parts = transactionId.split('/');
-                  await send('schedule/skip-next-date', { id: parts[1] });
+                  await send('schedule/skip-next-date', {id: parts[1]});
                   dispatch(
                     collapseModals({
                       rootModalName: 'scheduled-transaction-menu',
@@ -151,7 +141,7 @@ function TransactionListWithPreviews() {
                 onComplete: async transactionId => {
                   const parts = transactionId.split('/');
                   await send('schedule/update', {
-                    schedule: { id: parts[1], completed: true },
+                    schedule: {id: parts[1], completed: true},
                   });
                   dispatch(
                     collapseModals({
@@ -183,11 +173,7 @@ function TransactionListWithPreviews() {
 
   return (
     <TransactionListWithBalances
-      isLoading={
-        isSearching || isFiltered
-          ? isTransactionsLoading
-          : isPreviewTransactionsLoading
-      }
+      isLoading={isSearching || isFiltered ? isTransactionsLoading : isPreviewTransactionsLoading}
       transactions={transactionsToDisplay}
       balance={balanceBindings.balance}
       isLoadingMore={isLoadingMoreTransactions}

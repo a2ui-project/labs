@@ -15,17 +15,15 @@
  */
 
 import React from 'react';
-import type { ComponentType, SVGProps } from 'react';
+import type {ComponentType, SVGProps} from 'react';
 
-import { View } from '@actual-app/components/view';
+import {View} from '@actual-app/components/view';
 
-import { SecondaryItem } from './SecondaryItem';
+import {SecondaryItem} from './SecondaryItem';
 
 type SecondaryButtonItems = {
   title: string;
-  Icon:
-    | ComponentType<SVGProps<SVGElement>>
-    | ComponentType<SVGProps<SVGSVGElement>>;
+  Icon: ComponentType<SVGProps<SVGElement>> | ComponentType<SVGProps<SVGSVGElement>>;
   onClick: () => void;
   dataTestId?: string;
 };
@@ -34,7 +32,7 @@ type SecondaryButtonsProps = {
   buttons: Array<SecondaryButtonItems>;
 };
 
-export function SecondaryButtons({ buttons }: SecondaryButtonsProps) {
+export function SecondaryButtons({buttons}: SecondaryButtonsProps) {
   return (
     <View
       style={{

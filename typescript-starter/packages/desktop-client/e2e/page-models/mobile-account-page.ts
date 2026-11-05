@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { MobileTransactionEntryPage } from './mobile-transaction-entry-page';
+import {MobileTransactionEntryPage} from './mobile-transaction-entry-page';
 
 export class MobileAccountPage {
   readonly page: Page;
@@ -46,10 +46,8 @@ export class MobileAccountPage {
     });
     this.accountMenuButton = this.heading.getByRole('button');
     this.reconcilingBanner = page.getByTestId('reconciling-banner');
-    this.reconcilingBannerAllReconciled =
-      this.reconcilingBanner.getByText('All reconciled!');
-    this.reconcilingBannerDifference =
-      this.reconcilingBanner.getByText('needs');
+    this.reconcilingBannerAllReconciled = this.reconcilingBanner.getByText('All reconciled!');
+    this.reconcilingBannerDifference = this.reconcilingBanner.getByText('needs');
   }
 
   async waitFor(...options: Parameters<Locator['waitFor']>) {
@@ -93,7 +91,7 @@ export class MobileAccountPage {
     await this.accountMenuButton.click();
     await this.page
       .getByTestId('account-menu-modal')
-      .getByRole('button', { name: 'Reconcile' })
+      .getByRole('button', {name: 'Reconcile'})
       .click();
     const reconcileModal = this.page.getByTestId('account-reconcile-modal');
     const amountInput = reconcileModal.getByTestId('amount-input');
@@ -101,7 +99,7 @@ export class MobileAccountPage {
     if (amount != null) {
       await amountInput.fill(amount);
     }
-    await reconcileModal.getByRole('button', { name: 'Reconcile' }).click();
+    await reconcileModal.getByRole('button', {name: 'Reconcile'}).click();
     await this.reconcilingBanner.waitFor();
   }
 
@@ -109,35 +107,27 @@ export class MobileAccountPage {
    * Create a reconciliation balance adjustment transaction
    */
   async createReconciliationTransaction() {
-    await this.page
-      .getByRole('button', { name: 'Create reconciliation transaction' })
-      .click();
+    await this.page.getByRole('button', {name: 'Create reconciliation transaction'}).click();
   }
 
   /**
    * Lock all cleared transactions as reconciled
    */
   async lockTransactions() {
-    await this.page.getByRole('button', { name: 'Lock transactions' }).click();
+    await this.page.getByRole('button', {name: 'Lock transactions'}).click();
   }
 
   /**
    * Unclear the first cleared transaction in the list
    */
   async unclearFirstTransaction() {
-    await this.page
-      .getByRole('button', { name: 'Unclear transaction' })
-      .first()
-      .click();
+    await this.page.getByRole('button', {name: 'Unclear transaction'}).first().click();
   }
 
   /**
    * Clear the first uncleared transaction in the list
    */
   async clearFirstTransaction() {
-    await this.page
-      .getByRole('button', { name: 'Clear transaction' })
-      .first()
-      .click();
+    await this.page.getByRole('button', {name: 'Clear transaction'}).first().click();
   }
 }

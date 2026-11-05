@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import React, { useLayoutEffect, useRef } from 'react';
-import type { RefObject, UIEventHandler } from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
+import type {RefObject, UIEventHandler} from 'react';
 
-import { Block } from '@actual-app/components/block';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { View } from '@actual-app/components/view';
+import {Block} from '@actual-app/components/block';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {View} from '@actual-app/components/view';
 import type {
   balanceTypeOpType,
   DataEntity,
@@ -27,10 +27,10 @@ import type {
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
 
-import { ReportTableHeader } from './ReportTableHeader';
-import { ReportTableList } from './ReportTableList';
-import { ReportTableRow } from './ReportTableRow';
-import { ReportTableTotals } from './ReportTableTotals';
+import {ReportTableHeader} from './ReportTableHeader';
+import {ReportTableList} from './ReportTableList';
+import {ReportTableRow} from './ReportTableRow';
+import {ReportTableTotals} from './ReportTableTotals';
 
 type ReportTableProps = {
   saveScrollWidth: (value: number) => void;
@@ -93,7 +93,7 @@ export function ReportTable({
     }
   });
 
-  const renderRow = ({ item, mode, style }: renderRowProps) => {
+  const renderRow = ({item, mode, style}: renderRowProps) => {
     return (
       <ReportTableRow
         item={item}
@@ -165,7 +165,7 @@ export function ReportTable({
           flex: 1,
           flexDirection: 'row',
           outline: 'none',
-          '& .animated .animated-row': { transition: '.25s transform' },
+          '& .animated .animated-row': {transition: '.25s transform'},
         }}
         tabIndex={0}
       >
@@ -176,10 +176,10 @@ export function ReportTable({
           style={{
             overflowY: 'auto',
             scrollbarWidth: 'none',
-            '::-webkit-scrollbar': { display: 'none' },
+            '::-webkit-scrollbar': {display: 'none'},
             flex: 1,
             outline: 'none',
-            '& .animated .animated-row': { transition: '.25s transform' },
+            '& .animated .animated-row': {transition: '.25s transform'},
           }}
         >
           <ReportTableList

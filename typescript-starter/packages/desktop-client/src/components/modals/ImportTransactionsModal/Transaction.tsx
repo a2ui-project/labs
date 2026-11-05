@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-import React, { useMemo } from 'react';
-import type { ComponentProps } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useMemo} from 'react';
+import type {ComponentProps} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { SvgDownAndRightArrow } from '@actual-app/components/icons/v2';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { amountToCurrency } from '@actual-app/core/shared/util';
-import type { CategoryEntity } from '@actual-app/core/types/models';
+import {SvgDownAndRightArrow} from '@actual-app/components/icons/v2';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {amountToCurrency} from '@actual-app/core/shared/util';
+import type {CategoryEntity} from '@actual-app/core/types/models';
 
-import { Checkbox } from '#components/forms';
-import { Field, Row } from '#components/table';
+import {Checkbox} from '#components/forms';
+import {Field, Row} from '#components/table';
 
-import { ParsedDate } from './ParsedDate';
-import { applyFieldMappings, formatDate, parseAmountFields } from './utils';
-import type { FieldMapping, ImportTransaction } from './utils';
+import {ParsedDate} from './ParsedDate';
+import {applyFieldMappings, formatDate, parseAmountFields} from './utils';
+import type {FieldMapping, ImportTransaction} from './utils';
 
 type TransactionProps = {
   transaction: ImportTransaction;
@@ -67,7 +67,7 @@ export function Transaction({
   reconcile,
   index,
 }: TransactionProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const categoryList = categories.map(category => category.name);
   const transaction = useMemo(
@@ -78,7 +78,7 @@ export function Transaction({
     [rawTransaction, fieldMappings],
   );
 
-  const { amount, outflow, inflow } = useMemo(() => {
+  const {amount, outflow, inflow} = useMemo(() => {
     if (rawTransaction.isMatchedTransaction) {
       const amount = rawTransaction.amount;
 
@@ -97,23 +97,13 @@ export function Transaction({
       flipAmount,
       multiplierAmount,
     );
-  }, [
-    rawTransaction,
-    transaction,
-    splitMode,
-    inOutMode,
-    outValue,
-    flipAmount,
-    multiplierAmount,
-  ]);
+  }, [rawTransaction, transaction, splitMode, inOutMode, outValue, flipAmount, multiplierAmount]);
 
   return (
     <Row
       style={{
         backgroundColor:
-          index % 2 === 0
-            ? theme.tableBackground
-            : theme.tableRowBackgroundAlternate,
+          index % 2 === 0 ? theme.tableBackground : theme.tableRowBackgroundAlternate,
         textDecoration: transaction.tombstone ? 'line-through' : 'none',
         color:
           (transaction.isMatchedTransaction && !transaction.selected_merge) ||
@@ -133,13 +123,9 @@ export function Transaction({
                   : !transaction.existing && !transaction.ignored
                     ? t('New transaction. You can import it, or skip it.')
                     : transaction.ignored
-                      ? t(
-                          'Already imported transaction. You can skip it, or import it again.',
-                        )
+                      ? t('Already imported transaction. You can skip it, or import it again.')
                       : transaction.existing
-                        ? t(
-                            'Updated transaction. You can update it, import it again, or skip it.',
-                          )
+                        ? t('Updated transaction. You can update it, import it again, or skip it.')
                         : ''
               }
               placement="right top"
@@ -169,8 +155,7 @@ export function Transaction({
                         }
                       : {
                           '&': {
-                            border:
-                              '1px solid ' + theme.buttonNormalDisabledBorder,
+                            border: '1px solid ' + theme.buttonNormalDisabledBorder,
                             backgroundColor: theme.buttonNormalDisabledBorder,
                             '::after': {
                               display: 'block',
@@ -206,7 +191,7 @@ export function Transaction({
       <Field width={200}>
         {transaction.isMatchedTransaction ? (
           <View>
-            <SpaceBetween style={{ alignItems: 'flex-start' }}>
+            <SpaceBetween style={{alignItems: 'flex-start'}}>
               <View>
                 <SvgDownAndRightArrow width={16} height={16} />
               </View>
@@ -223,10 +208,7 @@ export function Transaction({
           formatDate(transaction.date ?? null, dateFormat)
         )}
       </Field>
-      <Field
-        width="flex"
-        title={transaction.imported_payee || transaction.payee_name}
-      >
+      <Field width="flex" title={transaction.imported_payee || transaction.payee_name}>
         {transaction.payee_name}
       </Field>
       <Field width="flex" title={transaction.notes}>
@@ -247,12 +229,8 @@ export function Transaction({
       {inOutMode && (
         <Field
           width={90}
-          contentStyle={{ textAlign: 'left', ...styles.tnum }}
-          title={
-            transaction.inOut === undefined
-              ? undefined
-              : String(transaction.inOut)
-          }
+          contentStyle={{textAlign: 'left', ...styles.tnum}}
+          title={transaction.inOut === undefined ? undefined : String(transaction.inOut)}
         >
           {transaction.inOut}
         </Field>
@@ -264,14 +242,10 @@ export function Transaction({
             contentStyle={{
               textAlign: 'right',
               ...styles.tnum,
-              ...(inflow === null && outflow === null
-                ? { color: theme.errorText }
-                : {}),
+              ...(inflow === null && outflow === null ? {color: theme.errorText} : {}),
             }}
             title={
-              outflow === null
-                ? t('Invalid: unable to parse the value')
-                : amountToCurrency(outflow)
+              outflow === null ? t('Invalid: unable to parse the value') : amountToCurrency(outflow)
             }
           >
             {amountToCurrency(outflow || 0)}
@@ -281,14 +255,10 @@ export function Transaction({
             contentStyle={{
               textAlign: 'right',
               ...styles.tnum,
-              ...(inflow === null && outflow === null
-                ? { color: theme.errorText }
-                : {}),
+              ...(inflow === null && outflow === null ? {color: theme.errorText} : {}),
             }}
             title={
-              inflow === null
-                ? t('Invalid: unable to parse the value')
-                : amountToCurrency(inflow)
+              inflow === null ? t('Invalid: unable to parse the value') : amountToCurrency(inflow)
             }
           >
             {amountToCurrency(inflow || 0)}
@@ -300,7 +270,7 @@ export function Transaction({
           contentStyle={{
             textAlign: 'right',
             ...styles.tnum,
-            ...(amount === null ? { color: theme.errorText } : {}),
+            ...(amount === null ? {color: theme.errorText} : {}),
           }}
           title={
             amount === null

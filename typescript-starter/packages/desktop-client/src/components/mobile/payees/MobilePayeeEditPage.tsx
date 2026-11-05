@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import React, {useCallback, useEffect, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import type { PayeeEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {PayeeEntity} from '@actual-app/core/types/models';
 
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { InputField } from '#components/mobile/MobileForms';
-import { MobilePageHeader, Page } from '#components/Page';
-import { useNavigate } from '#hooks/useNavigate';
-import { usePayees } from '#hooks/usePayees';
-import { useUndo } from '#hooks/useUndo';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {InputField} from '#components/mobile/MobileForms';
+import {MobilePageHeader, Page} from '#components/Page';
+import {useNavigate} from '#hooks/useNavigate';
+import {usePayees} from '#hooks/usePayees';
+import {useUndo} from '#hooks/useUndo';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
 export function MobilePayeeEditPage() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
+  const {id} = useParams<{id: string}>();
   const dispatch = useDispatch();
-  const { showUndoNotification } = useUndo();
-  const { data: payees = [] } = usePayees();
+  const {showUndoNotification} = useUndo();
+  const {data: payees = []} = usePayees();
 
   const [payee, setPayee] = useState<PayeeEntity | null>(null);
   const [editedPayeeName, setEditedPayeeName] = useState('');
@@ -74,7 +74,7 @@ export function MobilePayeeEditPage() {
 
     try {
       await send('payees-batch-change', {
-        updated: [{ id: payee.id, name: editedPayeeName.trim() }],
+        updated: [{id: payee.id, name: editedPayeeName.trim()}],
       });
       showUndoNotification({
         message: t('Payee {{oldName}} renamed to {{newName}}', {
@@ -148,14 +148,14 @@ export function MobilePayeeEditPage() {
             variant="primary"
             onPress={handleSave}
             isDisabled={!editedPayeeName.trim()}
-            style={{ height: styles.mobileMinHeight }}
+            style={{height: styles.mobileMinHeight}}
           >
             <Trans>Save</Trans>
           </Button>
         </View>
       }
     >
-      <View style={{ paddingTop: 20 }}>
+      <View style={{paddingTop: 20}}>
         <InputField
           placeholder={t('Payee name')}
           value={editedPayeeName}

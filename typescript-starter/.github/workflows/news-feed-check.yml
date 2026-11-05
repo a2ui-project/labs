@@ -22,11 +22,11 @@ name: News feed check
 on:
   pull_request:
     paths:
-      - 'packages/docs/blog/**'
-      - 'packages/desktop-client/src/data/news.json'
-      - 'packages/ci-actions/src/news-feed/**'
-      - 'packages/ci-actions/bin/generate-news-feed.ts'
-      - '.github/workflows/news-feed-check.yml'
+      - "packages/docs/blog/**"
+      - "packages/desktop-client/src/data/news.json"
+      - "packages/ci-actions/src/news-feed/**"
+      - "packages/ci-actions/bin/generate-news-feed.ts"
+      - ".github/workflows/news-feed-check.yml"
 
 permissions:
   contents: read
@@ -43,7 +43,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
 
       - name: Regenerate news feed
         run: yarn generate:news-feed

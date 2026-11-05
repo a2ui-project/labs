@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { expect } from '@playwright/test';
-import type { Locator, Page } from '@playwright/test';
+import {expect} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { MobileAccountPage } from './mobile-account-page';
-import { BalanceMenuModal } from './mobile-balance-menu-modal';
-import { BudgetMenuModal } from './mobile-budget-menu-modal';
-import { CategoryGroupMenuModal } from './mobile-category-group-menu-modal';
-import { CategoryMenuModal } from './mobile-category-menu-modal';
-import { EnvelopeBudgetSummaryModal } from './mobile-envelope-budget-summary-modal';
-import { TrackingBudgetSummaryModal } from './mobile-tracking-budget-summary-modal';
+import {MobileAccountPage} from './mobile-account-page';
+import {BalanceMenuModal} from './mobile-balance-menu-modal';
+import {BudgetMenuModal} from './mobile-budget-menu-modal';
+import {CategoryGroupMenuModal} from './mobile-category-group-menu-modal';
+import {CategoryMenuModal} from './mobile-category-menu-modal';
+import {EnvelopeBudgetSummaryModal} from './mobile-envelope-budget-summary-modal';
+import {TrackingBudgetSummaryModal} from './mobile-tracking-budget-summary-modal';
 
 export class MobileBudgetPage {
   readonly MONTH_HEADER_DATE_FORMAT = "MMMM ''yy";
@@ -97,9 +97,7 @@ export class MobileBudgetPage {
 
     this.budgetTable = page.getByTestId('budget-table');
 
-    this.categoryRows = this.budgetTable
-      .getByTestId('budget-groups')
-      .getByTestId('category-row');
+    this.categoryRows = this.budgetTable.getByTestId('budget-groups').getByTestId('category-row');
 
     this.categoryNames = this.categoryRows.getByTestId('category-name');
 
@@ -107,9 +105,7 @@ export class MobileBudgetPage {
       .getByTestId('budget-groups')
       .getByTestId('category-group-row');
 
-    this.categoryGroupNames = this.categoryGroupRows.getByTestId(
-      'category-group-name',
-    );
+    this.categoryGroupNames = this.categoryGroupRows.getByTestId('category-group-name');
   }
 
   async determineBudgetType() {
@@ -124,9 +120,7 @@ export class MobileBudgetPage {
     await this.budgetTable.waitFor(...options);
   }
 
-  async toggleVisibleColumns({
-    maxAttempts = 3,
-  }: { maxAttempts?: number } = {}) {
+  async toggleVisibleColumns({maxAttempts = 3}: {maxAttempts?: number} = {}) {
     for (let i = 0; i < maxAttempts; i++) {
       if (await this.budgetedHeaderButton.isVisible()) {
         await this.budgetedHeaderButton.click();
@@ -143,9 +137,7 @@ export class MobileBudgetPage {
   }
 
   async getSelectedMonth() {
-    const selectedMonth = await this.heading
-      .locator('[data-month]')
-      .getAttribute('data-month');
+    const selectedMonth = await this.heading.locator('[data-month]').getAttribute('data-month');
 
     if (!selectedMonth) {
       throw new Error('Failed to get the selected month.');
@@ -174,8 +166,7 @@ export class MobileBudgetPage {
   }
 
   async openCategoryGroupMenu(categoryGroupName: string | RegExp) {
-    const categoryGroupButton =
-      await this.#getButtonForCategoryGroup(categoryGroupName);
+    const categoryGroupButton = await this.#getButtonForCategoryGroup(categoryGroupName);
     await categoryGroupButton.click();
 
     return new CategoryGroupMenuModal(
@@ -211,23 +202,20 @@ export class MobileBudgetPage {
     );
   }
 
-  async #getButtonForCell(
-    buttonType: 'Budgeted' | 'Spent',
-    categoryName: string,
-  ) {
+  async #getButtonForCell(buttonType: 'Budgeted' | 'Spent', categoryName: string) {
     const buttonSelector =
       buttonType === 'Budgeted'
         ? `Open budget menu for ${categoryName} category`
         : `Show transactions for ${categoryName} category`;
 
-    let button = this.budgetTable.getByRole('button', { name: buttonSelector });
+    let button = this.budgetTable.getByRole('button', {name: buttonSelector});
 
     if (await button.isVisible()) {
       return button;
     }
 
     await this.toggleVisibleColumns();
-    button = this.budgetTable.getByRole('button', { name: buttonSelector });
+    button = this.budgetTable.getByRole('button', {name: buttonSelector});
 
     if (await button.isVisible()) {
       return button;
@@ -277,9 +265,7 @@ export class MobileBudgetPage {
         }),
       );
     } else {
-      throw new Error(
-        `Balance button for category ${categoryName} not found or not visible.`,
-      );
+      throw new Error(`Balance button for category ${categoryName} not found or not visible.`);
     }
   }
 
@@ -290,10 +276,10 @@ export class MobileBudgetPage {
     currentMonth: string;
     errorMessage: string;
   }) {
-    await expect(
-      this.heading.locator('[data-month]'),
-      errorMessage,
-    ).not.toHaveAttribute('data-month', currentMonth);
+    await expect(this.heading.locator('[data-month]'), errorMessage).not.toHaveAttribute(
+      'data-month',
+      currentMonth,
+    );
 
     return this.getSelectedMonth();
   }
@@ -326,7 +312,7 @@ export class MobileBudgetPage {
 
   async #getButtonForEnvelopeBudgetSummary({
     throwIfNotFound = true,
-  }: { throwIfNotFound?: boolean } = {}) {
+  }: {throwIfNotFound?: boolean} = {}) {
     const button = this.toBudgetButton.or(this.overbudgetedButton).first();
     try {
       await button.waitFor();
@@ -353,7 +339,7 @@ export class MobileBudgetPage {
 
   async #getButtonForTrackingBudgetSummary({
     throwIfNotFound = true,
-  }: { throwIfNotFound?: boolean } = {}) {
+  }: {throwIfNotFound?: boolean} = {}) {
     const button = this.savedButton
       .or(this.projectedSavingsButton)
       .or(this.overspentButton)

@@ -14,45 +14,41 @@
  * limitations under the License.
  */
 
-import React, { Fragment, useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useParams, useSearchParams } from 'react-router';
+import React, {Fragment, useCallback} from 'react';
+import {useTranslation} from 'react-i18next';
+import {useParams, useSearchParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { styles } from '@actual-app/components/styles';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import type { AccountEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {styles} from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {AccountEntity} from '@actual-app/core/types/models';
 
-import { useReopenAccountMutation, useUpdateAccountMutation } from '#accounts';
-import { isAccountFailedSync } from '#accounts/syncStatus';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { AddTransactionButton } from '#components/mobile/transactions/AddTransactionButton';
-import { MobilePageHeader, Page } from '#components/Page';
-import { useAccount } from '#hooks/useAccount';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import {
-  collapseModals,
-  openAccountCloseModal,
-  pushModal,
-} from '#modals/modalsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {useReopenAccountMutation, useUpdateAccountMutation} from '#accounts';
+import {isAccountFailedSync} from '#accounts/syncStatus';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {AddTransactionButton} from '#components/mobile/transactions/AddTransactionButton';
+import {MobilePageHeader, Page} from '#components/Page';
+import {useAccount} from '#hooks/useAccount';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {collapseModals, openAccountCloseModal, pushModal} from '#modals/modalsSlice';
+import {useDispatch, useSelector} from '#redux';
 
-import { AccountTransactions } from './AccountTransactions';
-import { AllAccountTransactions } from './AllAccountTransactions';
-import { OffBudgetAccountTransactions } from './OffBudgetAccountTransactions';
-import { OnBudgetAccountTransactions } from './OnBudgetAccountTransactions';
+import {AccountTransactions} from './AccountTransactions';
+import {AllAccountTransactions} from './AllAccountTransactions';
+import {OffBudgetAccountTransactions} from './OffBudgetAccountTransactions';
+import {OnBudgetAccountTransactions} from './OnBudgetAccountTransactions';
 
 export function AccountPage() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [_numberFormat] = useSyncedPref('numberFormat');
   const numberFormat = _numberFormat || 'comma-dot';
   const [hideFraction] = useSyncedPref('hideFraction');
 
-  const { id: accountIdParam } = useParams();
+  const {id: accountIdParam} = useParams();
 
   const account = useAccount(accountIdParam || '');
 
@@ -107,24 +103,24 @@ export function AccountPage() {
   );
 }
 
-function AccountHeader({ account }: { readonly account: AccountEntity }) {
-  const { t } = useTranslation();
+function AccountHeader({account}: {readonly account: AccountEntity}) {
+  const {t} = useTranslation();
   const syncingAccountIds = useSelector(state => state.account.accountsSyncing);
   const pending = syncingAccountIds.includes(account.id);
   const failed = isAccountFailedSync(account);
 
   const dispatch = useDispatch();
-  const { mutate: updateAccount } = useUpdateAccountMutation();
+  const {mutate: updateAccount} = useUpdateAccountMutation();
 
   const onSave = useCallback(
     (account: AccountEntity) => {
-      updateAccount({ account });
+      updateAccount({account});
     },
     [updateAccount],
   );
 
   const onSaveNotes = useCallback(async (id: string, notes: string) => {
-    await send('notes-save', { id, note: notes });
+    await send('notes-save', {id, note: notes});
   }, []);
 
   const onEditNotes = useCallback(
@@ -146,13 +142,13 @@ function AccountHeader({ account }: { readonly account: AccountEntity }) {
   );
 
   const onCloseAccount = useCallback(() => {
-    void dispatch(openAccountCloseModal({ accountId: account.id }));
+    void dispatch(openAccountCloseModal({accountId: account.id}));
   }, [account.id, dispatch]);
 
-  const { mutate: reopenAccount } = useReopenAccountMutation();
+  const {mutate: reopenAccount} = useReopenAccountMutation();
 
   const onReopenAccount = useCallback(() => {
-    reopenAccount({ id: account.id });
+    reopenAccount({id: account.id});
   }, [account.id, reopenAccount]);
 
   const [, setSearchParams] = useSearchParams();
@@ -184,9 +180,7 @@ function AccountHeader({ account }: { readonly account: AccountEntity }) {
   const [showRunningBalances, setShowRunningBalances] = useSyncedPref(
     `show-balances-${account.id}`,
   );
-  const [hideReconciled, setHideReconciled] = useSyncedPref(
-    `hide-reconciled-${account.id}`,
-  );
+  const [hideReconciled, setHideReconciled] = useSyncedPref(`hide-reconciled-${account.id}`);
 
   const onToggleRunningBalance = useCallback(() => {
     setShowRunningBalances(showRunningBalances === 'true' ? 'false' : 'true');
@@ -270,7 +264,7 @@ function AccountHeader({ account }: { readonly account: AccountEntity }) {
           }}
         >
           {account.closed
-            ? t('Closed: {{accountName}}', { accountName: account.name })
+            ? t('Closed: {{accountName}}', {accountName: account.name})
             : account.name}
         </Text>
       </Button>
@@ -278,14 +272,14 @@ function AccountHeader({ account }: { readonly account: AccountEntity }) {
   );
 }
 
-function NameOnlyHeader({ name }: { readonly name: string }) {
+function NameOnlyHeader({name}: {readonly name: string}) {
   return (
     <View
       style={{
         flexDirection: 'row',
       }}
     >
-      <Text style={{ ...(styles.lineClamp(2) as CSSProperties) }}>{name}</Text>
+      <Text style={{...(styles.lineClamp(2) as CSSProperties)}}>{name}</Text>
     </View>
   );
 }

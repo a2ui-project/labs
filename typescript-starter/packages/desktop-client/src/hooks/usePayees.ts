@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 
-import { getPayeesById, payeeQueries } from '#payees';
+import {getPayeesById, payeeQueries} from '#payees';
 
 export function usePayees() {
   return useQuery(payeeQueries.list());

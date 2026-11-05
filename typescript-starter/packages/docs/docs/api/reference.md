@@ -360,7 +360,7 @@ await getTransactions(accountId, '2019-08-01', '2019-08-31');
 
 let categories = await getCategories();
 let foodCategory = category.find(cat => cat.name === 'Food');
-await updateTransaction(id, { category: foodCategory.id });
+await updateTransaction(id, {category: foodCategory.id});
 ```
 
 ## Accounts
@@ -479,9 +479,9 @@ Delete an account group. Any accounts in the group are left ungrouped.
 ```js
 // Group two accounts under "Savings"
 
-const groupId = await createAccountGroup({ name: 'Savings' });
-await updateAccount(allySavingsId, { account_group_id: groupId });
-await updateAccount(marcusSavingsId, { account_group_id: groupId });
+const groupId = await createAccountGroup({name: 'Savings'});
+await updateAccount(allySavingsId, {account_group_id: groupId});
+await updateAccount(marcusSavingsId, {account_group_id: groupId});
 ```
 
 ## Categories
@@ -686,7 +686,7 @@ let tags = await getTags();
 
 ```js
 // Update a tag's color
-await updateTag(id, { color: '#00ff00' });
+await updateTag(id, {color: '#00ff00'});
 ```
 
 ## Rules

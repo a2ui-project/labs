@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-import type { DateRangePreset } from '@actual-app/components/date-range-picker';
+import type {DateRangePreset} from '@actual-app/components/date-range-picker';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { TimeFrame } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import type {TimeFrame} from '@actual-app/core/types/models';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 
-import { getLiveRange } from './getLiveRange';
-import { clampMonthRangeToBounds } from './monthRange';
-import {
-  getFullFutureRange,
-  getFullRange,
-  getLatestRange,
-  getNextRange,
-} from './reportRanges';
+import {getLiveRange} from './getLiveRange';
+import {clampMonthRangeToBounds} from './monthRange';
+import {getFullFutureRange, getFullRange, getLatestRange, getNextRange} from './reportRanges';
 
 type PresetRange = readonly [string, string, TimeFrame['mode']];
 
@@ -95,33 +90,11 @@ export function buildDateRangePresets({
   if (showFutureRange) {
     return [
       ...(show1Month
-        ? [
-            makePreset(
-              'next-month',
-              t('Next month'),
-              () => getNextRange(0),
-              onSelectRange,
-            ),
-          ]
+        ? [makePreset('next-month', t('Next month'), () => getNextRange(0), onSelectRange)]
         : []),
-      makePreset(
-        'next-3-months',
-        t('Next 3 months'),
-        () => getNextRange(2),
-        onSelectRange,
-      ),
-      makePreset(
-        'next-6-months',
-        t('Next 6 months'),
-        () => getNextRange(5),
-        onSelectRange,
-      ),
-      makePreset(
-        'next-year',
-        t('Next year'),
-        () => getNextRange(11),
-        onSelectRange,
-      ),
+      makePreset('next-3-months', t('Next 3 months'), () => getNextRange(2), onSelectRange),
+      makePreset('next-6-months', t('Next 6 months'), () => getNextRange(5), onSelectRange),
+      makePreset('next-year', t('Next year'), () => getNextRange(11), onSelectRange),
       makePreset(
         'all-future',
         t('All future'),
@@ -133,27 +106,10 @@ export function buildDateRangePresets({
 
   return [
     ...(show1Month
-      ? [
-          makePreset(
-            '1-month',
-            t('1 month'),
-            () => getLatestRange(0),
-            onSelectRange,
-          ),
-        ]
+      ? [makePreset('1-month', t('1 month'), () => getLatestRange(0), onSelectRange)]
       : []),
-    makePreset(
-      '3-months',
-      t('3 months'),
-      () => getLatestRange(2),
-      onSelectRange,
-    ),
-    makePreset(
-      '6-months',
-      t('6 months'),
-      () => getLatestRange(5),
-      onSelectRange,
-    ),
+    makePreset('3-months', t('3 months'), () => getLatestRange(2), onSelectRange),
+    makePreset('6-months', t('6 months'), () => getLatestRange(5), onSelectRange),
     makePreset('1-year', t('1 year'), () => getLatestRange(11), onSelectRange),
     makePreset(
       'year-to-date',

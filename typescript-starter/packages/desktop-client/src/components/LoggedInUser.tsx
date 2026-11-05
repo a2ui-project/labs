@@ -14,41 +14,41 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useLocation} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { listen } from '@actual-app/core/platform/client/connection';
-import type { RemoteFile, SyncedLocalFile } from '@actual-app/core/types/file';
-import type { TransObjectLiteral } from '@actual-app/core/types/util';
+import {Button} from '@actual-app/components/button';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {listen} from '@actual-app/core/platform/client/connection';
+import type {RemoteFile, SyncedLocalFile} from '@actual-app/core/types/file';
+import type {TransObjectLiteral} from '@actual-app/core/types/util';
 
-import { useAuth } from '#auth/AuthProvider';
-import { Permissions } from '#auth/types';
-import { closeBudget } from '#budgetfiles/budgetfilesSlice';
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { useNavigate } from '#hooks/useNavigate';
-import { useDispatch, useSelector } from '#redux';
-import { getUserData, signOut } from '#users/usersSlice';
+import {useAuth} from '#auth/AuthProvider';
+import {Permissions} from '#auth/types';
+import {closeBudget} from '#budgetfiles/budgetfilesSlice';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {useNavigate} from '#hooks/useNavigate';
+import {useDispatch, useSelector} from '#redux';
+import {getUserData, signOut} from '#users/usersSlice';
 
-import { PrivacyFilter } from './PrivacyFilter';
-import { useMultiuserEnabled, useServerURL } from './ServerContext';
+import {PrivacyFilter} from './PrivacyFilter';
+import {useMultiuserEnabled, useServerURL} from './ServerContext';
 
 type LoggedInUserProps = {
   hideIfNoServer?: boolean;
   style?: CSSProperties;
 };
 
-export function LoggedInUser({ hideIfNoServer, style }: LoggedInUserProps) {
-  const { t } = useTranslation();
+export function LoggedInUser({hideIfNoServer, style}: LoggedInUserProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const userData = useSelector(state => state.user.data);
@@ -59,7 +59,7 @@ export function LoggedInUser({ hideIfNoServer, style }: LoggedInUserProps) {
   const [budgetId] = useMetadataPref('id');
   const [cloudFileId] = useMetadataPref('cloudFileId');
   const location = useLocation();
-  const { hasPermission } = useAuth();
+  const {hasPermission} = useAuth();
   const multiuserEnabled = useMultiuserEnabled();
   const allFiles = useSelector(state => state.budgetfiles.allFiles || []);
   const remoteFiles = allFiles.filter(
@@ -83,7 +83,7 @@ export function LoggedInUser({ hideIfNoServer, style }: LoggedInUserProps) {
   }, [initializeUserData]);
 
   useEffect(() => {
-    return listen('sync-event', ({ type }) => {
+    return listen('sync-event', ({type}) => {
       if (type === 'start') {
         setLoading(true);
 
@@ -92,8 +92,7 @@ export function LoggedInUser({ hideIfNoServer, style }: LoggedInUserProps) {
 
       const shouldReinitialize =
         userData &&
-        ((type === 'success' && userData.offline) ||
-          (type === 'error' && !userData.offline));
+        ((type === 'success' && userData.offline) || (type === 'error' && !userData.offline));
 
       if (shouldReinitialize) {
         void initializeUserData();
@@ -150,8 +149,7 @@ export function LoggedInUser({ hideIfNoServer, style }: LoggedInUserProps) {
         message: t('No server'),
         tooltip: (
           <Trans>
-            A server syncs your budget across devices and keeps a backup of your
-            data.
+            A server syncs your budget across devices and keeps a backup of your data.
             <br />
             Click to set one up.
           </Trans>
@@ -174,9 +172,7 @@ export function LoggedInUser({ hideIfNoServer, style }: LoggedInUserProps) {
 
     return {
       message: t('Server online'),
-      tooltip: (
-        <Trans>Connected to your server — your budget is syncing.</Trans>
-      ),
+      tooltip: <Trans>Connected to your server — your budget is syncing.</Trans>,
     };
   }
 
@@ -206,15 +202,11 @@ export function LoggedInUser({ hideIfNoServer, style }: LoggedInUserProps) {
     const isAdmin = hasPermission(Permissions.ADMINISTRATOR);
 
     const baseMenu: (MenuItem | typeof Menu.line)[] = [];
-    if (
-      serverUrl &&
-      !userData?.offline &&
-      userData?.loginMethod === 'password'
-    ) {
-      baseMenu.push({ name: 'change-password', text: t('Change password') });
+    if (serverUrl && !userData?.offline && userData?.loginMethod === 'password') {
+      baseMenu.push({name: 'change-password', text: t('Change password')});
     }
     if (serverUrl) {
-      baseMenu.push({ name: 'sign-out', text: t('Sign out') });
+      baseMenu.push({name: 'sign-out', text: t('Sign out')});
     }
     baseMenu.push({
       name: 'config-server',
@@ -224,20 +216,15 @@ export function LoggedInUser({ hideIfNoServer, style }: LoggedInUserProps) {
     const adminMenu: (MenuItem | typeof Menu.line)[] = [];
     if (multiuserEnabled && isAdmin) {
       if (!budgetId && location.pathname !== '/') {
-        adminMenu.push({ name: 'index', text: t('View file list') });
-      } else if (
-        serverUrl &&
-        !userData?.offline &&
-        location.pathname !== '/user-directory'
-      ) {
-        adminMenu.push({ name: 'user-directory', text: t('User Directory') });
+        adminMenu.push({name: 'index', text: t('View file list')});
+      } else if (serverUrl && !userData?.offline && location.pathname !== '/user-directory') {
+        adminMenu.push({name: 'user-directory', text: t('User Directory')});
       }
     }
 
     if (
       multiuserEnabled &&
-      ((currentFile && userData && currentFile.owner === userData.userId) ||
-        isAdmin) &&
+      ((currentFile && userData && currentFile.owner === userData.userId) || isAdmin) &&
       serverUrl &&
       !userData?.offline &&
       cloudFileId &&
@@ -259,54 +246,39 @@ export function LoggedInUser({ hideIfNoServer, style }: LoggedInUserProps) {
   const serverStatus = getServerStatus();
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', ...style }}>
+    <View style={{flexDirection: 'row', alignItems: 'center', ...style}}>
       <Tooltip
         placement="bottom end"
         content={serverStatus.tooltip}
-        triggerProps={{ isDisabled: menuOpen }}
+        triggerProps={{isDisabled: menuOpen}}
       >
-        <Button
-          ref={triggerRef}
-          variant="bare"
-          onPress={() => setMenuOpen(true)}
-        >
+        <Button ref={triggerRef} variant="bare" onPress={() => setMenuOpen(true)}>
           {serverStatus.message}
         </Button>
       </Tooltip>
-      {!loading &&
-        multiuserEnabled &&
-        userData &&
-        userData?.displayName &&
-        !hasSyncedPrefs && (
-          <small>
-            (
-            <Trans>
-              logged in as:{' '}
-              <span>
-                {{ userName: userData?.displayName } as TransObjectLiteral}
-              </span>
-            </Trans>
-            )
-          </small>
-        )}
-      {!loading &&
-        multiuserEnabled &&
-        userData &&
-        userData?.displayName &&
-        hasSyncedPrefs && (
-          <small>
-            (
-            <Trans>
-              logged in as:{' '}
-              <span>
-                <PrivacyFilter>
-                  {{ userName: userData?.displayName } as TransObjectLiteral}
-                </PrivacyFilter>
-              </span>
-            </Trans>
-            )
-          </small>
-        )}
+      {!loading && multiuserEnabled && userData && userData?.displayName && !hasSyncedPrefs && (
+        <small>
+          (
+          <Trans>
+            logged in as: <span>{{userName: userData?.displayName} as TransObjectLiteral}</span>
+          </Trans>
+          )
+        </small>
+      )}
+      {!loading && multiuserEnabled && userData && userData?.displayName && hasSyncedPrefs && (
+        <small>
+          (
+          <Trans>
+            logged in as:{' '}
+            <span>
+              <PrivacyFilter>
+                {{userName: userData?.displayName} as TransObjectLiteral}
+              </PrivacyFilter>
+            </span>
+          </Trans>
+          )
+        </small>
+      )}
 
       <Popover
         offset={8}
@@ -314,10 +286,7 @@ export function LoggedInUser({ hideIfNoServer, style }: LoggedInUserProps) {
         isOpen={menuOpen}
         onOpenChange={() => setMenuOpen(false)}
       >
-        <Menu
-          onMenuSelect={handleMenuSelect}
-          items={getMenuItems().filter(Boolean)}
-        />
+        <Menu onMenuSelect={handleMenuSelect} items={getMenuItems().filter(Boolean)} />
       </Popover>
     </View>
   );

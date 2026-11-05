@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgArrowButtonSingleLeft1 = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}

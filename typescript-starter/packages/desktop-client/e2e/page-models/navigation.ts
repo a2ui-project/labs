@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { AccountPage } from './account-page';
-import { BankSyncPage } from './bank-sync-page';
-import { BudgetPage } from './budget-page';
-import { PayeesPage } from './payees-page';
-import { ReportsPage } from './reports-page';
-import { RulesPage } from './rules-page';
-import { SchedulesPage } from './schedules-page';
-import { SettingsPage } from './settings-page';
+import {AccountPage} from './account-page';
+import {BankSyncPage} from './bank-sync-page';
+import {BudgetPage} from './budget-page';
+import {PayeesPage} from './payees-page';
+import {ReportsPage} from './reports-page';
+import {RulesPage} from './rules-page';
+import {SchedulesPage} from './schedules-page';
+import {SettingsPage} from './settings-page';
 
 type AccountEntry = {
   name: string;
@@ -71,12 +71,9 @@ async function fillReactInput(locator: Locator, value: string): Promise<void> {
   await locator.evaluate((el, val) => {
     const input = el as HTMLInputElement;
     // oxlint-disable-next-line typescript/unbound-method -- documented React-controlled-input pattern
-    const setter = Object.getOwnPropertyDescriptor(
-      HTMLInputElement.prototype,
-      'value',
-    )?.set;
+    const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
     setter?.call(input, val);
-    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.dispatchEvent(new Event('input', {bubbles: true}));
   }, value);
 }
 
@@ -88,39 +85,37 @@ export class Navigation {
   }
 
   async goToAccountPage(accountName: string) {
-    await this.page
-      .getByRole('link', { name: new RegExp(`^${accountName}`) })
-      .click();
+    await this.page.getByRole('link', {name: new RegExp(`^${accountName}`)}).click();
 
     return new AccountPage(this.page);
   }
 
   async goToReportsPage() {
-    await this.page.getByRole('link', { name: 'Reports' }).click();
+    await this.page.getByRole('link', {name: 'Reports'}).click();
 
     return new ReportsPage(this.page);
   }
 
   async goToBudgetPage() {
-    await this.page.getByRole('link', { name: 'Budget', exact: true }).click();
+    await this.page.getByRole('link', {name: 'Budget', exact: true}).click();
 
     const budgetPage = new BudgetPage(this.page);
-    await budgetPage.waitFor({ state: 'visible' });
+    await budgetPage.waitFor({state: 'visible'});
     return budgetPage;
   }
 
   async goToSchedulesPage() {
-    await this.page.getByRole('link', { name: 'Schedules' }).click();
+    await this.page.getByRole('link', {name: 'Schedules'}).click();
 
     return new SchedulesPage(this.page);
   }
 
   async goToRulesPage() {
-    const rulesLink = this.page.getByRole('link', { name: 'Rules' });
+    const rulesLink = this.page.getByRole('link', {name: 'Rules'});
 
     // Expand the "more" menu only if it is not already expanded
     if (!(await rulesLink.isVisible())) {
-      await this.page.getByRole('button', { name: 'More' }).click();
+      await this.page.getByRole('button', {name: 'More'}).click();
     }
 
     await rulesLink.click();
@@ -129,11 +124,11 @@ export class Navigation {
   }
 
   async goToPayeesPage() {
-    const payeesLink = this.page.getByRole('link', { name: 'Payees' });
+    const payeesLink = this.page.getByRole('link', {name: 'Payees'});
 
     // Expand the "More" menu only if the Payees link is not visible
     if (!(await payeesLink.isVisible())) {
-      await this.page.getByRole('button', { name: 'More' }).click();
+      await this.page.getByRole('button', {name: 'More'}).click();
     }
 
     await payeesLink.click();
@@ -142,11 +137,11 @@ export class Navigation {
   }
 
   async goToBankSyncPage() {
-    const bankSyncLink = this.page.getByRole('link', { name: 'Bank Sync' });
+    const bankSyncLink = this.page.getByRole('link', {name: 'Bank Sync'});
 
     // Expand the "more" menu only if it is not already expanded
     if (!(await bankSyncLink.isVisible())) {
-      await this.page.getByRole('button', { name: 'More' }).click();
+      await this.page.getByRole('button', {name: 'More'}).click();
     }
 
     await bankSyncLink.click();
@@ -155,11 +150,11 @@ export class Navigation {
   }
 
   async goToSettingsPage() {
-    const settingsLink = this.page.getByRole('link', { name: 'Settings' });
+    const settingsLink = this.page.getByRole('link', {name: 'Settings'});
 
     // Expand the "more" menu only if it is not already expanded
     if (!(await settingsLink.isVisible())) {
-      await this.page.getByRole('button', { name: 'More' }).click();
+      await this.page.getByRole('button', {name: 'More'}).click();
     }
 
     await settingsLink.click();
@@ -168,13 +163,11 @@ export class Navigation {
   }
 
   async createAccount(data: AccountEntry) {
-    await this.page.getByRole('button', { name: 'Add account' }).click();
+    await this.page.getByRole('button', {name: 'Add account'}).click();
 
     // Wait for the form heading to confirm it is fully mounted before
     // touching any fields.
-    await this.page
-      .getByRole('heading', { name: 'Add account' })
-      .waitFor({ state: 'visible' });
+    await this.page.getByRole('heading', {name: 'Add account'}).waitFor({state: 'visible'});
 
     await fillReactInput(this.page.getByLabel('Name'), data.name);
     await fillReactInput(this.page.getByLabel('Balance'), String(data.balance));
@@ -183,9 +176,7 @@ export class Navigation {
       await this.page.getByLabel('Off budget').click();
     }
 
-    await clickReactAriaButton(
-      this.page.getByRole('button', { name: 'Create', exact: true }),
-    );
+    await clickReactAriaButton(this.page.getByRole('button', {name: 'Create', exact: true}));
 
     const accountPage = new AccountPage(this.page);
     await accountPage.waitFor();
@@ -196,16 +187,16 @@ export class Navigation {
   }
 
   async clickOnNoServer() {
-    await this.page.getByRole('button', { name: 'No server' }).click();
+    await this.page.getByRole('button', {name: 'No server'}).click();
   }
 
   async rightClickAccount(accountName: string) {
     await this.page
-      .getByRole('link', { name: new RegExp(`^${accountName}`) })
-      .click({ button: 'right' });
+      .getByRole('link', {name: new RegExp(`^${accountName}`)})
+      .click({button: 'right'});
   }
 
   async rightClickBudgetName() {
-    await this.page.getByTestId('budget-name').click({ button: 'right' });
+    await this.page.getByTestId('budget-name').click({button: 'right'});
   }
 }

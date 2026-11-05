@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { SvgCheck } from '@actual-app/components/icons/v2';
-import { theme } from '@actual-app/components/theme';
+import {SvgCheck} from '@actual-app/components/icons/v2';
+import {theme} from '@actual-app/components/theme';
 
 type SelectedIndicatorProps = {
   selected: boolean;
 };
 
-export function SelectedIndicator({ selected }: SelectedIndicatorProps) {
+export function SelectedIndicator({selected}: SelectedIndicatorProps) {
   return (
     <SvgCheck
       style={{

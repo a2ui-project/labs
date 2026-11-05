@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { init as initLootCore } from '@actual-app/core/server/main';
-import type { InitConfig, lib } from '@actual-app/core/server/main';
+import {init as initLootCore} from '@actual-app/core/server/main';
+import type {InitConfig, lib} from '@actual-app/core/server/main';
 
-import { validateNodeVersion } from './validateNodeVersion';
+import {validateNodeVersion} from './validateNodeVersion';
 
 export * from './methods';
 export * as utils from './utils';

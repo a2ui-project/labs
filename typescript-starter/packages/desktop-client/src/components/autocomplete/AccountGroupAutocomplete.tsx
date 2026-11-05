@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-import React, { Fragment } from 'react';
-import type {
-  ComponentProps,
-  ComponentPropsWithoutRef,
-  CSSProperties,
-  ReactElement,
-} from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {Fragment} from 'react';
+import type {ComponentProps, ComponentPropsWithoutRef, CSSProperties, ReactElement} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { styles } from '@actual-app/components/styles';
-import { TextOneLine } from '@actual-app/components/text-one-line';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { AccountGroupEntity } from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {styles} from '@actual-app/components/styles';
+import {TextOneLine} from '@actual-app/components/text-one-line';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {AccountGroupEntity} from '@actual-app/core/types/models';
+import {css, cx} from '@emotion/css';
 
-import { Autocomplete } from './Autocomplete';
+import {Autocomplete} from './Autocomplete';
 
 export const NEW_ACCOUNT_GROUP_ID = 'new';
 
@@ -42,16 +37,12 @@ function filterGroupSuggestions(
   value: string,
 ): AccountGroupAutocompleteItem[] {
   const trimmed = value.trim().toLowerCase();
-  const matches = suggestions.filter(suggestion =>
-    suggestion.name.toLowerCase().includes(trimmed),
-  );
-  const hasExactMatch = matches.some(
-    suggestion => suggestion.name.toLowerCase() === trimmed,
-  );
+  const matches = suggestions.filter(suggestion => suggestion.name.toLowerCase().includes(trimmed));
+  const hasExactMatch = matches.some(suggestion => suggestion.name.toLowerCase() === trimmed);
   if (trimmed === '' || hasExactMatch) {
     return matches;
   }
-  return [...matches, { id: NEW_ACCOUNT_GROUP_ID, name: value.trim() }];
+  return [...matches, {id: NEW_ACCOUNT_GROUP_ID, name: value.trim()}];
 }
 
 type AccountGroupListProps = {
@@ -80,13 +71,13 @@ function AccountGroupList({
           overflowY: 'auto',
           willChange: 'transform',
           padding: '5px 0',
-          ...(!embedded && { maxHeight: 175 }),
+          ...(!embedded && {maxHeight: 175}),
         }}
       >
         {items.map((item, index) => (
           <Fragment key={item.id}>
             {renderAccountGroupItem({
-              ...(getItemProps ? getItemProps({ item }) : {}),
+              ...(getItemProps ? getItemProps({item}) : {}),
               item,
               highlighted: highlightedIndex === index,
               embedded,
@@ -101,7 +92,7 @@ function AccountGroupList({
 type AccountGroupAutocompleteProps = Omit<
   Extract<
     ComponentProps<typeof Autocomplete<AccountGroupAutocompleteItem>>,
-    { type?: 'single' | never }
+    {type?: 'single' | never}
   >,
   'suggestions' | 'renderItems'
 > & {
@@ -154,8 +145,8 @@ function AccountGroupItem({
   embedded,
   ...props
 }: AccountGroupItemProps) {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
   const narrowStyle = isNarrowWidth
     ? {
         ...styles.mobileMenuItem,
@@ -172,9 +163,7 @@ function AccountGroupItem({
       className={cx(
         className,
         css({
-          backgroundColor: highlighted
-            ? theme.menuAutoCompleteBackgroundHover
-            : 'transparent',
+          backgroundColor: highlighted ? theme.menuAutoCompleteBackgroundHover : 'transparent',
           color: highlighted
             ? theme.menuAutoCompleteItemTextHover
             : isCreateRow
@@ -193,11 +182,9 @@ function AccountGroupItem({
       data-highlighted={highlighted || undefined}
       {...props}
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
         <TextOneLine>
-          {isCreateRow
-            ? `+ ${t('Create "{{name}}"', { name: item.name })}`
-            : item.name}
+          {isCreateRow ? `+ ${t('Create "{{name}}"', {name: item.name})}` : item.name}
         </TextOneLine>
       </View>
     </button>

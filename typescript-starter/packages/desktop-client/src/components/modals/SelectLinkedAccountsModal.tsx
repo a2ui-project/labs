@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useEffect, useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { Input } from '@actual-app/components/input';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { currentDay, subDays } from '@actual-app/core/shared/months';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {Input} from '@actual-app/components/input';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {currentDay, subDays} from '@actual-app/core/shared/months';
 import type {
   AccountEntity,
   SyncServerAkahuAccount,
@@ -35,7 +35,7 @@ import type {
   SyncServerPluggyAiAccount,
   SyncServerSimpleFinAccount,
 } from '@actual-app/core/types/models';
-import { format as formatDate, parseISO } from 'date-fns';
+import {format as formatDate, parseISO} from 'date-fns';
 
 import {
   useLinkAccountAkahuMutation,
@@ -45,23 +45,23 @@ import {
   useLinkAccountSimpleFinMutation,
   useUnlinkAccountMutation,
 } from '#accounts';
-import { Autocomplete } from '#components/autocomplete/Autocomplete';
-import type { AutocompleteItem } from '#components/autocomplete/Autocomplete';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { Cell, Field, Row, Table, TableHeader } from '#components/table';
-import { AmountInput } from '#components/util/AmountInput';
-import { useAccounts } from '#hooks/useAccounts';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
-import { closeModal } from '#modals/modalsSlice';
-import { transactions } from '#queries';
-import { liveQuery } from '#queries/liveQuery';
-import { useDispatch } from '#redux';
+import {Autocomplete} from '#components/autocomplete/Autocomplete';
+import type {AutocompleteItem} from '#components/autocomplete/Autocomplete';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {Cell, Field, Row, Table, TableHeader} from '#components/table';
+import {AmountInput} from '#components/util/AmountInput';
+import {useAccounts} from '#hooks/useAccounts';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
+import {closeModal} from '#modals/modalsSlice';
+import {transactions} from '#queries';
+import {liveQuery} from '#queries/liveQuery';
+import {useDispatch} from '#redux';
 
 function useAddBudgetAccountOptions() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const addOnBudgetAccountOption = {
     id: 'new-on',
@@ -72,7 +72,7 @@ function useAddBudgetAccountOptions() {
     name: t('Create new account (off budget)'),
   };
 
-  return { addOnBudgetAccountOption, addOffBudgetAccountOption };
+  return {addOnBudgetAccountOption, addOffBudgetAccountOption};
 }
 
 type AddBudgetAccountOption = {
@@ -90,7 +90,7 @@ export function getSelectableAccountOptions({
 }: {
   localAccounts: AccountEntity[];
   selectedLocalAccountIds: ReadonlySet<string>;
-  chosenAccount: { id: string; name: string } | undefined;
+  chosenAccount: {id: string; name: string} | undefined;
   syncSource: NonNullable<AccountEntity['account_sync_source']>;
   addOnBudgetAccountOption: AddBudgetAccountOption;
   addOffBudgetAccountOption: AddBudgetAccountOption;
@@ -103,8 +103,7 @@ export function getSelectableAccountOptions({
     return (
       isCurrentSelection ||
       (!selectedLocalAccountIds.has(account.id) &&
-        (account.account_sync_source == null ||
-          account.account_sync_source === syncSource))
+        (account.account_sync_source == null || account.account_sync_source === syncSource))
     );
   });
 
@@ -120,10 +119,7 @@ function isNewAccountOption(
   addOnBudgetOptionId: string,
   addOffBudgetOptionId: string,
 ): boolean {
-  return (
-    chosenAccountId === addOnBudgetOptionId ||
-    chosenAccountId === addOffBudgetOptionId
-  );
+  return chosenAccountId === addOnBudgetOptionId || chosenAccountId === addOffBudgetOptionId;
 }
 
 /**
@@ -152,9 +148,7 @@ export function computeInitialLinkState(
   }
 
   const initiallyChosenAccounts: Record<string, string> = Object.fromEntries(
-    localAccounts
-      .filter(acc => acc.account_id)
-      .map(acc => [acc.account_id, acc.id]),
+    localAccounts.filter(acc => acc.account_id).map(acc => [acc.account_id, acc.id]),
   );
 
   const unmatchedExternalAccounts = externalAccounts.filter(
@@ -166,15 +160,11 @@ export function computeInitialLinkState(
     unmatchedExternalAccounts.length === 1 &&
     !Object.values(initiallyChosenAccounts).includes(upgradingAccountId)
   ) {
-    initiallyChosenAccounts[unmatchedExternalAccounts[0].account_id] =
-      upgradingAccountId;
-    initialDraftLinkAccounts.set(
-      unmatchedExternalAccounts[0].account_id,
-      'linking',
-    );
+    initiallyChosenAccounts[unmatchedExternalAccounts[0].account_id] = upgradingAccountId;
+    initialDraftLinkAccounts.set(unmatchedExternalAccounts[0].account_id, 'linking');
   }
 
-  return { initialDraftLinkAccounts, initiallyChosenAccounts };
+  return {initialDraftLinkAccounts, initiallyChosenAccounts};
 }
 
 export type SelectLinkedAccountsModalProps =
@@ -215,81 +205,72 @@ export function SelectLinkedAccountsModal({
   syncSource,
   upgradingAccountId,
 }: SelectLinkedAccountsModalProps) {
-  const propsWithSortedExternalAccounts =
-    useMemo<SelectLinkedAccountsModalProps>(() => {
-      const toSort = externalAccounts ? [...externalAccounts] : [];
-      toSort.sort(
-        (a, b) =>
-          getInstitutionName(a)?.localeCompare(getInstitutionName(b)) ||
-          a.name.localeCompare(b.name),
-      );
-      switch (syncSource) {
-        case 'simpleFin':
-          return {
-            syncSource: 'simpleFin',
-            externalAccounts: toSort as SyncServerSimpleFinAccount[],
-            upgradingAccountId,
-          };
-        case 'pluggyai':
-          return {
-            syncSource: 'pluggyai',
-            externalAccounts: toSort as SyncServerPluggyAiAccount[],
-            upgradingAccountId,
-          };
-        case 'akahu':
-          return {
-            syncSource: 'akahu',
-            externalAccounts: toSort as SyncServerAkahuAccount[],
-            upgradingAccountId,
-          };
-        case 'goCardless':
-          return {
-            syncSource: 'goCardless',
-            requisitionId: requisitionId!,
-            externalAccounts: toSort as SyncServerGoCardlessAccount[],
-            upgradingAccountId,
-          };
-        case 'enableBanking':
-          return {
-            syncSource: 'enableBanking',
-            externalAccounts: toSort as SyncServerEnableBankingAccount[],
-            upgradingAccountId,
-          };
-        default:
-          throw new Error(`Unrecognized sync source: ${String(syncSource)}`);
-      }
-    }, [externalAccounts, syncSource, requisitionId, upgradingAccountId]);
+  const propsWithSortedExternalAccounts = useMemo<SelectLinkedAccountsModalProps>(() => {
+    const toSort = externalAccounts ? [...externalAccounts] : [];
+    toSort.sort(
+      (a, b) =>
+        getInstitutionName(a)?.localeCompare(getInstitutionName(b)) || a.name.localeCompare(b.name),
+    );
+    switch (syncSource) {
+      case 'simpleFin':
+        return {
+          syncSource: 'simpleFin',
+          externalAccounts: toSort as SyncServerSimpleFinAccount[],
+          upgradingAccountId,
+        };
+      case 'pluggyai':
+        return {
+          syncSource: 'pluggyai',
+          externalAccounts: toSort as SyncServerPluggyAiAccount[],
+          upgradingAccountId,
+        };
+      case 'akahu':
+        return {
+          syncSource: 'akahu',
+          externalAccounts: toSort as SyncServerAkahuAccount[],
+          upgradingAccountId,
+        };
+      case 'goCardless':
+        return {
+          syncSource: 'goCardless',
+          requisitionId: requisitionId!,
+          externalAccounts: toSort as SyncServerGoCardlessAccount[],
+          upgradingAccountId,
+        };
+      case 'enableBanking':
+        return {
+          syncSource: 'enableBanking',
+          externalAccounts: toSort as SyncServerEnableBankingAccount[],
+          upgradingAccountId,
+        };
+      default:
+        throw new Error(`Unrecognized sync source: ${String(syncSource)}`);
+    }
+  }, [externalAccounts, syncSource, requisitionId, upgradingAccountId]);
 
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
   const dispatch = useDispatch();
-  const { data: allAccounts = [] } = useAccounts();
+  const {data: allAccounts = []} = useAccounts();
   const localAccounts = allAccounts.filter(a => a.closed === 0);
-  const { initialDraftLinkAccounts, initiallyChosenAccounts } = useMemo(
+  const {initialDraftLinkAccounts, initiallyChosenAccounts} = useMemo(
     () =>
       computeInitialLinkState(
         localAccounts,
         propsWithSortedExternalAccounts.externalAccounts,
         upgradingAccountId,
       ),
-    [
-      localAccounts,
-      propsWithSortedExternalAccounts.externalAccounts,
-      upgradingAccountId,
-    ],
+    [localAccounts, propsWithSortedExternalAccounts.externalAccounts, upgradingAccountId],
   );
 
-  const [draftLinkAccounts, setDraftLinkAccounts] = useState<
-    Map<string, 'linking' | 'unlinking'>
-  >(initialDraftLinkAccounts);
-  const [chosenAccounts, setChosenAccounts] = useState<Record<string, string>>(
-    initiallyChosenAccounts,
-  );
+  const [draftLinkAccounts, setDraftLinkAccounts] =
+    useState<Map<string, 'linking' | 'unlinking'>>(initialDraftLinkAccounts);
+  const [chosenAccounts, setChosenAccounts] =
+    useState<Record<string, string>>(initiallyChosenAccounts);
   const [customStartingDates, setCustomStartingDates] = useState<
     Record<string, CustomStartingSettings>
   >({});
-  const { addOnBudgetAccountOption, addOffBudgetAccountOption } =
-    useAddBudgetAccountOptions();
+  const {addOnBudgetAccountOption, addOffBudgetAccountOption} = useAddBudgetAccountOptions();
 
   const linkAccount = useLinkAccountMutation();
   const unlinkAccount = useUnlinkAccountMutation();
@@ -306,109 +287,89 @@ export function SelectLinkedAccountsModal({
     localAccounts
       .filter(acc => acc.account_id)
       .filter(acc => !chosenLocalAccountIds.includes(acc.id))
-      .forEach(acc => unlinkAccount.mutate({ id: acc.id }));
+      .forEach(acc => unlinkAccount.mutate({id: acc.id}));
 
     // Link new accounts
-    Object.entries(chosenAccounts).forEach(
-      ([chosenExternalAccountId, chosenLocalAccountId]) => {
-        const externalAccountIndex =
-          propsWithSortedExternalAccounts.externalAccounts.findIndex(
-            account => account.account_id === chosenExternalAccountId,
-          );
-        const offBudget = chosenLocalAccountId === addOffBudgetAccountOption.id;
+    Object.entries(chosenAccounts).forEach(([chosenExternalAccountId, chosenLocalAccountId]) => {
+      const externalAccountIndex = propsWithSortedExternalAccounts.externalAccounts.findIndex(
+        account => account.account_id === chosenExternalAccountId,
+      );
+      const offBudget = chosenLocalAccountId === addOffBudgetAccountOption.id;
 
-        // Skip linking accounts that were previously linked with
-        // a different bank.
-        if (externalAccountIndex === -1) {
-          return;
-        }
+      // Skip linking accounts that were previously linked with
+      // a different bank.
+      if (externalAccountIndex === -1) {
+        return;
+      }
 
-        // Finally link the matched account
-        const { startingDate, startingBalance } = resolveStartingSettings(
-          customStartingDates[chosenExternalAccountId],
-        );
+      // Finally link the matched account
+      const {startingDate, startingBalance} = resolveStartingSettings(
+        customStartingDates[chosenExternalAccountId],
+      );
 
-        if (propsWithSortedExternalAccounts.syncSource === 'simpleFin') {
-          linkAccountSimpleFin.mutate({
-            externalAccount:
-              propsWithSortedExternalAccounts.externalAccounts[
-                externalAccountIndex
-              ],
-            upgradingId:
-              chosenLocalAccountId !== addOnBudgetAccountOption.id &&
-              chosenLocalAccountId !== addOffBudgetAccountOption.id
-                ? chosenLocalAccountId
-                : undefined,
-            offBudget,
-            startingDate,
-            startingBalance,
-          });
-        } else if (propsWithSortedExternalAccounts.syncSource === 'pluggyai') {
-          linkAccountPluggyAi.mutate({
-            externalAccount:
-              propsWithSortedExternalAccounts.externalAccounts[
-                externalAccountIndex
-              ],
-            upgradingId:
-              chosenLocalAccountId !== addOnBudgetAccountOption.id &&
-              chosenLocalAccountId !== addOffBudgetAccountOption.id
-                ? chosenLocalAccountId
-                : undefined,
-            offBudget,
-            startingDate,
-            startingBalance,
-          });
-        } else if (propsWithSortedExternalAccounts.syncSource === 'akahu') {
-          linkAccountAkahu.mutate({
-            externalAccount:
-              propsWithSortedExternalAccounts.externalAccounts[
-                externalAccountIndex
-              ],
-            upgradingId:
-              chosenLocalAccountId !== addOnBudgetAccountOption.id &&
-              chosenLocalAccountId !== addOffBudgetAccountOption.id
-                ? chosenLocalAccountId
-                : undefined,
-            offBudget,
-            startingDate,
-            startingBalance,
-          });
-        } else if (
-          propsWithSortedExternalAccounts.syncSource === 'enableBanking'
-        ) {
-          linkAccountEnableBanking.mutate({
-            externalAccount:
-              propsWithSortedExternalAccounts.externalAccounts[
-                externalAccountIndex
-              ],
-            upgradingId:
-              chosenLocalAccountId !== addOnBudgetAccountOption.id &&
-              chosenLocalAccountId !== addOffBudgetAccountOption.id
-                ? chosenLocalAccountId
-                : undefined,
-            offBudget,
-            startingDate,
-            startingBalance,
-          });
-        } else {
-          linkAccount.mutate({
-            requisitionId: propsWithSortedExternalAccounts.requisitionId,
-            account:
-              propsWithSortedExternalAccounts.externalAccounts[
-                externalAccountIndex
-              ],
-            upgradingId:
-              chosenLocalAccountId !== addOnBudgetAccountOption.id &&
-              chosenLocalAccountId !== addOffBudgetAccountOption.id
-                ? chosenLocalAccountId
-                : undefined,
-            offBudget,
-            startingDate,
-            startingBalance,
-          });
-        }
-      },
-    );
+      if (propsWithSortedExternalAccounts.syncSource === 'simpleFin') {
+        linkAccountSimpleFin.mutate({
+          externalAccount: propsWithSortedExternalAccounts.externalAccounts[externalAccountIndex],
+          upgradingId:
+            chosenLocalAccountId !== addOnBudgetAccountOption.id &&
+            chosenLocalAccountId !== addOffBudgetAccountOption.id
+              ? chosenLocalAccountId
+              : undefined,
+          offBudget,
+          startingDate,
+          startingBalance,
+        });
+      } else if (propsWithSortedExternalAccounts.syncSource === 'pluggyai') {
+        linkAccountPluggyAi.mutate({
+          externalAccount: propsWithSortedExternalAccounts.externalAccounts[externalAccountIndex],
+          upgradingId:
+            chosenLocalAccountId !== addOnBudgetAccountOption.id &&
+            chosenLocalAccountId !== addOffBudgetAccountOption.id
+              ? chosenLocalAccountId
+              : undefined,
+          offBudget,
+          startingDate,
+          startingBalance,
+        });
+      } else if (propsWithSortedExternalAccounts.syncSource === 'akahu') {
+        linkAccountAkahu.mutate({
+          externalAccount: propsWithSortedExternalAccounts.externalAccounts[externalAccountIndex],
+          upgradingId:
+            chosenLocalAccountId !== addOnBudgetAccountOption.id &&
+            chosenLocalAccountId !== addOffBudgetAccountOption.id
+              ? chosenLocalAccountId
+              : undefined,
+          offBudget,
+          startingDate,
+          startingBalance,
+        });
+      } else if (propsWithSortedExternalAccounts.syncSource === 'enableBanking') {
+        linkAccountEnableBanking.mutate({
+          externalAccount: propsWithSortedExternalAccounts.externalAccounts[externalAccountIndex],
+          upgradingId:
+            chosenLocalAccountId !== addOnBudgetAccountOption.id &&
+            chosenLocalAccountId !== addOffBudgetAccountOption.id
+              ? chosenLocalAccountId
+              : undefined,
+          offBudget,
+          startingDate,
+          startingBalance,
+        });
+      } else {
+        linkAccount.mutate({
+          requisitionId: propsWithSortedExternalAccounts.requisitionId,
+          account: propsWithSortedExternalAccounts.externalAccounts[externalAccountIndex],
+          upgradingId:
+            chosenLocalAccountId !== addOnBudgetAccountOption.id &&
+            chosenLocalAccountId !== addOffBudgetAccountOption.id
+              ? chosenLocalAccountId
+              : undefined,
+          offBudget,
+          startingDate,
+          startingBalance,
+        });
+      }
+    });
 
     dispatch(closeModal());
   }
@@ -416,16 +377,12 @@ export function SelectLinkedAccountsModal({
   // Only reserve accounts chosen by visible rows; stale provider links should
   // stay selectable so users can relink them after reconnecting.
   const currentExternalAccountIds = new Set(
-    propsWithSortedExternalAccounts.externalAccounts.map(
-      account => account.account_id,
-    ),
+    propsWithSortedExternalAccounts.externalAccounts.map(account => account.account_id),
   );
 
   const selectedLocalAccountIds = new Set(
     Object.entries(chosenAccounts)
-      .filter(([externalAccountId]) =>
-        currentExternalAccountIds.has(externalAccountId),
-      )
+      .filter(([externalAccountId]) => currentExternalAccountIds.has(externalAccountId))
       .map(([, localAccountId]) => localAccountId),
   );
 
@@ -438,18 +395,14 @@ export function SelectLinkedAccountsModal({
     localAccountId: string | null | undefined,
   ) {
     setChosenAccounts(accounts => {
-      const updatedAccounts = { ...accounts };
+      const updatedAccounts = {...accounts};
 
       if (localAccountId) {
         updatedAccounts[externalAccount.account_id] = localAccountId;
-        setDraftLinkAccounts(prev =>
-          new Map(prev).set(externalAccount.account_id, 'linking'),
-        );
+        setDraftLinkAccounts(prev => new Map(prev).set(externalAccount.account_id, 'linking'));
       } else {
         delete updatedAccounts[externalAccount.account_id];
-        setDraftLinkAccounts(prev =>
-          new Map(prev).set(externalAccount.account_id, 'unlinking'),
-        );
+        setDraftLinkAccounts(prev => new Map(prev).set(externalAccount.account_id, 'unlinking'));
       }
 
       return updatedAccounts;
@@ -483,10 +436,7 @@ export function SelectLinkedAccountsModal({
     return defaultStartingSettings;
   };
 
-  const setCustomStartingDate = (
-    accountId: string,
-    settings: CustomStartingSettings,
-  ) => {
+  const setCustomStartingDate = (accountId: string, settings: CustomStartingSettings) => {
     setCustomStartingDates(prev => ({
       ...prev,
       [accountId]: settings,
@@ -519,13 +469,11 @@ export function SelectLinkedAccountsModal({
               display: 'flex',
               flexDirection: 'column',
             }
-          : { width: 1000 },
+          : {width: 1000},
       }}
     >
-      {({ state }) => (
-        <View
-          style={{ display: 'flex', flexDirection: 'column', height: '100%' }}
-        >
+      {({state}) => (
+        <View style={{display: 'flex', flexDirection: 'column', height: '100%'}}>
           <ModalHeader
             title={t('Link Accounts')}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
@@ -537,11 +485,8 @@ export function SelectLinkedAccountsModal({
               flexShrink: 0,
             }}
           >
-            <Text style={{ marginBottom: 20 }}>
-              <Trans>
-                We found the following accounts. Select which ones you want to
-                add:
-              </Trans>
+            <Text style={{marginBottom: 20}}>
+              <Trans>We found the following accounts. Select which ones you want to add:</Trans>
             </Text>
           </View>
 
@@ -571,9 +516,7 @@ export function SelectLinkedAccountsModal({
               ))}
             </View>
           ) : (
-            <View
-              style={{ ...styles.tableContainer, height: 300, flex: 'unset' }}
-            >
+            <View style={{...styles.tableContainer, height: 300, flex: 'unset'}}>
               <TableHeader>
                 <Cell value={t('Institution to Sync')} width={150} />
                 <Cell value={t('Bank Account To Sync')} width={150} />
@@ -584,12 +527,13 @@ export function SelectLinkedAccountsModal({
                 <Cell value={t('Actions')} width={150} textAlign="center" />
               </TableHeader>
 
-              <Table<ExternalAccount & { id: string }>
-                items={propsWithSortedExternalAccounts.externalAccounts.map(
-                  acc => ({ ...acc, id: acc.account_id }),
-                )}
-                style={{ backgroundColor: theme.tableHeaderBackground }}
-                renderItem={({ item }) => {
+              <Table<ExternalAccount & {id: string}>
+                items={propsWithSortedExternalAccounts.externalAccounts.map(acc => ({
+                  ...acc,
+                  id: acc.account_id,
+                }))}
+                style={{backgroundColor: theme.tableHeaderBackground}}
+                renderItem={({item}) => {
                   const chosenAccount = getChosenAccount(item.account_id);
                   // Only show starting options for new accounts being created
                   const shouldShowStartingOptions = isNewAccountOption(
@@ -607,9 +551,7 @@ export function SelectLinkedAccountsModal({
                       selectedLocalAccountIds={selectedLocalAccountIds}
                       syncSource={syncSource}
                       onSetLinkedAccount={onSetLinkedAccount}
-                      customStartingDate={getCustomStartingDate(
-                        item.account_id,
-                      )}
+                      customStartingDate={getCustomStartingDate(item.account_id)}
                       onSetCustomStartingDate={setCustomStartingDate}
                       showStartingOptions={shouldShowStartingOptions}
                     />
@@ -629,7 +571,7 @@ export function SelectLinkedAccountsModal({
                     flexShrink: 0,
                     borderTop: `1px solid ${theme.tableBorder}`,
                   }
-                : { marginTop: 10 }),
+                : {marginTop: 10}),
             }}
           >
             <Button
@@ -684,26 +626,26 @@ type CustomStartingSettings = {
  */
 export function getDefaultStartingSettings(): CustomStartingSettings {
   // Default to 89 days ago (90 days inclusive, matches server default)
-  return { date: subDays(currentDay(), 89) };
+  return {date: subDays(currentDay(), 89)};
 }
 
 /**
  * Turn the row's draft settings into the arguments sent when linking. Anything
  * the user did not fill in stays undefined so the server keeps its own default.
  */
-export function resolveStartingSettings(
-  settings: CustomStartingSettings | undefined,
-): { startingDate?: string; startingBalance?: number } {
+export function resolveStartingSettings(settings: CustomStartingSettings | undefined): {
+  startingDate?: string;
+  startingBalance?: number;
+} {
   return {
-    startingDate:
-      settings?.date && settings.date.trim() !== '' ? settings.date : undefined,
+    startingDate: settings?.date && settings.date.trim() !== '' ? settings.date : undefined,
     startingBalance: settings?.amount != null ? settings.amount : undefined,
   };
 }
 
 type SharedAccountRowProps = {
   externalAccount: ExternalAccount;
-  chosenAccount: { id: string; name: string } | undefined;
+  chosenAccount: {id: string; name: string} | undefined;
   localAccounts: AccountEntity[];
   selectedLocalAccountIds: ReadonlySet<string>;
   syncSource: SelectLinkedAccountsModalProps['syncSource'];
@@ -715,10 +657,7 @@ type SharedAccountRowProps = {
 
 type TableRowProps = SharedAccountRowProps & {
   customStartingDate: CustomStartingSettings;
-  onSetCustomStartingDate: (
-    accountId: string,
-    settings: CustomStartingSettings,
-  ) => void;
+  onSetCustomStartingDate: (accountId: string, settings: CustomStartingSettings) => void;
   showStartingOptions: boolean;
 };
 
@@ -732,7 +671,7 @@ function useStartingBalanceInfo(accountId: string | undefined) {
     }
 
     const query = transactions(accountId)
-      .filter({ starting_balance_flag: true })
+      .filter({starting_balance_flag: true})
       .select(['date', 'amount'])
       .limit(1);
 
@@ -765,11 +704,10 @@ function TableRow({
   showStartingOptions,
 }: TableRowProps) {
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  const { addOnBudgetAccountOption, addOffBudgetAccountOption } =
-    useAddBudgetAccountOptions();
+  const {addOnBudgetAccountOption, addOffBudgetAccountOption} = useAddBudgetAccountOptions();
   const format = useFormat();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const startingBalanceInfo = useStartingBalanceInfo(
     showStartingOptions ? undefined : chosenAccount?.id,
   );
@@ -784,7 +722,7 @@ function TableRow({
   });
 
   return (
-    <Row style={{ backgroundColor: theme.tableBackground }}>
+    <Row style={{backgroundColor: theme.tableBackground}}>
       {/* Institution to Sync */}
       <Field width={150}>
         <Tooltip content={getInstitutionName(externalAccount)}>
@@ -814,12 +752,10 @@ function TableRow({
         </Tooltip>
       </Field>
       {/* Balance */}
-      <Field width={120} style={{ textAlign: 'right' }}>
+      <Field width={120} style={{textAlign: 'right'}}>
         <PrivacyFilter>
           {externalAccount.balance != null ? (
-            <FinancialText>
-              {format(externalAccount.balance.toString(), 'financial')}
-            </FinancialText>
+            <FinancialText>{format(externalAccount.balance.toString(), 'financial')}</FinancialText>
           ) : (
             t('Unknown')
           )}
@@ -860,7 +796,7 @@ function TableRow({
       ) : (
         <>
           {/* Starting Date */}
-          <Field width={120} truncate={false} style={{ textAlign: 'right' }}>
+          <Field width={120} truncate={false} style={{textAlign: 'right'}}>
             {startingBalanceInfo ? (
               <Text
                 style={{
@@ -873,7 +809,7 @@ function TableRow({
             ) : null}
           </Field>
           {/* Starting Balance */}
-          <Field width={120} truncate={false} style={{ textAlign: 'right' }}>
+          <Field width={120} truncate={false} style={{textAlign: 'right'}}>
             {startingBalanceInfo ? (
               <PrivacyFilter>
                 <FinancialText
@@ -896,7 +832,7 @@ function TableRow({
             onPress={() => {
               onSetLinkedAccount(externalAccount, null);
             }}
-            style={{ float: 'right' }}
+            style={{float: 'right'}}
           >
             <Trans>Remove bank sync</Trans>
           </Button>
@@ -906,7 +842,7 @@ function TableRow({
             onPress={() => {
               setFocusedField('account');
             }}
-            style={{ float: 'right' }}
+            style={{float: 'right'}}
           >
             <Trans>Set up bank sync</Trans>
           </Button>
@@ -935,10 +871,7 @@ type StartingOptionsFieldsProps = {
   accountId: string;
   externalBalance: number | null | undefined;
   customStartingDate: CustomStartingSettings;
-  onSetCustomStartingDate: (
-    accountId: string,
-    settings: CustomStartingSettings,
-  ) => void;
+  onSetCustomStartingDate: (accountId: string, settings: CustomStartingSettings) => void;
   layout: 'inline' | 'stacked';
 };
 
@@ -965,11 +898,11 @@ function StartingOptionsFields({
                 date: e.target.value,
               })
             }
-            style={{ width: '100%' }}
+            style={{width: '100%'}}
           />
         </Field>
         {/* Starting Balance */}
-        <Field width={120} truncate={false} style={{ textAlign: 'right' }}>
+        <Field width={120} truncate={false} style={{textAlign: 'right'}}>
           <AmountInput
             value={customStartingDate.amount ?? 0}
             zeroSign={zeroSign}
@@ -979,7 +912,7 @@ function StartingOptionsFields({
                 amount,
               })
             }
-            style={{ width: '100%' }}
+            style={{width: '100%'}}
           />
         </Field>
       </>
@@ -995,7 +928,7 @@ function StartingOptionsFields({
         borderRadius: 4,
       }}
     >
-      <View style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <View style={{display: 'flex', flexDirection: 'column', gap: 10}}>
         <View>
           <Text
             style={{
@@ -1015,7 +948,7 @@ function StartingOptionsFields({
                 date: e.target.value,
               })
             }
-            style={{ width: '100%' }}
+            style={{width: '100%'}}
           />
         </View>
         <View>
@@ -1037,7 +970,7 @@ function StartingOptionsFields({
                 amount,
               })
             }
-            style={{ width: '100%' }}
+            style={{width: '100%'}}
           />
         </View>
       </View>
@@ -1047,10 +980,7 @@ function StartingOptionsFields({
 
 type AccountCardProps = SharedAccountRowProps & {
   customStartingDate: CustomStartingSettings;
-  onSetCustomStartingDate: (
-    accountId: string,
-    settings: CustomStartingSettings,
-  ) => void;
+  onSetCustomStartingDate: (accountId: string, settings: CustomStartingSettings) => void;
 };
 
 function AccountCard({
@@ -1064,11 +994,10 @@ function AccountCard({
   onSetCustomStartingDate,
 }: AccountCardProps) {
   const [focusedField, setFocusedField] = useState<string | null>(null);
-  const { addOnBudgetAccountOption, addOffBudgetAccountOption } =
-    useAddBudgetAccountOptions();
+  const {addOnBudgetAccountOption, addOffBudgetAccountOption} = useAddBudgetAccountOptions();
   const format = useFormat();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const availableAccountOptions = getSelectableAccountOptions({
     localAccounts,
@@ -1134,9 +1063,7 @@ function AccountCard({
         <Trans>Balance:</Trans>{' '}
         <PrivacyFilter>
           {externalAccount.balance != null ? (
-            <FinancialText>
-              {format(externalAccount.balance.toString(), 'financial')}
-            </FinancialText>
+            <FinancialText>{format(externalAccount.balance.toString(), 'financial')}</FinancialText>
           ) : (
             t('Unknown')
           )}
@@ -1155,11 +1082,9 @@ function AccountCard({
           <Trans>Linked to:</Trans>
         </Text>
         {chosenAccount ? (
-          <Text style={{ color: theme.noticeTextLight, fontWeight: 500 }}>
-            {chosenAccount.name}
-          </Text>
+          <Text style={{color: theme.noticeTextLight, fontWeight: 500}}>{chosenAccount.name}</Text>
         ) : (
-          <Text style={{ color: theme.pageTextSubdued }}>
+          <Text style={{color: theme.pageTextSubdued}}>
             <Trans>Not linked</Trans>
           </Text>
         )}
@@ -1175,8 +1100,8 @@ function AccountCard({
             gap: 4,
           }}
         >
-          <View style={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
-            <Text style={{ color: theme.pageTextSubdued }}>
+          <View style={{display: 'flex', flexDirection: 'row', gap: 4}}>
+            <Text style={{color: theme.pageTextSubdued}}>
               <Trans>Starting date:</Trans>
             </Text>
             <Text
@@ -1188,8 +1113,8 @@ function AccountCard({
               {formatDate(parseISO(startingBalanceInfo.date), dateFormat)}
             </Text>
           </View>
-          <View style={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
-            <Text style={{ color: theme.pageTextSubdued }}>
+          <View style={{display: 'flex', flexDirection: 'row', gap: 4}}>
+            <Text style={{color: theme.pageTextSubdued}}>
               <Trans>Starting balance:</Trans>
             </Text>
             <PrivacyFilter>
@@ -1207,7 +1132,7 @@ function AccountCard({
       )}
 
       {focusedField === 'account' && (
-        <View style={{ marginBottom: 12 }}>
+        <View style={{marginBottom: 12}}>
           <Autocomplete
             focused
             strict

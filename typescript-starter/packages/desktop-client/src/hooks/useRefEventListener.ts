@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
-import type { RefObject } from 'react';
+import {useEffect, useRef, useState} from 'react';
+import type {RefObject} from 'react';
 
 export function useRefEventListener<
   ElementType extends EventTarget,
@@ -39,19 +39,14 @@ export function useRefEventListener<
   const [target, setTarget] = useState<EventTarget | null>(null);
   // oxlint-disable-next-line react-hooks/exhaustive-deps -- must run every render; the bail-out stops the update chain
   useEffect(() => {
-    setTarget(
-      ref instanceof Document || ref instanceof Window ? ref : ref.current,
-    );
+    setTarget(ref instanceof Document || ref instanceof Window ? ref : ref.current);
   });
 
   useEffect(() => {
     if (!target) return;
 
     const listener: EventListener = e =>
-      callbackRef.current.call(
-        target as ElementType,
-        e as HTMLElementEventMap[EventType],
-      );
+      callbackRef.current.call(target as ElementType, e as HTMLElementEventMap[EventType]);
     target.addEventListener(event, listener);
     return () => {
       target.removeEventListener(event, listener);

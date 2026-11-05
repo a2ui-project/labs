@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import { Trans } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans} from 'react-i18next';
 
-import { ButtonWithLoading } from '@actual-app/components/button';
-import { Text } from '@actual-app/components/text';
-import { send } from '@actual-app/core/platform/client/connection';
+import {ButtonWithLoading} from '@actual-app/components/button';
+import {Text} from '@actual-app/components/text';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { resetSync } from '#app/appSlice';
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { useDispatch } from '#redux';
+import {resetSync} from '#app/appSlice';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {useDispatch} from '#redux';
 
-import { Setting } from './UI';
+import {Setting} from './UI';
 
 export function ResetCache() {
   const [resetting, setResetting] = useState(false);
@@ -46,11 +46,10 @@ export function ResetCache() {
     >
       <Text>
         <Trans>
-          <strong>Reset budget cache</strong> will clear all cached values for
-          the budget and recalculate the entire budget. All values in the budget
-          are cached for performance reasons, and if there is a bug in the cache
-          you won't see correct values. There is no danger in resetting the
-          cache. Hopefully you never have to do this.
+          <strong>Reset budget cache</strong> will clear all cached values for the budget and
+          recalculate the entire budget. All values in the budget are cached for performance
+          reasons, and if there is a bug in the cache you won't see correct values. There is no
+          danger in resetting the cache. Hopefully you never have to do this.
         </Trans>
       </Text>
     </Setting>
@@ -73,11 +72,7 @@ export function ResetSync() {
   return (
     <Setting
       primaryAction={
-        <ButtonWithLoading
-          isLoading={resetting}
-          isDisabled={!isEnabled}
-          onPress={onResetSync}
-        >
+        <ButtonWithLoading isLoading={resetting} isDisabled={!isEnabled} onPress={onResetSync}>
           <Trans>Reset sync</Trans>
         </ButtonWithLoading>
       }
@@ -85,18 +80,16 @@ export function ResetSync() {
       {isEnabled ? (
         <Text>
           <Trans>
-            <strong>Reset sync</strong> will remove all local data used to track
-            changes for syncing, and create a fresh sync ID on the server. This
-            file on other devices will have to be re-downloaded to use the new
-            sync ID. Use this if there is a problem with syncing and you want to
-            start fresh.
+            <strong>Reset sync</strong> will remove all local data used to track changes for
+            syncing, and create a fresh sync ID on the server. This file on other devices will have
+            to be re-downloaded to use the new sync ID. Use this if there is a problem with syncing
+            and you want to start fresh.
           </Trans>
         </Text>
       ) : (
         <Text>
           <Trans>
-            <strong>Reset sync</strong> is only available when syncing is
-            enabled.
+            <strong>Reset sync</strong> is only available when syncing is enabled.
           </Trans>
         </Text>
       )}

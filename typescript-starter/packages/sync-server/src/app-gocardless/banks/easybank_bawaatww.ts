@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type { Transaction } from '#app-gocardless/gocardless-node.types';
-import { formatPayeeName } from '#util/payee-name';
-import { title } from '#util/title';
+import type {Transaction} from '#app-gocardless/gocardless-node.types';
+import {formatPayeeName} from '#util/payee-name';
+import {title} from '#util/title';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -37,7 +37,7 @@ export default {
     }),
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     let payeeName: string | undefined = formatPayeeName(transaction);
 
@@ -49,8 +49,7 @@ export default {
         ? transaction.creditorAccount
         : transaction.creditorAccount?.iban;
     const hasCreditor = Boolean(transaction.creditorName || creditorAccount);
-    const isInvalidFallback =
-      Number(transaction.transactionAmount.amount) < 0 && !hasCreditor;
+    const isInvalidFallback = Number(transaction.transactionAmount.amount) < 0 && !hasCreditor;
 
     if (!payeeName || isInvalidFallback) {
       payeeName = extractPayeeName(transaction);

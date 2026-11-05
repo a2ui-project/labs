@@ -14,53 +14,53 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useEffectEvent, useRef } from 'react';
-import type { ReactElement } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useTranslation } from 'react-i18next';
-import { Navigate, Route, Routes, useHref, useLocation } from 'react-router';
+import React, {useEffect, useEffectEvent, useRef} from 'react';
+import type {ReactElement} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
+import {useTranslation} from 'react-i18next';
+import {Navigate, Route, Routes, useHref, useLocation} from 'react-router';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as undo from '@actual-app/core/platform/client/undo';
 
-import { getLatestAppVersion, sync } from '#app/appSlice';
-import { ProtectedRoute } from '#auth/ProtectedRoute';
-import { Permissions } from '#auth/types';
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import { useLocalPref } from '#hooks/useLocalPref';
-import { useMetaThemeColor } from '#hooks/useMetaThemeColor';
-import { useNavigate } from '#hooks/useNavigate';
-import { useNewsNotification } from '#hooks/useNewsNotification';
-import { ScrollProvider } from '#hooks/useScrollListener';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {getLatestAppVersion, sync} from '#app/appSlice';
+import {ProtectedRoute} from '#auth/ProtectedRoute';
+import {Permissions} from '#auth/types';
+import {useGlobalPref} from '#hooks/useGlobalPref';
+import {useLocalPref} from '#hooks/useLocalPref';
+import {useMetaThemeColor} from '#hooks/useMetaThemeColor';
+import {useNavigate} from '#hooks/useNavigate';
+import {useNewsNotification} from '#hooks/useNewsNotification';
+import {ScrollProvider} from '#hooks/useScrollListener';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch, useSelector} from '#redux';
 
-import { UserAccessPage } from './admin/UserAccess/UserAccessPage';
-import { UserDirectoryPage } from './admin/UserDirectory/UserDirectoryPage';
-import { BankSyncStatus } from './BankSyncStatus';
-import { CommandBar } from './CommandBar';
-import { ContextMenu } from './ContextMenu';
-import { EnableBankingCallback } from './EnableBankingCallback';
-import { FeatureErrorFallback } from './FeatureErrorFallback';
-import { GlobalKeys } from './GlobalKeys';
-import { MobileBankSyncAccountEditPage } from './mobile/banksync/MobileBankSyncAccountEditPage';
-import { MobileNavTabs } from './mobile/MobileNavTabs';
-import { TransactionEdit } from './mobile/transactions/TransactionEdit';
-import { NotificationsPage } from './news/NotificationsPage';
-import { Notifications } from './Notifications';
-import { MobilePageHeaderProvider, MobilePageHeaderSlot } from './Page';
-import { Reports } from './reports';
-import { NarrowAlternate, WideComponent } from './responsive';
-import { useMultiuserEnabled } from './ServerContext';
-import { Settings } from './settings';
-import { FloatableSidebar } from './sidebar';
-import { ManageTagsPage } from './tags/ManageTagsPage';
-import { Titlebar } from './Titlebar';
-import { Tour } from './tour/Tour';
-import { TourAutoOffer } from './tour/TourAutoOffer';
-import { TourProvider } from './tour/TourProvider';
+import {UserAccessPage} from './admin/UserAccess/UserAccessPage';
+import {UserDirectoryPage} from './admin/UserDirectory/UserDirectoryPage';
+import {BankSyncStatus} from './BankSyncStatus';
+import {CommandBar} from './CommandBar';
+import {ContextMenu} from './ContextMenu';
+import {EnableBankingCallback} from './EnableBankingCallback';
+import {FeatureErrorFallback} from './FeatureErrorFallback';
+import {GlobalKeys} from './GlobalKeys';
+import {MobileBankSyncAccountEditPage} from './mobile/banksync/MobileBankSyncAccountEditPage';
+import {MobileNavTabs} from './mobile/MobileNavTabs';
+import {TransactionEdit} from './mobile/transactions/TransactionEdit';
+import {NotificationsPage} from './news/NotificationsPage';
+import {Notifications} from './Notifications';
+import {MobilePageHeaderProvider, MobilePageHeaderSlot} from './Page';
+import {Reports} from './reports';
+import {NarrowAlternate, WideComponent} from './responsive';
+import {useMultiuserEnabled} from './ServerContext';
+import {Settings} from './settings';
+import {FloatableSidebar} from './sidebar';
+import {ManageTagsPage} from './tags/ManageTagsPage';
+import {Titlebar} from './Titlebar';
+import {Tour} from './tour/Tour';
+import {TourAutoOffer} from './tour/TourAutoOffer';
+import {TourProvider} from './tour/TourProvider';
 
 function NarrowNotSupported({
   redirectTo = '/budget',
@@ -69,7 +69,7 @@ function NarrowNotSupported({
   redirectTo?: string;
   children: ReactElement;
 }) {
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const navigate = useNavigate();
   useEffect(() => {
     if (isNarrowWidth) {
@@ -86,7 +86,7 @@ function WideNotSupported({
   redirectTo?: string;
   children: ReactElement;
 }) {
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const navigate = useNavigate();
   useEffect(() => {
     if (!isNarrowWidth) {
@@ -107,17 +107,15 @@ function RouterBehaviors() {
 }
 
 export function FinancesApp() {
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   useMetaThemeColor(theme.mobileViewTheme);
 
   const location = useLocation();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const versionInfo = useSelector(state => state.app.versionInfo);
-  const [notifyWhenUpdateIsAvailable] = useGlobalPref(
-    'notifyWhenUpdateIsAvailable',
-  );
+  const [notifyWhenUpdateIsAvailable] = useGlobalPref('notifyWhenUpdateIsAvailable');
   const [lastUsedVersion, setLastUsedVersion] = useLocalPref(
     'flags.updateNotificationShownForVersion',
   );
@@ -140,9 +138,7 @@ export function FinancesApp() {
           notification: {
             type: 'message',
             title: t('A new version of Actual is available!'),
-            message: t(
-              'Click the button below to reload and apply the update.',
-            ),
+            message: t('Click the button below to reload and apply the update.'),
             sticky: true,
             id: 'update-reload-notification',
             button: {
@@ -167,25 +163,20 @@ export function FinancesApp() {
 
   useEffect(() => {
     if (notifyWhenUpdateIsAvailable && versionInfo) {
-      if (
-        versionInfo.isOutdated &&
-        lastUsedVersion !== versionInfo.latestVersion
-      ) {
+      if (versionInfo.isOutdated && lastUsedVersion !== versionInfo.latestVersion) {
         dispatch(
           addNotification({
             notification: {
               type: 'message',
               title: t('A new version of Actual is available!'),
               message:
-                (import.meta.env.REACT_APP_IS_PIKAPODS ?? '').toLowerCase() ===
-                'true'
+                (import.meta.env.REACT_APP_IS_PIKAPODS ?? '').toLowerCase() === 'true'
                   ? t(
                       'A new version of Actual is available! Your Pikapods instance will be automatically updated in the next few days - no action needed.',
                     )
-                  : t(
-                      'Version {{latestVersion}} of Actual was recently released.',
-                      { latestVersion: versionInfo.latestVersion },
-                    ),
+                  : t('Version {{latestVersion}} of Actual was recently released.', {
+                      latestVersion: versionInfo.latestVersion,
+                    }),
               sticky: true,
               id: 'update-notification',
               button: {
@@ -202,20 +193,13 @@ export function FinancesApp() {
         );
       }
     }
-  }, [
-    dispatch,
-    lastUsedVersion,
-    notifyWhenUpdateIsAvailable,
-    setLastUsedVersion,
-    t,
-    versionInfo,
-  ]);
+  }, [dispatch, lastUsedVersion, notifyWhenUpdateIsAvailable, setLastUsedVersion, t, versionInfo]);
 
   const scrollableRef = useRef<HTMLDivElement>(null);
 
   return (
     <TourProvider>
-      <View style={{ height: '100%' }}>
+      <View style={{height: '100%'}}>
         <RouterBehaviors />
         <GlobalKeys />
         <CommandBar />
@@ -240,10 +224,7 @@ export function FinancesApp() {
               width: '100%',
             }}
           >
-            <ScrollProvider
-              isDisabled={!isNarrowWidth}
-              scrollableRef={scrollableRef}
-            >
+            <ScrollProvider isDisabled={!isNarrowWidth} scrollableRef={scrollableRef}>
               <MobilePageHeaderProvider>
                 <View
                   ref={scrollableRef}
@@ -268,10 +249,7 @@ export function FinancesApp() {
                   {isNarrowWidth && <MobilePageHeaderSlot />}
 
                   <Routes>
-                    <Route
-                      path="/"
-                      element={<Navigate to="/budget" replace />}
-                    />
+                    <Route path="/" element={<Navigate to="/budget" replace />} />
 
                     <Route path="/reports/*" element={<Reports />} />
 
@@ -383,10 +361,7 @@ export function FinancesApp() {
                       }
                     />
                     <Route path="/tags" element={<ManageTagsPage />} />
-                    <Route
-                      path="/notifications"
-                      element={<NotificationsPage />}
-                    />
+                    <Route path="/notifications" element={<NotificationsPage />} />
                     <Route path="/settings" element={<Settings />} />
 
                     <Route
@@ -476,10 +451,7 @@ export function FinancesApp() {
                       />
                     )}
                     {/* redirect all other traffic to the budget page */}
-                    <Route
-                      path="/*"
-                      element={<Navigate to="/budget" replace />}
-                    />
+                    <Route path="/*" element={<Navigate to="/budget" replace />} />
                   </Routes>
                 </View>
 
@@ -489,10 +461,7 @@ export function FinancesApp() {
                   <Route path="/settings" element={<MobileNavTabs />} />
                   <Route path="/notifications" element={<MobileNavTabs />} />
                   <Route path="/reports" element={<MobileNavTabs />} />
-                  <Route
-                    path="/reports/:dashboardId"
-                    element={<MobileNavTabs />}
-                  />
+                  <Route path="/reports/:dashboardId" element={<MobileNavTabs />} />
                   <Route path="/bank-sync" element={<MobileNavTabs />} />
                   <Route path="/rules" element={<MobileNavTabs />} />
                   <Route path="/payees" element={<MobileNavTabs />} />

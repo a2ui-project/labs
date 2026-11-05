@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { Navigation } from './page-models/navigation';
-import type { RulesPage } from './page-models/rules-page';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {Navigation} from './page-models/navigation';
+import type {RulesPage} from './page-models/rules-page';
 
 test.describe('Rules', () => {
   let page: Page;
@@ -27,7 +27,7 @@ test.describe('Rules', () => {
   let rulesPage: RulesPage;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new Navigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -127,9 +127,7 @@ test.describe('Rules', () => {
     });
     await editRuleModal.save();
 
-    const accountPage = await navigation.goToAccountPage(
-      'Capital One Checking',
-    );
+    const accountPage = await navigation.goToAccountPage('Capital One Checking');
 
     await accountPage.createSingleTransaction({
       debit: '100.00',
@@ -159,6 +157,6 @@ test.describe('Rules', () => {
     await rulesPage.rightClickNthRule(0);
     const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
-    await expect(menu.getByRole('button', { name: 'Edit' })).toBeVisible();
+    await expect(menu.getByRole('button', {name: 'Edit'})).toBeVisible();
   });
 });

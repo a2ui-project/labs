@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { LocationCoordinates } from '@actual-app/core/shared/location-utils';
-import type {
-  NearbyPayeeEntity,
-  PayeeLocationEntity,
-} from '@actual-app/core/types/models';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {LocationCoordinates} from '@actual-app/core/shared/location-utils';
+import type {NearbyPayeeEntity, PayeeLocationEntity} from '@actual-app/core/types/models';
 
 /**
  * Abstraction for geolocation functionality
@@ -32,10 +29,7 @@ export type GeolocationAdapter = {
  * Abstraction for location-related API calls
  */
 export type LocationApiClient = {
-  saveLocation(
-    payeeId: string,
-    coordinates: LocationCoordinates,
-  ): Promise<string>;
+  saveLocation(payeeId: string, coordinates: LocationCoordinates): Promise<string>;
   getLocations(payeeId: string): Promise<PayeeLocationEntity[]>;
   deleteLocation(locationId: string): Promise<void>;
   getNearbyPayees(
@@ -48,9 +42,7 @@ export type LocationApiClient = {
  * Browser implementation of geolocation using the Web Geolocation API
  */
 export class BrowserGeolocationAdapter implements GeolocationAdapter {
-  async getCurrentPosition(
-    options: PositionOptions = {},
-  ): Promise<LocationCoordinates> {
+  async getCurrentPosition(options: PositionOptions = {}): Promise<LocationCoordinates> {
     if (!navigator.geolocation) {
       throw new Error('Geolocation is not supported by this browser');
     }
@@ -61,14 +53,12 @@ export class BrowserGeolocationAdapter implements GeolocationAdapter {
       maximumAge: 60000, // Accept 1-minute-old cached position
     };
 
-    const position = await new Promise<GeolocationPosition>(
-      (resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          ...defaultOptions,
-          ...options,
-        });
-      },
-    );
+    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        ...defaultOptions,
+        ...options,
+      });
+    });
     return {
       latitude: position.coords.latitude,
       longitude: position.coords.longitude,
@@ -80,10 +70,7 @@ export class BrowserGeolocationAdapter implements GeolocationAdapter {
  * Implementation using the existing send function for API calls
  */
 export class SendApiLocationClient implements LocationApiClient {
-  async saveLocation(
-    payeeId: string,
-    coordinates: LocationCoordinates,
-  ): Promise<string> {
+  async saveLocation(payeeId: string, coordinates: LocationCoordinates): Promise<string> {
     return await send('payee-location-create', {
       payeeId,
       latitude: coordinates.latitude,
@@ -92,11 +79,11 @@ export class SendApiLocationClient implements LocationApiClient {
   }
 
   async getLocations(payeeId: string): Promise<PayeeLocationEntity[]> {
-    return await send('payee-locations-get', { payeeId });
+    return await send('payee-locations-get', {payeeId});
   }
 
   async deleteLocation(locationId: string): Promise<void> {
-    await send('payee-location-delete', { id: locationId });
+    await send('payee-location-delete', {id: locationId});
   }
 
   async getNearbyPayees(

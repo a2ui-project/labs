@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { render, screen } from '@testing-library/react';
-import { vi } from 'vitest';
+import {render, screen} from '@testing-library/react';
+import {vi} from 'vitest';
 
-import { TestProviders } from '#mocks';
+import {TestProviders} from '#mocks';
 
-import { GoCardlessExternalMsgModal } from './GoCardlessExternalMsgModal';
+import {GoCardlessExternalMsgModal} from './GoCardlessExternalMsgModal';
 
 vi.mock('#hooks/useGlobalPref', () => ({
   useGlobalPref: () => [null],
@@ -56,12 +56,12 @@ describe('GoCardlessExternalMsgModal - Country Auto-selection', () => {
     global.Intl = {
       ...originalIntl,
       DateTimeFormat: vi.fn(() => ({
-        resolvedOptions: () => ({ timeZone: 'Europe/Berlin' }),
+        resolvedOptions: () => ({timeZone: 'Europe/Berlin'}),
       })) as unknown as typeof Intl.DateTimeFormat,
     } as typeof Intl;
 
     Object.defineProperty(global, 'navigator', {
-      value: { language: 'en' },
+      value: {language: 'en'},
       writable: true,
     });
 
@@ -81,13 +81,13 @@ describe('GoCardlessExternalMsgModal - Country Auto-selection', () => {
     global.Intl = {
       ...originalIntl,
       DateTimeFormat: vi.fn(() => ({
-        resolvedOptions: () => ({ timeZone: 'America/New_York' }),
+        resolvedOptions: () => ({timeZone: 'America/New_York'}),
       })) as unknown as typeof Intl.DateTimeFormat,
     } as typeof Intl;
 
     // But locale is UK
     Object.defineProperty(global, 'navigator', {
-      value: { language: 'en-GB' },
+      value: {language: 'en-GB'},
       writable: true,
     });
 
@@ -106,13 +106,13 @@ describe('GoCardlessExternalMsgModal - Country Auto-selection', () => {
     global.Intl = {
       ...originalIntl,
       DateTimeFormat: vi.fn(() => ({
-        resolvedOptions: () => ({ timeZone: 'America/New_York' }),
+        resolvedOptions: () => ({timeZone: 'America/New_York'}),
       })) as unknown as typeof Intl.DateTimeFormat,
     } as typeof Intl;
 
     // Locale is also US
     Object.defineProperty(global, 'navigator', {
-      value: { language: 'en-US' },
+      value: {language: 'en-US'},
       writable: true,
     });
 
@@ -131,13 +131,13 @@ describe('GoCardlessExternalMsgModal - Country Auto-selection', () => {
     global.Intl = {
       ...originalIntl,
       DateTimeFormat: vi.fn(() => ({
-        resolvedOptions: () => ({ timeZone: 'Europe/Paris' }),
+        resolvedOptions: () => ({timeZone: 'Europe/Paris'}),
       })) as unknown as typeof Intl.DateTimeFormat,
     } as typeof Intl;
 
     // Locale is German
     Object.defineProperty(global, 'navigator', {
-      value: { language: 'de-DE' },
+      value: {language: 'de-DE'},
       writable: true,
     });
 

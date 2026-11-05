@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { initBackend as initSQLBackend } from 'absurd-sql/dist/indexeddb-main-thread';
+import {initBackend as initSQLBackend} from 'absurd-sql/dist/indexeddb-main-thread';
 
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 
-import { WorkerBridge } from './worker-bridge';
+import {WorkerBridge} from './worker-bridge';
 
 export type StartBackendInit = {
   version: string;
@@ -47,15 +47,8 @@ export type StartBackendOptions = {
 
 export type StartBackendHandle = Worker | WorkerBridge;
 
-export function startBrowserBackend(
-  opts: StartBackendOptions,
-): StartBackendHandle {
-  const {
-    backendWorkerUrl,
-    initPayload,
-    createSharedWorker,
-    forceDirectWorker,
-  } = opts;
+export function startBrowserBackend(opts: StartBackendOptions): StartBackendHandle {
+  const {backendWorkerUrl, initPayload, createSharedWorker, forceDirectWorker} = opts;
 
   // Use SharedWorker as a coordinator for multi-tab, multi-budget support.
   // Each budget gets its own leader tab running a dedicated Worker. All other
@@ -63,11 +56,7 @@ export function startBrowserBackend(
   // the SharedWorker to the leader's Worker.
   // The SharedWorker never touches SharedArrayBuffer, so this works on all
   // platforms including iOS/Safari.
-  if (
-    !forceDirectWorker &&
-    typeof SharedWorker !== 'undefined' &&
-    createSharedWorker
-  ) {
+  if (!forceDirectWorker && typeof SharedWorker !== 'undefined' && createSharedWorker) {
     try {
       const sharedWorker = createSharedWorker();
 
@@ -86,14 +75,12 @@ export function startBrowserBackend(
       sharedPort.postMessage({
         type: 'init',
         ...initPayload,
-        isSharedArrayBufferOverrideEnabled: localStorage.getItem(
-          'SharedArrayBufferOverride',
-        ),
+        isSharedArrayBufferOverrideEnabled: localStorage.getItem('SharedArrayBufferOverride'),
       });
       bridge.markInitialized();
 
       window.addEventListener('beforeunload', () => {
-        sharedPort.postMessage({ type: 'tab-closing' });
+        sharedPort.postMessage({type: 'tab-closing'});
       });
 
       return bridge;
@@ -116,9 +103,7 @@ export function startBrowserBackend(
     type: 'init',
     ...initPayload,
     hasSharedArrayBuffer: !!window.SharedArrayBuffer,
-    isSharedArrayBufferOverrideEnabled: localStorage.getItem(
-      'SharedArrayBufferOverride',
-    ),
+    isSharedArrayBufferOverrideEnabled: localStorage.getItem('SharedArrayBufferOverride'),
   });
 
   return worker;

@@ -16,7 +16,7 @@
 
 import i18n from 'i18next';
 
-import { availableLanguages, setI18NextLanguage } from './i18n';
+import {availableLanguages, setI18NextLanguage} from './i18n';
 
 vi.mock('i18next', () => {
   const i18nMock = {
@@ -47,7 +47,7 @@ describe('setI18NextLanguage', () => {
   afterEach(vi.unstubAllGlobals);
 
   test('should set system default language when no language is provided', () => {
-    vi.stubGlobal('navigator', { language: 'uk' });
+    vi.stubGlobal('navigator', {language: 'uk'});
 
     setI18NextLanguage('');
 
@@ -67,9 +67,7 @@ describe('setI18NextLanguage', () => {
 
     setI18NextLanguage('unknown');
 
-    expect(console.info).toHaveBeenCalledWith(
-      'Unknown locale unknown, falling back to en',
-    );
+    expect(console.info).toHaveBeenCalledWith('Unknown locale unknown, falling back to en');
     expect(vi.mocked(i18n).changeLanguage).toHaveBeenCalledWith('en');
   });
 
@@ -86,9 +84,7 @@ describe('setI18NextLanguage', () => {
 
     setI18NextLanguage('uk-ZZ');
 
-    expect(console.info).toHaveBeenCalledWith(
-      'Unknown locale uk-ZZ, falling back to uk-zz',
-    );
+    expect(console.info).toHaveBeenCalledWith('Unknown locale uk-ZZ, falling back to uk-zz');
     expect(vi.mocked(i18n).changeLanguage).toHaveBeenCalledWith('uk');
   });
 
@@ -97,9 +93,7 @@ describe('setI18NextLanguage', () => {
 
     setI18NextLanguage('EN');
 
-    expect(console.info).toHaveBeenCalledWith(
-      'Unknown locale EN, falling back to en',
-    );
+    expect(console.info).toHaveBeenCalledWith('Unknown locale EN, falling back to en');
     expect(vi.mocked(i18n).changeLanguage).toHaveBeenCalledWith('en');
   });
 });

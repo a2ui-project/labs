@@ -14,40 +14,40 @@
  * limitations under the License.
  */
 
-import { useCallback, useMemo, useRef, useState } from 'react';
-import type { ComponentProps } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useCallback, useMemo, useRef, useState} from 'react';
+import type {ComponentProps} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgExpandArrow, SvgSubtract } from '@actual-app/components/icons/v0';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { memoizeOne } from '@actual-app/core/shared/memoize';
-import { getNormalisedString } from '@actual-app/core/shared/normalisation';
-import { groupById } from '@actual-app/core/shared/util';
-import type { Diff } from '@actual-app/core/shared/util';
-import type { PayeeEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgExpandArrow, SvgSubtract} from '@actual-app/components/icons/v0';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {memoizeOne} from '@actual-app/core/shared/memoize';
+import {getNormalisedString} from '@actual-app/core/shared/normalisation';
+import {groupById} from '@actual-app/core/shared/util';
+import type {Diff} from '@actual-app/core/shared/util';
+import type {PayeeEntity} from '@actual-app/core/types/models';
 
-import { Search } from '#components/common/Search';
-import { Cell, SelectCell, TableHeader } from '#components/table';
+import {Search} from '#components/common/Search';
+import {Cell, SelectCell, TableHeader} from '#components/table';
 import {
   SelectedProvider,
   useSelected,
   useSelectedDispatch,
   useSelectedItems,
 } from '#hooks/useSelected';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
-import { PayeeMenu } from './PayeeMenu';
-import { PayeeTable } from './PayeeTable';
+import {PayeeMenu} from './PayeeMenu';
+import {PayeeTable} from './PayeeTable';
 
 const getPayeesById = memoizeOne((payees: PayeeEntity[]) => groupById(payees));
 
 function PayeeTableHeader() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const dispatchSelected = useSelectedDispatch();
   const selectedItems = useSelectedItems();
@@ -60,9 +60,7 @@ function PayeeTableHeader() {
           focused={false}
           selected={selectedItems.size > 0}
           icon={<SvgSubtract width={6} height={6} />}
-          onSelect={e =>
-            dispatchSelected({ type: 'select-all', isRangeSelect: e.shiftKey })
-          }
+          onSelect={e => dispatchSelected({type: 'select-all', isRangeSelect: e.shiftKey})}
         />
         <Cell value={t('Name')} width="flex" />
       </TableHeader>
@@ -95,22 +93,20 @@ export const ManagePayees = ({
   const table = useRef(null);
   const triggerRef = useRef(null);
   const [orphanedOnly, setOrphanedOnly] = useState(false);
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
 
   const filteredPayees = useMemo(() => {
     let filtered = payees;
     if (filter) {
       filtered = filtered.filter(p =>
-        getNormalisedString(
-          (p.transfer_acct ? t('Transfer: ') : '') + p.name,
-        ).includes(getNormalisedString(filter)),
+        getNormalisedString((p.transfer_acct ? t('Transfer: ') : '') + p.name).includes(
+          getNormalisedString(filter),
+        ),
       );
     }
     if (orphanedOnly) {
-      filtered = filtered.filter(p =>
-        orphanedPayees.map(o => o.id).includes(p.id),
-      );
+      filtered = filtered.filter(p => orphanedPayees.map(o => o.id).includes(p.id));
     }
     return filtered;
   }, [payees, filter, orphanedOnly, orphanedPayees, t]);
@@ -132,7 +128,7 @@ export const ManagePayees = ({
       const payee = payees.find(p => p.id === id);
       if (payee && payee[name] !== value) {
         onBatchChange({
-          updated: [{ id, [name]: value }],
+          updated: [{id, [name]: value}],
           added: [],
           deleted: [],
         });
@@ -142,38 +138,34 @@ export const ManagePayees = ({
   );
 
   const getSelectableIds = useCallback(() => {
-    return Promise.resolve(
-      filteredPayees.filter(p => p.transfer_acct == null).map(p => p.id),
-    );
+    return Promise.resolve(filteredPayees.filter(p => p.transfer_acct == null).map(p => p.id));
   }, [filteredPayees]);
 
-  function onDelete(ids?: { id: string }[]) {
+  function onDelete(ids?: {id: string}[]) {
     onBatchChange({
-      deleted: ids ?? [...selected.items].map(id => ({ id })),
+      deleted: ids ?? [...selected.items].map(id => ({id})),
       updated: [],
       added: [],
     });
-    if (!ids) selected.dispatch({ type: 'select-none' });
+    if (!ids) selected.dispatch({type: 'select-none'});
   }
 
   function onFavorite() {
-    const allFavorited = [...selected.items]
-      .map(id => payeesById[id].favorite)
-      .every(f => f);
+    const allFavorited = [...selected.items].map(id => payeesById[id].favorite).every(f => f);
     if (allFavorited) {
       onBatchChange({
-        updated: [...selected.items].map(id => ({ id, favorite: false })),
+        updated: [...selected.items].map(id => ({id, favorite: false})),
         added: [],
         deleted: [],
       });
     } else {
       onBatchChange({
-        updated: [...selected.items].map(id => ({ id, favorite: true })),
+        updated: [...selected.items].map(id => ({id, favorite: true})),
         added: [],
         deleted: [],
       });
     }
-    selected.dispatch({ type: 'select-none' });
+    selected.dispatch({type: 'select-none'});
   }
 
   function onLearn() {
@@ -199,7 +191,7 @@ export const ManagePayees = ({
         deleted: [],
       });
     }
-    selected.dispatch({ type: 'select-none' });
+    selected.dispatch({type: 'select-none'});
   }
 
   async function onMerge() {
@@ -217,7 +209,7 @@ export const ManagePayees = ({
             targetPayeeId,
             onConfirm: async () => {
               await props.onMerge(ids);
-              selected.dispatch({ type: 'select-none' });
+              selected.dispatch({type: 'select-none'});
             },
           },
         },
@@ -226,7 +218,7 @@ export const ManagePayees = ({
   }
 
   const onChangeCategoryLearning = useCallback(() => {
-    dispatch(pushModal({ modal: { name: 'payee-category-learning' } }));
+    dispatch(pushModal({modal: {name: 'payee-category-learning'}}));
   }, [dispatch]);
 
   const buttonsDisabled = selected.items.size === 0;
@@ -236,7 +228,7 @@ export const ManagePayees = ({
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <View style={{ height: '100%' }}>
+    <View style={{height: '100%'}}>
       <View
         style={{
           flexDirection: 'row',
@@ -244,11 +236,11 @@ export const ManagePayees = ({
           padding: '0 0 15px',
         }}
       >
-        <View style={{ flexShrink: 0 }}>
+        <View style={{flexShrink: 0}}>
           <Button
             ref={triggerRef}
             variant="bare"
-            style={{ marginRight: 10 }}
+            style={{marginRight: 10}}
             isDisabled={buttonsDisabled}
             onPress={() => setMenuOpen(true)}
           >
@@ -257,14 +249,14 @@ export const ManagePayees = ({
               : t('{{count}} payees', {
                   count: selected.items.size,
                 })}
-            <SvgExpandArrow width={8} height={8} style={{ marginLeft: 5 }} />
+            <SvgExpandArrow width={8} height={8} style={{marginLeft: 5}} />
           </Button>
 
           <Popover
             triggerRef={triggerRef}
             isOpen={menuOpen}
             placement="bottom start"
-            style={{ width: 250 }}
+            style={{width: 250}}
             onOpenChange={() => setMenuOpen(false)}
           >
             <PayeeMenu
@@ -286,7 +278,7 @@ export const ManagePayees = ({
           {(orphanedOnly || (orphanedPayees && orphanedPayees.length > 0)) && (
             <Button
               variant="bare"
-              style={{ marginRight: 10 }}
+              style={{marginRight: 10}}
               onPress={() => setOrphanedOnly(prev => !prev)}
             >
               {orphanedOnly
@@ -297,12 +289,8 @@ export const ManagePayees = ({
             </Button>
           )}
         </View>
-        <View style={{ flex: 1 }} />
-        <Search
-          placeholder={t('Filter payees...')}
-          value={filter}
-          onChange={applyFilter}
-        />
+        <View style={{flex: 1}} />
+        <Search placeholder={t('Filter payees...')} value={filter} onChange={applyFilter} />
       </View>
 
       <SelectedProvider instance={selected} fetchAllIds={getSelectableIds}>
@@ -328,7 +316,7 @@ export const ManagePayees = ({
               onUpdate={onUpdate}
               onViewRules={onViewRules}
               onCreateRule={onCreateRule}
-              onDelete={ids => onDelete(ids.map(id => ({ id })))}
+              onDelete={ids => onDelete(ids.map(id => ({id})))}
             />
           )}
         </View>

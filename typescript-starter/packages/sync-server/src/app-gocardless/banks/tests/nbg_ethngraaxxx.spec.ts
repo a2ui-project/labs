@@ -30,14 +30,9 @@ describe('NbgEthngraaxxx', () => {
         valueDate: '2024-09-03',
       };
 
-      const normalizedTransaction = NbgEthngraaxxx.normalizeTransaction(
-        transaction,
-        false,
-      );
+      const normalizedTransaction = NbgEthngraaxxx.normalizeTransaction(transaction, false);
 
-      expect(normalizedTransaction?.transactionAmount.amount).toEqual(
-        '-100.00',
-      );
+      expect(normalizedTransaction?.transactionAmount.amount).toEqual('-100.00');
       expect(normalizedTransaction?.payeeName).toEqual('Testingson');
     });
   });
@@ -55,10 +50,7 @@ describe('NbgEthngraaxxx', () => {
       valueDate: '2024-09-03',
     };
 
-    const normalizedTransaction = NbgEthngraaxxx.normalizeTransaction(
-      transaction,
-      true,
-    );
+    const normalizedTransaction = NbgEthngraaxxx.normalizeTransaction(transaction, true);
 
     expect(normalizedTransaction?.transactionAmount.amount).toEqual('-100.00');
     expect(normalizedTransaction?.payeeName).toEqual('Testingson');

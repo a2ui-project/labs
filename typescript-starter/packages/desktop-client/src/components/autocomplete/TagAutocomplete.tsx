@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-import { useCallback, useId, useMemo, useRef, useState } from 'react';
-import type {
-  CSSProperties,
-  FocusEventHandler,
-  KeyboardEvent,
-  KeyboardEventHandler,
-} from 'react';
-import { ListBox, ListBoxItem, Popover } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import {useCallback, useId, useMemo, useRef, useState} from 'react';
+import type {CSSProperties, FocusEventHandler, KeyboardEvent, KeyboardEventHandler} from 'react';
+import {ListBox, ListBoxItem, Popover} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { SvgAdd } from '@actual-app/components/icons/v0';
-import { Input } from '@actual-app/components/input';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { send } from '@actual-app/core/platform/client/connection';
-import { css } from '@emotion/css';
+import {SvgAdd} from '@actual-app/components/icons/v0';
+import {Input} from '@actual-app/components/input';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {send} from '@actual-app/core/platform/client/connection';
+import {css} from '@emotion/css';
 
-import { useCurrentWordRange } from '#hooks/useCurrentWordRange';
-import { useCursorPosition } from '#hooks/useCursorPosition';
-import { useTagCSS } from '#hooks/useTagCSS';
-import { useFilteredTags } from '#hooks/useTags';
+import {useCurrentWordRange} from '#hooks/useCurrentWordRange';
+import {useCursorPosition} from '#hooks/useCursorPosition';
+import {useTagCSS} from '#hooks/useTagCSS';
+import {useFilteredTags} from '#hooks/useTags';
 
 export type TagAutocompleteProps = {
   inputValue: string;
@@ -54,27 +49,22 @@ export function TagAutocomplete({
   onKeyDown,
   onUpdate,
 }: TagAutocompleteProps) {
-  const { t } = useTranslation();
-  const getTagCSS = useTagCSS({ ellipsis: true });
+  const {t} = useTranslation();
+  const getTagCSS = useTagCSS({ellipsis: true});
   const autocompleteId = useId();
-  const id = useCallback(
-    (itemId: string) => autocompleteId + '|' + itemId,
-    [autocompleteId],
-  );
+  const id = useCallback((itemId: string) => autocompleteId + '|' + itemId, [autocompleteId]);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [cursorPosition, setCursorPosition] = useCursorPosition(inputRef);
   const [startIdx, endIdx] = useCurrentWordRange(inputValue, cursorPosition);
   const currentWord = inputValue.slice(startIdx, endIdx);
 
-  const { data: filteredTags, refetch } = useFilteredTags(currentWord, true);
+  const {data: filteredTags, refetch} = useFilteredTags(currentWord, true);
   const filteredItems = useMemo(() => {
-    const tagArr =
-      filteredTags?.map(tag => ({ ...tag, name: '#' + tag.tag })) ?? [];
+    const tagArr = filteredTags?.map(tag => ({...tag, name: '#' + tag.tag})) ?? [];
 
     const isValidTag = currentWord.startsWith('#') && currentWord.length > 1;
-    const exactMatchExists =
-      tagArr.length && '#' + tagArr[0].tag === currentWord;
+    const exactMatchExists = tagArr.length && '#' + tagArr[0].tag === currentWord;
     if (isValidTag && !exactMatchExists) {
       const currentWordSingleHash = currentWord.replace(/^#+/, '#');
       tagArr.push({
@@ -97,13 +87,10 @@ export function TagAutocomplete({
   const scrollItemIntoView = useCallback(
     (idx: number) => {
       const targetId =
-        showPopup &&
-        idx >= 0 &&
-        idx < filteredItems?.length &&
-        filteredItems[idx].id;
+        showPopup && idx >= 0 && idx < filteredItems?.length && filteredItems[idx].id;
       if (targetId) {
         const el = document.querySelector(`[data-key="${id(targetId)}"]`);
-        el?.scrollIntoView?.({ block: 'nearest' });
+        el?.scrollIntoView?.({block: 'nearest'});
       }
     },
     [id, filteredItems, showPopup],
@@ -114,18 +101,14 @@ export function TagAutocomplete({
     if (!tagObj) return;
 
     if (id === 'create_tag') {
-      await send('tags-create', { tag: tagObj.tag });
-      void refetch({ cancelRefetch: true });
+      await send('tags-create', {tag: tagObj.tag});
+      void refetch({cancelRefetch: true});
     }
 
     const nextChar = inputValue.charAt(endIdx);
     const space = nextChar === ' ' ? '' : ' ';
     const newValue =
-      inputValue.slice(0, startIdx) +
-      '#' +
-      tagObj.tag +
-      space +
-      inputValue.slice(endIdx);
+      inputValue.slice(0, startIdx) + '#' + tagObj.tag + space + inputValue.slice(endIdx);
     setInputValue(newValue);
     setHighlightedIdx(0);
     setIsOpen(false);
@@ -160,9 +143,7 @@ export function TagAutocomplete({
       setIsOpen(false);
     }
 
-    setHighlightedIdx(idx =>
-      Math.max(0, Math.min(idx, filteredItems.length - 1)),
-    );
+    setHighlightedIdx(idx => Math.max(0, Math.min(idx, filteredItems.length - 1)));
   }
 
   return (
@@ -222,9 +203,7 @@ export function TagAutocomplete({
               textValue={item.name}
               style={() => ({
                 backgroundColor:
-                  highlightedId === item.id
-                    ? theme.menuAutoCompleteBackgroundHover
-                    : 'transparent',
+                  highlightedId === item.id ? theme.menuAutoCompleteBackgroundHover : 'transparent',
                 alignItems: 'center',
                 fontWeight: 500,
                 cursor: 'pointer',
@@ -235,9 +214,7 @@ export function TagAutocomplete({
                 padding: '4px 6px 1px 6px',
               })}
               onMouseMove={() => {
-                const idx = filteredItems.findIndex(
-                  _item => _item.id === item.id,
-                );
+                const idx = filteredItems.findIndex(_item => _item.id === item.id);
                 if (idx >= 0 && highlightedIdx !== idx) {
                   setHighlightedIdx(idx);
                 }

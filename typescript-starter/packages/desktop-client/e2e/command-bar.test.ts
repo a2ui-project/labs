@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
 
 test.describe('Command bar', () => {
   let page: Page;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     configurationPage = new ConfigurationPage(page);
 
@@ -37,7 +37,7 @@ test.describe('Command bar', () => {
 
     // ensure page is loaded
     await expect(page.getByTestId('budget-table')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Add group' })).toBeVisible({
+    await expect(page.getByRole('button', {name: 'Add group'})).toBeVisible({
       timeout: 10000,
     });
   });

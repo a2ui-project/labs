@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 import type * as db from '#server/db';
 
@@ -26,14 +26,10 @@ import {
 
 describe('balanceOfFormula', () => {
   it('extractBalanceOfLiterals returns distinct decoded literals', () => {
-    expect(
-      extractBalanceOfLiterals(
-        '=BALANCE_OF("Checking") + BALANCE_OF("Checking")',
-      ),
-    ).toEqual(['Checking']);
-    expect(extractBalanceOfLiterals('=balance_of("Savings")')).toEqual([
-      'Savings',
+    expect(extractBalanceOfLiterals('=BALANCE_OF("Checking") + BALANCE_OF("Checking")')).toEqual([
+      'Checking',
     ]);
+    expect(extractBalanceOfLiterals('=balance_of("Savings")')).toEqual(['Savings']);
   });
 
   it('decodeBalanceOfQuotedLiteral unescapes quotes and backslashes', () => {

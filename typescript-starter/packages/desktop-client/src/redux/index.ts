@@ -21,9 +21,9 @@ import {
   useStore as useReduxStore,
 } from 'react-redux';
 
-import { createAsyncThunk } from '@reduxjs/toolkit';
+import {createAsyncThunk} from '@reduxjs/toolkit';
 
-import type { AppDispatch, AppStore, ExtraArguments, RootState } from './store';
+import type {AppDispatch, AppStore, ExtraArguments, RootState} from './store';
 
 export const createAppAsyncThunk = createAsyncThunk.withTypes<{
   state: RootState;

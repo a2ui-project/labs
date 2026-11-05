@@ -18,7 +18,7 @@
 // Requirements
 //------------------------------------------------------------------------------
 
-import { runClassic } from 'eslint-vitest-rule-tester';
+import {runClassic} from 'eslint-vitest-rule-tester';
 
 import plugin from '../../index';
 const rule = plugin.rules['object-shorthand-properties'];
@@ -70,7 +70,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useShorthand',
-            data: { key: 'foo' },
+            data: {key: 'foo'},
           },
         ],
       },
@@ -80,11 +80,11 @@ void runClassic(
         errors: [
           {
             messageId: 'useShorthand',
-            data: { key: 'foo' },
+            data: {key: 'foo'},
           },
           {
             messageId: 'useShorthand',
-            data: { key: 'bar' },
+            data: {key: 'bar'},
           },
         ],
       },
@@ -94,7 +94,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useShorthand',
-            data: { key: 'foo' },
+            data: {key: 'foo'},
           },
         ],
       },
@@ -104,15 +104,15 @@ void runClassic(
         errors: [
           {
             messageId: 'useShorthand',
-            data: { key: 'a' },
+            data: {key: 'a'},
           },
           {
             messageId: 'useShorthand',
-            data: { key: 'b' },
+            data: {key: 'b'},
           },
           {
             messageId: 'useShorthand',
-            data: { key: 'c' },
+            data: {key: 'c'},
           },
         ],
       },
@@ -122,11 +122,11 @@ void runClassic(
         errors: [
           {
             messageId: 'useShorthand',
-            data: { key: 'x' },
+            data: {key: 'x'},
           },
           {
             messageId: 'useShorthand',
-            data: { key: 'y' },
+            data: {key: 'y'},
           },
         ],
       },
@@ -136,7 +136,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useShorthand',
-            data: { key: 'prop' },
+            data: {key: 'prop'},
           },
         ],
       },
@@ -146,7 +146,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useShorthand',
-            data: { key: 'bar' },
+            data: {key: 'bar'},
           },
         ],
       },
@@ -156,7 +156,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useShorthand',
-            data: { key: 'foo' },
+            data: {key: 'foo'},
           },
         ],
       },
@@ -165,7 +165,7 @@ void runClassic(
   {
     parserOptions: {
       ecmaVersion: 2020,
-      ecmaFeatures: { jsx: true },
+      ecmaFeatures: {jsx: true},
     },
   },
 );

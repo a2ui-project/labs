@@ -15,19 +15,19 @@
  */
 
 import React from 'react';
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
+import {Button} from '@actual-app/components/button';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
 
-import { Link } from '#components/common/Link';
-import { useServerURL } from '#components/ServerContext';
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {Link} from '#components/common/Link';
+import {useServerURL} from '#components/ServerContext';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
-import { Setting } from './UI';
+import {Setting} from './UI';
 
 export function EncryptionSettings() {
   const dispatch = useDispatch();
@@ -39,7 +39,7 @@ export function EncryptionSettings() {
   function onChangeKey() {
     dispatch(
       pushModal({
-        modal: { name: 'create-encryption-key', options: { recreate: true } },
+        modal: {name: 'create-encryption-key', options: {recreate: true}},
       }),
     );
   }
@@ -53,15 +53,14 @@ export function EncryptionSettings() {
       }
     >
       <Text>
-        <Text style={{ color: theme.noticeTextLight, fontWeight: 600 }}>
+        <Text style={{color: theme.noticeTextLight, fontWeight: 600}}>
           <Trans>End-to-end Encryption is turned on.</Trans>
         </Text>{' '}
         <Trans>
-          Your budget data is encrypted with a key that only you have before
-          sending it out to the cloud. Local data remains unencrypted so if you
-          forget your password you can re-encrypt it. Note: bank sync operations
-          and secrets stored on the server are not covered by end-to-end
-          encryption.
+          Your budget data is encrypted with a key that only you have before sending it out to the
+          cloud. Local data remains unencrypted so if you forget your password you can re-encrypt
+          it. Note: bank sync operations and secrets stored on the server are not covered by
+          end-to-end encryption.
         </Trans>{' '}
         <Link
           variant="external"
@@ -82,16 +81,12 @@ export function EncryptionSettings() {
     >
       <Text>
         <Trans>
-          <strong>End-to-end encryption</strong> is not available when making an
-          unencrypted connection to a remote server. You'll need to enable HTTPS
-          on your server to use end-to-end encryption. This problem may also
-          occur if your browser is too old to work with Actual.
+          <strong>End-to-end encryption</strong> is not available when making an unencrypted
+          connection to a remote server. You'll need to enable HTTPS on your server to use
+          end-to-end encryption. This problem may also occur if your browser is too old to work with
+          Actual.
         </Trans>{' '}
-        <Link
-          variant="external"
-          to="https://actualbudget.org/docs/config/https"
-          linkColor="purple"
-        >
+        <Link variant="external" to="https://actualbudget.org/docs/config/https" linkColor="purple">
           <Trans>Learn more</Trans>
         </Link>
       </Text>
@@ -103,7 +98,7 @@ export function EncryptionSettings() {
           onPress={() =>
             dispatch(
               pushModal({
-                modal: { name: 'create-encryption-key', options: {} },
+                modal: {name: 'create-encryption-key', options: {}},
               }),
             )
           }
@@ -114,11 +109,10 @@ export function EncryptionSettings() {
     >
       <Text>
         <Trans>
-          <strong>End-to-end encryption</strong> is not enabled. Any data on the
-          server is still protected by the server password, but it's not
-          end-to-end encrypted which means the server owners have the ability to
-          read it. If you want, you can use an additional password to encrypt
-          your data on the server.
+          <strong>End-to-end encryption</strong> is not enabled. Any data on the server is still
+          protected by the server password, but it's not end-to-end encrypted which means the server
+          owners have the ability to read it. If you want, you can use an additional password to
+          encrypt your data on the server.
         </Trans>{' '}
         <Link
           variant="external"
@@ -139,9 +133,9 @@ export function EncryptionSettings() {
     >
       <Text>
         <Trans>
-          <strong>End-to-end encryption</strong> is not available when running
-          without a server. Budget files are always kept unencrypted locally,
-          and encryption is only applied when sending data to a server.
+          <strong>End-to-end encryption</strong> is not available when running without a server.
+          Budget files are always kept unencrypted locally, and encryption is only applied when
+          sending data to a server.
         </Trans>{' '}
         <Link
           variant="external"

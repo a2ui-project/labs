@@ -15,28 +15,25 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { theme } from '@actual-app/components/theme';
-import type { NewRuleEntity, RuleEntity } from '@actual-app/core/types/models';
+import {theme} from '@actual-app/components/theme';
+import type {NewRuleEntity, RuleEntity} from '@actual-app/core/types/models';
 
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { RuleEditor } from '#components/rules/RuleEditor';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {RuleEditor} from '#components/rules/RuleEditor';
 
 type EditRuleModalProps = {
   rule: RuleEntity | NewRuleEntity;
   onSave?: (rule: RuleEntity) => void;
 };
 
-export function EditRuleModal({
-  rule: defaultRule,
-  onSave: originalOnSave,
-}: EditRuleModalProps) {
-  const { t } = useTranslation();
+export function EditRuleModal({rule: defaultRule, onSave: originalOnSave}: EditRuleModalProps) {
+  const {t} = useTranslation();
 
   return (
     <Modal name="edit-rule">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Rule')}

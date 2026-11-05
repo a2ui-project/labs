@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { currencyToAmount } from './util';
+import {currencyToAmount} from './util';
 
 type ParserState = {
   str: string;
@@ -32,9 +32,7 @@ type OperatorNode = {
 type AstNode = number | OperatorNode;
 
 function fail(state: ParserState, msg: string): never {
-  throw new Error(
-    msg + ': ' + JSON.stringify(state.str.slice(state.index, 10)),
-  );
+  throw new Error(msg + ': ' + JSON.stringify(state.str.slice(state.index, 10)));
 }
 
 function char(state: ParserState): string | undefined {
@@ -69,10 +67,7 @@ function parsePrimary(state: ParserState): number {
 
   let numberStr = '';
   let currentChar = char(state);
-  while (
-    currentChar &&
-    currentChar.match(/[0-9,.'\u2019\u00A0\u202F ]|\p{Sc}/u)
-  ) {
+  while (currentChar && currentChar.match(/[0-9,.'\u2019\u00A0\u202F ]|\p{Sc}/u)) {
     const ch = next(state);
     if (ch !== null) {
       numberStr += ch;
@@ -110,7 +105,7 @@ function parseParens(state: ParserState): AstNode {
 function parseExponent(state: ParserState): AstNode {
   let node = parseParens(state);
   if (nextOperator(state, '^')) {
-    node = { op: '^', left: node, right: parseExponent(state) };
+    node = {op: '^', left: node, right: parseExponent(state)};
   }
   return node;
 }
@@ -119,7 +114,7 @@ function parseMultiplicative(state: ParserState): AstNode {
   let node = parseExponent(state);
   while (char(state) === '*' || char(state) === '/') {
     const op = next(state) as '*' | '/';
-    node = { op, left: node, right: parseExponent(state) };
+    node = {op, left: node, right: parseExponent(state)};
   }
   return node;
 }
@@ -128,7 +123,7 @@ function parseAdditive(state: ParserState): AstNode {
   let node = parseMultiplicative(state);
   while (char(state) === '+' || char(state) === '-') {
     const op = next(state) as '+' | '-';
-    node = { op, left: node, right: parseMultiplicative(state) };
+    node = {op, left: node, right: parseMultiplicative(state)};
   }
   return node;
 }
@@ -137,7 +132,7 @@ function parseAdditive(state: ParserState): AstNode {
 const parseOperator = parseAdditive;
 
 function parse(expression: string): AstNode {
-  const state = { str: expression.replace(/\s/g, ''), index: 0 };
+  const state = {str: expression.replace(/\s/g, ''), index: 0};
   return parseOperator(state);
 }
 
@@ -146,7 +141,7 @@ function evaluate(ast: AstNode): number {
     return ast;
   }
 
-  const { left, right, op } = ast;
+  const {left, right, op} = ast;
 
   switch (op) {
     case '+':

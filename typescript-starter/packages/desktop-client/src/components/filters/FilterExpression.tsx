@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import React, { useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useRef, useState} from 'react';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgDelete } from '@actual-app/components/icons/v0';
-import { Popover } from '@actual-app/components/popover';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { RuleConditionEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgDelete} from '@actual-app/components/icons/v0';
+import {Popover} from '@actual-app/components/popover';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {RuleConditionEntity} from '@actual-app/core/types/models';
 
-import { Value } from '#components/rules/Value';
-import { friendlyOp, mapField } from '#util/rule';
+import {Value} from '#components/rules/Value';
+import {friendlyOp, mapField} from '#util/rule';
 
-import { FilterEditor } from './FiltersMenu';
-import { subfieldFromFilter } from './subfieldFromFilter';
+import {FilterEditor} from './FiltersMenu';
+import {subfieldFromFilter} from './subfieldFromFilter';
 
 let isDatepickerClick = false;
 
@@ -55,11 +55,11 @@ export function FilterExpression<T extends RuleConditionEntity>({
   onChange,
   onDelete,
 }: FilterExpressionProps<T>) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [editing, setEditing] = useState(false);
   const triggerRef = useRef(null);
 
-  const field = subfieldFromFilter({ field: originalField, value });
+  const field = subfieldFromFilter({field: originalField, value});
 
   return (
     <View
@@ -94,12 +94,10 @@ export function FilterExpression<T extends RuleConditionEntity>({
           }}
         >
           {customName ? (
-            <Text style={{ color: theme.pageTextPositive }}>{customName}</Text>
+            <Text style={{color: theme.pageTextPositive}}>{customName}</Text>
           ) : (
             <>
-              <Text style={{ color: theme.pageTextPositive }}>
-                {mapField(field, options)}
-              </Text>{' '}
+              <Text style={{color: theme.pageTextPositive}}>{mapField(field, options)}</Text>{' '}
               <Text>{friendlyOp(op, null)}</Text>{' '}
               {!['onbudget', 'offbudget'].includes(op?.toLocaleLowerCase()) && (
                 <Value

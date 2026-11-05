@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import type {
-  AccountEntity,
-  SyncServerSimpleFinAccount,
-} from '@actual-app/core/types/models';
-import { describe, expect, it } from 'vitest';
+import type {AccountEntity, SyncServerSimpleFinAccount} from '@actual-app/core/types/models';
+import {describe, expect, it} from 'vitest';
 
 import {
   computeInitialLinkState,
@@ -27,9 +24,7 @@ import {
   resolveStartingSettings,
 } from './SelectLinkedAccountsModal';
 
-function makeLocalAccount(
-  overrides: Partial<AccountEntity> & { id: string },
-): AccountEntity {
+function makeLocalAccount(overrides: Partial<AccountEntity> & {id: string}): AccountEntity {
   return {
     name: overrides.id,
     offbudget: 0,
@@ -55,7 +50,7 @@ function makeLocalAccount(
 }
 
 function makeExternalAccount(accountId: string): SyncServerSimpleFinAccount {
-  return { account_id: accountId, name: accountId, balance: 0 };
+  return {account_id: accountId, name: accountId, balance: 0};
 }
 
 const addOnBudgetAccountOption = {
@@ -70,10 +65,10 @@ const addOffBudgetAccountOption = {
 
 describe('computeInitialLinkState', () => {
   it('preselects the upgrading account when there is exactly one unmatched external account', () => {
-    const localAccounts = [makeLocalAccount({ id: 'local-1' })];
+    const localAccounts = [makeLocalAccount({id: 'local-1'})];
     const externalAccounts = [makeExternalAccount('ext-1')];
 
-    const { initiallyChosenAccounts } = computeInitialLinkState(
+    const {initiallyChosenAccounts} = computeInitialLinkState(
       localAccounts,
       externalAccounts,
       'local-1',
@@ -83,13 +78,10 @@ describe('computeInitialLinkState', () => {
   });
 
   it('does not preselect when there are multiple unmatched external accounts (regression for #8518)', () => {
-    const localAccounts = [makeLocalAccount({ id: 'local-1' })];
-    const externalAccounts = [
-      makeExternalAccount('ext-1'),
-      makeExternalAccount('ext-2'),
-    ];
+    const localAccounts = [makeLocalAccount({id: 'local-1'})];
+    const externalAccounts = [makeExternalAccount('ext-1'), makeExternalAccount('ext-2')];
 
-    const { initiallyChosenAccounts } = computeInitialLinkState(
+    const {initiallyChosenAccounts} = computeInitialLinkState(
       localAccounts,
       externalAccounts,
       'local-1',
@@ -99,10 +91,10 @@ describe('computeInitialLinkState', () => {
   });
 
   it('does not preselect when upgradingAccountId is not set', () => {
-    const localAccounts = [makeLocalAccount({ id: 'local-1' })];
+    const localAccounts = [makeLocalAccount({id: 'local-1'})];
     const externalAccounts = [makeExternalAccount('ext-1')];
 
-    const { initiallyChosenAccounts } = computeInitialLinkState(
+    const {initiallyChosenAccounts} = computeInitialLinkState(
       localAccounts,
       externalAccounts,
       undefined,
@@ -112,21 +104,16 @@ describe('computeInitialLinkState', () => {
   });
 
   it('leaves an already-linked upgrading account untouched', () => {
-    const localAccounts = [
-      makeLocalAccount({ id: 'local-1', account_id: 'ext-1' }),
-    ];
-    const externalAccounts = [
-      makeExternalAccount('ext-1'),
-      makeExternalAccount('ext-2'),
-    ];
+    const localAccounts = [makeLocalAccount({id: 'local-1', account_id: 'ext-1'})];
+    const externalAccounts = [makeExternalAccount('ext-1'), makeExternalAccount('ext-2')];
 
-    const { initiallyChosenAccounts } = computeInitialLinkState(
+    const {initiallyChosenAccounts} = computeInitialLinkState(
       localAccounts,
       externalAccounts,
       'local-1',
     );
 
-    expect(initiallyChosenAccounts).toEqual({ 'ext-1': 'local-1' });
+    expect(initiallyChosenAccounts).toEqual({'ext-1': 'local-1'});
   });
 });
 
@@ -182,7 +169,7 @@ describe('resolveStartingSettings', () => {
   it('sends no starting balance when the user only changed the date', () => {
     // A row starts with a default date and no balance. Editing the date keeps
     // the rest of the settings, which must not introduce a balance of 0.
-    const settings = { ...getDefaultStartingSettings(), date: '2026-01-15' };
+    const settings = {...getDefaultStartingSettings(), date: '2026-01-15'};
 
     expect(resolveStartingSettings(settings)).toEqual({
       startingDate: '2026-01-15',
@@ -198,21 +185,19 @@ describe('resolveStartingSettings', () => {
   });
 
   it('sends the balance once the user enters one', () => {
-    const settings = { ...getDefaultStartingSettings(), amount: 12345 };
+    const settings = {...getDefaultStartingSettings(), amount: 12345};
 
     expect(resolveStartingSettings(settings).startingBalance).toBe(12345);
   });
 
   it('sends a balance the user deliberately set to zero', () => {
-    const settings = { ...getDefaultStartingSettings(), amount: 0 };
+    const settings = {...getDefaultStartingSettings(), amount: 0};
 
     expect(resolveStartingSettings(settings).startingBalance).toBe(0);
   });
 
   it('ignores a blank date', () => {
-    expect(
-      resolveStartingSettings({ date: '   ' }).startingDate,
-    ).toBeUndefined();
+    expect(resolveStartingSettings({date: '   '}).startingDate).toBeUndefined();
   });
 });
 

@@ -15,10 +15,10 @@
  */
 
 // @ts-strict-ignore
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 import * as undo from '#platform/client/undo';
-import { captureBreadcrumb, captureException } from '#platform/exceptions';
+import {captureBreadcrumb, captureException} from '#platform/exceptions';
 
 import type * as T from './index-types';
 
@@ -59,14 +59,14 @@ function handleMessage(msg) {
     // An error happened while handling a message so cleanup the
     // current reply handler and reject the promise. The error will
     // be propagated to the caller through this promise rejection.
-    const { id, error } = msg;
+    const {id, error} = msg;
     const handler = replyHandlers.get(id);
     if (handler) {
       replyHandlers.delete(id);
       handler.reject(error);
     }
   } else if (msg.type === 'reply') {
-    const { id, result, mutated, undoTag, error } = msg;
+    const {id, result, mutated, undoTag, error} = msg;
 
     const handler = replyHandlers.get(id);
     if (handler) {
@@ -84,7 +84,7 @@ function handleMessage(msg) {
       }
     }
   } else if (msg.type === 'push') {
-    const { name, args } = msg;
+    const {name, args} = msg;
 
     const listens = listeners.get(name);
     if (listens) {
@@ -134,20 +134,14 @@ function connectWorker(worker, onOpen, onError) {
     } else if (msg.type === 'capture-exception') {
       captureException(
         msg.stack
-          ? new ReconstructedError(
-              msg.message,
-              msg.stack,
-              msg.url,
-              msg.line,
-              msg.column,
-            )
+          ? new ReconstructedError(msg.message, msg.stack, msg.url, msg.line, msg.column)
           : msg.exc,
       );
 
       if (msg.message && msg.message.includes('indexeddb-quota-error')) {
         // Surface this as a typed event so the desktop-client can present a
         // localized message - i18n must not live in loot-core.
-        handleMessage({ type: 'push', name: 'indexeddb-quota-error' });
+        handleMessage({type: 'push', name: 'indexeddb-quota-error'});
       }
     } else if (msg.type === 'capture-breadcrumb') {
       captureBreadcrumb(msg.data);
@@ -167,19 +161,15 @@ function connectWorker(worker, onOpen, onError) {
 
 export const init: T.Init = async function (socket) {
   const worker = socket ?? (await global.Actual.getServerSocket());
-  return new Promise((resolve, reject) =>
-    connectWorker(worker, resolve, reject),
-  );
+  return new Promise((resolve, reject) => connectWorker(worker, resolve, reject));
 };
 
-export const send: T.Send = function (
-  ...params: Parameters<T.Send>
-): ReturnType<T.Send> {
-  const [name, args, { catchErrors = false } = {}] = params;
+export const send: T.Send = function (...params: Parameters<T.Send>): ReturnType<T.Send> {
+  const [name, args, {catchErrors = false} = {}] = params;
   return new Promise((resolve, reject) => {
     const id = uuidv4();
 
-    replyHandlers.set(id, { resolve, reject });
+    replyHandlers.set(id, {resolve, reject});
     const message = {
       id,
       name,
@@ -196,7 +186,7 @@ export const send: T.Send = function (
 };
 
 export const sendCatch: T.SendCatch = function (name, args) {
-  return send(name, args, { catchErrors: true });
+  return send(name, args, {catchErrors: true});
 };
 
 export const listen: T.Listen = function (name, cb) {

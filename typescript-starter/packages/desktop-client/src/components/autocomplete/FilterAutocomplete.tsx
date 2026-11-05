@@ -15,14 +15,14 @@
  */
 
 import React from 'react';
-import type { ComponentProps } from 'react';
+import type {ComponentProps} from 'react';
 
-import type { TransactionFilterEntity } from '@actual-app/core/types/models';
+import type {TransactionFilterEntity} from '@actual-app/core/types/models';
 
-import { useTransactionFilters } from '#hooks/useTransactionFilters';
+import {useTransactionFilters} from '#hooks/useTransactionFilters';
 
-import { Autocomplete } from './Autocomplete';
-import { FilterList } from './FilterList';
+import {Autocomplete} from './Autocomplete';
+import {FilterList} from './FilterList';
 
 export function FilterAutocomplete({
   embedded,

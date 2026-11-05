@@ -15,18 +15,18 @@
  */
 
 // @ts-strict-ignore
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { createApp } from '#server/app';
+import {createApp} from '#server/app';
 import * as db from '#server/db';
-import { requiredFields } from '#server/models';
-import { mutator } from '#server/mutators';
-import { parseConditionsOrActions } from '#server/transactions/transaction-rules';
-import { undoable } from '#server/undo';
-import type { TransactionFilterEntity } from '#types/models';
+import {requiredFields} from '#server/models';
+import {mutator} from '#server/mutators';
+import {parseConditionsOrActions} from '#server/transactions/transaction-rules';
+import {undoable} from '#server/undo';
+import type {TransactionFilterEntity} from '#types/models';
 
 const filterModel = {
-  validate(filter, { update }: { update?: boolean } = {}) {
+  validate(filter, {update}: {update?: boolean} = {}) {
     requiredFields('transaction_filters', filter, ['conditions'], update);
 
     if (!update || 'conditionsOp' in filter) {
@@ -39,7 +39,7 @@ const filterModel = {
   },
 
   toJS(row) {
-    const { conditions, conditions_op, ...fields } = row;
+    const {conditions, conditions_op, ...fields} = row;
     return {
       ...fields,
       conditionsOp: conditions_op,
@@ -48,7 +48,7 @@ const filterModel = {
   },
 
   fromJS(filter) {
-    const { conditionsOp, ...row } = filter;
+    const {conditionsOp, ...row} = filter;
     if (conditionsOp) {
       row.conditions_op = conditionsOp;
     }
@@ -72,7 +72,7 @@ async function filterNameExists(name, filterId, newItem) {
 }
 
 function conditionExists(item, filters, newItem) {
-  const { conditions, conditionsOp } = item;
+  const {conditions, conditionsOp} = item;
   let fConditionFound = null;
 
   filters.some(filter => {
@@ -146,8 +146,7 @@ async function createFilter(filter): Promise<TransactionFilterEntity['id']> {
     const condExists = conditionExists(item, filter.filters, true);
     if (condExists) {
       throw new Error(
-        'Duplicate filter warning: conditions already exist. Filter name: ' +
-          condExists,
+        'Duplicate filter warning: conditions already exist. Filter name: ' + condExists,
       );
     }
   } else {
@@ -179,8 +178,7 @@ async function updateFilter(filter) {
     const condExists = conditionExists(item, filter.filters, false);
     if (condExists) {
       throw new Error(
-        'Duplicate filter warning: conditions already exist. Filter name: ' +
-          condExists,
+        'Duplicate filter warning: conditions already exist. Filter name: ' + condExists,
       );
     }
   } else {

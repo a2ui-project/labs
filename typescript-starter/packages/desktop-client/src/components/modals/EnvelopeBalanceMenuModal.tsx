@@ -15,32 +15,24 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
-import { Trans } from 'react-i18next';
+import type {CSSProperties} from 'react';
+import {Trans} from 'react-i18next';
 
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import {
-  BalanceWithCarryover,
-  CarryoverIndicator,
-} from '#components/budget/BalanceWithCarryover';
-import { BalanceMenu } from '#components/budget/envelope/BalanceMenu';
-import {
-  Modal,
-  ModalCloseButton,
-  ModalHeader,
-  ModalTitle,
-} from '#components/common/Modal';
-import { CellValueText } from '#components/spreadsheet/CellValue';
-import { useCategory } from '#hooks/useCategory';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {BalanceWithCarryover, CarryoverIndicator} from '#components/budget/BalanceWithCarryover';
+import {BalanceMenu} from '#components/budget/envelope/BalanceMenu';
+import {Modal, ModalCloseButton, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {CellValueText} from '#components/spreadsheet/CellValue';
+import {useCategory} from '#hooks/useCategory';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
 type EnvelopeBalanceMenuModalProps = Omit<
-  Extract<ModalType, { name: 'envelope-balance-menu' }>['options'],
+  Extract<ModalType, {name: 'envelope-balance-menu'}>['options'],
   'month'
 >;
 
@@ -57,7 +49,7 @@ export function EnvelopeBalanceMenuModal({
     borderTop: `1px solid ${theme.pillBorder}`,
   };
 
-  const { data: category } = useCategory(categoryId);
+  const {data: category} = useCategory(categoryId);
 
   if (!category) {
     return null;
@@ -65,7 +57,7 @@ export function EnvelopeBalanceMenuModal({
 
   return (
     <Modal name="envelope-balance-menu">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={<ModalTitle title={category.name} shrinkOnOverflow />}
@@ -94,7 +86,7 @@ export function EnvelopeBalanceMenuModal({
               goal={envelopeBudget.catGoal(categoryId)}
               budgeted={envelopeBudget.catBudgeted(categoryId)}
               longGoal={envelopeBudget.catLongGoal(categoryId)}
-              CarryoverIndicator={({ style }) => (
+              CarryoverIndicator={({style}) => (
                 <CarryoverIndicator
                   style={{
                     width: 15,

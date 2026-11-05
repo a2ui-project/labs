@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-import React, { createRef, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {createRef, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgExpandArrow } from '@actual-app/components/icons/v0';
-import { Popover } from '@actual-app/components/popover';
-import { Select } from '@actual-app/components/select';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { Text } from '@actual-app/components/text';
-import { View } from '@actual-app/components/view';
-import type {
-  CustomReportEntity,
-  DashboardPageEntity,
-} from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgExpandArrow} from '@actual-app/components/icons/v0';
+import {Popover} from '@actual-app/components/popover';
+import {Select} from '@actual-app/components/select';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {Text} from '@actual-app/components/text';
+import {View} from '@actual-app/components/view';
+import type {CustomReportEntity, DashboardPageEntity} from '@actual-app/core/types/models';
 
-import { FormField, FormLabel } from '#components/forms';
-import { useDashboardPages } from '#hooks/useDashboardPages';
-import { useReports } from '#hooks/useReports';
+import {FormField, FormLabel} from '#components/forms';
+import {useDashboardPages} from '#hooks/useDashboardPages';
+import {useReports} from '#hooks/useReports';
 import {
   useAddDashboardWidgetMutation,
   useCreateReportMutation,
@@ -39,12 +36,12 @@ import {
   useUpdateReportMutation,
 } from '#reports/mutations';
 
-import { LoadingIndicator } from './LoadingIndicator';
-import { SaveReportChoose } from './SaveReportChoose';
-import { SaveReportDelete } from './SaveReportDelete';
-import { SaveReportMenu } from './SaveReportMenu';
-import type { SavedStatus } from './SaveReportMenu';
-import { SaveReportName } from './SaveReportName';
+import {LoadingIndicator} from './LoadingIndicator';
+import {SaveReportChoose} from './SaveReportChoose';
+import {SaveReportDelete} from './SaveReportDelete';
+import {SaveReportMenu} from './SaveReportMenu';
+import type {SavedStatus} from './SaveReportMenu';
+import {SaveReportName} from './SaveReportName';
 
 type SaveReportProps<T extends CustomReportEntity = CustomReportEntity> = {
   customReportItems: T;
@@ -77,11 +74,11 @@ type SaveReportProps<T extends CustomReportEntity = CustomReportEntity> = {
   dashboardPages: readonly DashboardPageEntity[];
 };
 
-export function SaveReportWrapper<
-  T extends CustomReportEntity = CustomReportEntity,
->(props: Omit<SaveReportProps<T>, 'dashboardPages'>) {
-  const { t } = useTranslation();
-  const { data = [], isPending } = useDashboardPages();
+export function SaveReportWrapper<T extends CustomReportEntity = CustomReportEntity>(
+  props: Omit<SaveReportProps<T>, 'dashboardPages'>,
+) {
+  const {t} = useTranslation();
+  const {data = [], isPending} = useDashboardPages();
 
   if (isPending) {
     return <LoadingIndicator message={t('Loading dashboards...')} />;
@@ -97,7 +94,7 @@ export function SaveReport({
   onReportChange,
   dashboardPages,
 }: SaveReportProps) {
-  const { data: listReports = [] } = useReports();
+  const {data: listReports = []} = useReports();
   const triggerRef = useRef(null);
   const [deleteMenuOpen, setDeleteMenuOpen] = useState(false);
   const [nameMenuOpen, setNameMenuOpen] = useState(false);
@@ -107,7 +104,7 @@ export function SaveReport({
   const [err, setErr] = useState('');
   const [newName, setNewName] = useState(report.name ?? '');
   const inputRef = createRef<HTMLInputElement>();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [saveDashboardId, setSaveDashboardId] = useState<string | null>(
     dashboardPages.length > 0 ? dashboardPages[0].id : null,
   );
@@ -118,12 +115,12 @@ export function SaveReport({
 
   async function onApply(cond: string) {
     const chooseSavedReport = listReports.find(r => cond === r.id);
-    onReportChange({ savedReport: chooseSavedReport, type: 'choose' });
+    onReportChange({savedReport: chooseSavedReport, type: 'choose'});
     setChooseMenuOpen(false);
     setNewName(chooseSavedReport === undefined ? '' : chooseSavedReport.name);
   }
 
-  const onAddUpdate = async ({ menuChoice }: { menuChoice?: string }) => {
+  const onAddUpdate = async ({menuChoice}: {menuChoice?: string}) => {
     if (!menuChoice) {
       return null;
     }
@@ -140,7 +137,7 @@ export function SaveReport({
       }
 
       createReportMutation.mutate(
-        { report: newSavedReport },
+        {report: newSavedReport},
         {
           onSuccess: async id => {
             addDashboardWidgetMutation.mutate(
@@ -149,7 +146,7 @@ export function SaveReport({
                   type: 'custom-report',
                   width: 4,
                   height: 2,
-                  meta: { id },
+                  meta: {id},
                   dashboard_page_id: saveDashboardId,
                 },
               },
@@ -177,15 +174,15 @@ export function SaveReport({
       return;
     }
 
-    const { name: _name, id: _id, ...props } = customReportItems;
+    const {name: _name, id: _id, ...props} = customReportItems;
 
     const updatedReport = {
       ...report,
-      ...(menuChoice === 'rename-report' ? { name: newName } : props),
+      ...(menuChoice === 'rename-report' ? {name: newName} : props),
     };
 
     updateReportMutation.mutate(
-      { report: updatedReport },
+      {report: updatedReport},
       {
         onSuccess: () => {
           setNameMenuOpen(false);
@@ -206,11 +203,11 @@ export function SaveReport({
 
   const onDelete = async () => {
     deleteReportMutation.mutate(
-      { id: report.id },
+      {id: report.id},
       {
         onSuccess: () => {
           setNewName('');
-          onReportChange({ type: 'reset' });
+          onReportChange({type: 'reset'});
           setDeleteMenuOpen(false);
         },
       },
@@ -232,7 +229,7 @@ export function SaveReport({
       case 'update-report':
         setErr('');
         setMenuOpen(false);
-        void onAddUpdate({ menuChoice: item });
+        void onAddUpdate({menuChoice: item});
         break;
       case 'save-report':
         setErr('');
@@ -241,12 +238,12 @@ export function SaveReport({
         break;
       case 'reload-report':
         setMenuOpen(false);
-        onReportChange({ type: 'reload' });
+        onReportChange({type: 'reload'});
         break;
       case 'reset-report':
         setMenuOpen(false);
         setNewName('');
-        onReportChange({ type: 'reset' });
+        onReportChange({type: 'reset'});
         break;
       case 'choose-report':
         setErr('');
@@ -287,14 +284,14 @@ export function SaveReport({
             <Trans>(modified)</Trans>&nbsp;
           </Text>
         )}
-        <SvgExpandArrow width={8} height={8} style={{ marginRight: 5 }} />
+        <SvgExpandArrow width={8} height={8} style={{marginRight: 5}} />
       </Button>
 
       <Popover
         triggerRef={triggerRef}
         isOpen={menuOpen}
         onOpenChange={() => setMenuOpen(false)}
-        style={{ width: 150 }}
+        style={{width: 150}}
       >
         <SaveReportMenu
           onMenuSelect={onMenuSelect}
@@ -307,7 +304,7 @@ export function SaveReport({
         triggerRef={triggerRef}
         isOpen={nameMenuOpen}
         onOpenChange={() => setNameMenuOpen(false)}
-        style={{ width: 325 }}
+        style={{width: 325}}
       >
         <View>
           <SaveReportName
@@ -328,11 +325,11 @@ export function SaveReport({
                   alignItems: 'center',
                 }}
               >
-                <FormField style={{ flex: 1 }}>
+                <FormField style={{flex: 1}}>
                   <FormLabel
                     title={t('Dashboard')}
                     htmlFor="dashboard-select"
-                    style={{ userSelect: 'none' }}
+                    style={{userSelect: 'none'}}
                   />
                   <Select
                     id="dashboard-select"
@@ -340,7 +337,7 @@ export function SaveReport({
                     onChange={v => setSaveDashboardId(v)}
                     defaultLabel={t('None')}
                     options={dashboardPages.map(d => [d.id, d.name])}
-                    style={{ marginTop: 10, width: 300 }}
+                    style={{marginTop: 10, width: 300}}
                   />
                 </FormField>
               </SpaceBetween>
@@ -353,7 +350,7 @@ export function SaveReport({
         triggerRef={triggerRef}
         isOpen={chooseMenuOpen}
         onOpenChange={() => setChooseMenuOpen(false)}
-        style={{ padding: 15 }}
+        style={{padding: 15}}
       >
         <SaveReportChoose onApply={onApply} />
       </Popover>
@@ -362,7 +359,7 @@ export function SaveReport({
         triggerRef={triggerRef}
         isOpen={deleteMenuOpen}
         onOpenChange={() => setDeleteMenuOpen(false)}
-        style={{ width: 275, padding: 15 }}
+        style={{width: 275, padding: 15}}
       >
         <SaveReportDelete
           onDelete={onDelete}

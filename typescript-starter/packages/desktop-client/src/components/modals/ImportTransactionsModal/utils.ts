@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { format as formatDate_ } from '@actual-app/core/shared/months';
-import { looselyParseAmount } from '@actual-app/core/shared/util';
+import {format as formatDate_} from '@actual-app/core/shared/months';
+import {looselyParseAmount} from '@actual-app/core/shared/util';
 import * as d from 'date-fns';
 
 export type DateFormat =
@@ -27,13 +27,13 @@ export type DateFormat =
   | 'dd mm yy';
 
 export const dateFormats = [
-  { format: 'yyyy mm dd', label: 'YYYY MM DD' },
-  { format: 'yy mm dd', label: 'YY MM DD' },
-  { format: 'mm dd yyyy', label: 'MM DD YYYY' },
-  { format: 'mm dd yy', label: 'MM DD YY' },
-  { format: 'dd mm yyyy', label: 'DD MM YYYY' },
-  { format: 'dd mm yy', label: 'DD MM YY' },
-] as const satisfies Array<{ format: DateFormat; label: string }>;
+  {format: 'yyyy mm dd', label: 'YYYY MM DD'},
+  {format: 'yy mm dd', label: 'YY MM DD'},
+  {format: 'mm dd yyyy', label: 'MM DD YYYY'},
+  {format: 'mm dd yy', label: 'MM DD YY'},
+  {format: 'dd mm yyyy', label: 'DD MM YYYY'},
+  {format: 'dd mm yy', label: 'DD MM YY'},
+] as const satisfies Array<{format: DateFormat; label: string}>;
 
 export function isDateFormat(format: string): format is DateFormat {
   return dateFormats.some(f => f.format === format);
@@ -165,8 +165,7 @@ export function parseCategoryFields(
   categories: ImportCategory[],
 ) {
   const match = categories.find(
-    category =>
-      category.id !== trans.category && category.name === trans.category,
+    category => category.id !== trans.category && category.name === trans.category,
   );
   return match?.id ?? null;
 }
@@ -182,10 +181,7 @@ export type FieldMapping = {
   inflow: string | null;
 };
 
-export function applyFieldMappings(
-  transaction: ImportTransaction,
-  mappings: FieldMapping,
-) {
+export function applyFieldMappings(transaction: ImportTransaction, mappings: FieldMapping) {
   const result: Partial<ImportTransaction> = {};
   for (const [originalField, target] of Object.entries(mappings)) {
     const field = originalField === 'payee' ? 'payee_name' : originalField;
@@ -209,8 +205,7 @@ function parseAmount(
     return null;
   }
 
-  const parsed =
-    typeof amount === 'string' ? looselyParseAmount(amount) : amount;
+  const parsed = typeof amount === 'string' ? looselyParseAmount(amount) : amount;
 
   if (parsed === null) {
     return null;
@@ -245,9 +240,7 @@ export function parseAmountFields(
     // if that has a value, we never want to show a number in the
     // inflow. Same for `amount`; we choose outflow first and then inflow
     value.outflow = parseAmount(trans.outflow, n => -Math.abs(n)) || 0;
-    value.inflow = value.outflow
-      ? 0
-      : parseAmount(trans.inflow, n => Math.abs(n)) || 0;
+    value.inflow = value.outflow ? 0 : parseAmount(trans.inflow, n => Math.abs(n)) || 0;
   } else {
     const amount = parseAmount(trans.amount, n => n) || 0;
     if (amount >= 0) value.inflow = amount;
@@ -303,9 +296,7 @@ export function filterByStartDate(
 ): ImportTransaction[] {
   if (!startDate) return transactions;
   return transactions.filter(trans => {
-    const mapped = fieldMappings
-      ? applyFieldMappings(trans, fieldMappings)
-      : trans;
+    const mapped = fieldMappings ? applyFieldMappings(trans, fieldMappings) : trans;
     const date = isPreParsedDate
       ? (mapped.date ?? null)
       : parseDateFormat

@@ -1,12 +1,12 @@
 import path from 'path';
 
-import { peggyLoader } from '@actual-app/vite-plugin-peggy';
-import { visualizer } from 'rollup-plugin-visualizer';
-import { defineConfig } from 'vite';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import {peggyLoader} from '@actual-app/vite-plugin-peggy';
+import {visualizer} from 'rollup-plugin-visualizer';
+import {defineConfig} from 'vite';
+import {nodePolyfills} from 'vite-plugin-node-polyfills';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => {
+export default defineConfig(({mode}) => {
   const isDev = mode === 'development';
   const outDir = path.resolve(__dirname, 'lib-dist/browser');
 
@@ -21,16 +21,12 @@ export default defineConfig(({ mode }) => {
         entry: path.resolve(__dirname, 'src/server/main.ts'),
         name: 'backend',
         formats: ['iife'],
-        fileName: () =>
-          isDev ? 'kcab.worker.dev.js' : `kcab.worker.[hash].js`,
+        fileName: () => (isDev ? 'kcab.worker.dev.js' : `kcab.worker.[hash].js`),
       },
       rolldownOptions: {
         onwarn(warning, warn) {
           // Suppress sourcemap warnings from peggy-loader
-          if (
-            warning.plugin === 'peggy-loader' &&
-            warning.message?.includes('Sourcemap')
-          ) {
+          if (warning.plugin === 'peggy-loader' && warning.message?.includes('Sourcemap')) {
             return;
           }
 
@@ -48,9 +44,7 @@ export default defineConfig(({ mode }) => {
               codegen: true,
             },
           }),
-          chunkFileNames: isDev
-            ? '[name].kcab.worker.dev.js'
-            : '[id].[name].kcab.worker.[hash].js',
+          chunkFileNames: isDev ? '[name].kcab.worker.dev.js' : '[id].[name].kcab.worker.[hash].js',
           format: 'iife',
           name: 'backend',
           globals: {
@@ -90,7 +84,7 @@ export default defineConfig(({ mode }) => {
           global: true,
         },
       }),
-      visualizer({ template: 'raw-data', filename: `${outDir}/stats.json` }),
+      visualizer({template: 'raw-data', filename: `${outDir}/stats.json`}),
     ],
     optimizeDeps: {
       include: [

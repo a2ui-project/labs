@@ -15,22 +15,15 @@
  */
 
 // @ts-strict-ignore
-import { custom, generators, Issuer } from 'openid-client';
-import { v4 as uuidv4 } from 'uuid';
+import {custom, generators, Issuer} from 'openid-client';
+import {v4 as uuidv4} from 'uuid';
 
-import {
-  clearExpiredSessions,
-  getAccountDb,
-  listLoginMethods,
-} from '#account-db';
-import { config } from '#load-config';
-import {
-  getUserByUsername,
-  transferAllFilesFromUser,
-} from '#services/user-service';
-import { TOKEN_EXPIRATION_NEVER } from '#util/validate-user';
+import {clearExpiredSessions, getAccountDb, listLoginMethods} from '#account-db';
+import {config} from '#load-config';
+import {getUserByUsername, transferAllFilesFromUser} from '#services/user-service';
+import {TOKEN_EXPIRATION_NEVER} from '#util/validate-user';
 
-import { checkPassword } from './password';
+import {checkPassword} from './password';
 
 export type ConfigParameter = {
   issuer?: string;
@@ -42,16 +35,16 @@ export type ConfigParameter = {
 
 export async function bootstrapOpenId(configParameter: ConfigParameter) {
   if (!('issuer' in configParameter) && !('discoveryURL' in configParameter)) {
-    return { error: 'missing-issuer-or-discoveryURL' };
+    return {error: 'missing-issuer-or-discoveryURL'};
   }
   if (!('client_id' in configParameter)) {
-    return { error: 'missing-client-id' };
+    return {error: 'missing-client-id'};
   }
   if (!('client_secret' in configParameter)) {
-    return { error: 'missing-client-secret' };
+    return {error: 'missing-client-secret'};
   }
   if (!('server_hostname' in configParameter)) {
-    return { error: 'missing-server-hostname' };
+    return {error: 'missing-server-hostname'};
   }
 
   custom.setHttpOptionsDefaults({
@@ -69,7 +62,7 @@ export async function bootstrapOpenId(configParameter: ConfigParameter) {
     await setupOpenIdClient(configParameter);
   } catch (err) {
     console.error('Error setting up OpenID client:', err);
-    return { error: 'configuration-error' };
+    return {error: 'configuration-error'};
   }
 
   const accountDb = getAccountDb();
@@ -84,7 +77,7 @@ export async function bootstrapOpenId(configParameter: ConfigParameter) {
     });
   } catch (err) {
     console.error('Error updating auth table:', err);
-    return { error: 'database-error' };
+    return {error: 'database-error'};
   }
 
   return {};
@@ -104,30 +97,24 @@ async function setupOpenIdClient(configParameter) {
   const client = new issuer.Client({
     client_id: configParameter.client_id,
     client_secret: configParameter.client_secret,
-    redirect_uri: new URL(
-      '/openid/callback',
-      configParameter.server_hostname,
-    ).toString(),
+    redirect_uri: new URL('/openid/callback', configParameter.server_hostname).toString(),
     validate_id_token: true,
   });
 
   return client;
 }
 
-export async function loginWithOpenIdSetup(
-  returnUrl,
-  firstTimeLoginPassword = '',
-) {
+export async function loginWithOpenIdSetup(returnUrl, firstTimeLoginPassword = '') {
   if (!returnUrl) {
-    return { error: 'return-url-missing' };
+    return {error: 'return-url-missing'};
   }
   if (!isValidRedirectUrl(returnUrl)) {
-    return { error: 'invalid-return-url' };
+    return {error: 'invalid-return-url'};
   }
 
   const accountDb = getAccountDb();
 
-  const { countUsersWithUserName } = accountDb.first(
+  const {countUsersWithUserName} = accountDb.first(
     'SELECT count(*) as countUsersWithUserName FROM users WHERE user_name <> ?',
     [''],
   );
@@ -137,23 +124,21 @@ export async function loginWithOpenIdSetup(
       const valid = await checkPassword(firstTimeLoginPassword);
 
       if (!valid) {
-        return { error: 'invalid-password' };
+        return {error: 'invalid-password'};
       }
     }
   }
 
-  let config = accountDb.first('SELECT extra_data FROM auth WHERE method = ?', [
-    'openid',
-  ]);
+  let config = accountDb.first('SELECT extra_data FROM auth WHERE method = ?', ['openid']);
   if (!config) {
-    return { error: 'openid-not-configured' };
+    return {error: 'openid-not-configured'};
   }
 
   try {
     config = JSON.parse(config['extra_data']);
   } catch (err) {
     console.error('Error parsing OpenID configuration:', err);
-    return { error: 'openid-setup-failed' };
+    return {error: 'openid-setup-failed'};
   }
 
   let client;
@@ -161,7 +146,7 @@ export async function loginWithOpenIdSetup(
     client = await setupOpenIdClient(config);
   } catch (err) {
     console.error('Error setting up OpenID client:', err);
-    return { error: 'openid-setup-failed' };
+    return {error: 'openid-setup-failed'};
   }
 
   const state = generators.state();
@@ -171,10 +156,7 @@ export async function loginWithOpenIdSetup(
   const now_time = Date.now();
   const expiry_time = now_time + 300 * 1000;
 
-  accountDb.mutate(
-    'DELETE FROM pending_openid_requests WHERE expiry_time < ?',
-    [now_time],
-  );
+  accountDb.mutate('DELETE FROM pending_openid_requests WHERE expiry_time < ?', [now_time]);
   accountDb.mutate(
     'INSERT INTO pending_openid_requests (state, code_verifier, return_url, expiry_time) VALUES (?, ?, ?, ?)',
     [state, code_verifier, returnUrl, expiry_time],
@@ -188,15 +170,15 @@ export async function loginWithOpenIdSetup(
     code_challenge_method: 'S256',
   });
 
-  return { url };
+  return {url};
 }
 
 export async function loginWithOpenIdFinalize(body) {
   if (!body.code) {
-    return { error: 'missing-authorization-code' };
+    return {error: 'missing-authorization-code'};
   }
   if (!body.state) {
-    return { error: 'missing-state' };
+    return {error: 'missing-state'};
   }
 
   const accountDb = getAccountDb();
@@ -204,20 +186,20 @@ export async function loginWithOpenIdFinalize(body) {
     "SELECT extra_data FROM auth WHERE method = 'openid' AND active = 1",
   );
   if (!configFromDb) {
-    return { error: 'openid-not-configured' };
+    return {error: 'openid-not-configured'};
   }
   try {
     configFromDb = JSON.parse(configFromDb['extra_data']);
   } catch (err) {
     console.error('Error parsing OpenID configuration:', err);
-    return { error: 'openid-setup-failed' };
+    return {error: 'openid-setup-failed'};
   }
   let client;
   try {
     client = await setupOpenIdClient(configFromDb);
   } catch (err) {
     console.error('Error setting up OpenID client:', err);
-    return { error: 'openid-setup-failed' };
+    return {error: 'openid-setup-failed'};
   }
 
   const pendingRequest = accountDb.first(
@@ -226,16 +208,16 @@ export async function loginWithOpenIdFinalize(body) {
   );
 
   if (!pendingRequest) {
-    return { error: 'invalid-or-expired-state' };
+    return {error: 'invalid-or-expired-state'};
   }
 
-  const { code_verifier, return_url } = pendingRequest;
+  const {code_verifier, return_url} = pendingRequest;
 
   try {
     let tokenSet = null;
 
     if (!configFromDb.authMethod || configFromDb.authMethod === 'openid') {
-      const params = { code: body.code, state: body.state, iss: body.iss };
+      const params = {code: body.code, state: body.state, iss: body.iss};
       tokenSet = await client.callback(client.redirect_uris[0], params, {
         code_verifier,
         state: body.state,
@@ -257,27 +239,25 @@ export async function loginWithOpenIdFinalize(body) {
       userInfo.sub;
 
     if (identity == null) {
-      return { error: 'openid-grant-failed: no identification was found' };
+      return {error: 'openid-grant-failed: no identification was found'};
     }
 
     let userId = null;
     try {
       accountDb.transaction(() => {
-        const { countUsersWithUserName } = accountDb.first(
+        const {countUsersWithUserName} = accountDb.first(
           'SELECT count(*) as countUsersWithUserName FROM users WHERE user_name <> ?',
           [''],
         );
 
         // Check if user was created by another transaction
-        const existingUser = accountDb.first(
-          'SELECT id FROM users WHERE user_name = ?',
-          [identity],
-        );
+        const existingUser = accountDb.first('SELECT id FROM users WHERE user_name = ?', [
+          identity,
+        ]);
 
         if (
           !existingUser &&
-          (countUsersWithUserName === 0 ||
-            config.get('userCreationMode') === 'login')
+          (countUsersWithUserName === 0 || config.get('userCreationMode') === 'login')
         ) {
           userId = uuidv4();
           accountDb.mutate(
@@ -298,7 +278,7 @@ export async function loginWithOpenIdFinalize(body) {
             }
           }
         } else {
-          const { id: userIdFromDb, display_name: displayName } =
+          const {id: userIdFromDb, display_name: displayName} =
             accountDb.first(
               'SELECT id, display_name FROM users WHERE user_name = ? and enabled = 1',
               [identity],
@@ -320,9 +300,9 @@ export async function loginWithOpenIdFinalize(body) {
       });
     } catch (error) {
       if (error.message === 'user-already-exists') {
-        return { error: 'user-already-exists' };
+        return {error: 'user-already-exists'};
       } else if (error.message === 'openid-grant-failed') {
-        return { error: 'openid-grant-failed' };
+        return {error: 'openid-grant-failed'};
       } else {
         throw error; // Re-throw other unexpected errors
       }
@@ -336,8 +316,7 @@ export async function loginWithOpenIdFinalize(body) {
     } else if (config.get('token_expiration') === 'never') {
       expiration = TOKEN_EXPIRATION_NEVER;
     } else if (typeof config.get('token_expiration') === 'number') {
-      expiration =
-        Math.floor(Date.now() / 1000) + config.get('token_expiration');
+      expiration = Math.floor(Date.now() / 1000) + config.get('token_expiration');
     } else {
       expiration = Math.floor(Date.now() / 1000) + 10 * 60; // Default to 10 minutes
     }
@@ -349,18 +328,17 @@ export async function loginWithOpenIdFinalize(body) {
 
     clearExpiredSessions();
 
-    return { url: `${return_url}/openid-cb?token=${token}` };
+    return {url: `${return_url}/openid-cb?token=${token}`};
   } catch (err) {
     console.error('OpenID grant failed:', err);
-    return { error: 'openid-grant-failed' };
+    return {error: 'openid-grant-failed'};
   }
 }
 
 export function getServerHostname() {
-  const auth = getAccountDb().first(
-    'select * from auth WHERE method = ? and active = 1',
-    ['openid'],
-  );
+  const auth = getAccountDb().first('select * from auth WHERE method = ? and active = 1', [
+    'openid',
+  ]);
   if (auth && auth.extra_data) {
     try {
       const openIdConfig = JSON.parse(auth.extra_data);
@@ -383,10 +361,7 @@ export function isValidRedirectUrl(url: string | undefined): url is string {
     const redirectUrl = new URL(url);
     const serverUrl = new URL(serverHostname);
 
-    if (
-      redirectUrl.hostname === serverUrl.hostname ||
-      redirectUrl.hostname === 'localhost'
-    ) {
+    if (redirectUrl.hostname === serverUrl.hostname || redirectUrl.hostname === 'localhost') {
       return true;
     } else {
       return false;

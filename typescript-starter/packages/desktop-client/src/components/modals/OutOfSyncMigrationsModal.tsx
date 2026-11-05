@@ -15,22 +15,22 @@
  */
 
 import React from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { Text } from '@actual-app/components/text';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {Text} from '@actual-app/components/text';
+import {View} from '@actual-app/components/view';
 
-import { closeBudget } from '#budgetfiles/budgetfilesSlice';
-import { Link } from '#components/common/Link';
-import { Modal, ModalHeader, ModalTitle } from '#components/common/Modal';
-import { useDispatch } from '#redux';
+import {closeBudget} from '#budgetfiles/budgetfilesSlice';
+import {Link} from '#components/common/Link';
+import {Modal, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {useDispatch} from '#redux';
 
 export function OutOfSyncMigrationsModal() {
   const dispatch = useDispatch();
 
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const closeBudgetAndModal = (close: () => void) => {
     void dispatch(closeBudget());
@@ -39,11 +39,9 @@ export function OutOfSyncMigrationsModal() {
 
   return (
     <Modal name="out-of-sync-migrations">
-      {({ state }) => (
+      {({state}) => (
         <>
-          <ModalHeader
-            title={<ModalTitle title={t('Please update Actual!')} />}
-          />
+          <ModalHeader title={<ModalTitle title={t('Please update Actual!')} />} />
           <View
             style={{
               padding: 15,
@@ -55,12 +53,11 @@ export function OutOfSyncMigrationsModal() {
             }}
           >
             <Text>
-              <Paragraph style={{ fontSize: 16 }}>
+              <Paragraph style={{fontSize: 16}}>
                 <Trans>
-                  It looks like you&apos;re using an outdated version of the
-                  Actual client. Your budget data has been updated by another
-                  client, but this client is still on the old version. For the
-                  best experience, please update Actual to the latest version.
+                  It looks like you&apos;re using an outdated version of the Actual client. Your
+                  budget data has been updated by another client, but this client is still on the
+                  old version. For the best experience, please update Actual to the latest version.
                 </Trans>
               </Paragraph>
             </Text>
@@ -71,8 +68,7 @@ export function OutOfSyncMigrationsModal() {
               }}
             >
               <Trans>
-                If you can&apos;t update Actual at this time you can find the
-                latest release at{' '}
+                If you can&apos;t update Actual at this time you can find the latest release at{' '}
                 <Link variant="external" to="https://app.actualbudget.org">
                   app.actualbudget.org
                 </Link>

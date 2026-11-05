@@ -15,16 +15,14 @@
  */
 
 import * as api from '@actual-app/api';
-import type { Command } from 'commander';
+import type {Command} from 'commander';
 
-import { withConnection } from '#connection';
-import { printOutput } from '#output';
-import { parseBoolFlag } from '#utils';
+import {withConnection} from '#connection';
+import {printOutput} from '#output';
+import {parseBoolFlag} from '#utils';
 
 export function registerCategoryGroupsCommand(program: Command) {
-  const groups = program
-    .command('category-groups')
-    .description('Manage category groups');
+  const groups = program.command('category-groups').description('Manage category groups');
 
   groups
     .command('list')
@@ -35,12 +33,10 @@ export function registerCategoryGroupsCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const result = await api.getCategoryGroups(
-            cmdOpts.includeHidden ? {} : { hidden: false },
-          );
+          const result = await api.getCategoryGroups(cmdOpts.includeHidden ? {} : {hidden: false});
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -59,9 +55,9 @@ export function registerCategoryGroupsCommand(program: Command) {
             is_income: cmdOpts.isIncome,
             hidden: false,
           });
-          printOutput({ id }, opts.format);
+          printOutput({id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -84,9 +80,9 @@ export function registerCategoryGroupsCommand(program: Command) {
         opts,
         async () => {
           await api.updateCategoryGroup(id, fields);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -100,9 +96,9 @@ export function registerCategoryGroupsCommand(program: Command) {
         opts,
         async () => {
           await api.deleteCategoryGroup(id, cmdOpts.transferTo);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 }

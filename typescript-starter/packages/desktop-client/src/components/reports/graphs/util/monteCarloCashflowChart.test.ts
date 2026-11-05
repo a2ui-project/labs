@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import type { TFunction } from 'i18next';
-import { describe, expect, it } from 'vitest';
+import type {TFunction} from 'i18next';
+import {describe, expect, it} from 'vitest';
 
 import type {
   MonteCarloContribution,
@@ -25,7 +25,7 @@ import type {
   MonteCarloSpendingPhase,
 } from '#components/reports/reports/monte-carlo/monteCarloSimulation';
 
-import { buildMonteCarloCashflowChart } from './monteCarloCashflowChart';
+import {buildMonteCarloCashflowChart} from './monteCarloCashflowChart';
 
 // Interpolates like i18next so labels can be asserted literally
 const translate = ((key: string, options?: Record<string, unknown>) =>
@@ -83,16 +83,12 @@ function makeIncomeStream(id: string, name = ''): MonteCarloIncomeStream {
   };
 }
 
-function makePhase(
-  id: string,
-  fromAge: number | null,
-  name = '',
-): MonteCarloSpendingPhase {
-  return { id, name, fromAge, annualWithdrawal: 0 };
+function makePhase(id: string, fromAge: number | null, name = ''): MonteCarloSpendingPhase {
+  return {id, name, fromAge, annualWithdrawal: 0};
 }
 
 function makeRow(
-  overrides: Partial<MonteCarloRunDetailRow> & { year: number },
+  overrides: Partial<MonteCarloRunDetailRow> & {year: number},
 ): MonteCarloRunDetailRow {
   return {
     startBalance: 0,
@@ -128,10 +124,7 @@ const contributions = [
   makeContribution('contribution-1', 'Salary sacrifice'),
   makeContribution('contribution-2'),
 ];
-const incomeStreams = [
-  makeIncomeStream('income-1', 'State pension'),
-  makeIncomeStream('income-2'),
-];
+const incomeStreams = [makeIncomeStream('income-1', 'State pension'), makeIncomeStream('income-2')];
 const phases = [makePhase('phase-1', null, 'Early'), makePhase('phase-2', 62)];
 
 describe('buildMonteCarloCashflowChart', () => {
@@ -157,17 +150,13 @@ describe('buildMonteCarloCashflowChart', () => {
       translate,
     });
 
-    expect(
-      chart.inflowSeries.map(series => [series.kind, series.label]),
-    ).toEqual([
+    expect(chart.inflowSeries.map(series => [series.kind, series.label])).toEqual([
       ['pot', 'Pension'],
       ['pot', 'Pot 2'],
       // The second stream never pays anything, so no series
       ['income', 'State pension'],
     ]);
-    expect(
-      chart.outflowSeries.map(series => [series.kind, series.label]),
-    ).toEqual([
+    expect(chart.outflowSeries.map(series => [series.kind, series.label])).toEqual([
       ['phase', 'Early'],
       ['phase', 'Phase 2'],
       ['tax', 'Tax'],
@@ -203,9 +192,9 @@ describe('buildMonteCarloCashflowChart', () => {
 
   it('attributes each year to the phase active at that age', () => {
     const rows = [
-      makeRow({ year: 1, plannedSpending: 100 }),
-      makeRow({ year: 2, plannedSpending: 200 }),
-      makeRow({ year: 3, plannedSpending: 300 }),
+      makeRow({year: 1, plannedSpending: 100}),
+      makeRow({year: 2, plannedSpending: 200}),
+      makeRow({year: 3, plannedSpending: 300}),
     ];
     const chart = buildMonteCarloCashflowChart({
       rows,
@@ -218,9 +207,7 @@ describe('buildMonteCarloCashflowChart', () => {
     });
 
     // Ages 60, 61 fall in phase 1; age 62 switches to phase 2
-    expect(
-      chart.data.map(point => [point.amounts.phase0, point.amounts.phase1]),
-    ).toEqual([
+    expect(chart.data.map(point => [point.amounts.phase0, point.amounts.phase1])).toEqual([
       [-100, 0],
       [-200, 0],
       [0, -300],
@@ -229,7 +216,7 @@ describe('buildMonteCarloCashflowChart', () => {
 
   it('omits tax, income and contribution groups when nothing moved', () => {
     const chart = buildMonteCarloCashflowChart({
-      rows: [makeRow({ year: 1, potWithdrawals: [100, 0] })],
+      rows: [makeRow({year: 1, potWithdrawals: [100, 0]})],
       pots,
       contributions,
       incomeStreams,
@@ -238,23 +225,14 @@ describe('buildMonteCarloCashflowChart', () => {
       translate,
     });
 
-    expect(chart.inflowSeries.map(series => series.kind)).toEqual([
-      'pot',
-      'pot',
-    ]);
-    expect(chart.outflowSeries.map(series => series.kind)).toEqual([
-      'phase',
-      'phase',
-    ]);
-    expect(chart.tooltipGroups.map(group => group.key)).toEqual([
-      'withdrawals',
-      'spending',
-    ]);
+    expect(chart.inflowSeries.map(series => series.kind)).toEqual(['pot', 'pot']);
+    expect(chart.outflowSeries.map(series => series.kind)).toEqual(['phase', 'phase']);
+    expect(chart.tooltipGroups.map(group => group.key)).toEqual(['withdrawals', 'spending']);
   });
 
   it('shows the tax group for income tax alone', () => {
     const chart = buildMonteCarloCashflowChart({
-      rows: [makeRow({ year: 1, incomeAmounts: [1_000, 0], incomeTax: 200 })],
+      rows: [makeRow({year: 1, incomeAmounts: [1_000, 0], incomeTax: 200})],
       pots,
       contributions: [],
       incomeStreams,
@@ -274,7 +252,7 @@ describe('buildMonteCarloCashflowChart', () => {
 
   it('falls back to a single phase when none are configured', () => {
     const chart = buildMonteCarloCashflowChart({
-      rows: [makeRow({ year: 1, plannedSpending: 500 })],
+      rows: [makeRow({year: 1, plannedSpending: 500})],
       pots,
       contributions: [],
       incomeStreams: [],
@@ -283,9 +261,7 @@ describe('buildMonteCarloCashflowChart', () => {
       translate,
     });
 
-    expect(chart.outflowSeries.map(series => series.label)).toEqual([
-      'Phase 1',
-    ]);
+    expect(chart.outflowSeries.map(series => series.label)).toEqual(['Phase 1']);
     expect(chart.data[0].amounts.phase0).toBe(-500);
   });
 
@@ -302,14 +278,11 @@ describe('buildMonteCarloCashflowChart', () => {
     });
 
     // Resolved (age) order is early, late - but labels keep editor numbers
-    expect(chart.outflowSeries.map(series => series.label)).toEqual([
-      'Phase 2',
-      'Phase 1',
-    ]);
+    expect(chart.outflowSeries.map(series => series.label)).toEqual(['Phase 2', 'Phase 1']);
   });
 
   it('shows money saved into the surplus pot as an outflow', () => {
-    const surplusPot = { ...makePot('surplus', 'Rainy day'), isSurplus: true };
+    const surplusPot = {...makePot('surplus', 'Rainy day'), isSurplus: true};
     const chart = buildMonteCarloCashflowChart({
       rows: [
         makeRow({
@@ -327,9 +300,7 @@ describe('buildMonteCarloCashflowChart', () => {
       translate,
     });
 
-    const surplusSeries = chart.outflowSeries.find(
-      series => series.kind === 'surplus',
-    );
+    const surplusSeries = chart.outflowSeries.find(series => series.kind === 'surplus');
     expect(surplusSeries?.label).toBe('Saved into Rainy day');
     expect(chart.tooltipGroups.map(group => group.key)).toEqual([
       'withdrawals',
@@ -345,8 +316,8 @@ describe('buildMonteCarloCashflowChart', () => {
   it('carries the unfunded and unspent flags for the tooltip', () => {
     const chart = buildMonteCarloCashflowChart({
       rows: [
-        makeRow({ year: 1, plannedSpending: 100, unspentIncome: 250 }),
-        makeRow({ year: 2, plannedSpending: 100, afterDepletion: true }),
+        makeRow({year: 1, plannedSpending: 100, unspentIncome: 250}),
+        makeRow({year: 2, plannedSpending: 100, afterDepletion: true}),
       ],
       pots,
       contributions: [],
@@ -356,10 +327,7 @@ describe('buildMonteCarloCashflowChart', () => {
       translate,
     });
 
-    expect(chart.data.map(point => point.afterDepletion)).toEqual([
-      false,
-      true,
-    ]);
+    expect(chart.data.map(point => point.afterDepletion)).toEqual([false, true]);
     expect(chart.data.map(point => point.unspentIncome)).toEqual([250, 0]);
   });
 });

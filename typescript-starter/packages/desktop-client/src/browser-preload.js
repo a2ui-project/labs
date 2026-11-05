@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { startBrowserBackend } from '@actual-app/core/platform/client/browser-preload';
+import {startBrowserBackend} from '@actual-app/core/platform/client/browser-preload';
 import * as Platform from '@actual-app/core/shared/platform';
-import { registerSW } from 'virtual:pwa-register';
+import {registerSW} from 'virtual:pwa-register';
 
 // oxlint-disable-next-line typescript-paths/absolute-parent-import
 import packageJson from '../package.json';
@@ -46,9 +46,7 @@ const ACTUAL_VERSION = Platform.isPlaywright
 // Worker so the token write resolves and login can complete. Once the user
 // opens a budget the app navigates and the next page load rejoins the
 // coordinator normally.
-const isOpenIdCallback = window.location.pathname
-  .replace(/\/+$/, '')
-  .endsWith('/openid-cb');
+const isOpenIdCallback = window.location.pathname.replace(/\/+$/, '').endsWith('/openid-cb');
 
 // *** Start the backend ***
 //
@@ -65,13 +63,9 @@ const worker = startBrowserBackend({
     publicUrl: import.meta.env.BASE_URL.slice(0, -1),
     hash: import.meta.env.REACT_APP_BACKEND_WORKER_HASH,
   },
-  createSharedWorker: () =>
-    new SharedBrowserServerWorker({ name: 'actual-backend' }),
+  createSharedWorker: () => new SharedBrowserServerWorker({name: 'actual-backend'}),
   forceDirectWorker:
-    Platform.isPlaywright ||
-    Platform.isIOS ||
-    Platform.isAndroid ||
-    isOpenIdCallback,
+    Platform.isPlaywright || Platform.isIOS || Platform.isAndroid || isOpenIdCallback,
 });
 
 // Ask the browser to exclude this origin's storage (the local budget database
@@ -159,7 +153,7 @@ global.Actual = {
     // Only for electron app
   },
 
-  openFileDialog: async ({ filters = [] }) => {
+  openFileDialog: async ({filters = []}) => {
     const FILE_ACCEPT_OVERRIDES = {
       // Safari on iOS requires explicit MIME/UTType values for some extensions to allow selection.
       qfx: [
@@ -176,9 +170,7 @@ global.Actual = {
     return new Promise(resolve => {
       let createdElement = false;
       // Attempt to reuse an already-created file input.
-      let input = document.body.querySelector(
-        'input[id="open-file-dialog-input"]',
-      );
+      let input = document.body.querySelector('input[id="open-file-dialog-input"]');
       if (!input) {
         createdElement = true;
         input = document.createElement('input');
@@ -192,9 +184,7 @@ global.Actual = {
       if (filter) {
         input.accept = filter.extensions
           .flatMap(ext => {
-            const normalizedExt = ext.startsWith('.')
-              ? ext.toLowerCase()
-              : `.${ext.toLowerCase()}`;
+            const normalizedExt = ext.startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`;
             const overrides = FILE_ACCEPT_OVERRIDES[ext.toLowerCase()] ?? [];
             return [normalizedExt, ...overrides];
           })
@@ -277,7 +267,7 @@ global.Actual = {
   },
 
   setTheme: theme => {
-    window.__actionsForMenu.saveGlobalPrefs({ prefs: { theme } });
+    window.__actionsForMenu.saveGlobalPrefs({prefs: {theme}});
   },
 
   moveBudgetDirectory: () => {
@@ -285,8 +275,6 @@ global.Actual = {
   },
 
   setDocumentDir: async () => {
-    throw new Error(
-      'Changing the data folder is only available in the desktop app',
-    );
+    throw new Error('Changing the data folder is only available in the desktop app');
   },
 };

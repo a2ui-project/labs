@@ -16,20 +16,17 @@
 
 import express from 'express';
 
-import { isAdmin } from '#account-db';
-import { handleError } from '#app-gocardless/util/handle-error';
-import { SecretName, secretsService } from '#services/secrets-service';
+import {isAdmin} from '#account-db';
+import {handleError} from '#app-gocardless/util/handle-error';
+import {SecretName, secretsService} from '#services/secrets-service';
 import * as UserService from '#services/user-service';
-import {
-  requestLoggerMiddleware,
-  validateSessionMiddleware,
-} from '#util/middlewares';
-import { isValidFileId } from '#util/paths';
+import {requestLoggerMiddleware, validateSessionMiddleware} from '#util/middlewares';
+import {isValidFileId} from '#util/paths';
 
-import { pluggyaiService } from './pluggyai-service';
+import {pluggyaiService} from './pluggyai-service';
 
 const app = express();
-export { app as handlers };
+export {app as handlers};
 app.use(requestLoggerMiddleware);
 app.use(express.json());
 app.use(validateSessionMiddleware);
@@ -110,9 +107,7 @@ app.post(
       }
 
       const credentialFileId = source === 'per-budget-file' ? fileId : null;
-      const itemIds = (
-        secretsService.get(SecretName.pluggyai_itemIds, credentialFileId) ?? ''
-      )
+      const itemIds = (secretsService.get(SecretName.pluggyai_itemIds, credentialFileId) ?? '')
         .split(',')
         .map(item => item.trim())
         .filter(Boolean);
@@ -144,7 +139,7 @@ app.post(
 app.post(
   '/transactions',
   handleError(async (req, res) => {
-    const { accountId, startDate } = req.body || {};
+    const {accountId, startDate} = req.body || {};
     const fileId = req.get('X-Actual-File-Id');
     if (!!fileId) {
       if (!isValidFileId(fileId)) {
@@ -185,9 +180,7 @@ app.post(
 
       const account = await pluggyaiService.getAccountById(accountId, fileId);
 
-      let startingBalance = parseInt(
-        Math.round(account.balance * 100).toString(),
-      );
+      let startingBalance = parseInt(Math.round(account.balance * 100).toString());
       if (account.type === 'CREDIT') {
         startingBalance = -startingBalance;
       }
@@ -251,7 +244,7 @@ app.post(
 
         delete trans.amount;
 
-        const finalTrans = { ...flattenObject(trans), ...newTrans };
+        const finalTrans = {...flattenObject(trans), ...newTrans};
 
         if (newTrans.booked) {
           booked.push(finalTrans);
@@ -321,7 +314,7 @@ function getPayeeName(trans) {
   }
 
   if (trans.paymentData) {
-    const { receiver, payer } = trans.paymentData;
+    const {receiver, payer} = trans.paymentData;
 
     if (trans.type === 'DEBIT' && receiver) {
       return receiver.name || receiver.documentNumber?.value || '';

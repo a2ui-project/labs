@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties, FocusEvent, FocusEventHandler, Ref } from 'react';
+import {useEffect, useRef, useState} from 'react';
+import type {CSSProperties, FocusEvent, FocusEventHandler, Ref} from 'react';
 
-import { Input } from '@actual-app/components/input';
-import { evalArithmetic } from '@actual-app/core/shared/arithmetic';
+import {Input} from '@actual-app/components/input';
+import {evalArithmetic} from '@actual-app/core/shared/arithmetic';
 
-import { useFormat } from '#hooks/useFormat';
-import { useMergedRefs } from '#hooks/useMergedRefs';
+import {useFormat} from '#hooks/useFormat';
+import {useMergedRefs} from '#hooks/useMergedRefs';
 
 type PercentInputProps = {
   id?: string;
@@ -37,8 +37,7 @@ type PercentInputProps = {
   max?: number;
 };
 
-const clampToPercent = (value: number, max: number) =>
-  Math.max(Math.min(value, max), 0);
+const clampToPercent = (value: number, max: number) => Math.max(Math.min(value, max), 0);
 
 export function PercentInput({
   id,
@@ -56,9 +55,7 @@ export function PercentInput({
   const format = useFormat();
 
   const [isFocused, setIsFocused] = useState(focused ?? false);
-  const [value, setValue] = useState(() =>
-    format(clampToPercent(initialValue, max), 'percentage'),
-  );
+  const [value, setValue] = useState(() => format(clampToPercent(initialValue, max), 'percentage'));
 
   useEffect(() => {
     const clamped = clampToPercent(initialValue, max);
@@ -85,10 +82,7 @@ export function PercentInput({
   }
 
   function fireUpdate() {
-    const clamped = clampToPercent(
-      evalArithmetic(value.replace('%', ''), 0) ?? 0,
-      max,
-    );
+    const clamped = clampToPercent(evalArithmetic(value.replace('%', ''), 0) ?? 0, max);
     onUpdatePercent?.(clamped);
     return clamped;
   }
@@ -114,7 +108,7 @@ export function PercentInput({
       inputMode="decimal"
       value={value}
       disabled={disabled}
-      style={{ flex: 1, alignItems: 'stretch', ...style }}
+      style={{flex: 1, alignItems: 'stretch', ...style}}
       onEnter={fireUpdate}
       onChangeValue={onInputTextChange}
       onBlur={onInputBlur}

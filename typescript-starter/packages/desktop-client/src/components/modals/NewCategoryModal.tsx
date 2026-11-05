@@ -14,31 +14,22 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { ModalHeader, ModalTitle } from '#components/common/Modal';
-import type { Modal } from '#modals/modalsSlice';
+import {ModalHeader, ModalTitle} from '#components/common/Modal';
+import type {Modal} from '#modals/modalsSlice';
 
-import { SingleInputModal } from './SingleInputModal';
+import {SingleInputModal} from './SingleInputModal';
 
-type NewCategoryModalProps = Extract<
-  Modal,
-  { name: 'new-category' }
->['options'];
+type NewCategoryModalProps = Extract<Modal, {name: 'new-category'}>['options'];
 
-export function NewCategoryModal({
-  onValidate,
-  onSubmit,
-}: NewCategoryModalProps) {
-  const { t } = useTranslation();
+export function NewCategoryModal({onValidate, onSubmit}: NewCategoryModalProps) {
+  const {t} = useTranslation();
   return (
     <SingleInputModal
       name="new-category"
       Header={props => (
-        <ModalHeader
-          {...props}
-          title={<ModalTitle title={t('New Category')} shrinkOnOverflow />}
-        />
+        <ModalHeader {...props} title={<ModalTitle title={t('New Category')} shrinkOnOverflow />} />
       )}
       inputPlaceholder={t('Category name')}
       buttonText={t('Add')}

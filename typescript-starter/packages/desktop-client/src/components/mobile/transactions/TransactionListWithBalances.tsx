@@ -14,38 +14,35 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import type { ComponentProps } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import type {ComponentProps} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { SvgFilter } from '@actual-app/components/icons/v1';
-import { Label } from '@actual-app/components/label';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type { TransactionEntity } from '@actual-app/core/types/models';
+import {SvgFilter} from '@actual-app/components/icons/v1';
+import {Label} from '@actual-app/components/label';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {TransactionEntity} from '@actual-app/core/types/models';
 
-import { Search } from '#components/common/Search';
-import { PullToRefresh } from '#components/mobile/PullToRefresh';
-import { CellValue, CellValueText } from '#components/spreadsheet/CellValue';
-import { DisplayPayeeProvider } from '#hooks/useDisplayPayee';
-import { SelectedProvider, useSelected } from '#hooks/useSelected';
-import { useSheetValue } from '#hooks/useSheetValue';
-import type { Binding, SheetFields, SheetNames } from '#spreadsheet';
+import {Search} from '#components/common/Search';
+import {PullToRefresh} from '#components/mobile/PullToRefresh';
+import {CellValue, CellValueText} from '#components/spreadsheet/CellValue';
+import {DisplayPayeeProvider} from '#hooks/useDisplayPayee';
+import {SelectedProvider, useSelected} from '#hooks/useSelected';
+import {useSheetValue} from '#hooks/useSheetValue';
+import type {Binding, SheetFields, SheetNames} from '#spreadsheet';
 
-import { TransactionList } from './TransactionList';
+import {TransactionList} from './TransactionList';
 
 type TransactionSearchInputProps = {
   placeholder: string;
   onSearch: TransactionListWithBalancesProps['onSearch'];
 };
 
-function TransactionSearchInput({
-  placeholder,
-  onSearch,
-}: TransactionSearchInputProps) {
+function TransactionSearchInput({placeholder, onSearch}: TransactionSearchInputProps) {
   const [text, setText] = useState('');
 
   return (
@@ -87,9 +84,7 @@ type TransactionListWithBalancesProps = {
     | Binding<'category', 'balance'>
     | Binding<'account', 'balance'>
     | Binding<'account', 'accounts-balance'>;
-  balanceCleared?:
-    | Binding<'category', 'balanceCleared'>
-    | Binding<'account', 'balanceCleared'>;
+  balanceCleared?: Binding<'category', 'balanceCleared'> | Binding<'account', 'balanceCleared'>;
   balanceUncleared?:
     | Binding<'category', 'balanceUncleared'>
     | Binding<'account', 'balanceUncleared'>;
@@ -152,7 +147,7 @@ export function TransactionListWithBalances({
               />
             ) : (
               <>
-                <View style={{ flexBasis: '33%' }} />
+                <View style={{flexBasis: '33%'}} />
                 <Balance balance={balance} />
                 <View
                   style={{
@@ -166,10 +161,7 @@ export function TransactionListWithBalances({
               </>
             )}
           </View>
-          <TransactionSearchInput
-            placeholder={searchPlaceholder}
-            onSearch={onSearch}
-          />
+          <TransactionSearchInput placeholder={searchPlaceholder} onSearch={onSearch} />
         </View>
         <PullToRefresh
           isPullable={!isLoading && !!onRefresh}
@@ -211,8 +203,8 @@ function AppliedFiltersChip() {
         padding: '4px 10px',
       }}
     >
-      <SvgFilter width={12} height={12} style={{ flexShrink: 0 }} />
-      <Text style={{ fontSize: 12, fontWeight: 500 }}>
+      <SvgFilter width={12} height={12} style={{flexShrink: 0}} />
+      <Text style={{fontSize: 12, fontWeight: 500}}>
         <Trans>Filters applied</Trans>
       </Text>
     </View>
@@ -223,22 +215,15 @@ const TransactionListBalanceCellValue = <
   FieldName extends SheetFields<'account'> | SheetFields<'category'>,
 >(
   props: ComponentProps<
-    typeof CellValue<
-      FieldName extends SheetFields<'account'> ? 'account' : 'category',
-      FieldName
-    >
+    typeof CellValue<FieldName extends SheetFields<'account'> ? 'account' : 'category', FieldName>
   >,
 ) => {
   return <CellValue {...props} />;
 };
 
 type BalanceWithClearedProps = {
-  balanceUncleared: NonNullable<
-    TransactionListWithBalancesProps['balanceUncleared']
-  >;
-  balanceCleared: NonNullable<
-    TransactionListWithBalancesProps['balanceCleared']
-  >;
+  balanceUncleared: NonNullable<TransactionListWithBalancesProps['balanceUncleared']>;
+  balanceCleared: NonNullable<TransactionListWithBalancesProps['balanceCleared']>;
   balance: TransactionListWithBalancesProps['balance'];
   alwaysShowCleared?: boolean;
 };
@@ -249,11 +234,10 @@ function BalanceWithCleared({
   balance,
   alwaysShowCleared = false,
 }: BalanceWithClearedProps) {
-  const { t } = useTranslation();
-  const unclearedAmount = useSheetValue<
-    'account' | 'category',
-    'balanceUncleared'
-  >(balanceUncleared);
+  const {t} = useTranslation();
+  const unclearedAmount = useSheetValue<'account' | 'category', 'balanceUncleared'>(
+    balanceUncleared,
+  );
   const showCleared = !!unclearedAmount || alwaysShowCleared;
 
   return (
@@ -264,14 +248,8 @@ function BalanceWithCleared({
           flexBasis: '33%',
         }}
       >
-        <Label
-          title={t('Cleared')}
-          style={{ textAlign: 'center', fontSize: 12 }}
-        />
-        <TransactionListBalanceCellValue
-          binding={balanceCleared}
-          type="financial"
-        >
+        <Label title={t('Cleared')} style={{textAlign: 'center', fontSize: 12}} />
+        <TransactionListBalanceCellValue binding={balanceCleared} type="financial">
           {props => (
             <CellValueText
               {...props}
@@ -292,14 +270,8 @@ function BalanceWithCleared({
           flexBasis: '33%',
         }}
       >
-        <Label
-          title={t('Uncleared')}
-          style={{ textAlign: 'center', fontSize: 12 }}
-        />
-        <TransactionListBalanceCellValue
-          binding={balanceUncleared}
-          type="financial"
-        >
+        <Label title={t('Uncleared')} style={{textAlign: 'center', fontSize: 12}} />
+        <TransactionListBalanceCellValue binding={balanceUncleared} type="financial">
           {props => (
             <CellValueText
               {...props}
@@ -321,11 +293,11 @@ type BalanceProps = {
   balance: TransactionListWithBalancesProps['balance'];
 };
 
-function Balance({ balance }: BalanceProps) {
-  const { t } = useTranslation();
+function Balance({balance}: BalanceProps) {
+  const {t} = useTranslation();
   return (
-    <View style={{ flexBasis: '33%' }}>
-      <Label title={t('Balance')} style={{ textAlign: 'center' }} />
+    <View style={{flexBasis: '33%'}}>
+      <Label title={t('Balance')} style={{textAlign: 'center'}} />
       <TransactionListBalanceCellValue binding={balance} type="financial">
         {props => (
           <CellValueText

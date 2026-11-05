@@ -15,53 +15,39 @@
  */
 
 // @ts-strict-ignore
-import type {
-  ComponentProps,
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-} from 'react';
-import {
-  useCallback,
-  useEffect,
-  useEffectEvent,
-  useRef,
-  useState,
-} from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import type {ComponentProps, Dispatch, ReactNode, SetStateAction} from 'react';
+import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button, ButtonWithLoading } from '@actual-app/components/button';
-import { Input } from '@actual-app/components/input';
-import { Select } from '@actual-app/components/select';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import type { ParseFileOptions } from '@actual-app/core/server/transactions/import/parse-file';
-import { amountToInteger } from '@actual-app/core/shared/util';
-import { useQueryClient } from '@tanstack/react-query';
+import {Button, ButtonWithLoading} from '@actual-app/components/button';
+import {Input} from '@actual-app/components/input';
+import {Select} from '@actual-app/components/select';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {ParseFileOptions} from '@actual-app/core/server/transactions/import/parse-file';
+import {amountToInteger} from '@actual-app/core/shared/util';
+import {useQueryClient} from '@tanstack/react-query';
 
-import {
-  useImportPreviewTransactionsMutation,
-  useImportTransactionsMutation,
-} from '#accounts';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { SectionLabel } from '#components/forms';
-import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
-import { TableHeader, TableWithNavigator } from '#components/table';
-import { useCategories } from '#hooks/useCategories';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useSyncedPrefs } from '#hooks/useSyncedPrefs';
-import { payeeQueries } from '#payees';
+import {useImportPreviewTransactionsMutation, useImportTransactionsMutation} from '#accounts';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {SectionLabel} from '#components/forms';
+import {LabeledCheckbox} from '#components/forms/LabeledCheckbox';
+import {TableHeader, TableWithNavigator} from '#components/table';
+import {useCategories} from '#hooks/useCategories';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useSyncedPrefs} from '#hooks/useSyncedPrefs';
+import {payeeQueries} from '#payees';
 
-import { DateFormatSelect } from './DateFormatSelect';
-import { FieldMappings } from './FieldMappings';
-import { InOutOption } from './InOutOption';
-import { MultiplierOption } from './MultiplierOption';
-import { Transaction } from './Transaction';
-import type { DateFormat, FieldMapping, ImportTransaction } from './utils';
+import {DateFormatSelect} from './DateFormatSelect';
+import {FieldMappings} from './FieldMappings';
+import {InOutOption} from './InOutOption';
+import {MultiplierOption} from './MultiplierOption';
+import {Transaction} from './Transaction';
+import type {DateFormat, FieldMapping, ImportTransaction} from './utils';
 import {
   applyFieldMappings,
   dateFormats,
@@ -85,11 +71,7 @@ function CheckboxToggle({
   children: ReactNode;
 }) {
   return (
-    <LabeledCheckbox
-      id={id}
-      checked={checked}
-      onChange={() => onChange(prev => !prev)}
-    >
+    <LabeledCheckbox id={id} checked={checked} onChange={() => onChange(prev => !prev)}>
       {children}
     </LabeledCheckbox>
   );
@@ -111,10 +93,7 @@ function getInitialDateFormat(transactions, mappings) {
   const transaction = transactions[0];
   const date = transaction[mappings.date];
 
-  const found =
-    date == null
-      ? null
-      : dateFormats.find(f => parseDate(date, f.format) != null);
+  const found = date == null ? null : dateFormats.find(f => parseDate(date, f.format) != null);
   return found ? found.format : 'mm dd yyyy';
 }
 
@@ -140,16 +119,11 @@ function getInitialMappings(transactions) {
       fields.find(([, value]) => String(value)?.match(/^-?[.,\d]+$/)),
   );
 
-  const categoryField = key(
-    fields.find(([name]) => name.toLowerCase().includes('category')),
-  );
+  const categoryField = key(fields.find(([name]) => name.toLowerCase().includes('category')));
 
   const payeeField = key(
     fields.find(([name]) => name.toLowerCase().includes('payee')) ||
-      fields.find(
-        ([name]) =>
-          name !== dateField && name !== amountField && name !== categoryField,
-      ),
+      fields.find(([name]) => name !== dateField && name !== amountField && name !== categoryField),
   );
 
   const notesField = key(
@@ -166,10 +140,7 @@ function getInitialMappings(transactions) {
   const inOutField = key(
     fields.find(
       ([name]) =>
-        name !== dateField &&
-        name !== amountField &&
-        name !== payeeField &&
-        name !== notesField,
+        name !== dateField && name !== amountField && name !== payeeField && name !== notesField,
     ),
   );
 
@@ -218,30 +189,22 @@ function shouldPreserveImportSettingsForParse(
   );
 }
 
-export function ImportTransactionsModal({
-  filename: originalFileName,
-  accountId,
-  onImported,
-}) {
-  const { t } = useTranslation();
+export function ImportTransactionsModal({filename: originalFileName, accountId, onImported}) {
+  const {t} = useTranslation();
   const queryClient = useQueryClient();
   const dateFormat = useDateFormat() || ('MM/dd/yyyy' as const);
   const [prefs, savePrefs] = useSyncedPrefs();
-  const { data: { list: categories } = { list: [] } } = useCategories();
+  const {data: {list: categories} = {list: []}} = useCategories();
 
   const [multiplierAmount, setMultiplierAmount] = useState('');
-  const [loadingState, setLoadingState] = useState<
-    null | 'parsing' | 'importing'
-  >('parsing');
+  const [loadingState, setLoadingState] = useState<null | 'parsing' | 'importing'>('parsing');
   const [error, setError] = useState<{
     parsed: boolean;
     message: string;
   } | null>(null);
   const [filename, setFilename] = useState(originalFileName);
   const [transactions, setTransactions] = useState<ImportTransaction[]>([]);
-  const [parsedTransactions, setParsedTransactions] = useState<
-    ImportTransaction[]
-  >([]);
+  const [parsedTransactions, setParsedTransactions] = useState<ImportTransaction[]>([]);
   const [filetype, setFileType] = useState('unknown');
   const [fieldMappings, setFieldMappings] = useState<FieldMapping | null>(null);
   const [splitMode, setSplitMode] = useState(false);
@@ -256,12 +219,9 @@ export function ImportTransactionsModal({
   // parsed different files without closing the modal, it wouldn't
   // re-read this.
   const [delimiter, setDelimiter] = useState(
-    prefs[`csv-delimiter-${accountId}`] ||
-      (filename.endsWith('.tsv') ? '\t' : ','),
+    prefs[`csv-delimiter-${accountId}`] || (filename.endsWith('.tsv') ? '\t' : ','),
   );
-  const [csvEncoding, setCsvEncoding] = useState(
-    prefs[`csv-encoding-${accountId}`] || 'auto',
-  );
+  const [csvEncoding, setCsvEncoding] = useState(prefs[`csv-encoding-${accountId}`] || 'auto');
   const [skipStartLines, setSkipStartLines] = useState(
     parseInt(prefs[`csv-skip-start-lines-${accountId}`], 10) || 0,
   );
@@ -271,9 +231,7 @@ export function ImportTransactionsModal({
   const [inOutMode, setInOutMode] = useState(
     String(prefs[`csv-in-out-mode-${accountId}`]) === 'true',
   );
-  const [outValue, setOutValue] = useState(
-    prefs[`csv-out-value-${accountId}`] ?? '',
-  );
+  const [outValue, setOutValue] = useState(prefs[`csv-out-value-${accountId}`] ?? '');
   const [hasHeaderRow, setHasHeaderRow] = useState(
     String(prefs[`csv-has-header-${accountId}`]) !== 'false',
   );
@@ -293,9 +251,7 @@ export function ImportTransactionsModal({
     String(prefs[`import-reimport-deleted-${accountId}`] || 'true') === 'true',
   );
 
-  const [parseDateFormat, setParseDateFormat] = useState<DateFormat | null>(
-    null,
-  );
+  const [parseDateFormat, setParseDateFormat] = useState<DateFormat | null>(null);
 
   const [clearOnImport, setClearOnImport] = useState(true);
   const [startDate, setStartDate] = useState('');
@@ -315,10 +271,9 @@ export function ImportTransactionsModal({
     ) => {
       const previewTransactions = [];
       const inOutModeEnabled = isOfxFile(filetype) ? false : inOutMode;
-      const getTransDate: (trans: ImportTransaction) => string | null =
-        isOfxFile(filetype)
-          ? trans => trans.date ?? null
-          : trans => parseDate(trans.date, parseDateFormat);
+      const getTransDate: (trans: ImportTransaction) => string | null = isOfxFile(filetype)
+        ? trans => trans.date ?? null
+        : trans => parseDate(trans.date, parseDateFormat);
 
       // Note that the sort will behave unpredictably if any date fails to parse.
       transactions.sort((a, b) => {
@@ -334,17 +289,11 @@ export function ImportTransactionsModal({
           continue;
         }
 
-        trans = fieldMappings
-          ? applyFieldMappings(trans, fieldMappings)
-          : trans;
+        trans = fieldMappings ? applyFieldMappings(trans, fieldMappings) : trans;
 
         const date = getTransDate(trans);
         if (date == null) {
-          console.log(
-            `Unable to parse date ${
-              trans.date || '(empty)'
-            } with given date format`,
-          );
+          console.log(`Unable to parse date ${trans.date || '(empty)'} with given date format`);
           break;
         }
         if (trans.payee_name == null || typeof trans.payee_name !== 'string') {
@@ -352,7 +301,7 @@ export function ImportTransactionsModal({
           break;
         }
 
-        const { amount } = parseAmountFields(
+        const {amount} = parseAmountFields(
           trans,
           splitMode,
           inOutModeEnabled,
@@ -393,18 +342,14 @@ export function ImportTransactionsModal({
   );
 
   const parse = useCallback(
-    async (
-      filename: string,
-      options: ParseFileOptions,
-      { preserveImportSettings = false } = {},
-    ) => {
+    async (filename: string, options: ParseFileOptions, {preserveImportSettings = false} = {}) => {
       setLoadingState('parsing');
 
       const filetype = getFileType(filename);
       setFilename(filename);
       setFileType(filetype);
 
-      const { errors, transactions: parsedTransactions = [] } = await send(
+      const {errors, transactions: parsedTransactions = []} = await send(
         'transactions-parse-file',
         {
           filepath: filename,
@@ -432,21 +377,15 @@ export function ImportTransactionsModal({
           message: errors[0].message || 'Internal error',
         });
       } else {
-        if (
-          !preserveImportSettings &&
-          (filetype === 'csv' || filetype === 'qif')
-        ) {
-          const flipAmount =
-            String(prefs[`flip-amount-${accountId}-${filetype}`]) === 'true';
+        if (!preserveImportSettings && (filetype === 'csv' || filetype === 'qif')) {
+          const flipAmount = String(prefs[`flip-amount-${accountId}-${filetype}`]) === 'true';
           setFlipAmount(flipAmount);
         }
 
         if (filetype === 'csv') {
           if (!preserveImportSettings) {
             let mappings = prefs[`csv-mappings-${accountId}`];
-            mappings = mappings
-              ? JSON.parse(mappings)
-              : getInitialMappings(transactions);
+            mappings = mappings ? JSON.parse(mappings) : getInitialMappings(transactions);
 
             // @ts-expect-error - mappings might not have outflow/inflow properties
             setFieldMappings(mappings);
@@ -459,18 +398,14 @@ export function ImportTransactionsModal({
             const parseDateFormat =
               prefs[`parse-date-${accountId}-${filetype}`] ||
               getInitialDateFormat(transactions, mappings);
-            setParseDateFormat(
-              isDateFormat(parseDateFormat) ? parseDateFormat : null,
-            );
+            setParseDateFormat(isDateFormat(parseDateFormat) ? parseDateFormat : null);
           }
         } else if (filetype === 'qif') {
           if (!preserveImportSettings) {
             const parseDateFormat =
               prefs[`parse-date-${accountId}-${filetype}`] ||
-              getInitialDateFormat(transactions, { date: 'date' });
-            setParseDateFormat(
-              isDateFormat(parseDateFormat) ? parseDateFormat : null,
-            );
+              getInitialDateFormat(transactions, {date: 'date'});
+            setParseDateFormat(isDateFormat(parseDateFormat) ? parseDateFormat : null);
           }
         } else {
           setFieldMappings(null);
@@ -565,7 +500,7 @@ export function ImportTransactionsModal({
           outflow: null,
           inflow: null,
         };
-    setFieldMappings({ ...fieldMappings, ...newFieldMappings });
+    setFieldMappings({...fieldMappings, ...newFieldMappings});
   }
 
   async function onNewFile() {
@@ -657,10 +592,7 @@ export function ImportTransactionsModal({
     let errorMessage;
 
     for (let trans of transactions) {
-      if (
-        trans.isMatchedTransaction ||
-        (reconcile && !trans.selected && !trans.ignored)
-      ) {
+      if (trans.isMatchedTransaction || (reconcile && !trans.selected && !trans.ignored)) {
         // skip transactions that are
         // - matched transaction (existing transaction added to show update changes)
         // - unselected transactions that are not ignored by the reconcilation algorithm (only when reconcilation is enabled)
@@ -674,14 +606,13 @@ export function ImportTransactionsModal({
           ? trans.date
           : parseDate(trans.date, parseDateFormat);
       if (date == null) {
-        errorMessage = t(
-          'Unable to parse date {{date}} with given date format',
-          { date: trans.date || t('(empty)') },
-        );
+        errorMessage = t('Unable to parse date {{date}} with given date format', {
+          date: trans.date || t('(empty)'),
+        });
         break;
       }
 
-      const { amount } = parseAmountFields(
+      const {amount} = parseAmountFields(
         trans,
         splitMode,
         isOfxFile(filetype) ? false : inOutMode,
@@ -733,20 +664,18 @@ export function ImportTransactionsModal({
 
     if (errorMessage) {
       setLoadingState(null);
-      setError({ parsed: false, message: errorMessage });
+      setError({parsed: false, message: errorMessage});
       return;
     }
 
     if (!isOfxFile(filetype) && !isCamtFile(filetype)) {
       const key = `parse-date-${accountId}-${filetype}`;
-      savePrefs({ [key]: parseDateFormat });
+      savePrefs({[key]: parseDateFormat});
     }
 
     if (isOfxFile(filetype)) {
       savePrefs({
-        [`ofx-fallback-missing-payee-${accountId}`]: String(
-          fallbackMissingPayeeToMemo,
-        ),
+        [`ofx-fallback-missing-payee-${accountId}`]: String(fallbackMissingPayeeToMemo),
         [`ofx-swap-payee-memo-${accountId}`]: String(ofxSwapPayeeAndMemo),
       });
     }
@@ -755,15 +684,15 @@ export function ImportTransactionsModal({
       savePrefs({
         [`csv-mappings-${accountId}`]: JSON.stringify(fieldMappings),
       });
-      savePrefs({ [`csv-delimiter-${accountId}`]: delimiter });
-      savePrefs({ [`csv-encoding-${accountId}`]: csvEncoding });
-      savePrefs({ [`csv-has-header-${accountId}`]: String(hasHeaderRow) });
+      savePrefs({[`csv-delimiter-${accountId}`]: delimiter});
+      savePrefs({[`csv-encoding-${accountId}`]: csvEncoding});
+      savePrefs({[`csv-has-header-${accountId}`]: String(hasHeaderRow)});
       savePrefs({
         [`csv-skip-start-lines-${accountId}`]: String(skipStartLines),
       });
-      savePrefs({ [`csv-skip-end-lines-${accountId}`]: String(skipEndLines) });
-      savePrefs({ [`csv-in-out-mode-${accountId}`]: String(inOutMode) });
-      savePrefs({ [`csv-out-value-${accountId}`]: String(outValue) });
+      savePrefs({[`csv-skip-end-lines-${accountId}`]: String(skipEndLines)});
+      savePrefs({[`csv-in-out-mode-${accountId}`]: String(inOutMode)});
+      savePrefs({[`csv-out-value-${accountId}`]: String(outValue)});
     }
 
     if (filetype === 'csv' || filetype === 'qif') {
@@ -871,7 +800,7 @@ export function ImportTransactionsModal({
               currentTrx.selected = !currentTrx.ignored;
               currentTrx.selected_merge = currentTrx.existing;
 
-              next = next.concat({ ...currentTrx });
+              next = next.concat({...currentTrx});
 
               if (existingTrx) {
                 // add the updated existing transaction in the list, with the
@@ -886,7 +815,7 @@ export function ImportTransactionsModal({
                 existingTrx.selected = currentTrx.selected;
                 existingTrx.selected_merge = currentTrx.selected_merge;
 
-                next = next.concat({ ...existingTrx });
+                next = next.concat({...existingTrx});
               }
 
               return next;
@@ -914,38 +843,38 @@ export function ImportTransactionsModal({
   ]);
 
   const headers: ComponentProps<typeof TableHeader>['headers'] = [
-    { name: t('Date'), width: 200 },
-    { name: t('Payee'), width: 'flex' },
-    { name: t('Notes'), width: 'flex' },
-    { name: t('Category'), width: 'flex' },
+    {name: t('Date'), width: 200},
+    {name: t('Payee'), width: 'flex'},
+    {name: t('Notes'), width: 'flex'},
+    {name: t('Category'), width: 'flex'},
   ];
 
   if (reconcile) {
-    headers.unshift({ name: ' ', width: 31 });
+    headers.unshift({name: ' ', width: 31});
   }
   if (inOutMode) {
     headers.push({
       name: t('In/Out'),
       width: 90,
-      style: { textAlign: 'left' },
+      style: {textAlign: 'left'},
     });
   }
   if (splitMode) {
     headers.push({
       name: t('Outflow'),
       width: 90,
-      style: { textAlign: 'right' },
+      style: {textAlign: 'right'},
     });
     headers.push({
       name: t('Inflow'),
       width: 90,
-      style: { textAlign: 'right' },
+      style: {textAlign: 'right'},
     });
   } else {
     headers.push({
       name: t('Amount'),
       width: 90,
-      style: { textAlign: 'right' },
+      style: {textAlign: 'right'},
     });
   }
 
@@ -953,20 +882,17 @@ export function ImportTransactionsModal({
     <Modal
       name="import-transactions"
       isLoading={loadingState === 'parsing'}
-      containerProps={{ style: { width: 800 } }}
+      containerProps={{style: {width: 800}}}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
-            title={
-              t('Import transactions') +
-              (filetype ? ` (${filetype.toUpperCase()})` : '')
-            }
+            title={t('Import transactions') + (filetype ? ` (${filetype.toUpperCase()})` : '')}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
           {error && !error.parsed && (
-            <View style={{ alignItems: 'center', marginBottom: 15 }}>
-              <Text style={{ marginRight: 10, color: theme.errorText }}>
+            <View style={{alignItems: 'center', marginBottom: 15}}>
+              <Text style={{marginRight: 10, color: theme.errorText}}>
                 <strong>
                   <Trans>Error:</Trans>
                 </strong>{' '}
@@ -975,20 +901,16 @@ export function ImportTransactionsModal({
             </View>
           )}
           {(!error || !error.parsed) && (
-            <View
-              style={{ ...styles.tableContainer, height: 300, flex: 'unset' }}
-            >
+            <View style={{...styles.tableContainer, height: 300, flex: 'unset'}}>
               <TableHeader headers={headers} />
 
               {/* @ts-expect-error - ImportTransaction is not a TableItem */}
               <TableWithNavigator<ImportTransaction>
                 items={transactions.filter(
-                  trans =>
-                    !trans.isMatchedTransaction ||
-                    (trans.isMatchedTransaction && reconcile),
+                  trans => !trans.isMatchedTransaction || (trans.isMatchedTransaction && reconcile),
                 )}
                 fields={['payee', 'category', 'amount']}
-                style={{ backgroundColor: theme.tableHeaderBackground }}
+                style={{backgroundColor: theme.tableHeaderBackground}}
                 getItemKey={index => String(index)}
                 renderEmpty={() => {
                   return (
@@ -1004,7 +926,7 @@ export function ImportTransactionsModal({
                     </View>
                   );
                 }}
-                renderItem={({ item, index }) => (
+                renderItem={({item, index}) => (
                   <View>
                     <Transaction
                       transaction={item}
@@ -1035,7 +957,7 @@ export function ImportTransactionsModal({
                 marginTop: 10,
               }}
             >
-              <Text style={{ maxWidth: 450, marginBottom: 15 }}>
+              <Text style={{maxWidth: 450, marginBottom: 15}}>
                 <strong>Error:</strong> {error.message}
               </Text>
               {error.parsed && (
@@ -1069,7 +991,7 @@ export function ImportTransactionsModal({
                 type="date"
                 value={startDate}
                 onChangeValue={value => setStartDate(value)}
-                style={{ width: 150 }}
+                style={{width: 150}}
               />
             </label>
             {startDate && (
@@ -1080,7 +1002,7 @@ export function ImportTransactionsModal({
           </View>
 
           {filetype === 'csv' && (
-            <View style={{ marginTop: 10 }}>
+            <View style={{marginTop: 10}}>
               <FieldMappings
                 transactions={transactions}
                 onChange={onUpdateFields}
@@ -1112,11 +1034,7 @@ export function ImportTransactionsModal({
           )}
 
           {filetype !== 'csv' && (
-            <CheckboxToggle
-              id="import_notes"
-              checked={importNotes}
-              onChange={setImportNotes}
-            >
+            <CheckboxToggle id="import_notes" checked={importNotes} onChange={setImportNotes}>
               <Trans>Import notes from file</Trans>
             </CheckboxToggle>
           )}
@@ -1142,11 +1060,7 @@ export function ImportTransactionsModal({
           )}
 
           {(isOfxFile(filetype) || isCamtFile(filetype)) && (
-            <CheckboxToggle
-              id="form_dont_reconcile"
-              checked={reconcile}
-              onChange={setReconcile}
-            >
+            <CheckboxToggle id="form_dont_reconcile" checked={reconcile} onChange={setReconcile}>
               <Trans>Merge with existing transactions</Trans>
             </CheckboxToggle>
           )}
@@ -1163,11 +1077,8 @@ export function ImportTransactionsModal({
 
           {/*Import Options */}
           {(filetype === 'qif' || filetype === 'csv') && (
-            <View style={{ marginTop: 10 }}>
-              <SpaceBetween
-                gap={5}
-                style={{ marginTop: 5, alignItems: 'flex-start' }}
-              >
+            <View style={{marginTop: 10}}>
+              <SpaceBetween gap={5} style={{marginTop: 5, alignItems: 'flex-start'}}>
                 {/* Date Format */}
                 <View>
                   {(filetype === 'qif' || filetype === 'csv') && (
@@ -1184,7 +1095,7 @@ export function ImportTransactionsModal({
 
                 {/* CSV Options */}
                 {filetype === 'csv' && (
-                  <View style={{ marginLeft: 10, gap: 5 }}>
+                  <View style={{marginLeft: 10, gap: 5}}>
                     <SectionLabel title={t('CSV OPTIONS')} />
                     <label
                       htmlFor="csv-delimiter-select"
@@ -1209,7 +1120,7 @@ export function ImportTransactionsModal({
                         onChange={value => {
                           setDelimiter(value);
                         }}
-                        style={{ width: 50 }}
+                        style={{width: 50}}
                       />
                     </label>
                     <label
@@ -1237,7 +1148,7 @@ export function ImportTransactionsModal({
                         onChange={value => {
                           setCsvEncoding(value);
                         }}
-                        style={{ width: 130 }}
+                        style={{width: 130}}
                       />
                     </label>
                     <label
@@ -1259,7 +1170,7 @@ export function ImportTransactionsModal({
                         onChangeValue={value => {
                           setSkipStartLines(Math.abs(parseInt(value, 10) || 0));
                         }}
-                        style={{ width: 50 }}
+                        style={{width: 50}}
                       />
                     </label>
                     <label
@@ -1281,7 +1192,7 @@ export function ImportTransactionsModal({
                         onChangeValue={value => {
                           setSkipEndLines(Math.abs(parseInt(value, 10) || 0));
                         }}
-                        style={{ width: 50 }}
+                        style={{width: 50}}
                       />
                     </label>
                     <CheckboxToggle
@@ -1317,15 +1228,11 @@ export function ImportTransactionsModal({
                   </View>
                 )}
 
-                <View style={{ flex: 1 }} />
+                <View style={{flex: 1}} />
 
-                <View style={{ marginRight: 10, gap: 5 }}>
+                <View style={{marginRight: 10, gap: 5}}>
                   <SectionLabel title={t('AMOUNT OPTIONS')} />
-                  <CheckboxToggle
-                    id="form_flip"
-                    checked={flipAmount}
-                    onChange={setFlipAmount}
-                  >
+                  <CheckboxToggle id="form_flip" checked={flipAmount} onChange={setFlipAmount}>
                     <Trans>Flip amount</Trans>
                   </CheckboxToggle>
                   <MultiplierOption
@@ -1346,9 +1253,7 @@ export function ImportTransactionsModal({
                           onSplitMode();
                         }}
                       >
-                        <Trans>
-                          Split amount into separate inflow/outflow columns
-                        </Trans>
+                        <Trans>Split amount into separate inflow/outflow columns</Trans>
                       </LabeledCheckbox>
                       <InOutOption
                         inOutMode={inOutMode}
@@ -1365,7 +1270,7 @@ export function ImportTransactionsModal({
             </View>
           )}
 
-          <View style={{ flexDirection: 'row', marginTop: 5 }}>
+          <View style={{flexDirection: 'row', marginTop: 5}}>
             {/*Submit Button */}
             <View
               style={{
@@ -1377,10 +1282,7 @@ export function ImportTransactionsModal({
             >
               {(() => {
                 const count = transactions?.filter(
-                  trans =>
-                    !trans.isMatchedTransaction &&
-                    trans.selected &&
-                    !trans.tombstone,
+                  trans => !trans.isMatchedTransaction && trans.selected && !trans.tombstone,
                 ).length;
 
                 return (
@@ -1393,7 +1295,7 @@ export function ImportTransactionsModal({
                       void onImport(() => state.close());
                     }}
                   >
-                    <Trans count={count}>Import {{ count }} transactions</Trans>
+                    <Trans count={count}>Import {{count}} transactions</Trans>
                   </ButtonWithLoading>
                 );
               })()}
@@ -1407,25 +1309,23 @@ export function ImportTransactionsModal({
 
 function getParseOptions(fileType: string, options: ParseFileOptions = {}) {
   if (fileType === 'csv') {
-    const { delimiter, encoding, hasHeaderRow, skipStartLines, skipEndLines } =
-      options;
-    return { delimiter, encoding, hasHeaderRow, skipStartLines, skipEndLines };
+    const {delimiter, encoding, hasHeaderRow, skipStartLines, skipEndLines} = options;
+    return {delimiter, encoding, hasHeaderRow, skipStartLines, skipEndLines};
   }
   if (isOfxFile(fileType)) {
-    const { fallbackMissingPayeeToMemo, importNotes, swapPayeeAndMemo } =
-      options;
-    return { fallbackMissingPayeeToMemo, importNotes, swapPayeeAndMemo };
+    const {fallbackMissingPayeeToMemo, importNotes, swapPayeeAndMemo} = options;
+    return {fallbackMissingPayeeToMemo, importNotes, swapPayeeAndMemo};
   }
   if (fileType === 'qif') {
-    const { importNotes, swapPayeeAndMemo } = options;
-    return { importNotes, swapPayeeAndMemo };
+    const {importNotes, swapPayeeAndMemo} = options;
+    return {importNotes, swapPayeeAndMemo};
   }
   if (isCamtFile(fileType)) {
-    const { importNotes, swapPayeeAndMemo } = options;
-    return { importNotes, swapPayeeAndMemo };
+    const {importNotes, swapPayeeAndMemo} = options;
+    return {importNotes, swapPayeeAndMemo};
   }
-  const { importNotes } = options;
-  return { importNotes };
+  const {importNotes} = options;
+  return {importNotes};
 }
 
 function getSwapOption(

@@ -1,10 +1,10 @@
 import path from 'path';
 
-import { peggyLoader } from '@actual-app/vite-plugin-peggy';
-import { visualizer } from 'rollup-plugin-visualizer';
-import { defineConfig } from 'vite';
+import {peggyLoader} from '@actual-app/vite-plugin-peggy';
+import {visualizer} from 'rollup-plugin-visualizer';
+import {defineConfig} from 'vite';
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({mode}) => {
   const outDir = path.resolve(__dirname, 'lib-dist/electron');
 
   return {
@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
     ssr: {
       noExternal: true,
       external: ['better-sqlite3'],
-      resolve: { conditions: ['electron'] },
+      resolve: {conditions: ['electron']},
     },
     build: {
       target: 'node18',
@@ -42,9 +42,6 @@ export default defineConfig(({ mode }) => {
         },
       ],
     },
-    plugins: [
-      peggyLoader(),
-      visualizer({ template: 'raw-data', filename: `${outDir}/stats.json` }),
-    ],
+    plugins: [peggyLoader(), visualizer({template: 'raw-data', filename: `${outDir}/stats.json`})],
   };
 });

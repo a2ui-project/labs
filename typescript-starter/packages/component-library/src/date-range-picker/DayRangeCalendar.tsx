@@ -26,16 +26,16 @@ import {
   RangeCalendar,
 } from 'react-aria-components';
 
-import { css } from '@emotion/css';
-import { parseDate } from '@internationalized/date';
+import {css} from '@emotion/css';
+import {parseDate} from '@internationalized/date';
 
-import { SvgCheveronLeft, SvgCheveronRight } from '#icons/v1';
-import type { CSSProperties } from '#styles';
-import { theme } from '#theme';
-import { View } from '#View';
+import {SvgCheveronLeft, SvgCheveronRight} from '#icons/v1';
+import type {CSSProperties} from '#styles';
+import {theme} from '#theme';
+import {View} from '#View';
 
-import type { DateRangePickerLabels, FirstDayOfWeek } from './util';
-import { YearSelect } from './YearSelect';
+import type {DateRangePickerLabels, FirstDayOfWeek} from './util';
+import {YearSelect} from './YearSelect';
 
 const calendarStyles: CSSProperties = {
   // A definite width so the header and the percentage-sized grid line up;
@@ -56,8 +56,8 @@ const calendarStyles: CSSProperties = {
       padding: 5,
       cursor: 'pointer',
       display: 'flex',
-      '&:hover': { backgroundColor: theme.buttonBareBackgroundHover },
-      '&[disabled]': { opacity: 0.4, cursor: 'default' },
+      '&:hover': {backgroundColor: theme.buttonBareBackgroundHover},
+      '&[disabled]': {opacity: 0.4, cursor: 'default'},
     },
     '& select': {
       color: 'inherit',
@@ -68,7 +68,7 @@ const calendarStyles: CSSProperties = {
       fontWeight: 'bold',
       fontSize: 13,
       cursor: 'pointer',
-      '&:hover': { backgroundColor: theme.buttonBareBackgroundHover },
+      '&:hover': {backgroundColor: theme.buttonBareBackgroundHover},
       // The open dropdown paints the browser's default (light) popup, so
       // inherited light text is invisible without explicit option colors.
       '& option': {
@@ -146,10 +146,7 @@ type DayRangeCalendarProps = {
   max: string;
   firstDayOfWeek: FirstDayOfWeek;
   locale: string;
-  labels: Pick<
-    DateRangePickerLabels,
-    'dateRange' | 'previousMonth' | 'nextMonth' | 'year'
-  >;
+  labels: Pick<DateRangePickerLabels, 'dateRange' | 'previousMonth' | 'nextMonth' | 'year'>;
   onChange: (start: string, end: string) => void;
 };
 
@@ -169,20 +166,18 @@ export function DayRangeCalendar({
       <I18nProvider locale={locale}>
         <RangeCalendar
           aria-label={labels.dateRange}
-          value={{ start: parseDate(start), end: parseDate(end) }}
+          value={{start: parseDate(start), end: parseDate(end)}}
           minValue={parseDate(min)}
           maxValue={parseDate(max)}
           firstDayOfWeek={firstDayOfWeek}
-          onChange={range =>
-            onChange(range.start.toString(), range.end.toString())
-          }
+          onChange={range => onChange(range.start.toString(), range.end.toString())}
         >
           <View className="calendar-header">
             <AriaButton slot="previous" aria-label={labels.previousMonth}>
               <SvgCheveronLeft width={16} height={16} />
             </AriaButton>
             <CalendarMonthPicker format="long">
-              {({ 'aria-label': ariaLabel, value, onChange, items }) => (
+              {({'aria-label': ariaLabel, value, onChange, items}) => (
                 <select
                   aria-label={ariaLabel}
                   value={value as number}
@@ -205,9 +200,7 @@ export function DayRangeCalendar({
             <CalendarGridHeader>
               {day => <CalendarHeaderCell>{day}</CalendarHeaderCell>}
             </CalendarGridHeader>
-            <CalendarGridBody>
-              {date => <CalendarCell date={date} />}
-            </CalendarGridBody>
+            <CalendarGridBody>{date => <CalendarCell date={date} />}</CalendarGridBody>
           </CalendarGrid>
         </RangeCalendar>
       </I18nProvider>

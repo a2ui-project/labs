@@ -15,20 +15,12 @@
  */
 
 import fs from 'fs';
-import { createServer } from 'http';
-import type { Server } from 'http';
-import {
-  cp,
-  mkdir,
-  mkdtemp,
-  readFile,
-  rename,
-  rm,
-  writeFile,
-} from 'node:fs/promises';
+import {createServer} from 'http';
+import type {Server} from 'http';
+import {cp, mkdir, mkdtemp, readFile, rename, rm, writeFile} from 'node:fs/promises';
 import path from 'path';
 
-import type { GlobalPrefsJson } from '@actual-app/core/types/prefs';
+import type {GlobalPrefsJson} from '@actual-app/core/types/prefs';
 import {
   app,
   BrowserWindow,
@@ -49,13 +41,10 @@ import type {
   UtilityProcess,
 } from 'electron';
 
-import { getMenu } from './menu';
-import { retry as promiseRetry } from './retry';
-import type { AppInitFailurePayload } from './server';
-import {
-  get as getWindowState,
-  listen as listenToWindowState,
-} from './window-state';
+import {getMenu} from './menu';
+import {retry as promiseRetry} from './retry';
+import type {AppInitFailurePayload} from './server';
+import {get as getWindowState, listen as listenToWindowState} from './window-state';
 import './security';
 
 const BUILD_ROOT = `${__dirname}/..`;
@@ -69,9 +58,7 @@ process.env.lootCoreScript = isDev
 
 // This allows relative URLs to be resolved to app:// which makes
 // local assets load correctly
-protocol.registerSchemesAsPrivileged([
-  { scheme: 'app', privileges: { standard: true, secure: true } },
-]);
+protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: {standard: true, secure: true}}]);
 
 if (isPlaywrightTest) {
   if (!process.env.ACTUAL_DOCUMENT_DIR || !process.env.ACTUAL_DATA_DIR) {
@@ -114,9 +101,7 @@ const logMessage = (loglevel: 'info' | 'error', message: string) => {
     queuedClientWinLogs.push(`console.${loglevel}(${trimmedMessage})`);
   } else {
     // Send the queued up logs to the devtools console
-    void clientWin.webContents.executeJavaScript(
-      `console.${loglevel}(${trimmedMessage})`,
-    );
+    void clientWin.webContents.executeJavaScript(`console.${loglevel}(${trimmedMessage})`);
   }
 };
 
@@ -126,26 +111,23 @@ const createOAuthServer = async () => {
   if (oAuthServer) {
     logMessage('info', `OAuth server is already running on port: ${port}`);
 
-    return { url: `http://localhost:${port}`, server: oAuthServer };
+    return {url: `http://localhost:${port}`, server: oAuthServer};
   }
 
-  return new Promise<{ url: string; server: Server }>(resolve => {
+  return new Promise<{url: string; server: Server}>(resolve => {
     const server = createServer(async (req, res) => {
-      const query = new URL(req.url || '', `http://localhost:${port}`)
-        .searchParams;
+      const query = new URL(req.url || '', `http://localhost:${port}`).searchParams;
 
       const code = query.get('token');
       if (code && clientWin) {
         if (isDev) {
-          void clientWin.loadURL(
-            `http://localhost:3001/openid-cb?token=${code}`,
-          );
+          void clientWin.loadURL(`http://localhost:3001/openid-cb?token=${code}`);
         } else {
           void clientWin.loadURL(`app://actual/openid-cb?token=${code}`);
         }
 
         // Respond to the browser
-        res.writeHead(200, { 'Content-Type': 'text/plain' });
+        res.writeHead(200, {'Content-Type': 'text/plain'});
         res.end('OpenID login successful! You can close this tab.');
 
         // Clean up the server after receiving the code. Wait for the listener
@@ -157,14 +139,14 @@ const createOAuthServer = async () => {
         });
         oAuthServer = null;
       } else {
-        res.writeHead(400, { 'Content-Type': 'text/plain' });
+        res.writeHead(400, {'Content-Type': 'text/plain'});
         res.end('No token received.');
       }
     });
 
     server.listen(port, '127.0.0.1', () => {
       logMessage('info', `OAuth server started on port: ${port}`);
-      resolve({ url: `http://localhost:${port}`, server });
+      resolve({url: `http://localhost:${port}`, server});
     });
   });
 };
@@ -173,8 +155,7 @@ if (isDev) {
   process.traceProcessWarnings = true;
 }
 
-const getGlobalPrefsPath = () =>
-  path.join(process.env.ACTUAL_DATA_DIR!, 'global-store.json');
+const getGlobalPrefsPath = () => path.join(process.env.ACTUAL_DATA_DIR!, 'global-store.json');
 
 async function loadGlobalPrefs() {
   let state: GlobalPrefsJson = {};
@@ -220,7 +201,7 @@ async function saveGlobalPrefs(state: GlobalPrefsJson) {
     await writeFile(temporaryPath, JSON.stringify(state), 'utf8');
     await rename(temporaryPath, globalPrefsPath);
   } catch (error) {
-    await rm(temporaryPath, { force: true }).catch(() => undefined);
+    await rm(temporaryPath, {force: true}).catch(() => undefined);
     throw error;
   }
 }
@@ -255,7 +236,7 @@ async function createBackgroundProcess() {
   };
 
   if (isDev) {
-    forkOptions = { ...forkOptions, execArgv: ['--inspect'] };
+    forkOptions = {...forkOptions, execArgv: ['--inspect']};
   }
 
   serverProcess = utilityProcess.fork(
@@ -320,10 +301,7 @@ async function createBackgroundProcess() {
 async function startSyncServer() {
   try {
     if (syncServerProcess) {
-      logMessage(
-        'info',
-        'Sync-Server: Already started! Ignoring request to start.',
-      );
+      logMessage('info', 'Sync-Server: Already started! Ignoring request to start.');
       return;
     }
 
@@ -332,26 +310,17 @@ async function startSyncServer() {
     const syncServerConfig = {
       port: globalPrefs.syncServerConfig?.port || 5007,
       hostname: '127.0.0.1',
-      ACTUAL_SERVER_DATA_DIR: path.resolve(
-        process.env.ACTUAL_DATA_DIR!,
-        'actual-server',
-      ),
+      ACTUAL_SERVER_DATA_DIR: path.resolve(process.env.ACTUAL_DATA_DIR!, 'actual-server'),
       ACTUAL_SERVER_FILES: path.resolve(
         process.env.ACTUAL_DATA_DIR!,
         'actual-server',
         'server-files',
       ),
-      ACTUAL_USER_FILES: path.resolve(
-        process.env.ACTUAL_DATA_DIR!,
-        'actual-server',
-        'user-files',
-      ),
+      ACTUAL_USER_FILES: path.resolve(process.env.ACTUAL_DATA_DIR!, 'actual-server', 'user-files'),
     };
 
     // require.resolve will recursively search up the workspace for the module
-    const syncServerRoot = path.dirname(
-      require.resolve('@actual-app/sync-server/package.json'),
-    );
+    const syncServerRoot = path.dirname(require.resolve('@actual-app/sync-server/package.json'));
     const serverPath = path.join(syncServerRoot, 'build/app.js');
 
     const webRoot = path.join(
@@ -373,7 +342,7 @@ async function startSyncServer() {
 
     // ACTUAL_SERVER_DATA_DIR is the root directory for the sync-server
     if (!fs.existsSync(syncServerConfig.ACTUAL_SERVER_DATA_DIR)) {
-      void mkdir(syncServerConfig.ACTUAL_SERVER_DATA_DIR, { recursive: true });
+      void mkdir(syncServerConfig.ACTUAL_SERVER_DATA_DIR, {recursive: true});
     }
 
     let forkOptions: ForkOptions = {
@@ -382,7 +351,7 @@ async function startSyncServer() {
     };
 
     if (isDev) {
-      forkOptions = { ...forkOptions, execArgv: ['--inspect'] };
+      forkOptions = {...forkOptions, execArgv: ['--inspect']};
     }
 
     let syncServerStarted = false;
@@ -408,10 +377,7 @@ async function startSyncServer() {
             resolve();
             break;
           default:
-            logMessage(
-              'info',
-              'Sync-Server: Unknown server message: ' + msg.type,
-            );
+            logMessage('info', 'Sync-Server: Unknown server message: ' + msg.type);
         }
       });
     });
@@ -430,10 +396,7 @@ async function startSyncServer() {
 
     return await Promise.race([syncServerPromise, syncServerTimeout]); // Either the server has started or the timeout is reached
   } catch (error) {
-    logMessage(
-      'error',
-      `Sync-Server: Error starting sync server: ${String(error)}`,
-    );
+    logMessage('error', `Sync-Server: Error starting sync server: ${String(error)}`);
   }
 }
 
@@ -471,9 +434,7 @@ async function createWindow() {
     // environment.isElectron) both light up. Replacing the UA with bare
     // 'playwright' (as playwright.config.ts does for chromium launches) would
     // strip the 'Electron' substring that isElectron() relies on.
-    win.webContents.setUserAgent(
-      `${win.webContents.getUserAgent()} playwright`,
-    );
+    win.webContents.setUserAgent(`${win.webContents.getUserAgent()} playwright`);
   }
 
   if (isDev) {
@@ -486,9 +447,7 @@ async function createWindow() {
     void win.loadURL(`file://${__dirname}/loading.html`);
     // Wait for the development server to start
     setTimeout(() => {
-      void promiseRetry(retry =>
-        win.loadURL('http://localhost:3001/').catch(retry),
-      );
+      void promiseRetry(retry => win.loadURL('http://localhost:3001/').catch(retry));
     }, 3000);
   } else {
     void win.loadURL(`app://actual/`);
@@ -500,31 +459,26 @@ async function createWindow() {
   });
 
   win.on('unresponsive', () => {
-    logMessage(
-      'info',
-      'browser window went unresponsive (maybe because of a modal)',
-    );
+    logMessage('info', 'browser window went unresponsive (maybe because of a modal)');
   });
 
   win.on('focus', async () => {
     if (clientWin) {
       const url = clientWin.webContents.getURL();
       if (url.includes('app://') || url.includes('localhost:')) {
-        void clientWin.webContents.executeJavaScript(
-          'window.__actionsForMenu.appFocused()',
-        );
+        void clientWin.webContents.executeJavaScript('window.__actionsForMenu.appFocused()');
       }
     }
   });
 
   // hit when middle-clicking buttons or <a href/> with a target set to _blank
   // always deny, optionally redirect to browser
-  win.webContents.setWindowOpenHandler(({ url }) => {
+  win.webContents.setWindowOpenHandler(({url}) => {
     if (isExternalUrl(url)) {
       void shell.openExternal(url);
     }
 
-    return { action: 'deny' };
+    return {action: 'deny'};
   });
 
   // hit when clicking <a href/> with no target
@@ -542,9 +496,7 @@ async function createWindow() {
 
   // Execute queued logs - displaying them in the client window
   void Promise.all(
-    queuedClientWinLogs.map((log: string) =>
-      win.webContents.executeJavaScript(log),
-    ),
+    queuedClientWinLogs.map((log: string) => win.webContents.executeJavaScript(log)),
   );
 
   queuedClientWinLogs = [];
@@ -665,12 +617,10 @@ ipcMain.handle('start-sync-server', async () => startSyncServer());
 
 ipcMain.handle('stop-sync-server', async () => stopSyncServer());
 
-ipcMain.handle('is-sync-server-running', async () =>
-  syncServerProcess ? true : false,
-);
+ipcMain.handle('is-sync-server-running', async () => (syncServerProcess ? true : false));
 
 ipcMain.handle('start-oauth-server', async () => {
-  const { url, server: newServer } = await createOAuthServer();
+  const {url, server: newServer} = await createOAuthServer();
   oAuthServer = newServer;
   return url;
 });
@@ -705,18 +655,14 @@ ipcMain.handle('set-document-dir', async (_event, directory: string) => {
   try {
     probeDirectory = await mkdtemp(probePrefix);
   } catch (error) {
-    throw new Error(
-      `Actual is not allowed to create files in ${directory}: ${String(error)}`,
-    );
+    throw new Error(`Actual is not allowed to create files in ${directory}: ${String(error)}`);
   }
-  await rm(probeDirectory, { recursive: true, force: true }).catch(
-    () => undefined,
-  );
+  await rm(probeDirectory, {recursive: true, force: true}).catch(() => undefined);
 
   // Strict read: a corrupt or unreadable store must not be silently replaced
   // by `{ document-dir }`, which would wipe the user's other preferences.
   const globalPrefs = await loadGlobalPrefsStrict();
-  await saveGlobalPrefs({ ...globalPrefs, 'document-dir': directory });
+  await saveGlobalPrefs({...globalPrefs, 'document-dir': directory});
   logMessage('info', `Budget data folder changed to: ${directory}`);
 });
 
@@ -730,15 +676,12 @@ export type OpenFileDialogPayload = {
   filters?: OpenDialogSyncOptions['filters'];
 };
 
-ipcMain.handle(
-  'open-file-dialog',
-  (_event, { filters, properties }: OpenFileDialogPayload) => {
-    return dialog.showOpenDialogSync({
-      properties: properties || ['openFile'],
-      filters,
-    });
-  },
-);
+ipcMain.handle('open-file-dialog', (_event, {filters, properties}: OpenFileDialogPayload) => {
+  return dialog.showOpenDialogSync({
+    properties: properties || ['openFile'],
+    filters,
+  });
+});
 
 export type SaveFileDialogPayload = {
   title: SaveDialogOptions['title'];
@@ -748,18 +691,13 @@ export type SaveFileDialogPayload = {
 
 ipcMain.handle(
   'save-file-dialog',
-  async (
-    _event,
-    { title, defaultPath, fileContents }: SaveFileDialogPayload,
-  ) => {
-    const fileLocation = await dialog.showSaveDialog({ title, defaultPath });
+  async (_event, {title, defaultPath, fileContents}: SaveFileDialogPayload) => {
+    const fileLocation = await dialog.showSaveDialog({title, defaultPath});
 
     return new Promise<void>((resolve, reject) => {
       if (fileLocation) {
         const contents =
-          typeof fileContents === 'string'
-            ? fileContents
-            : new Uint8Array(fileContents.buffer);
+          typeof fileContents === 'string' ? fileContents : new Uint8Array(fileContents.buffer);
         fs.writeFile(fileLocation.filePath, contents, error => {
           return reject(error);
         });
@@ -791,7 +729,7 @@ ipcMain.on('message', (_event, msg) => {
 });
 
 ipcMain.on('set-theme', (_event, theme: string) => {
-  const obj = { theme };
+  const obj = {theme};
   if (clientWin) {
     void clientWin.webContents.executeJavaScript(
       `window.__actionsForMenu && window.__actionsForMenu.saveGlobalPrefs({ prefs: ${JSON.stringify(obj)} })`,
@@ -808,9 +746,7 @@ ipcMain.handle(
       }
 
       if (newDirectory.startsWith(currentBudgetDirectory)) {
-        throw new Error(
-          'The destination must not be a subdirectory of the current directory',
-        );
+        throw new Error('The destination must not be a subdirectory of the current directory');
       }
 
       if (!fs.existsSync(newDirectory)) {
@@ -823,10 +759,7 @@ ipcMain.handle(
         recursive: true,
       });
     } catch (error) {
-      logMessage(
-        'error',
-        `There was an error moving your directory:  ${String(error)}`,
-      );
+      logMessage('error', `There was an error moving your directory:  ${String(error)}`);
       throw error;
     }
 
@@ -839,23 +772,17 @@ ipcMain.handle(
               force: true,
             });
           } catch (error) {
-            logMessage(
-              'info',
-              `Retrying: Clean up old directory: ${currentBudgetDirectory}`,
-            );
+            logMessage('info', `Retrying: Clean up old directory: ${currentBudgetDirectory}`);
 
             retry(error);
           }
         },
-        { minTimeout: 200, maxTimeout: 500, factor: 1.25 },
+        {minTimeout: 200, maxTimeout: 500, factor: 1.25},
       );
     } catch (error) {
       // Fail silently. The move worked, but the old directory wasn't cleaned up - most likely a permission issue.
       // This call needs to succeed to allow the user to continue using the app with the files in the new location.
-      logMessage(
-        'error',
-        `There was an error removing the old directory: ${String(error)}`,
-      );
+      logMessage('error', `There was an error removing the old directory: ${String(error)}`);
     }
   },
 );

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class MobileBankSyncPage {
   readonly page: Page;
@@ -35,7 +35,7 @@ export class MobileBankSyncPage {
   }
 
   async waitToLoad() {
-    await this.page.waitForSelector('text=Bank Sync', { timeout: 10000 });
+    await this.page.waitForSelector('text=Bank Sync', {timeout: 10000});
   }
 
   async searchFor(term: string) {

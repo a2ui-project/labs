@@ -20,10 +20,8 @@ import * as db from './index';
 beforeEach(global.emptyDatabase());
 
 async function insertTransactions(transactions) {
-  await db.insertAccount({ id: 'foo', name: 'bar' });
-  return Promise.all(
-    transactions.map(transaction => db.insertTransaction(transaction)),
-  );
+  await db.insertAccount({id: 'foo', name: 'bar'});
+  return Promise.all(transactions.map(transaction => db.insertTransaction(transaction)));
 }
 
 async function getTransactions(latestDate) {
@@ -47,23 +45,21 @@ async function getTransactions(latestDate) {
 
 describe('Database', () => {
   test('all and first accept null params', async () => {
-    await db.insertAccount({ id: 'foo', name: 'bar' });
+    await db.insertAccount({id: 'foo', name: 'bar'});
 
-    const rows = await db.all<{ id: string }>(
-      'SELECT id FROM accounts WHERE official_name IS ?',
-      [null],
-    );
-    expect(rows).toEqual([{ id: 'foo' }]);
+    const rows = await db.all<{id: string}>('SELECT id FROM accounts WHERE official_name IS ?', [
+      null,
+    ]);
+    expect(rows).toEqual([{id: 'foo'}]);
 
-    const row = await db.first<{ id: string }>(
-      'SELECT id FROM accounts WHERE official_name IS ?',
-      [null],
-    );
-    expect(row).toEqual({ id: 'foo' });
+    const row = await db.first<{id: string}>('SELECT id FROM accounts WHERE official_name IS ?', [
+      null,
+    ]);
+    expect(row).toEqual({id: 'foo'});
   });
 
   test('inserting a category works', async () => {
-    await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
+    await db.insertCategoryGroup({id: 'group1', name: 'group1'});
     await db.insertCategory({
       name: 'foo',
       cat_group: 'group1',
@@ -72,12 +68,12 @@ describe('Database', () => {
   });
 
   test('using a deleted category name works', async () => {
-    await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
+    await db.insertCategoryGroup({id: 'group1', name: 'group1'});
     const id = await db.insertCategory({
       name: 'foo',
       cat_group: 'group1',
     });
-    await db.deleteCategory({ id });
+    await db.deleteCategory({id});
     expect((await db.getCategories()).length).toBe(0);
     await db.insertCategory({
       name: 'foo',
@@ -88,11 +84,11 @@ describe('Database', () => {
 
   test('transactions are sorted by date', async () => {
     await insertTransactions([
-      { date: '2018-01-05', account: 'foo', amount: -23 },
-      { date: '2018-01-02', account: 'foo', amount: -24 },
-      { date: '2018-01-04', account: 'foo', amount: 12 },
-      { date: '2018-01-01', account: 'foo', amount: 2 },
-      { date: '2018-01-03', account: 'foo', amount: -5 },
+      {date: '2018-01-05', account: 'foo', amount: -23},
+      {date: '2018-01-02', account: 'foo', amount: -24},
+      {date: '2018-01-04', account: 'foo', amount: 12},
+      {date: '2018-01-01', account: 'foo', amount: 2},
+      {date: '2018-01-03', account: 'foo', amount: -5},
     ]);
     expect(await getTransactions('2018-01-05')).toMatchSnapshot();
   });
@@ -102,15 +98,15 @@ describe('Database', () => {
     // at the end of any transactions of the same day (it sorts by
     // date first, so any earlier transactions will be before it)
     await insertTransactions([
-      { date: '2018-01-05', account: 'foo', amount: -23 },
+      {date: '2018-01-05', account: 'foo', amount: -23},
       {
         date: '2018-01-03',
         account: 'foo',
         amount: 12,
         starting_balance_flag: 1,
       },
-      { date: '2018-01-03', account: 'foo', amount: -25 },
-      { date: '2018-01-03', account: 'foo', amount: -5 },
+      {date: '2018-01-03', account: 'foo', amount: -25},
+      {date: '2018-01-03', account: 'foo', amount: -5},
     ]);
     expect(await getTransactions('2018-01-05')).toMatchSnapshot();
   });
@@ -118,11 +114,11 @@ describe('Database', () => {
   test('transactions are sorted by sort order', async () => {
     // Transactions on the same day should sort by sort order descending
     await insertTransactions([
-      { date: '2018-01-05', account: 'foo', amount: -23, sort_order: 5 },
-      { date: '2018-01-03', account: 'foo', amount: -24, sort_order: 8 },
-      { date: '2018-01-03', account: 'foo', amount: 12, sort_order: 2 },
-      { date: '2018-01-03', account: 'foo', amount: 2, sort_order: 4 },
-      { date: '2018-01-03', account: 'foo', amount: -5, sort_order: 1 },
+      {date: '2018-01-05', account: 'foo', amount: -23, sort_order: 5},
+      {date: '2018-01-03', account: 'foo', amount: -24, sort_order: 8},
+      {date: '2018-01-03', account: 'foo', amount: 12, sort_order: 2},
+      {date: '2018-01-03', account: 'foo', amount: 2, sort_order: 4},
+      {date: '2018-01-03', account: 'foo', amount: -5, sort_order: 1},
     ]);
     expect(await getTransactions('2018-01-05')).toMatchSnapshot();
   });
@@ -130,7 +126,7 @@ describe('Database', () => {
   test('transactions are sorted by id as a last resort', async () => {
     // Transactions on the same day should sort by sort order descending
     await insertTransactions([
-      { date: '2018-01-05', account: 'foo', amount: -23, sort_order: 5 },
+      {date: '2018-01-05', account: 'foo', amount: -23, sort_order: 5},
       {
         id: 'foo3',
         date: '2018-01-03',
@@ -157,41 +153,39 @@ describe('Database', () => {
   });
 
   test('schedules can be reordered', async () => {
-    await db.insertWithUUID('schedules', { id: 'sched1', sort_order: 30 });
-    await db.insertWithUUID('schedules', { id: 'sched2', sort_order: 20 });
-    await db.insertWithUUID('schedules', { id: 'sched3', sort_order: 10 });
+    await db.insertWithUUID('schedules', {id: 'sched1', sort_order: 30});
+    await db.insertWithUUID('schedules', {id: 'sched2', sort_order: 20});
+    await db.insertWithUUID('schedules', {id: 'sched3', sort_order: 10});
 
     // Move sched3 (currently last) to be right after sched1 (currently first)
     await db.moveSchedule('sched3', 'sched1');
 
-    const rows = await db.all<{ id: string; sort_order: number }>(
+    const rows = await db.all<{id: string; sort_order: number}>(
       'SELECT id, sort_order FROM schedules ORDER BY sort_order DESC, id',
     );
     expect(rows.map(r => r.id)).toEqual(['sched1', 'sched3', 'sched2']);
   });
 
   test('moving a schedule to the top uses a null targetId', async () => {
-    await db.insertWithUUID('schedules', { id: 'sched1', sort_order: 30 });
-    await db.insertWithUUID('schedules', { id: 'sched2', sort_order: 20 });
+    await db.insertWithUUID('schedules', {id: 'sched1', sort_order: 30});
+    await db.insertWithUUID('schedules', {id: 'sched2', sort_order: 20});
 
     await db.moveSchedule('sched2', null);
 
-    const rows = await db.all<{ id: string; sort_order: number }>(
+    const rows = await db.all<{id: string; sort_order: number}>(
       'SELECT id, sort_order FROM schedules ORDER BY sort_order DESC, id',
     );
     expect(rows.map(r => r.id)).toEqual(['sched2', 'sched1']);
   });
 
   test('moving a non-existent schedule throws', async () => {
-    await expect(db.moveSchedule('missing', null)).rejects.toThrow(
-      'Schedule not found: missing',
-    );
+    await expect(db.moveSchedule('missing', null)).rejects.toThrow('Schedule not found: missing');
   });
 
   test('transactions get child transactions in the right order', async () => {
     // Transactions on the same day should sort by sort order descending
     await insertTransactions([
-      { date: '2018-01-05', account: 'foo', amount: -23, sort_order: 5 },
+      {date: '2018-01-05', account: 'foo', amount: -23, sort_order: 5},
       {
         id: 'foo',
         date: '2018-01-03',
@@ -233,7 +227,7 @@ describe('Database', () => {
 
   test("transactions don't show orphaned child transactions", async () => {
     await insertTransactions([
-      { date: '2018-01-05', account: 'foo', amount: -23, sort_order: 5 },
+      {date: '2018-01-05', account: 'foo', amount: -23, sort_order: 5},
       {
         id: 'foo/child3',
         date: '2018-01-03',
@@ -263,7 +257,7 @@ describe('Database', () => {
   });
 
   test('parent transactions never have a category', async () => {
-    await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
+    await db.insertCategoryGroup({id: 'group1', name: 'group1'});
     await db.insertCategory({
       id: 'cat1',
       name: 'cat1',
@@ -276,7 +270,7 @@ describe('Database', () => {
     });
 
     await insertTransactions([
-      { date: '2018-01-05', account: 'foo', amount: -23, sort_order: 5 },
+      {date: '2018-01-05', account: 'foo', amount: -23, sort_order: 5},
       {
         id: 'parent1',
         date: '2018-01-03',
@@ -355,7 +349,7 @@ describe('Database', () => {
       },
     ]);
 
-    await db.deleteTransaction({ id: 'parent1' });
+    await db.deleteTransaction({id: 'parent1'});
 
     const rows = await db.getTransactions('foo');
     expect(rows.length).toBe(1);

@@ -18,7 +18,7 @@ on:
   schedule:
     # 05:15 UTC daily — runs after the i18n extract job (04:00) and well
     # before the nightly Electron/npm publishes (00:00 UTC the next day).
-    - cron: '15 5 * * *'
+    - cron: "15 5 * * *"
   workflow_dispatch:
 
 permissions:
@@ -38,7 +38,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Validate themes
         run: yarn workspace @actual-app/web validate:theme-catalog
 

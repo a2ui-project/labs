@@ -153,9 +153,7 @@
   --color-buttonPrimaryShadow: rgba(0, 0, 0, 0.6);
   --color-buttonPrimaryDisabledText: var(--palette-navy700);
   --color-buttonPrimaryDisabledBackground: var(--palette-navy400);
-  --color-buttonPrimaryDisabledBorder: var(
-    --color-buttonPrimaryDisabledBackground
-  );
+  --color-buttonPrimaryDisabledBorder: var(--color-buttonPrimaryDisabledBackground);
 
   --color-buttonNormalText: var(--palette-navy150);
   --color-buttonNormalTextHover: var(--palette-navy150);
@@ -173,9 +171,7 @@
   --color-calendarBackground: var(--palette-navy900);
   --color-calendarItemText: var(--palette-navy150);
   --color-calendarItemBackground: var(--palette-navy800);
-  --color-calendarSelectedBackground: var(
-    --color-buttonNormalSelectedBackground
-  );
+  --color-calendarSelectedBackground: var(--color-buttonNormalSelectedBackground);
   --color-datePickerRangeBackground: var(--palette-purple600);
 
   --color-buttonBareText: var(--color-pageText);

@@ -15,19 +15,16 @@
  */
 
 import React from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {ComponentPropsWithoutRef} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
+import {Menu} from '@actual-app/components/menu';
 
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
-import { useEnvelopeSheetValue } from './EnvelopeBudgetComponents';
+import {useEnvelopeSheetValue} from './EnvelopeBudgetComponents';
 
-type BalanceMenuProps = Omit<
-  ComponentPropsWithoutRef<typeof Menu>,
-  'onMenuSelect' | 'items'
-> & {
+type BalanceMenuProps = Omit<ComponentPropsWithoutRef<typeof Menu>, 'onMenuSelect' | 'items'> & {
   categoryId: string;
   onTransfer?: () => void;
   onCarryover?: (carryOver: boolean) => void;
@@ -41,13 +38,10 @@ export function BalanceMenu({
   onCover,
   ...props
 }: BalanceMenuProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
-  const carryover = useEnvelopeSheetValue(
-    envelopeBudget.catCarryover(categoryId),
-  );
-  const balance =
-    useEnvelopeSheetValue(envelopeBudget.catBalance(categoryId)) ?? 0;
+  const carryover = useEnvelopeSheetValue(envelopeBudget.catCarryover(categoryId));
+  const balance = useEnvelopeSheetValue(envelopeBudget.catBalance(categoryId)) ?? 0;
 
   return (
     <Menu
@@ -86,9 +80,7 @@ export function BalanceMenu({
           : []),
         {
           name: 'carryover',
-          text: carryover
-            ? t('Remove overspending rollover')
-            : t('Rollover overspending'),
+          text: carryover ? t('Remove overspending rollover') : t('Rollover overspending'),
         },
       ]}
     />

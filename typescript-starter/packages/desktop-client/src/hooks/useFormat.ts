@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useCallback, useEffect, useMemo } from 'react';
+import {useCallback, useEffect, useMemo} from 'react';
 
-import { evalArithmetic } from '@actual-app/core/shared/arithmetic';
-import { getCurrency } from '@actual-app/core/shared/currencies';
-import type { Currency } from '@actual-app/core/shared/currencies';
+import {evalArithmetic} from '@actual-app/core/shared/arithmetic';
+import {getCurrency} from '@actual-app/core/shared/currencies';
+import type {Currency} from '@actual-app/core/shared/currencies';
 import {
   amountToInteger,
   currencyToAmount,
@@ -28,9 +28,9 @@ import {
   parseNumberFormat,
   setNumberFormat,
 } from '@actual-app/core/shared/util';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
 
-import { useSyncedPref } from './useSyncedPref';
+import {useSyncedPref} from './useSyncedPref';
 
 export type FormatType =
   | 'string'
@@ -43,10 +43,7 @@ export type FormatType =
 export type UseFormatResult = {
   (value: unknown, type?: FormatType): string;
   forEdit: (value: IntegerAmount) => string;
-  fromEdit: (
-    value: string,
-    defaultValue?: number | null,
-  ) => IntegerAmount | null;
+  fromEdit: (value: string, defaultValue?: number | null) => IntegerAmount | null;
   currency: Currency;
 };
 
@@ -58,7 +55,7 @@ export type FormatResult = {
 function format(
   value: unknown,
   type: FormatType,
-  formatter: { format: (value: number) => string },
+  formatter: {format: (value: number) => string},
   decimalPlaces: number,
 ): FormatResult {
   switch (type) {
@@ -66,19 +63,17 @@ function format(
       const val = JSON.stringify(value);
 
       if (val.charAt(0) === '"' && val.charAt(val.length - 1) === '"') {
-        return { formattedString: val.slice(1, -1) };
+        return {formattedString: val.slice(1, -1)};
       }
-      return { formattedString: val };
+      return {formattedString: val};
     }
     case 'number':
       if (typeof value !== 'number') {
-        throw new Error(
-          'Value is not a number (' + typeof value + '): ' + value,
-        );
+        throw new Error('Value is not a number (' + typeof value + '): ' + value);
       }
-      return { numericValue: value, formattedString: formatter.format(value) };
+      return {numericValue: value, formattedString: formatter.format(value)};
     case 'percentage':
-      return { formattedString: value + '%' };
+      return {formattedString: value + '%'};
     case 'financial-with-sign':
     case 'financial-no-decimals':
     case 'financial': {
@@ -104,18 +99,12 @@ function format(
       }
 
       if (typeof localValue !== 'number') {
-        throw new Error(
-          'Value is not a number (' + typeof localValue + '): ' + localValue,
-        );
+        throw new Error('Value is not a number (' + typeof localValue + '): ' + localValue);
       }
 
       return {
         numericValue: localValue,
-        formattedString: integerToCurrency(
-          localValue,
-          formatter,
-          decimalPlaces,
-        ),
+        formattedString: integerToCurrency(localValue, formatter, decimalPlaces),
       };
     }
     default:
@@ -128,9 +117,7 @@ export function useFormat(): UseFormatResult {
   const [hideFractionPref] = useSyncedPref('hideFraction');
   const [defaultCurrencyCodePref] = useSyncedPref('defaultCurrencyCode');
   const [symbolPositionPref] = useSyncedPref('currencySymbolPosition');
-  const [spaceEnabledPref] = useSyncedPref(
-    'currencySpaceBetweenAmountAndSymbol',
-  );
+  const [spaceEnabledPref] = useSyncedPref('currencySpaceBetweenAmountAndSymbol');
 
   const activeCurrency = useMemo(() => {
     return getCurrency(defaultCurrencyCodePref || '');
@@ -182,9 +169,7 @@ export function useFormat(): UseFormatResult {
   const formatDisplay = useCallback(
     (value: unknown, type: FormatType = 'string'): string => {
       const isFinancialType =
-        type === 'financial' ||
-        type === 'financial-with-sign' ||
-        type === 'financial-no-decimals';
+        type === 'financial' || type === 'financial-with-sign' || type === 'financial-no-decimals';
 
       let displayDecimalPlaces: number | undefined;
 
@@ -201,7 +186,7 @@ export function useFormat(): UseFormatResult {
         decimalPlaces: displayDecimalPlaces,
       }).formatter;
 
-      const { numericValue, formattedString } = format(
+      const {numericValue, formattedString} = format(
         value,
         type,
         intlFormatter,
@@ -210,27 +195,15 @@ export function useFormat(): UseFormatResult {
 
       let styledValue = formattedString;
       if (isFinancialType && activeCurrency && activeCurrency.code !== '') {
-        styledValue = applyCurrencyStyling(
-          formattedString,
-          activeCurrency.symbol,
-        );
+        styledValue = applyCurrencyStyling(formattedString, activeCurrency.symbol);
       }
 
-      if (
-        type === 'financial-with-sign' &&
-        numericValue != null &&
-        numericValue >= 0
-      ) {
+      if (type === 'financial-with-sign' && numericValue != null && numericValue >= 0) {
         return '+' + styledValue;
       }
       return styledValue;
     },
-    [
-      activeCurrency,
-      numberFormatConfig,
-      applyCurrencyStyling,
-      hideFractionPref,
-    ],
+    [activeCurrency, numberFormatConfig, applyCurrencyStyling, hideFractionPref],
   );
 
   const toAmount = useCallback(
@@ -246,27 +219,18 @@ export function useFormat(): UseFormatResult {
   const forEdit = useCallback(
     (value: IntegerAmount) => {
       const amount = toAmount(value);
-      const decimalPlaces =
-        hideFractionPref === 'true' ? 0 : activeCurrency.decimalPlaces;
+      const decimalPlaces = hideFractionPref === 'true' ? 0 : activeCurrency.decimalPlaces;
       const editFormatter = getNumberFormat({
         format: numberFormatConfig.format,
         decimalPlaces,
       }).formatter;
       return editFormatter.format(amount);
     },
-    [
-      toAmount,
-      hideFractionPref,
-      activeCurrency.decimalPlaces,
-      numberFormatConfig.format,
-    ],
+    [toAmount, hideFractionPref, activeCurrency.decimalPlaces, numberFormatConfig.format],
   );
 
   const fromEdit = useCallback(
-    (
-      value: string,
-      defaultValue: number | null = null,
-    ): IntegerAmount | null => {
+    (value: string, defaultValue: number | null = null): IntegerAmount | null => {
       if (value == null) {
         return defaultValue;
       }

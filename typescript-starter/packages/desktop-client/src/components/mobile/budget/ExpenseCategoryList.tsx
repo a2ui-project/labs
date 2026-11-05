@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-import type { DragItem } from 'react-aria';
-import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
-import { useTranslation } from 'react-i18next';
+import type {DragItem} from 'react-aria';
+import {DropIndicator, GridList, useDragAndDrop} from 'react-aria-components';
+import {useTranslation} from 'react-i18next';
 
-import { theme } from '@actual-app/components/theme';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
+import {theme} from '@actual-app/components/theme';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
+import {css} from '@emotion/css';
 
-import { useMoveCategoryMutation } from '#budget';
+import {useMoveCategoryMutation} from '#budget';
 
-import { ExpenseCategoryListItem } from './ExpenseCategoryListItem';
+import {ExpenseCategoryListItem} from './ExpenseCategoryListItem';
 
 type ExpenseCategoryListProps = {
   categoryGroup: CategoryGroupEntity;
@@ -50,10 +47,10 @@ export function ExpenseCategoryList({
   showBudgetedColumn,
   shouldHideCategory,
 }: ExpenseCategoryListProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const moveCategory = useMoveCategoryMutation();
 
-  const { dragAndDropHooks } = useDragAndDrop({
+  const {dragAndDropHooks} = useDragAndDrop({
     getItems: keys =>
       [...keys].map(
         key =>
@@ -82,9 +79,7 @@ export function ExpenseCategoryList({
       const categoryToMove = categories.find(c => c.id === categoryIdToMove);
 
       if (!categoryToMove) {
-        throw new Error(
-          `Internal error: category with ID ${categoryIdToMove} not found.`,
-        );
+        throw new Error(`Internal error: category with ID ${categoryIdToMove} not found.`);
       }
 
       if (!categoryToMove.group) {
@@ -102,14 +97,10 @@ export function ExpenseCategoryList({
           targetId: targetCategoryId,
         });
       } else if (e.target.dropPosition === 'after') {
-        const targetCategoryIndex = categories.findIndex(
-          c => c.id === targetCategoryId,
-        );
+        const targetCategoryIndex = categories.findIndex(c => c.id === targetCategoryId);
 
         if (targetCategoryIndex === -1) {
-          throw new Error(
-            `Internal error: category with ID ${targetCategoryId} not found.`,
-          );
+          throw new Error(`Internal error: category with ID ${targetCategoryId} not found.`);
         }
 
         const nextToTargetCategory = categories[targetCategoryIndex + 1];

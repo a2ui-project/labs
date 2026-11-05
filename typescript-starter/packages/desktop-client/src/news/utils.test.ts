@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import type { NewsEntry } from './types';
-import { getNewestDate, getReleaseToNotify, getUnseenEntries } from './utils';
+import type {NewsEntry} from './types';
+import {getNewestDate, getReleaseToNotify, getUnseenEntries} from './utils';
 
 function release(version: string, date: string): NewsEntry {
   return {
@@ -55,9 +55,10 @@ describe('getUnseenEntries', () => {
   });
 
   it('only returns entries strictly newer than the last seen date', () => {
-    expect(
-      getUnseenEntries(entries, '2026-08-05').map(entry => entry.id),
-    ).toEqual(['release-26.9.0', 'release-26.8.1']);
+    expect(getUnseenEntries(entries, '2026-08-05').map(entry => entry.id)).toEqual([
+      'release-26.9.0',
+      'release-26.8.1',
+    ]);
   });
 });
 
@@ -70,25 +71,17 @@ describe('getNewestDate', () => {
 
 describe('getReleaseToNotify', () => {
   it('picks the newest unseen release the client is already running', () => {
-    expect(getReleaseToNotify(entries, '26.8.1', '2026-08-01')?.id).toBe(
-      'release-26.8.1',
-    );
+    expect(getReleaseToNotify(entries, '26.8.1', '2026-08-01')?.id).toBe('release-26.8.1');
   });
 
   it('ignores releases newer than the client version', () => {
-    expect(getReleaseToNotify(entries, '26.8.0', '2026-08-01')?.id).toBe(
-      'release-26.8.0',
-    );
+    expect(getReleaseToNotify(entries, '26.8.0', '2026-08-01')?.id).toBe('release-26.8.0');
   });
 
   it('ignores posts and already-seen releases', () => {
     expect(getReleaseToNotify(entries, '26.8.1', '2026-08-07')).toBeUndefined();
     expect(
-      getReleaseToNotify(
-        [post('only-post', '2026-08-10')],
-        '26.8.1',
-        '2026-08-01',
-      ),
+      getReleaseToNotify([post('only-post', '2026-08-10')], '26.8.1', '2026-08-01'),
     ).toBeUndefined();
   });
 });

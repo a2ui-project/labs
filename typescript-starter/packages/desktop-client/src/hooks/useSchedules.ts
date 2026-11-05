@@ -14,33 +14,23 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import {useEffect, useRef, useState} from 'react';
 
-import { q } from '@actual-app/core/shared/query';
-import type { ObjectExpression, Query } from '@actual-app/core/shared/query';
-import {
-  getHasTransactionsQuery,
-  getStatus,
-} from '@actual-app/core/shared/schedules';
-import type { ScheduleStatuses } from '@actual-app/core/shared/schedules';
-import type {
-  AccountEntity,
-  ScheduleEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import type {ObjectExpression, Query} from '@actual-app/core/shared/query';
+import {getHasTransactionsQuery, getStatus} from '@actual-app/core/shared/schedules';
+import type {ScheduleStatuses} from '@actual-app/core/shared/schedules';
+import type {AccountEntity, ScheduleEntity, TransactionEntity} from '@actual-app/core/types/models';
 
-import { accountFilter } from '#queries';
-import { liveQuery } from '#queries/liveQuery';
-import type { LiveQuery } from '#queries/liveQuery';
-import { getStatusLabel } from '#util/schedule';
+import {accountFilter} from '#queries';
+import {liveQuery} from '#queries/liveQuery';
+import type {LiveQuery} from '#queries/liveQuery';
+import {getStatusLabel} from '#util/schedule';
 
-import { useSyncedPref } from './useSyncedPref';
+import {useSyncedPref} from './useSyncedPref';
 
 export type ScheduleStatusLabelType = ReturnType<typeof getStatusLabel>;
-export type ScheduleStatusLabels = Map<
-  ScheduleEntity['id'],
-  ScheduleStatusLabelType
->;
+export type ScheduleStatusLabels = Map<ScheduleEntity['id'], ScheduleStatusLabelType>;
 function loadStatuses(
   schedules: readonly ScheduleEntity[],
   onData: (data: ScheduleStatuses) => void,
@@ -81,9 +71,7 @@ export type UseSchedulesResult = ScheduleData & {
   readonly error?: Error;
 };
 
-export function useSchedules({
-  query,
-}: UseSchedulesProps = {}): UseSchedulesResult {
+export function useSchedules({query}: UseSchedulesProps = {}): UseSchedulesResult {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | undefined>(undefined);
   const [data, setData] = useState<ScheduleData>({
@@ -134,10 +122,7 @@ export function useSchedules({
                 schedules,
                 statuses,
                 statusLabels: new Map(
-                  [...statuses.keys()].map(key => [
-                    key,
-                    getStatusLabel(statuses.get(key) || ''),
-                  ]),
+                  [...statuses.keys()].map(key => [key, getStatusLabel(statuses.get(key) || '')]),
                 ),
               });
               setIsLoading(false);
@@ -173,17 +158,16 @@ export function getSchedulesQuery(
   let query = q('schedules')
     .select('*')
     .filter({
-      $and: [{ '_account.closed': false }],
+      $and: [{'_account.closed': false}],
     });
 
   if (view) {
     if (view === 'uncategorized') {
-      query = query.filter({ next_date: null });
+      query = query.filter({next_date: null});
     } else {
-      const scheduleFilters: ObjectExpression[] = [
-        filterByAccount,
-        filterByPayee,
-      ].filter(filter => filter !== null);
+      const scheduleFilters: ObjectExpression[] = [filterByAccount, filterByPayee].filter(
+        filter => filter !== null,
+      );
 
       if (view !== 'onbudget' && view !== 'offbudget') {
         scheduleFilters.push({
@@ -197,5 +181,5 @@ export function getSchedulesQuery(
     }
   }
 
-  return query.orderBy({ next_date: 'desc' });
+  return query.orderBy({next_date: 'desc'});
 }

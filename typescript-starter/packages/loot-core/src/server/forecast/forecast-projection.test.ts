@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import type { TransactionEntity } from '#types/models';
+import type {TransactionEntity} from '#types/models';
 
-import type { AccountWithComputedBalance } from './forecast-accounts';
-import type { ForecastFilterInfo } from './forecast-filters';
-import { projectForecastData } from './forecast-projection';
-import type { ForecastDateContext } from './forecast-projection';
-import type { ForecastScheduleOccurrence } from './forecast-schedules';
+import type {AccountWithComputedBalance} from './forecast-accounts';
+import type {ForecastFilterInfo} from './forecast-filters';
+import {projectForecastData} from './forecast-projection';
+import type {ForecastDateContext} from './forecast-projection';
+import type {ForecastScheduleOccurrence} from './forecast-schedules';
 
 describe('forecast projection', () => {
   it('combines posted and scheduled deltas into running balances', () => {
@@ -98,12 +98,8 @@ describe('forecast projection', () => {
       dateContext,
     });
 
-    expect(result.dataPoints.map(point => point.balance)).toEqual([
-      110, 70, 70,
-    ]);
-    expect(result.dataPoints[0].transactions).toMatchObject([
-      { amount: 10, scheduleId: 'sched-1' },
-    ]);
+    expect(result.dataPoints.map(point => point.balance)).toEqual([110, 70, 70]);
+    expect(result.dataPoints[0].transactions).toMatchObject([{amount: 10, scheduleId: 'sched-1'}]);
     expect(result.lowestBalance).toEqual({
       date: '2024-03-03',
       balance: 70,

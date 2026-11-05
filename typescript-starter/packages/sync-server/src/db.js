@@ -53,7 +53,7 @@ export class WrappedDatabase {
   mutate(sql, params = []) {
     const stmt = this.db.prepare(sql);
     const info = stmt.run(...params);
-    return { changes: info.changes, insertId: info.lastInsertRowid };
+    return {changes: info.changes, insertId: info.lastInsertRowid};
   }
 
   /**

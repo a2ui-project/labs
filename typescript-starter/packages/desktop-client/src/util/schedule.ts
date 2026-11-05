@@ -16,13 +16,9 @@
 
 // @ts-strict-ignore
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  PayeeEntity,
-  RecurConfig,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
-import type { Locale } from 'date-fns';
-import { t } from 'i18next';
+import type {PayeeEntity, RecurConfig, ScheduleEntity} from '@actual-app/core/types/models';
+import type {Locale} from 'date-fns';
+import {t} from 'i18next';
 
 export function getStatusLabel(status: string) {
   switch (status) {
@@ -62,11 +58,7 @@ function prettyDayName(day) {
   return days[day];
 }
 
-export function getRecurringDescription(
-  config: RecurConfig,
-  dateFormat: string,
-  locale: Locale,
-) {
+export function getRecurringDescription(config: RecurConfig, dateFormat: string, locale: Locale) {
   const interval = config.interval || 1;
 
   let endModeSuffix = '';
@@ -109,10 +101,7 @@ export function getRecurringDescription(
 
   switch (config.frequency) {
     case 'daily':
-      desc =
-        interval !== 1
-          ? t(`Every {{interval}} days`, { interval })
-          : t('Every day');
+      desc = interval !== 1 ? t(`Every {{interval}} days`, {interval}) : t('Every day');
       break;
     case 'weekly':
       desc =
@@ -132,8 +121,7 @@ export function getRecurringDescription(
         // sort would put them first
         let patterns = [...config.patterns]
           .sort((p1, p2) => {
-            const typeOrder =
-              (p1.type === 'day' ? 1 : 0) - (p2.type === 'day' ? 1 : 0);
+            const typeOrder = (p1.type === 'day' ? 1 : 0) - (p2.type === 'day' ? 1 : 0);
             const valOrder = p1.value - p2.value;
 
             if (typeOrder === 0) {
@@ -190,7 +178,7 @@ export function getRecurringDescription(
                 interval,
                 range,
               })
-            : t('Every month on the {{range}}', { range });
+            : t('Every month on the {{range}}', {range});
       } else {
         desc =
           interval !== 1
@@ -223,10 +211,7 @@ export function getRecurringDescription(
   return `${desc}${suffix}`.trim();
 }
 
-export function describeSchedule(
-  schedule: ScheduleEntity,
-  payee?: PayeeEntity,
-) {
+export function describeSchedule(schedule: ScheduleEntity, payee?: PayeeEntity) {
   if (payee) {
     return `${payee.name} (${schedule.next_date})`;
   } else {

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { send } from '#server/main-app';
-import { makeChild } from '#shared/transactions';
+import {send} from '#server/main-app';
+import {makeChild} from '#shared/transactions';
 
-import { importTransactions } from './ynab4';
+import {importTransactions} from './ynab4';
 import type * as YNAB4 from './ynab4-types';
 
 vi.mock('#server/main-app', () => ({
@@ -77,16 +77,16 @@ describe('importTransactions', () => {
     vi.mocked(send).mockImplementation(async (name: string) => {
       switch (name) {
         case 'api/categories-get':
-          return [{ id: 'income-id', name: 'Income' }];
+          return [{id: 'income-id', name: 'Income'}];
         case 'api/accounts-get':
           return [
-            { id: 'actual-account-1', offbudget: false },
-            { id: 'actual-account-2', offbudget: false },
+            {id: 'actual-account-1', offbudget: false},
+            {id: 'actual-account-2', offbudget: false},
           ];
         case 'api/payees-get':
           return [
-            { id: 'transfer-payee-1', transfer_acct: 'actual-account-1' },
-            { id: 'transfer-payee-2', transfer_acct: 'actual-account-2' },
+            {id: 'transfer-payee-1', transfer_acct: 'actual-account-1'},
+            {id: 'transfer-payee-2', transfer_acct: 'actual-account-2'},
           ];
         case 'api/transactions-add':
           return null;
@@ -97,7 +97,7 @@ describe('importTransactions', () => {
 
     await importTransactions(
       {
-        payees: [{ entityId: 'ynab-payee-1', name: 'Some Payee' }],
+        payees: [{entityId: 'ynab-payee-1', name: 'Some Payee'}],
         accounts: [],
         transactions: [split, transferIn],
       } as unknown as YNAB4.YFull,

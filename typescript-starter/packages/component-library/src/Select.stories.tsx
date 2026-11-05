@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
+import {useState} from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Menu } from './Menu';
-import { Select } from './Select';
-import { View } from './View';
+import {Menu} from './Menu';
+import {Select} from './Select';
+import {View} from './View';
 
 const meta = {
   title: 'Components/Select',
@@ -71,8 +71,7 @@ export const WithDefaultLabel: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'When the selected value is not in the options, the defaultLabel is displayed.',
+        story: 'When the selected value is not in the options, the defaultLabel is displayed.',
       },
     },
   },
@@ -150,8 +149,7 @@ export const BareVariant: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'The bare variant renders the select without a bordered button style.',
+        story: 'The bare variant renders the select without a bordered button style.',
       },
     },
   },
@@ -189,7 +187,7 @@ export const Controlled: Story = {
     const [value, setValue] = useState('usd');
 
     return (
-      <View style={{ gap: 10, alignItems: 'flex-start' }}>
+      <View style={{gap: 10, alignItems: 'flex-start'}}>
         <Select
           options={[
             ['usd', 'USD - US Dollar'],

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { MemoryRouter } from 'react-router';
+import {MemoryRouter} from 'react-router';
 
-import { render, screen } from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { TestProviders } from '#mocks';
-import type { NewsEntry } from '#news/types';
+import {TestProviders} from '#mocks';
+import type {NewsEntry} from '#news/types';
 
-import { NotificationsPage } from './NotificationsPage';
+import {NotificationsPage} from './NotificationsPage';
 
 const mockMarkAllSeen = vi.fn();
 let mockEntries: NewsEntry[] = [];
@@ -99,12 +99,14 @@ describe('NotificationsPage', () => {
     expect(screen.getByText('Hello world')).toBeInTheDocument();
     expect(screen.getByText('2026-08-07')).toBeInTheDocument();
     expect(screen.getByText('freezes')).toBeInTheDocument();
-    expect(
-      screen.getByRole('link', { name: 'View on actualbudget.org' }),
-    ).toHaveAttribute('href', 'https://actualbudget.org/docs/releases#2681');
-    expect(
-      screen.getByRole('link', { name: 'Read the full post' }),
-    ).toHaveAttribute('href', 'https://actualbudget.org/blog/hello');
+    expect(screen.getByRole('link', {name: 'View on actualbudget.org'})).toHaveAttribute(
+      'href',
+      'https://actualbudget.org/docs/releases#2681',
+    );
+    expect(screen.getByRole('link', {name: 'Read the full post'})).toHaveAttribute(
+      'href',
+      'https://actualbudget.org/blog/hello',
+    );
 
     // Only the release is newer than the last seen date.
     expect(screen.getAllByText('Unread')).toHaveLength(1);
@@ -113,9 +115,7 @@ describe('NotificationsPage', () => {
     expect(screen.getByText('Deprecation')).toBeInTheDocument();
     expect(screen.getByText('Templating is deprecated.')).toBeInTheDocument();
     expect(screen.queryByText(/\[!warning\]/)).not.toBeInTheDocument();
-    expect(
-      screen.getByText('Plain quote.').closest('blockquote'),
-    ).not.toBeNull();
+    expect(screen.getByText('Plain quote.').closest('blockquote')).not.toBeNull();
 
     // Full changelog is collapsed until requested.
     expect(screen.queryByText('Bugfixes')).not.toBeInTheDocument();
@@ -129,9 +129,7 @@ describe('NotificationsPage', () => {
     mockIsLoading = true;
     renderPage();
 
-    expect(
-      screen.queryByText('Nothing new to show yet.'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Nothing new to show yet.')).not.toBeInTheDocument();
     expect(mockMarkAllSeen).not.toHaveBeenCalled();
   });
 
@@ -145,12 +143,14 @@ describe('NotificationsPage', () => {
     expect(screen.getByTestId('notifications-offline')).toHaveTextContent(
       /usually means you're offline/,
     );
-    expect(
-      screen.getByRole('link', { name: 'All release notes' }),
-    ).toHaveAttribute('href', 'https://actualbudget.org/docs/releases');
-    expect(
-      screen.getByRole('link', { name: 'Community (Discord)' }),
-    ).toHaveAttribute('href', 'https://discord.gg/pRYNYr4W5A');
+    expect(screen.getByRole('link', {name: 'All release notes'})).toHaveAttribute(
+      'href',
+      'https://actualbudget.org/docs/releases',
+    );
+    expect(screen.getByRole('link', {name: 'Community (Discord)'})).toHaveAttribute(
+      'href',
+      'https://discord.gg/pRYNYr4W5A',
+    );
   });
 
   it('shows an empty state when there are no entries', () => {

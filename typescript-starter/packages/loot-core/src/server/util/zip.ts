@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { unzipSync, zipSync } from 'fflate';
-import type { Unzipped } from 'fflate';
+import {unzipSync, zipSync} from 'fflate';
+import type {Unzipped} from 'fflate';
 
-import type { UnsafeZipMeta } from '#shared/errors';
+import type {UnsafeZipMeta} from '#shared/errors';
 
 // fflate does no validation itself: guard against zip-slip, decompression
 // bombs, and duplicate entries.
@@ -65,10 +65,10 @@ export function safeUnzip(
   }: SafeUnzipOptions = {},
 ): Unzipped {
   if (data.length > maxArchiveSize) {
-    throw new UnsafeZipError(
-      `Zip archive exceeds maximum size of ${maxArchiveSize} bytes`,
-      { zipReason: 'archive-size', maxSize: maxArchiveSize },
-    );
+    throw new UnsafeZipError(`Zip archive exceeds maximum size of ${maxArchiveSize} bytes`, {
+      zipReason: 'archive-size',
+      maxSize: maxArchiveSize,
+    });
   }
 
   const seen = new Set<string>();
@@ -94,16 +94,16 @@ export function safeUnzip(
       if (totalUncompressedSize > maxTotalUncompressedSize) {
         throw new UnsafeZipError(
           `Zip archive's total uncompressed size exceeds maximum of ${maxTotalUncompressedSize} bytes`,
-          { zipReason: 'total-size', maxSize: maxTotalUncompressedSize },
+          {zipReason: 'total-size', maxSize: maxTotalUncompressedSize},
         );
       }
 
       const normalized = file.name.toLowerCase();
       if (seen.has(normalized)) {
-        throw new UnsafeZipError(
-          `Zip archive contains a duplicate entry: ${file.name}`,
-          { zipReason: 'duplicate-entry', entryName: file.name },
-        );
+        throw new UnsafeZipError(`Zip archive contains a duplicate entry: ${file.name}`, {
+          zipReason: 'duplicate-entry',
+          entryName: file.name,
+        });
       }
       seen.add(normalized);
 

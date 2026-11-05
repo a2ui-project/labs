@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 
-import type { GlobalPrefs } from '@actual-app/core/types/prefs';
+import type {GlobalPrefs} from '@actual-app/core/types/prefs';
 
-import { saveGlobalPrefs } from '#prefs/prefsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {saveGlobalPrefs} from '#prefs/prefsSlice';
+import {useDispatch, useSelector} from '#redux';
 
-type SetGlobalPrefAction<K extends keyof GlobalPrefs> = (
-  value: GlobalPrefs[K],
-) => void;
+type SetGlobalPrefAction<K extends keyof GlobalPrefs> = (value: GlobalPrefs[K]) => void;
 
 export function useGlobalPref<K extends keyof GlobalPrefs>(
   prefName: K,
@@ -43,9 +41,7 @@ export function useGlobalPref<K extends keyof GlobalPrefs>(
     },
     [prefName, dispatch, onSaveGlobalPrefs],
   );
-  const globalPref = useSelector(
-    state => state.prefs.global?.[prefName] as GlobalPrefs[K],
-  );
+  const globalPref = useSelector(state => state.prefs.global?.[prefName] as GlobalPrefs[K]);
 
   return [globalPref, setGlobalPref];
 }

@@ -23,21 +23,15 @@
 // This runs before `docusaurus start` / `docusaurus build` (see package.json).
 
 import * as fs from 'node:fs/promises';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
-import {
-  formatNotes,
-  parseReleaseNotes,
-} from '@actual-app/ci-actions/src/release-notes/util.mjs';
+import {formatNotes, parseReleaseNotes} from '@actual-app/ci-actions/src/release-notes/util.mjs';
 
 const repoRoot = fileURLToPath(new URL('../../..', import.meta.url));
 
 const notesDir = join(repoRoot, 'upcoming-release-notes');
-const outputPath = join(
-  repoRoot,
-  'packages/docs/docs/upcoming-release-notes.md',
-);
+const outputPath = join(repoRoot, 'packages/docs/docs/upcoming-release-notes.md');
 
 const intro = `:::info
 
@@ -60,11 +54,7 @@ sidebar_label: Upcoming Release
 
 ${intro}`;
 
-const { notesByCategory, files } = await parseReleaseNotes(
-  notesDir,
-  'actualbudget',
-  'actual',
-);
+const {notesByCategory, files} = await parseReleaseNotes(notesDir, 'actualbudget', 'actual');
 
 const body =
   files.length === 0
@@ -73,6 +63,4 @@ const body =
 
 await fs.writeFile(outputPath, `${header}\n\n${body}\n`);
 
-console.log(
-  `Generated ${outputPath} from ${files.length} upcoming release note(s).`,
-);
+console.log(`Generated ${outputPath} from ${files.length} upcoming release note(s).`);

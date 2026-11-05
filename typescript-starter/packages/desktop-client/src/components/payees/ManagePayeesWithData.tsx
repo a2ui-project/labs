@@ -14,47 +14,40 @@
  * limitations under the License.
  */
 
-import React, { useEffect } from 'react';
+import React, {useEffect} from 'react';
 
-import { listen, send } from '@actual-app/core/platform/client/connection';
+import {listen, send} from '@actual-app/core/platform/client/connection';
 import * as undo from '@actual-app/core/platform/client/undo';
-import type { UndoState } from '@actual-app/core/server/undo';
-import { applyChanges } from '@actual-app/core/shared/util';
-import type { Diff } from '@actual-app/core/shared/util';
-import type { NewRuleEntity, PayeeEntity } from '@actual-app/core/types/models';
-import { useQueryClient } from '@tanstack/react-query';
+import type {UndoState} from '@actual-app/core/server/undo';
+import {applyChanges} from '@actual-app/core/shared/util';
+import type {Diff} from '@actual-app/core/shared/util';
+import type {NewRuleEntity, PayeeEntity} from '@actual-app/core/types/models';
+import {useQueryClient} from '@tanstack/react-query';
 
-import { useOrphanedPayees } from '#hooks/useOrphanedPayees';
-import { usePayeeRuleCounts } from '#hooks/usePayeeRuleCounts';
-import { usePayees } from '#hooks/usePayees';
-import { pushModal } from '#modals/modalsSlice';
-import { payeeQueries } from '#payees';
-import { useDispatch } from '#redux';
+import {useOrphanedPayees} from '#hooks/useOrphanedPayees';
+import {usePayeeRuleCounts} from '#hooks/usePayeeRuleCounts';
+import {usePayees} from '#hooks/usePayees';
+import {pushModal} from '#modals/modalsSlice';
+import {payeeQueries} from '#payees';
+import {useDispatch} from '#redux';
 
-import { ManagePayees } from './ManagePayees';
+import {ManagePayees} from './ManagePayees';
 
 type ManagePayeesWithDataProps = {
   initialSelectedIds: string[];
 };
 
-export function ManagePayeesWithData({
-  initialSelectedIds,
-}: ManagePayeesWithDataProps) {
+export function ManagePayeesWithData({initialSelectedIds}: ManagePayeesWithDataProps) {
   const queryClient = useQueryClient();
-  const { data: payees = [], refetch: refetchPayees } = usePayees();
-  const { data: orphanedPayees = [], refetch: refetchOrphanedPayees } =
-    useOrphanedPayees();
+  const {data: payees = [], refetch: refetchPayees} = usePayees();
+  const {data: orphanedPayees = [], refetch: refetchOrphanedPayees} = useOrphanedPayees();
   const dispatch = useDispatch();
-  const { data: ruleCounts = new Map(), refetch: refetchRuleCounts } =
-    usePayeeRuleCounts();
+  const {data: ruleCounts = new Map(), refetch: refetchRuleCounts} = usePayeeRuleCounts();
 
   useEffect(() => {
     const unlisten = listen('sync-event', async event => {
       if (event.type === 'applied') {
-        if (
-          event.tables.includes('rules') ||
-          event.tables.includes('schedules')
-        ) {
+        if (event.tables.includes('rules') || event.tables.includes('schedules')) {
           await refetchRuleCounts();
         }
       }
@@ -66,7 +59,7 @@ export function ManagePayeesWithData({
   }, [dispatch, refetchRuleCounts]);
 
   useEffect(() => {
-    async function onUndo({ tables, messages, meta }: UndoState) {
+    async function onUndo({tables, messages, meta}: UndoState) {
       if (!tables.includes('payees') && !tables.includes('payee_mapping')) {
         return;
       }
@@ -74,9 +67,7 @@ export function ManagePayeesWithData({
       await refetchOrphanedPayees();
 
       const targetId =
-        meta && typeof meta === 'object' && 'targetId' in meta
-          ? meta.targetId
-          : null;
+        meta && typeof meta === 'object' && 'targetId' in meta ? meta.targetId : null;
 
       if (targetId || messages.find(msg => msg.dataset === 'rules')) {
         await refetchRuleCounts();
@@ -94,9 +85,7 @@ export function ManagePayeesWithData({
   }, [dispatch, refetchRuleCounts, refetchOrphanedPayees]);
 
   function onViewRules(id: PayeeEntity['id']) {
-    dispatch(
-      pushModal({ modal: { name: 'manage-rules', options: { payeeId: id } } }),
-    );
+    dispatch(pushModal({modal: {name: 'manage-rules', options: {payeeId: id}}}));
   }
 
   function onCreateRule(id: PayeeEntity['id']) {
@@ -120,7 +109,7 @@ export function ManagePayeesWithData({
         },
       ],
     };
-    dispatch(pushModal({ modal: { name: 'edit-rule', options: { rule } } }));
+    dispatch(pushModal({modal: {name: 'edit-rule', options: {rule}}}));
   }
 
   return (
@@ -131,20 +120,15 @@ export function ManagePayeesWithData({
       initialSelectedIds={initialSelectedIds}
       onBatchChange={async (changes: Diff<PayeeEntity>) => {
         await send('payees-batch-change', changes);
-        queryClient.setQueryData(
-          payeeQueries.listOrphaned().queryKey,
-          existing => applyChanges(changes, existing ?? []),
+        queryClient.setQueryData(payeeQueries.listOrphaned().queryKey, existing =>
+          applyChanges(changes, existing ?? []),
         );
       }}
       onMerge={async ([targetId, ...mergeIds]) => {
-        await send('payees-merge', { targetId, mergeIds });
+        await send('payees-merge', {targetId, mergeIds});
 
-        const targetIdIsOrphan = orphanedPayees
-          .map(o => o.id)
-          .includes(targetId);
-        const mergeIdsOrphans = mergeIds.filter(m =>
-          orphanedPayees.map(o => o.id).includes(m),
-        );
+        const targetIdIsOrphan = orphanedPayees.map(o => o.id).includes(targetId);
+        const mergeIdsOrphans = mergeIds.filter(m => orphanedPayees.map(o => o.id).includes(m));
 
         let filteredOrphans = orphanedPayees;
         if (targetIdIsOrphan && mergeIdsOrphans.length !== mergeIds.length) {
@@ -157,10 +141,7 @@ export function ManagePayeesWithData({
         await refetchRuleCounts();
 
         void refetchPayees();
-        queryClient.setQueryData(
-          payeeQueries.listOrphaned().queryKey,
-          filteredOrphans,
-        );
+        queryClient.setQueryData(payeeQueries.listOrphaned().queryKey, filteredOrphans);
       }}
       onViewRules={onViewRules}
       onCreateRule={onCreateRule}

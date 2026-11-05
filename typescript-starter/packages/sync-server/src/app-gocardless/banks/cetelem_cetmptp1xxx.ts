@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -26,7 +26,7 @@ export default {
    * Sign of transaction amount needs to be flipped for Cetelem Black credit cards
    */
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     transaction.transactionAmount = {
       // Flip transaction amount sign

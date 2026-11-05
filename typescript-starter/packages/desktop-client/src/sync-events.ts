@@ -14,31 +14,26 @@
  * limitations under the License.
  */
 
-import { listen, send } from '@actual-app/core/platform/client/connection';
-import type { ServerEvents } from '@actual-app/core/types/server-events';
-import type { QueryClient } from '@tanstack/react-query';
-import { t } from 'i18next';
+import {listen, send} from '@actual-app/core/platform/client/connection';
+import type {ServerEvents} from '@actual-app/core/types/server-events';
+import type {QueryClient} from '@tanstack/react-query';
+import {t} from 'i18next';
 
-import { accountGroupQueries } from './account-groups';
-import { accountQueries } from './accounts';
-import { resetSync, sync } from './app/appSlice';
-import { categoryQueries } from './budget';
-import {
-  closeAndDownloadBudget,
-  uploadBudget,
-} from './budgetfiles/budgetfilesSlice';
-import { pushModal } from './modals/modalsSlice';
-import { addNotification } from './notifications/notificationsSlice';
-import type { Notification } from './notifications/notificationsSlice';
-import { payeeQueries } from './payees';
-import { loadPrefs } from './prefs/prefsSlice';
-import type { AppStore } from './redux/store';
-import { signOut } from './users/usersSlice';
+import {accountGroupQueries} from './account-groups';
+import {accountQueries} from './accounts';
+import {resetSync, sync} from './app/appSlice';
+import {categoryQueries} from './budget';
+import {closeAndDownloadBudget, uploadBudget} from './budgetfiles/budgetfilesSlice';
+import {pushModal} from './modals/modalsSlice';
+import {addNotification} from './notifications/notificationsSlice';
+import type {Notification} from './notifications/notificationsSlice';
+import {payeeQueries} from './payees';
+import {loadPrefs} from './prefs/prefsSlice';
+import type {AppStore} from './redux/store';
+import {signOut} from './users/usersSlice';
 
 // Notifications for sync events that can fire during budget load
-const syncNotifications: Partial<
-  Record<ServerEvents['sync-event']['type'], () => Notification>
-> = {
+const syncNotifications: Partial<Record<ServerEvents['sync-event']['type'], () => Notification>> = {
   'deferred-messages': () => ({
     id: 'deferred-messages',
     type: 'message',
@@ -65,7 +60,7 @@ const syncNotifications: Partial<
 
 export function listenForSyncEvent(store: AppStore, queryClient: QueryClient) {
   // TODO: Should this run on mobile too?
-  const unlistenUnauthorized = listen('sync-event', async ({ type }) => {
+  const unlistenUnauthorized = listen('sync-event', async ({type}) => {
     if (type === 'unauthorized') {
       store.dispatch(
         addNotification({
@@ -92,7 +87,7 @@ export function listenForSyncEvent(store: AppStore, queryClient: QueryClient) {
       // arrive only after the load completes); with neither, the user
       // has left the budget and the notification would lack context
       if (hasBudget || store.getState().app.loadingText != null) {
-        store.dispatch(addNotification({ notification: makeNotification() }));
+        store.dispatch(addNotification({notification: makeNotification()}));
       }
       return;
     }
@@ -224,7 +219,7 @@ export function listenForSyncEvent(store: AppStore, queryClient: QueryClient) {
               makeKey: () =>
                 store.dispatch(
                   pushModal({
-                    modal: { name: 'create-encryption-key', options: {} },
+                    modal: {name: 'create-encryption-key', options: {}},
                   }),
                 ),
             },
@@ -256,7 +251,7 @@ export function listenForSyncEvent(store: AppStore, queryClient: QueryClient) {
               action: () => {
                 store.dispatch(
                   pushModal({
-                    modal: { name: 'create-encryption-key', options: {} },
+                    modal: {name: 'create-encryption-key', options: {}},
                   }),
                 );
               },
@@ -317,7 +312,7 @@ export function listenForSyncEvent(store: AppStore, queryClient: QueryClient) {
           // the server does not match the local one. This can mean a
           // few things depending on the state, and we try to show an
           // appropriate message and call to action to fix it.
-          const { cloudFileId } = store.getState().prefs.local;
+          const {cloudFileId} = store.getState().prefs.local;
           if (!cloudFileId) {
             console.error(
               'Received file-has-reset or file-has-new-key error but no cloudFileId in prefs',
@@ -335,13 +330,13 @@ export function listenForSyncEvent(store: AppStore, queryClient: QueryClient) {
               ) +
               ' ' +
               learnMore,
-            messageActions: { upload: () => store.dispatch(resetSync()) },
+            messageActions: {upload: () => store.dispatch(resetSync())},
             sticky: true,
             id: 'needs-revert',
             button: {
               title: t('Revert'),
               action: () => {
-                void store.dispatch(closeAndDownloadBudget({ cloudFileId }));
+                void store.dispatch(closeAndDownloadBudget({cloudFileId}));
               },
             },
           };
@@ -387,7 +382,7 @@ export function listenForSyncEvent(store: AppStore, queryClient: QueryClient) {
                 action: () => {
                   store.dispatch(
                     pushModal({
-                      modal: { name: 'create-encryption-key', options: {} },
+                      modal: {name: 'create-encryption-key', options: {}},
                     }),
                   );
                 },
@@ -411,7 +406,7 @@ export function listenForSyncEvent(store: AppStore, queryClient: QueryClient) {
           notif = {
             message: t(
               "We couldn't apply that change to the database. Please report this as a bug by [opening a GitHub issue]({{githubIssueLink}}).",
-              { githubIssueLink },
+              {githubIssueLink},
             ),
           };
           break;
@@ -442,9 +437,7 @@ export function listenForSyncEvent(store: AppStore, queryClient: QueryClient) {
       }
 
       if (notif) {
-        store.dispatch(
-          addNotification({ notification: { type: 'error', ...notif } }),
-        );
+        store.dispatch(addNotification({notification: {type: 'error', ...notif}}));
       }
     }
   });

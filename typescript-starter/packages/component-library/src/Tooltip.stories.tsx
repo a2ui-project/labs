@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Button } from './Button';
-import { Text } from './Text';
-import { Tooltip } from './Tooltip';
-import { View } from './View';
+import {Button} from './Button';
+import {Text} from './Text';
+import {Tooltip} from './Tooltip';
+import {View} from './View';
 
 const meta = {
   title: 'Components/Tooltip',
@@ -51,11 +51,7 @@ export const Default: Story = {
 export const WithTextTrigger: Story = {
   args: {
     content: 'More information about this term',
-    children: (
-      <Text style={{ textDecoration: 'underline', cursor: 'help' }}>
-        Hover for details
-      </Text>
-    ),
+    children: <Text style={{textDecoration: 'underline', cursor: 'help'}}>Hover for details</Text>,
   },
   parameters: {
     docs: {
@@ -69,12 +65,9 @@ export const WithTextTrigger: Story = {
 export const RichContent: Story = {
   args: {
     content: (
-      <View style={{ padding: 5, maxWidth: 200 }}>
-        <Text style={{ fontWeight: 'bold' }}>Tip</Text>
-        <Text>
-          You can use keyboard shortcuts to navigate faster through the
-          application.
-        </Text>
+      <View style={{padding: 5, maxWidth: 200}}>
+        <Text style={{fontWeight: 'bold'}}>Tip</Text>
+        <Text>You can use keyboard shortcuts to navigate faster through the application.</Text>
       </View>
     ),
     children: <Button>Rich Tooltip</Button>,
@@ -94,7 +87,7 @@ export const CustomPlacement: Story = {
     children: <></>,
   },
   render: () => (
-    <View style={{ gap: 10, display: 'flex', flexDirection: 'row' }}>
+    <View style={{gap: 10, display: 'flex', flexDirection: 'row'}}>
       <Tooltip content="Top placement" placement="top">
         <Button>Top</Button>
       </Tooltip>
@@ -112,8 +105,7 @@ export const CustomPlacement: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'Tooltips can be placed in different positions around the trigger.',
+        story: 'Tooltips can be placed in different positions around the trigger.',
       },
     },
   },
@@ -123,13 +115,12 @@ export const DisabledTooltip: Story = {
   args: {
     content: 'You should not see this',
     children: <Button>Hover me (disabled)</Button>,
-    triggerProps: { isDisabled: true },
+    triggerProps: {isDisabled: true},
   },
   parameters: {
     docs: {
       description: {
-        story:
-          'A tooltip can be disabled via triggerProps, preventing it from appearing.',
+        story: 'A tooltip can be disabled via triggerProps, preventing it from appearing.',
       },
     },
   },
@@ -139,7 +130,7 @@ export const CustomDelay: Story = {
   args: {
     content: 'This tooltip appears after 1 second',
     children: <Button>Slow Tooltip</Button>,
-    triggerProps: { delay: 1000 },
+    triggerProps: {delay: 1000},
   },
   parameters: {
     docs: {

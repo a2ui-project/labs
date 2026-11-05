@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 // overview:
 // 1. Fetch the issues that are linked to the PR
 // 2. Filter out the issues that are not feature requests
@@ -32,7 +31,7 @@ async function makeAPIRequest(query, variables) {
       'Content-Type': 'application/json',
       Accept: 'application/json',
     },
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({query, variables}),
   });
   return res.json();
 }
@@ -73,7 +72,7 @@ async function main() {
           }
         }
       `,
-      { pr: parseInt(process.env.PR_NUMBER) },
+      {pr: parseInt(process.env.PR_NUMBER)},
     );
 
     console.log(JSON.stringify(res, null, 2));
@@ -88,7 +87,7 @@ async function main() {
     return;
   }
 
-  for (const { id, number, labels } of featureRequests) {
+  for (const {id, number, labels} of featureRequests) {
     await group(`Issue #${number}: Remove labels`, async () => {
       const toRemove = labels.nodes
         .filter(
@@ -102,11 +101,7 @@ async function main() {
         /* GraphQL */ `
           mutation RemoveLabels($issue: ID!, $labels: [ID!]!) {
             removeLabelsFromLabelable(
-              input: {
-                clientMutationId: "1"
-                labelIds: $labels
-                labelableId: $issue
-              }
+              input: {clientMutationId: "1", labelIds: $labels, labelableId: $issue}
             ) {
               clientMutationId
             }
@@ -139,7 +134,7 @@ async function main() {
             }
           }
         `,
-        { issue: number },
+        {issue: number},
       );
       console.log(JSON.stringify(commentRes, null, 2));
 
@@ -147,13 +142,9 @@ async function main() {
         comment => comment.author.login === 'github-actions',
       );
       const commentToCollapse =
+        comments.find(comment => comment.body.includes('<!-- feature-auto-close-comment -->')) ||
         comments.find(comment =>
-          comment.body.includes('<!-- feature-auto-close-comment -->'),
-        ) ||
-        comments.find(comment =>
-          comment.body.includes(
-            ':sparkles: Thanks for sharing your idea! :sparkles:',
-          ),
+          comment.body.includes(':sparkles: Thanks for sharing your idea! :sparkles:'),
         );
 
       if (!commentToCollapse) {
@@ -164,14 +155,12 @@ async function main() {
       const res = await makeAPIRequest(
         /* GraphQL */ `
           mutation CollapseComment($comment: ID!) {
-            minimizeComment(
-              input: { classifier: OUTDATED, subjectId: $comment }
-            ) {
+            minimizeComment(input: {classifier: OUTDATED, subjectId: $comment}) {
               clientMutationId
             }
           }
         `,
-        { comment: commentToCollapse.id },
+        {comment: commentToCollapse.id},
       );
       console.log(JSON.stringify(res, null, 2));
     });
@@ -180,9 +169,7 @@ async function main() {
       const res = await makeAPIRequest(
         /* GraphQL */ `
           mutation PostComment($issue: ID!, $body: String!) {
-            addComment(
-              input: { subjectId: $issue, body: $body, clientMutationId: "1" }
-            ) {
+            addComment(input: {subjectId: $issue, body: $body, clientMutationId: "1"}) {
               clientMutationId
             }
           }

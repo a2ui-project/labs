@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-import React, { memo, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {memo, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgDotsHorizontalTriple } from '@actual-app/components/icons/v1';
+import {Button} from '@actual-app/components/button';
+import {SvgDotsHorizontalTriple} from '@actual-app/components/icons/v1';
 import {
   SvgArrowButtonLeft1,
   SvgArrowButtonRight1,
   SvgArrowButtonSingleLeft1,
 } from '@actual-app/components/icons/v2';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { useGlobalPref } from '#hooks/useGlobalPref';
+import {useGlobalPref} from '#hooks/useGlobalPref';
 
-import { RenderMonths } from './RenderMonths';
-import { getScrollbarWidth } from './util';
+import {RenderMonths} from './RenderMonths';
+import {getScrollbarWidth} from './util';
 
-import { useBudgetComponents } from '.';
+import {useBudgetComponents} from '.';
 
 type BudgetTotalsProps = {
   toggleHiddenCategories: () => void;
@@ -48,7 +48,7 @@ export const BudgetTotals = memo(function BudgetTotals({
   expandAllCategories,
   collapseAllCategories,
 }: BudgetTotalsProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [categoryExpandedStatePref, setCategoryExpandedStatePref] =
     useGlobalPref('categoryExpandedState');
   const categoryExpandedState = categoryExpandedStatePref ?? 0;
@@ -73,7 +73,7 @@ export const BudgetTotals = memo(function BudgetTotals({
     }
   };
 
-  const { BudgetTotalsComponent: MonthComponent } = useBudgetComponents();
+  const {BudgetTotalsComponent: MonthComponent} = useBudgetComponents();
 
   return (
     <View
@@ -144,7 +144,7 @@ export const BudgetTotals = memo(function BudgetTotals({
             />
           )}
         </Button>
-        <View style={{ flexGrow: '1' }}>
+        <View style={{flexGrow: '1'}}>
           <Trans>Category</Trans>
         </View>
         <Button
@@ -152,20 +152,16 @@ export const BudgetTotals = memo(function BudgetTotals({
           variant="bare"
           aria-label={t('Menu')}
           onPress={() => setMenuOpen(true)}
-          style={{ color: 'currentColor', padding: 3 }}
+          style={{color: 'currentColor', padding: 3}}
         >
-          <SvgDotsHorizontalTriple
-            width={15}
-            height={15}
-            style={{ color: theme.tableHeaderText }}
-          />
+          <SvgDotsHorizontalTriple width={15} height={15} style={{color: theme.tableHeaderText}} />
         </Button>
 
         <Popover
           triggerRef={triggerRef}
           isOpen={menuOpen}
           onOpenChange={() => setMenuOpen(false)}
-          style={{ width: 200 }}
+          style={{width: 200}}
         >
           <Menu
             onMenuSelect={type => {

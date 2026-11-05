@@ -17,20 +17,20 @@
 import * as db from '#server/db';
 // @ts-strict-ignore
 import * as monthUtils from '#shared/months';
-import type { CleanupTemplate } from '#types/models/cleanup-templates';
+import type {CleanupTemplate} from '#types/models/cleanup-templates';
 
-import { getSheetValue, setBudget, setGoal } from './actions';
-import { storeNoteCleanups } from './cleanup-template-notes';
-import type { TemplateNotification } from './template-notification';
+import {getSheetValue, setBudget, setGoal} from './actions';
+import {storeNoteCleanups} from './cleanup-template-notes';
+import type {TemplateNotification} from './template-notification';
 
-export async function cleanupTemplate({ month }: { month: string }) {
+export async function cleanupTemplate({month}: {month: string}) {
   await storeNoteCleanups();
   return processCleanup(month);
 }
 
-type GroupSourceRow = { category: string; groupId: string };
-type GroupSinkRow = { category: string; groupId: string; weight: number };
-type GroupOverspendRow = { category: string; groupId: string };
+type GroupSourceRow = {category: string; groupId: string};
+type GroupSinkRow = {category: string; groupId: string; weight: number};
+type GroupOverspendRow = {category: string; groupId: string};
 
 async function applyGroupCleanups(
   month: string,
@@ -59,10 +59,7 @@ async function applyGroupCleanups(
       //only return group source funds to To Budget if there are corresponding sinking groups or underfunded included groups
       for (let ii = 0; ii < tempSourceGroups.length; ii++) {
         const categoryId = tempSourceGroups[ii].category;
-        const balance = await getSheetValue(
-          sheetName,
-          `leftover-${categoryId}`,
-        );
+        const balance = await getSheetValue(sheetName, `leftover-${categoryId}`);
 
         // A source that is overspent has no leftover funds to send to the pool.
         // Taking its negative balance would move the overspending onto the sink
@@ -89,19 +86,9 @@ async function applyGroupCleanups(
       }
 
       //fill underfunded categories within the group first
-      for (
-        let ii = 0;
-        ii < overspendGroup.length && available_amount > 0;
-        ii++
-      ) {
-        const balance = await getSheetValue(
-          sheetName,
-          `leftover-${overspendGroup[ii].category}`,
-        );
-        const budgeted = await getSheetValue(
-          sheetName,
-          `budget-${overspendGroup[ii].category}`,
-        );
+      for (let ii = 0; ii < overspendGroup.length && available_amount > 0; ii++) {
+        const balance = await getSheetValue(sheetName, `leftover-${overspendGroup[ii].category}`);
+        const budgeted = await getSheetValue(sheetName, `budget-${overspendGroup[ii].category}`);
         const to_budget = budgeted + Math.abs(balance);
         const categoryId = overspendGroup[ii].category;
         let carryover = await db.first<Pick<db.DbZeroBudget, 'carryover'>>(
@@ -110,7 +97,7 @@ async function applyGroupCleanups(
         );
 
         if (carryover === null) {
-          carryover = { carryover: 0 };
+          carryover = {carryover: 0};
         }
 
         if (
@@ -140,13 +127,9 @@ async function applyGroupCleanups(
         }
       }
       for (let ii = 0; ii < sinkGroup.length && available_amount > 0; ii++) {
-        const budgeted = await getSheetValue(
-          sheetName,
-          `budget-${sinkGroup[ii].category}`,
-        );
+        const budgeted = await getSheetValue(sheetName, `budget-${sinkGroup[ii].category}`);
         const to_budget =
-          budgeted +
-          Math.round((sinkGroup[ii].weight / total_weight) * available_amount);
+          budgeted + Math.round((sinkGroup[ii].weight / total_weight) * available_amount);
         await setBudget({
           category: sinkGroup[ii].category,
           month,
@@ -155,9 +138,7 @@ async function applyGroupCleanups(
       }
     } else {
       const groupName = groupNamesById.get(groupId) ?? groupId;
-      warnings.push(
-        `Cleanup group "${groupName}" has no matching sink categories.`,
-      );
+      warnings.push(`Cleanup group "${groupName}" has no matching sink categories.`);
     }
     sourceGroups = sourceGroups.filter(c => c.groupId !== groupId);
     groupLength = sourceGroups.length;
@@ -192,7 +173,7 @@ async function processCleanup(month: string): Promise<TemplateNotification> {
 
     for (const row of def) {
       if (row.role === 'source' && row.groupId !== null) {
-        groupSource.push({ category: category.id, groupId: row.groupId });
+        groupSource.push({category: category.id, groupId: row.groupId});
       } else if (row.role === 'sink' && row.groupId !== null) {
         groupSink.push({
           category: category.id,
@@ -200,12 +181,12 @@ async function processCleanup(month: string): Promise<TemplateNotification> {
           weight: row.weight,
         });
       } else if (row.role === 'overspend') {
-        groupOverspend.push({ category: category.id, groupId: row.groupId });
+        groupOverspend.push({category: category.id, groupId: row.groupId});
       }
     }
   }
 
-  const groupRows = await db.all<{ id: string; name: string }>(
+  const groupRows = await db.all<{id: string; name: string}>(
     'SELECT id, name FROM cleanup_groups WHERE tombstone = 0',
   );
   const groupNamesById = new Map(groupRows.map(g => [g.id, g.name]));
@@ -226,9 +207,7 @@ async function processCleanup(month: string): Promise<TemplateNotification> {
     const def = parseCleanupDef(category.cleanup_def);
     if (!def) continue;
 
-    const globalSource = def.find(
-      r => r.role === 'source' && r.groupId === null,
-    );
+    const globalSource = def.find(r => r.role === 'source' && r.groupId === null);
     if (globalSource) {
       const balance = await getSheetValue(sheetName, `leftover-${category.id}`);
       const budgeted = await getSheetValue(sheetName, `budget-${category.id}`);
@@ -252,7 +231,7 @@ async function processCleanup(month: string): Promise<TemplateNotification> {
 
     const globalSink = def.find(r => r.role === 'sink' && r.groupId === null);
     if (globalSink && globalSink.role === 'sink') {
-      sinkCategory.push({ cat: category, weight: globalSink.weight });
+      sinkCategory.push({cat: category, weight: globalSink.weight});
       num_sinks += 1;
       total_weight += globalSink.weight;
     }
@@ -271,7 +250,7 @@ async function processCleanup(month: string): Promise<TemplateNotification> {
     );
 
     if (carryover === null) {
-      carryover = { carryover: 0 };
+      carryover = {carryover: 0};
     }
 
     if (
@@ -306,15 +285,11 @@ async function processCleanup(month: string): Promise<TemplateNotification> {
 
   //fill sinking categories
   for (let c = 0; c < sinkCategory.length; c++) {
-    const { cat, weight } = sinkCategory[c];
+    const {cat, weight} = sinkCategory[c];
     const budgeted = await getSheetValue(sheetName, `budget-${cat.id}`);
-    let to_budget =
-      budgeted + Math.round((weight / total_weight) * budgetAvailable);
+    let to_budget = budgeted + Math.round((weight / total_weight) * budgetAvailable);
     if (c === sinkCategory.length - 1) {
-      const currentBudgetAvailable = await getSheetValue(
-        sheetName,
-        `to-budget`,
-      );
+      const currentBudgetAvailable = await getSheetValue(sheetName, `to-budget`);
       if (to_budget > currentBudgetAvailable) {
         to_budget = budgeted + currentBudgetAvailable;
       }
@@ -378,9 +353,7 @@ async function processCleanup(month: string): Promise<TemplateNotification> {
   }
 }
 
-function parseCleanupDef(
-  raw: string | null | undefined,
-): CleanupTemplate[] | null {
+function parseCleanupDef(raw: string | null | undefined): CleanupTemplate[] | null {
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as CleanupTemplate[];

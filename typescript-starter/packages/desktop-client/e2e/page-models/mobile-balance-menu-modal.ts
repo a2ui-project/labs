@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class BalanceMenuModal {
   readonly page: Page;
@@ -47,6 +47,6 @@ export class BalanceMenuModal {
   }
 
   async close() {
-    await this.heading.getByRole('button', { name: 'Close' }).click();
+    await this.heading.getByRole('button', {name: 'Close'}).click();
   }
 }

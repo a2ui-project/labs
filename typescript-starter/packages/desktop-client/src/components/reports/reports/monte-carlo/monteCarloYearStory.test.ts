@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { TFunction } from 'i18next';
-import { describe, expect, it } from 'vitest';
+import type {TFunction} from 'i18next';
+import {describe, expect, it} from 'vitest';
 
-import { WITHDRAWAL_RULE_DEFAULTS } from './monteCarloSimulation';
-import type { MonteCarloRunDetailRow } from './monteCarloSimulation';
-import { buildMonteCarloYearStory } from './monteCarloYearStory';
+import {WITHDRAWAL_RULE_DEFAULTS} from './monteCarloSimulation';
+import type {MonteCarloRunDetailRow} from './monteCarloSimulation';
+import {buildMonteCarloYearStory} from './monteCarloYearStory';
 
 // Identity translation that fills in the placeholders, so the tests read
 // the English sentences the UI shows
@@ -30,9 +30,7 @@ const translate = ((key: string, options?: Record<string, unknown>) =>
 
 const format = (amount: number) => amount.toFixed(2);
 
-function makeRow(
-  overrides: Partial<MonteCarloRunDetailRow> = {},
-): MonteCarloRunDetailRow {
+function makeRow(overrides: Partial<MonteCarloRunDetailRow> = {}): MonteCarloRunDetailRow {
   return {
     year: 1,
     startBalance: 100_000,
@@ -100,7 +98,7 @@ describe('buildMonteCarloYearStory', () => {
         referenceRate: 0.0714,
       },
     });
-    expect(story(row, { hasSurplusPot: true })).toEqual([
+    expect(story(row, {hasSurplusPot: true})).toEqual([
       "Guardrails cut this year's spending from 40000.00 to 16875.00 because the withdrawal rate had climbed too far above the plan.",
       'The minimum spending floor then lifted it to 20000.00.',
       'Spent 20000.00 as planned, funded from the pots.',
@@ -108,9 +106,7 @@ describe('buildMonteCarloYearStory', () => {
   });
 
   it('keeps a plain year to one sentence', () => {
-    expect(story(makeRow())).toEqual([
-      'Spent 4000.00 as planned, funded from the pots.',
-    ]);
+    expect(story(makeRow())).toEqual(['Spent 4000.00 as planned, funded from the pots.']);
   });
 
   it('says nothing about a rule that made no change', () => {
@@ -124,9 +120,7 @@ describe('buildMonteCarloYearStory', () => {
         action: 'none',
       },
     });
-    expect(story(row)).toEqual([
-      'Spent 4000.00 as planned, funded from the pots.',
-    ]);
+    expect(story(row)).toEqual(['Spent 4000.00 as planned, funded from the pots.']);
   });
 
   it('explains earlier adjustments that still apply', () => {
@@ -207,7 +201,7 @@ describe('buildMonteCarloYearStory', () => {
     });
     expect(story(withinBounds)).toHaveLength(1);
 
-    const anchor = makeRow({ ruleExplanation: { kind: 'anchor', rate: 0.04 } });
+    const anchor = makeRow({ruleExplanation: {kind: 'anchor', rate: 0.04}});
     expect(story(anchor)[0]).toBe(
       "This is the first spending year, so the plan's withdrawal rate was set here.",
     );
@@ -249,9 +243,9 @@ describe('buildMonteCarloYearStory', () => {
       '1000.00 of income beyond the plan went unspent and left the plan.',
     ]);
     // With a surplus pot the engine saves that 1,000 instead
-    expect(
-      story({ ...fully, surplusSaved: 1_000 }, { hasSurplusPot: true })[1],
-    ).toBe('1000.00 of income beyond the plan was saved into Surplus cash.');
+    expect(story({...fully, surplusSaved: 1_000}, {hasSurplusPot: true})[1]).toBe(
+      '1000.00 of income beyond the plan was saved into Surplus cash.',
+    );
   });
 
   it('says where income went when contributions took it', () => {
@@ -265,7 +259,7 @@ describe('buildMonteCarloYearStory', () => {
       plannedSpending: 20_000,
       spent: 20_000,
     });
-    expect(story(allContributed, { hasSurplusPot: true })).toEqual([
+    expect(story(allContributed, {hasSurplusPot: true})).toEqual([
       'The 12547.60 income all went into contributions, so the 20000.00 spent came from the pots.',
     ]);
 

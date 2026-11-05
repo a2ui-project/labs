@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgPencil1 } from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgPencil1} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { loadAllFiles } from '#budgetfiles/budgetfilesSlice';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {loadAllFiles} from '#budgetfiles/budgetfilesSlice';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {useGlobalPref} from '#hooks/useGlobalPref';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
 function FileLocationSettings() {
   const [documentDir, _setDocumentDirPref] = useGlobalPref('documentDir');
   const [_documentDirChanged, setDirChanged] = useState(false);
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
 
   async function onChooseDocumentDir() {
@@ -74,12 +74,12 @@ function FileLocationSettings() {
       <Text>
         <Trans>
           <strong>Actual's data directory</strong>{' '}
-          <small style={{ marginLeft: '0.5rem' }}>
+          <small style={{marginLeft: '0.5rem'}}>
             <i>where your files are stored</i>
           </small>
         </Trans>
       </Text>
-      <View style={{ flexDirection: 'row', gap: '0.5rem', width: '100%' }}>
+      <View style={{flexDirection: 'row', gap: '0.5rem', width: '100%'}}>
         <Text
           title={documentDir}
           style={{
@@ -134,12 +134,12 @@ function SelfSignedCertLocationSettings() {
       <Text>
         <Trans>
           <strong>Server self-signed certificate</strong>{' '}
-          <small style={{ marginLeft: '0.5rem' }}>
+          <small style={{marginLeft: '0.5rem'}}>
             <i>enables a secure connection</i>
           </small>
         </Trans>
       </Text>
-      <View style={{ flexDirection: 'row', gap: '0.5rem', width: '100%' }}>
+      <View style={{flexDirection: 'row', gap: '0.5rem', width: '100%'}}>
         <Text
           title={serverSelfSignedCertPref}
           style={{
@@ -163,7 +163,7 @@ function SelfSignedCertLocationSettings() {
 }
 
 export function FilesSettingsModal() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const dispatch = useDispatch();
 
@@ -174,15 +174,11 @@ export function FilesSettingsModal() {
 
   return (
     <Modal name="files-settings">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Settings')}
-            rightContent={
-              <ModalCloseButton
-                onPress={() => closeModal(() => state.close())}
-              />
-            }
+            rightContent={<ModalCloseButton onPress={() => closeModal(() => state.close())} />}
           />
           <View
             style={{

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { amountToInteger } from '#app-gocardless/utils';
+import {amountToInteger} from '#app-gocardless/utils';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -25,7 +25,7 @@ export default {
   institutionIds: ['SEB_ESSESESS_PRIVATE'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     // Creditor name is stored in additionInformation for SEB
     editedTrans.creditorName = transaction.additionalInformation;
@@ -34,9 +34,7 @@ export default {
   },
 
   calculateStartingBalance(sortedTransactions = [], balances = []) {
-    const currentBalance = balances.find(
-      balance => 'interimBooked' === balance.balanceType,
-    );
+    const currentBalance = balances.find(balance => 'interimBooked' === balance.balanceType);
 
     return sortedTransactions.reduce(
       (total, trans) => {

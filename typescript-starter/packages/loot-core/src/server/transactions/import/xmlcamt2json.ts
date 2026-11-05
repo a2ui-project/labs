@@ -15,10 +15,10 @@
  */
 
 // @ts-strict-ignore
-import { parseStringPromise } from 'xml2js';
+import {parseStringPromise} from 'xml2js';
 
-type DateRef = { DtTm: string } | { Dt: string };
-type Amt = { _: string };
+type DateRef = {DtTm: string} | {Dt: string};
+type Amt = {_: string};
 
 type Ntry = {
   AcctSvcrRef?: string;
@@ -76,10 +76,7 @@ function findKeys(obj: object, key: string): unknown[] {
   return result;
 }
 
-function getPayeeNameFromTxDtls(
-  TxDtls: TxDtls,
-  isDebit: boolean,
-): string | null {
+function getPayeeNameFromTxDtls(TxDtls: TxDtls, isDebit: boolean): string | null {
   if (TxDtls?.RltdPties) {
     const key = isDebit ? TxDtls.RltdPties.Cdtr : TxDtls.RltdPties.Dbtr;
     const Nm = findKeys(key, 'Nm');
@@ -133,12 +130,10 @@ function decodeXmlContent(content: Uint8Array): string {
   return utf8Decoder.decode(content);
 }
 
-export async function xmlCAMT2json(
-  content: string | Uint8Array,
-): Promise<TransactionCAMT[]> {
+export async function xmlCAMT2json(content: string | Uint8Array): Promise<TransactionCAMT[]> {
   const data = await parseStringPromise(
     content instanceof Uint8Array ? decodeXmlContent(content) : content,
-    { explicitArray: false },
+    {explicitArray: false},
   );
   const entries = findKeys(data, 'Ntry') as Ntry[];
 
@@ -203,7 +198,5 @@ export async function xmlCAMT2json(
       transactions.push(transaction);
     }
   }
-  return transactions.filter(
-    trans => trans.date != null && trans.amount != null,
-  );
+  return transactions.filter(trans => trans.date != null && trans.amount != null);
 }

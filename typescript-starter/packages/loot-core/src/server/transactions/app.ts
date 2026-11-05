@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { createApp } from '#server/app';
-import { aqlQuery } from '#server/aql';
+import {createApp} from '#server/app';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { mutator } from '#server/mutators';
-import { undoable } from '#server/undo';
-import { q, Query } from '#shared/query';
-import type { QueryState } from '#shared/query';
+import {mutator} from '#server/mutators';
+import {undoable} from '#server/undo';
+import {q, Query} from '#shared/query';
+import type {QueryState} from '#shared/query';
 import type {
   AccountEntity,
   CategoryGroupEntity,
@@ -28,12 +28,12 @@ import type {
   TransactionEntity,
 } from '#types/models';
 
-import { exportQueryToCSV, exportToCSV } from './export/export-to-csv';
-import { parseFile } from './import/parse-file';
-import type { ParseFileOptions } from './import/parse-file';
-import { mergeTransactions } from './merge';
+import {exportQueryToCSV, exportToCSV} from './export/export-to-csv';
+import {parseFile} from './import/parse-file';
+import type {ParseFileOptions} from './import/parse-file';
+import {mergeTransactions} from './merge';
 
-import { batchUpdateTransactions } from '.';
+import {batchUpdateTransactions} from '.';
 
 export type TransactionHandlers = {
   'transactions-batch-update': typeof handleBatchUpdateTransactions;
@@ -68,17 +68,17 @@ async function handleBatchUpdateTransactions({
 }
 
 async function addTransaction(transaction: TransactionEntity) {
-  await handleBatchUpdateTransactions({ added: [transaction] });
+  await handleBatchUpdateTransactions({added: [transaction]});
   return {};
 }
 
 async function updateTransaction(transaction: TransactionEntity) {
-  await handleBatchUpdateTransactions({ updated: [transaction] });
+  await handleBatchUpdateTransactions({updated: [transaction]});
   return {};
 }
 
 async function deleteTransaction(transaction: Pick<TransactionEntity, 'id'>) {
-  await handleBatchUpdateTransactions({ deleted: [transaction] });
+  await handleBatchUpdateTransactions({deleted: [transaction]});
   return {};
 }
 
@@ -136,42 +136,27 @@ async function exportTransactions({
   return exportToCSV(transactions, accounts, categoryGroups, payees);
 }
 
-async function exportTransactionsQuery({
-  query: queryState,
-}: {
-  query: QueryState;
-}) {
+async function exportTransactionsQuery({query: queryState}: {query: QueryState}) {
   return exportQueryToCSV(new Query(queryState));
 }
 
 async function getEarliestTransaction() {
-  const { data } = await aqlQuery(
-    q('transactions')
-      .options({ splits: 'none' })
-      .orderBy({ date: 'asc' })
-      .select('*')
-      .limit(1),
+  const {data} = await aqlQuery(
+    q('transactions').options({splits: 'none'}).orderBy({date: 'asc'}).select('*').limit(1),
   );
   return data[0] || null;
 }
 
 async function getLatestTransaction() {
-  const { data } = await aqlQuery(
-    q('transactions')
-      .options({ splits: 'none' })
-      .orderBy({ date: 'desc' })
-      .select('*')
-      .limit(1),
+  const {data} = await aqlQuery(
+    q('transactions').options({splits: 'none'}).orderBy({date: 'desc'}).select('*').limit(1),
   );
   return data[0] || null;
 }
 
 export const app = createApp<TransactionHandlers>();
 
-app.method(
-  'transactions-batch-update',
-  mutator(undoable(handleBatchUpdateTransactions)),
-);
+app.method('transactions-batch-update', mutator(undoable(handleBatchUpdateTransactions)));
 app.method('transactions-merge', mutator(undoable(mergeTransactions)));
 
 app.method('transaction-add', mutator(addTransaction));

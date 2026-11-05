@@ -15,27 +15,21 @@
  */
 
 import * as db from '#server/db';
-import type { Template } from '#types/models/templates';
+import type {Template} from '#types/models/templates';
 
-import { parse } from './goal-template.pegjs';
+import {parse} from './goal-template.pegjs';
 import {
   getActiveSchedules,
   getCategoriesWithTemplateNotes,
   resetCategoryGoalDefsWithNoTemplates,
 } from './statements';
-import type { CategoryWithTemplateNote } from './statements';
-import {
-  checkTemplateNotes,
-  storeNoteTemplates,
-  unparse,
-} from './template-notes';
+import type {CategoryWithTemplateNote} from './statements';
+import {checkTemplateNotes, storeNoteTemplates, unparse} from './template-notes';
 
 vi.mock('#server/db');
 vi.mock('./statements');
 
-function mockGetTemplateNotesForCategories(
-  templateNotes: CategoryWithTemplateNote[],
-) {
+function mockGetTemplateNotesForCategories(templateNotes: CategoryWithTemplateNote[]) {
   vi.mocked(getCategoriesWithTemplateNotes).mockResolvedValue(templateNotes);
 }
 
@@ -74,8 +68,7 @@ describe('storeNoteTemplates', () => {
       ],
     },
     {
-      description:
-        'Stores negative templates for categories with valid template notes',
+      description: 'Stores negative templates for categories with valid template notes',
       mockTemplateNotes: [
         {
           id: 'cat1',
@@ -94,8 +87,7 @@ describe('storeNoteTemplates', () => {
       ],
     },
     {
-      description:
-        'Stores template when prefix is used with valid template notes',
+      description: 'Stores template when prefix is used with valid template notes',
       mockTemplateNotes: [
         {
           id: 'cat1',
@@ -114,8 +106,7 @@ describe('storeNoteTemplates', () => {
       ],
     },
     {
-      description:
-        'Stores templates for categories with valid goal directive template notes',
+      description: 'Stores templates for categories with valid goal directive template notes',
       mockTemplateNotes: [
         {
           id: 'cat1',
@@ -134,14 +125,12 @@ describe('storeNoteTemplates', () => {
     },
     {
       description: 'Does not store empty template notes',
-      mockTemplateNotes: [{ id: 'cat1', name: 'Category 1', note: '' }],
+      mockTemplateNotes: [{id: 'cat1', name: 'Category 1', note: ''}],
       expectedTemplates: [],
     },
     {
       description: 'Does not store non template notes',
-      mockTemplateNotes: [
-        { id: 'cat1', name: 'Category 1', note: 'Not a template note' },
-      ],
+      mockTemplateNotes: [{id: 'cat1', name: 'Category 1', note: 'Not a template note'}],
       expectedTemplates: [],
     },
     {
@@ -232,33 +221,30 @@ describe('storeNoteTemplates', () => {
     },
   ];
 
-  it.each(testCases)(
-    '$description',
-    async ({ mockTemplateNotes, expectedTemplates }) => {
-      // Given
-      mockGetTemplateNotesForCategories(mockTemplateNotes);
-      mockDbUpdate();
+  it.each(testCases)('$description', async ({mockTemplateNotes, expectedTemplates}) => {
+    // Given
+    mockGetTemplateNotesForCategories(mockTemplateNotes);
+    mockDbUpdate();
 
-      // When
-      await storeNoteTemplates();
+    // When
+    await storeNoteTemplates();
 
-      // Then
-      if (expectedTemplates.length === 0) {
-        expect(db.updateWithSchema).not.toHaveBeenCalled();
-        expect(resetCategoryGoalDefsWithNoTemplates).toHaveBeenCalled();
-        return;
-      }
-
-      mockTemplateNotes.forEach(({ id }) => {
-        expect(db.updateWithSchema).toHaveBeenCalledWith('categories', {
-          id,
-          goal_def: JSON.stringify(expectedTemplates),
-          template_settings: { source: 'notes' },
-        });
-      });
+    // Then
+    if (expectedTemplates.length === 0) {
+      expect(db.updateWithSchema).not.toHaveBeenCalled();
       expect(resetCategoryGoalDefsWithNoTemplates).toHaveBeenCalled();
-    },
-  );
+      return;
+    }
+
+    mockTemplateNotes.forEach(({id}) => {
+      expect(db.updateWithSchema).toHaveBeenCalledWith('categories', {
+        id,
+        goal_def: JSON.stringify(expectedTemplates),
+        template_settings: {source: 'notes'},
+      });
+    });
+    expect(resetCategoryGoalDefsWithNoTemplates).toHaveBeenCalled();
+  });
 });
 
 describe('checkTemplates', () => {
@@ -368,20 +354,17 @@ describe('checkTemplates', () => {
     },
   ];
 
-  it.each(testCases)(
-    '$description',
-    async ({ mockTemplateNotes, mockSchedules, expected }) => {
-      // Given
-      mockGetTemplateNotesForCategories(mockTemplateNotes);
-      mockGetActiveSchedules(mockSchedules);
+  it.each(testCases)('$description', async ({mockTemplateNotes, mockSchedules, expected}) => {
+    // Given
+    mockGetTemplateNotesForCategories(mockTemplateNotes);
+    mockGetActiveSchedules(mockSchedules);
 
-      // When
-      const result = await checkTemplateNotes();
+    // When
+    const result = await checkTemplateNotes();
 
-      // Then
-      expect(result).toEqual(expected);
-    },
-  );
+    // Then
+    expect(result).toEqual(expected);
+  });
 });
 
 function mockSchedules(): db.DbSchedule[] {

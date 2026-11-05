@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { aqlQuery } from '#server/aql';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { getCurrency } from '#shared/currencies';
-import type { Currency } from '#shared/currencies';
+import {getCurrency} from '#shared/currencies';
+import type {Currency} from '#shared/currencies';
 import * as monthUtils from '#shared/months';
-import { q } from '#shared/query';
-import { amountToInteger, integerToAmount } from '#shared/util';
-import type { CategoryEntity } from '#types/models';
+import {q} from '#shared/query';
+import {amountToInteger, integerToAmount} from '#shared/util';
+import type {CategoryEntity} from '#types/models';
 import type {
   AverageTemplate,
   ByTemplate,
@@ -37,14 +37,9 @@ import type {
   Template,
 } from '#types/models/templates';
 
-import {
-  getCategoryAverage,
-  getSheetBoolean,
-  getSheetValue,
-  isTrackingBudget,
-} from './actions';
-import { runSchedule } from './schedule-template';
-import { getActiveSchedules } from './statements';
+import {getCategoryAverage, getSheetBoolean, getSheetValue, isTrackingBudget} from './actions';
+import {runSchedule} from './schedule-template';
+import {getActiveSchedules} from './statements';
 
 export class CategoryTemplateContext {
   /*----------------------------------------------------------------------------
@@ -74,17 +69,9 @@ export class CategoryTemplateContext {
     skipAvailableClamp: boolean = false,
   ) {
     // get all the needed setup values
-    const lastMonthSheet = monthUtils.sheetForMonth(
-      monthUtils.subMonths(month, 1),
-    );
-    let fromLastMonth = await getSheetValue(
-      lastMonthSheet,
-      `leftover-${category.id}`,
-    );
-    const carryover = await getSheetBoolean(
-      lastMonthSheet,
-      `carryover-${category.id}`,
-    );
+    const lastMonthSheet = monthUtils.sheetForMonth(monthUtils.subMonths(month, 1));
+    let fromLastMonth = await getSheetValue(lastMonthSheet, `leftover-${category.id}`);
+    const carryover = await getSheetBoolean(lastMonthSheet, `carryover-${category.id}`);
 
     if (
       (fromLastMonth < 0 && !carryover) || // overspend no carryover
@@ -98,15 +85,12 @@ export class CategoryTemplateContext {
     await CategoryTemplateContext.checkByAndScheduleAndSpend(templates, month);
     await CategoryTemplateContext.checkPercentage(templates);
 
-    const hideDecimal = await aqlQuery(
-      q('preferences').filter({ id: 'hideFraction' }).select('*'),
-    );
+    const hideDecimal = await aqlQuery(q('preferences').filter({id: 'hideFraction'}).select('*'));
 
     const currencyPref = await aqlQuery(
-      q('preferences').filter({ id: 'defaultCurrencyCode' }).select('*'),
+      q('preferences').filter({id: 'defaultCurrencyCode'}).select('*'),
     );
-    const currencyCode =
-      currencyPref.data.length > 0 ? currencyPref.data[0].value : '';
+    const currencyCode = currencyPref.data.length > 0 ? currencyPref.data[0].value : '';
 
     // call the private constructor
     return new CategoryTemplateContext(
@@ -116,20 +100,14 @@ export class CategoryTemplateContext {
       fromLastMonth,
       budgeted,
       currencyCode,
-      hideDecimal.data.length > 0
-        ? hideDecimal.data[0].value === 'true'
-        : false,
+      hideDecimal.data.length > 0 ? hideDecimal.data[0].value === 'true' : false,
       skipAvailableClamp,
     );
   }
 
   isGoalOnly(): boolean {
     // if there is only a goal
-    return (
-      this.templates.length === 0 &&
-      this.remainder.length === 0 &&
-      this.goals.length > 0
-    );
+    return this.templates.length === 0 && this.remainder.length === 0 && this.goals.length > 0;
   }
   getPriorities(): number[] {
     return Array.from(this.priorities);
@@ -147,9 +125,7 @@ export class CategoryTemplateContext {
   // what is the full requested amount this month
   async runAll(available: number) {
     let toBudget: number = 0;
-    const prioritiesSorted = new Int32Array(
-      [...this.getPriorities()].sort((a, b) => a - b),
-    );
+    const prioritiesSorted = new Int32Array([...this.getPriorities()].sort((a, b) => a - b));
     for (let i = 0; i < prioritiesSorted.length; i++) {
       const p = prioritiesSorted[i];
       toBudget += await this.runTemplatesForPriority(p, available, available);
@@ -167,9 +143,7 @@ export class CategoryTemplateContext {
     if (!this.priorities.has(priority)) return 0;
     if (this.limitMet) return 0;
 
-    const t = this.templates.filter(
-      t => t.directive === 'template' && t.priority === priority,
-    );
+    const t = this.templates.filter(t => t.directive === 'template' && t.priority === priority);
     let available = budgetAvail || 0;
     let toBudget = 0;
     const perTemplateLocal = new Map<Template, number>();
@@ -203,11 +177,7 @@ export class CategoryTemplateContext {
           break;
         }
         case 'percentage': {
-          newBudget = await CategoryTemplateContext.runPercentage(
-            template,
-            availStart,
-            this,
-          );
+          newBudget = await CategoryTemplateContext.runPercentage(template, availStart, this);
           break;
         }
         case 'by': {
@@ -256,10 +226,7 @@ export class CategoryTemplateContext {
 
       available = available - newBudget;
       toBudget += newBudget;
-      perTemplateLocal.set(
-        template,
-        (perTemplateLocal.get(template) ?? 0) + newBudget,
-      );
+      perTemplateLocal.set(template, (perTemplateLocal.get(template) ?? 0) + newBudget);
     }
 
     // `runBy` and `runSchedule` produce a single batch total per priority bucket
@@ -287,10 +254,7 @@ export class CategoryTemplateContext {
     let scale = 1;
     //check limit
     if (this.limitCheck) {
-      if (
-        toBudget + this.toBudgetAmount + this.fromLastMonth >=
-        this.limitAmount
-      ) {
+      if (toBudget + this.toBudgetAmount + this.fromLastMonth >= this.limitAmount) {
         const orig = toBudget;
         toBudget = this.limitAmount - this.toBudgetAmount - this.fromLastMonth;
         this.limitMet = true;
@@ -310,12 +274,7 @@ export class CategoryTemplateContext {
     }
 
     // don't overbudget when using a priority unless income category
-    if (
-      priority > 0 &&
-      available < 0 &&
-      !this.category.is_income &&
-      !this.skipAvailableClamp
-    ) {
+    if (priority > 0 && available < 0 && !this.category.is_income && !this.skipAvailableClamp) {
       this.fullAmount = (this.fullAmount || 0) + toBudget;
       const adjusted = Math.max(0, toBudget + available);
       if (toBudget > 0) scale *= adjusted / toBudget;
@@ -365,10 +324,7 @@ export class CategoryTemplateContext {
     }
 
     if (this.limitCheck) {
-      if (
-        toBudget + this.toBudgetAmount + this.fromLastMonth >=
-        this.limitAmount
-      ) {
+      if (toBudget + this.toBudgetAmount + this.fromLastMonth >= this.limitAmount) {
         toBudget = this.limitAmount - this.toBudgetAmount - this.fromLastMonth;
         this.limitMet = true;
       }
@@ -448,11 +404,7 @@ export class CategoryTemplateContext {
     // sort the template lines into regular template, goals, and remainder templates
     if (templates) {
       templates.forEach(t => {
-        if (
-          t.directive === 'template' &&
-          t.type !== 'remainder' &&
-          t.type !== 'limit'
-        ) {
+        if (t.directive === 'template' && t.type !== 'remainder' && t.type !== 'limit') {
           this.templates.push(t);
           if (t.priority !== null) this.priorities.add(t.priority);
         } else if (t.directive === 'template' && t.type === 'remainder') {
@@ -473,10 +425,7 @@ export class CategoryTemplateContext {
     if (this.goals.length > 0) {
       if (this.isGoalOnly()) this.toBudgetAmount = this.previouslyBudgeted;
       this.isLongGoal = true;
-      this.goalAmount = amountToInteger(
-        this.goals[0].amount,
-        this.currency.decimalPlaces,
-      );
+      this.goalAmount = amountToInteger(this.goals[0].amount, this.currency.decimalPlaces);
       return;
     }
     this.goalAmount = this.fullAmount;
@@ -484,30 +433,20 @@ export class CategoryTemplateContext {
 
   //-----------------------------------------------------------------------------
   //  Template Validation
-  static async checkByAndScheduleAndSpend(
-    templates: Template[],
-    month: string,
-  ) {
-    if (
-      templates.filter(t => t.type === 'schedule' || t.type === 'by').length ===
-      0
-    ) {
+  static async checkByAndScheduleAndSpend(templates: Template[], month: string) {
+    if (templates.filter(t => t.type === 'schedule' || t.type === 'by').length === 0) {
       return;
     }
     //check schedule existence (prefer scheduleId, fall back to name)
     const activeSchedules = await getActiveSchedules();
     const scheduleIds = new Set(activeSchedules.map(s => s.id));
-    const scheduleNames = new Set(
-      activeSchedules.map(s => s.name?.trim()).filter(Boolean),
-    );
+    const scheduleNames = new Set(activeSchedules.map(s => s.name?.trim()).filter(Boolean));
     templates
       .filter(t => t.type === 'schedule')
       .forEach(t => {
         if (t.scheduleId) {
           if (!scheduleIds.has(t.scheduleId)) {
-            throw new Error(
-              `Schedule ${t.name ?? t.scheduleId} does not exist`,
-            );
+            throw new Error(`Schedule ${t.name ?? t.scheduleId} does not exist`);
           }
         } else if (t.name) {
           if (!scheduleNames.has(t.name.trim())) {
@@ -519,9 +458,7 @@ export class CategoryTemplateContext {
       });
     //find lowest priority
     const lowestPriority = Math.min(
-      ...templates
-        .filter(t => t.type === 'schedule' || t.type === 'by')
-        .map(t => t.priority),
+      ...templates.filter(t => t.type === 'schedule' || t.type === 'by').map(t => t.priority),
     );
     //warn if priority needs fixed
     templates
@@ -538,14 +475,9 @@ export class CategoryTemplateContext {
     templates
       .filter(t => t.type === 'by' || t.type === 'spend')
       .forEach(t => {
-        const range = monthUtils.differenceInCalendarMonths(
-          `${t.month}`,
-          month,
-        );
+        const range = monthUtils.differenceInCalendarMonths(`${t.month}`, month);
         if (range < 0 && !(t.repeat || t.annual)) {
-          throw new Error(
-            `Target month has passed, remove or update the target month`,
-          );
+          throw new Error(`Target month has passed, remove or update the target month`);
         }
       });
   }
@@ -556,9 +488,7 @@ export class CategoryTemplateContext {
 
     const availCategories = await db.getCategories();
     const incomeCategories = availCategories.filter(c => c.is_income);
-    const availNames = new Set(
-      incomeCategories.map(c => c.name.toLocaleLowerCase()),
-    );
+    const availNames = new Set(incomeCategories.map(c => c.name.toLocaleLowerCase()));
     const availIds = new Set(incomeCategories.map(c => c.id));
 
     const specialSources = new Set(['all income', 'available funds']);
@@ -568,16 +498,10 @@ export class CategoryTemplateContext {
       const lowered = raw.toLocaleLowerCase();
       // Accept either an income category name (text templates) or an income
       // category id (UI-managed templates from CategoryAutocomplete).
-      if (
-        specialSources.has(lowered) ||
-        availNames.has(lowered) ||
-        availIds.has(raw)
-      ) {
+      if (specialSources.has(lowered) || availNames.has(lowered) || availIds.has(raw)) {
         return;
       }
-      throw new Error(
-        `Category \x22${raw}\x22 is not found in available income categories`,
-      );
+      throw new Error(`Category \x22${raw}\x22 is not found in available income categories`);
     });
   }
 
@@ -609,19 +533,14 @@ export class CategoryTemplateContext {
           monthUtils.addMonths(this.month, 1),
           this.month,
         );
-        this.limitAmount +=
-          amountToInteger(limitDef.amount, this.currency.decimalPlaces) *
-          numDays;
+        this.limitAmount += amountToInteger(limitDef.amount, this.currency.decimalPlaces) * numDays;
       } else if (limitDef.period === 'weekly') {
         if (!limitDef.start) {
           throw new Error('Weekly limit requires a start date (YYYY-MM-DD)');
         }
         const nextMonth = monthUtils.nextMonth(this.month);
         let week = limitDef.start;
-        const baseLimit = amountToInteger(
-          limitDef.amount,
-          this.currency.decimalPlaces,
-        );
+        const baseLimit = amountToInteger(limitDef.amount, this.currency.decimalPlaces);
         while (week < nextMonth) {
           if (week >= this.month) {
             this.limitAmount += baseLimit;
@@ -629,10 +548,7 @@ export class CategoryTemplateContext {
           week = monthUtils.addWeeks(week, 1);
         }
       } else if (limitDef.period === 'monthly') {
-        this.limitAmount = amountToInteger(
-          limitDef.amount,
-          this.currency.decimalPlaces,
-        );
+        this.limitAmount = amountToInteger(limitDef.amount, this.currency.decimalPlaces);
       } else {
         throw new Error('Invalid limit period. Check template syntax');
       }
@@ -679,24 +595,15 @@ export class CategoryTemplateContext {
   //-----------------------------------------------------------------------------
   //  Processor Functions
 
-  static runSimple(
-    template: SimpleTemplate,
-    templateContext: CategoryTemplateContext,
-  ): number {
+  static runSimple(template: SimpleTemplate, templateContext: CategoryTemplateContext): number {
     if (template.monthly != null) {
-      return amountToInteger(
-        template.monthly,
-        templateContext.currency.decimalPlaces,
-      );
+      return amountToInteger(template.monthly, templateContext.currency.decimalPlaces);
     } else {
       return templateContext.limitAmount - templateContext.fromLastMonth;
     }
   }
 
-  static runRefill(
-    template: RefillTemplate,
-    templateContext: CategoryTemplateContext,
-  ): number {
+  static runRefill(template: RefillTemplate, templateContext: CategoryTemplateContext): number {
     return templateContext.limitAmount - templateContext.fromLastMonth;
   }
 
@@ -707,21 +614,12 @@ export class CategoryTemplateContext {
     const sheetName = monthUtils.sheetForMonth(
       monthUtils.subMonths(templateContext.month, template.lookBack),
     );
-    return await getSheetValue(
-      sheetName,
-      `budget-${templateContext.category.id}`,
-    );
+    return await getSheetValue(sheetName, `budget-${templateContext.category.id}`);
   }
 
-  static runPeriodic(
-    template: PeriodicTemplate,
-    templateContext: CategoryTemplateContext,
-  ): number {
+  static runPeriodic(template: PeriodicTemplate, templateContext: CategoryTemplateContext): number {
     let toBudget = 0;
-    const amount = amountToInteger(
-      template.amount,
-      templateContext.currency.decimalPlaces,
-    );
+    const amount = amountToInteger(template.amount, templateContext.currency.decimalPlaces);
     const period = template.period.period;
     const numPeriods = template.period.amount;
     let date =
@@ -754,9 +652,7 @@ export class CategoryTemplateContext {
       date = dateShiftFunction(date, numPeriods);
     }
 
-    if (
-      monthUtils.differenceInCalendarMonths(templateContext.month, date) < 0
-    ) {
+    if (monthUtils.differenceInCalendarMonths(templateContext.month, date) < 0) {
       return 0;
     } // nothing needed this month
 
@@ -779,21 +675,13 @@ export class CategoryTemplateContext {
     let firstMonth = true;
 
     //update months if needed
-    const repeat = template.annual
-      ? (template.repeat || 1) * 12
-      : template.repeat;
-    let m = monthUtils.differenceInCalendarMonths(
-      toMonth,
-      templateContext.month,
-    );
+    const repeat = template.annual ? (template.repeat || 1) * 12 : template.repeat;
+    let m = monthUtils.differenceInCalendarMonths(toMonth, templateContext.month);
     if (repeat && m < 0) {
       while (m < 0) {
         toMonth = monthUtils.addMonths(toMonth, repeat);
         fromMonth = monthUtils.addMonths(fromMonth, repeat);
-        m = monthUtils.differenceInCalendarMonths(
-          toMonth,
-          templateContext.month,
-        );
+        m = monthUtils.differenceInCalendarMonths(toMonth, templateContext.month);
       }
     }
 
@@ -805,32 +693,17 @@ export class CategoryTemplateContext {
       const sheetName = monthUtils.sheetForMonth(m);
       if (firstMonth) {
         //TODO figure out if I already  found these values and can pass them in
-        const spent = await getSheetValue(
-          sheetName,
-          `sum-amount-${templateContext.category.id}`,
-        );
-        const balance = await getSheetValue(
-          sheetName,
-          `leftover-${templateContext.category.id}`,
-        );
+        const spent = await getSheetValue(sheetName, `sum-amount-${templateContext.category.id}`);
+        const balance = await getSheetValue(sheetName, `leftover-${templateContext.category.id}`);
         alreadyBudgeted = balance - spent;
         firstMonth = false;
       } else {
-        alreadyBudgeted += await getSheetValue(
-          sheetName,
-          `budget-${templateContext.category.id}`,
-        );
+        alreadyBudgeted += await getSheetValue(sheetName, `budget-${templateContext.category.id}`);
       }
     }
 
-    const numMonths = monthUtils.differenceInCalendarMonths(
-      toMonth,
-      templateContext.month,
-    );
-    const target = amountToInteger(
-      template.amount,
-      templateContext.currency.decimalPlaces,
-    );
+    const numMonths = monthUtils.differenceInCalendarMonths(toMonth, templateContext.month);
+    const target = amountToInteger(template.amount, templateContext.currency.decimalPlaces);
     if (numMonths < 0) {
       return 0;
     } else {
@@ -851,9 +724,7 @@ export class CategoryTemplateContext {
 
     //choose the sheet to find income for
     if (prev) {
-      sheetName = monthUtils.sheetForMonth(
-        monthUtils.subMonths(templateContext.month, 1),
-      );
+      sheetName = monthUtils.sheetForMonth(monthUtils.subMonths(templateContext.month, 1));
     } else {
       sheetName = monthUtils.sheetForMonth(templateContext.month);
     }
@@ -866,19 +737,12 @@ export class CategoryTemplateContext {
       // 10% of Salary`); the UI's CategoryAutocomplete stores the category
       // id. Accept either form.
       const incomeCat = (await db.getCategories()).find(
-        c =>
-          c.is_income &&
-          (c.id === template.category || c.name.toLocaleLowerCase() === cat),
+        c => c.is_income && (c.id === template.category || c.name.toLocaleLowerCase() === cat),
       );
       if (!incomeCat) {
-        throw new Error(
-          `Income category "${template.category}" not found for percentage template`,
-        );
+        throw new Error(`Income category "${template.category}" not found for percentage template`);
       }
-      monthlyIncome = await getSheetValue(
-        sheetName,
-        `sum-amount-${incomeCat.id}`,
-      );
+      monthlyIncome = await getSheetValue(sheetName, `sum-amount-${incomeCat.id}`);
     }
 
     return Math.max(0, Math.round(monthlyIncome * (percent / 100)));
@@ -906,10 +770,7 @@ export class CategoryTemplateContext {
           break;
         }
         case 'fixed': {
-          average += amountToInteger(
-            template.adjustment,
-            templateContext.currency.decimalPlaces,
-          );
+          average += amountToInteger(template.adjustment, templateContext.currency.decimalPlaces);
           break;
         }
 
@@ -925,9 +786,7 @@ export class CategoryTemplateContext {
     toBudget: number;
     perTemplateNeed: Map<ByTemplate, number>;
   } {
-    const byTemplates: ByTemplate[] = templateContext.templates.filter(
-      t => t.type === 'by',
-    );
+    const byTemplates: ByTemplate[] = templateContext.templates.filter(t => t.type === 'by');
     const savedInfo = [];
     let totalNeeded = 0;
     let workingShortNumMonths;
@@ -940,22 +799,13 @@ export class CategoryTemplateContext {
         : template.repeat != null
           ? template.repeat
           : null;
-      let numMonths = monthUtils.differenceInCalendarMonths(
-        targetMonth,
-        templateContext.month,
-      );
+      let numMonths = monthUtils.differenceInCalendarMonths(targetMonth, templateContext.month);
       while (numMonths < 0 && period) {
         targetMonth = monthUtils.addMonths(targetMonth, period);
-        numMonths = monthUtils.differenceInCalendarMonths(
-          targetMonth,
-          templateContext.month,
-        );
+        numMonths = monthUtils.differenceInCalendarMonths(targetMonth, templateContext.month);
       }
-      savedInfo.push({ numMonths, period });
-      if (
-        workingShortNumMonths === undefined ||
-        numMonths < workingShortNumMonths
-      ) {
+      savedInfo.push({numMonths, period});
+      if (workingShortNumMonths === undefined || numMonths < workingShortNumMonths) {
         workingShortNumMonths = numMonths;
       }
     }
@@ -971,28 +821,18 @@ export class CategoryTemplateContext {
       // back interpolate what is needed in the short window
       if (numMonths > shortNumMonths && period) {
         amount = Math.round(
-          (amountToInteger(
-            template.amount,
-            templateContext.currency.decimalPlaces,
-          ) /
-            period) *
+          (amountToInteger(template.amount, templateContext.currency.decimalPlaces) / period) *
             (period - numMonths + shortNumMonths),
         );
         // fallback to this.  This matches what the prior math accomplished, just more round about
       } else if (numMonths > shortNumMonths) {
         amount = Math.round(
-          (amountToInteger(
-            template.amount,
-            templateContext.currency.decimalPlaces,
-          ) /
+          (amountToInteger(template.amount, templateContext.currency.decimalPlaces) /
             (numMonths + 1)) *
             (shortNumMonths + 1),
         );
       } else {
-        amount = amountToInteger(
-          template.amount,
-          templateContext.currency.decimalPlaces,
-        );
+        amount = amountToInteger(template.amount, templateContext.currency.decimalPlaces);
       }
       perTemplateNeed.set(template, amount);
       totalNeeded += amount;
@@ -1000,7 +840,7 @@ export class CategoryTemplateContext {
     const toBudget = Math.round(
       (totalNeeded - templateContext.fromLastMonth) / (shortNumMonths + 1),
     );
-    return { toBudget, perTemplateNeed };
+    return {toBudget, perTemplateNeed};
   }
 }
 
@@ -1016,9 +856,7 @@ function redistributeBatch<T extends Template>(
   type: T['type'],
   weightOf: (template: T) => number,
 ) {
-  const siblings = templates.filter(
-    (template): template is T => template.type === type,
-  );
+  const siblings = templates.filter((template): template is T => template.type === type);
   if (siblings.length < 2) return;
 
   let total = 0;
@@ -1036,10 +874,7 @@ function redistributeBatch<T extends Template>(
       const isLast = i === siblings.length - 1;
       const share = isLast ? remaining : Math.round(total / siblings.length);
       const allocated = Math.max(0, Math.min(share, remaining));
-      perTemplateLocal.set(
-        sibling,
-        (perTemplateLocal.get(sibling) ?? 0) + allocated,
-      );
+      perTemplateLocal.set(sibling, (perTemplateLocal.get(sibling) ?? 0) + allocated);
       remaining -= allocated;
     });
     return;
@@ -1048,14 +883,9 @@ function redistributeBatch<T extends Template>(
   let remaining = total;
   siblings.forEach((sibling, i) => {
     const isLast = i === siblings.length - 1;
-    const share = isLast
-      ? remaining
-      : Math.round((total * weightOf(sibling)) / totalWeight);
+    const share = isLast ? remaining : Math.round((total * weightOf(sibling)) / totalWeight);
     const allocated = Math.max(0, Math.min(share, remaining));
-    perTemplateLocal.set(
-      sibling,
-      (perTemplateLocal.get(sibling) ?? 0) + allocated,
-    );
+    perTemplateLocal.set(sibling, (perTemplateLocal.get(sibling) ?? 0) + allocated);
     remaining -= allocated;
   });
 }

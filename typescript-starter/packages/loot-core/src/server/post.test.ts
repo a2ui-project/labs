@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { fetch } from '#platform/server/fetch';
+import {fetch} from '#platform/server/fetch';
 
-import { PostError } from './errors';
-import { del, patch, post, postBinary } from './post';
+import {PostError} from './errors';
+import {del, patch, post, postBinary} from './post';
 
 vi.unmock('#server/post');
 vi.mock('#platform/server/fetch', () => ({
@@ -41,9 +41,7 @@ describe('postBinary', () => {
   });
 
   it('does not set Content-Length manually and lets fetch derive it', async () => {
-    mockedFetch.mockResolvedValue(
-      new Response(new Uint8Array([1, 2, 3]), { status: 200 }),
-    );
+    mockedFetch.mockResolvedValue(new Response(new Uint8Array([1, 2, 3]), {status: 200}));
 
     await postBinary('https://test.env/sync/sync', new Uint8Array([9, 9, 9]), {
       'X-ACTUAL-TOKEN': 'token',
@@ -81,7 +79,7 @@ describe('postBinary', () => {
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' },
+          headers: {'Content-Type': 'application/json'},
         },
       ),
     );
@@ -104,9 +102,7 @@ describe('post', () => {
     const underlying = new TypeError('fetch failed');
     mockedFetch.mockRejectedValue(underlying);
 
-    const error = await captureError(
-      post('https://test.env/sync/sync', { foo: 'bar' }),
-    );
+    const error = await captureError(post('https://test.env/sync/sync', {foo: 'bar'}));
 
     expect(error).toBeInstanceOf(PostError);
     expect((error as PostError).reason).toBe('network-failure');
@@ -123,9 +119,7 @@ describe('del', () => {
     const underlying = new TypeError('fetch failed');
     mockedFetch.mockRejectedValue(underlying);
 
-    const error = await captureError(
-      del('https://test.env/sync/sync', { foo: 'bar' }),
-    );
+    const error = await captureError(del('https://test.env/sync/sync', {foo: 'bar'}));
 
     expect(error).toBeInstanceOf(PostError);
     expect((error as PostError).reason).toBe('network-failure');
@@ -142,9 +136,7 @@ describe('patch', () => {
     const underlying = new TypeError('fetch failed');
     mockedFetch.mockRejectedValue(underlying);
 
-    const error = await captureError(
-      patch('https://test.env/sync/sync', { foo: 'bar' }),
-    );
+    const error = await captureError(patch('https://test.env/sync/sync', {foo: 'bar'}));
 
     expect(error).toBeInstanceOf(PostError);
     expect((error as PostError).reason).toBe('network-failure');

@@ -15,23 +15,23 @@
  */
 
 // @ts-strict-ignore
-import { useState } from 'react';
-import type { FormEvent } from 'react';
-import { Form } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import {useState} from 'react';
+import type {FormEvent} from 'react';
+import {Form} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { FormError } from '@actual-app/components/form-error';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { InlineField } from '@actual-app/components/inline-field';
-import { Input } from '@actual-app/components/input';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { toRelaxedNumber } from '@actual-app/core/shared/util';
+import {Button} from '@actual-app/components/button';
+import {FormError} from '@actual-app/components/form-error';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {InlineField} from '@actual-app/components/inline-field';
+import {Input} from '@actual-app/components/input';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {toRelaxedNumber} from '@actual-app/core/shared/util';
 
-import { useCreateAccountMutation } from '#accounts';
-import { Link } from '#components/common/Link';
+import {useCreateAccountMutation} from '#accounts';
+import {Link} from '#components/common/Link';
 import {
   Modal,
   ModalButtons,
@@ -39,20 +39,20 @@ import {
   ModalHeader,
   ModalTitle,
 } from '#components/common/Modal';
-import { Checkbox } from '#components/forms';
-import { validateAccountName } from '#components/util/accountValidation';
-import { useAccounts } from '#hooks/useAccounts';
-import { useNavigate } from '#hooks/useNavigate';
-import { useSyncServerStatus } from '#hooks/useSyncServerStatus';
-import { closeModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {Checkbox} from '#components/forms';
+import {validateAccountName} from '#components/util/accountValidation';
+import {useAccounts} from '#hooks/useAccounts';
+import {useNavigate} from '#hooks/useNavigate';
+import {useSyncServerStatus} from '#hooks/useSyncServerStatus';
+import {closeModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
 export function CreateLocalAccountModal() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const isUsingServer = useSyncServerStatus() !== 'no-server';
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const [name, setName] = useState('');
   const [offbudget, setOffbudget] = useState(false);
   const [balance, setBalance] = useState('0');
@@ -100,14 +100,12 @@ export function CreateLocalAccountModal() {
   };
   return (
     <Modal name="add-local-account">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={
               <ModalTitle
-                title={
-                  isUsingServer ? t('Create Local Account') : t('Add account')
-                }
+                title={isUsingServer ? t('Create Local Account') : t('Add account')}
                 shrinkOnOverflow
               />
             }
@@ -147,12 +145,12 @@ export function CreateLocalAccountModal() {
                       const name = value.trim();
                       validateAndSetName(name);
                     }}
-                    style={{ flex: 1 }}
+                    style={{flex: 1}}
                   />
                 </InitialFocus>
               </InlineField>
               {nameError && (
-                <FormError style={{ marginLeft: 75, color: theme.warningText }}>
+                <FormError style={{marginLeft: 75, color: theme.warningText}}>
                   {nameError}
                 </FormError>
               )}
@@ -164,7 +162,7 @@ export function CreateLocalAccountModal() {
                   justifyContent: 'flex-end',
                 }}
               >
-                <View style={{ flexDirection: 'column' }}>
+                <View style={{flexDirection: 'column'}}>
                   <View
                     style={{
                       flexDirection: 'row',
@@ -195,13 +193,13 @@ export function CreateLocalAccountModal() {
                       marginTop: 3,
                     }}
                   >
-                    <Text style={{ display: 'block' }}>
+                    <Text style={{display: 'block'}}>
                       <Trans>
-                        Off-budget accounts (like investments, loans, or your
-                        house) are tracked but not part of your spending budget.
+                        Off-budget accounts (like investments, loans, or your house) are tracked but
+                        not part of your spending budget.
                       </Trans>
                     </Text>
-                    <Text style={{ display: 'block' }}>
+                    <Text style={{display: 'block'}}>
                       <Trans>
                         This cannot be changed later. See{' '}
                         <Link
@@ -231,11 +229,11 @@ export function CreateLocalAccountModal() {
                       setBalanceError(false);
                     }
                   }}
-                  style={{ flex: 1 }}
+                  style={{flex: 1}}
                 />
               </InlineField>
               {balanceError && (
-                <FormError style={{ marginLeft: 75 }}>
+                <FormError style={{marginLeft: 75}}>
                   <Trans>Balance must be a number</Trans>
                 </FormError>
               )}
@@ -244,11 +242,7 @@ export function CreateLocalAccountModal() {
                 <Button onPress={() => state.close()}>
                   {isUsingServer ? <Trans>Back</Trans> : <Trans>Cancel</Trans>}
                 </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  style={{ marginLeft: 10 }}
-                >
+                <Button type="submit" variant="primary" style={{marginLeft: 10}}>
                   <Trans>Create</Trans>
                 </Button>
               </ModalButtons>

@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import React, { useRef, useState } from 'react';
-import type { ReactNode } from 'react';
-import { GridListItem } from 'react-aria-components';
-import type { GridListItemProps } from 'react-aria-components';
-import { animated, config, useSpring } from 'react-spring';
+import React, {useRef, useState} from 'react';
+import type {ReactNode} from 'react';
+import {GridListItem} from 'react-aria-components';
+import type {GridListItemProps} from 'react-aria-components';
+import {animated, config, useSpring} from 'react-spring';
 
-import { Button } from '@actual-app/components/button';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import type { WithRequired } from '@actual-app/core/types/util';
-import { useDrag } from '@use-gesture/react';
+import {Button} from '@actual-app/components/button';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import type {WithRequired} from '@actual-app/core/types/util';
+import {useDrag} from '@use-gesture/react';
 
 type ActionableGridListItemProps<T> = {
-  actions?: ReactNode | ((params: { close: () => void }) => ReactNode);
+  actions?: ReactNode | ((params: {close: () => void}) => ReactNode);
   actionsBackgroundColor?: string;
   actionsWidth?: number;
   children?: ReactNode;
@@ -49,9 +49,9 @@ export function ActionableGridListItem<T extends object>({
   const hasActions = !!actions;
 
   // Spring animation for the swipe
-  const [{ x }, api] = useSpring(
+  const [{x}, api] = useSpring(
     () => ({
-      from: { x: 0 },
+      from: {x: 0},
       config: config.stiff,
     }),
     [],
@@ -59,14 +59,14 @@ export function ActionableGridListItem<T extends object>({
 
   // Handle drag gestures
   const bind = useDrag(
-    ({ active, movement: [mx], velocity: [vx] }) => {
+    ({active, movement: [mx], velocity: [vx]}) => {
       const startPos = isRevealed ? -actionsWidth : 0;
       const currentX = startPos + mx;
 
       if (active) {
         dragStartedRef.current = true;
         void api.start({
-          to: { x: Math.max(-actionsWidth, Math.min(0, currentX)) },
+          to: {x: Math.max(-actionsWidth, Math.min(0, currentX))},
           onRest: () => {
             dragStartedRef.current = false;
           },
@@ -76,11 +76,10 @@ export function ActionableGridListItem<T extends object>({
 
       // Snap to revealed (-actionsWidth) or closed (0) based on position and velocity
       const shouldReveal =
-        currentX < -actionsWidth / 2 ||
-        (vx < -0.5 && currentX < -actionsWidth / 5);
+        currentX < -actionsWidth / 2 || (vx < -0.5 && currentX < -actionsWidth / 5);
 
       void api.start({
-        to: { x: shouldReveal ? -actionsWidth : 0 },
+        to: {x: shouldReveal ? -actionsWidth : 0},
         onRest: () => {
           dragStartedRef.current = false;
           setIsRevealed(shouldReveal);
@@ -119,9 +118,7 @@ export function ActionableGridListItem<T extends object>({
       <animated.div
         {...(hasActions ? bind() : {})}
         style={{
-          ...(hasActions
-            ? { transform: x.to(v => `translate3d(${v}px,0,0)`) }
-            : {}),
+          ...(hasActions ? {transform: x.to(v => `translate3d(${v}px,0,0)`)} : {}),
           display: 'flex',
           touchAction: hasActions ? 'pan-y' : 'auto',
           cursor: hasActions ? 'grab' : 'pointer',
@@ -160,7 +157,7 @@ export function ActionableGridListItem<T extends object>({
               ? actions({
                   close: () => {
                     void api.start({
-                      to: { x: 0 },
+                      to: {x: 0},
                       onRest: () => {
                         setIsRevealed(false);
                       },

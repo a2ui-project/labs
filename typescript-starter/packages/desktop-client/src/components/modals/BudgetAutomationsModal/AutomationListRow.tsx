@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { SvgAlertTriangle } from '@actual-app/components/icons/v2';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
+import {SvgAlertTriangle} from '@actual-app/components/icons/v2';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
 
-import type { AutomationEntry } from '#components/budget/goals/automationExamples';
-import { AutomationErrorShort } from '#components/budget/goals/automationMessages';
-import { getDisplayTemplateMeta } from '#components/budget/goals/displayTemplateMeta';
-import { LimitAutomationShort } from '#components/budget/goals/editor/LimitAutomationShort';
-import { TemplateSentence } from '#components/budget/goals/TemplateSentence';
-import type { AutomationErrorKind } from '#components/budget/goals/validateAutomation';
-import { useFormat } from '#hooks/useFormat';
+import type {AutomationEntry} from '#components/budget/goals/automationExamples';
+import {AutomationErrorShort} from '#components/budget/goals/automationMessages';
+import {getDisplayTemplateMeta} from '#components/budget/goals/displayTemplateMeta';
+import {LimitAutomationShort} from '#components/budget/goals/editor/LimitAutomationShort';
+import {TemplateSentence} from '#components/budget/goals/TemplateSentence';
+import type {AutomationErrorKind} from '#components/budget/goals/validateAutomation';
+import {useFormat} from '#hooks/useFormat';
 
-import { NON_CONTRIBUTION_TYPES } from './TypePicker';
+import {NON_CONTRIBUTION_TYPES} from './TypePicker';
 
 type AutomationListRowProps = {
   index: number;
@@ -51,7 +51,7 @@ export function AutomationListRow({
   categoryNameMap,
   onSelect,
 }: AutomationListRowProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const meta = getDisplayTemplateMeta(entry.displayType);
   const Icon = meta.icon;
@@ -61,10 +61,7 @@ export function AutomationListRow({
   ) : entry.template.type === 'limit' ? (
     <LimitAutomationShort template={entry.template} />
   ) : (
-    <TemplateSentence
-      template={entry.template}
-      categoryNameMap={categoryNameMap}
-    />
+    <TemplateSentence template={entry.template} categoryNameMap={categoryNameMap} />
   );
 
   const borderColor = isActive
@@ -111,19 +108,15 @@ export function AutomationListRow({
             : isActive
               ? theme.upcomingBackground
               : theme.pillBackground,
-          color: error
-            ? theme.errorText
-            : isActive
-              ? theme.pageTextPositive
-              : theme.pageTextLight,
+          color: error ? theme.errorText : isActive ? theme.pageTextPositive : theme.pageTextLight,
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
         }}
       >
-        <Icon width={14} height={14} style={{ color: 'inherit' }} />
+        <Icon width={14} height={14} style={{color: 'inherit'}} />
       </View>
-      <View style={{ minWidth: 0, flex: 1 }}>
+      <View style={{minWidth: 0, flex: 1}}>
         <View
           style={{
             flexDirection: 'row',
@@ -135,18 +128,12 @@ export function AutomationListRow({
           }}
         >
           <Text>{meta.label}</Text>
-          {error && (
-            <SvgAlertTriangle
-              width={11}
-              height={11}
-              style={{ color: 'inherit' }}
-            />
-          )}
+          {error && <SvgAlertTriangle width={11} height={11} style={{color: 'inherit'}} />}
         </View>
         <Tooltip
           content={
-            <View style={{ maxWidth: 320, gap: 4 }}>
-              <Text style={{ display: 'block' }}>{subtitle}</Text>
+            <View style={{maxWidth: 320, gap: 4}}>
+              <Text style={{display: 'block'}}>{subtitle}</Text>
               {entry.template.description && (
                 <Text
                   style={{
@@ -190,9 +177,7 @@ export function AutomationListRow({
               fontWeight: 600,
               fontVariantNumeric: 'tabular-nums',
               color:
-                contribution == null ||
-                Number.isNaN(contribution) ||
-                contribution === 0
+                contribution == null || Number.isNaN(contribution) || contribution === 0
                   ? theme.pageTextLight
                   : theme.pageText,
             }}
@@ -212,7 +197,7 @@ export function AutomationListRow({
                 letterSpacing: '0.04em',
               }}
             >
-              {t('Priority: {{priority}}', { priority })}
+              {t('Priority: {{priority}}', {priority})}
             </Text>
           )}
         </View>

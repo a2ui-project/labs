@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import {
-  BrowserGeolocationAdapter,
-  SendApiLocationClient,
-} from './location-adapters';
-import { LocationService } from './location-service';
+import {BrowserGeolocationAdapter, SendApiLocationClient} from './location-adapters';
+import {LocationService} from './location-service';
 
 export const locationService = new LocationService(
   new BrowserGeolocationAdapter(),

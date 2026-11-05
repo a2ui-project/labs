@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { theme } from '@actual-app/components/theme';
-import type { TFunction } from 'i18next';
+import {theme} from '@actual-app/components/theme';
+import type {TFunction} from 'i18next';
 
-import { getColorScale } from '#components/reports/chart-theme';
+import {getColorScale} from '#components/reports/chart-theme';
 import {
   getActiveSpendingPhase,
   getMonteCarloPotLabel,
@@ -148,31 +148,27 @@ export function buildMonteCarloCashflowChart({
             {
               key: seriesKey('income', incomeIndex),
               kind: 'income',
-              label:
-                incomeStream.name ||
-                translate('Income {{number}}', { number: incomeIndex + 1 }),
+              label: incomeStream.name || translate('Income {{number}}', {number: incomeIndex + 1}),
               color: inflowColor(pots.length + incomeIndex),
             } satisfies MonteCarloCashflowSeries,
           ]
         : [],
   );
-  const phaseSeries: MonteCarloCashflowSeries[] = phases.map(
-    (phase, phaseIndex) => {
-      // Numbered as the spending editor lists them (the resolved list is
-      // sorted by age); the default stand-in phase reads as Phase 1
-      const configuredIndex = spendingPhases.indexOf(phase);
-      return {
-        key: seriesKey('phase', phaseIndex),
-        kind: 'phase',
-        label:
-          phase.name ||
-          translate('Phase {{number}}', {
-            number: configuredIndex === -1 ? 1 : configuredIndex + 1,
-          }),
-        color: outflowColor(phaseIndex),
-      };
-    },
-  );
+  const phaseSeries: MonteCarloCashflowSeries[] = phases.map((phase, phaseIndex) => {
+    // Numbered as the spending editor lists them (the resolved list is
+    // sorted by age); the default stand-in phase reads as Phase 1
+    const configuredIndex = spendingPhases.indexOf(phase);
+    return {
+      key: seriesKey('phase', phaseIndex),
+      kind: 'phase',
+      label:
+        phase.name ||
+        translate('Phase {{number}}', {
+          number: configuredIndex === -1 ? 1 : configuredIndex + 1,
+        }),
+      color: outflowColor(phaseIndex),
+    };
+  });
   const taxSeries: MonteCarloCashflowSeries = {
     key: seriesKey('tax', 0),
     kind: 'tax',
@@ -281,14 +277,12 @@ export function buildMonteCarloCashflowChart({
       amounts[series.key] = row.potWithdrawals[potIndex] ?? 0;
     });
     incomeStreams.forEach((_, incomeIndex) => {
-      amounts[seriesKey('income', incomeIndex)] =
-        row.incomeAmounts[incomeIndex] ?? 0;
+      amounts[seriesKey('income', incomeIndex)] = row.incomeAmounts[incomeIndex] ?? 0;
     });
     // The year's planned spend belongs to whichever phase is active
     const activePhase = getActiveSpendingPhase(phases, age);
     phaseSeries.forEach((series, phaseIndex) => {
-      amounts[series.key] =
-        phases[phaseIndex] === activePhase ? -row.plannedSpending : 0;
+      amounts[series.key] = phases[phaseIndex] === activePhase ? -row.plannedSpending : 0;
     });
     if (hasTax) {
       amounts[taxSeries.key] = -(row.taxPaid + row.incomeTax);
@@ -296,8 +290,7 @@ export function buildMonteCarloCashflowChart({
     contributions.forEach((_, contributionIndex) => {
       const deposited = row.contributionAmounts[contributionIndex] ?? 0;
       // Stacked below zero; a plain 0 (not -0) when nothing was paid in
-      amounts[seriesKey('contribution', contributionIndex)] =
-        deposited > 0 ? -deposited : 0;
+      amounts[seriesKey('contribution', contributionIndex)] = deposited > 0 ? -deposited : 0;
     });
     if (hasSurplus) {
       amounts[surplusSeries.key] = row.surplusSaved > 0 ? -row.surplusSaved : 0;
@@ -317,15 +310,9 @@ export function buildMonteCarloCashflowChart({
     sumAmounts(point, outflowSeries),
   ]);
 
-  return { data, inflowSeries, outflowSeries, tooltipGroups, stackExtents };
+  return {data, inflowSeries, outflowSeries, tooltipGroups, stackExtents};
 }
 
-function sumAmounts(
-  point: MonteCarloCashflowDataPoint,
-  series: MonteCarloCashflowSeries[],
-) {
-  return series.reduce(
-    (sum, entry) => sum + (point.amounts[entry.key] ?? 0),
-    0,
-  );
+function sumAmounts(point: MonteCarloCashflowDataPoint, series: MonteCarloCashflowSeries[]) {
+  return series.reduce((sum, entry) => sum + (point.amounts[entry.key] ?? 0), 0);
 }

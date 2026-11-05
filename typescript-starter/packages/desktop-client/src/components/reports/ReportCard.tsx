@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import type { CSSProperties, ReactNode, RefObject } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useEffect, useRef, useState} from 'react';
+import type {CSSProperties, ReactNode, RefObject} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgDotsHorizontalTriple } from '@actual-app/components/icons/v1';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgDotsHorizontalTriple} from '@actual-app/components/icons/v1';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { useContextMenu } from '#hooks/useContextMenu';
-import { useIsInViewport } from '#hooks/useIsInViewport';
-import { useNavigate } from '#hooks/useNavigate';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
-import {
-  useCopyDashboardWidgetMutation,
-  useRemoveDashboardWidgetMutation,
-} from '#reports/mutations';
+import {useContextMenu} from '#hooks/useContextMenu';
+import {useIsInViewport} from '#hooks/useIsInViewport';
+import {useNavigate} from '#hooks/useNavigate';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
+import {useCopyDashboardWidgetMutation, useRemoveDashboardWidgetMutation} from '#reports/mutations';
 
-import { NON_DRAGGABLE_AREA_CLASS_NAME } from './constants';
+import {NON_DRAGGABLE_AREA_CLASS_NAME} from './constants';
 
 type ReportCardProps = {
   widgetId: string;
@@ -63,7 +60,7 @@ export function ReportCard({
   const isInViewport = useIsInViewport(ref);
   const [hasRendered, setHasRendered] = useState(false);
   const navigate = useNavigate();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const containerProps = {
     flex: isNarrowWidth ? '1 1' : `0 0 calc(${size * 100}% / 3 - 20px)`,
   };
@@ -96,9 +93,9 @@ export function ReportCard({
           ? {
               '& .recharts-surface:hover': {
                 cursor: 'move',
-                ':active': { cursor: 'grabbing' },
+                ':active': {cursor: 'grabbing'},
               },
-              ':active': { cursor: 'grabbing' },
+              ':active': {cursor: 'grabbing'},
               filter: 'grayscale(1)',
             }
           : {
@@ -107,8 +104,8 @@ export function ReportCard({
               },
             }),
         ':hover': {
-          ...(to ? { boxShadow: '0 4px 6px rgba(0, 0, 0, .15)' } : null),
-          ...(isEditing ? { cursor: 'move', filter: 'grayscale(0)' } : null),
+          ...(to ? {boxShadow: '0 4px 6px rgba(0, 0, 0, .15)'} : null),
+          ...(isEditing ? {cursor: 'move', filter: 'grayscale(0)'} : null),
         },
         ...(to ? null : containerProps),
         ...style,
@@ -126,7 +123,7 @@ export function ReportCard({
       <Layout {...layoutProps}>
         <Button
           variant="bare"
-          onPress={() => navigate(to, { state: { goBack: true } })}
+          onPress={() => navigate(to, {state: {goBack: true}})}
           style={{
             height: '100%',
             width: '100%',
@@ -147,19 +144,10 @@ export function ReportCard({
 
 type LayoutProps = {
   children: ReactNode;
-} & Pick<
-  ReportCardProps,
-  'isEditing' | 'widgetId' | 'onRename' | 'contextMenuTriggerRef'
->;
+} & Pick<ReportCardProps, 'isEditing' | 'widgetId' | 'onRename' | 'contextMenuTriggerRef'>;
 
-function Layout({
-  children,
-  isEditing,
-  widgetId,
-  onRename,
-  contextMenuTriggerRef,
-}: LayoutProps) {
-  const { t } = useTranslation();
+function Layout({children, isEditing, widgetId, onRename, contextMenuTriggerRef}: LayoutProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
 
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -181,7 +169,7 @@ function Layout({
       {
         name: 'remove',
         text: t('Remove'),
-        onClick: () => removeDashboardWidgetMutation.mutate({ id: widgetId }),
+        onClick: () => removeDashboardWidgetMutation.mutate({id: widgetId}),
         order: 1,
       },
       {
@@ -253,11 +241,7 @@ function Layout({
               }
             }}
           >
-            <SvgDotsHorizontalTriple
-              width={15}
-              height={15}
-              style={{ transform: 'rotateZ(90deg)' }}
-            />
+            <SvgDotsHorizontalTriple width={15} height={15} style={{transform: 'rotateZ(90deg)'}} />
           </Button>
         </View>
       )}

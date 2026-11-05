@@ -14,35 +14,28 @@
  * limitations under the License.
  */
 
-import React, {
-  useCallback,
-  useContext,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { animated, useSpring } from 'react-spring';
+import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import {animated, useSpring} from 'react-spring';
 
-import { View, viewStyles } from '@actual-app/components/view';
-import { addMonths, subMonths } from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
+import {View, viewStyles} from '@actual-app/components/view';
+import {addMonths, subMonths} from '@actual-app/core/shared/months';
+import {css} from '@emotion/css';
 
-import { useResizeObserver } from '#hooks/useResizeObserver';
+import {useResizeObserver} from '#hooks/useResizeObserver';
 
-import { MonthsContext } from './MonthsContext';
+import {MonthsContext} from './MonthsContext';
 
-import { useBudgetComponents } from '.';
+import {useBudgetComponents} from '.';
 
 export function BudgetSummaries() {
-  const { months } = useContext(MonthsContext);
+  const {months} = useContext(MonthsContext);
   const [firstMonth] = months;
 
   const [widthState, setWidthState] = useState(0);
   const [styles, spring] = useSpring(
     () => ({
-      from: { x: 0 },
-      config: { mass: 3, tension: 600, friction: 80 },
+      from: {x: 0},
+      config: {mass: 3, tension: 600, friction: 80},
     }),
     [],
   );
@@ -74,7 +67,7 @@ export function BudgetSummaries() {
 
     const to = -offsetX;
     if (from !== to) {
-      void spring.start({ from: { x: from }, to: { x: to } });
+      void spring.start({from: {x: from}, to: {x: to}});
     }
   }, [spring, firstMonth, monthWidth, allMonths]);
 
@@ -83,15 +76,15 @@ export function BudgetSummaries() {
   }, [firstMonth]);
 
   useLayoutEffect(() => {
-    void spring.start({ to: { x: -monthWidth }, immediate: true });
+    void spring.start({to: {x: -monthWidth}, immediate: true});
   }, [spring, monthWidth]);
 
-  const { SummaryComponent } = useBudgetComponents();
+  const {SummaryComponent} = useBudgetComponents();
 
   return (
     <div
       className={css([
-        { flex: 1, overflow: 'hidden' },
+        {flex: 1, overflow: 'hidden'},
         months.length === 1 && {
           marginLeft: -4,
           marginRight: -4,

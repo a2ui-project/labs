@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo } from 'react';
+import {useEffect, useMemo} from 'react';
 
 import darkThemeCss from '@actual-app/components/themes/dark.css?inline';
 import lightThemeCss from '@actual-app/components/themes/light.css?inline';
 import midnightThemeCss from '@actual-app/components/themes/midnight.css?inline';
 import paletteCss from '@actual-app/components/themes/palette.css?inline';
 import sidebarRedesignLightCss from '@actual-app/components/themes/sidebar-redesign-light.css?inline';
-import type { DarkTheme, Theme } from '@actual-app/core/types/prefs';
+import type {DarkTheme, Theme} from '@actual-app/core/types/prefs';
 
-import { useGlobalPref } from '#hooks/useGlobalPref';
+import {useGlobalPref} from '#hooks/useGlobalPref';
 
 import {
   isBaseTheme,
@@ -34,20 +34,20 @@ import {
 } from './customThemes';
 
 const themes = {
-  light: { name: 'Light', colors: lightThemeCss },
-  dark: { name: 'Dark', colors: darkThemeCss },
-  midnight: { name: 'Midnight', colors: midnightThemeCss },
-  auto: { name: 'System default' },
+  light: {name: 'Light', colors: lightThemeCss},
+  dark: {name: 'Dark', colors: darkThemeCss},
+  midnight: {name: 'Midnight', colors: midnightThemeCss},
+  auto: {name: 'System default'},
 } as const;
 
 export const themeOptions = Object.entries(themes).map(
-  ([key, { name }]) => [key, name] as [Theme, string],
+  ([key, {name}]) => [key, name] as [Theme, string],
 );
 
 export const darkThemeOptions = Object.entries({
   dark: themes.dark,
   midnight: themes.midnight,
-}).map(([key, { name }]) => [key, name] as [DarkTheme, string]);
+}).map(([key, {name}]) => [key, name] as [DarkTheme, string]);
 
 export function useTheme() {
   const [theme = 'auto', setThemePref] = useGlobalPref('theme');
@@ -55,8 +55,7 @@ export function useTheme() {
 }
 
 export function usePreferredDarkTheme() {
-  const [darkTheme = 'dark', setDarkTheme] =
-    useGlobalPref('preferredDarkTheme');
+  const [darkTheme = 'dark', setDarkTheme] = useGlobalPref('preferredDarkTheme');
   return [darkTheme, setDarkTheme] as const;
 }
 
@@ -67,12 +66,13 @@ export function usePreferredDarkTheme() {
  * TODO: remove this after v26.6.0 is released
  */
 function useMigrateLegacyOverride() {
-  const [customCssOverride, setCustomCssOverride] =
-    useGlobalPref('customCssOverride');
-  const [installedCustomLightThemeJson, setInstalledCustomLightThemeJson] =
-    useGlobalPref('installedCustomLightTheme');
-  const [installedCustomDarkThemeJson, setInstalledCustomDarkThemeJson] =
-    useGlobalPref('installedCustomDarkTheme');
+  const [customCssOverride, setCustomCssOverride] = useGlobalPref('customCssOverride');
+  const [installedCustomLightThemeJson, setInstalledCustomLightThemeJson] = useGlobalPref(
+    'installedCustomLightTheme',
+  );
+  const [installedCustomDarkThemeJson, setInstalledCustomDarkThemeJson] = useGlobalPref(
+    'installedCustomDarkTheme',
+  );
 
   useEffect(() => {
     const result = migrateLegacyOverride({
@@ -106,20 +106,14 @@ function useMigrateLegacyOverride() {
 
 function getBaseThemeColors(baseTheme: string | undefined) {
   // Theme prefs are untrusted strings; unknown values resolve to undefined.
-  return baseTheme !== undefined && isBaseTheme(baseTheme)
-    ? themes[baseTheme].colors
-    : undefined;
+  return baseTheme !== undefined && isBaseTheme(baseTheme) ? themes[baseTheme].colors : undefined;
 }
 
 export function ThemeStyle() {
   const [activeTheme] = useTheme();
   const [darkThemePreference] = usePreferredDarkTheme();
-  const [installedCustomLightThemeJson] = useGlobalPref(
-    'installedCustomLightTheme',
-  );
-  const [installedCustomDarkThemeJson] = useGlobalPref(
-    'installedCustomDarkTheme',
-  );
+  const [installedCustomLightThemeJson] = useGlobalPref('installedCustomLightTheme');
+  const [installedCustomDarkThemeJson] = useGlobalPref('installedCustomDarkTheme');
 
   const [customCssOverride] = useGlobalPref('customCssOverride');
 
@@ -154,9 +148,7 @@ export function ThemeStyle() {
 
   // Let the browser pick the sheet so system theme changes need no re-render.
   const darkColors =
-    getBaseThemeColors(
-      parseInstalledTheme(installedCustomDarkThemeJson)?.baseTheme,
-    ) ??
+    getBaseThemeColors(parseInstalledTheme(installedCustomDarkThemeJson)?.baseTheme) ??
     getBaseThemeColors(darkThemePreference) ??
     themes.dark.colors;
 
@@ -165,9 +157,7 @@ export function ThemeStyle() {
       <style>{paletteCss}</style>
       <style media="(prefers-color-scheme: light)">{themeColors}</style>
       {sidebarRedesignCss != null && (
-        <style media="(prefers-color-scheme: light)">
-          {sidebarRedesignCss}
-        </style>
+        <style media="(prefers-color-scheme: light)">{sidebarRedesignCss}</style>
       )}
       <style media="(prefers-color-scheme: dark)">{darkColors}</style>
     </>
@@ -184,19 +174,13 @@ export function ThemeStyle() {
 export function CustomThemeStyle() {
   useMigrateLegacyOverride();
   const [activeTheme] = useTheme();
-  const [installedCustomLightThemeJson] = useGlobalPref(
-    'installedCustomLightTheme',
-  );
-  const [installedCustomDarkThemeJson] = useGlobalPref(
-    'installedCustomDarkTheme',
-  );
+  const [installedCustomLightThemeJson] = useGlobalPref('installedCustomLightTheme');
+  const [installedCustomDarkThemeJson] = useGlobalPref('installedCustomDarkTheme');
   const [customCssOverride] = useGlobalPref('customCssOverride');
 
   const validatedCss = useMemo(() => {
     const safeValidate = (css: string | undefined, errorLabel: string) =>
-      validateThemeCssSafely(css, error =>
-        console.error(errorLabel, { error }),
-      );
+      validateThemeCssSafely(css, error => console.error(errorLabel, {error}));
 
     let baseCss = '';
     if (activeTheme === 'auto') {
@@ -221,19 +205,11 @@ export function CustomThemeStyle() {
       );
     }
 
-    const overrideLayer = safeValidate(
-      customCssOverride,
-      'Invalid custom CSS override',
-    );
+    const overrideLayer = safeValidate(customCssOverride, 'Invalid custom CSS override');
 
     const combined = [baseCss, overrideLayer].filter(Boolean).join('\n');
     return combined || null;
-  }, [
-    activeTheme,
-    installedCustomLightThemeJson,
-    installedCustomDarkThemeJson,
-    customCssOverride,
-  ]);
+  }, [activeTheme, installedCustomLightThemeJson, installedCustomDarkThemeJson, customCssOverride]);
 
   if (!validatedCss) {
     return null;

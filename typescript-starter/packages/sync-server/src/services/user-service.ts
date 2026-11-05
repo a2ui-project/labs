@@ -15,16 +15,13 @@
  */
 
 // @ts-strict-ignore
-import { getAccountDb } from '#account-db';
+import {getAccountDb} from '#account-db';
 
 export function getUserByUsername(userName) {
   if (!userName || typeof userName !== 'string') {
     return null;
   }
-  const { id } =
-    getAccountDb().first('SELECT id FROM users WHERE user_name = ?', [
-      userName,
-    ]) || {};
+  const {id} = getAccountDb().first('SELECT id FROM users WHERE user_name = ?', [userName]) || {};
   return id || null;
 }
 
@@ -32,8 +29,7 @@ export function getUserById(userId) {
   if (!userId) {
     return null;
   }
-  const { id } =
-    getAccountDb().first('SELECT * FROM users WHERE id = ?', [userId]) || {};
+  const {id} = getAccountDb().first('SELECT * FROM users WHERE id = ?', [userId]) || {};
   return id || null;
 }
 
@@ -41,9 +37,7 @@ export function getFileById(fileId) {
   if (!fileId) {
     return null;
   }
-  const { id } =
-    getAccountDb().first('SELECT * FROM files WHERE files.id = ?', [fileId]) ||
-    {};
+  const {id} = getAccountDb().first('SELECT * FROM files WHERE files.id = ?', [fileId]) || {};
   return id || null;
 }
 
@@ -53,14 +47,14 @@ export function validateRole(roleId) {
 }
 
 export function getOwnerCount(): number {
-  const { ownerCount } = getAccountDb().first(
+  const {ownerCount} = getAccountDb().first(
     `SELECT count(*) as ownerCount FROM users WHERE users.user_name <> '' and users.owner = 1`,
-  ) || { ownerCount: 0 };
+  ) || {ownerCount: 0};
   return ownerCount;
 }
 
 export function getOwnerId() {
-  const { id } =
+  const {id} =
     getAccountDb().first(
       `SELECT users.id FROM users WHERE users.user_name <> '' and users.owner = 1`,
     ) || {};
@@ -82,13 +76,7 @@ export function insertUser(userId, userName, displayName, enabled, role) {
   );
 }
 
-export function updateUserWithRole(
-  userId,
-  userName,
-  displayName,
-  enabled,
-  roleId,
-) {
+export function updateUserWithRole(userId, userName, displayName, enabled, roleId) {
   getAccountDb().transaction(() => {
     getAccountDb().mutate(
       'UPDATE users SET user_name = ?, display_name = ?, enabled = ?, role = ? WHERE id = ?',
@@ -102,10 +90,9 @@ export function updateUserWithRole(
 
 export function deleteUser(userId) {
   return getAccountDb().transaction(() => {
-    const { changes } = getAccountDb().mutate(
-      'DELETE FROM users WHERE id = ? and owner = 0',
-      [userId],
-    );
+    const {changes} = getAccountDb().mutate('DELETE FROM users WHERE id = ? and owner = 0', [
+      userId,
+    ]);
     if (changes > 0) {
       getAccountDb().mutate('DELETE FROM sessions WHERE user_id = ?', [userId]);
     }
@@ -114,9 +101,7 @@ export function deleteUser(userId) {
 }
 export function deleteUserAccess(userId) {
   try {
-    return getAccountDb().mutate('DELETE FROM user_access WHERE user_id = ?', [
-      userId,
-    ]).changes;
+    return getAccountDb().mutate('DELETE FROM user_access WHERE user_id = ?', [userId]).changes;
   } catch (error) {
     throw new Error(`Failed to delete user access: ${error.message}`);
   }
@@ -132,10 +117,7 @@ export function transferAllFilesFromUser(ownerId, oldUserId) {
       if (!ownerExists) {
         throw new Error('New owner not found');
       }
-      getAccountDb().mutate('UPDATE files set owner = ? WHERE owner = ?', [
-        ownerId,
-        oldUserId,
-      ]);
+      getAccountDb().mutate('UPDATE files set owner = ? WHERE owner = ?', [ownerId, oldUserId]);
     });
   } catch (error) {
     throw new Error(`Failed to transfer files: ${error.message}`);
@@ -147,10 +129,10 @@ export function updateFileOwner(ownerId, fileId) {
     throw new Error('Invalid parameters');
   }
   try {
-    const result = getAccountDb().mutate(
-      'UPDATE files set owner = ? WHERE id = ?',
-      [ownerId, fileId],
-    );
+    const result = getAccountDb().mutate('UPDATE files set owner = ? WHERE id = ?', [
+      ownerId,
+      fileId,
+    ]);
     if (result.changes === 0) {
       throw new Error('File not found');
     }
@@ -171,7 +153,7 @@ export function getUserAccess(fileId, userId, isAdmin) {
 }
 
 export function countUserAccess(fileId, userId) {
-  const { accessCount } =
+  const {accessCount} =
     getAccountDb().first(
       `SELECT COUNT(*) as accessCount
        FROM files
@@ -192,7 +174,7 @@ export function checkFilePermission(fileId, userId) {
        FROM files
        WHERE files.id = ? and (files.owner = ?)`,
       [fileId, userId],
-    ) || { granted: 0 }
+    ) || {granted: 0}
   );
 }
 
@@ -206,10 +188,10 @@ export function addUserAccess(userId, fileId) {
     if (!userExists || !fileExists) {
       throw new Error('User or file not found');
     }
-    getAccountDb().mutate(
-      'INSERT INTO user_access (user_id, file_id) VALUES (?, ?)',
-      [userId, fileId],
-    );
+    getAccountDb().mutate('INSERT INTO user_access (user_id, file_id) VALUES (?, ?)', [
+      userId,
+      fileId,
+    ]);
   } catch (error) {
     if (error.message.includes('UNIQUE constraint')) {
       throw new Error('Access already exists');
@@ -270,8 +252,5 @@ export function getAllUserAccess(fileId) {
 }
 
 export function getOpenIDConfig() {
-  return (
-    getAccountDb().first(`SELECT * FROM auth WHERE method = ?`, ['openid']) ||
-    null
-  );
+  return getAccountDb().first(`SELECT * FROM auth WHERE method = ?`, ['openid']) || null;
 }

@@ -14,28 +14,22 @@
  * limitations under the License.
  */
 
-import React, { useMemo, useState } from 'react';
-import { Form } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useMemo, useState} from 'react';
+import {Form} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Input } from '@actual-app/components/input';
-import { styles } from '@actual-app/components/styles';
-import { View } from '@actual-app/components/view';
-import { evalArithmetic } from '@actual-app/core/shared/arithmetic';
-import {
-  amountToInteger,
-  integerToCurrency,
-} from '@actual-app/core/shared/util';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type { CategoryEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {Input} from '@actual-app/components/input';
+import {styles} from '@actual-app/components/styles';
+import {View} from '@actual-app/components/view';
+import {evalArithmetic} from '@actual-app/core/shared/arithmetic';
+import {amountToInteger, integerToCurrency} from '@actual-app/core/shared/util';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {CategoryEntity} from '@actual-app/core/types/models';
 
-import { CategoryAutocomplete } from '#components/autocomplete/CategoryAutocomplete';
-import {
-  addToBeBudgetedGroup,
-  removeCategoriesFromGroups,
-} from '#components/budget/util';
-import { useCategories } from '#hooks/useCategories';
+import {CategoryAutocomplete} from '#components/autocomplete/CategoryAutocomplete';
+import {addToBeBudgetedGroup, removeCategoriesFromGroups} from '#components/budget/util';
+import {useCategories} from '#hooks/useCategories';
 
 type CoverMenuProps = {
   showToBeBudgeted?: boolean;
@@ -52,21 +46,16 @@ export function CoverMenu({
   onSubmit,
   onClose,
 }: CoverMenuProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
-  const { data: { grouped: originalCategoryGroups } = { grouped: [] } } =
-    useCategories();
+  const {data: {grouped: originalCategoryGroups} = {grouped: []}} = useCategories();
 
   const [fromCategoryId, setFromCategoryId] = useState<string | null>(null);
 
   const filteredCategoryGroups = useMemo(() => {
     const expenseGroups = originalCategoryGroups.filter(g => !g.is_income);
-    const categoryGroups = showToBeBudgeted
-      ? addToBeBudgetedGroup(expenseGroups)
-      : expenseGroups;
-    return categoryId
-      ? removeCategoriesFromGroups(categoryGroups, categoryId)
-      : categoryGroups;
+    const categoryGroups = showToBeBudgeted ? addToBeBudgetedGroup(expenseGroups) : expenseGroups;
+    return categoryId ? removeCategoriesFromGroups(categoryGroups, categoryId) : categoryGroups;
   }, [categoryId, showToBeBudgeted, originalCategoryGroups]);
 
   const _initialAmount = integerToCurrency(Math.abs(initialAmount ?? 0));
@@ -87,8 +76,8 @@ export function CoverMenu({
         _onSubmit();
       }}
     >
-      <View style={{ padding: 10 }}>
-        <View style={{ marginBottom: 5 }}>
+      <View style={{padding: 10}}>
+        <View style={{marginBottom: 5}}>
           <Trans>Cover this amount:</Trans>
         </View>
         <View>
@@ -99,7 +88,7 @@ export function CoverMenu({
             style={styles.tnum}
           />
         </View>
-        <View style={{ margin: '10px 0 5px 0' }}>
+        <View style={{margin: '10px 0 5px 0'}}>
           <Trans>From:</Trans>
         </View>
 

@@ -15,12 +15,12 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import type {
   AppendNoteRuleActionEntity,
   DeleteTransactionRuleActionEntity,
@@ -31,10 +31,10 @@ import type {
   SetSplitAmountRuleActionEntity,
 } from '@actual-app/core/types/models';
 
-import { friendlyOp, getAllocationMethods, mapField } from '#util/rule';
+import {friendlyOp, getAllocationMethods, mapField} from '#util/rule';
 
-import { ScheduleValue } from './ScheduleValue';
-import { Value } from './Value';
+import {ScheduleValue} from './ScheduleValue';
+import {Value} from './Value';
 
 const valueStyle = {
   color: theme.pillTextHighlighted,
@@ -44,7 +44,7 @@ type ActionExpressionProps = RuleActionEntity & {
   style?: CSSProperties;
 };
 
-export function ActionExpression({ style, ...props }: ActionExpressionProps) {
+export function ActionExpression({style, ...props}: ActionExpressionProps) {
   return (
     <View
       style={{
@@ -77,17 +77,11 @@ export function ActionExpression({ style, ...props }: ActionExpressionProps) {
   );
 }
 
-function SetActionExpression({
-  op,
-  field,
-  value,
-  options,
-}: SetRuleActionEntity) {
-  const { t } = useTranslation();
+function SetActionExpression({op, field, value, options}: SetRuleActionEntity) {
+  const {t} = useTranslation();
   return (
     <>
-      <Text>{friendlyOp(op)}</Text>{' '}
-      <Text style={valueStyle}>{mapField(field, options)}</Text>{' '}
+      <Text>{friendlyOp(op)}</Text> <Text style={valueStyle}>{mapField(field, options)}</Text>{' '}
       <Text>{t('to ')}</Text>
       {options?.formula ? (
         <>
@@ -106,12 +100,8 @@ function SetActionExpression({
   );
 }
 
-function SetSplitAmountActionExpression({
-  op,
-  value,
-  options,
-}: SetSplitAmountRuleActionEntity) {
-  const { t } = useTranslation();
+function SetSplitAmountActionExpression({op, value, options}: SetSplitAmountRuleActionEntity) {
+  const {t} = useTranslation();
   const method = options?.method;
   if (!method) {
     return null;
@@ -119,8 +109,7 @@ function SetSplitAmountActionExpression({
 
   return (
     <>
-      <Text>{friendlyOp(op)}</Text>{' '}
-      <Text style={valueStyle}>{getAllocationMethods()[method]}</Text>
+      <Text>{friendlyOp(op)}</Text> <Text style={valueStyle}>{getAllocationMethods()[method]}</Text>
       {method !== 'remainder' && ': '}
       {options?.method === 'formula' ? (
         <>
@@ -136,10 +125,7 @@ function SetSplitAmountActionExpression({
   );
 }
 
-function LinkScheduleActionExpression({
-  op,
-  value,
-}: LinkScheduleRuleActionEntity) {
+function LinkScheduleActionExpression({op, value}: LinkScheduleRuleActionEntity) {
   return (
     <>
       <Text>{friendlyOp(op)}</Text> <ScheduleValue value={value} />
@@ -147,29 +133,22 @@ function LinkScheduleActionExpression({
   );
 }
 
-function PrependNoteActionExpression({
-  op,
-  value,
-}: PrependNoteRuleActionEntity) {
+function PrependNoteActionExpression({op, value}: PrependNoteRuleActionEntity) {
   return (
     <>
-      <Text>{friendlyOp(op)}</Text>{' '}
-      <Value style={valueStyle} value={value} field="notes" />
+      <Text>{friendlyOp(op)}</Text> <Value style={valueStyle} value={value} field="notes" />
     </>
   );
 }
 
-function AppendNoteActionExpression({ op, value }: AppendNoteRuleActionEntity) {
+function AppendNoteActionExpression({op, value}: AppendNoteRuleActionEntity) {
   return (
     <>
-      <Text>{friendlyOp(op)}</Text>{' '}
-      <Value style={valueStyle} value={value} field="notes" />
+      <Text>{friendlyOp(op)}</Text> <Value style={valueStyle} value={value} field="notes" />
     </>
   );
 }
 
-function DeleteTransactionActionExpression({
-  op,
-}: DeleteTransactionRuleActionEntity) {
+function DeleteTransactionActionExpression({op}: DeleteTransactionRuleActionEntity) {
   return <Text>{friendlyOp(op)}</Text>;
 }

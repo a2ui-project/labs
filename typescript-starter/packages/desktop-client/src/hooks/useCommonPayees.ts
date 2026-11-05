@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 
-import { payeeQueries } from '#payees';
+import {payeeQueries} from '#payees';
 
 export function useCommonPayees() {
   return useQuery(payeeQueries.listCommon());

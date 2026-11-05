@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-import { generateAccount } from '@actual-app/core/mocks';
-import type {
-  AccountEntity,
-  AccountGroupEntity,
-} from '@actual-app/core/types/models';
-import { describe, expect, it } from 'vitest';
+import {generateAccount} from '@actual-app/core/mocks';
+import type {AccountEntity, AccountGroupEntity} from '@actual-app/core/types/models';
+import {describe, expect, it} from 'vitest';
 
-import { computeAccountMove, computeGroupMove } from './accountTreeMoves';
-import type { AccountDropTarget } from './accountTreeMoves';
-import { parseTreeKey, treeKeys } from './treeKeys';
+import {computeAccountMove, computeGroupMove} from './accountTreeMoves';
+import type {AccountDropTarget} from './accountTreeMoves';
+import {parseTreeKey, treeKeys} from './treeKeys';
 
-function makeAccount(
-  id: string,
-  overrides: Partial<AccountEntity> = {},
-): AccountEntity {
-  return { ...generateAccount(id), id, name: id, ...overrides };
+function makeAccount(id: string, overrides: Partial<AccountEntity> = {}): AccountEntity {
+  return {...generateAccount(id), id, name: id, ...overrides};
 }
 
 function makeGroup(id: string): AccountGroupEntity {
-  return { id, name: id, sort_order: 0 };
+  return {id, name: id, sort_order: 0};
 }
 
 const liveGroupIds = new Set(['g1', 'g2']);
@@ -41,16 +35,16 @@ const groups = [makeGroup('g1'), makeGroup('g2'), makeGroup('g3')];
 
 // Raw sort order: a (g1), b (g1), c (ungrouped), d (g2), off1, closed1
 const accounts = [
-  makeAccount('a', { account_group_id: 'g1' }),
-  makeAccount('b', { account_group_id: 'g1' }),
+  makeAccount('a', {account_group_id: 'g1'}),
+  makeAccount('b', {account_group_id: 'g1'}),
   makeAccount('c'),
-  makeAccount('d', { account_group_id: 'g2' }),
-  makeAccount('off1', { offbudget: 1 }),
-  makeAccount('closed1', { closed: 1 }),
+  makeAccount('d', {account_group_id: 'g2'}),
+  makeAccount('off1', {offbudget: 1}),
+  makeAccount('closed1', {closed: 1}),
 ];
 
 function move(draggedId: string, target: AccountDropTarget) {
-  return computeAccountMove({ accounts, liveGroupIds, draggedId, target });
+  return computeAccountMove({accounts, liveGroupIds, draggedId, target});
 }
 
 const before = (accountId: string): AccountDropTarget => ({
@@ -104,16 +98,16 @@ describe('computeAccountMove', () => {
   it('skips accounts outside the sort partition when finding the successor', () => {
     const mixed = [
       makeAccount('on1'),
-      makeAccount('off1', { offbudget: 1 }),
+      makeAccount('off1', {offbudget: 1}),
       makeAccount('on2'),
       makeAccount('on3'),
-      makeAccount('closedA', { closed: 1 }),
-      makeAccount('off2', { offbudget: 1 }),
-      makeAccount('closedB', { closed: 1 }),
-      makeAccount('closedC', { closed: 1 }),
+      makeAccount('closedA', {closed: 1}),
+      makeAccount('off2', {offbudget: 1}),
+      makeAccount('closedB', {closed: 1}),
+      makeAccount('closedC', {closed: 1}),
     ];
     const moveMixed = (draggedId: string, target: AccountDropTarget) =>
-      computeAccountMove({ accounts: mixed, liveGroupIds, draggedId, target });
+      computeAccountMove({accounts: mixed, liveGroupIds, draggedId, target});
 
     expect(moveMixed('on3', after('on1'))?.targetId).toBe('on2');
     expect(moveMixed('on1', after('on3'))?.targetId).toBe('closedA');
@@ -175,15 +169,13 @@ describe('computeAccountMove', () => {
   });
 
   it('ungroups to the end of the loose list when dropped beside a group', () => {
-    expect(
-      move('b', { kind: 'group', groupId: 'g2', position: 'before' }),
-    ).toEqual({ id: 'b', targetId: null, accountGroupId: null });
-    expect(
-      move('c', { kind: 'group', groupId: 'g2', position: 'before' }),
-    ).toBeNull();
-    expect(
-      move('closed1', { kind: 'group', groupId: 'g2', position: 'before' }),
-    ).toBeNull();
+    expect(move('b', {kind: 'group', groupId: 'g2', position: 'before'})).toEqual({
+      id: 'b',
+      targetId: null,
+      accountGroupId: null,
+    });
+    expect(move('c', {kind: 'group', groupId: 'g2', position: 'before'})).toBeNull();
+    expect(move('closed1', {kind: 'group', groupId: 'g2', position: 'before'})).toBeNull();
   });
 
   it('returns null for unknown dragged accounts', () => {
@@ -200,7 +192,7 @@ describe('computeGroupMove', () => {
         targetId: 'g1',
         position: 'before',
       }),
-    ).toEqual({ id: 'g3', targetId: 'g1' });
+    ).toEqual({id: 'g3', targetId: 'g1'});
     expect(
       computeGroupMove({
         groups,
@@ -208,7 +200,7 @@ describe('computeGroupMove', () => {
         targetId: 'g2',
         position: 'after',
       }),
-    ).toEqual({ id: 'g1', targetId: 'g3' });
+    ).toEqual({id: 'g1', targetId: 'g3'});
     expect(
       computeGroupMove({
         groups,
@@ -216,7 +208,7 @@ describe('computeGroupMove', () => {
         targetId: 'g3',
         position: 'after',
       }),
-    ).toEqual({ id: 'g1', targetId: null });
+    ).toEqual({id: 'g1', targetId: null});
   });
 
   it('ignores moves that change nothing', () => {

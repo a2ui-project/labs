@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class MobileReportsPage {
   readonly page: Page;

@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { amountToInteger } from '@actual-app/core/shared/util';
-import type { GoalTemplate } from '@actual-app/core/types/models/templates';
-import type { TransObjectLiteral } from '@actual-app/core/types/util';
+import {amountToInteger} from '@actual-app/core/shared/util';
+import type {GoalTemplate} from '@actual-app/core/types/models/templates';
+import type {TransObjectLiteral} from '@actual-app/core/types/util';
 
-import { FinancialText } from '#components/FinancialText';
-import { useFormat } from '#hooks/useFormat';
+import {FinancialText} from '#components/FinancialText';
+import {useFormat} from '#hooks/useFormat';
 
 type LongTermGoalAutomationReadOnlyProps = {
   template: GoalTemplate;
 };
 
-export function LongTermGoalAutomationReadOnly({
-  template,
-}: LongTermGoalAutomationReadOnlyProps) {
+export function LongTermGoalAutomationReadOnly({template}: LongTermGoalAutomationReadOnlyProps) {
   const format = useFormat();
   const amount = format(
     amountToInteger(template.amount, format.currency.decimalPlaces),
@@ -38,8 +36,7 @@ export function LongTermGoalAutomationReadOnly({
 
   return (
     <Trans>
-      Long-term goal of{' '}
-      <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText>
+      Long-term goal of <FinancialText>{{amount} as TransObjectLiteral}</FinancialText>
     </Trans>
   );
 }

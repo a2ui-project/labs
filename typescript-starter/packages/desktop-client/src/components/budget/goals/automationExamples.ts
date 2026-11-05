@@ -21,11 +21,11 @@ import {
   firstDayOfMonth,
   monthFromDate,
 } from '@actual-app/core/shared/months';
-import type { Template } from '@actual-app/core/types/models/templates';
-import { uniqueId } from 'es-toolkit/compat';
+import type {Template} from '@actual-app/core/types/models/templates';
+import {uniqueId} from 'es-toolkit/compat';
 
-import type { DisplayTemplateType } from './constants';
-import { DEFAULT_PRIORITY } from './reducer';
+import type {DisplayTemplateType} from './constants';
+import {DEFAULT_PRIORITY} from './reducer';
 
 export type AutomationEntry = {
   id: string;
@@ -59,7 +59,7 @@ export function getAutomationExamples(): AutomationExample[] {
             directive: 'template',
             type: 'periodic',
             amount: 100,
-            period: { period: 'month', amount: 1 },
+            period: {period: 'month', amount: 1},
             starting: dayFromDate(firstDayOfMonth(currentDate())),
             priority: DEFAULT_PRIORITY,
           },

@@ -15,22 +15,16 @@
  */
 
 import createDebug from 'debug';
-import type { Request, Response } from 'express';
+import type {Request, Response} from 'express';
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { handleError } from '#app-gocardless/util/handle-error';
-import { SecretName, secretsService } from '#services/secrets-service';
-import {
-  requestLoggerMiddleware,
-  validateSessionMiddleware,
-} from '#util/middlewares';
-import { isBlockedIp } from '#util/ssrf';
+import {handleError} from '#app-gocardless/util/handle-error';
+import {SecretName, secretsService} from '#services/secrets-service';
+import {requestLoggerMiddleware, validateSessionMiddleware} from '#util/middlewares';
+import {isBlockedIp} from '#util/ssrf';
 
-import type {
-  EnableBankingSession,
-  PsuHeaders,
-} from './services/enablebanking-service';
+import type {EnableBankingSession, PsuHeaders} from './services/enablebanking-service';
 import {
   enableBankingService,
   isImportableTransaction,
@@ -38,12 +32,12 @@ import {
   normalizeBalance,
   normalizeTransaction,
 } from './services/enablebanking-service';
-import { EnableBankingError } from './utils/errors';
+import {EnableBankingError} from './utils/errors';
 
 const debug = createDebug('actual:enable-banking:app');
 
 const app = express();
-export { app as handlers };
+export {app as handlers};
 app.use(requestLoggerMiddleware);
 app.use(express.json());
 
@@ -51,10 +45,7 @@ app.use(express.json());
 
 function extractPsuHeaders(req: Request): PsuHeaders {
   const ip = req.ip;
-  const ua =
-    typeof req.headers['user-agent'] === 'string'
-      ? req.headers['user-agent']
-      : undefined;
+  const ua = typeof req.headers['user-agent'] === 'string' ? req.headers['user-agent'] : undefined;
 
   if (!ip || isBlockedIp(ip)) {
     debug('Skipping PSU headers because PSU IP is local/private');
@@ -74,27 +65,20 @@ function extractPsuHeaders(req: Request): PsuHeaders {
   return headers;
 }
 
-async function buildSessionResult(
-  session: EnableBankingSession,
-  psuHeaders?: PsuHeaders,
-) {
+async function buildSessionResult(session: EnableBankingSession, psuHeaders?: PsuHeaders) {
   const accountsWithBalances = await Promise.all(
     session.accounts.map(async account => {
       const normalized = normalizeAccount(account, session.aspsp);
 
       let balances: ReturnType<typeof normalizeBalance>[] = [];
       try {
-        const balanceResult = await enableBankingService.getBalances(
-          account.uid,
-          psuHeaders,
-        );
+        const balanceResult = await enableBankingService.getBalances(account.uid, psuHeaders);
         balances = balanceResult.balances.map(normalizeBalance);
       } catch (err) {
         debug('Failed to fetch balances for account %s: %s', account.uid, err);
       }
 
-      const preferredBalance =
-        balances.find(b => b.balanceType === 'CLAV') ?? balances[0];
+      const preferredBalance = balances.find(b => b.balanceType === 'CLAV') ?? balances[0];
 
       return {
         ...normalized,
@@ -115,24 +99,17 @@ async function buildSessionResult(
 // since the bank redirects here directly (no auth token available)
 app.get('/auth_callback', async (req: Request, res: Response) => {
   const code = typeof req.query.code === 'string' ? req.query.code : undefined;
-  const state =
-    typeof req.query.state === 'string' ? req.query.state : undefined;
+  const state = typeof req.query.state === 'string' ? req.query.state : undefined;
 
   if (!code) {
-    res
-      .status(400)
-      .send(
-        '<html><body><p>Authorization failed: missing code.</p></body></html>',
-      );
+    res.status(400).send('<html><body><p>Authorization failed: missing code.</p></body></html>');
     return;
   }
 
   if (!state) {
     res
       .status(400)
-      .send(
-        '<html><body><p>Authorization failed: missing state parameter.</p></body></html>',
-      );
+      .send('<html><body><p>Authorization failed: missing state parameter.</p></body></html>');
     return;
   }
 
@@ -231,7 +208,7 @@ app.post(
 app.post(
   '/configure',
   handleError(async (req: Request, res: Response) => {
-    const { applicationId, secretKey } = req.body || {};
+    const {applicationId, secretKey} = req.body || {};
 
     if (!applicationId || !secretKey) {
       res.send({
@@ -247,10 +224,7 @@ app.post(
     // Validate credentials before persisting to avoid exposing
     // transient bad creds to concurrent requests
     try {
-      const appInfo = await enableBankingService.validateCredentials(
-        applicationId,
-        secretKey,
-      );
+      const appInfo = await enableBankingService.validateCredentials(applicationId, secretKey);
       debug('Enable Banking application validated: %o', appInfo);
     } catch (error) {
       debug('Enable Banking configuration validation failed: %s', error);
@@ -280,7 +254,7 @@ app.post(
 app.post(
   '/aspsps',
   handleError(async (req: Request, res: Response) => {
-    const { country } = req.body || {};
+    const {country} = req.body || {};
 
     try {
       const aspsps = await enableBankingService.getAspsps(country);
@@ -303,7 +277,7 @@ app.post(
 app.post(
   '/start-auth',
   handleError(async (req: Request, res: Response) => {
-    const { aspsp, redirectUrl, maxConsentValidity, psuType } = req.body || {};
+    const {aspsp, redirectUrl, maxConsentValidity, psuType} = req.body || {};
 
     if (!aspsp || !redirectUrl) {
       res.send({
@@ -348,7 +322,7 @@ app.post(
 app.post(
   '/complete-auth',
   handleError(async (req: Request, res: Response) => {
-    const { code, state } = req.body || {};
+    const {code, state} = req.body || {};
 
     if (!code) {
       res.send({
@@ -363,11 +337,7 @@ app.post(
 
     try {
       const session = await enableBankingService.createSession(code);
-      debug(
-        'Session created: %s with %d accounts',
-        session.session_id,
-        session.accounts.length,
-      );
+      debug('Session created: %s with %d accounts', session.session_id, session.accounts.length);
 
       const result = await buildSessionResult(session, extractPsuHeaders(req));
 
@@ -414,7 +384,7 @@ app.post(
 app.post(
   '/poll-auth',
   handleError(async (req: Request, res: Response) => {
-    const { state } = req.body || {};
+    const {state} = req.body || {};
 
     if (!state) {
       res.send({
@@ -435,7 +405,7 @@ app.post(
       if (completedAuths.has(state)) {
         const result = completedAuths.get(state);
         completedAuths.delete(state);
-        res.send({ status: 'ok', data: result });
+        res.send({status: 'ok', data: result});
         return;
       }
 
@@ -507,7 +477,7 @@ app.post(
 app.post(
   '/transactions',
   handleError(async (req: Request, res: Response) => {
-    const { accountId, startDate } = req.body || {};
+    const {accountId, startDate} = req.body || {};
 
     if (!accountId || !startDate) {
       res.send({
@@ -525,22 +495,16 @@ app.post(
     try {
       const dateTo = new Date().toISOString().split('T')[0];
       const dateFrom =
-        typeof startDate === 'string'
-          ? startDate
-          : new Date(startDate).toISOString().split('T')[0];
+        typeof startDate === 'string' ? startDate : new Date(startDate).toISOString().split('T')[0];
 
       // Fetch balances
-      const balanceResult = await enableBankingService.getBalances(
-        accountId,
-        psuHeaders,
-      );
+      const balanceResult = await enableBankingService.getBalances(accountId, psuHeaders);
       const balances = balanceResult.balances.map(normalizeBalance);
 
       // Determine starting balance, preferring CLAV balance type
       let startingBalance = 0;
       if (balances.length > 0) {
-        const preferredBalance =
-          balances.find(b => b.balanceType === 'CLAV') ?? balances[0];
+        const preferredBalance = balances.find(b => b.balanceType === 'CLAV') ?? balances[0];
         startingBalance = preferredBalance.balanceAmount.amount;
       }
 
@@ -612,8 +576,7 @@ app.post(
         // The bank-sync wire format expects `error_type` to be a broad
         // machine-readable category (matched by AccountSyncCheck's switch),
         // not the human message we now keep on `EnableBankingError.error_type`.
-        const wireErrorType =
-          error.error_code === 'NOT_FOUND' ? 'INVALID_INPUT' : error.error_code;
+        const wireErrorType = error.error_code === 'NOT_FOUND' ? 'INVALID_INPUT' : error.error_code;
 
         res.send({
           status: 'ok',

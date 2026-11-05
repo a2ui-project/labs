@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import {defineConfig} from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -8,13 +8,7 @@ export default defineConfig({
     maxWorkers: 1,
     isolate: false,
     reporters: process.env.CI
-      ? [
-          'default',
-          [
-            'junit',
-            { outputFile: './test-results/junit.xml', suiteName: 'ci-actions' },
-          ],
-        ]
+      ? ['default', ['junit', {outputFile: './test-results/junit.xml', suiteName: 'ci-actions'}]]
       : ['default'],
   },
 });

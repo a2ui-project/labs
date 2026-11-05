@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-import { createApp } from '#server/app';
+import {createApp} from '#server/app';
 import * as db from '#server/db';
-import { payeeModel } from '#server/models';
-import { mutator } from '#server/mutators';
-import { getCompletedScheduleRuleIds } from '#server/schedules/app';
-import { batchMessages } from '#server/sync';
+import {payeeModel} from '#server/models';
+import {mutator} from '#server/mutators';
+import {getCompletedScheduleRuleIds} from '#server/schedules/app';
+import {batchMessages} from '#server/sync';
 import * as rules from '#server/transactions/transaction-rules';
-import { undoable } from '#server/undo';
-import { DEFAULT_MAX_DISTANCE_METERS } from '#shared/constants';
-import type { Diff } from '#shared/util';
-import type {
-  NearbyPayeeEntity,
-  PayeeEntity,
-  PayeeLocationEntity,
-  RuleEntity,
-} from '#types/models';
+import {undoable} from '#server/undo';
+import {DEFAULT_MAX_DISTANCE_METERS} from '#shared/constants';
+import type {Diff} from '#shared/util';
+import type {NearbyPayeeEntity, PayeeEntity, PayeeLocationEntity, RuleEntity} from '#types/models';
 
 export type PayeesHandlers = {
   'payee-create': typeof createPayee;
@@ -70,8 +65,8 @@ app.method('payee-locations-get', getPayeeLocations);
 app.method('payee-location-delete', mutator(deletePayeeLocation));
 app.method('payees-get-nearby', getNearbyPayees);
 
-async function createPayee({ name }: { name: PayeeEntity['name'] }) {
-  return db.insertPayee({ name });
+async function createPayee({name}: {name: PayeeEntity['name']}) {
+  return db.insertPayee({name});
 }
 
 async function getCommonPayees(): Promise<PayeeEntity[]> {
@@ -123,21 +118,17 @@ async function batchChangePayees({
 }: Partial<Diff<PayeeEntity>>): Promise<void> {
   await batchMessages(async () => {
     if (deleted) {
-      await Promise.all(
-        deleted.map(p => ({ id: p.id })).map(p => db.deletePayee(p)),
-      );
+      await Promise.all(deleted.map(p => ({id: p.id})).map(p => db.deletePayee(p)));
     }
 
     if (added) {
-      await Promise.all(
-        added.map(p => payeeModel.toDb(p)).map(p => db.insertPayee(p)),
-      );
+      await Promise.all(added.map(p => payeeModel.toDb(p)).map(p => db.insertPayee(p)));
     }
 
     if (updated) {
       await Promise.all(
         updated
-          .map(p => payeeModel.toDb(p as PayeeEntity, { update: true }))
+          .map(p => payeeModel.toDb(p as PayeeEntity, {update: true}))
           .map(p => db.updatePayee(p)),
       );
     }
@@ -153,11 +144,7 @@ async function checkOrphanedPayees({
   return ids.filter(id => orphaned.has(id));
 }
 
-async function getPayeeRules({
-  id,
-}: {
-  id: PayeeEntity['id'];
-}): Promise<RuleEntity[]> {
+async function getPayeeRules({id}: {id: PayeeEntity['id']}): Promise<RuleEntity[]> {
   return rules.getRulesForPayee(id).map(rule => rule.serialize());
 }
 
@@ -211,23 +198,14 @@ async function getPayeeLocations({
   return db.runQuery<PayeeLocationEntity>(query, params, true);
 }
 
-async function deletePayeeLocation({
-  id,
-}: {
-  id: PayeeLocationEntity['id'];
-}): Promise<void> {
+async function deletePayeeLocation({id}: {id: PayeeLocationEntity['id']}): Promise<void> {
   await db.delete_('payee_locations', id);
 }
 
 // Type for the raw query result that combines PayeeEntity and PayeeLocationEntity fields
 type NearbyPayeeQueryResult = Pick<
   db.DbPayee,
-  | 'id'
-  | 'name'
-  | 'transfer_acct'
-  | 'favorite'
-  | 'learn_categories'
-  | 'tombstone'
+  'id' | 'name' | 'transfer_acct' | 'favorite' | 'learn_categories' | 'tombstone'
 > &
   Omit<PayeeLocationEntity, 'id'> & {
     // PayeeLocationEntity's id renamed to location_id
@@ -258,9 +236,7 @@ async function getNearbyPayees({
   }
 
   if (!Number.isFinite(maxDistance) || maxDistance <= 0) {
-    throw new Error(
-      'Invalid maxDistance: must be a finite positive number greater than 0',
-    );
+    throw new Error('Invalid maxDistance: must be a finite positive number greater than 0');
   }
 
   // Get the closest location for each payee within maxDistance using window functions

@@ -18,12 +18,12 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 
-import { create, SyncRequestSchema, toBinary } from '@actual-app/crdt';
+import {create, SyncRequestSchema, toBinary} from '@actual-app/crdt';
 import request from 'supertest';
 
-import { getAccountDb } from './account-db';
-import { handlers as app } from './app-sync';
-import { getPathForUserFile, isValidFileId } from './util/paths';
+import {getAccountDb} from './account-db';
+import {handlers as app} from './app-sync';
+import {getPathForUserFile, isValidFileId} from './util/paths';
 
 const ADMIN_ROLE = 'ADMIN';
 const OTHER_USER_ID = 'otherUser';
@@ -73,7 +73,7 @@ describe('/user-get-key', () => {
     const res = await request(app)
       .post('/user-get-key')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toEqual({
@@ -90,7 +90,7 @@ describe('/user-get-key', () => {
     const res = await request(app)
       .post('/user-get-key')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId: 'non-existent-file-id' });
+      .send({fileId: 'non-existent-file-id'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toBe('file-not-found');
@@ -100,7 +100,7 @@ describe('/user-get-key', () => {
     const res = await request(app)
       .post('/user-get-key')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId: 'budget@2026' });
+      .send({fileId: 'budget@2026'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toBe('invalid fileId');
@@ -116,7 +116,7 @@ describe('/user-get-key', () => {
     const res = await request(app)
       .post('/user-get-key')
       .set('x-actual-token', 'valid-token-user')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(403);
     expect(res.text).toEqual('file-access-not-allowed');
@@ -135,7 +135,7 @@ describe('/user-get-key', () => {
     const res = await request(app)
       .post('/user-get-key')
       .set('x-actual-token', 'valid-token-admin')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toEqual({
@@ -165,7 +165,7 @@ describe('/user-create-key', () => {
     const res = await request(app)
       .post('/user-create-key')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId: 'non-existent-file-id' });
+      .send({fileId: 'non-existent-file-id'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toBe('file-not-found');
@@ -175,7 +175,7 @@ describe('/user-create-key', () => {
     const res = await request(app)
       .post('/user-create-key')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId: 'budget@2026' });
+      .send({fileId: 'budget@2026'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toBe('invalid fileId');
@@ -212,13 +212,7 @@ describe('/user-create-key', () => {
     const encrypt_test = 'new-encrypt-test';
     getAccountDb().mutate(
       'INSERT INTO files (id, encrypt_salt, encrypt_keyid, encrypt_test, owner) VALUES (?, ?, ?, ?, ?)',
-      [
-        fileId,
-        old_encrypt_salt,
-        old_encrypt_keyid,
-        old_encrypt_test,
-        OTHER_USER_ID,
-      ],
+      [fileId, old_encrypt_salt, old_encrypt_keyid, old_encrypt_test, OTHER_USER_ID],
     );
 
     const res = await request(app)
@@ -232,7 +226,7 @@ describe('/user-create-key', () => {
       });
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body).toEqual({status: 'ok'});
 
     const rows = getAccountDb().all(
       'SELECT encrypt_salt, encrypt_keyid, encrypt_test FROM files WHERE id = ?',
@@ -249,10 +243,10 @@ describe('/user-create-key', () => {
       'INSERT INTO files (id, encrypt_salt, encrypt_keyid, encrypt_test, owner) VALUES (?, ?, ?, ?, ?)',
       [fileId, 'old-salt', 'old-key', 'old-test', OTHER_USER_ID],
     );
-    getAccountDb().mutate(
-      'INSERT INTO user_access (file_id, user_id) VALUES (?, ?)',
-      [fileId, 'genericUser'],
-    );
+    getAccountDb().mutate('INSERT INTO user_access (file_id, user_id) VALUES (?, ?)', [
+      fileId,
+      'genericUser',
+    ]);
 
     const res = await request(app)
       .post('/user-create-key')
@@ -302,7 +296,7 @@ describe('/user-create-key', () => {
       });
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body).toEqual({status: 'ok'});
 
     const rows = getAccountDb().all(
       'SELECT encrypt_salt, encrypt_keyid, encrypt_test FROM files WHERE id = ?',
@@ -337,23 +331,21 @@ describe('/reset-user-file', () => {
       [fileId, groupId, 'genericAdmin'],
     );
 
-    getAccountDb().mutate(
-      'INSERT INTO user_access (file_id, user_id) VALUES (?, ?)',
-      [fileId, 'genericAdmin'],
-    );
+    getAccountDb().mutate('INSERT INTO user_access (file_id, user_id) VALUES (?, ?)', [
+      fileId,
+      'genericAdmin',
+    ]);
 
     const res = await request(app)
       .post('/reset-user-file')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body).toEqual({status: 'ok'});
 
     // Verify that the file is marked as deleted
-    const rows = getAccountDb().all('SELECT group_id FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rows = getAccountDb().all('SELECT group_id FROM files WHERE id = ?', [fileId]);
 
     expect(rows[0].group_id).toBeNull();
   });
@@ -362,7 +354,7 @@ describe('/reset-user-file', () => {
     const res = await request(app)
       .post('/reset-user-file')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId: 'non-existent-file-id' });
+      .send({fileId: 'non-existent-file-id'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toBe('User or file not found');
@@ -372,7 +364,7 @@ describe('/reset-user-file', () => {
     const res = await request(app)
       .post('/reset-user-file')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId: 'budget@2026' });
+      .send({fileId: 'budget@2026'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toBe('invalid fileId');
@@ -380,15 +372,15 @@ describe('/reset-user-file', () => {
 
   it('returns 403 when non-owner resets another user file', async () => {
     const fileId = crypto.randomBytes(16).toString('hex');
-    getAccountDb().mutate(
-      'INSERT OR IGNORE INTO files (id, deleted, owner) VALUES (?, FALSE, ?)',
-      [fileId, OTHER_USER_ID],
-    );
+    getAccountDb().mutate('INSERT OR IGNORE INTO files (id, deleted, owner) VALUES (?, FALSE, ?)', [
+      fileId,
+      OTHER_USER_ID,
+    ]);
 
     const res = await request(app)
       .post('/reset-user-file')
       .set('x-actual-token', 'valid-token-user')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(403);
     expect(res.text).toEqual('file-access-not-allowed');
@@ -405,14 +397,12 @@ describe('/reset-user-file', () => {
     const res = await request(app)
       .post('/reset-user-file')
       .set('x-actual-token', 'valid-token-admin')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body).toEqual({status: 'ok'});
 
-    const rows = getAccountDb().all('SELECT group_id FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rows = getAccountDb().all('SELECT group_id FROM files WHERE id = ?', [fileId]);
     expect(rows[0].group_id).toBeNull();
   });
 
@@ -423,22 +413,20 @@ describe('/reset-user-file', () => {
       'INSERT INTO files (id, group_id, deleted, owner) VALUES (?, ?, FALSE, ?)',
       [fileId, groupId, OTHER_USER_ID],
     );
-    getAccountDb().mutate(
-      'INSERT INTO user_access (file_id, user_id) VALUES (?, ?)',
-      [fileId, 'genericUser'],
-    );
+    getAccountDb().mutate('INSERT INTO user_access (file_id, user_id) VALUES (?, ?)', [
+      fileId,
+      'genericUser',
+    ]);
 
     const res = await request(app)
       .post('/reset-user-file')
       .set('x-actual-token', 'valid-token-user')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(403);
     expect(res.text).toEqual('file-access-not-allowed');
 
-    const rows = getAccountDb().all('SELECT group_id FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rows = getAccountDb().all('SELECT group_id FROM files WHERE id = ?', [fileId]);
     expect(rows[0].group_id).toEqual(groupId);
   });
 });
@@ -498,7 +486,7 @@ describe('/upload-user-file', () => {
     const fileContent = 'test file content';
     const fileContentBuffer = Buffer.from(fileContent);
     const syncVersion = 2;
-    const encryptMeta = JSON.stringify({ keyId: 'key-id' });
+    const encryptMeta = JSON.stringify({keyId: 'key-id'});
     onTestFinished(() => {
       try {
         fs.unlinkSync(getPathForUserFile(fileId));
@@ -506,9 +494,7 @@ describe('/upload-user-file', () => {
     });
 
     // Verify that the file does not exist before upload
-    const rowsBefore = getAccountDb().all('SELECT * FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rowsBefore = getAccountDb().all('SELECT * FROM files WHERE id = ?', [fileId]);
 
     expect(rowsBefore.length).toBe(0);
 
@@ -523,13 +509,11 @@ describe('/upload-user-file', () => {
       .send(fileContentBuffer);
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok', groupId: expect.any(String) });
+    expect(res.body).toEqual({status: 'ok', groupId: expect.any(String)});
 
     const receivedGroupid = res.body.groupId;
     // Verify that the file exists in the accountDb
-    const rowsAfter = getAccountDb().all('SELECT * FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rowsAfter = getAccountDb().all('SELECT * FROM files WHERE id = ?', [fileId]);
     expect(rowsAfter.length).toBe(1);
     expect(rowsAfter[0].id).toEqual(fileId);
     expect(rowsAfter[0].group_id).toEqual(receivedGroupid);
@@ -553,7 +537,7 @@ describe('/upload-user-file', () => {
     const oldSyncVersion = 1;
     const newSyncVersion = 2;
     const oldKeyId = 'old-key-id';
-    const oldEncryptMeta = JSON.stringify({ keyId: oldKeyId });
+    const oldEncryptMeta = JSON.stringify({keyId: oldKeyId});
     const newEncryptMeta = JSON.stringify({
       keyId: oldKeyId,
       sentinelValue: 1,
@@ -567,14 +551,7 @@ describe('/upload-user-file', () => {
     // Create the old file version
     getAccountDb().mutate(
       'INSERT INTO files (id, group_id, sync_version, name, encrypt_meta, encrypt_keyid) VALUES (?, ?, ?, ?, ?, ?)',
-      [
-        fileId,
-        oldGroupId,
-        oldSyncVersion,
-        oldFileName,
-        oldEncryptMeta,
-        oldKeyId,
-      ],
+      [fileId, oldGroupId, oldSyncVersion, oldFileName, oldEncryptMeta, oldKeyId],
     );
 
     fs.writeFileSync(getPathForUserFile(fileId), oldFileContent);
@@ -590,14 +567,12 @@ describe('/upload-user-file', () => {
       .send(Buffer.from(newFileContent));
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok', groupId: expect.any(String) });
+    expect(res.body).toEqual({status: 'ok', groupId: expect.any(String)});
 
     const receivedGroupid = res.body.groupId;
 
     // Verify that the file was updated in the accountDb
-    const rowsAfter = getAccountDb().all('SELECT * FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rowsAfter = getAccountDb().all('SELECT * FROM files WHERE id = ?', [fileId]);
     expect(rowsAfter.length).toBe(1);
     expect(rowsAfter[0].id).toEqual(fileId);
     expect(rowsAfter[0].group_id).toEqual(receivedGroupid);
@@ -619,13 +594,7 @@ describe('/upload-user-file', () => {
     const syncVersion = 2;
 
     // Add a mock file with the old group ID
-    addMockFile(
-      fileId,
-      'current-group-id',
-      keyId,
-      JSON.stringify({ keyId }),
-      syncVersion,
-    );
+    addMockFile(fileId, 'current-group-id', keyId, JSON.stringify({keyId}), syncVersion);
 
     const res = await request(app)
       .post('/upload-user-file')
@@ -648,13 +617,7 @@ describe('/upload-user-file', () => {
     const syncVersion = 2;
 
     // Add a mock file with the new key
-    addMockFile(
-      fileId,
-      groupId,
-      newKeyId,
-      JSON.stringify({ newKeyId }),
-      syncVersion,
-    );
+    addMockFile(fileId, groupId, newKeyId, JSON.stringify({newKeyId}), syncVersion);
 
     const res = await request(app)
       .post('/upload-user-file')
@@ -663,7 +626,7 @@ describe('/upload-user-file', () => {
       .set('x-actual-file-id', fileId)
       .set('x-actual-group-id', groupId)
       .set('x-actual-name', fileName)
-      .set('x-actual-encrypt-meta', JSON.stringify({ keyId: oldKeyId }));
+      .set('x-actual-encrypt-meta', JSON.stringify({keyId: oldKeyId}));
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toEqual('file-has-new-key');
@@ -677,15 +640,7 @@ describe('/upload-user-file', () => {
     fs.writeFileSync(getPathForUserFile(fileId), 'existing content');
     getAccountDb().mutate(
       'INSERT INTO files (id, group_id, sync_version, name, encrypt_meta, encrypt_keyid, deleted, owner) VALUES (?, ?, ?, ?, ?, ?, 0, ?)',
-      [
-        fileId,
-        groupId,
-        syncVersion,
-        'existing.txt',
-        JSON.stringify({ keyId }),
-        keyId,
-        OTHER_USER_ID,
-      ],
+      [fileId, groupId, syncVersion, 'existing.txt', JSON.stringify({keyId}), keyId, OTHER_USER_ID],
     );
     onTestFinished(() => {
       try {
@@ -701,7 +656,7 @@ describe('/upload-user-file', () => {
       .set('x-actual-name', 'hacked.txt')
       .set('x-actual-group-id', groupId)
       .set('x-actual-format', syncVersion.toString())
-      .set('x-actual-encrypt-meta', JSON.stringify({ keyId }))
+      .set('x-actual-encrypt-meta', JSON.stringify({keyId}))
       .send(Buffer.from('overwrite content'));
 
     expect(res.statusCode).toEqual(403);
@@ -718,15 +673,7 @@ describe('/upload-user-file', () => {
     fs.writeFileSync(getPathForUserFile(fileId), existingContent);
     getAccountDb().mutate(
       'INSERT INTO files (id, group_id, sync_version, name, encrypt_meta, encrypt_keyid, deleted, owner) VALUES (?, ?, ?, ?, ?, ?, 0, ?)',
-      [
-        fileId,
-        groupId,
-        syncVersion,
-        'existing.txt',
-        JSON.stringify({ keyId }),
-        keyId,
-        OTHER_USER_ID,
-      ],
+      [fileId, groupId, syncVersion, 'existing.txt', JSON.stringify({keyId}), keyId, OTHER_USER_ID],
     );
     onTestFinished(() => {
       try {
@@ -742,18 +689,14 @@ describe('/upload-user-file', () => {
       .set('x-actual-name', 'admin-renamed.txt')
       .set('x-actual-group-id', groupId)
       .set('x-actual-format', syncVersion.toString())
-      .set('x-actual-encrypt-meta', JSON.stringify({ keyId }))
+      .set('x-actual-encrypt-meta', JSON.stringify({keyId}))
       .send(Buffer.from(newContent));
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok', groupId });
+    expect(res.body).toEqual({status: 'ok', groupId});
 
-    expect(fs.readFileSync(getPathForUserFile(fileId), 'utf8')).toEqual(
-      newContent,
-    );
-    const rows = getAccountDb().all('SELECT name FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    expect(fs.readFileSync(getPathForUserFile(fileId), 'utf8')).toEqual(newContent);
+    const rows = getAccountDb().all('SELECT name FROM files WHERE id = ?', [fileId]);
     expect(rows[0].name).toEqual('admin-renamed.txt');
   });
 });
@@ -805,10 +748,9 @@ describe('/download-user-file', () => {
     });
 
     it('returns 500 error if the file does not exist on the filesystem', async () => {
-      getAccountDb().mutate(
-        'INSERT INTO files (id, deleted) VALUES (?, FALSE)',
-        ['missing-fs-file'],
-      );
+      getAccountDb().mutate('INSERT INTO files (id, deleted) VALUES (?, FALSE)', [
+        'missing-fs-file',
+      ]);
 
       const res = await request(app)
         .get('/download-user-file')
@@ -822,10 +764,7 @@ describe('/download-user-file', () => {
       const fileId = generateFileId();
       const fileContent = 'content';
       fs.writeFileSync(getPathForUserFile(fileId), fileContent);
-      getAccountDb().mutate(
-        'INSERT INTO files (id, deleted) VALUES (?, FALSE)',
-        [fileId],
-      );
+      getAccountDb().mutate('INSERT INTO files (id, deleted) VALUES (?, FALSE)', [fileId]);
 
       const res = await request(app)
         .get('/download-user-file')
@@ -849,10 +788,10 @@ describe('/download-user-file', () => {
         const fileId = generateFileId();
         const fileContent = 'sensitive content';
         fs.writeFileSync(getPathForUserFile(fileId), fileContent);
-        getAccountDb().mutate(
-          'INSERT INTO files (id, deleted, owner) VALUES (?, FALSE, ?)',
-          [fileId, OTHER_USER_ID],
-        );
+        getAccountDb().mutate('INSERT INTO files (id, deleted, owner) VALUES (?, FALSE, ?)', [
+          fileId,
+          OTHER_USER_ID,
+        ]);
         onTestFinished(() => {
           try {
             fs.unlinkSync(getPathForUserFile(fileId));
@@ -872,10 +811,10 @@ describe('/download-user-file', () => {
         const fileId = generateFileId();
         const fileContent = 'admin-downloaded content';
         fs.writeFileSync(getPathForUserFile(fileId), fileContent);
-        getAccountDb().mutate(
-          'INSERT INTO files (id, deleted, owner) VALUES (?, FALSE, ?)',
-          [fileId, OTHER_USER_ID],
-        );
+        getAccountDb().mutate('INSERT INTO files (id, deleted, owner) VALUES (?, FALSE, ?)', [
+          fileId,
+          OTHER_USER_ID,
+        ]);
         onTestFinished(() => {
           try {
             fs.unlinkSync(getPathForUserFile(fileId));
@@ -898,14 +837,14 @@ describe('/download-user-file', () => {
         const fileId = generateFileId();
         const fileContent = 'shared-user content';
         fs.writeFileSync(getPathForUserFile(fileId), fileContent);
-        getAccountDb().mutate(
-          'INSERT INTO files (id, deleted, owner) VALUES (?, FALSE, ?)',
-          [fileId, OTHER_USER_ID],
-        );
-        getAccountDb().mutate(
-          'INSERT INTO user_access (file_id, user_id) VALUES (?, ?)',
-          [fileId, 'genericUser'],
-        );
+        getAccountDb().mutate('INSERT INTO files (id, deleted, owner) VALUES (?, FALSE, ?)', [
+          fileId,
+          OTHER_USER_ID,
+        ]);
+        getAccountDb().mutate('INSERT INTO user_access (file_id, user_id) VALUES (?, ?)', [
+          fileId,
+          'genericUser',
+        ]);
         onTestFinished(() => {
           try {
             fs.unlinkSync(getPathForUserFile(fileId));
@@ -947,7 +886,7 @@ describe('/update-user-filename', () => {
     const res = await request(app)
       .post('/update-user-filename')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId: 'non-existent-file-id', name: 'new-filename' });
+      .send({fileId: 'non-existent-file-id', name: 'new-filename'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toBe('file-not-found');
@@ -957,7 +896,7 @@ describe('/update-user-filename', () => {
     const res = await request(app)
       .post('/update-user-filename')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId: 'budget@2026', name: 'new-filename' });
+      .send({fileId: 'budget@2026', name: 'new-filename'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toBe('invalid fileId');
@@ -969,38 +908,37 @@ describe('/update-user-filename', () => {
     const newName = 'new-filename';
 
     // Insert a mock file into the database
-    getAccountDb().mutate(
-      'INSERT INTO files (id, name, deleted) VALUES (?, ?, FALSE)',
-      [fileId, oldName],
-    );
+    getAccountDb().mutate('INSERT INTO files (id, name, deleted) VALUES (?, ?, FALSE)', [
+      fileId,
+      oldName,
+    ]);
 
     const res = await request(app)
       .post('/update-user-filename')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId, name: newName });
+      .send({fileId, name: newName});
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body).toEqual({status: 'ok'});
 
     // Verify that the filename was updated
-    const rows = getAccountDb().all('SELECT name FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rows = getAccountDb().all('SELECT name FROM files WHERE id = ?', [fileId]);
 
     expect(rows[0].name).toEqual(newName);
   });
 
   it('returns 403 when non-owner renames another user file', async () => {
     const fileId = crypto.randomBytes(16).toString('hex');
-    getAccountDb().mutate(
-      'INSERT INTO files (id, name, deleted, owner) VALUES (?, ?, FALSE, ?)',
-      [fileId, 'original-name', OTHER_USER_ID],
-    );
+    getAccountDb().mutate('INSERT INTO files (id, name, deleted, owner) VALUES (?, ?, FALSE, ?)', [
+      fileId,
+      'original-name',
+      OTHER_USER_ID,
+    ]);
 
     const res = await request(app)
       .post('/update-user-filename')
       .set('x-actual-token', 'valid-token-user')
-      .send({ fileId, name: 'stolen' });
+      .send({fileId, name: 'stolen'});
 
     expect(res.statusCode).toEqual(403);
     expect(res.text).toEqual('file-access-not-allowed');
@@ -1010,22 +948,21 @@ describe('/update-user-filename', () => {
     const fileId = crypto.randomBytes(16).toString('hex');
     const originalName = 'original-name';
     const newName = 'admin-renamed-file';
-    getAccountDb().mutate(
-      'INSERT INTO files (id, name, deleted, owner) VALUES (?, ?, FALSE, ?)',
-      [fileId, originalName, OTHER_USER_ID],
-    );
+    getAccountDb().mutate('INSERT INTO files (id, name, deleted, owner) VALUES (?, ?, FALSE, ?)', [
+      fileId,
+      originalName,
+      OTHER_USER_ID,
+    ]);
 
     const res = await request(app)
       .post('/update-user-filename')
       .set('x-actual-token', 'valid-token-admin')
-      .send({ fileId, name: newName });
+      .send({fileId, name: newName});
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body).toEqual({status: 'ok'});
 
-    const rows = getAccountDb().all('SELECT name FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rows = getAccountDb().all('SELECT name FROM files WHERE id = ?', [fileId]);
     expect(rows[0].name).toEqual(newName);
   });
 });
@@ -1052,18 +989,18 @@ describe('/list-user-files', () => {
     const fileName2 = 'file2.txt';
 
     // Insert mock files into the database
-    getAccountDb().mutate(
-      'INSERT INTO files (id, name, deleted, owner) VALUES (?, ?, FALSE, ?)',
-      [fileId1, fileName1, ''],
-    );
-    getAccountDb().mutate(
-      'INSERT INTO files (id, name, deleted, owner) VALUES (?, ?, FALSE, ?)',
-      [fileId2, fileName2, ''],
-    );
+    getAccountDb().mutate('INSERT INTO files (id, name, deleted, owner) VALUES (?, ?, FALSE, ?)', [
+      fileId1,
+      fileName1,
+      '',
+    ]);
+    getAccountDb().mutate('INSERT INTO files (id, name, deleted, owner) VALUES (?, ?, FALSE, ?)', [
+      fileId2,
+      fileName2,
+      '',
+    ]);
 
-    const res = await request(app)
-      .get('/list-user-files')
-      .set('x-actual-token', 'valid-token');
+    const res = await request(app).get('/list-user-files').set('x-actual-token', 'valid-token');
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toEqual(
@@ -1098,19 +1035,13 @@ describe('/get-user-file-info', () => {
       id: fileId,
       group_id: groupId,
       name: 'test-file',
-      encrypt_meta: JSON.stringify({ key: 'value' }),
+      encrypt_meta: JSON.stringify({key: 'value'}),
       deleted: 0,
     };
 
     getAccountDb().mutate(
       'INSERT INTO files (id, group_id, name, encrypt_meta, deleted) VALUES (?, ?, ?, ?, ?)',
-      [
-        fileInfo.id,
-        fileInfo.group_id,
-        fileInfo.name,
-        fileInfo.encrypt_meta,
-        fileInfo.deleted,
-      ],
+      [fileInfo.id, fileInfo.group_id, fileInfo.name, fileInfo.encrypt_meta, fileInfo.deleted],
     );
 
     const res = await request(app)
@@ -1128,7 +1059,7 @@ describe('/get-user-file-info', () => {
         fileId: fileInfo.id,
         groupId: fileInfo.group_id,
         name: fileInfo.name,
-        encryptMeta: { key: 'value' },
+        encryptMeta: {key: 'value'},
         usersWithAccess: [],
       },
     });
@@ -1143,7 +1074,7 @@ describe('/get-user-file-info', () => {
       .set('x-actual-file-id', fileId);
 
     expect(res.statusCode).toEqual(400);
-    expect(res.body).toEqual({ status: 'error', reason: 'file-not-found' });
+    expect(res.body).toEqual({status: 'error', reason: 'file-not-found'});
   });
 
   it('returns 400 for invalid fileId format', async () => {
@@ -1188,7 +1119,7 @@ describe('/get-user-file-info', () => {
     const fileId = crypto.randomBytes(16).toString('hex');
     const groupId = 'admin-file-info-group';
     const name = 'admin-info-file';
-    const encrypt_meta = JSON.stringify({ key: 'value' });
+    const encrypt_meta = JSON.stringify({key: 'value'});
     getAccountDb().mutate(
       'INSERT INTO files (id, group_id, name, encrypt_meta, deleted, owner) VALUES (?, ?, ?, ?, 0, ?)',
       [fileId, groupId, name, encrypt_meta, OTHER_USER_ID],
@@ -1207,7 +1138,7 @@ describe('/get-user-file-info', () => {
         fileId,
         groupId,
         name,
-        encryptMeta: { key: 'value' },
+        encryptMeta: {key: 'value'},
         usersWithAccess: [],
       },
     });
@@ -1228,9 +1159,7 @@ describe('/delete-user-file', () => {
 
   // it returns 422 if the fileId is not provided
   it('returns 422 if the fileId is not provided', async () => {
-    const res = await request(app)
-      .post('/delete-user-file')
-      .set('x-actual-token', 'valid-token');
+    const res = await request(app).post('/delete-user-file').set('x-actual-token', 'valid-token');
 
     expect(res.statusCode).toEqual(422);
     expect(res.body).toEqual({
@@ -1244,7 +1173,7 @@ describe('/delete-user-file', () => {
     const res = await request(app)
       .post('/delete-user-file')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId: 'non-existing-file-id' });
+      .send({fileId: 'non-existing-file-id'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toEqual('file-not-found');
@@ -1254,7 +1183,7 @@ describe('/delete-user-file', () => {
     const res = await request(app)
       .post('/delete-user-file')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId: 'budget@2026' });
+      .send({fileId: 'budget@2026'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.text).toEqual('invalid fileId');
@@ -1265,23 +1194,18 @@ describe('/delete-user-file', () => {
     const fileId = crypto.randomBytes(16).toString('hex');
 
     // Insert a file into the database
-    accountDb.mutate(
-      'INSERT OR IGNORE INTO files (id, deleted) VALUES (?, FALSE)',
-      [fileId],
-    );
+    accountDb.mutate('INSERT OR IGNORE INTO files (id, deleted) VALUES (?, FALSE)', [fileId]);
 
     const res = await request(app)
       .post('/delete-user-file')
       .set('x-actual-token', 'valid-token')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body).toEqual({status: 'ok'});
 
     // Verify that the file is marked as deleted
-    const rows = accountDb.all('SELECT deleted FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rows = accountDb.all('SELECT deleted FROM files WHERE id = ?', [fileId]);
     expect(rows[0].deleted).toBe(1);
   });
 
@@ -1290,24 +1214,22 @@ describe('/delete-user-file', () => {
     const fileId = crypto.randomBytes(16).toString('hex');
 
     // Insert a file owned by another user
-    accountDb.mutate(
-      'INSERT OR IGNORE INTO files (id, deleted, owner) VALUES (?, FALSE, ?)',
-      [fileId, 'differentUser'],
-    );
+    accountDb.mutate('INSERT OR IGNORE INTO files (id, deleted, owner) VALUES (?, FALSE, ?)', [
+      fileId,
+      'differentUser',
+    ]);
 
     // Try to delete with a non-admin, non-owner user
     const res = await request(app)
       .post('/delete-user-file')
       .set('x-actual-token', 'valid-token-user')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(403);
     expect(res.text).toEqual('file-access-not-allowed');
 
     // Verify that the file is NOT deleted
-    const rows = accountDb.all('SELECT deleted FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rows = accountDb.all('SELECT deleted FROM files WHERE id = ?', [fileId]);
     expect(rows[0].deleted).toBe(0);
   });
 
@@ -1316,24 +1238,22 @@ describe('/delete-user-file', () => {
     const fileId = crypto.randomBytes(16).toString('hex');
 
     // Insert a file owned by genericUser
-    accountDb.mutate(
-      'INSERT OR IGNORE INTO files (id, deleted, owner) VALUES (?, FALSE, ?)',
-      [fileId, 'genericUser'],
-    );
+    accountDb.mutate('INSERT OR IGNORE INTO files (id, deleted, owner) VALUES (?, FALSE, ?)', [
+      fileId,
+      'genericUser',
+    ]);
 
     // Delete with the owner user
     const res = await request(app)
       .post('/delete-user-file')
       .set('x-actual-token', 'valid-token-user')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body).toEqual({status: 'ok'});
 
     // Verify that the file is deleted
-    const rows = accountDb.all('SELECT deleted FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rows = accountDb.all('SELECT deleted FROM files WHERE id = ?', [fileId]);
     expect(rows[0].deleted).toBe(1);
   });
 
@@ -1342,24 +1262,22 @@ describe('/delete-user-file', () => {
     const fileId = crypto.randomBytes(16).toString('hex');
 
     // Insert a file owned by another user
-    accountDb.mutate(
-      'INSERT OR IGNORE INTO files (id, deleted, owner) VALUES (?, FALSE, ?)',
-      [fileId, 'someOtherUser'],
-    );
+    accountDb.mutate('INSERT OR IGNORE INTO files (id, deleted, owner) VALUES (?, FALSE, ?)', [
+      fileId,
+      'someOtherUser',
+    ]);
 
     // Delete with an admin user
     const res = await request(app)
       .post('/delete-user-file')
       .set('x-actual-token', 'valid-token-admin')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok' });
+    expect(res.body).toEqual({status: 'ok'});
 
     // Verify that the file is deleted
-    const rows = accountDb.all('SELECT deleted FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rows = accountDb.all('SELECT deleted FROM files WHERE id = ?', [fileId]);
     expect(rows[0].deleted).toBe(1);
   });
 
@@ -1368,26 +1286,24 @@ describe('/delete-user-file', () => {
     const fileId = crypto.randomBytes(16).toString('hex');
 
     // File owned by another user; genericUser only has shared user_access.
-    accountDb.mutate(
-      'INSERT OR IGNORE INTO files (id, deleted, owner) VALUES (?, FALSE, ?)',
-      [fileId, OTHER_USER_ID],
-    );
-    accountDb.mutate(
-      'INSERT INTO user_access (file_id, user_id) VALUES (?, ?)',
-      [fileId, 'genericUser'],
-    );
+    accountDb.mutate('INSERT OR IGNORE INTO files (id, deleted, owner) VALUES (?, FALSE, ?)', [
+      fileId,
+      OTHER_USER_ID,
+    ]);
+    accountDb.mutate('INSERT INTO user_access (file_id, user_id) VALUES (?, ?)', [
+      fileId,
+      'genericUser',
+    ]);
 
     const res = await request(app)
       .post('/delete-user-file')
       .set('x-actual-token', 'valid-token-user')
-      .send({ fileId });
+      .send({fileId});
 
     expect(res.statusCode).toEqual(403);
     expect(res.text).toEqual('file-access-not-allowed');
 
-    const rows = accountDb.all('SELECT deleted FROM files WHERE id = ?', [
-      fileId,
-    ]);
+    const rows = accountDb.all('SELECT deleted FROM files WHERE id = ?', [fileId]);
     expect(rows[0].deleted).toBe(0);
   });
 });
@@ -1409,7 +1325,7 @@ describe('/sync', () => {
     const groupId = 'group-id';
     const keyId = 'key-id';
     const syncVersion = 2;
-    const encryptMeta = JSON.stringify({ keyId });
+    const encryptMeta = JSON.stringify({keyId});
 
     addMockFile(fileId, groupId, keyId, encryptMeta, syncVersion);
 
@@ -1438,11 +1354,7 @@ describe('/sync', () => {
   });
 
   it('returns 422 if since is not provided', async () => {
-    const syncRequest = createMinimalSyncRequest(
-      'file-id',
-      'group-id',
-      'key-id',
-    );
+    const syncRequest = createMinimalSyncRequest('file-id', 'group-id', 'key-id');
     // proto3 default-value semantics: '' is omitted on the wire and
     // decoded back to '', which the handler falsy-checks as missing.
     syncRequest.since = '';
@@ -1458,11 +1370,7 @@ describe('/sync', () => {
   });
 
   it('returns 400 if the file does not exist in the database', async () => {
-    const syncRequest = createMinimalSyncRequest(
-      'non-existant-file-id',
-      'group-id',
-      'key-id',
-    );
+    const syncRequest = createMinimalSyncRequest('non-existant-file-id', 'group-id', 'key-id');
 
     // We do not insert the file into the database, so it does not exist
 
@@ -1479,13 +1387,7 @@ describe('/sync', () => {
     const oldSyncVersion = 1; // Assuming SYNC_FORMAT_VERSION is 2
 
     // Add a mock file with an old sync version
-    addMockFile(
-      fileId,
-      groupId,
-      keyId,
-      JSON.stringify({ keyId }),
-      oldSyncVersion,
-    );
+    addMockFile(fileId, groupId, keyId, JSON.stringify({keyId}), oldSyncVersion);
 
     const syncRequest = createMinimalSyncRequest(fileId, groupId, keyId);
 
@@ -1501,7 +1403,7 @@ describe('/sync', () => {
     const keyId = 'key-id';
     const syncVersion = 2;
 
-    addMockFile(fileId, groupId, keyId, JSON.stringify({ keyId }), syncVersion);
+    addMockFile(fileId, groupId, keyId, JSON.stringify({keyId}), syncVersion);
 
     const syncRequest = createMinimalSyncRequest(fileId, groupId, keyId);
 
@@ -1519,7 +1421,7 @@ describe('/sync', () => {
     const syncVersion = 2;
 
     // Add a mock file with the old key
-    addMockFile(fileId, groupId, keyId, JSON.stringify({ keyId }), syncVersion);
+    addMockFile(fileId, groupId, keyId, JSON.stringify({keyId}), syncVersion);
 
     // Create a sync request with the new key
     const syncRequest = createMinimalSyncRequest(fileId, groupId, newKeyId);
@@ -1534,15 +1436,8 @@ describe('/sync', () => {
     const groupId = 'group-id';
     const keyId = 'key-id';
     const syncVersion = 2;
-    const encryptMeta = JSON.stringify({ keyId });
-    addMockFile(
-      fileId,
-      groupId,
-      keyId,
-      encryptMeta,
-      syncVersion,
-      OTHER_USER_ID,
-    );
+    const encryptMeta = JSON.stringify({keyId});
+    addMockFile(fileId, groupId, keyId, encryptMeta, syncVersion, OTHER_USER_ID);
     const syncRequest = createMinimalSyncRequest(fileId, groupId, keyId);
 
     const res = await sendSyncRequest(syncRequest, 'valid-token-user');
@@ -1556,15 +1451,8 @@ describe('/sync', () => {
     const groupId = 'group-id';
     const keyId = 'key-id';
     const syncVersion = 2;
-    const encryptMeta = JSON.stringify({ keyId });
-    addMockFile(
-      fileId,
-      groupId,
-      keyId,
-      encryptMeta,
-      syncVersion,
-      OTHER_USER_ID,
-    );
+    const encryptMeta = JSON.stringify({keyId});
+    addMockFile(fileId, groupId, keyId, encryptMeta, syncVersion, OTHER_USER_ID);
     const syncRequest = createMinimalSyncRequest(fileId, groupId, keyId);
 
     const res = await sendSyncRequest(syncRequest, 'valid-token-admin');

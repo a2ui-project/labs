@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import type {
-  balanceTypeOpType,
-  GroupedEntity,
-} from '@actual-app/core/types/models';
+import type {balanceTypeOpType, GroupedEntity} from '@actual-app/core/types/models';
 
 export function filterEmptyRows({
   showEmpty,
@@ -30,10 +27,7 @@ export function filterEmptyRows({
 }): boolean {
   let showHide: boolean;
   if (balanceTypeOp === 'totalTotals' || balanceTypeOp === 'totalBudgeted') {
-    showHide =
-      data['totalDebts'] !== 0 ||
-      data['totalAssets'] !== 0 ||
-      data[balanceTypeOp] !== 0;
+    showHide = data['totalDebts'] !== 0 || data['totalAssets'] !== 0 || data[balanceTypeOp] !== 0;
   } else {
     showHide = data[balanceTypeOp] !== 0;
   }

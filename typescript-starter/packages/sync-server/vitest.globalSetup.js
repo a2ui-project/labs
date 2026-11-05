@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { getAccountDb } from './src/account-db';
-import { run as runMigrations } from './src/migrations';
+import {getAccountDb} from './src/account-db';
+import {run as runMigrations} from './src/migrations';
 
 const GENERIC_ADMIN_ID = 'genericAdmin';
 const GENERIC_USER_ID = 'genericUser';
@@ -31,14 +31,8 @@ const createUser = (userId, userName, role, owner = 0, enabled = 1) => {
     throw new Error(`Missing required parameters: ${missingParams.join(', ')}`);
   }
 
-  if (
-    typeof userId !== 'string' ||
-    typeof userName !== 'string' ||
-    typeof role !== 'string'
-  ) {
-    throw new Error(
-      'Invalid parameter types. userId, userName, and role must be strings',
-    );
+  if (typeof userId !== 'string' || typeof userName !== 'string' || typeof role !== 'string') {
+    throw new Error('Invalid parameter types. userId, userName, and role must be strings');
   }
 
   try {
@@ -59,17 +53,12 @@ const setSessionUser = (userId, token = 'valid-token') => {
 
   try {
     const db = getAccountDb();
-    const session = db.first('SELECT token FROM sessions WHERE token = ?', [
-      token,
-    ]);
+    const session = db.first('SELECT token FROM sessions WHERE token = ?', [token]);
     if (!session) {
       throw new Error(`Session not found for token: ${token}`);
     }
 
-    db.mutate('UPDATE sessions SET user_id = ? WHERE token = ?', [
-      userId,
-      token,
-    ]);
+    db.mutate('UPDATE sessions SET user_id = ? WHERE token = ?', [userId, token]);
   } catch (error) {
     console.error(`Error updating session for user ${userId}:`, error);
     throw error;
@@ -89,19 +78,22 @@ export async function setup() {
     await db.mutate('BEGIN TRANSACTION');
 
     await db.mutate('DELETE FROM sessions');
-    await db.mutate(
-      'INSERT INTO sessions (token, expires_at, user_id) VALUES (?, ?, ?)',
-      ['valid-token', NEVER_EXPIRES, 'genericAdmin'],
-    );
-    await db.mutate(
-      'INSERT INTO sessions (token, expires_at, user_id) VALUES (?, ?, ?)',
-      ['valid-token-admin', NEVER_EXPIRES, 'genericAdmin'],
-    );
+    await db.mutate('INSERT INTO sessions (token, expires_at, user_id) VALUES (?, ?, ?)', [
+      'valid-token',
+      NEVER_EXPIRES,
+      'genericAdmin',
+    ]);
+    await db.mutate('INSERT INTO sessions (token, expires_at, user_id) VALUES (?, ?, ?)', [
+      'valid-token-admin',
+      NEVER_EXPIRES,
+      'genericAdmin',
+    ]);
 
-    await db.mutate(
-      'INSERT INTO sessions (token, expires_at, user_id) VALUES (?, ?, ?)',
-      ['valid-token-user', NEVER_EXPIRES, 'genericUser'],
-    );
+    await db.mutate('INSERT INTO sessions (token, expires_at, user_id) VALUES (?, ?, ?)', [
+      'valid-token-user',
+      NEVER_EXPIRES,
+      'genericUser',
+    ]);
 
     await db.mutate('COMMIT');
   } catch (error) {

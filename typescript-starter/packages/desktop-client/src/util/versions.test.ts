@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { cmpSemanticVersion } from './versions';
+import {cmpSemanticVersion} from './versions';
 
 describe('cmpSemanticVersion', () => {
   it('compares major, minor and patch numerically', () => {

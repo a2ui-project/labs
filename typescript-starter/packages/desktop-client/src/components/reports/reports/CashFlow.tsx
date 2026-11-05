@@ -14,48 +14,44 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import React, {useEffect, useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { Block } from '@actual-app/components/block';
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {Block} from '@actual-app/components/block';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  CashFlowWidget,
-  RuleConditionEntity,
-  TimeFrame,
-} from '@actual-app/core/types/models';
+import type {CashFlowWidget, RuleConditionEntity, TimeFrame} from '@actual-app/core/types/models';
 import * as d from 'date-fns';
 
-import { EditablePageHeaderTitle } from '#components/EditablePageHeaderTitle';
-import { FinancialText } from '#components/FinancialText';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page, PageHeader } from '#components/Page';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { Change } from '#components/reports/Change';
-import { CashFlowGraph } from '#components/reports/graphs/CashFlowGraph';
-import { Header } from '#components/reports/Header';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { cashFlowByDate } from '#components/reports/spreadsheets/cash-flow-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useDashboardWidget } from '#hooks/useDashboardWidget';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { useNavigate } from '#hooks/useNavigate';
-import { useRuleConditionFilters } from '#hooks/useRuleConditionFilters';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { useUpdateDashboardWidgetMutation } from '#reports/mutations';
+import {EditablePageHeaderTitle} from '#components/EditablePageHeaderTitle';
+import {FinancialText} from '#components/FinancialText';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page, PageHeader} from '#components/Page';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {Change} from '#components/reports/Change';
+import {CashFlowGraph} from '#components/reports/graphs/CashFlowGraph';
+import {Header} from '#components/reports/Header';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {cashFlowByDate} from '#components/reports/spreadsheets/cash-flow-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useDashboardWidget} from '#hooks/useDashboardWidget';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {useNavigate} from '#hooks/useNavigate';
+import {useRuleConditionFilters} from '#hooks/useRuleConditionFilters';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {useUpdateDashboardWidgetMutation} from '#reports/mutations';
 
 // Month-shaped so the range means the whole current month (the query clamps
 // to today); day-shaped values here would slide by days instead.
@@ -67,7 +63,7 @@ export const defaultTimeFrame = {
 
 export function CashFlow() {
   const params = useParams();
-  const { data: widget, isPending } = useDashboardWidget<CashFlowWidget>({
+  const {data: widget, isPending} = useDashboardWidget<CashFlowWidget>({
     id: params.id,
     type: 'cash-flow-card',
   });
@@ -83,10 +79,10 @@ type CashFlowInnerProps = {
   widget?: CashFlowWidget;
 };
 
-function CashFlowInner({ widget }: CashFlowInnerProps) {
+function CashFlowInner({widget}: CashFlowInnerProps) {
   const locale = useLocale();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
   const {
@@ -109,32 +105,18 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
   const [start, setStart] = useState(monthUtils.currentMonth());
   const [end, setEnd] = useState(monthUtils.currentMonth());
   const [mode, setMode] = useState<TimeFrame['mode']>('sliding-window');
-  const [showBalance, setShowBalance] = useState(
-    widget?.meta?.showBalance ?? true,
-  );
+  const [showBalance, setShowBalance] = useState(widget?.meta?.showBalance ?? true);
   const [latestTransaction, setLatestTransaction] = useState('');
 
   const [isConcise, setIsConcise] = useState(false);
 
   useEffect(() => {
-    const numDays = d.differenceInCalendarDays(
-      d.parseISO(end),
-      d.parseISO(start),
-    );
+    const numDays = d.differenceInCalendarDays(d.parseISO(end), d.parseISO(start));
     setIsConcise(numDays > 31 * 3);
   }, [start, end]);
 
   const params = useMemo(
-    () =>
-      cashFlowByDate(
-        start,
-        end,
-        isConcise,
-        conditions,
-        conditionsOp,
-        locale,
-        format,
-      ),
+    () => cashFlowByDate(start, end, isConcise, conditions, conditionsOp, locale, format),
     [start, end, isConcise, conditions, conditionsOp, locale, format],
   );
   const data = useReport('cash_flow', params);
@@ -143,15 +125,11 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
     async function run() {
       const earliestTransaction = await send('get-earliest-transaction');
       setEarliestTransaction(
-        earliestTransaction
-          ? earliestTransaction.date
-          : monthUtils.currentDay(),
+        earliestTransaction ? earliestTransaction.date : monthUtils.currentDay(),
       );
 
       const latestTransaction = await send('get-latest-transaction');
-      setLatestTransaction(
-        latestTransaction ? latestTransaction.date : monthUtils.currentDay(),
-      );
+      setLatestTransaction(latestTransaction ? latestTransaction.date : monthUtils.currentDay());
 
       const currentMonth = monthUtils.currentMonth();
       const earliestMonth = earliestTransaction
@@ -162,9 +140,7 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
         : currentMonth;
 
       const latestMonth =
-        latestTransactionMonth > currentMonth
-          ? latestTransactionMonth
-          : currentMonth;
+        latestTransactionMonth > currentMonth ? latestTransactionMonth : currentMonth;
 
       const allMonths = monthUtils
         .rangeInclusive(earliestMonth, latestMonth)
@@ -199,7 +175,7 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
   }
 
   const navigate = useNavigate();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const updateDashboardWidgetMutation = useUpdateDashboardWidgetMutation();
 
   async function onSaveWidget() {
@@ -265,7 +241,7 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
     return null;
   }
 
-  const { graphData, totalExpenses, totalIncome, totalTransfers } = data;
+  const {graphData, totalExpenses, totalIncome, totalTransfers} = data;
 
   return (
     <Page
@@ -273,21 +249,12 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
         isNarrowWidth ? (
           <MobilePageHeader
             title={title}
-            leftContent={
-              <MobileBackButton onPress={() => navigate('/reports')} />
-            }
+            leftContent={<MobileBackButton onPress={() => navigate('/reports')} />}
           />
         ) : (
           <PageHeader
             title={
-              widget ? (
-                <EditablePageHeaderTitle
-                  title={title}
-                  onSave={onSaveWidgetName}
-                />
-              ) : (
-                title
-              )
+              widget ? <EditablePageHeaderTitle title={title} onSave={onSaveWidgetName} /> : title
             }
           />
         )
@@ -339,64 +306,54 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
           }}
         >
           <AlignedText
-            style={{ marginBottom: 5, minWidth: 160 }}
+            style={{marginBottom: 5, minWidth: 160}}
             left={
               <Block>
                 <Trans>Income:</Trans>
               </Block>
             }
             right={
-              <FinancialText style={{ fontWeight: 600 }}>
-                <PrivacyFilter>
-                  {format(totalIncome, 'financial')}
-                </PrivacyFilter>
+              <FinancialText style={{fontWeight: 600}}>
+                <PrivacyFilter>{format(totalIncome, 'financial')}</PrivacyFilter>
               </FinancialText>
             }
           />
 
           <AlignedText
-            style={{ marginBottom: 5, minWidth: 160 }}
+            style={{marginBottom: 5, minWidth: 160}}
             left={
               <Block>
                 <Trans>Expenses:</Trans>
               </Block>
             }
             right={
-              <FinancialText style={{ fontWeight: 600 }}>
-                <PrivacyFilter>
-                  {format(totalExpenses, 'financial')}
-                </PrivacyFilter>
+              <FinancialText style={{fontWeight: 600}}>
+                <PrivacyFilter>{format(totalExpenses, 'financial')}</PrivacyFilter>
               </FinancialText>
             }
           />
 
           <AlignedText
-            style={{ marginBottom: 5, minWidth: 160 }}
+            style={{marginBottom: 5, minWidth: 160}}
             left={
               <Block>
                 <Trans>Transfers:</Trans>
               </Block>
             }
             right={
-              <FinancialText style={{ fontWeight: 600 }}>
-                <PrivacyFilter>
-                  {format(totalTransfers, 'financial')}
-                </PrivacyFilter>
+              <FinancialText style={{fontWeight: 600}}>
+                <PrivacyFilter>{format(totalTransfers, 'financial')}</PrivacyFilter>
               </FinancialText>
             }
           />
-          <Text style={{ fontWeight: 600 }}>
+          <Text style={{fontWeight: 600}}>
             <PrivacyFilter>
               <Change amount={totalIncome + totalExpenses + totalTransfers} />
             </PrivacyFilter>
           </Text>
         </View>
 
-        <CashFlowGraph
-          graphData={graphData}
-          isConcise={isConcise}
-          showBalance={showBalance}
-        />
+        <CashFlowGraph graphData={graphData} isConcise={isConcise} showBalance={showBalance} />
 
         <View
           style={{
@@ -409,10 +366,9 @@ function CashFlowInner({ widget }: CashFlowInnerProps) {
               <strong>How is cash flow calculated?</strong>
             </Paragraph>
             <Paragraph>
-              Cash flow shows the balance of your budgeted accounts over time,
-              and the amount of expenses/income each day or month. Your budgeted
-              accounts are considered to be "cash on hand," so this gives you a
-              picture of how available money fluctuates.
+              Cash flow shows the balance of your budgeted accounts over time, and the amount of
+              expenses/income each day or month. Your budgeted accounts are considered to be "cash
+              on hand," so this gives you a picture of how available money fluctuates.
             </Paragraph>
           </Trans>
         </View>

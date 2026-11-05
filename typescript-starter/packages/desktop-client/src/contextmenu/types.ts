@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { MenuItem } from '@actual-app/components/menu';
+import type {MenuItem} from '@actual-app/components/menu';
 
 export type ContextMenuItem =
   | (Extract<MenuItem, object> & {

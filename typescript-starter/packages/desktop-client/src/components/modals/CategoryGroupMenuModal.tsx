@@ -15,11 +15,11 @@
  */
 
 // @ts-strict-ignore
-import React, { useRef, useState } from 'react';
-import type { ComponentProps } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useRef, useState} from 'react';
+import type {ComponentProps} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
+import {Button} from '@actual-app/components/button';
 import {
   SvgAdd,
   SvgCheveronDown,
@@ -27,37 +27,25 @@ import {
   SvgDotsHorizontalTriple,
   SvgTrash,
 } from '@actual-app/components/icons/v1';
-import {
-  SvgNotesPaper,
-  SvgViewHide,
-  SvgViewShow,
-} from '@actual-app/components/icons/v2';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import {SvgNotesPaper, SvgViewHide, SvgViewShow} from '@actual-app/components/icons/v2';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
 
-import {
-  Modal,
-  ModalCloseButton,
-  ModalHeader,
-  ModalTitle,
-} from '#components/common/Modal';
-import { CategoryGroupActionMenu } from '#components/mobile/budget/CategoryGroupActionMenu';
-import { Notes } from '#components/Notes';
-import { useCategories } from '#hooks/useCategories';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useNotes } from '#hooks/useNotes';
-import { useUndo } from '#hooks/useUndo';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {Modal, ModalCloseButton, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {CategoryGroupActionMenu} from '#components/mobile/budget/CategoryGroupActionMenu';
+import {Notes} from '#components/Notes';
+import {useCategories} from '#hooks/useCategories';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useNotes} from '#hooks/useNotes';
+import {useUndo} from '#hooks/useUndo';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
-type CategoryGroupMenuModalProps = Extract<
-  ModalType,
-  { name: 'category-group-menu' }
->['options'];
+type CategoryGroupMenuModalProps = Extract<ModalType, {name: 'category-group-menu'}>['options'];
 
 export function CategoryGroupMenuModal({
   groupId,
@@ -71,13 +59,12 @@ export function CategoryGroupMenuModal({
   onSortCategories,
 }: CategoryGroupMenuModalProps) {
   const [showMore, setShowMore] = useState(false);
-  const { data: { grouped: categoryGroups } = { grouped: [] } } =
-    useCategories();
+  const {data: {grouped: categoryGroups} = {grouped: []}} = useCategories();
   const group = categoryGroups.find(g => g.id === groupId);
   const notes = useNotes(group.id);
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
   const isGoalTemplatesEnabled = useFeatureFlag('goalTemplatesEnabled');
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const onRename = newName => {
     if (newName && newName !== group.name) {
@@ -109,9 +96,7 @@ export function CategoryGroupMenuModal({
   };
 
   const _onApplyBudgetTemplatesInGroup = () => {
-    onApplyBudgetTemplatesInGroup?.(
-      group.categories.filter(c => !c.hidden).map(c => c.id),
-    );
+    onApplyBudgetTemplatesInGroup?.(group.categories.filter(c => !c.hidden).map(c => c.id));
   };
 
   const hasMultipleCategories = (group.categories?.length ?? 0) > 1;
@@ -155,7 +140,7 @@ export function CategoryGroupMenuModal({
         },
       }}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             leftContent={
@@ -168,13 +153,7 @@ export function CategoryGroupMenuModal({
                 onClose={() => state.close()}
               />
             }
-            title={
-              <ModalTitle
-                isEditable
-                title={group.name}
-                onTitleUpdate={onRename}
-              />
-            }
+            title={<ModalTitle isEditable title={group.name} onTitleUpdate={onRename} />}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
           <View
@@ -214,15 +193,11 @@ export function CategoryGroupMenuModal({
               }}
             >
               <Button style={buttonStyle} onPress={_onAddCategory}>
-                <SvgAdd width={17} height={17} style={{ paddingRight: 5 }} />
+                <SvgAdd width={17} height={17} style={{paddingRight: 5}} />
                 <Trans>Add category</Trans>
               </Button>
               <Button style={buttonStyle} onPress={_onEditNotes}>
-                <SvgNotesPaper
-                  width={20}
-                  height={20}
-                  style={{ paddingRight: 5 }}
-                />
+                <SvgNotesPaper width={20} height={20} style={{paddingRight: 5}} />
                 <Trans>Edit notes</Trans>
               </Button>
               {isGoalTemplatesEnabled && (
@@ -240,17 +215,9 @@ export function CategoryGroupMenuModal({
                   onPress={onShowMore}
                 >
                   {!showMore ? (
-                    <SvgCheveronUp
-                      width={30}
-                      height={30}
-                      style={{ paddingRight: 5 }}
-                    />
+                    <SvgCheveronUp width={30} height={30} style={{paddingRight: 5}} />
                   ) : (
-                    <SvgCheveronDown
-                      width={30}
-                      height={30}
-                      style={{ paddingRight: 5 }}
-                    />
+                    <SvgCheveronDown width={30} height={30} style={{paddingRight: 5}} />
                   )}
                   <Trans>Actions</Trans>
                 </Button>
@@ -258,7 +225,7 @@ export function CategoryGroupMenuModal({
             </View>
             {showMore && (
               <CategoryGroupActionMenu
-                style={{ overflowY: 'auto', paddingTop: 10 }}
+                style={{overflowY: 'auto', paddingTop: 10}}
                 getItemStyle={() => defaultMenuItemStyle}
                 onApplyBudgetTemplatesInGroup={() => {
                   _onApplyBudgetTemplatesInGroup();
@@ -284,7 +251,7 @@ function AdditionalCategoryGroupMenu({
   onSortDesc,
   onClose,
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const triggerRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const itemStyle: CSSProperties = {
@@ -294,7 +261,7 @@ function AdditionalCategoryGroupMenu({
 
   const getItemStyle = item => ({
     ...itemStyle,
-    ...(item.name === 'delete' && { color: theme.errorTextMenu }),
+    ...(item.name === 'delete' && {color: theme.errorTextMenu}),
   });
 
   return (
@@ -308,11 +275,7 @@ function AdditionalCategoryGroupMenu({
             setMenuOpen(true);
           }}
         >
-          <SvgDotsHorizontalTriple
-            width={17}
-            height={17}
-            style={{ color: 'currentColor' }}
-          />
+          <SvgDotsHorizontalTriple width={17} height={17} style={{color: 'currentColor'}} />
           <Popover
             triggerRef={triggerRef}
             isOpen={menuOpen}
@@ -345,8 +308,8 @@ function AdditionalCategoryGroupMenu({
                   ...(onSortAsc && onSortDesc
                     ? [
                         Menu.line,
-                        { name: 'sort-asc', text: t('Sort A to Z') },
-                        { name: 'sort-desc', text: t('Sort Z to A') },
+                        {name: 'sort-asc', text: t('Sort A to Z')},
+                        {name: 'sort-desc', text: t('Sort Z to A')},
                       ]
                     : []),
                 ].filter(i => i != null) as ComponentProps<typeof Menu>['items']

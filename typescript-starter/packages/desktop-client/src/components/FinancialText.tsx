@@ -15,11 +15,11 @@
  */
 
 import React from 'react';
-import type { ComponentPropsWithoutRef, ElementType } from 'react';
+import type {ComponentPropsWithoutRef, ElementType} from 'react';
 
-import { styles } from '@actual-app/components/styles';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
+import {styles} from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
 
 type FinancialTextProps<T extends ElementType = typeof Text> = {
   as?: T;
@@ -33,5 +33,5 @@ export function FinancialText<T extends ElementType = typeof Text>({
 }: FinancialTextProps<T>) {
   const Component = as ?? Text;
 
-  return <Component {...props} style={{ ...style, ...styles.tnum }} />;
+  return <Component {...props} style={{...style, ...styles.tnum}} />;
 }

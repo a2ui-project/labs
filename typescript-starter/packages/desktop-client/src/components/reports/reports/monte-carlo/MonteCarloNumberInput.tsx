@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+import {useEffect, useRef, useState} from 'react';
+import type {CSSProperties} from 'react';
 
-import { Input } from '@actual-app/components/input';
-import { css } from '@emotion/css';
+import {Input} from '@actual-app/components/input';
+import {css} from '@emotion/css';
 
 // Plain numeric text input - no browser spin buttons
 const NUMBER_INPUT_CLASS = css({

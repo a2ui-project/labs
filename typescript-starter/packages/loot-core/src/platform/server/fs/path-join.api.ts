@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { join } from 'path';
+export {join} from 'path';

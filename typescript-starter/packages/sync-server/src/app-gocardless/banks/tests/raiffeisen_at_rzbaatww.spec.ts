@@ -15,7 +15,7 @@
  */
 
 import RaiffeisenAtRzbaatww from '#app-gocardless/banks/raiffeisen_at_rzbaatww';
-import { mockTransactionAmount } from '#app-gocardless/services/tests/fixtures';
+import {mockTransactionAmount} from '#app-gocardless/services/tests/fixtures';
 
 describe('raiffeisen_at', () => {
   describe('#normalizeTransaction', () => {
@@ -29,10 +29,7 @@ describe('raiffeisen_at', () => {
         internalTransactionId: '01234567890123456789',
       };
 
-      const normalizedTransaction = RaiffeisenAtRzbaatww.normalizeTransaction(
-        transaction,
-        true,
-      );
+      const normalizedTransaction = RaiffeisenAtRzbaatww.normalizeTransaction(transaction, true);
 
       expect(normalizedTransaction?.payeeName).toEqual('NOTHING STRUCTURED');
     });
@@ -47,10 +44,7 @@ describe('raiffeisen_at', () => {
         internalTransactionId: '01234567890123456789',
       };
 
-      const normalizedTransaction = RaiffeisenAtRzbaatww.normalizeTransaction(
-        transaction,
-        true,
-      );
+      const normalizedTransaction = RaiffeisenAtRzbaatww.normalizeTransaction(transaction, true);
 
       expect(normalizedTransaction?.payeeName).toEqual('Company Abcd');
     });
@@ -69,13 +63,8 @@ describe('raiffeisen_at', () => {
         additionalInformation: 'more info',
         internalTransactionId: '01234567890123456789',
       };
-      const normalizedTransaction = RaiffeisenAtRzbaatww.normalizeTransaction(
-        transaction,
-        true,
-      );
-      expect(normalizedTransaction?.payeeName).toEqual(
-        'Reci Pient (AT20 XXX 8935)',
-      );
+      const normalizedTransaction = RaiffeisenAtRzbaatww.normalizeTransaction(transaction, true);
+      expect(normalizedTransaction?.payeeName).toEqual('Reci Pient (AT20 XXX 8935)');
     });
 
     it('returns the unstructured information for POS transactions without payee name or useful structured information', () => {
@@ -85,17 +74,11 @@ describe('raiffeisen_at', () => {
         valueDate: '2025-01-01',
         transactionAmount: mockTransactionAmount,
         remittanceInformationUnstructured: 'COMPANY NAME CITY 1010',
-        remittanceInformationStructured:
-          'POS           1,11 AT  D4   01.01. 13:37',
+        remittanceInformationStructured: 'POS           1,11 AT  D4   01.01. 13:37',
         internalTransactionId: '01234567890123456789',
       };
-      const normalizedTransaction = RaiffeisenAtRzbaatww.normalizeTransaction(
-        transaction,
-        true,
-      );
-      expect(normalizedTransaction?.payeeName).toEqual(
-        'Company Name City 1010',
-      );
+      const normalizedTransaction = RaiffeisenAtRzbaatww.normalizeTransaction(transaction, true);
+      expect(normalizedTransaction?.payeeName).toEqual('Company Name City 1010');
     });
 
     it('returns the endToEndId in notes if no structured or unstructured remittance information is present', () => {
@@ -108,10 +91,7 @@ describe('raiffeisen_at', () => {
         endToEndId: 'Transaction 1234',
         internalTransactionId: '01234567890123456789',
       };
-      const normalizedTransaction = RaiffeisenAtRzbaatww.normalizeTransaction(
-        transaction,
-        true,
-      );
+      const normalizedTransaction = RaiffeisenAtRzbaatww.normalizeTransaction(transaction, true);
       expect(normalizedTransaction?.notes).toEqual('Transaction 1234');
     });
   });

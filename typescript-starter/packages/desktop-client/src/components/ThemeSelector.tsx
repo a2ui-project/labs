@@ -14,35 +14,31 @@
  * limitations under the License.
  */
 
-import React, { useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useRef, useState} from 'react';
+import type {CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import {
-  SvgMoonStars,
-  SvgSun,
-  SvgSystem,
-} from '@actual-app/components/icons/v2';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { Tooltip } from '@actual-app/components/tooltip';
-import type { Theme } from '@actual-app/core/types/prefs';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgMoonStars, SvgSun, SvgSystem} from '@actual-app/components/icons/v2';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {Tooltip} from '@actual-app/components/tooltip';
+import type {Theme} from '@actual-app/core/types/prefs';
 
-import { themeOptions, useTheme } from '#style';
+import {themeOptions, useTheme} from '#style';
 
 type ThemeSelectorProps = {
   style?: CSSProperties;
 };
 
-export function ThemeSelector({ style }: ThemeSelectorProps) {
+export function ThemeSelector({style}: ThemeSelectorProps) {
   const [theme, switchTheme] = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef(null);
 
-  const { isNarrowWidth } = useResponsive();
-  const { t } = useTranslation();
+  const {isNarrowWidth} = useResponsive();
+  const {t} = useTranslation();
 
   const themeIcons = {
     light: SvgSun,
@@ -69,7 +65,7 @@ export function ThemeSelector({ style }: ThemeSelectorProps) {
       <Tooltip
         placement="bottom end"
         content={<Trans>Switch theme</Trans>}
-        triggerProps={{ isDisabled: menuOpen }}
+        triggerProps={{isDisabled: menuOpen}}
       >
         <Button
           ref={triggerRef}
@@ -78,7 +74,7 @@ export function ThemeSelector({ style }: ThemeSelectorProps) {
           onPress={() => setMenuOpen(true)}
           style={style}
         >
-          <Icon style={{ width: 13, height: 13, color: 'inherit' }} />
+          <Icon style={{width: 13, height: 13, color: 'inherit'}} />
         </Button>
       </Tooltip>
 
@@ -90,7 +86,7 @@ export function ThemeSelector({ style }: ThemeSelectorProps) {
       >
         <Menu
           onMenuSelect={onMenuSelect}
-          items={themeOptions.map(([name, text]) => ({ name, text }))}
+          items={themeOptions.map(([name, text]) => ({name, text}))}
         />
       </Popover>
     </>

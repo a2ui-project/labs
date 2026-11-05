@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-import { createContext, useContext, useEffect, useMemo } from 'react';
-import type { ReactNode } from 'react';
+import {createContext, useContext, useEffect, useMemo} from 'react';
+import type {ReactNode} from 'react';
 
-import { listen, send } from '@actual-app/core/platform/client/connection';
-import type { Query } from '@actual-app/core/shared/query';
-import { LRUCache } from 'lru-cache';
+import {listen, send} from '@actual-app/core/platform/client/connection';
+import type {Query} from '@actual-app/core/shared/query';
+import {LRUCache} from 'lru-cache';
 
 type SpreadsheetContextValue = ReturnType<typeof makeSpreadsheet>;
-const SpreadsheetContext = createContext<SpreadsheetContextValue | undefined>(
-  undefined,
-);
+const SpreadsheetContext = createContext<SpreadsheetContextValue | undefined>(undefined);
 
 export function useSpreadsheet() {
   const context = useContext(SpreadsheetContext);
@@ -35,18 +33,18 @@ export function useSpreadsheet() {
 }
 
 // TODO: Make this generic and replace the Binding type in the desktop-client package.
-type Binding = string | { name: string; query?: Query | undefined };
+type Binding = string | {name: string; query?: Query | undefined};
 
-type CellCacheValue = { name: string; value: string | number | boolean | null };
-type CellCache = { [name: string]: Promise<CellCacheValue> | null };
+type CellCacheValue = {name: string; value: string | number | boolean | null};
+type CellCache = {[name: string]: Promise<CellCacheValue> | null};
 type CellObserverCallback = (node: CellCacheValue) => void;
-type CellObservers = { [name: string]: CellObserverCallback[] };
+type CellObservers = {[name: string]: CellObserverCallback[]};
 
 const GLOBAL_SHEET_NAME = '__global';
 
 function makeSpreadsheet() {
   const cellObservers: CellObservers = {};
-  const LRUValueCache = new LRUCache<string, CellCacheValue>({ max: 1200 });
+  const LRUValueCache = new LRUCache<string, CellCacheValue>({max: 1200});
   const cellCache: CellCache = {};
   let observersDisabled = false;
 
@@ -99,7 +97,7 @@ function makeSpreadsheet() {
       binding: Binding,
       callback: CellObserverCallback,
     ): () => void {
-      binding = typeof binding === 'string' ? { name: binding } : binding;
+      binding = typeof binding === 'string' ? {name: binding} : binding;
 
       if (binding.query) {
         void this.createQuery(sheetName, binding.name, binding.query);
@@ -141,11 +139,11 @@ function makeSpreadsheet() {
     }
 
     get(sheetName: string, name: string) {
-      return send('get-cell', { sheetName, name });
+      return send('get-cell', {sheetName, name});
     }
 
     getCellNames(sheetName: string) {
-      return send('get-cell-names', { sheetName });
+      return send('get-cell-names', {sheetName});
     }
 
     createQuery(sheetName: string, name: string, query: Query) {
@@ -164,16 +162,12 @@ type SpreadsheetProviderProps = {
   children: ReactNode;
 };
 
-export function SpreadsheetProvider({ children }: SpreadsheetProviderProps) {
+export function SpreadsheetProvider({children}: SpreadsheetProviderProps) {
   const spreadsheet = useMemo(() => makeSpreadsheet(), []);
 
   useEffect(() => {
     return spreadsheet.listen();
   }, [spreadsheet]);
 
-  return (
-    <SpreadsheetContext.Provider value={spreadsheet}>
-      {children}
-    </SpreadsheetContext.Provider>
-  );
+  return <SpreadsheetContext.Provider value={spreadsheet}>{children}</SpreadsheetContext.Provider>;
 }

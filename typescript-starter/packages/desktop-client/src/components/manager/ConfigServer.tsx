@@ -15,29 +15,29 @@
  */
 
 // @ts-strict-ignore
-import React, { useCallback, useEffect, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router';
+import React, {useCallback, useEffect, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useLocation} from 'react-router';
 
-import { Button, ButtonWithLoading } from '@actual-app/components/button';
-import { BigInput } from '@actual-app/components/input';
-import { Label } from '@actual-app/components/label';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { isElectron } from '@actual-app/core/shared/environment';
-import { css } from '@emotion/css';
+import {Button, ButtonWithLoading} from '@actual-app/components/button';
+import {BigInput} from '@actual-app/components/input';
+import {Label} from '@actual-app/components/label';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {isElectron} from '@actual-app/core/shared/environment';
+import {css} from '@emotion/css';
 
-import { Link } from '#components/common/Link';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { useServerURL, useSetServerURL } from '#components/ServerContext';
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import { useNavigate } from '#hooks/useNavigate';
-import { saveGlobalPrefs } from '#prefs/prefsSlice';
-import { useDispatch, useSelector } from '#redux';
-import { loggedIn, signOut } from '#users/usersSlice';
+import {Link} from '#components/common/Link';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {useServerURL, useSetServerURL} from '#components/ServerContext';
+import {useGlobalPref} from '#hooks/useGlobalPref';
+import {useNavigate} from '#hooks/useNavigate';
+import {saveGlobalPrefs} from '#prefs/prefsSlice';
+import {useDispatch, useSelector} from '#redux';
+import {loggedIn, signOut} from '#users/usersSlice';
 
-import { Title } from './subscribe/common';
+import {Title} from './subscribe/common';
 
 export function ElectronServerConfig({
   onDoNotUseServer,
@@ -46,18 +46,15 @@ export function ElectronServerConfig({
   onDoNotUseServer: () => void;
   onSetServerConfigView: (view: 'internal' | 'external') => void;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
   const setServerUrl = useSetServerURL();
   const currentUrl = useServerURL();
   const dispatch = useDispatch();
 
-  const [syncServerConfig, setSyncServerConfig] =
-    useGlobalPref('syncServerConfig');
+  const [syncServerConfig, setSyncServerConfig] = useGlobalPref('syncServerConfig');
 
-  const [electronServerPort, setElectronServerPort] = useState(
-    syncServerConfig?.port || 5007,
-  );
+  const [electronServerPort, setElectronServerPort] = useState(syncServerConfig?.port || 5007);
   const [configError, setConfigError] = useState<string | null>(null);
 
   const canShowExternalServerConfig = !syncServerConfig?.port && !currentUrl;
@@ -70,11 +67,7 @@ export function ElectronServerConfig({
       return; // Prevent multiple clicks
     }
 
-    if (
-      isNaN(electronServerPort) ||
-      electronServerPort <= 0 ||
-      electronServerPort > 65535
-    ) {
+    if (isNaN(electronServerPort) || electronServerPort <= 0 || electronServerPort > 65535) {
       setConfigError(t('Ports must be within range 1 - 65535'));
       return;
     }
@@ -108,13 +101,10 @@ export function ElectronServerConfig({
     }
   };
 
-  const [electronSyncServerRunning, setElectronSyncServerRunning] =
-    useState(false);
+  const [electronSyncServerRunning, setElectronSyncServerRunning] = useState(false);
 
   const initElectronSyncServerRunningStatus = async () => {
-    setElectronSyncServerRunning(
-      await window.globalThis.Actual.isSyncServerRunning(),
-    );
+    setElectronSyncServerRunning(await window.globalThis.Actual.isSyncServerRunning());
   };
 
   useEffect(() => {
@@ -149,8 +139,8 @@ export function ElectronServerConfig({
           }}
         >
           <Trans>
-            Set up your server below to enable seamless data synchronization
-            across your devices, bank sync and more...
+            Set up your server below to enable seamless data synchronization across your devices,
+            bank sync and more...
           </Trans>
         </Text>
         <Text
@@ -162,21 +152,14 @@ export function ElectronServerConfig({
         >
           <Trans>
             Need to expose your server to the internet? Follow our step-by-step{' '}
-            <Link
-              variant="external"
-              to="https://actualbudget.org/docs/install/desktop-app"
-            >
+            <Link variant="external" to="https://actualbudget.org/docs/install/desktop-app">
               guide
             </Link>{' '}
             for more information.
           </Trans>
         </Text>
 
-        {configError && (
-          <Text style={{ color: theme.errorText, marginTop: 10 }}>
-            {configError}
-          </Text>
-        )}
+        {configError && <Text style={{color: theme.errorText, marginTop: 10}}>{configError}</Text>}
 
         <View
           style={{
@@ -185,8 +168,8 @@ export function ElectronServerConfig({
             gap: 10,
           }}
         >
-          <View style={{ flexDirection: 'column', gap: 5, flex: 1 }}>
-            <Label title={t('Domain')} style={{ textAlign: 'left' }} />
+          <View style={{flexDirection: 'column', gap: 5, flex: 1}}>
+            <Label title={t('Domain')} style={{textAlign: 'left'}} />
             <BigInput
               value="localhost"
               disabled
@@ -200,11 +183,8 @@ export function ElectronServerConfig({
             />
           </View>
 
-          <View style={{ flexDirection: 'column', gap: 5 }}>
-            <Label
-              title={t('Port')}
-              style={{ textAlign: 'left', width: '7ch' }}
-            />
+          <View style={{flexDirection: 'column', gap: 5}}>
+            <Label title={t('Port')} style={{textAlign: 'left', width: '7ch'}} />
             <BigInput
               name="port"
               value={String(electronServerPort)}
@@ -220,9 +200,7 @@ export function ElectronServerConfig({
               })}
               autoFocus
               maxLength={5}
-              onChange={event =>
-                setElectronServerPort(Number(event.target.value))
-              }
+              onChange={event => setElectronServerPort(Number(event.target.value))}
             />
           </View>
 
@@ -233,11 +211,11 @@ export function ElectronServerConfig({
               justifyContent: 'end',
             }}
           >
-            <Label title={t('')} style={{ textAlign: 'left', width: '7ch' }} />
+            <Label title={t('')} style={{textAlign: 'left', width: '7ch'}} />
             {!electronSyncServerRunning ? (
               <ButtonWithLoading
                 variant="primary"
-                style={{ padding: 10, width: '8ch' }}
+                style={{padding: 10, width: '8ch'}}
                 onPress={onConfigureSyncServer}
                 isLoading={startingSyncServer}
               >
@@ -246,7 +224,7 @@ export function ElectronServerConfig({
             ) : (
               <ButtonWithLoading
                 variant="primary"
-                style={{ padding: 10, width: '8ch' }}
+                style={{padding: 10, width: '8ch'}}
                 onPress={onConfigureSyncServer}
                 isLoading={startingSyncServer}
               >
@@ -269,7 +247,7 @@ export function ElectronServerConfig({
         {hasInternalServerConfig && (
           <Button
             variant="bare"
-            style={{ color: theme.pageTextLight, margin: 5 }}
+            style={{color: theme.pageTextLight, margin: 5}}
             onPress={() => navigate(-1)}
           >
             <Trans>Cancel</Trans>
@@ -277,7 +255,7 @@ export function ElectronServerConfig({
         )}
         <Button
           variant="bare"
-          style={{ color: theme.pageTextLight, margin: 5 }}
+          style={{color: theme.pageTextLight, margin: 5}}
           onPress={dontUseSyncServer}
         >
           <Trans>Don't use a server</Trans>
@@ -285,7 +263,7 @@ export function ElectronServerConfig({
         {canShowExternalServerConfig && (
           <Button
             variant="bare"
-            style={{ color: theme.pageTextLight, margin: 5 }}
+            style={{color: theme.pageTextLight, margin: 5}}
             onPress={() => onSetServerConfigView('external')}
           >
             <Trans>Use an external server</Trans>
@@ -297,7 +275,7 @@ export function ElectronServerConfig({
 }
 
 export function ConfigServer() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -328,9 +306,7 @@ export function ConfigServer() {
           'Connection failed. If you use a self-signed certificate or were recently offline, try refreshing the page. Otherwise ensure you have HTTPS set up properly.',
         );
       default:
-        return t(
-          'Server does not look like an Actual server. Is it set up correctly?',
-        );
+        return t('Server does not look like an Actual server. Is it set up correctly?');
     }
   }
 
@@ -347,7 +323,7 @@ export function ConfigServer() {
       httpUrl = 'https://' + url;
     }
 
-    const { error } = await setServerUrl(httpUrl);
+    const {error} = await setServerUrl(httpUrl);
     setUrl(httpUrl);
 
     if (error) {
@@ -390,9 +366,7 @@ export function ConfigServer() {
 
   const hasExternalServerConfig = !syncServerConfig?.port && !!currentUrl;
 
-  const [serverConfigView, onSetServerConfigView] = useState<
-    'internal' | 'external'
-  >(() => {
+  const [serverConfigView, onSetServerConfigView] = useState<'internal' | 'external'>(() => {
     if (isElectron() && !hasExternalServerConfig) {
       return 'internal';
     }
@@ -401,12 +375,10 @@ export function ConfigServer() {
   });
 
   return (
-    <View style={{ maxWidth: 500, marginTop: -30 }}>
+    <View style={{maxWidth: 500, marginTop: -30}}>
       {(userData || currentUrl) && (
         <MobileBackButton
-          onPress={() =>
-            location.key !== 'default' ? navigate(-1) : navigate('/')
-          }
+          onPress={() => (location.key !== 'default' ? navigate(-1) : navigate('/'))}
           style={{
             position: 'fixed',
             top: 'calc(10px + env(safe-area-inset-top))',
@@ -434,14 +406,14 @@ export function ConfigServer() {
           >
             {currentUrl ? (
               <Trans>
-                Existing sessions will be logged out and you will log in to this
-                server. We will validate that Actual is running at this URL.
+                Existing sessions will be logged out and you will log in to this server. We will
+                validate that Actual is running at this URL.
               </Trans>
             ) : (
               <Trans>
-                A sync server keeps your budget up to date across all your
-                devices and unlocks features like bank syncing. It is completely
-                optional: Actual works great on just this device too.
+                A sync server keeps your budget up to date across all your devices and unlocks
+                features like bank syncing. It is completely optional: Actual works great on just
+                this device too.
               </Trans>
             )}
           </Text>
@@ -455,8 +427,7 @@ export function ConfigServer() {
               }}
             >
               <Trans>
-                If you already run a server, enter its URL below. Otherwise you
-                can{' '}
+                If you already run a server, enter its URL below. Otherwise you can{' '}
                 <Link
                   variant="external"
                   to="https://actualbudget.org/docs/install/"
@@ -499,7 +470,7 @@ export function ConfigServer() {
                       If the server is using a self-signed certificate{' '}
                       <Link
                         variant="text"
-                        style={{ fontSize: 15 }}
+                        style={{fontSize: 15}}
                         onClick={onSelectSelfSignedCertificate}
                       >
                         select it here
@@ -511,21 +482,19 @@ export function ConfigServer() {
               )}
             </>
           )}
-          <View
-            style={{ display: 'flex', flexDirection: 'row', marginTop: 30 }}
-          >
+          <View style={{display: 'flex', flexDirection: 'row', marginTop: 30}}>
             <BigInput
               autoFocus
               placeholder={t('https://example.com')}
               value={url || ''}
               onChangeValue={setUrl}
-              style={{ flex: 1, marginRight: 10 }}
+              style={{flex: 1, marginRight: 10}}
               onEnter={onSubmit}
             />
             <ButtonWithLoading
               variant="primary"
               isLoading={loading}
-              style={{ fontSize: 15 }}
+              style={{fontSize: 15}}
               onPress={onSubmit}
             >
               <Trans>Connect</Trans>
@@ -539,30 +508,18 @@ export function ConfigServer() {
             }}
           >
             {currentUrl ? (
-              <Button
-                variant="bare"
-                style={{ color: theme.pageTextLink }}
-                onPress={onSkip}
-              >
+              <Button variant="bare" style={{color: theme.pageTextLink}} onPress={onSkip}>
                 <Trans>Stop using a server</Trans>
               </Button>
             ) : (
               <>
                 {!isElectron() && (
-                  <Button
-                    variant="bare"
-                    style={{ color: theme.pageTextLink }}
-                    onPress={onSameDomain}
-                  >
+                  <Button variant="bare" style={{color: theme.pageTextLink}} onPress={onSameDomain}>
                     <Trans>Use the current domain</Trans>
                   </Button>
                 )}
                 {!userData && (
-                  <Button
-                    variant="bare"
-                    style={{ color: theme.pageTextLink }}
-                    onPress={onSkip}
-                  >
+                  <Button variant="bare" style={{color: theme.pageTextLink}} onPress={onSkip}>
                     <Trans>Don't use a server</Trans>
                   </Button>
                 )}

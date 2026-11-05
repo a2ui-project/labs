@@ -23,7 +23,7 @@ export function unresolveName(name) {
       name: name.slice(idx + 1),
     };
   }
-  return { sheet: null, name };
+  return {sheet: null, name};
 }
 
 export function resolveName(sheet: string, name: string): string {

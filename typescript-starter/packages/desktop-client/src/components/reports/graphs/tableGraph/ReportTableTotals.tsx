@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import React, { useLayoutEffect, useState } from 'react';
-import type { CSSProperties, ReactNode, RefObject } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useLayoutEffect, useState} from 'react';
+import type {CSSProperties, ReactNode, RefObject} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { DataEntity, GroupedEntity } from '@actual-app/core/types/models';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {DataEntity, GroupedEntity} from '@actual-app/core/types/models';
 
-import type { renderTotalsProps } from './ReportTable';
+import type {renderTotalsProps} from './ReportTable';
 
 type RenderTotalsRowProps = {
   metadata: GroupedEntity;
@@ -71,7 +71,7 @@ export function ReportTableTotals({
   style,
   renderTotals,
 }: ReportTableTotalsProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [scrollWidthTotals, setScrollWidthTotals] = useState(0);
 
   useLayoutEffect(() => {

@@ -15,13 +15,13 @@
  */
 
 import React from 'react';
-import type { CSSProperties, HTMLProps } from 'react';
+import type {CSSProperties, HTMLProps} from 'react';
 
-import { Button } from '@actual-app/components/button';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
+import {Button} from '@actual-app/components/button';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
 
 type GraphButtonProps = HTMLProps<HTMLButtonElement> & {
   selected?: boolean;
@@ -43,7 +43,7 @@ export const GraphButton = ({
     <Tooltip
       placement="bottom start"
       content={<Text>{title}</Text>}
-      style={{ ...styles.tooltip, lineHeight: 1.5, padding: '6px 10px' }}
+      style={{...styles.tooltip, lineHeight: 1.5, padding: '6px 10px'}}
     >
       <Button
         variant="bare"

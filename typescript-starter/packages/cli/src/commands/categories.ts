@@ -15,16 +15,14 @@
  */
 
 import * as api from '@actual-app/api';
-import type { Command } from 'commander';
+import type {Command} from 'commander';
 
-import { withConnection } from '#connection';
-import { printOutput } from '#output';
-import { parseBoolFlag } from '#utils';
+import {withConnection} from '#connection';
+import {printOutput} from '#output';
+import {parseBoolFlag} from '#utils';
 
 export function registerCategoriesCommand(program: Command) {
-  const categories = program
-    .command('categories')
-    .description('Manage categories');
+  const categories = program.command('categories').description('Manage categories');
 
   categories
     .command('list')
@@ -35,12 +33,10 @@ export function registerCategoriesCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const result = await api.getCategories(
-            cmdOpts.includeHidden ? {} : { hidden: false },
-          );
+          const result = await api.getCategories(cmdOpts.includeHidden ? {} : {hidden: false});
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -61,9 +57,9 @@ export function registerCategoriesCommand(program: Command) {
             is_income: cmdOpts.isIncome,
             hidden: false,
           });
-          printOutput({ id }, opts.format);
+          printOutput({id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -86,9 +82,9 @@ export function registerCategoriesCommand(program: Command) {
         opts,
         async () => {
           await api.updateCategory(id, fields);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -102,9 +98,9 @@ export function registerCategoriesCommand(program: Command) {
         opts,
         async () => {
           await api.deleteCategory(id, cmdOpts.transferTo);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 }

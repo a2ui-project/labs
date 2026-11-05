@@ -16,27 +16,19 @@
 
 // @ts-strict-ignore
 import React from 'react';
-import type { ComponentPropsWithoutRef, CSSProperties, ReactNode } from 'react';
+import type {ComponentPropsWithoutRef, CSSProperties, ReactNode} from 'react';
 
-import { Text } from '@actual-app/components/text';
+import {Text} from '@actual-app/components/text';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { useSheetName } from '#hooks/useSheetName';
-import { useSheetValue } from '#hooks/useSheetValue';
-import type {
-  Binding,
-  SheetFields,
-  SheetNames,
-  Spreadsheets,
-} from '#spreadsheet';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {useSheetName} from '#hooks/useSheetName';
+import {useSheetValue} from '#hooks/useSheetValue';
+import type {Binding, SheetFields, SheetNames, Spreadsheets} from '#spreadsheet';
 
-type CellValueProps<
-  SheetName extends SheetNames,
-  FieldName extends SheetFields<SheetName>,
-> = {
+type CellValueProps<SheetName extends SheetNames, FieldName extends SheetFields<SheetName>> = {
   children?: ({
     type,
     name,
@@ -50,22 +42,19 @@ type CellValueProps<
   type?: FormatType;
 };
 
-export function CellValue<
-  SheetName extends SheetNames,
-  FieldName extends SheetFields<SheetName>,
->({ type, binding, children, ...props }: CellValueProps<SheetName, FieldName>) {
-  const { fullSheetName } = useSheetName(binding);
+export function CellValue<SheetName extends SheetNames, FieldName extends SheetFields<SheetName>>({
+  type,
+  binding,
+  children,
+  ...props
+}: CellValueProps<SheetName, FieldName>) {
+  const {fullSheetName} = useSheetName(binding);
   const sheetValue = useSheetValue(binding);
 
   return typeof children === 'function' ? (
-    <>{children({ type, name: fullSheetName, value: sheetValue })}</>
+    <>{children({type, name: fullSheetName, value: sheetValue})}</>
   ) : (
-    <CellValueText
-      type={type}
-      name={fullSheetName}
-      value={sheetValue}
-      {...props}
-    />
+    <CellValueText type={type} name={fullSheetName} value={sheetValue} {...props} />
   );
 }
 
@@ -79,28 +68,16 @@ type CellValueTextProps<
   name: string;
   value: Spreadsheets[SheetName][FieldName];
   style?: CSSProperties;
-  formatter?: (
-    value: Spreadsheets[SheetName][FieldName],
-    type?: FormatType,
-  ) => string;
+  formatter?: (value: Spreadsheets[SheetName][FieldName], type?: FormatType) => string;
 };
 
 export function CellValueText<
   SheetName extends SheetNames,
   FieldName extends SheetFields<SheetName>,
->({
-  type,
-  name,
-  value,
-  formatter,
-  style,
-  ...props
-}: CellValueTextProps<SheetName, FieldName>) {
+>({type, name, value, formatter, style, ...props}: CellValueTextProps<SheetName, FieldName>) {
   const format = useFormat();
   const isFinancial =
-    type === 'financial' ||
-    type === 'financial-with-sign' ||
-    type === 'financial-no-decimals';
+    type === 'financial' || type === 'financial-with-sign' || type === 'financial-no-decimals';
   const sharedProps = {
     style,
     'data-testid': name,
@@ -117,9 +94,7 @@ export function CellValueText<
           ...style,
         }}
       >
-        <PrivacyFilter
-          activationFilters={[PRIVACY_FILTER_TYPES.includes(type)]}
-        >
+        <PrivacyFilter activationFilters={[PRIVACY_FILTER_TYPES.includes(type)]}>
           {formatter ? formatter(value, type) : format(value, type)}
         </PrivacyFilter>
       </FinancialText>

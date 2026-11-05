@@ -15,26 +15,21 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { SvgCalendar } from '@actual-app/components/icons/v2';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {SvgCalendar} from '@actual-app/components/icons/v2';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { useBudgetMonthCount } from './BudgetMonthCountContext';
+import {useBudgetMonthCount} from './BudgetMonthCountContext';
 
 type CalendarProps = {
   color: string;
   onClick: () => void;
 };
 
-function Calendar({ color, onClick }: CalendarProps) {
-  return (
-    <SvgCalendar
-      style={{ width: 13, height: 13, color, marginRight: 5 }}
-      onClick={onClick}
-    />
-  );
+function Calendar({color, onClick}: CalendarProps) {
+  return <SvgCalendar style={{width: 13, height: 13, color, marginRight: 5}} onClick={onClick} />;
 }
 
 type MonthCountSelectorProps = {
@@ -42,13 +37,10 @@ type MonthCountSelectorProps = {
   onChange: (value: number) => void;
 };
 
-export function MonthCountSelector({
-  maxMonths,
-  onChange,
-}: MonthCountSelectorProps) {
-  const { t } = useTranslation();
+export function MonthCountSelector({maxMonths, onChange}: MonthCountSelectorProps) {
+  const {t} = useTranslation();
 
-  const { displayMax } = useBudgetMonthCount();
+  const {displayMax} = useBudgetMonthCount();
 
   // It doesn't make sense to show anything if we can only fit one
   // month

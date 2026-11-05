@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 
 export let tracer: null | ReturnType<typeof execTracer> = null;
 
@@ -37,7 +37,7 @@ export function resetTracer() {
 }
 
 export function execTracer<T>() {
-  const queue: Array<{ name: string; data?: T | undefined }> = [];
+  const queue: Array<{name: string; data?: T | undefined}> = [];
   let hasStarted = false;
   let waitingFor: null | {
     name: string;
@@ -58,35 +58,27 @@ export function execTracer<T>() {
 
       if (ended) {
         throw new Error(
-          `Tracer received event but didn't expect it: ${name} with data: ${JSON.stringify(
-            data,
-          )}`,
+          `Tracer received event but didn't expect it: ${name} with data: ${JSON.stringify(data)}`,
         );
       } else if (waitingFor) {
         if (waitingFor.name !== name) {
-          waitingFor.reject(
-            new Error(
-              `Event traced "${name}" but expected "${waitingFor.name}"`,
-            ),
-          );
+          waitingFor.reject(new Error(`Event traced "${name}" but expected "${waitingFor.name}"`));
         } else {
           waitingFor.resolve(data);
         }
         waitingFor = null;
       } else {
-        queue.push({ name, data });
+        queue.push({name, data});
       }
     },
 
     wait(name: string) {
       if (waitingFor) {
-        throw new Error(
-          `Already waiting for ${waitingFor.name}, cannot wait for multiple events`,
-        );
+        throw new Error(`Already waiting for ${waitingFor.name}, cannot wait for multiple events`);
       }
 
       return new Promise((resolve, reject) => {
-        waitingFor = { resolve, reject, name };
+        waitingFor = {resolve, reject, name};
       });
     },
 
@@ -132,9 +124,7 @@ export function execTracer<T>() {
       const entry = queue.shift();
 
       if (!entry) {
-        throw new Error(
-          `Expected event "${name}" but none found - has it happened yet?`,
-        );
+        throw new Error(`Expected event "${name}" but none found - has it happened yet?`);
       } else if (entry.name === name) {
         if (typeof data === 'function') {
           data(entry.data);
@@ -142,9 +132,7 @@ export function execTracer<T>() {
           expect(entry.data).toEqual(data);
         }
       } else {
-        throw new Error(
-          `Event traced "${queue[0].name}" but expected "${name}"`,
-        );
+        throw new Error(`Event traced "${queue[0].name}" but expected "${name}"`);
       }
     },
 
@@ -162,9 +150,7 @@ export function execTracer<T>() {
     end() {
       if (hasStarted && queue.length !== 0) {
         const str = queue.map(x => JSON.stringify(x));
-        throw new Error(
-          'Event tracer ended with existing events: ' + str.join('\n\n'),
-        );
+        throw new Error('Event tracer ended with existing events: ' + str.join('\n\n'));
       }
       ended = true;
     },

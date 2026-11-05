@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import React, { useMemo } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { Trans } from 'react-i18next';
+import React, {useMemo} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
+import {Trans} from 'react-i18next';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
 import * as monthUtils from '@actual-app/core/shared/months';
 import type {
   AccountEntity,
@@ -30,17 +30,17 @@ import type {
   CustomReportEntity,
   PayeeEntity,
 } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 
-import { ChooseGraph } from '#components/reports/ChooseGraph';
-import { getLiveRange } from '#components/reports/getLiveRange';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportOptions } from '#components/reports/ReportOptions';
-import { createCustomSpreadsheet } from '#components/reports/spreadsheets/custom-spreadsheet';
-import { createGroupedSpreadsheet } from '#components/reports/spreadsheets/grouped-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {ChooseGraph} from '#components/reports/ChooseGraph';
+import {getLiveRange} from '#components/reports/getLiveRange';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportOptions} from '#components/reports/ReportOptions';
+import {createCustomSpreadsheet} from '#components/reports/spreadsheets/custom-spreadsheet';
+import {createGroupedSpreadsheet} from '#components/reports/spreadsheets/grouped-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
 function ErrorFallback() {
   return (
@@ -48,7 +48,7 @@ function ErrorFallback() {
       <div>
         <br />
       </div>
-      <Text style={{ ...styles.mediumText, color: theme.errorText }}>
+      <Text style={{...styles.mediumText, color: theme.errorText}}>
         <Trans>There was a problem loading your report</Trans>
       </Text>
     </>
@@ -94,13 +94,13 @@ export function GetCardData({
   report: CustomReportEntity;
   payees: PayeeEntity[];
   accounts: AccountEntity[];
-  categories: { list: CategoryEntity[]; grouped: CategoryGroupEntity[] };
+  categories: {list: CategoryEntity[]; grouped: CategoryGroupEntity[]};
   earliestTransaction: string;
   latestTransaction: string;
   firstDayOfWeekIdx?: SyncedPrefs['firstDayOfWeekIdx'];
   showTooltip?: boolean;
 }) {
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
 
@@ -197,8 +197,7 @@ export function GetCardData({
   const graphData = useReport('default' + report.name, getGraphData);
   const groupedData = useReport('grouped' + report.name, getGroupData);
 
-  const data =
-    graphData && groupedData ? { ...graphData, groupedData } : graphData;
+  const data = graphData && groupedData ? {...graphData, groupedData} : graphData;
 
   return data?.data ? (
     <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -210,7 +209,7 @@ export function GetCardData({
         groupBy={report.groupBy}
         interval={report.interval}
         compact
-        style={{ height: 'auto', flex: 1 }}
+        style={{height: 'auto', flex: 1}}
         intervalsCount={intervals.length}
         showTrendLines={report.showTrendLines}
         showTooltip={!isNarrowWidth && showTooltip}

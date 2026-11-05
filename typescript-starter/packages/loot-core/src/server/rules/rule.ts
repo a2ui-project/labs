@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { TransactionForRules } from '#server/transactions/transaction-rules';
+import type {TransactionForRules} from '#server/transactions/transaction-rules';
 // @ts-strict-ignore
 import {
   addSplitTransaction,
@@ -23,10 +23,10 @@ import {
   splitTransaction,
   ungroupTransaction,
 } from '#shared/transactions';
-import type { RuleEntity } from '#types/models';
+import type {RuleEntity} from '#types/models';
 
-import { Action } from './action';
-import { Condition } from './condition';
+import {Action} from './action';
+import {Condition} from './condition';
 
 function execNonSplitActions(actions: Action[], transaction) {
   const update = transaction;
@@ -35,20 +35,15 @@ function execNonSplitActions(actions: Action[], transaction) {
 }
 
 function getSplitRemainder(transactions) {
-  const { error } = recalculateSplit(groupTransaction(transactions));
+  const {error} = recalculateSplit(groupTransaction(transactions));
   return error ? error.difference : 0;
 }
 
 function execSplitActions(actions: Action[], transaction) {
-  const splitAmountActions = actions.filter(
-    action => action.op === 'set-split-amount',
-  );
+  const splitAmountActions = actions.filter(action => action.op === 'set-split-amount');
 
   // Convert the transaction to a split transaction.
-  const { data } = splitTransaction(
-    ungroupTransaction(transaction),
-    transaction.id,
-  );
+  const {data} = splitTransaction(ungroupTransaction(transaction), transaction.id);
   let newTransactions: TransactionForRules[] = data;
 
   // Add empty splits, and apply non-set-amount actions.
@@ -56,22 +51,17 @@ function execSplitActions(actions: Action[], transaction) {
   actions.forEach(action => {
     const splitTransactionIndex = (action.options?.splitIndex ?? 0) + 1;
     if (splitTransactionIndex >= newTransactions.length) {
-      const { data } = addSplitTransaction(newTransactions, transaction.id);
+      const {data} = addSplitTransaction(newTransactions, transaction.id);
       newTransactions = data;
     }
     // Keep parent data separate from the child fields changed by split actions.
     newTransactions[splitTransactionIndex].parent_amount = transaction.amount;
-    newTransactions[splitTransactionIndex].parent_notes =
-      transaction.notes ?? '';
-    newTransactions[splitTransactionIndex].parent_imported_payee =
-      transaction.imported_payee ?? '';
-    newTransactions[splitTransactionIndex].parent_payee =
-      transaction.payee ?? '';
-    newTransactions[splitTransactionIndex].parent_account =
-      transaction.account ?? '';
+    newTransactions[splitTransactionIndex].parent_notes = transaction.notes ?? '';
+    newTransactions[splitTransactionIndex].parent_imported_payee = transaction.imported_payee ?? '';
+    newTransactions[splitTransactionIndex].parent_payee = transaction.payee ?? '';
+    newTransactions[splitTransactionIndex].parent_account = transaction.account ?? '';
     newTransactions[splitTransactionIndex].balance = transaction.balance;
-    newTransactions[splitTransactionIndex]._balanceOfPrefetched =
-      transaction._balanceOfPrefetched;
+    newTransactions[splitTransactionIndex]._balanceOfPrefetched = transaction._balanceOfPrefetched;
     action.exec(newTransactions[splitTransactionIndex]);
   });
 
@@ -99,15 +89,11 @@ function execSplitActions(actions: Action[], transaction) {
     remainderActions.forEach(action => {
       const splitTransactionIndex = (action.options?.splitIndex ?? 0) + 1;
       newTransactions[splitTransactionIndex].amount = amountPerRemainderSplit;
-      lastNonFixedTransactionIndex = Math.max(
-        lastNonFixedTransactionIndex,
-        splitTransactionIndex,
-      );
+      lastNonFixedTransactionIndex = Math.max(lastNonFixedTransactionIndex, splitTransactionIndex);
     });
 
     // The last remainder split will be adjusted for any leftovers from rounding.
-    newTransactions[lastNonFixedTransactionIndex].amount +=
-      getSplitRemainder(newTransactions);
+    newTransactions[lastNonFixedTransactionIndex].amount += getSplitRemainder(newTransactions);
   }
 
   // The split index 0 (transaction index 1) is reserved for "Apply to all" actions.
@@ -120,10 +106,7 @@ export function execActions(actions: Action[], transaction) {
   const parentActions = actions.filter(action => !action.options?.splitIndex);
   const childActions = actions.filter(action => action.options?.splitIndex);
   const totalSplitCount =
-    actions.reduce(
-      (prev, cur) => Math.max(prev, cur.options?.splitIndex ?? 0),
-      0,
-    ) + 1;
+    actions.reduce((prev, cur) => Math.max(prev, cur.options?.splitIndex ?? 0), 0) + 1;
 
   const nonSplitResult = execNonSplitActions(parentActions, transaction);
   if (totalSplitCount === 1) {
@@ -162,12 +145,8 @@ export class Rule {
     this.id = id;
     this.stage = stage ?? null;
     this.conditionsOp = conditionsOp;
-    this.conditions = conditions.map(
-      c => new Condition(c.op, c.field, c.value, c.options),
-    );
-    this.actions = actions.map(
-      a => new Action(a.op, a.field, a.value, a.options),
-    );
+    this.conditions = conditions.map(c => new Condition(c.op, c.field, c.value, c.options));
+    this.actions = actions.map(a => new Action(a.op, a.field, a.value, a.options));
   }
 
   evalConditions(object): boolean {

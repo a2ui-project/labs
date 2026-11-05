@@ -15,26 +15,26 @@
  */
 
 import React from 'react';
-import type { CSSProperties, MouseEventHandler } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {CSSProperties, MouseEventHandler} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import {Block} from '@actual-app/components/block';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
 
 import {
   useEnvelopeSheetName,
   useEnvelopeSheetValue,
 } from '#components/budget/envelope/EnvelopeBudgetComponents';
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { useFormat } from '#hooks/useFormat';
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {useFormat} from '#hooks/useFormat';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
-import { TotalsList } from './TotalsList';
+import {TotalsList} from './TotalsList';
 
 type ToBudgetAmountProps = {
   prevMonthName: string;
@@ -53,7 +53,7 @@ export function ToBudgetAmount({
   isTotalsListTooltipDisabled = false,
   onContextMenu,
 }: ToBudgetAmountProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const sheetName = useEnvelopeSheetName(envelopeBudget.toBudget);
   const sheetValue = useEnvelopeSheetValue({
     name: envelopeBudget.toBudget,
@@ -62,16 +62,14 @@ export function ToBudgetAmount({
   const format = useFormat();
   const availableValue = sheetValue;
   if (typeof availableValue !== 'number' && availableValue !== null) {
-    throw new Error(
-      'Expected availableValue to be a number but got ' + availableValue,
-    );
+    throw new Error('Expected availableValue to be a number but got ' + availableValue);
   }
   const num = availableValue ?? 0;
   const isNegative = num < 0;
   const isPositive = num > 0;
 
   return (
-    <View style={{ alignItems: 'center', ...style }}>
+    <View style={{alignItems: 'center', ...style}}>
       <Block>{isNegative ? t('Overbudgeted:') : t('To Budget:')}</Block>
       <View>
         <Tooltip
@@ -85,7 +83,7 @@ export function ToBudgetAmount({
           }
           placement="bottom"
           offset={3}
-          triggerProps={{ isDisabled: isTotalsListTooltipDisabled }}
+          triggerProps={{isDisabled: isTotalsListTooltipDisabled}}
         >
           <PrivacyFilter
             style={{

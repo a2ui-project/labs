@@ -15,54 +15,46 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { Form } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Form} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button, ButtonWithLoading } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { BigInput } from '@actual-app/components/input';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button, ButtonWithLoading} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {BigInput} from '@actual-app/components/input';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { Link } from '#components/common/Link';
-import {
-  Modal,
-  ModalButtons,
-  ModalCloseButton,
-  ModalHeader,
-} from '#components/common/Modal';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { getTestKeyError } from '#util/error';
+import {Link} from '#components/common/Link';
+import {Modal, ModalButtons, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {getTestKeyError} from '#util/error';
 
-type FixEncryptionKeyModalProps = Extract<
-  ModalType,
-  { name: 'fix-encryption-key' }
->['options'];
+type FixEncryptionKeyModalProps = Extract<ModalType, {name: 'fix-encryption-key'}>['options'];
 
 export function FixEncryptionKeyModal({
   cloudFileId,
   hasExistingKey,
   onSuccess,
 }: FixEncryptionKeyModalProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   async function onUpdateKey(close: () => void) {
     if (password !== '' && !loading) {
       setLoading(true);
       setError(null);
 
-      const { error } = await send('key-test', {
+      const {error} = await send('key-test', {
         password,
         cloudFileId,
       });
@@ -79,14 +71,10 @@ export function FixEncryptionKeyModal({
 
   return (
     <Modal name="fix-encryption-key">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
-            title={
-              hasExistingKey
-                ? t('Decrypt budget file')
-                : t('This file is encrypted')
-            }
+            title={hasExistingKey ? t('Decrypt budget file') : t('This file is encrypted')}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
           <View
@@ -136,7 +124,7 @@ export function FixEncryptionKeyModal({
                 alignItems: 'center',
               }}
             >
-              <Text style={{ fontWeight: 600, marginBottom: 5 }}>
+              <Text style={{fontWeight: 600, marginBottom: 5}}>
                 <Trans>Password</Trans>
               </Text>{' '}
               {error && (
@@ -161,18 +149,15 @@ export function FixEncryptionKeyModal({
                   onChangeValue={setPassword}
                 />
               </InitialFocus>
-              <Text style={{ marginTop: 5 }}>
-                <label style={{ userSelect: 'none' }}>
-                  <input
-                    type="checkbox"
-                    onClick={() => setShowPassword(!showPassword)}
-                  />{' '}
+              <Text style={{marginTop: 5}}>
+                <label style={{userSelect: 'none'}}>
+                  <input type="checkbox" onClick={() => setShowPassword(!showPassword)} />{' '}
                   <Trans>Show password</Trans>
                 </label>
               </Text>
             </View>
 
-            <ModalButtons style={{ marginTop: 20 }}>
+            <ModalButtons style={{marginTop: 20}}>
               <Button
                 variant="normal"
                 style={{

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import type { MobileBankSyncPage } from './page-models/mobile-bank-sync-page';
-import { MobileNavigation } from './page-models/mobile-navigation';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import type {MobileBankSyncPage} from './page-models/mobile-bank-sync-page';
+import {MobileNavigation} from './page-models/mobile-navigation';
 
 test.describe('Mobile Bank Sync', () => {
   let page: Page;
@@ -27,7 +27,7 @@ test.describe('Mobile Bank Sync', () => {
   let bankSyncPage: MobileBankSyncPage;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new MobileNavigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -50,15 +50,10 @@ test.describe('Mobile Bank Sync', () => {
   test('checks the page visuals', async () => {
     await bankSyncPage.waitToLoad();
 
-    await expect(
-      page.getByRole('heading', { name: 'Bank Sync' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', {name: 'Bank Sync'})).toBeVisible();
 
     await expect(bankSyncPage.searchBox).toBeVisible();
-    await expect(bankSyncPage.searchBox).toHaveAttribute(
-      'placeholder',
-      'Filter accounts…',
-    );
+    await expect(bankSyncPage.searchBox).toHaveAttribute('placeholder', 'Filter accounts…');
 
     await expect(page).toMatchThemeScreenshots();
   });

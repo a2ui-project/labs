@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 
-import { resolveBuildRun } from './resolve.mjs';
+import {resolveBuildRun} from './resolve.mjs';
 
 describe('resolveBuildRun', () => {
   it('selects the exact commit and rejects a stale API result', async () => {
@@ -24,22 +24,20 @@ describe('resolveBuildRun', () => {
     const staleRun = {
       id: 30768952310,
       head_sha: '4e5c0d5f87f1c4277b12a1811023a03db9ccb4b8',
-      html_url:
-        'https://github.com/actualbudget/actual/actions/runs/30768952310',
+      html_url: 'https://github.com/actualbudget/actual/actions/runs/30768952310',
     };
     const expectedRun = {
       id: 32157684269,
       head_sha: expectedSha,
-      html_url:
-        'https://github.com/actualbudget/actual/actions/runs/32157684269',
+      html_url: 'https://github.com/actualbudget/actual/actions/runs/32157684269',
     };
     const listWorkflowRuns = vi.fn().mockResolvedValue({
-      data: { workflow_runs: [staleRun, expectedRun] },
+      data: {workflow_runs: [staleRun, expectedRun]},
     });
     const sleep = vi.fn();
 
     const run = await resolveBuildRun({
-      github: { rest: { actions: { listWorkflowRuns } } },
+      github: {rest: {actions: {listWorkflowRuns}}},
       owner: 'actualbudget',
       repo: 'actual',
       headSha: expectedSha,
@@ -64,14 +62,12 @@ describe('resolveBuildRun', () => {
   });
 
   it('fails when no successful run exists for the commit', async () => {
-    const listWorkflowRuns = vi
-      .fn()
-      .mockResolvedValue({ data: { workflow_runs: [] } });
+    const listWorkflowRuns = vi.fn().mockResolvedValue({data: {workflow_runs: []}});
     const now = vi.fn().mockReturnValueOnce(0).mockReturnValue(11);
 
     await expect(
       resolveBuildRun({
-        github: { rest: { actions: { listWorkflowRuns } } },
+        github: {rest: {actions: {listWorkflowRuns}}},
         owner: 'actualbudget',
         repo: 'actual',
         headSha: 'base-sha',

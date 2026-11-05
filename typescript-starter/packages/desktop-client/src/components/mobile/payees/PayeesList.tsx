@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import { GridList, ListLayout, Virtualizer } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import {GridList, ListLayout, Virtualizer} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { PayeeEntity } from '@actual-app/core/types/models';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {PayeeEntity} from '@actual-app/core/types/models';
 
-import { MOBILE_NAV_HEIGHT } from '#components/mobile/MobileNavTabs';
+import {MOBILE_NAV_HEIGHT} from '#components/mobile/MobileNavTabs';
 
-import { PayeesListItem } from './PayeesListItem';
+import {PayeesListItem} from './PayeesListItem';
 
 type PayeesListProps = {
   payees: PayeeEntity[];
@@ -46,7 +46,7 @@ export function PayeesList({
   onPayeeDelete,
   onPayeeRuleAction,
 }: PayeesListProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   if (isLoading && payees.length === 0) {
     return (
@@ -58,7 +58,7 @@ export function PayeesList({
           paddingTop: 100,
         }}
       >
-        <AnimatedLoading style={{ width: 25, height: 25 }} />
+        <AnimatedLoading style={{width: 25, height: 25}} />
       </View>
     );
   }
@@ -87,7 +87,7 @@ export function PayeesList({
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{flex: 1}}>
       <Virtualizer layout={ListLayout}>
         <GridList
           aria-label={t('Payees')}
@@ -119,7 +119,7 @@ export function PayeesList({
             paddingTop: 20,
           }}
         >
-          <AnimatedLoading style={{ width: 20, height: 20 }} />
+          <AnimatedLoading style={{width: 20, height: 20}} />
         </View>
       )}
     </View>

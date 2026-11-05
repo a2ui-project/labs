@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useCallback, useMemo, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { Query } from '@actual-app/core/shared/query';
-import { isPreviewId } from '@actual-app/core/shared/transactions';
-import type {
-  ScheduleEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {Query} from '@actual-app/core/shared/query';
+import {isPreviewId} from '@actual-app/core/shared/transactions';
+import type {ScheduleEntity, TransactionEntity} from '@actual-app/core/types/models';
 
-import { TransactionListWithBalances } from '#components/mobile/transactions/TransactionListWithBalances';
-import { SchedulesProvider } from '#hooks/useCachedSchedules';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { useOnBudgetAccounts } from '#hooks/useOnBudgetAccounts';
-import { usePreviewTransactions } from '#hooks/usePreviewTransactions';
-import { getSchedulesQuery } from '#hooks/useSchedules';
-import { useTransactions } from '#hooks/useTransactions';
-import { useTransactionsSearch } from '#hooks/useTransactionsSearch';
-import { collapseModals, pushModal } from '#modals/modalsSlice';
+import {TransactionListWithBalances} from '#components/mobile/transactions/TransactionListWithBalances';
+import {SchedulesProvider} from '#hooks/useCachedSchedules';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {useOnBudgetAccounts} from '#hooks/useOnBudgetAccounts';
+import {usePreviewTransactions} from '#hooks/usePreviewTransactions';
+import {getSchedulesQuery} from '#hooks/useSchedules';
+import {useTransactions} from '#hooks/useTransactions';
+import {useTransactionsSearch} from '#hooks/useTransactionsSearch';
+import {collapseModals, pushModal} from '#modals/modalsSlice';
 import * as queries from '#queries';
-import { useDispatch } from '#redux';
+import {useDispatch} from '#redux';
 import * as bindings from '#spreadsheet/bindings';
 
 export function OnBudgetAccountTransactions() {
@@ -50,16 +47,13 @@ export function OnBudgetAccountTransactions() {
 }
 
 function TransactionListWithPreviews() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const baseTransactionsQuery = useCallback(
-    () =>
-      queries.transactions('onbudget').options({ splits: 'all' }).select('*'),
+    () => queries.transactions('onbudget').options({splits: 'all'}).select('*'),
     [],
   );
 
-  const [transactionsQuery, setTransactionsQuery] = useState<Query>(
-    baseTransactionsQuery(),
-  );
+  const [transactionsQuery, setTransactionsQuery] = useState<Query>(baseTransactionsQuery());
   const {
     transactions,
     isPending: isTransactionsLoading,
@@ -68,23 +62,21 @@ function TransactionListWithPreviews() {
   } = useTransactions({
     query: transactionsQuery,
   });
-  const { data: onBudgetAccounts = [] } = useOnBudgetAccounts();
+  const {data: onBudgetAccounts = []} = useOnBudgetAccounts();
   const onBudgetAccountsFilter = useCallback(
-    (schedule: ScheduleEntity) =>
-      onBudgetAccounts.some(a => a.id === schedule._account),
+    (schedule: ScheduleEntity) => onBudgetAccounts.some(a => a.id === schedule._account),
     [onBudgetAccounts],
   );
 
-  const { previewTransactions, isLoading: isPreviewTransactionsLoading } =
-    usePreviewTransactions({
-      filter: onBudgetAccountsFilter,
-    });
+  const {previewTransactions, isLoading: isPreviewTransactionsLoading} = usePreviewTransactions({
+    filter: onBudgetAccountsFilter,
+  });
 
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { isSearching, search: onSearch } = useTransactionsSearch({
+  const {isSearching, search: onSearch} = useTransactionsSearch({
     updateQuery: setTransactionsQuery,
     resetQuery: () => setTransactionsQuery(baseTransactionsQuery()),
     dateFormat,
@@ -115,7 +107,7 @@ function TransactionListWithPreviews() {
                 },
                 onSkip: async transactionId => {
                   const parts = transactionId.split('/');
-                  await send('schedule/skip-next-date', { id: parts[1] });
+                  await send('schedule/skip-next-date', {id: parts[1]});
                   dispatch(
                     collapseModals({
                       rootModalName: 'scheduled-transaction-menu',
@@ -125,7 +117,7 @@ function TransactionListWithPreviews() {
                 onComplete: async transactionId => {
                   const parts = transactionId.split('/');
                   await send('schedule/update', {
-                    schedule: { id: parts[1], completed: true },
+                    schedule: {id: parts[1], completed: true},
                   });
                   dispatch(
                     collapseModals({
@@ -156,9 +148,7 @@ function TransactionListWithPreviews() {
 
   return (
     <TransactionListWithBalances
-      isLoading={
-        isSearching ? isTransactionsLoading : isPreviewTransactionsLoading
-      }
+      isLoading={isSearching ? isTransactionsLoading : isPreviewTransactionsLoading}
       transactions={transactionsToDisplay}
       balance={balanceBindings.balance}
       isLoadingMore={isLoadingMoreTransactions}

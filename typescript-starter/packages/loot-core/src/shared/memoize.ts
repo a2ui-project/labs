@@ -38,14 +38,14 @@ export function memoizeOne<Args extends any[], Result>(
   fn: (...args: Args) => Result,
   isEqual: EqualityFn = areInputsEqual,
 ): (...args: Args) => Result {
-  let cache: { args: Args; result: Result } | null = null;
+  let cache: {args: Args; result: Result} | null = null;
 
   return function (this: unknown, ...args: Args): Result {
     if (cache && isEqual(args, cache.args)) {
       return cache.result;
     }
     const result = fn.apply(this, args);
-    cache = { args, result };
+    cache = {args, result};
     return result;
   };
 }

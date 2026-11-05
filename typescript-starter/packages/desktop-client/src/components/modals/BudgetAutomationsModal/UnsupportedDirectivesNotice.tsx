@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgAlertTriangle } from '@actual-app/components/icons/v2';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgAlertTriangle} from '@actual-app/components/icons/v2';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-export function UnsupportedDirectivesNotice({
-  onClose,
-}: {
-  onClose: () => void;
-}) {
+export function UnsupportedDirectivesNotice({onClose}: {onClose: () => void}) {
   return (
     <View
       style={{
@@ -38,11 +34,7 @@ export function UnsupportedDirectivesNotice({
         textAlign: 'center',
       }}
     >
-      <SvgAlertTriangle
-        width={32}
-        height={32}
-        style={{ color: theme.errorText }}
-      />
+      <SvgAlertTriangle width={32} height={32} style={{color: theme.errorText}} />
       <Text
         style={{
           fontSize: 18,
@@ -61,9 +53,8 @@ export function UnsupportedDirectivesNotice({
         }}
       >
         <Trans>
-          One or more <code>#template</code> lines in this category&rsquo;s
-          notes couldn&rsquo;t be parsed. Fix them as text first, then re-open
-          this modal to migrate.
+          One or more <code>#template</code> lines in this category&rsquo;s notes couldn&rsquo;t be
+          parsed. Fix them as text first, then re-open this modal to migrate.
         </Trans>
       </Text>
       <Button onPress={onClose}>

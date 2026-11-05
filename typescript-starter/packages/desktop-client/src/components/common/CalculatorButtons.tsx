@@ -15,12 +15,12 @@
  */
 
 import React from 'react';
-import type { ReactNode, RefObject } from 'react';
+import type {ReactNode, RefObject} from 'react';
 
-import { Button } from '@actual-app/components/button';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
 export function CalculatorButtons({
   inputRef,
@@ -41,12 +41,12 @@ export function CalculatorButtons({
       return;
     }
 
-    input.focus({ preventScroll: true });
+    input.focus({preventScroll: true});
     input.setSelectionRange(position, position);
   };
 
   const focusInput = () => {
-    inputRef.current?.focus({ preventScroll: true });
+    inputRef.current?.focus({preventScroll: true});
   };
 
   const getSelection = () => {
@@ -55,7 +55,7 @@ export function CalculatorButtons({
     const start = input?.selectionStart ?? currentExpression.length;
     const end = input?.selectionEnd ?? start;
 
-    return { currentExpression, start, end };
+    return {currentExpression, start, end};
   };
 
   const updateExpression = (nextExpression: string, caretPosition: number) => {
@@ -70,7 +70,7 @@ export function CalculatorButtons({
   };
 
   const insertExpression = (value: string) => {
-    const { currentExpression, start, end } = getSelection();
+    const {currentExpression, start, end} = getSelection();
 
     updateExpression(
       currentExpression.slice(0, start) + value + currentExpression.slice(end),
@@ -79,13 +79,10 @@ export function CalculatorButtons({
   };
 
   const backspace = () => {
-    const { currentExpression, start, end } = getSelection();
+    const {currentExpression, start, end} = getSelection();
 
     if (start !== end) {
-      updateExpression(
-        currentExpression.slice(0, start) + currentExpression.slice(end),
-        start,
-      );
+      updateExpression(currentExpression.slice(0, start) + currentExpression.slice(end), start);
       return;
     }
 
@@ -101,7 +98,7 @@ export function CalculatorButtons({
   };
 
   return (
-    <View style={{ ...style, gap: 12 }}>
+    <View style={{...style, gap: 12}}>
       <View
         style={{
           display: 'grid',
@@ -323,5 +320,5 @@ function setNativeInputValue(input: HTMLInputElement, value: string) {
   )?.set;
 
   nativeSetter?.call(input, value);
-  input.dispatchEvent(new Event('input', { bubbles: true }));
+  input.dispatchEvent(new Event('input', {bubbles: true}));
 }

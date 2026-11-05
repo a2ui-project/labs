@@ -30,18 +30,12 @@ export class EnableBankingError extends Error {
   }
 }
 
-export function handleEnableBankingError(
-  statusCode: number,
-  body: unknown,
-): EnableBankingError {
-  const bodyStr =
-    typeof body === 'string' ? body : JSON.stringify(body ?? 'unknown');
+export function handleEnableBankingError(statusCode: number, body: unknown): EnableBankingError {
+  const bodyStr = typeof body === 'string' ? body : JSON.stringify(body ?? 'unknown');
   debug('Enable Banking API error: status=%d body=%s', statusCode, bodyStr);
 
   const parsed: Record<string, unknown> =
-    typeof body === 'object' && body !== null
-      ? Object.fromEntries(Object.entries(body))
-      : {};
+    typeof body === 'object' && body !== null ? Object.fromEntries(Object.entries(body)) : {};
   const message = typeof parsed.message === 'string' ? parsed.message : bodyStr;
   const errorType = typeof parsed.error === 'string' ? parsed.error : 'UNKNOWN';
 

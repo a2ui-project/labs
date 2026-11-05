@@ -40,7 +40,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
   constraints:
     needs: setup
     runs-on: depot-ubuntu-latest
@@ -51,7 +51,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Check dependency version consistency
         run: yarn constraints
       - name: Check tsconfig project references are in sync
@@ -66,7 +66,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Lint
         run: yarn lint
   knip:
@@ -79,7 +79,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Build plugins service
         run: yarn build:plugins-service
       - name: Check for unused files, dependencies and exports
@@ -94,7 +94,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Typecheck
         run: yarn typecheck
   validate-cli:
@@ -107,7 +107,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Build Web
         run: yarn build:server
       - name: Check that the built CLI works
@@ -125,7 +125,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Test
         run: yarn test
       - name: Report test results to Depot
@@ -161,7 +161,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Check migrations
         run: yarn workspace @actual-app/ci-actions tsx bin/check-migrations.ts
       - name: Save PR number for the warnings comment workflow

@@ -18,7 +18,7 @@
 // Requirements
 //------------------------------------------------------------------------------
 
-import { runClassic } from 'eslint-vitest-rule-tester';
+import {runClassic} from 'eslint-vitest-rule-tester';
 
 import plugin from '../../index';
 const rule = plugin.rules['prefer-if-statement'];
@@ -49,7 +49,7 @@ void runClassic(
         errors: [
           {
             messageId: 'logical',
-            data: { op: '&&' },
+            data: {op: '&&'},
           },
         ],
       },
@@ -59,14 +59,14 @@ void runClassic(
         errors: [
           {
             messageId: 'logical',
-            data: { op: '||' },
+            data: {op: '||'},
           },
         ],
       },
       {
         code: 'foo ? bar : baz;',
         output: null,
-        errors: [{ messageId: 'ternary' }],
+        errors: [{messageId: 'ternary'}],
       },
       {
         code: 'function foo() { bar && baz; }',
@@ -74,7 +74,7 @@ void runClassic(
         errors: [
           {
             messageId: 'logical',
-            data: { op: '&&' },
+            data: {op: '&&'},
           },
         ],
       },
@@ -84,14 +84,14 @@ void runClassic(
         errors: [
           {
             messageId: 'logical',
-            data: { op: '||' },
+            data: {op: '||'},
           },
         ],
       },
       {
         code: 'function foo() { bar ? baz : qux; }',
         output: null,
-        errors: [{ messageId: 'ternary' }],
+        errors: [{messageId: 'ternary'}],
       },
       {
         code: 'foo && foo();',
@@ -99,7 +99,7 @@ void runClassic(
         errors: [
           {
             messageId: 'logical',
-            data: { op: '&&' },
+            data: {op: '&&'},
           },
         ],
       },
@@ -109,7 +109,7 @@ void runClassic(
         errors: [
           {
             messageId: 'logical',
-            data: { op: '||' },
+            data: {op: '||'},
           },
         ],
       },
@@ -119,7 +119,7 @@ void runClassic(
         errors: [
           {
             messageId: 'logical',
-            data: { op: '&&' },
+            data: {op: '&&'},
           },
         ],
       },
@@ -129,21 +129,21 @@ void runClassic(
         errors: [
           {
             messageId: 'logical',
-            data: { op: '&&' },
+            data: {op: '&&'},
           },
         ],
       },
       {
         code: 'foo ? bar() : baz();',
         output: null,
-        errors: [{ messageId: 'ternary' }],
+        errors: [{messageId: 'ternary'}],
       },
     ],
   },
   {
     parserOptions: {
       ecmaVersion: 2020,
-      ecmaFeatures: { jsx: true },
+      ecmaFeatures: {jsx: true},
     },
   },
 );

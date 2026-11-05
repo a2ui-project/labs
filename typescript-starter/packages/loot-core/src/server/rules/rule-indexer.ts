@@ -15,16 +15,16 @@
  */
 
 // @ts-strict-ignore
-import { fastSetMerge } from '#shared/util';
+import {fastSetMerge} from '#shared/util';
 
-import type { Rule } from './rule';
+import type {Rule} from './rule';
 
 export class RuleIndexer {
   field: string;
   method?: string;
   rules: Map<string, Set<Rule>>;
 
-  constructor({ field, method }: { field: string; method?: string }) {
+  constructor({field, method}: {field: string; method?: string}) {
     this.field = field;
     this.method = method;
     this.rules = new Map();
@@ -57,10 +57,7 @@ export class RuleIndexer {
 
     if (
       cond &&
-      (cond.op === 'oneOf' ||
-        cond.op === 'is' ||
-        cond.op === 'isNot' ||
-        cond.op === 'notOneOf')
+      (cond.op === 'oneOf' || cond.op === 'is' || cond.op === 'isNot' || cond.op === 'notOneOf')
     ) {
       if (cond.op === 'oneOf' || cond.op === 'notOneOf') {
         cond.value.forEach(val => indexes.push(this.getIndexForValue(val)));
@@ -97,9 +94,6 @@ export class RuleIndexer {
       }
     }
 
-    return fastSetMerge(
-      indexedRules || new Set(),
-      this.rules.get('*') || new Set(),
-    );
+    return fastSetMerge(indexedRules || new Set(), this.rules.get('*') || new Set());
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 import {
   budgetQueryDimensions,
@@ -33,7 +33,7 @@ import {
   sortFormulaCompletions,
 } from './formulaCatalog';
 
-function labels(items: Array<{ label: string }>): string[] {
+function labels(items: Array<{label: string}>): string[] {
   return items.map(item => item.label);
 }
 
@@ -139,13 +139,7 @@ describe('formulaCatalog', () => {
       },
     ]);
 
-    expect(labels(sorted)).toEqual([
-      'BUDGET_QUERY',
-      'QUERY',
-      'SUM',
-      'spent',
-      'Groceries',
-    ]);
+    expect(labels(sorted)).toEqual(['BUDGET_QUERY', 'QUERY', 'SUM', 'spent', 'Groceries']);
   });
 
   it('builds report query completions from saved query names', () => {
@@ -169,7 +163,7 @@ describe('formulaCatalog', () => {
   it('sorts named variables above function completions', () => {
     const sorted = sortFormulaCompletions([
       ...getFunctionCompletions('query'),
-      ...getNamedVariableCompletions({ RESULT: 42 }),
+      ...getNamedVariableCompletions({RESULT: 42}),
     ]);
 
     expect(sorted[0].label).toBe('RESULT');

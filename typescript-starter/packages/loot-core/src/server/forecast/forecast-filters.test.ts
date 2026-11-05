@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import type { RuleConditionEntity } from '#types/models';
+import type {RuleConditionEntity} from '#types/models';
 
-import { buildFilterInfo, matchesAQLFilter } from './forecast-filters';
+import {buildFilterInfo, matchesAQLFilter} from './forecast-filters';
 
 describe('forecast filters', () => {
   it('does not pre-restrict accounts for mixed OR filters', () => {
-    const { filterInfo } = buildFilterInfo(
+    const {filterInfo} = buildFilterInfo(
       [
-        { op: 'is', field: 'account', value: 'acct-1' },
-        { op: 'is', field: 'payee', value: 'payee-1' },
+        {op: 'is', field: 'account', value: 'acct-1'},
+        {op: 'is', field: 'payee', value: 'payee-1'},
       ] satisfies RuleConditionEntity[],
       'or',
     );
@@ -35,10 +35,8 @@ describe('forecast filters', () => {
   });
 
   it('allows account pre-restriction for account-only filters', () => {
-    const { filterInfo } = buildFilterInfo(
-      [
-        { op: 'is', field: 'account', value: 'acct-1' },
-      ] satisfies RuleConditionEntity[],
+    const {filterInfo} = buildFilterInfo(
+      [{op: 'is', field: 'account', value: 'acct-1'}] satisfies RuleConditionEntity[],
       'and',
     );
 
@@ -47,7 +45,7 @@ describe('forecast filters', () => {
   });
 
   it('matches on-budget AQL filter (boolean) to enriched account.offbudget 0/1', () => {
-    const { filterInfo } = buildFilterInfo(
+    const {filterInfo} = buildFilterInfo(
       [
         {
           field: 'account',
@@ -77,7 +75,7 @@ describe('forecast filters', () => {
       ),
     ).toBe(true);
 
-    const offBudgetAccount = { ...onBudgetAccount, offbudget: 1 };
+    const offBudgetAccount = {...onBudgetAccount, offbudget: 1};
     expect(
       matchesAQLFilter(
         {

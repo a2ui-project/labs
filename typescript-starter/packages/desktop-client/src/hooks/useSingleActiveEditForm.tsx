@@ -15,8 +15,8 @@
  */
 
 // @ts-strict-ignore
-import React, { createContext, useContext, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import React, {createContext, useContext, useRef, useState} from 'react';
+import type {ReactNode} from 'react';
 
 type ActiveEditCleanup = () => void;
 type ActiveEditAction = () => void | ActiveEditCleanup;
@@ -34,9 +34,9 @@ type SingleActiveEditFormContextValue = {
   onClearActiveEdit: (delayMs?: number) => void;
 };
 
-const SingleActiveEditFormContext = createContext<
-  SingleActiveEditFormContextValue | undefined
->(undefined);
+const SingleActiveEditFormContext = createContext<SingleActiveEditFormContextValue | undefined>(
+  undefined,
+);
 
 type SingleActiveEditFormProviderProps = {
   formName: string;

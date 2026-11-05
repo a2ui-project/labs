@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
-import { extractPayeeNameFromRemittanceInfo } from './util/extract-payeeName-from-remittanceInfo';
+import {extractPayeeNameFromRemittanceInfo} from './util/extract-payeeName-from-remittanceInfo';
 
 export default {
   ...Fallback,
@@ -28,20 +28,20 @@ export default {
    * remittanceInformationUnstructured.
    */
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     if (Number(transaction.transactionAmount.amount) > 0) {
       editedTrans.payeeName =
-        transaction.debtorName ||
-        transaction.remittanceInformationUnstructured ||
-        'undefined';
+        transaction.debtorName || transaction.remittanceInformationUnstructured || 'undefined';
     } else {
       editedTrans.payeeName =
         transaction.creditorName ||
-        extractPayeeNameFromRemittanceInfo(
-          transaction.remittanceInformationUnstructured ?? '',
-          ['Paiement', 'Domiciliation', 'Transfert', 'Ordre permanent'],
-        ) ||
+        extractPayeeNameFromRemittanceInfo(transaction.remittanceInformationUnstructured ?? '', [
+          'Paiement',
+          'Domiciliation',
+          'Transfert',
+          'Ordre permanent',
+        ]) ||
         'undefined';
     }
 

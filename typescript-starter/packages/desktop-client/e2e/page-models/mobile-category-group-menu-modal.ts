@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class CategoryGroupMenuModal {
   readonly page: Page;
@@ -27,14 +27,11 @@ export class CategoryGroupMenuModal {
     this.page = locator.page();
 
     this.heading = locator.getByRole('heading');
-    this.menuButton = this.heading.getByRole('button', { name: 'Menu' });
+    this.menuButton = this.heading.getByRole('button', {name: 'Menu'});
   }
 
   async delete() {
     await this.menuButton.click();
-    await this.page
-      .locator('[data-popover]')
-      .getByRole('button', { name: 'Delete' })
-      .click();
+    await this.page.locator('[data-popover]').getByRole('button', {name: 'Delete'}).click();
   }
 }

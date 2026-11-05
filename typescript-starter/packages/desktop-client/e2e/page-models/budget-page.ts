@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { expect } from '@playwright/test';
-import type { Locator, Page } from '@playwright/test';
+import {expect} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { AccountPage } from './account-page';
+import {AccountPage} from './account-page';
 
 export class BudgetPage {
   readonly page: Page;
@@ -36,9 +36,7 @@ export class BudgetPage {
     this.budgetTableTotals = this.budgetTable.getByTestId('budget-totals');
     this.selectedMonthButton = page.getByTestId('selected-budget-month');
     this.nextMonthButton = page.getByTitle('Next month');
-    this.budgetTableScrollContainer = page.getByTestId(
-      'budget-table-scroll-container',
-    );
+    this.budgetTableScrollContainer = page.getByTestId('budget-table-scroll-container');
   }
 
   async getScrollTop() {
@@ -73,9 +71,7 @@ export class BudgetPage {
   }
 
   async getTotalSpent() {
-    const totalSpentText = await this.budgetTableTotals
-      .getByTestId(/total-spent$/)
-      .textContent();
+    const totalSpentText = await this.budgetTableTotals.getByTestId(/total-spent$/).textContent();
 
     if (!totalSpentText) {
       throw new Error('Failed to get total spent.');
@@ -104,27 +100,19 @@ export class BudgetPage {
     };
   }
 
-  async setBudgetedAmount(
-    categoryName: string,
-    amount: string,
-    monthIndex = 0,
-  ) {
-    const row = this.budgetTable
-      .getByTestId('row')
-      .filter({ hasText: categoryName })
-      .first();
+  async setBudgetedAmount(categoryName: string, amount: string, monthIndex = 0) {
+    const row = this.budgetTable.getByTestId('row').filter({hasText: categoryName}).first();
     const budgetCell = row.getByTestId('budget').nth(monthIndex);
 
     await budgetCell.click();
     const input = budgetCell.locator('input');
-    await input.waitFor({ state: 'visible' });
+    await input.waitFor({state: 'visible'});
     await input.fill(amount);
     await input.press('Enter');
   }
 
   async getSelectedMonth() {
-    const selectedMonth =
-      await this.selectedMonthButton.getAttribute('data-month');
+    const selectedMonth = await this.selectedMonthButton.getAttribute('data-month');
 
     if (!selectedMonth) {
       throw new Error('Failed to get the selected month.');
@@ -188,11 +176,7 @@ export class BudgetPage {
   }
 
   async clickOnSpentAmountForRow(idx: number) {
-    await this.budgetTable
-      .getByTestId('row')
-      .nth(idx)
-      .getByTestId('category-month-spent')
-      .click();
+    await this.budgetTable.getByTestId('row').nth(idx).getByTestId('category-month-spent').click();
     return new AccountPage(this.page);
   }
 
@@ -201,22 +185,15 @@ export class BudgetPage {
     // without triggering Playwright's auto-scroll-into-view, so the scroll
     // position is not changed before the click handler captures it.
     const clicked = await this.page.evaluate(() => {
-      const container = document.querySelector(
-        '[data-testid="budget-table-scroll-container"]',
-      );
+      const container = document.querySelector('[data-testid="budget-table-scroll-container"]');
       if (!container) {
         throw new Error('Budget scroll container not found');
       }
       const containerRect = container.getBoundingClientRect();
-      const cells = container.querySelectorAll<HTMLElement>(
-        '[data-testid="category-month-spent"]',
-      );
+      const cells = container.querySelectorAll<HTMLElement>('[data-testid="category-month-spent"]');
       for (const cell of [...cells].reverse()) {
         const rect = cell.getBoundingClientRect();
-        if (
-          rect.top >= containerRect.top &&
-          rect.bottom <= containerRect.bottom
-        ) {
+        if (rect.top >= containerRect.top && rect.bottom <= containerRect.bottom) {
           cell.click();
           return true;
         }
@@ -243,16 +220,14 @@ export class BudgetPage {
       .getByTestId(/^budget/)
       .click();
 
-    await this.page
-      .getByRole('button', { name: 'Transfer to another category' })
-      .click();
+    await this.page.getByRole('button', {name: 'Transfer to another category'}).click();
 
     await this.page.getByPlaceholder('(none)').click();
 
     await this.page.keyboard.type(toName);
     await this.page.keyboard.press('Enter');
 
-    await this.page.getByRole('button', { name: 'Transfer' }).click();
+    await this.page.getByRole('button', {name: 'Transfer'}).click();
   }
 
   async rightClickCategory(idx: number) {
@@ -260,13 +235,11 @@ export class BudgetPage {
       .getByTestId('row')
       .nth(idx)
       .getByTestId('category-name')
-      .click({ button: 'right' });
+      .click({button: 'right'});
   }
 
   async rightClickCategoryGroup(name: string) {
     // Assuming category groups have a specific text or role, or we can just find by text
-    await this.budgetTable
-      .getByText(name, { exact: true })
-      .click({ button: 'right' });
+    await this.budgetTable.getByText(name, {exact: true}).click({button: 'right'});
   }
 }

@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import type { FieldValueTypes, RuleConditionOp } from '#types/models';
+import type {FieldValueTypes, RuleConditionOp} from '#types/models';
 
 // For now, this info is duplicated from the backend. Figure out how
 // to share it later.
@@ -80,11 +80,11 @@ const FIELD_INFO = {
     type: 'string',
     disallowedOps: new Set(['hasTags', 'hasAnyTag']),
   },
-  payee: { type: 'id', disallowedOps: new Set(['onBudget', 'offBudget']) },
-  payee_name: { type: 'string' },
-  date: { type: 'date' },
-  notes: { type: 'string', disallowedOps: new Set(['oneOf', 'notOneOf']) },
-  amount: { type: 'number' },
+  payee: {type: 'id', disallowedOps: new Set(['onBudget', 'offBudget'])},
+  payee_name: {type: 'string'},
+  date: {type: 'date'},
+  notes: {type: 'string', disallowedOps: new Set(['oneOf', 'notOneOf'])},
+  amount: {type: 'number'},
   category: {
     type: 'id',
     disallowedOps: new Set(['onBudget', 'offBudget']),
@@ -95,12 +95,12 @@ const FIELD_INFO = {
     disallowedOps: new Set(['onBudget', 'offBudget']),
     internalOps: new Set(['and']),
   },
-  account: { type: 'id' },
-  cleared: { type: 'boolean' },
-  reconciled: { type: 'boolean' },
-  saved: { type: 'saved' },
-  transfer: { type: 'boolean' },
-  parent: { type: 'boolean' },
+  account: {type: 'id'},
+  cleared: {type: 'boolean'},
+  reconciled: {type: 'boolean'},
+  saved: {type: 'saved'},
+  transfer: {type: 'boolean'},
+  parent: {type: 'boolean'},
 } as const satisfies FieldInfoConstraint;
 
 const fieldInfo: FieldInfoConstraint = FIELD_INFO;
@@ -118,9 +118,7 @@ export function isValidOp(field: keyof FieldValueTypes, op: RuleConditionOp) {
   if (!type) return false;
   if (fieldInfo[field].disallowedOps?.has(op)) return false;
 
-  return (
-    TYPE_INFO[type].ops.includes(op) || fieldInfo[field].internalOps?.has(op)
-  );
+  return TYPE_INFO[type].ops.includes(op) || fieldInfo[field].internalOps?.has(op);
 }
 
 export function getValidOps(field: keyof FieldValueTypes): RuleConditionOp[] {
@@ -128,18 +126,16 @@ export function getValidOps(field: keyof FieldValueTypes): RuleConditionOp[] {
   if (!type) {
     return [];
   }
-  return TYPE_INFO[type].ops.filter(
-    op => !fieldInfo[field].disallowedOps?.has(op),
-  );
+  return TYPE_INFO[type].ops.filter(op => !fieldInfo[field].disallowedOps?.has(op));
 }
 
 export function deserializeField(field) {
   if (field === 'amount-inflow') {
-    return { field: 'amount', options: { inflow: true } };
+    return {field: 'amount', options: {inflow: true}};
   } else if (field === 'amount-outflow') {
-    return { field: 'amount', options: { outflow: true } };
+    return {field: 'amount', options: {outflow: true}};
   } else {
-    return { field };
+    return {field};
   }
 }
 
@@ -176,30 +172,30 @@ export function sortNumbers(num1, num2) {
 export function parse(item) {
   if (item.op === 'set-split-amount') {
     if (item.options.method === 'fixed-amount') {
-      return { ...item };
+      return {...item};
     }
     return item;
   }
 
   switch (item.type) {
     case 'number': {
-      return { ...item };
+      return {...item};
     }
     case 'string': {
       const parsed = item.value == null ? '' : item.value;
-      return { ...item, value: parsed };
+      return {...item, value: parsed};
     }
     case 'boolean': {
       const parsed = item.value;
-      return { ...item, value: parsed };
+      return {...item, value: parsed};
     }
     default:
   }
 
-  return { ...item, error: null };
+  return {...item, error: null};
 }
 
-export function unparse({ error: _error, inputKey: _inputKey, ...item }) {
+export function unparse({error: _error, inputKey: _inputKey, ...item}) {
   if (item.op === 'set-split-amount') {
     if (item.options.method === 'fixed-amount') {
       return {
@@ -217,15 +213,15 @@ export function unparse({ error: _error, inputKey: _inputKey, ...item }) {
 
   switch (item.type) {
     case 'number': {
-      return { ...item };
+      return {...item};
     }
     case 'string': {
       const unparsed = item.value == null ? '' : item.value;
-      return { ...item, value: unparsed };
+      return {...item, value: unparsed};
     }
     case 'boolean': {
       const unparsed = item.value == null ? false : item.value;
-      return { ...item, value: unparsed };
+      return {...item, value: unparsed};
     }
     default:
   }
@@ -237,14 +233,14 @@ export function makeValue(value, cond) {
   const isMulti = ['oneOf', 'notOneOf'].includes(cond.op);
 
   if (isMulti) {
-    return { ...cond, error: null, value: value || [] };
+    return {...cond, error: null, value: value || []};
   }
 
   if (cond.type === 'number' && value == null) {
-    return { ...cond, error: null, value: 0 };
+    return {...cond, error: null, value: 0};
   }
 
-  return { ...cond, error: null, value };
+  return {...cond, error: null, value};
 }
 
 export function getApproxNumberThreshold(number) {

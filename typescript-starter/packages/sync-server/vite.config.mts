@@ -1,12 +1,10 @@
-import { readFileSync } from 'node:fs';
+import {readFileSync} from 'node:fs';
 import path from 'node:path';
 
-import { defineConfig } from 'vite';
-import type { Plugin } from 'vite';
+import {defineConfig} from 'vite';
+import type {Plugin} from 'vite';
 
-const pkg = JSON.parse(
-  readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'),
-);
+const pkg = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
 
 const shebangPlugin = (entryFile: string): Plugin => ({
   name: 'sync-server-shebang',
@@ -37,26 +35,11 @@ export default defineConfig({
       input: {
         app: path.resolve(__dirname, 'app.ts'),
         'bin/actual-server': path.resolve(__dirname, 'bin/actual-server.js'),
-        'scripts/run-migrations': path.resolve(
-          __dirname,
-          'src/scripts/run-migrations.js',
-        ),
-        'scripts/reset-password': path.resolve(
-          __dirname,
-          'src/scripts/reset-password.js',
-        ),
-        'scripts/disable-openid': path.resolve(
-          __dirname,
-          'src/scripts/disable-openid.js',
-        ),
-        'scripts/enable-openid': path.resolve(
-          __dirname,
-          'src/scripts/enable-openid.js',
-        ),
-        'scripts/health-check': path.resolve(
-          __dirname,
-          'src/scripts/health-check.ts',
-        ),
+        'scripts/run-migrations': path.resolve(__dirname, 'src/scripts/run-migrations.js'),
+        'scripts/reset-password': path.resolve(__dirname, 'src/scripts/reset-password.js'),
+        'scripts/disable-openid': path.resolve(__dirname, 'src/scripts/disable-openid.js'),
+        'scripts/enable-openid': path.resolve(__dirname, 'src/scripts/enable-openid.js'),
+        'scripts/health-check': path.resolve(__dirname, 'src/scripts/health-check.ts'),
       },
       output: {
         format: 'esm',

@@ -17,8 +17,8 @@
 import * as nativeFs from 'fs';
 import * as path from 'path';
 
-import type { Database } from '@jlongster/sql.js';
-import { describe, expect, it } from 'vitest';
+import type {Database} from '@jlongster/sql.js';
+import {describe, expect, it} from 'vitest';
 
 import * as sqlite from '#platform/server/sqlite';
 
@@ -30,8 +30,8 @@ import {
   migrate,
   withMigrationsDir,
 } from './migrations';
-import { findAdditiveViolations, snapshotSchema } from './schema-diff';
-import type { SchemaSnapshot } from './schema-diff';
+import {findAdditiveViolations, snapshotSchema} from './schema-diff';
+import type {SchemaSnapshot} from './schema-diff';
 
 // Migrations newer than ADDITIVE_ONLY_CUTOFF must be additive-only:
 // clients tolerate budgets and sync messages from newer app versions
@@ -57,18 +57,11 @@ async function openTestDb(setupSql: string): Promise<Database> {
 
 // The additive-only violations that `migrationSql` introduces on a
 // database prepared with `setupSql`
-async function violationsFor(
-  setupSql: string,
-  migrationSql: string,
-): Promise<string[]> {
+async function violationsFor(setupSql: string, migrationSql: string): Promise<string[]> {
   const db = await openTestDb(setupSql);
   const before = snapshotSchema(db);
   sqlite.execQuery(db, migrationSql);
-  const violations = findAdditiveViolations(
-    before,
-    snapshotSchema(db),
-    NON_SYNCED_TABLES,
-  );
+  const violations = findAdditiveViolations(before, snapshotSchema(db), NON_SYNCED_TABLES);
   sqlite.closeDatabase(db);
   return violations;
 }
@@ -127,9 +120,7 @@ describe('migrations are additive-only', () => {
       // A newer release may ship a migration whose id (an authoring
       // timestamp) sorts below ids this version already knows — it is
       // still additive-era and must not fail validation
-      sqlite.runQuery(db, 'INSERT INTO __migrations__ (id) VALUES (?)', [
-        ADDITIVE_ONLY_CUTOFF + 1,
-      ]);
+      sqlite.runQuery(db, 'INSERT INTO __migrations__ (id) VALUES (?)', [ADDITIVE_ONLY_CUTOFF + 1]);
       await migrate(db);
     });
     sqlite.closeDatabase(db);
@@ -174,11 +165,7 @@ describe('migrations are additive-only', () => {
       TABLE_FOO,
       'CREATE TABLE gadgets (id TEXT, name TEXT, PRIMARY KEY (id, name));',
     ],
-    [
-      'creating a synced table with no primary key',
-      TABLE_FOO,
-      'CREATE TABLE gadgets (name TEXT);',
-    ],
+    ['creating a synced table with no primary key', TABLE_FOO, 'CREATE TABLE gadgets (name TEXT);'],
     [
       'making an existing column required via table rebuild',
       TABLE_FOO,
@@ -193,11 +180,7 @@ describe('migrations are additive-only', () => {
        DROP TABLE foo;
        ALTER TABLE foo_new RENAME TO foo;`,
     ],
-    [
-      'adding a UNIQUE index to a synced table',
-      TABLE_FOO,
-      'CREATE UNIQUE INDEX foo_a ON foo (a);',
-    ],
+    ['adding a UNIQUE index to a synced table', TABLE_FOO, 'CREATE UNIQUE INDEX foo_a ON foo (a);'],
     [
       'adding a UNIQUE constraint via table rebuild',
       TABLE_FOO,
@@ -319,11 +302,7 @@ describe('migrations are additive-only', () => {
       `CREATE TABLE messages_pending
          (timestamp TEXT PRIMARY KEY, dataset TEXT NOT NULL);`,
     ],
-    [
-      'adding a plain (non-unique) index',
-      TABLE_FOO,
-      'CREATE INDEX foo_a_idx ON foo (a);',
-    ],
+    ['adding a plain (non-unique) index', TABLE_FOO, 'CREATE INDEX foo_a_idx ON foo (a);'],
     [
       'creating a synced table with a UNIQUE constraint',
       TABLE_FOO,

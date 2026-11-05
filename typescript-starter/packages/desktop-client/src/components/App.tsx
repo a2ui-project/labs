@@ -14,59 +14,51 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
-import type { FallbackProps } from 'react-error-boundary';
-import { HotkeysProvider } from 'react-hotkeys-hook';
-import { useTranslation } from 'react-i18next';
-import { BrowserRouter } from 'react-router';
+import React, {useEffect, useState} from 'react';
+import {DndProvider} from 'react-dnd';
+import {HTML5Backend} from 'react-dnd-html5-backend';
+import {ErrorBoundary, useErrorBoundary} from 'react-error-boundary';
+import type {FallbackProps} from 'react-error-boundary';
+import {HotkeysProvider} from 'react-hotkeys-hook';
+import {useTranslation} from 'react-i18next';
+import {BrowserRouter} from 'react-router';
 
-import { styles } from '@actual-app/components/styles';
-import { View } from '@actual-app/components/view';
-import {
-  init as initConnection,
-  send,
-} from '@actual-app/core/platform/client/connection';
-import { useQueryClient } from '@tanstack/react-query';
+import {styles} from '@actual-app/components/styles';
+import {View} from '@actual-app/components/view';
+import {init as initConnection, send} from '@actual-app/core/platform/client/connection';
+import {useQueryClient} from '@tanstack/react-query';
 
-import { setAppState, sync } from '#app/appSlice';
-import { closeBudget, loadBudget } from '#budgetfiles/budgetfilesSlice';
-import { handleGlobalEvents } from '#global-events';
-import { useIsTestEnv } from '#hooks/useIsTestEnv';
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { useOnVisible } from '#hooks/useOnVisible';
-import { SpreadsheetProvider } from '#hooks/useSpreadsheet';
-import { setI18NextLanguage } from '#i18n';
-import { addNotification } from '#notifications/notificationsSlice';
-import { loadGlobalPrefs } from '#prefs/prefsSlice';
-import { useDispatch, useSelector, useStore } from '#redux';
-import {
-  CustomThemeStyle,
-  hasHiddenScrollbars,
-  ThemeStyle,
-  useTheme,
-} from '#style';
-import { signOut } from '#users/usersSlice';
-import { ExposeNavigate } from '#util/router-tools';
+import {setAppState, sync} from '#app/appSlice';
+import {closeBudget, loadBudget} from '#budgetfiles/budgetfilesSlice';
+import {handleGlobalEvents} from '#global-events';
+import {useIsTestEnv} from '#hooks/useIsTestEnv';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {useOnVisible} from '#hooks/useOnVisible';
+import {SpreadsheetProvider} from '#hooks/useSpreadsheet';
+import {setI18NextLanguage} from '#i18n';
+import {addNotification} from '#notifications/notificationsSlice';
+import {loadGlobalPrefs} from '#prefs/prefsSlice';
+import {useDispatch, useSelector, useStore} from '#redux';
+import {CustomThemeStyle, hasHiddenScrollbars, ThemeStyle, useTheme} from '#style';
+import {signOut} from '#users/usersSlice';
+import {ExposeNavigate} from '#util/router-tools';
 
-import { AppBackground } from './AppBackground';
-import { BudgetMonthCountProvider } from './budget/BudgetMonthCountContext';
-import { AriaRouterProvider } from './common/AriaRouterProvider';
-import { DevelopmentTopBar } from './DevelopmentTopBar';
-import { FatalError } from './FatalError';
-import { FinancesApp } from './FinancesApp';
-import { ManagementApp } from './manager/ManagementApp';
-import { Modals } from './Modals';
-import { SidebarProvider } from './sidebar/SidebarProvider';
-import { UpdateNotification } from './UpdateNotification';
+import {AppBackground} from './AppBackground';
+import {BudgetMonthCountProvider} from './budget/BudgetMonthCountContext';
+import {AriaRouterProvider} from './common/AriaRouterProvider';
+import {DevelopmentTopBar} from './DevelopmentTopBar';
+import {FatalError} from './FatalError';
+import {FinancesApp} from './FinancesApp';
+import {ManagementApp} from './manager/ManagementApp';
+import {Modals} from './Modals';
+import {SidebarProvider} from './sidebar/SidebarProvider';
+import {UpdateNotification} from './UpdateNotification';
 
 function AppInner() {
   const [budgetId] = useMetadataPref('id');
   const [cloudFileId] = useMetadataPref('cloudFileId');
-  const { t } = useTranslation();
-  const { showBoundary: showErrorBoundary } = useErrorBoundary();
+  const {t} = useTranslation();
+  const {showBoundary: showErrorBoundary} = useErrorBoundary();
   const dispatch = useDispatch();
   const userData = useSelector(state => state.user.data);
 
@@ -91,9 +83,7 @@ function AppInner() {
       await maybeUpdate();
       dispatch(
         setAppState({
-          loadingText: t(
-            'Initializing the connection to the local database...',
-          ),
+          loadingText: t('Initializing the connection to the local database...'),
         }),
       );
       await initConnection();
@@ -114,7 +104,7 @@ function AppInner() {
       );
       const budgetId = await send('get-last-opened-backup');
       if (budgetId) {
-        await dispatch(loadBudget({ id: budgetId }));
+        await dispatch(loadBudget({id: budgetId}));
 
         // Check to see if this file has been remotely deleted (but
         // don't block on this in case they are offline or something)
@@ -138,7 +128,7 @@ function AppInner() {
 
     async function initAll() {
       await init();
-      dispatch(setAppState({ loadingText: null }));
+      dispatch(setAppState({loadingText: null}));
     }
 
     initAll().catch(showErrorBoundary);
@@ -171,13 +161,13 @@ function AppInner() {
   return budgetId ? <FinancesApp /> : <ManagementApp />;
 }
 
-function ErrorFallback({ error }: FallbackProps) {
+function ErrorFallback({error}: FallbackProps) {
   const dispatch = useDispatch();
 
   // If startup failed mid-way, a loading message is still set. That hides
   // every modal (see modalsSlice), including the FatalError one, so clear it.
   useEffect(() => {
-    dispatch(setAppState({ loadingText: null }));
+    dispatch(setAppState({loadingText: null}));
   }, [dispatch]);
 
   return (
@@ -195,9 +185,7 @@ export function App() {
 
   useEffect(() => handleGlobalEvents(store, queryClient), [store, queryClient]);
 
-  const [hiddenScrollbars, setHiddenScrollbars] = useState(
-    hasHiddenScrollbars(),
-  );
+  const [hiddenScrollbars, setHiddenScrollbars] = useState(hasHiddenScrollbars());
   const dispatch = useDispatch();
 
   useOnVisible(async () => {
@@ -236,9 +224,7 @@ export function App() {
                     }}
                   >
                     <View
-                      key={
-                        hiddenScrollbars ? 'hidden-scrollbars' : 'scrollbars'
-                      }
+                      key={hiddenScrollbars ? 'hidden-scrollbars' : 'scrollbars'}
                       style={{
                         flexGrow: 1,
                         overflow: 'hidden',
@@ -246,9 +232,7 @@ export function App() {
                       }}
                     >
                       <ErrorBoundary FallbackComponent={ErrorFallback}>
-                        {import.meta.env.REACT_APP_REVIEW_ID && !isTestEnv && (
-                          <DevelopmentTopBar />
-                        )}
+                        {import.meta.env.REACT_APP_REVIEW_ID && !isTestEnv && <DevelopmentTopBar />}
                         <AppInner />
                       </ErrorBoundary>
                       <ThemeStyle />

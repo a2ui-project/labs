@@ -15,26 +15,23 @@
  */
 
 // @ts-strict-ignore
-import React, { Fragment, useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {Fragment, useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
+import {Button} from '@actual-app/components/button';
 import {
   SvgCheckAll,
   SvgUncheckAll,
   SvgViewHide,
   SvgViewShow,
 } from '@actual-app/components/icons/v2';
-import { Text } from '@actual-app/components/text';
-import { View } from '@actual-app/components/view';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
+import {Text} from '@actual-app/components/text';
+import {View} from '@actual-app/components/view';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
 
-import { Checkbox } from '#components/forms';
+import {Checkbox} from '#components/forms';
 
-import { GraphButton } from './GraphButton';
+import {GraphButton} from './GraphButton';
 
 type CategorySelectorProps = {
   categoryGroups: Array<CategoryGroupEntity>;
@@ -49,7 +46,7 @@ export function CategorySelector({
   setSelectedCategories,
   showHiddenCategories = true,
 }: CategorySelectorProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [uncheckedHidden, setUncheckedHidden] = useState(false);
   const filteredGroup = (categoryGroup: CategoryGroupEntity) => {
     return categoryGroup.categories.filter(f => {
@@ -92,16 +89,12 @@ export function CategorySelector({
         <Button
           variant="bare"
           onPress={() => setUncheckedHidden(state => !state)}
-          style={{ padding: 8 }}
+          style={{padding: 8}}
         >
           <View>
             {uncheckedHidden ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <SvgViewShow
-                  width={15}
-                  height={15}
-                  style={{ marginRight: 5 }}
-                />
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <SvgViewShow width={15} height={15} style={{marginRight: 5}} />
                 <Text>
                   <Trans>Show unchecked</Trans>
                 </Text>
@@ -113,11 +106,7 @@ export function CategorySelector({
                   alignItems: 'center',
                 }}
               >
-                <SvgViewHide
-                  width={15}
-                  height={15}
-                  style={{ marginRight: 5 }}
-                />
+                <SvgViewHide width={15} height={15} style={{marginRight: 5}} />
                 <Text
                   style={{
                     maxWidth: 100,
@@ -132,15 +121,15 @@ export function CategorySelector({
             )}
           </View>
         </Button>
-        <View style={{ flex: 1 }} />
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+        <View style={{flex: 1}} />
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
           <GraphButton
             selected={allCategoriesSelected}
             title={t('Select All')}
             onSelect={() => {
               setSelectedCategories(selectAll);
             }}
-            style={{ marginRight: 5, padding: 8 }}
+            style={{marginRight: 5, padding: 8}}
           >
             <SvgCheckAll width={15} height={15} />
           </GraphButton>
@@ -150,7 +139,7 @@ export function CategorySelector({
             onSelect={() => {
               setSelectedCategories([]);
             }}
-            style={{ padding: 8 }}
+            style={{padding: 8}}
           >
             <SvgUncheckAll width={15} height={15} />
           </GraphButton>
@@ -169,25 +158,18 @@ export function CategorySelector({
       >
         {categoryGroups &&
           categoryGroups.map(categoryGroup => {
-            const allCategoriesInGroupSelected = filteredGroup(
-              categoryGroup,
-            ).every(category =>
-              selectedCategories.some(
-                selectedCategory => selectedCategory.id === category.id,
-              ),
+            const allCategoriesInGroupSelected = filteredGroup(categoryGroup).every(category =>
+              selectedCategories.some(selectedCategory => selectedCategory.id === category.id),
             );
             const noCategorySelected = filteredGroup(categoryGroup).every(
               category =>
-                !selectedCategories.some(
-                  selectedCategory => selectedCategory.id === category.id,
-                ),
+                !selectedCategories.some(selectedCategory => selectedCategory.id === category.id),
             );
             return (
               <Fragment key={categoryGroup.id}>
                 <li
                   style={{
-                    display:
-                      noCategorySelected && uncheckedHidden ? 'none' : 'flex',
+                    display: noCategorySelected && uncheckedHidden ? 'none' : 'flex',
                     marginBottom: 8,
                     flexDirection: 'row',
                   }}
@@ -196,18 +178,14 @@ export function CategorySelector({
                     id={`form_${categoryGroup.id}`}
                     checked={allCategoriesInGroupSelected}
                     onChange={() => {
-                      const selectedCategoriesExcludingGroupCategories =
-                        selectedCategories.filter(
-                          selectedCategory =>
-                            !filteredGroup(categoryGroup).some(
-                              groupCategory =>
-                                groupCategory.id === selectedCategory.id,
-                            ),
-                        );
+                      const selectedCategoriesExcludingGroupCategories = selectedCategories.filter(
+                        selectedCategory =>
+                          !filteredGroup(categoryGroup).some(
+                            groupCategory => groupCategory.id === selectedCategory.id,
+                          ),
+                      );
                       if (allCategoriesInGroupSelected) {
-                        setSelectedCategories(
-                          selectedCategoriesExcludingGroupCategories,
-                        );
+                        setSelectedCategories(selectedCategoriesExcludingGroupCategories);
                       } else {
                         setSelectedCategories(
                           selectedCategoriesExcludingGroupCategories.concat(
@@ -219,7 +197,7 @@ export function CategorySelector({
                   />
                   <label
                     htmlFor={`form_${categoryGroup.id}`}
-                    style={{ userSelect: 'none', fontWeight: 'bold' }}
+                    style={{userSelect: 'none', fontWeight: 'bold'}}
                   >
                     {categoryGroup.name}
                   </label>
@@ -241,8 +219,7 @@ export function CategorySelector({
                         <li
                           key={category.id}
                           style={{
-                            display:
-                              !isChecked && uncheckedHidden ? 'none' : 'flex',
+                            display: !isChecked && uncheckedHidden ? 'none' : 'flex',
                             flexDirection: 'row',
                             marginBottom: 4,
                           }}
@@ -254,22 +231,15 @@ export function CategorySelector({
                               if (isChecked) {
                                 setSelectedCategories(
                                   selectedCategories.filter(
-                                    selectedCategory =>
-                                      selectedCategory.id !== category.id,
+                                    selectedCategory => selectedCategory.id !== category.id,
                                   ),
                                 );
                               } else {
-                                setSelectedCategories([
-                                  ...selectedCategories,
-                                  category,
-                                ]);
+                                setSelectedCategories([...selectedCategories, category]);
                               }
                             }}
                           />
-                          <label
-                            htmlFor={`form_${category.id}`}
-                            style={{ userSelect: 'none' }}
-                          >
+                          <label htmlFor={`form_${category.id}`} style={{userSelect: 'none'}}>
                             {category.name}
                           </label>
                         </li>

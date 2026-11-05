@@ -15,30 +15,30 @@
  */
 
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { isAdmin } from './account-db';
+import {isAdmin} from './account-db';
 import * as UserService from './services/user-service';
 import {
   errorMiddleware,
   requestLoggerMiddleware,
   validateSessionMiddleware,
 } from './util/middlewares';
-import { validateSession } from './util/validate-user';
+import {validateSession} from './util/validate-user';
 
 const app = express();
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 app.use(requestLoggerMiddleware);
 
-export { app as handlers };
+export {app as handlers};
 
 app.get('/owner-created/', (req, res) => {
   try {
     const ownerCount = UserService.getOwnerCount();
     res.json(ownerCount > 0);
   } catch {
-    res.status(500).json({ error: 'Failed to retrieve owner count' });
+    res.status(500).json({error: 'Failed to retrieve owner count'});
   }
 });
 
@@ -70,7 +70,7 @@ app.post('/users', validateSessionMiddleware, async (req, res) => {
     return;
   }
 
-  const { userName, role, displayName, enabled } = req.body || {};
+  const {userName, role, displayName, enabled} = req.body || {};
 
   if (!userName || !role) {
     res.status(400).send({
@@ -102,14 +102,9 @@ app.post('/users', validateSessionMiddleware, async (req, res) => {
   }
 
   const userId = uuidv4();
-  UserService.insertUser(
-    userId,
-    userName,
-    displayName || null,
-    enabled ? 1 : 0,
-  );
+  UserService.insertUser(userId, userName, displayName || null, enabled ? 1 : 0);
 
-  res.status(200).send({ status: 'ok', data: { id: userId } });
+  res.status(200).send({status: 'ok', data: {id: userId}});
 });
 
 app.patch('/users', validateSessionMiddleware, async (req, res) => {
@@ -122,7 +117,7 @@ app.patch('/users', validateSessionMiddleware, async (req, res) => {
     return;
   }
 
-  const { id, userName, role, displayName, enabled } = req.body || {};
+  const {id, userName, role, displayName, enabled} = req.body || {};
 
   if (!userName || !role) {
     res.status(400).send({
@@ -153,15 +148,9 @@ app.patch('/users', validateSessionMiddleware, async (req, res) => {
     return;
   }
 
-  UserService.updateUserWithRole(
-    userIdInDb,
-    userName,
-    displayName || null,
-    enabled ? 1 : 0,
-    role,
-  );
+  UserService.updateUserWithRole(userIdInDb, userName, displayName || null, enabled ? 1 : 0, role);
 
-  res.status(200).send({ status: 'ok', data: { id: userIdInDb } });
+  res.status(200).send({status: 'ok', data: {id: userIdInDb}});
 });
 
 app.delete('/users', validateSessionMiddleware, async (req, res) => {
@@ -174,7 +163,7 @@ app.delete('/users', validateSessionMiddleware, async (req, res) => {
     return;
   }
 
-  const { ids } = req.body || {};
+  const {ids} = req.body || {};
   let totalDeleted = 0;
   ids.forEach(item => {
     const ownerId = UserService.getOwnerId();
@@ -188,9 +177,7 @@ app.delete('/users', validateSessionMiddleware, async (req, res) => {
   });
 
   if (ids.length === totalDeleted) {
-    res
-      .status(200)
-      .send({ status: 'ok', data: { someDeletionsFailed: false } });
+    res.status(200).send({status: 'ok', data: {someDeletionsFailed: false}});
   } else {
     res.status(400).send({
       status: 'error',
@@ -203,10 +190,7 @@ app.delete('/users', validateSessionMiddleware, async (req, res) => {
 app.get('/access', validateSessionMiddleware, (req, res) => {
   const fileId = req.query.fileId;
 
-  const { granted } = UserService.checkFilePermission(
-    fileId,
-    res.locals.user_id,
-  ) || {
+  const {granted} = UserService.checkFilePermission(fileId, res.locals.user_id) || {
     granted: 0,
   };
 
@@ -244,10 +228,7 @@ app.post('/access', (req, res) => {
 
   if (!session) return;
 
-  const { granted } = UserService.checkFilePermission(
-    userAccess.fileId,
-    session.user_id,
-  ) || {
+  const {granted} = UserService.checkFilePermission(userAccess.fileId, session.user_id) || {
     granted: 0,
   };
 
@@ -290,7 +271,7 @@ app.post('/access', (req, res) => {
 
   UserService.addUserAccess(userAccess.userId, userAccess.fileId);
 
-  res.status(200).send({ status: 'ok', data: {} });
+  res.status(200).send({status: 'ok', data: {}});
 });
 
 app.delete('/access', (req, res) => {
@@ -298,10 +279,7 @@ app.delete('/access', (req, res) => {
   const session = validateSession(req, res);
   if (!session) return;
 
-  const { granted } = UserService.checkFilePermission(
-    fileId,
-    session.user_id,
-  ) || {
+  const {granted} = UserService.checkFilePermission(fileId, session.user_id) || {
     granted: 0,
   };
 
@@ -324,13 +302,11 @@ app.delete('/access', (req, res) => {
     return;
   }
 
-  const { ids } = req.body || {};
+  const {ids} = req.body || {};
   const totalDeleted = UserService.deleteUserAccessByFileId(ids, fileId);
 
   if (ids.length === totalDeleted) {
-    res
-      .status(200)
-      .send({ status: 'ok', data: { someDeletionsFailed: false } });
+    res.status(200).send({status: 'ok', data: {someDeletionsFailed: false}});
   } else {
     res.status(400).send({
       status: 'error',
@@ -343,10 +319,7 @@ app.delete('/access', (req, res) => {
 app.get('/access/users', validateSessionMiddleware, async (req, res) => {
   const fileId = req.query.fileId;
 
-  const { granted } = UserService.checkFilePermission(
-    fileId,
-    res.locals.user_id,
-  ) || {
+  const {granted} = UserService.checkFilePermission(fileId, res.locals.user_id) || {
     granted: 0,
   };
 
@@ -373,61 +346,54 @@ app.get('/access/users', validateSessionMiddleware, async (req, res) => {
   res.json(users);
 });
 
-app.post(
-  '/access/transfer-ownership/',
-  validateSessionMiddleware,
-  (req, res) => {
-    const newUserOwner = req.body || {};
+app.post('/access/transfer-ownership/', validateSessionMiddleware, (req, res) => {
+  const newUserOwner = req.body || {};
 
-    const { granted } = UserService.checkFilePermission(
-      newUserOwner.fileId,
-      res.locals.user_id,
-    ) || {
-      granted: 0,
-    };
+  const {granted} = UserService.checkFilePermission(newUserOwner.fileId, res.locals.user_id) || {
+    granted: 0,
+  };
 
-    if (granted === 0 && !isAdmin(res.locals.user_id)) {
-      res.status(400).send({
-        status: 'error',
-        reason: 'file-denied',
-        details: "You don't have permissions over this file",
-      });
-      return;
-    }
+  if (granted === 0 && !isAdmin(res.locals.user_id)) {
+    res.status(400).send({
+      status: 'error',
+      reason: 'file-denied',
+      details: "You don't have permissions over this file",
+    });
+    return;
+  }
 
-    const fileIdInDb = UserService.getFileById(newUserOwner.fileId);
-    if (!fileIdInDb) {
-      res.status(404).send({
-        status: 'error',
-        reason: 'invalid-file-id',
-        details: 'File not found at server',
-      });
-      return;
-    }
+  const fileIdInDb = UserService.getFileById(newUserOwner.fileId);
+  if (!fileIdInDb) {
+    res.status(404).send({
+      status: 'error',
+      reason: 'invalid-file-id',
+      details: 'File not found at server',
+    });
+    return;
+  }
 
-    if (!newUserOwner.newUserId) {
-      res.status(400).send({
-        status: 'error',
-        reason: 'user-cant-be-empty',
-        details: 'Username cannot be empty',
-      });
-      return;
-    }
+  if (!newUserOwner.newUserId) {
+    res.status(400).send({
+      status: 'error',
+      reason: 'user-cant-be-empty',
+      details: 'Username cannot be empty',
+    });
+    return;
+  }
 
-    const newUserIdFromDb = UserService.getUserById(newUserOwner.newUserId);
-    if (newUserIdFromDb === 0) {
-      res.status(400).send({
-        status: 'error',
-        reason: 'new-user-not-found',
-        details: 'New user not found',
-      });
-      return;
-    }
+  const newUserIdFromDb = UserService.getUserById(newUserOwner.newUserId);
+  if (newUserIdFromDb === 0) {
+    res.status(400).send({
+      status: 'error',
+      reason: 'new-user-not-found',
+      details: 'New user not found',
+    });
+    return;
+  }
 
-    UserService.updateFileOwner(newUserOwner.newUserId, newUserOwner.fileId);
+  UserService.updateFileOwner(newUserOwner.newUserId, newUserOwner.fileId);
 
-    res.status(200).send({ status: 'ok', data: {} });
-  },
-);
+  res.status(200).send({status: 'ok', data: {}});
+});
 
 app.use(errorMiddleware);

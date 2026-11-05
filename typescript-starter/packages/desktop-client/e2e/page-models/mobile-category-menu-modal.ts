@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { EditNotesModal } from './mobile-edit-notes-modal';
+import {EditNotesModal} from './mobile-edit-notes-modal';
 
 export class CategoryMenuModal {
   readonly page: Page;
@@ -32,16 +32,16 @@ export class CategoryMenuModal {
     this.page = locator.page();
 
     this.heading = locator.getByRole('heading');
-    this.menuButton = this.heading.getByRole('button', { name: 'Menu' });
+    this.menuButton = this.heading.getByRole('button', {name: 'Menu'});
     this.budgetAmountInput = locator.getByTestId('amount-input');
-    this.editNotesButton = locator.getByRole('button', { name: 'Edit notes' });
+    this.editNotesButton = locator.getByRole('button', {name: 'Edit notes'});
     this.budgetAutomationsButton = locator.getByRole('button', {
       name: 'Budget automations',
     });
   }
 
   async close() {
-    await this.heading.getByRole('button', { name: 'Close' }).click();
+    await this.heading.getByRole('button', {name: 'Close'}).click();
   }
 
   async editNotes() {
@@ -57,14 +57,11 @@ export class CategoryMenuModal {
   async editAutomations() {
     await this.budgetAutomationsButton.click();
 
-    return this.page.getByRole('dialog', { name: 'Modal dialog' });
+    return this.page.getByRole('dialog', {name: 'Modal dialog'});
   }
 
   async delete() {
     await this.menuButton.click();
-    await this.page
-      .locator('[data-popover]')
-      .getByRole('button', { name: 'Delete' })
-      .click();
+    await this.page.locator('[data-popover]').getByRole('button', {name: 'Delete'}).click();
   }
 }

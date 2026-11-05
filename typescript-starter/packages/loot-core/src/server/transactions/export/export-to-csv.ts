@@ -15,59 +15,40 @@
  */
 
 // @ts-strict-ignore
-import { stringify as csvStringify } from 'csv-stringify/sync';
+import {stringify as csvStringify} from 'csv-stringify/sync';
 
-import { aqlQuery } from '#server/aql';
-import { integerToAmount } from '#shared/util';
+import {aqlQuery} from '#server/aql';
+import {integerToAmount} from '#shared/util';
 
 const FORMULA_TRIGGERS = /^[=+\-@\t\r]/;
 
 const csvStringifyOptions = {
   header: true,
   cast: {
-    string: (value: string) =>
-      FORMULA_TRIGGERS.test(value) ? "'" + value : value,
+    string: (value: string) => (FORMULA_TRIGGERS.test(value) ? "'" + value : value),
   },
 };
 
-export async function exportToCSV(
-  transactions,
-  accounts,
-  categoryGroups,
-  payees,
-) {
-  const accountNamesById = accounts.reduce((reduced, { id, name }) => {
+export async function exportToCSV(transactions, accounts, categoryGroups, payees) {
+  const accountNamesById = accounts.reduce((reduced, {id, name}) => {
     reduced[id] = name;
     return reduced;
   }, {});
 
-  const categoryNamesById = categoryGroups.reduce(
-    (reduced, { name, categories: subCategories }) => {
-      subCategories.forEach(
-        subCategory =>
-          (reduced[subCategory.id] = `${name}: ${subCategory.name}`),
-      );
-      return reduced;
-    },
-    {},
-  );
+  const categoryNamesById = categoryGroups.reduce((reduced, {name, categories: subCategories}) => {
+    subCategories.forEach(
+      subCategory => (reduced[subCategory.id] = `${name}: ${subCategory.name}`),
+    );
+    return reduced;
+  }, {});
 
-  const payeeNamesById = payees.reduce((reduced, { id, name }) => {
+  const payeeNamesById = payees.reduce((reduced, {id, name}) => {
     reduced[id] = name;
     return reduced;
   }, {});
 
   const transactionsForExport = transactions.map(
-    ({
-      account,
-      date,
-      payee,
-      notes,
-      category,
-      amount,
-      cleared,
-      reconciled,
-    }) => ({
+    ({account, date, payee, notes, category, amount, cleared, reconciled}) => ({
       Account: accountNamesById[account],
       Date: date,
       Payee: payeeNamesById[payee],
@@ -83,25 +64,25 @@ export async function exportToCSV(
 }
 
 export async function exportQueryToCSV(query) {
-  const { data: transactions } = await aqlQuery(
+  const {data: transactions} = await aqlQuery(
     query
       .select([
-        { Id: 'id' },
-        { Account: 'account.name' },
-        { Date: 'date' },
-        { Payee: 'payee.name' },
-        { ParentId: 'parent_id' },
-        { IsParent: 'is_parent' },
-        { IsChild: 'is_child' },
-        { SortOrder: 'sort_order' },
-        { Notes: 'notes' },
-        { CategoryGroup: 'category.group.name' },
-        { Category: 'category.name' },
-        { Amount: 'amount' },
-        { Cleared: 'cleared' },
-        { Reconciled: 'reconciled' },
+        {Id: 'id'},
+        {Account: 'account.name'},
+        {Date: 'date'},
+        {Payee: 'payee.name'},
+        {ParentId: 'parent_id'},
+        {IsParent: 'is_parent'},
+        {IsChild: 'is_child'},
+        {SortOrder: 'sort_order'},
+        {Notes: 'notes'},
+        {CategoryGroup: 'category.group.name'},
+        {Category: 'category.name'},
+        {Amount: 'amount'},
+        {Cleared: 'cleared'},
+        {Reconciled: 'reconciled'},
       ])
-      .options({ splits: 'all' }),
+      .options({splits: 'all'}),
   );
 
   // initialize a map to allow splits to have correct number of split from
@@ -125,10 +106,7 @@ export async function exportQueryToCSV(query) {
       Date: trans.Date,
       Payee: trans.Payee,
       Notes: trans.IsParent
-        ? '(SPLIT INTO ' +
-          parentsChildCount.get(trans.Id) +
-          ') ' +
-          (trans.Notes || '')
+        ? '(SPLIT INTO ' + parentsChildCount.get(trans.Id) + ') ' + (trans.Notes || '')
         : trans.IsChild
           ? '(SPLIT ' +
             childSplitOrder.get(trans.Id) +
@@ -139,11 +117,7 @@ export async function exportQueryToCSV(query) {
           : trans.Notes,
       Category_Group: trans.CategoryGroup,
       Category: trans.Category,
-      Amount: trans.IsParent
-        ? 0
-        : trans.Amount == null
-          ? 0
-          : integerToAmount(trans.Amount),
+      Amount: trans.IsParent ? 0 : trans.Amount == null ? 0 : integerToAmount(trans.Amount),
       Split_Amount: trans.IsParent ? integerToAmount(trans.Amount) : 0,
       Cleared:
         trans.Reconciled === true

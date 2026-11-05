@@ -15,10 +15,10 @@
  */
 
 import * as connection from '#platform/server/connection';
-import type { Handlers } from '#types/handlers';
+import type {Handlers} from '#types/handlers';
 
-import { createApp } from './app';
-import { runHandler } from './mutators';
+import {createApp} from './app';
+import {runHandler} from './mutators';
 
 // Main app
 export const app = createApp<Handlers>();
@@ -35,7 +35,5 @@ export async function send<K extends keyof Handlers>(
   name: K,
   args?: Parameters<Handlers[K]>[0],
 ): Promise<Awaited<ReturnType<Handlers[K]>>> {
-  return runHandler(app.handlers[name], args, { name }) as Promise<
-    Awaited<ReturnType<Handlers[K]>>
-  >;
+  return runHandler(app.handlers[name], args, {name}) as Promise<Awaited<ReturnType<Handlers[K]>>>;
 }

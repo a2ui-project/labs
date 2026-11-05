@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { vi } from 'vitest';
+import {vi} from 'vitest';
 
 import * as aql from '#server/aql';
 import * as db from '#server/db';
-import type { DbCategory } from '#server/db';
-import type { CategoryEntity } from '#types/models';
-import type { Template } from '#types/models/templates';
+import type {DbCategory} from '#server/db';
+import type {CategoryEntity} from '#types/models';
+import type {Template} from '#types/models/templates';
 
 import * as actions from './actions';
 import {
@@ -79,21 +79,21 @@ function setupAqlForCategoryLookup(cat: CategoryEntity) {
   vi.mocked(aql.aqlQuery).mockImplementation(async (query: unknown) => {
     const queryStr = JSON.stringify(query);
     if (queryStr.includes('hideFraction')) {
-      return { data: [{ value: 'false' }], dependencies: [] };
+      return {data: [{value: 'false'}], dependencies: []};
     }
     if (queryStr.includes('defaultCurrencyCode')) {
-      return { data: [{ value: 'USD' }], dependencies: [] };
+      return {data: [{value: 'USD'}], dependencies: []};
     }
     if (queryStr.includes('category_groups')) {
       return {
-        data: [{ id: cat.group, hidden: false, categories: [cat] }],
+        data: [{id: cat.group, hidden: false, categories: [cat]}],
         dependencies: [],
       };
     }
     if (queryStr.includes('categories')) {
-      return { data: [cat], dependencies: [] };
+      return {data: [cat], dependencies: []};
     }
-    return { data: [], dependencies: [] };
+    return {data: [], dependencies: []};
   });
 }
 
@@ -107,14 +107,14 @@ function setupAqlForWideScope(
   vi.mocked(aql.aqlQuery).mockImplementation(async (query: unknown) => {
     const queryStr = JSON.stringify(query);
     if (queryStr.includes('hideFraction')) {
-      return { data: [{ value: 'false' }], dependencies: [] };
+      return {data: [{value: 'false'}], dependencies: []};
     }
     if (queryStr.includes('defaultCurrencyCode')) {
-      return { data: [{ value: 'USD' }], dependencies: [] };
+      return {data: [{value: 'USD'}], dependencies: []};
     }
     if (queryStr.includes('goal_def')) {
       return {
-        data: savedTemplatesByCategory.map(({ category, templates }) => ({
+        data: savedTemplatesByCategory.map(({category, templates}) => ({
           ...category,
           goal_def: JSON.stringify(templates),
         })),
@@ -123,11 +123,11 @@ function setupAqlForWideScope(
     }
     if (queryStr.includes('category_groups')) {
       return {
-        data: [{ id: 'g1', hidden: false, categories: categoriesInGroup }],
+        data: [{id: 'g1', hidden: false, categories: categoriesInGroup}],
         dependencies: [],
       };
     }
-    return { data: [], dependencies: [] };
+    return {data: [], dependencies: []};
   });
 }
 
@@ -141,14 +141,14 @@ describe('dryRunCategoryTemplate', () => {
   });
 
   it('budgets a single periodic template through the engine end-to-end', async () => {
-    setupSheetMock({ 'to-budget': 100000 });
+    setupSheetMock({'to-budget': 100000});
     setupAqlForCategoryLookup(category);
 
     const templates: Template[] = [
       {
         type: 'periodic',
         amount: 100,
-        period: { period: 'month', amount: 1 },
+        period: {period: 'month', amount: 1},
         starting: '2024-01-01',
         directive: 'template',
         priority: 1,
@@ -164,14 +164,14 @@ describe('dryRunCategoryTemplate', () => {
   });
 
   it('clamps a periodic + percentage stack at the balance cap', async () => {
-    setupSheetMock({ 'to-budget': 1_000_000, 'total-income': 100000 });
+    setupSheetMock({'to-budget': 1_000_000, 'total-income': 100000});
     setupAqlForCategoryLookup(category);
 
     const templates: Template[] = [
       {
         type: 'periodic',
         amount: 100,
-        period: { period: 'month', amount: 1 },
+        period: {period: 'month', amount: 1},
         starting: '2024-01-01',
         directive: 'template',
         priority: 1,
@@ -209,19 +209,19 @@ describe('dryRunCategoryTemplate', () => {
     vi.mocked(aql.aqlQuery).mockImplementation(async (query: unknown) => {
       const queryStr = JSON.stringify(query);
       if (queryStr.includes('hideFraction')) {
-        return { data: [{ value: 'false' }], dependencies: [] };
+        return {data: [{value: 'false'}], dependencies: []};
       }
       if (queryStr.includes('defaultCurrencyCode')) {
-        return { data: [{ value: 'USD' }], dependencies: [] };
+        return {data: [{value: 'USD'}], dependencies: []};
       }
-      return { data: [], dependencies: [] };
+      return {data: [], dependencies: []};
     });
 
     const templates: Template[] = [
       {
         type: 'periodic',
         amount: 100,
-        period: { period: 'month', amount: 1 },
+        period: {period: 'month', amount: 1},
         starting: '2024-01-01',
         directive: 'template',
         priority: 1,
@@ -232,7 +232,7 @@ describe('dryRunCategoryTemplate', () => {
       categoryId: 'missing',
       templates,
     });
-    expect(result).toEqual({ budgeted: 0, perTemplate: [0] });
+    expect(result).toEqual({budgeted: 0, perTemplate: [0]});
   });
 
   it('shows full demand even when To Budget cannot cover it', async () => {
@@ -240,14 +240,14 @@ describe('dryRunCategoryTemplate', () => {
     // actual budgeted amount to fit. The dry run should still report the
     // templates' full demand so the user sees what the rules want, not
     // what would survive clamping.
-    setupSheetMock({ 'to-budget': 5000 });
+    setupSheetMock({'to-budget': 5000});
     setupAqlForCategoryLookup(category);
 
     const templates: Template[] = [
       {
         type: 'periodic',
         amount: 1800,
-        period: { period: 'month', amount: 1 },
+        period: {period: 'month', amount: 1},
         starting: '2026-05-01',
         directive: 'template',
         priority: 150,
@@ -255,7 +255,7 @@ describe('dryRunCategoryTemplate', () => {
       {
         type: 'periodic',
         amount: 3200,
-        period: { period: 'month', amount: 3 },
+        period: {period: 'month', amount: 3},
         starting: '2026-06-01',
         directive: 'template',
         priority: 150,
@@ -292,10 +292,10 @@ describe('applyMultipleCategoryTemplates', () => {
     vi.mocked(aql.aqlQuery).mockImplementation(async (query: unknown) => {
       const queryStr = JSON.stringify(query);
       if (queryStr.includes('hideFraction')) {
-        return { data: [{ value: 'false' }], dependencies: [] };
+        return {data: [{value: 'false'}], dependencies: []};
       }
       if (queryStr.includes('defaultCurrencyCode')) {
-        return { data: [{ value: 'USD' }], dependencies: [] };
+        return {data: [{value: 'USD'}], dependencies: []};
       }
       if (queryStr.includes('goal_def')) {
         return {
@@ -309,9 +309,9 @@ describe('applyMultipleCategoryTemplates', () => {
         };
       }
       if (queryStr.includes('categories')) {
-        return { data: cats, dependencies: [] };
+        return {data: cats, dependencies: []};
       }
-      return { data: [], dependencies: [] };
+      return {data: [], dependencies: []};
     });
   }
 
@@ -324,13 +324,13 @@ describe('applyMultipleCategoryTemplates', () => {
   });
 
   it('writes per-category budgets and returns a success notification', async () => {
-    setupSheetMock({ 'to-budget': 100000 });
+    setupSheetMock({'to-budget': 100000});
     setupAqlMultiCategory([cat1, cat2], {
       [cat1.id]: [
         {
           type: 'periodic',
           amount: 100,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
@@ -340,7 +340,7 @@ describe('applyMultipleCategoryTemplates', () => {
         {
           type: 'periodic',
           amount: 200,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
@@ -356,9 +356,7 @@ describe('applyMultipleCategoryTemplates', () => {
     expect(result.message).toBe('templates-applied');
     expect(result.count).toBe(2);
     expect(actions.setBudget).toHaveBeenCalledTimes(2);
-    const budgetCalls = vi
-      .mocked(actions.setBudget)
-      .mock.calls.map(call => call[0]);
+    const budgetCalls = vi.mocked(actions.setBudget).mock.calls.map(call => call[0]);
     const cat1Budget = budgetCalls.find(c => c.category === cat1.id);
     const cat2Budget = budgetCalls.find(c => c.category === cat2.id);
     expect(cat1Budget?.amount).toBe(10000);
@@ -368,13 +366,13 @@ describe('applyMultipleCategoryTemplates', () => {
   it('clamps lower-priority categories when funds run out', async () => {
     // Only $150 available; cat1 (p1) wants $100, cat2 (p2) wants $100.
     // p1 fully funded, p2 gets the remaining $50.
-    setupSheetMock({ 'to-budget': 15000 });
+    setupSheetMock({'to-budget': 15000});
     setupAqlMultiCategory([cat1, cat2], {
       [cat1.id]: [
         {
           type: 'periodic',
           amount: 100,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
@@ -384,7 +382,7 @@ describe('applyMultipleCategoryTemplates', () => {
         {
           type: 'periodic',
           amount: 100,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 2,
@@ -397,22 +395,16 @@ describe('applyMultipleCategoryTemplates', () => {
       categoryIds: [cat1.id, cat2.id],
     });
 
-    const budgetCalls = vi
-      .mocked(actions.setBudget)
-      .mock.calls.map(call => call[0]);
-    const cat1Amount = Number(
-      budgetCalls.find(c => c.category === cat1.id)?.amount ?? 0,
-    );
-    const cat2Amount = Number(
-      budgetCalls.find(c => c.category === cat2.id)?.amount ?? 0,
-    );
+    const budgetCalls = vi.mocked(actions.setBudget).mock.calls.map(call => call[0]);
+    const cat1Amount = Number(budgetCalls.find(c => c.category === cat1.id)?.amount ?? 0);
+    const cat2Amount = Number(budgetCalls.find(c => c.category === cat2.id)?.amount ?? 0);
     expect(cat1Amount).toBe(10000);
     expect(cat2Amount).toBe(5000);
     expect(cat1Amount + cat2Amount).toBe(15000);
   });
 
   it('returns an error notification when a template fails validation', async () => {
-    setupSheetMock({ 'to-budget': 100000 });
+    setupSheetMock({'to-budget': 100000});
     setupAqlMultiCategory([cat1], {
       [cat1.id]: [
         {
@@ -453,14 +445,12 @@ describe('applyMultipleCategoryTemplates', () => {
 
     expect(result.message).toBe('templates-up-to-date');
     const goalCalls = vi.mocked(actions.setGoal).mock.calls.map(c => c[0]);
-    expect(goalCalls).toContainEqual(
-      expect.objectContaining({ category: cat1.id, goal: null }),
-    );
+    expect(goalCalls).toContainEqual(expect.objectContaining({category: cat1.id, goal: null}));
   });
 
   it('distributes remainder funds across categories by weight', async () => {
     // Weights 3 and 1; $200 split 75% / 25%.
-    setupSheetMock({ 'to-budget': 20000 });
+    setupSheetMock({'to-budget': 20000});
     setupAqlMultiCategory([cat1, cat2], {
       [cat1.id]: [
         {
@@ -485,15 +475,9 @@ describe('applyMultipleCategoryTemplates', () => {
       categoryIds: [cat1.id, cat2.id],
     });
 
-    const budgetCalls = vi
-      .mocked(actions.setBudget)
-      .mock.calls.map(call => call[0]);
-    const cat1Amount = Number(
-      budgetCalls.find(c => c.category === cat1.id)?.amount ?? 0,
-    );
-    const cat2Amount = Number(
-      budgetCalls.find(c => c.category === cat2.id)?.amount ?? 0,
-    );
+    const budgetCalls = vi.mocked(actions.setBudget).mock.calls.map(call => call[0]);
+    const cat1Amount = Number(budgetCalls.find(c => c.category === cat1.id)?.amount ?? 0);
+    const cat2Amount = Number(budgetCalls.find(c => c.category === cat2.id)?.amount ?? 0);
     expect(cat1Amount).toBe(15000);
     expect(cat2Amount).toBe(5000);
     expect(cat1Amount + cat2Amount).toBe(20000);
@@ -521,10 +505,10 @@ describe('tracking budget priority handling (issue #8422)', () => {
     vi.mocked(aql.aqlQuery).mockImplementation(async (query: unknown) => {
       const queryStr = JSON.stringify(query);
       if (queryStr.includes('hideFraction')) {
-        return { data: [{ value: 'false' }], dependencies: [] };
+        return {data: [{value: 'false'}], dependencies: []};
       }
       if (queryStr.includes('defaultCurrencyCode')) {
-        return { data: [{ value: 'USD' }], dependencies: [] };
+        return {data: [{value: 'USD'}], dependencies: []};
       }
       if (queryStr.includes('goal_def')) {
         return {
@@ -538,9 +522,9 @@ describe('tracking budget priority handling (issue #8422)', () => {
         };
       }
       if (queryStr.includes('categories')) {
-        return { data: cats, dependencies: [] };
+        return {data: cats, dependencies: []};
       }
-      return { data: [], dependencies: [] };
+      return {data: [], dependencies: []};
     });
   }
 
@@ -557,14 +541,14 @@ describe('tracking budget priority handling (issue #8422)', () => {
     // tracking budgets), but `total-saved` reflects real budgeted income,
     // so the priority>0 template should still get funded instead of
     // clamping to 0.
-    setupSheetMock({ 'to-budget': 0, 'total-saved': 100000 });
+    setupSheetMock({'to-budget': 0, 'total-saved': 100000});
     vi.mocked(actions.isTrackingBudget).mockReturnValue(true);
     setupAqlMultiCategory([cat1], {
       [cat1.id]: [
         {
           type: 'periodic',
           amount: 100,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
@@ -578,9 +562,7 @@ describe('tracking budget priority handling (issue #8422)', () => {
     });
 
     expect(result.message).toBe('templates-applied');
-    const budgetCalls = vi
-      .mocked(actions.setBudget)
-      .mock.calls.map(call => call[0]);
+    const budgetCalls = vi.mocked(actions.setBudget).mock.calls.map(call => call[0]);
     expect(budgetCalls.find(c => c.category === cat1.id)?.amount).toBe(10000);
   });
 
@@ -589,14 +571,14 @@ describe('tracking budget priority handling (issue #8422)', () => {
     // total-saved: priority is still meaningful in tracking budgets, it's
     // just not the identical no-clamp behavior of skipping the check
     // entirely.
-    setupSheetMock({ 'to-budget': 0, 'total-saved': 15000 });
+    setupSheetMock({'to-budget': 0, 'total-saved': 15000});
     vi.mocked(actions.isTrackingBudget).mockReturnValue(true);
     setupAqlMultiCategory([cat1, cat2], {
       [cat1.id]: [
         {
           type: 'periodic',
           amount: 100,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
@@ -606,7 +588,7 @@ describe('tracking budget priority handling (issue #8422)', () => {
         {
           type: 'periodic',
           amount: 100,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 2,
@@ -619,15 +601,9 @@ describe('tracking budget priority handling (issue #8422)', () => {
       categoryIds: [cat1.id, cat2.id],
     });
 
-    const budgetCalls = vi
-      .mocked(actions.setBudget)
-      .mock.calls.map(call => call[0]);
-    const cat1Amount = Number(
-      budgetCalls.find(c => c.category === cat1.id)?.amount ?? 0,
-    );
-    const cat2Amount = Number(
-      budgetCalls.find(c => c.category === cat2.id)?.amount ?? 0,
-    );
+    const budgetCalls = vi.mocked(actions.setBudget).mock.calls.map(call => call[0]);
+    const cat1Amount = Number(budgetCalls.find(c => c.category === cat1.id)?.amount ?? 0);
+    const cat2Amount = Number(budgetCalls.find(c => c.category === cat2.id)?.amount ?? 0);
     expect(cat1Amount).toBe(10000);
     expect(cat2Amount).toBe(5000);
     expect(cat1Amount + cat2Amount).toBe(15000);
@@ -673,7 +649,7 @@ describe('applyTemplate (force=false)', () => {
             {
               type: 'periodic',
               amount: 100,
-              period: { period: 'month', amount: 1 },
+              period: {period: 'month', amount: 1},
               starting: '2024-01-01',
               directive: 'template',
               priority: 1,
@@ -686,7 +662,7 @@ describe('applyTemplate (force=false)', () => {
             {
               type: 'periodic',
               amount: 200,
-              period: { period: 'month', amount: 1 },
+              period: {period: 'month', amount: 1},
               starting: '2024-01-01',
               directive: 'template',
               priority: 1,
@@ -697,11 +673,9 @@ describe('applyTemplate (force=false)', () => {
       [cat1, cat2],
     );
 
-    await applyTemplate({ month: '2024-01' });
+    await applyTemplate({month: '2024-01'});
 
-    const budgetCalls = vi
-      .mocked(actions.setBudget)
-      .mock.calls.map(call => call[0]);
+    const budgetCalls = vi.mocked(actions.setBudget).mock.calls.map(call => call[0]);
     expect(budgetCalls.map(c => c.category)).toEqual([cat1.id]);
     expect(budgetCalls[0].amount).toBe(10000);
   });

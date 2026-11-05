@@ -26,17 +26,16 @@
 //   - @actual-app/web serves them as static files from `public/`.
 
 import fs from 'node:fs';
-import { createRequire } from 'node:module';
+import {createRequire} from 'node:module';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {fileURLToPath} from 'node:url';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
 export const migrationsDir = path.join(root, 'migrations');
 export const defaultDbPath = path.join(root, 'default-db.sqlite');
-export const sqlWasmPath =
-  require.resolve('@jlongster/sql.js/dist/sql-wasm.wasm');
+export const sqlWasmPath = require.resolve('@jlongster/sql.js/dist/sql-wasm.wasm');
 
 function migrationFileNames() {
   return fs

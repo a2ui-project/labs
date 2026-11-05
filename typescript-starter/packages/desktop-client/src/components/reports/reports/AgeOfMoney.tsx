@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgCalendar } from '@actual-app/components/icons/v1';
-import { Menu } from '@actual-app/components/menu';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgCalendar} from '@actual-app/components/icons/v1';
+import {Menu} from '@actual-app/components/menu';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
 import type {
   AgeOfMoneyGranularity,
@@ -42,31 +36,31 @@ import type {
 } from '@actual-app/core/types/models';
 import * as d from 'date-fns';
 
-import { EditablePageHeaderTitle } from '#components/EditablePageHeaderTitle';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page, PageHeader } from '#components/Page';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { AgeOfMoneyGraph } from '#components/reports/graphs/AgeOfMoneyGraph';
-import { Header } from '#components/reports/Header';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { createAgeOfMoneySpreadsheet } from '#components/reports/spreadsheets/age-of-money-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { fromDateRepr } from '#components/reports/util';
-import { useDashboardWidget } from '#hooks/useDashboardWidget';
-import { useLocale } from '#hooks/useLocale';
-import { useNavigate } from '#hooks/useNavigate';
-import { useRuleConditionFilters } from '#hooks/useRuleConditionFilters';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { useUpdateDashboardWidgetMutation } from '#reports/mutations';
+import {EditablePageHeaderTitle} from '#components/EditablePageHeaderTitle';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page, PageHeader} from '#components/Page';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {AgeOfMoneyGraph} from '#components/reports/graphs/AgeOfMoneyGraph';
+import {Header} from '#components/reports/Header';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {createAgeOfMoneySpreadsheet} from '#components/reports/spreadsheets/age-of-money-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {fromDateRepr} from '#components/reports/util';
+import {useDashboardWidget} from '#hooks/useDashboardWidget';
+import {useLocale} from '#hooks/useLocale';
+import {useNavigate} from '#hooks/useNavigate';
+import {useRuleConditionFilters} from '#hooks/useRuleConditionFilters';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {useUpdateDashboardWidgetMutation} from '#reports/mutations';
 
-import { getAgeColor } from './AgeOfMoneyCard';
+import {getAgeColor} from './AgeOfMoneyCard';
 
 export function AgeOfMoney() {
   const params = useParams();
-  const { data: widget, isLoading } = useDashboardWidget<AgeOfMoneyWidget>({
+  const {data: widget, isLoading} = useDashboardWidget<AgeOfMoneyWidget>({
     id: params.id,
     type: 'age-of-money-card',
   });
@@ -82,10 +76,10 @@ type AgeOfMoneyInnerProps = {
   widget?: AgeOfMoneyWidget;
 };
 
-function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
+function AgeOfMoneyInner({widget}: AgeOfMoneyInnerProps) {
   const locale = useLocale();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const {
     conditions,
@@ -94,10 +88,7 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
     onDelete: onDeleteFilter,
     onUpdate: onUpdateFilter,
     onConditionsOpChange,
-  } = useRuleConditionFilters(
-    widget?.meta?.conditions,
-    widget?.meta?.conditionsOp,
-  );
+  } = useRuleConditionFilters(widget?.meta?.conditions, widget?.meta?.conditionsOp);
 
   const [allMonths, setAllMonths] = useState<Array<{
     name: string;
@@ -133,14 +124,10 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
   useEffect(() => {
     async function run() {
       const earliestTrans = await send('get-earliest-transaction');
-      setEarliestTransaction(
-        earliestTrans ? earliestTrans.date : monthUtils.currentDay(),
-      );
+      setEarliestTransaction(earliestTrans ? earliestTrans.date : monthUtils.currentDay());
 
       const latestTrans = await send('get-latest-transaction');
-      setLatestTransaction(
-        latestTrans ? latestTrans.date : monthUtils.currentDay(),
-      );
+      setLatestTransaction(latestTrans ? latestTrans.date : monthUtils.currentDay());
 
       const currentMonth = monthUtils.currentMonth();
       let earliestMonth = earliestTrans
@@ -151,9 +138,7 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
         : currentMonth;
 
       const latestMonth =
-        latestTransactionMonth > currentMonth
-          ? latestTransactionMonth
-          : currentMonth;
+        latestTransactionMonth > currentMonth ? latestTransactionMonth : currentMonth;
 
       const yearAgo = monthUtils.subMonths(latestMonth, 12);
       if (earliestMonth > yearAgo) {
@@ -186,11 +171,7 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
     }
   }, [latestTransaction, widget?.meta?.timeFrame]);
 
-  function onChangeDates(
-    newStart: string,
-    newEnd: string,
-    newMode: TimeFrame['mode'],
-  ) {
+  function onChangeDates(newStart: string, newEnd: string, newMode: TimeFrame['mode']) {
     setStart(newStart);
     setEnd(newEnd);
     setMode(newMode);
@@ -241,7 +222,7 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
   ]);
 
   const navigate = useNavigate();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   const title = widget?.meta?.name || t('Age of Money');
   const onSaveWidgetName = useCallback(
@@ -274,21 +255,12 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
         isNarrowWidth ? (
           <MobilePageHeader
             title={title}
-            leftContent={
-              <MobileBackButton onPress={() => navigate('/reports')} />
-            }
+            leftContent={<MobileBackButton onPress={() => navigate('/reports')} />}
           />
         ) : (
           <PageHeader
             title={
-              widget ? (
-                <EditablePageHeaderTitle
-                  title={title}
-                  onSave={onSaveWidgetName}
-                />
-              ) : (
-                title
-              )
+              widget ? <EditablePageHeaderTitle title={title} onSave={onSaveWidgetName} /> : title
             }
           />
         )
@@ -311,12 +283,7 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
         onDeleteFilter={onDeleteFilter}
         conditionsOp={conditionsOp}
         onConditionsOpChange={onConditionsOpChange}
-        inlineContent={
-          <GranularitySelector
-            granularity={granularity}
-            onChange={setGranularity}
-          />
-        }
+        inlineContent={<GranularitySelector granularity={granularity} onChange={setGranularity} />}
       >
         {widget && (
           <Button variant="primary" onPress={onSaveWidget}>
@@ -349,12 +316,10 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
             }}
           >
             <PrivacyFilter>
-              {data.currentAge !== null
-                ? t('{{days}} days', { days: data.currentAge })
-                : t('N/A')}
+              {data.currentAge !== null ? t('{{days}} days', {days: data.currentAge}) : t('N/A')}
             </PrivacyFilter>
           </View>
-          <View style={{ color: theme.pageTextSubdued }}>
+          <View style={{color: theme.pageTextSubdued}}>
             {data.trend === 'up'
               ? t('↑ Improving')
               : data.trend === 'down'
@@ -362,9 +327,7 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
                 : t('→ Stable')}
           </View>
           {data.insufficientData && (
-            <View
-              style={{ color: theme.warningText, fontSize: 12, marginTop: 5 }}
-            >
+            <View style={{color: theme.warningText, fontSize: 12, marginTop: 5}}>
               {t(
                 'Note: Some expenses could not be matched to income (spending exceeded income in this period)',
               )}
@@ -374,7 +337,7 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
 
         <AgeOfMoneyGraph data={data.graphData} />
 
-        <View style={{ marginTop: 30, userSelect: 'none' }}>
+        <View style={{marginTop: 30, userSelect: 'none'}}>
           <Paragraph>
             <strong>
               <Trans>What is Age of Money?</Trans>
@@ -382,18 +345,15 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
           </Paragraph>
           <Paragraph>
             <Trans>
-              Age of Money shows how many days, on average, your money sits in
-              your budget before you spend it. It measures the gap between when
-              you earn money and when you spend it.
+              Age of Money shows how many days, on average, your money sits in your budget before
+              you spend it. It measures the gap between when you earn money and when you spend it.
             </Trans>
           </Paragraph>
           <Paragraph>
             <Trans>
-              A higher Age of Money means you're spending older money, which
-              indicates you're living on last month's income rather than
-              paycheck-to-paycheck. An age of 30 days or more is considered
-              ideal—it means you're typically spending money you earned a month
-              ago.
+              A higher Age of Money means you're spending older money, which indicates you're living
+              on last month's income rather than paycheck-to-paycheck. An age of 30 days or more is
+              considered ideal—it means you're typically spending money you earned a month ago.
             </Trans>
           </Paragraph>
           <Paragraph>
@@ -403,11 +363,10 @@ function AgeOfMoneyInner({ widget }: AgeOfMoneyInnerProps) {
           </Paragraph>
           <Paragraph>
             <Trans>
-              The calculation uses the FIFO (First In, First Out) method: when
-              you spend money, it's considered to come from your oldest income
-              first. The age is the difference in days between when you received
-              that income and when you spent it. The displayed value is the
-              average age of your last 10 expenses.
+              The calculation uses the FIFO (First In, First Out) method: when you spend money, it's
+              considered to come from your oldest income first. The age is the difference in days
+              between when you received that income and when you spent it. The displayed value is
+              the average age of your last 10 expenses.
             </Trans>
           </Paragraph>
         </View>
@@ -423,19 +382,18 @@ function GranularitySelector({
   granularity: AgeOfMoneyGranularity;
   onChange: (val: AgeOfMoneyGranularity) => void;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
-  const options: Array<{ key: AgeOfMoneyGranularity; description: string }> = [
-    { key: 'daily', description: t('Daily') },
-    { key: 'weekly', description: t('Weekly') },
-    { key: 'monthly', description: t('Monthly') },
+  const options: Array<{key: AgeOfMoneyGranularity; description: string}> = [
+    {key: 'daily', description: t('Daily')},
+    {key: 'weekly', description: t('Weekly')},
+    {key: 'monthly', description: t('Monthly')},
   ];
 
-  const currentLabel =
-    options.find(opt => opt.key === granularity)?.description ?? granularity;
+  const currentLabel = options.find(opt => opt.key === granularity)?.description ?? granularity;
 
   return (
     <>
@@ -445,8 +403,8 @@ function GranularitySelector({
         onPress={() => setIsOpen(true)}
         aria-label={t('Change granularity')}
       >
-        <SvgCalendar style={{ width: 12, height: 12 }} />
-        <span style={{ marginLeft: 5 }}>{currentLabel}</span>
+        <SvgCalendar style={{width: 12, height: 12}} />
+        <span style={{marginLeft: 5}}>{currentLabel}</span>
       </Button>
 
       <Popover
@@ -460,7 +418,7 @@ function GranularitySelector({
             onChange(item as AgeOfMoneyGranularity);
             setIsOpen(false);
           }}
-          items={options.map(({ key, description }) => ({
+          items={options.map(({key, description}) => ({
             name: key,
             text: description,
           }))}

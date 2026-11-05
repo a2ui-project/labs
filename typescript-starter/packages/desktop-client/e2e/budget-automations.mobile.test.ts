@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { MobileNavigation } from './page-models/mobile-navigation';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {MobileNavigation} from './page-models/mobile-navigation';
 
 test.describe('Mobile budget automations', () => {
   let page: Page;
   let navigation: MobileNavigation;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new MobileNavigation(page);
     configurationPage = new ConfigurationPage(page);
 
-    await page.setViewportSize({ width: 350, height: 600 });
+    await page.setViewportSize({width: 350, height: 600});
     await page.goto('/');
     await configurationPage.createTestFile();
 
@@ -39,7 +39,7 @@ test.describe('Mobile budget automations', () => {
     const uiToggle = page.getByRole('checkbox', {
       name: 'Budget automations UI',
     });
-    await uiToggle.waitFor({ state: 'visible' });
+    await uiToggle.waitFor({state: 'visible'});
     if (!(await uiToggle.isChecked())) {
       await uiToggle.click();
     }
@@ -62,12 +62,10 @@ test.describe('Mobile budget automations', () => {
     });
     await expect(addAutomation).toBeVisible();
 
-    await expect(
-      automationsModal.getByRole('button', { name: 'Cancel' }),
-    ).toBeInViewport({ ratio: 1 });
-    await expect(
-      automationsModal.getByRole('button', { name: 'Save', exact: true }),
-    ).toBeInViewport({ ratio: 1 });
+    await expect(automationsModal.getByRole('button', {name: 'Cancel'})).toBeInViewport({ratio: 1});
+    await expect(automationsModal.getByRole('button', {name: 'Save', exact: true})).toBeInViewport({
+      ratio: 1,
+    });
 
     await expect(page).toMatchThemeScreenshots();
 
@@ -85,21 +83,15 @@ test.describe('Mobile budget automations', () => {
         .evaluate(el => Math.round(el.getBoundingClientRect().height));
 
     // on mobile every field is the touch-friendly height and consistent
-    await automationsModal.getByRole('button', { name: /% of income/ }).click();
+    await automationsModal.getByRole('button', {name: /% of income/}).click();
     const percentHeight = await fieldHeight('#percent-field');
     expect(percentHeight).toBeGreaterThanOrEqual(36);
-    expect(
-      Math.abs((await fieldHeight('#category-field')) - percentHeight),
-    ).toBeLessThanOrEqual(3);
+    expect(Math.abs((await fieldHeight('#category-field')) - percentHeight)).toBeLessThanOrEqual(3);
 
-    await automationsModal
-      .getByRole('button', { name: /Save by date/ })
-      .click();
+    await automationsModal.getByRole('button', {name: /Save by date/}).click();
     const amountHeight = await fieldHeight('#by-amount-field');
     expect(amountHeight).toBeGreaterThanOrEqual(36);
-    expect(
-      Math.abs((await fieldHeight('#by-month-field')) - amountHeight),
-    ).toBeLessThanOrEqual(3);
+    expect(Math.abs((await fieldHeight('#by-month-field')) - amountHeight)).toBeLessThanOrEqual(3);
 
     const viewport = page.viewportSize();
     const editorBox = await automationsModal.boundingBox();
@@ -107,19 +99,17 @@ test.describe('Mobile budget automations', () => {
       throw new Error('expected a visible modal and viewport');
     }
     expect(editorBox.height).toBeLessThanOrEqual(viewport.height + 1);
-    await expect(backButton).toBeInViewport({ ratio: 1 });
-    await expect(
-      automationsModal.getByRole('button', { name: 'Save', exact: true }),
-    ).toHaveCount(0);
+    await expect(backButton).toBeInViewport({ratio: 1});
+    await expect(automationsModal.getByRole('button', {name: 'Save', exact: true})).toHaveCount(0);
     await expect(page).toMatchThemeScreenshots();
 
     await backButton.click();
     await expect(addAutomation).toBeVisible();
-    await expect(
-      automationsModal.getByRole('button', { name: 'Save', exact: true }),
-    ).toBeInViewport({ ratio: 1 });
+    await expect(automationsModal.getByRole('button', {name: 'Save', exact: true})).toBeInViewport({
+      ratio: 1,
+    });
 
-    await automationsModal.getByRole('button', { name: 'Cancel' }).click();
+    await automationsModal.getByRole('button', {name: 'Cancel'}).click();
     await expect(automationsModal).toBeHidden();
   });
 });

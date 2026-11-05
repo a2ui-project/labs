@@ -14,35 +14,27 @@
  * limitations under the License.
  */
 
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
+import React, {useLayoutEffect, useMemo, useRef, useState} from 'react';
+import type {KeyboardEvent} from 'react';
 
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { q } from '@actual-app/core/shared/query';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {q} from '@actual-app/core/shared/query';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
 
-import type { DropPosition } from '#components/sort';
-import { SchedulesProvider } from '#hooks/useCachedSchedules';
-import { useCategories } from '#hooks/useCategories';
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import { useLocalPref } from '#hooks/useLocalPref';
+import type {DropPosition} from '#components/sort';
+import {SchedulesProvider} from '#hooks/useCachedSchedules';
+import {useCategories} from '#hooks/useCategories';
+import {useGlobalPref} from '#hooks/useGlobalPref';
+import {useLocalPref} from '#hooks/useLocalPref';
 
-import { BudgetCategories } from './BudgetCategories';
-import { BudgetSummaries } from './BudgetSummaries';
-import { BudgetTotals } from './BudgetTotals';
-import { MonthsProvider } from './MonthsContext';
-import type { MonthBounds } from './MonthsContext';
-import {
-  findSortDown,
-  findSortUp,
-  getScrollbarWidth,
-  separateGroups,
-} from './util';
+import {BudgetCategories} from './BudgetCategories';
+import {BudgetSummaries} from './BudgetSummaries';
+import {BudgetTotals} from './BudgetTotals';
+import {MonthsProvider} from './MonthsContext';
+import type {MonthBounds} from './MonthsContext';
+import {findSortDown, findSortUp, getScrollbarWidth, separateGroups} from './util';
 
 type BudgetTableProps = {
   type: string;
@@ -54,13 +46,8 @@ type BudgetTableProps = {
   onDeleteCategory: (id: CategoryEntity['id']) => void;
   onSaveGroup: (group: CategoryGroupEntity) => void;
   onDeleteGroup: (id: CategoryGroupEntity['id']) => void;
-  onApplyBudgetTemplatesInGroup: (
-    categoryIds: Array<CategoryEntity['id']>,
-  ) => void;
-  onSortCategories?: (
-    groupId: CategoryGroupEntity['id'],
-    direction: 'asc' | 'desc',
-  ) => void;
+  onApplyBudgetTemplatesInGroup: (categoryIds: Array<CategoryEntity['id']>) => void;
+  onSortCategories?: (groupId: CategoryGroupEntity['id'], direction: 'asc' | 'desc') => void;
   onReorderCategory: (params: {
     id: CategoryEntity['id'];
     groupId: CategoryGroupEntity['id'];
@@ -93,25 +80,19 @@ export function BudgetTable(props: BudgetTableProps) {
     onBudgetAction,
   } = props;
 
-  const { data: { grouped: categoryGroups } = { grouped: [] } } =
-    useCategories();
-  const [collapsedGroupIds = [], setCollapsedGroupIdsPref] =
-    useLocalPref('budget.collapsed');
+  const {data: {grouped: categoryGroups} = {grouped: []}} = useCategories();
+  const [collapsedGroupIds = [], setCollapsedGroupIdsPref] = useLocalPref('budget.collapsed');
   const [showHiddenCategories, setShowHiddenCategoriesPef] = useLocalPref(
     'budget.showHiddenCategories',
   );
   const [categoryExpandedStatePref] = useGlobalPref('categoryExpandedState');
   const categoryExpandedState = categoryExpandedStatePref ?? 0;
-  const [editing, setEditing] = useState<{ id: string; cell: string } | null>(
-    null,
-  );
+  const [editing, setEditing] = useState<{id: string; cell: string} | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
-    const savedScrollPosition = sessionStorage.getItem(
-      'budget-scroll-position',
-    );
+    const savedScrollPosition = sessionStorage.getItem('budget-scroll-position');
     if (savedScrollPosition != null && scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = Number(savedScrollPosition);
       sessionStorage.removeItem('budget-scroll-position');
@@ -119,41 +100,30 @@ export function BudgetTable(props: BudgetTableProps) {
   }, []);
 
   const onEditMonth = (id: string, month: string) => {
-    setEditing(id ? { id, cell: month } : null);
+    setEditing(id ? {id, cell: month} : null);
   };
 
   const onEditName = (id: string) => {
-    setEditing(id ? { id, cell: 'name' } : null);
+    setEditing(id ? {id, cell: 'name'} : null);
   };
 
-  const _onReorderCategory = (
-    id: string,
-    dropPos: DropPosition | null,
-    targetId: string,
-  ) => {
+  const _onReorderCategory = (id: string, dropPos: DropPosition | null, targetId: string) => {
     const isGroup = !!categoryGroups.find(g => g.id === targetId);
 
     if (isGroup) {
-      const { targetId: groupId } = findSortUp(
-        categoryGroups,
-        dropPos,
-        targetId,
-      );
+      const {targetId: groupId} = findSortUp(categoryGroups, dropPos, targetId);
       const group = categoryGroups.find(g => g.id === groupId);
 
       if (group) {
-        const { categories = [] } = group;
+        const {categories = []} = group;
         onReorderCategory({
           id,
           groupId: group.id,
-          targetId:
-            categories.length === 0 || dropPos === 'top'
-              ? null
-              : categories[0].id,
+          targetId: categories.length === 0 || dropPos === 'top' ? null : categories[0].id,
         });
       }
     } else {
-      const group = categoryGroups.find(({ categories = [] }) =>
+      const group = categoryGroups.find(({categories = []}) =>
         categories.some(cat => cat.id === targetId),
       );
 
@@ -167,11 +137,7 @@ export function BudgetTable(props: BudgetTableProps) {
     }
   };
 
-  const _onReorderGroup = (
-    id: string,
-    dropPos: DropPosition | null,
-    targetId: string,
-  ) => {
+  const _onReorderGroup = (id: string, dropPos: DropPosition | null, targetId: string) => {
     const [expenseGroups] = separateGroups(categoryGroups); // exclude Income group from sortable groups to fix off-by-one error
     onReorderGroup({
       id,
@@ -183,16 +149,11 @@ export function BudgetTable(props: BudgetTableProps) {
     const flattened = categoryGroups.reduce(
       (all, group) => {
         if (collapsedGroupIds.includes(group.id)) {
-          return all.concat({ id: group.id, isGroup: true });
+          return all.concat({id: group.id, isGroup: true});
         }
-        return all.concat([
-          { id: group.id, isGroup: true },
-          ...(group?.categories || []),
-        ]);
+        return all.concat([{id: group.id, isGroup: true}, ...(group?.categories || [])]);
       },
-      [] as Array<
-        { id: CategoryGroupEntity['id']; isGroup: boolean } | CategoryEntity
-      >,
+      [] as Array<{id: CategoryGroupEntity['id']; isGroup: boolean} | CategoryEntity>,
     );
 
     if (editing) {
@@ -205,10 +166,7 @@ export function BudgetTable(props: BudgetTableProps) {
         if ('isGroup' in next && next.isGroup) {
           nextIdx += dir;
           continue;
-        } else if (
-          type === 'tracking' ||
-          ('is_income' in next && !next.is_income)
-        ) {
+        } else if (type === 'tracking' || ('is_income' in next && !next.is_income)) {
           onEditMonth(next.id, editing.cell);
           return;
         } else {
@@ -288,7 +246,7 @@ export function BudgetTable(props: BudgetTableProps) {
           paddingRight: 5 + getScrollbarWidth(),
         }}
       >
-        <View style={{ width: 200 + 100 * categoryExpandedState }} />
+        <View style={{width: 200 + 100 * categoryExpandedState}} />
         <MonthsProvider
           startMonth={prewarmStartMonth}
           numMonths={numMonths}

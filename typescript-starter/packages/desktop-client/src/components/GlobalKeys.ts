@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useEffect } from 'react';
+import {useEffect} from 'react';
 
 import * as Platform from '@actual-app/core/shared/platform';
 
-import { useNavigate } from '#hooks/useNavigate';
+import {useNavigate} from '#hooks/useNavigate';
 
 export function GlobalKeys() {
   const navigate = useNavigate();

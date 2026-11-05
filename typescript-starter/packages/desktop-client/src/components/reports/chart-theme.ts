@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
+import {useMemo} from 'react';
 
-import { useReducedMotion } from '#hooks/useReducedMotion';
+import {useReducedMotion} from '#hooks/useReducedMotion';
 
 export function getColorScale(name: string): string[] {
   const scales: Record<string, string[]> = {
@@ -41,9 +41,7 @@ export function useRechartsAnimation(defaults?: {
 }) {
   const reducedMotion = useReducedMotion();
 
-  const isAnimationActive = reducedMotion
-    ? false
-    : (defaults?.isAnimationActive ?? true);
+  const isAnimationActive = reducedMotion ? false : (defaults?.isAnimationActive ?? true);
   const animationDuration = reducedMotion ? 0 : defaults?.animationDuration;
 
   // The returned object must be referentially stable: recharts re-runs chart
@@ -51,7 +49,7 @@ export function useRechartsAnimation(defaults?: {
   // changes, and this file is outside the React Compiler's *.tsx include, so
   // it isn't auto-memoized.
   return useMemo(
-    () => ({ isAnimationActive, animationDuration }),
+    () => ({isAnimationActive, animationDuration}),
     [isAnimationActive, animationDuration],
   );
 }

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Block } from './Block';
-import { theme } from './theme';
+import {Block} from './Block';
+import {theme} from './theme';
 
 const meta = {
   title: 'Components/Block',
@@ -38,8 +38,7 @@ export const Default: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'Block is a basic div wrapper that accepts Emotion CSS styles via the `style` prop.',
+        story: 'Block is a basic div wrapper that accepts Emotion CSS styles via the `style` prop.',
       },
     },
   },

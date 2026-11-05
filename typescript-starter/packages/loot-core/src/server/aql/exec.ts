@@ -16,16 +16,11 @@
 
 import * as db from '#server/db';
 // @ts-strict-ignore
-import type { QueryState } from '#shared/query';
+import type {QueryState} from '#shared/query';
 
-import { compileQuery, defaultConstructQuery } from './compiler';
-import type {
-  CompilerState,
-  OutputTypes,
-  SchemaConfig,
-  SqlPieces,
-} from './compiler';
-import { convertInputType, convertOutputType } from './schema-helpers';
+import {compileQuery, defaultConstructQuery} from './compiler';
+import type {CompilerState, OutputTypes, SchemaConfig, SqlPieces} from './compiler';
+import {convertInputType, convertOutputType} from './schema-helpers';
 
 // TODO (compiler):
 // * Properly safeguard all inputs against SQL injection
@@ -82,7 +77,7 @@ export async function runCompiledAqlQuery(
   queryState: QueryState,
   sqlPieces: SqlPieces,
   compilerState: CompilerState,
-  { params = {}, executors = {} }: RunCompiledAqlQueryOptions = {},
+  {params = {}, executors = {}}: RunCompiledAqlQueryOptions = {},
 ) {
   const paramArray = compilerState.namedParameters.map(param => {
     const name = param.paramName;
@@ -132,13 +127,8 @@ export async function compileAndRunAqlQuery(
   queryState: QueryState,
   options: RunCompiledAqlQueryOptions,
 ) {
-  const { sqlPieces, state } = compileQuery(queryState, schema, schemaConfig);
+  const {sqlPieces, state} = compileQuery(queryState, schema, schemaConfig);
   // oxlint-disable-next-line typescript/no-explicit-any
-  const data: any = await runCompiledAqlQuery(
-    queryState,
-    sqlPieces,
-    state,
-    options,
-  );
-  return { data, dependencies: state.dependencies };
+  const data: any = await runCompiledAqlQuery(queryState, sqlPieces, state, options);
+  return {data, dependencies: state.dependencies};
 }

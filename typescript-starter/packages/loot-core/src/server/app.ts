@@ -16,10 +16,10 @@
 
 // @ts-strict-ignore
 import mitt from 'mitt';
-import type { Emitter } from 'mitt';
+import type {Emitter} from 'mitt';
 
-import { captureException } from '#platform/exceptions';
-import type { ServerEvents } from '#types/server-events';
+import {captureException} from '#platform/exceptions';
+import type {ServerEvents} from '#types/server-events';
 
 // This is a simple helper abstraction for defining methods exposed to
 // the client. It doesn't do much, but checks for naming conflicts and
@@ -28,7 +28,7 @@ import type { ServerEvents } from '#types/server-events';
 
 type Events = {
   sync: ServerEvents['sync-event'];
-  'load-budget': { id: string };
+  'load-budget': {id: string};
 };
 
 type UnlistenService = () => void;
@@ -47,14 +47,9 @@ class App<Handlers> {
     this.unlistenServices = [];
   }
 
-  method<Name extends string & keyof Handlers>(
-    name: Name,
-    func: Handlers[Name],
-  ) {
+  method<Name extends string & keyof Handlers>(name: Name, func: Handlers[Name]) {
     if (this.handlers[name] != null) {
-      throw new Error(
-        'Conflicting method name, names must be globally unique: ' + name,
-      );
+      throw new Error('Conflicting method name, names must be globally unique: ' + name);
     }
     this.handlers[name] = func;
   }
@@ -83,11 +78,7 @@ class App<Handlers> {
 
   startServices() {
     if (this.unlistenServices.length > 0) {
-      captureException(
-        new Error(
-          'App: startServices called while services are already running',
-        ),
-      );
+      captureException(new Error('App: startServices called while services are already running'));
     }
     this.unlistenServices = this.services.map(service => service());
   }

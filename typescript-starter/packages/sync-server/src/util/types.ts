@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export type BrandedId<T extends string> = string & { __brand: T };
+export type BrandedId<T extends string> = string & {__brand: T};

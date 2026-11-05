@@ -18,7 +18,7 @@
 // We have to bundle in JS migrations manually to avoid having to `eval`
 // them which doesn't play well with CSP. There isn't great, and eventually
 // we can remove this migration.
-import type { Database } from '@jlongster/sql.js';
+import type {Database} from '@jlongster/sql.js';
 
 import m1632571489012 from '#migrations/1632571489012_remove_cache';
 import m1722717601000 from '#migrations/1722717601000_reports_move_selected_categories';
@@ -27,7 +27,7 @@ import m1723665565000 from '#migrations/1723665565000_prefs';
 import m1765518577215 from '#migrations/1765518577215_multiple_dashboards';
 import m1788468782000 from '#migrations/1788468782000_add_messages_pending';
 import * as fs from '#platform/server/fs';
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 import * as sqlite from '#platform/server/sqlite';
 import * as prefs from '#server/prefs';
 
@@ -42,10 +42,7 @@ const javascriptMigrations = {
   1788468782000: m1788468782000,
 };
 
-export async function withMigrationsDir(
-  dir: string,
-  func: () => Promise<void>,
-): Promise<void> {
+export async function withMigrationsDir(dir: string, func: () => Promise<void>): Promise<void> {
   const oldDir = MIGRATIONS_DIR;
   MIGRATIONS_DIR = dir;
   await func();
@@ -73,17 +70,13 @@ async function patchBadMigrations(db: Database) {
   const newFiltersMigration = 1688749527273;
   const appliedIds = await getAppliedMigrations(db);
   if (appliedIds.includes(badFiltersMigration)) {
-    sqlite.runQuery(db, 'DELETE FROM __migrations__ WHERE id = ?', [
-      badFiltersMigration,
-    ]);
-    sqlite.runQuery(db, 'INSERT INTO __migrations__ (id) VALUES (?)', [
-      newFiltersMigration,
-    ]);
+    sqlite.runQuery(db, 'DELETE FROM __migrations__ WHERE id = ?', [badFiltersMigration]);
+    sqlite.runQuery(db, 'INSERT INTO __migrations__ (id) VALUES (?)', [newFiltersMigration]);
   }
 }
 
 export async function getAppliedMigrations(db: Database): Promise<number[]> {
-  const rows = sqlite.runQuery<{ id: number }>(
+  const rows = sqlite.runQuery<{id: number}>(
     db,
     'SELECT * FROM __migrations__ ORDER BY id ASC',
     [],
@@ -92,9 +85,7 @@ export async function getAppliedMigrations(db: Database): Promise<number[]> {
   return rows.map(row => row.id);
 }
 
-export async function getMigrationList(
-  migrationsDir: string,
-): Promise<string[]> {
+export async function getMigrationList(migrationsDir: string): Promise<string[]> {
   const files = await fs.listDir(migrationsDir);
   return files
     .filter(name => name.match(/(\.sql|\.js)$/))
@@ -119,8 +110,7 @@ export function getPending(appliedIds: number[], all: string[]): string[] {
 
 async function applyJavaScript(db, id) {
   const dbInterface = {
-    runQuery: (query, params, fetchAll) =>
-      sqlite.runQuery(db, query, params, fetchAll),
+    runQuery: (query, params, fetchAll) => sqlite.runQuery(db, query, params, fetchAll),
     execQuery: query => sqlite.execQuery(db, query),
     transaction: func => sqlite.transaction(db, func),
   };
@@ -156,9 +146,7 @@ export async function applyMigration(
   } else {
     await applySql(db, code);
   }
-  sqlite.runQuery(db, 'INSERT INTO __migrations__ (id) VALUES (?)', [
-    getMigrationId(name),
-  ]);
+  sqlite.runQuery(db, 'INSERT INTO __migrations__ (id) VALUES (?)', [getMigrationId(name)]);
 }
 
 // Migrations with ids after this point are additive-only, enforced by
@@ -170,10 +158,7 @@ export async function applyMigration(
 // incompatible database.
 export const ADDITIVE_ONLY_CUTOFF = 1780606215001;
 
-function checkDatabaseValidity(
-  appliedIds: number[],
-  available: string[],
-): void {
+function checkDatabaseValidity(appliedIds: number[], available: string[]): void {
   // A migrated database with no migrations on disk means the install is
   // broken — without this guard every applied id would count as
   // "unknown but tolerable" below and the checks would pass vacuously
@@ -221,12 +206,8 @@ function checkDatabaseValidity(
   // ones must form an ordered prefix of the available list — a gap
   // there means the database is corrupt. Post-cutoff, a gap is just a
   // pending interleaved-id migration that `migrate` applies next.
-  const preCutoffAvailableIds = allAvailableIds.filter(
-    id => id <= ADDITIVE_ONLY_CUTOFF,
-  );
-  const preCutoffAppliedIds = knownAppliedIds.filter(
-    id => id <= ADDITIVE_ONLY_CUTOFF,
-  );
+  const preCutoffAvailableIds = allAvailableIds.filter(id => id <= ADDITIVE_ONLY_CUTOFF);
+  const preCutoffAppliedIds = knownAppliedIds.filter(id => id <= ADDITIVE_ONLY_CUTOFF);
 
   // A post-cutoff migration only ever runs after the entire pre-cutoff
   // chain, so one applied next to a missing pre-cutoff migration means
@@ -246,16 +227,11 @@ function checkDatabaseValidity(
   }
   for (let i = 0; i < preCutoffAppliedIds.length; i++) {
     if (preCutoffAppliedIds[i] !== preCutoffAvailableIds[i]) {
-      logger.error(
-        'Database is out of sync with migrations (migration id mismatch):',
-        {
-          appliedIds,
-          available,
-          missing: available.filter(
-            m => !appliedIds.includes(getMigrationId(m)),
-          ),
-        },
-      );
+      logger.error('Database is out of sync with migrations (migration id mismatch):', {
+        appliedIds,
+        available,
+        missing: available.filter(m => !appliedIds.includes(getMigrationId(m))),
+      });
       throw new Error('out-of-sync-migrations');
     }
   }

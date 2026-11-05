@@ -15,9 +15,9 @@
  */
 
 // @ts-strict-ignore
-import { captureBreadcrumb, captureException } from '#platform/exceptions';
-import { sequential } from '#shared/async';
-import type { HandlerFunctions, Handlers } from '#types/handlers';
+import {captureBreadcrumb, captureException} from '#platform/exceptions';
+import {sequential} from '#shared/async';
+import type {HandlerFunctions, Handlers} from '#types/handlers';
 
 const runningMethods = new Set();
 
@@ -57,7 +57,7 @@ function wait(time) {
 export async function runHandler<T extends Handlers[keyof Handlers]>(
   handler: T,
   args?: Parameters<T>[0],
-  { undoTag, name }: { undoTag?; name? } = {},
+  {undoTag, name}: {undoTag?; name?} = {},
 ): Promise<ReturnType<T>> {
   // For debug reasons, track the latest handlers that have been
   // called
@@ -67,9 +67,7 @@ export async function runHandler<T extends Handlers[keyof Handlers]>(
   }
 
   if (mutatingMethods.has(handler)) {
-    return runMutator(() => handler(args), { undoTag }) as Promise<
-      ReturnType<T>
-    >;
+    return runMutator(() => handler(args), {undoTag}) as Promise<ReturnType<T>>;
   }
 
   // When closing a file, it clears out all global state for the file. That
@@ -114,7 +112,7 @@ function _runMutator<T extends () => Promise<unknown>>(
 export const runMutator = sequential(_runMutator) as typeof _runMutator;
 
 export function withMutatorContext<T>(
-  context: { undoListening: boolean; undoTag?: unknown },
+  context: {undoListening: boolean; undoTag?: unknown},
   func: () => Promise<T>,
 ): Promise<T> {
   if (currentContext == null && !globalMutationsEnabled) {
@@ -127,7 +125,7 @@ export function withMutatorContext<T>(
   }
 
   const prevContext = currentContext;
-  currentContext = { ...currentContext, ...context };
+  currentContext = {...currentContext, ...context};
   return func().finally(() => {
     currentContext = prevContext;
   });

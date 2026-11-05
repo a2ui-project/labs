@@ -15,19 +15,19 @@
  */
 
 import React from 'react';
-import type { GridListItemProps } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import type {GridListItemProps} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgBookmark } from '@actual-app/components/icons/v1';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { PayeeEntity } from '@actual-app/core/types/models';
-import type { WithRequired } from '@actual-app/core/types/util';
+import {Button} from '@actual-app/components/button';
+import {SvgBookmark} from '@actual-app/components/icons/v1';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {PayeeEntity} from '@actual-app/core/types/models';
+import type {WithRequired} from '@actual-app/core/types/util';
 
-import { ActionableGridListItem } from '#components/mobile/ActionableGridListItem';
-import { PayeeRuleCountLabel } from '#components/payees/PayeeRuleCountLabel';
+import {ActionableGridListItem} from '#components/mobile/ActionableGridListItem';
+import {PayeeRuleCountLabel} from '#components/payees/PayeeRuleCountLabel';
 
 type PayeesListItemProps = {
   ruleCount: number;
@@ -44,11 +44,9 @@ export function PayeesListItem({
   onViewRules,
   ...props
 }: PayeesListItemProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
-  const label = payee.transfer_acct
-    ? t('Transfer: {{name}}', { name: payee.name })
-    : payee.name;
+  const label = payee.transfer_acct ? t('Transfer: {{name}}', {name: payee.name}) : payee.name;
 
   return (
     <ActionableGridListItem
@@ -58,7 +56,7 @@ export function PayeesListItem({
       actionsWidth={200}
       actions={
         !payee.transfer_acct && (
-          <View style={{ flexDirection: 'row', flex: 1 }}>
+          <View style={{flexDirection: 'row', flex: 1}}>
             <Button
               variant="bare"
               onPress={onViewRules}
@@ -69,11 +67,7 @@ export function PayeesListItem({
                 borderRadius: 0,
               }}
             >
-              {ruleCount > 0 ? (
-                <Trans>View rules</Trans>
-              ) : (
-                <Trans>Create rule</Trans>
-              )}
+              {ruleCount > 0 ? <Trans>View rules</Trans> : <Trans>Create rule</Trans>}
             </Button>
             <Button
               variant="bare"
@@ -91,7 +85,7 @@ export function PayeesListItem({
       }
       {...props}
     >
-      <SpaceBetween gap={5} style={{ flex: 1 }}>
+      <SpaceBetween gap={5} style={{flex: 1}}>
         {payee.favorite && (
           <SvgBookmark
             aria-hidden
@@ -115,9 +109,7 @@ export function PayeesListItem({
             style={{
               fontSize: 15,
               fontWeight: 500,
-              color: payee.transfer_acct
-                ? theme.pageTextSubdued
-                : theme.pageText,
+              color: payee.transfer_acct ? theme.pageTextSubdued : theme.pageText,
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
@@ -143,7 +135,7 @@ export function PayeesListItem({
             <PayeeRuleCountLabel
               count={ruleCount}
               isLoading={isRuleCountLoading}
-              style={{ fontSize: 12 }}
+              style={{fontSize: 12}}
             />
           </span>
         </SpaceBetween>

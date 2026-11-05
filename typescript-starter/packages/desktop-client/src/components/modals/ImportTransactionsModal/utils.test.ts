@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { filterByStartDate, parseCategoryFields, parseDate } from './utils';
-import type { ImportTransaction } from './utils';
+import {filterByStartDate, parseCategoryFields, parseDate} from './utils';
+import type {ImportTransaction} from './utils';
 
 describe('Import transactions', () => {
   describe('date parsing', () => {
@@ -23,39 +23,36 @@ describe('Import transactions', () => {
       str: Parameters<typeof parseDate>[0];
       order: Parameters<typeof parseDate>[1];
     }> = [
-      { str: '', order: 'yyyy mm dd' },
-      { str: null, order: 'yyyy mm dd' },
-      { str: 42, order: 'yyyy mm dd' },
-      { str: {}, order: 'yyyy mm dd' },
-      { str: [], order: 'yyyy mm dd' },
-      { str: 'Decimal 24 2020', order: 'mm dd yyyy' },
-      { str: '24 aDec 2020', order: 'dd mm yyyy' },
-      { str: 'invalid', order: 'yyyy mm dd' },
-      { str: '12 24 20', order: 'mm dd yyyy' },
-      { str: '20 12 24', order: 'yyyy mm dd' },
-      { str: '2020 12 24', order: 'yy mm dd' },
-      { str: '12 24 2020', order: 'mm dd yy' },
-      { str: '12 00 2020', order: 'mm dd yyyy' },
-      { str: '12 32 2020', order: 'mm dd yyyy' },
-      { str: '13 24 2020', order: 'mm dd yyyy' },
-      { str: '00 24 2020', order: 'mm dd yyyy' },
-      { str: '02 30 2020', order: 'mm dd yyyy' },
-      { str: '04 31 2020', order: 'mm dd yyyy' },
-      { str: '04 31 2020', order: 'mm dd yyyy' },
-      { str: '06 31 2020', order: 'mm dd yyyy' },
-      { str: '09 31 2020', order: 'mm dd yyyy' },
-      { str: '11 31 2020', order: 'mm dd yyyy' },
-      { str: '2046 31 2020', order: 'mm dd yyyy' },
-      { str: '2011 31 2020', order: 'mm dd yy' },
-      { str: '2020', order: 'mm dd yy' },
+      {str: '', order: 'yyyy mm dd'},
+      {str: null, order: 'yyyy mm dd'},
+      {str: 42, order: 'yyyy mm dd'},
+      {str: {}, order: 'yyyy mm dd'},
+      {str: [], order: 'yyyy mm dd'},
+      {str: 'Decimal 24 2020', order: 'mm dd yyyy'},
+      {str: '24 aDec 2020', order: 'dd mm yyyy'},
+      {str: 'invalid', order: 'yyyy mm dd'},
+      {str: '12 24 20', order: 'mm dd yyyy'},
+      {str: '20 12 24', order: 'yyyy mm dd'},
+      {str: '2020 12 24', order: 'yy mm dd'},
+      {str: '12 24 2020', order: 'mm dd yy'},
+      {str: '12 00 2020', order: 'mm dd yyyy'},
+      {str: '12 32 2020', order: 'mm dd yyyy'},
+      {str: '13 24 2020', order: 'mm dd yyyy'},
+      {str: '00 24 2020', order: 'mm dd yyyy'},
+      {str: '02 30 2020', order: 'mm dd yyyy'},
+      {str: '04 31 2020', order: 'mm dd yyyy'},
+      {str: '04 31 2020', order: 'mm dd yyyy'},
+      {str: '06 31 2020', order: 'mm dd yyyy'},
+      {str: '09 31 2020', order: 'mm dd yyyy'},
+      {str: '11 31 2020', order: 'mm dd yyyy'},
+      {str: '2046 31 2020', order: 'mm dd yyyy'},
+      {str: '2011 31 2020', order: 'mm dd yy'},
+      {str: '2020', order: 'mm dd yy'},
     ];
 
-    it.each(invalidInputs)(
-      'should not parse string `$str` with order `$order`',
-      ({ str, order }) => {
-        expect(parseDate(str, order)).toBe(null);
-      },
-    );
+    it.each(invalidInputs)('should not parse string `$str` with order `$order`', ({str, order}) => {
+      expect(parseDate(str, order)).toBe(null);
+    });
 
     const validInputs: Array<{
       order: Parameters<typeof parseDate>[1];
@@ -173,23 +170,18 @@ describe('Import transactions', () => {
       },
     ];
 
-    describe.each(validInputs)(
-      'should parse with order `$order`',
-      ({ order, cases }) => {
-        it.each(cases)('given input %j expects output %j', (input, output) => {
-          const parsed = parseDate(input, order);
+    describe.each(validInputs)('should parse with order `$order`', ({order, cases}) => {
+      it.each(cases)('given input %j expects output %j', (input, output) => {
+        const parsed = parseDate(input, order);
 
-          expect(typeof parsed).toBe('string');
-          expect(parsed).toBe(output);
-        });
-      },
-    );
+        expect(typeof parsed).toBe('string');
+        expect(parsed).toBe(output);
+      });
+    });
   });
 
   describe('filterByStartDate', () => {
-    function makeTrans(
-      overrides: Partial<ImportTransaction>,
-    ): ImportTransaction {
+    function makeTrans(overrides: Partial<ImportTransaction>): ImportTransaction {
       return {
         trx_id: '0',
         existing: false,
@@ -206,8 +198,8 @@ describe('Import transactions', () => {
 
     it('returns all transactions when startDate is empty', () => {
       const transactions = [
-        makeTrans({ trx_id: '0', date: '2024-01-15' }),
-        makeTrans({ trx_id: '1', date: '2024-02-20' }),
+        makeTrans({trx_id: '0', date: '2024-01-15'}),
+        makeTrans({trx_id: '1', date: '2024-02-20'}),
       ];
       const result = filterByStartDate(transactions, '', true, null, null);
       expect(result).toHaveLength(2);
@@ -215,57 +207,33 @@ describe('Import transactions', () => {
 
     it('filters out transactions before startDate for pre-parsed dates', () => {
       const transactions = [
-        makeTrans({ trx_id: '0', date: '2024-01-15' }),
-        makeTrans({ trx_id: '1', date: '2024-02-20' }),
-        makeTrans({ trx_id: '2', date: '2024-03-01' }),
+        makeTrans({trx_id: '0', date: '2024-01-15'}),
+        makeTrans({trx_id: '1', date: '2024-02-20'}),
+        makeTrans({trx_id: '2', date: '2024-03-01'}),
       ];
-      const result = filterByStartDate(
-        transactions,
-        '2024-02-01',
-        true,
-        null,
-        null,
-      );
+      const result = filterByStartDate(transactions, '2024-02-01', true, null, null);
       expect(result).toHaveLength(2);
       expect(result.map(t => t.trx_id)).toEqual(['1', '2']);
     });
 
     it('includes transactions on the exact startDate', () => {
-      const transactions = [makeTrans({ trx_id: '0', date: '2024-02-01' })];
-      const result = filterByStartDate(
-        transactions,
-        '2024-02-01',
-        true,
-        null,
-        null,
-      );
+      const transactions = [makeTrans({trx_id: '0', date: '2024-02-01'})];
+      const result = filterByStartDate(transactions, '2024-02-01', true, null, null);
       expect(result).toHaveLength(1);
     });
 
     it('keeps transactions with unparseable dates', () => {
-      const transactions = [makeTrans({ trx_id: '0', date: 'invalid' })];
-      const result = filterByStartDate(
-        transactions,
-        '2024-02-01',
-        false,
-        null,
-        'mm dd yyyy',
-      );
+      const transactions = [makeTrans({trx_id: '0', date: 'invalid'})];
+      const result = filterByStartDate(transactions, '2024-02-01', false, null, 'mm dd yyyy');
       expect(result).toHaveLength(1);
     });
 
     it('works with CSV dates requiring date format parsing', () => {
       const transactions = [
-        makeTrans({ trx_id: '0', date: '01/15/2024' }),
-        makeTrans({ trx_id: '1', date: '03/01/2024' }),
+        makeTrans({trx_id: '0', date: '01/15/2024'}),
+        makeTrans({trx_id: '1', date: '03/01/2024'}),
       ];
-      const result = filterByStartDate(
-        transactions,
-        '2024-02-01',
-        false,
-        null,
-        'mm dd yyyy',
-      );
+      const result = filterByStartDate(transactions, '2024-02-01', false, null, 'mm dd yyyy');
       expect(result).toHaveLength(1);
       expect(result[0].trx_id).toBe('1');
     });
@@ -305,20 +273,16 @@ describe('Import transactions', () => {
 
   describe('parseCategoryFields', () => {
     const categories = [
-      { id: 'cat-income', name: 'Income' },
-      { id: 'cat-deposits', name: 'Deposits' },
+      {id: 'cat-income', name: 'Income'},
+      {id: 'cat-deposits', name: 'Deposits'},
     ];
 
     it('returns the category id when CSV category text matches a category name', () => {
-      expect(parseCategoryFields({ category: 'Deposits' }, categories)).toBe(
-        'cat-deposits',
-      );
+      expect(parseCategoryFields({category: 'Deposits'}, categories)).toBe('cat-deposits');
     });
 
     it('returns null for unresolved CSV category text', () => {
-      expect(
-        parseCategoryFields({ category: 'Missing category' }, categories),
-      ).toBeNull();
+      expect(parseCategoryFields({category: 'Missing category'}, categories)).toBeNull();
     });
   });
 });

@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-import type { RefObject } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import type {RefObject} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { SvgAdd } from '@actual-app/components/icons/v1';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import { css } from '@emotion/css';
+import {SvgAdd} from '@actual-app/components/icons/v1';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import {css} from '@emotion/css';
 
-import { useCurrentWordRange } from '#hooks/useCurrentWordRange';
-import { useCursorPosition } from '#hooks/useCursorPosition';
-import { useInputRefValue } from '#hooks/useInputRefValue';
-import { useRefEventListener } from '#hooks/useRefEventListener';
-import { useTagCSS } from '#hooks/useTagCSS';
-import { useFilteredTags } from '#hooks/useTags';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {useCurrentWordRange} from '#hooks/useCurrentWordRange';
+import {useCursorPosition} from '#hooks/useCursorPosition';
+import {useInputRefValue} from '#hooks/useInputRefValue';
+import {useRefEventListener} from '#hooks/useRefEventListener';
+import {useTagCSS} from '#hooks/useTagCSS';
+import {useFilteredTags} from '#hooks/useTags';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
 type NoteTagAutocompleteProps = {
   inputRef: RefObject<HTMLInputElement | null>;
 };
 
-export function NoteTagAutocomplete({ inputRef }: NoteTagAutocompleteProps) {
-  const { t } = useTranslation();
+export function NoteTagAutocomplete({inputRef}: NoteTagAutocompleteProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   // Yes, there is a lot of ref usages in this component. Here's the motivation
   // 1. This component purely modifies HTML Input state, app state is handled elsewhere
@@ -55,7 +55,7 @@ export function NoteTagAutocomplete({ inputRef }: NoteTagAutocompleteProps) {
   const leadingHashCount = currentWord.match(/^#+/)?.[0].length ?? 0;
   const hasSingleLeadingHash = leadingHashCount === 1;
   const currentWordNoHash = hasSingleLeadingHash ? currentWord.slice(1) : '';
-  const { data: filteredTags, refetch } = useFilteredTags(
+  const {data: filteredTags, refetch} = useFilteredTags(
     hasSingleLeadingHash ? currentWord : '',
     true,
   );
@@ -64,12 +64,11 @@ export function NoteTagAutocomplete({ inputRef }: NoteTagAutocompleteProps) {
     currentWordNoHash &&
     !filteredTags.some(tag => tag.tag === currentWordNoHash);
 
-  const getTagCSS = useTagCSS({ ellipsis: true });
+  const getTagCSS = useTagCSS({ellipsis: true});
 
   function handleSelect(tag: string) {
     if (!inputRef.current) return;
-    const newValue =
-      note.slice(0, startIdx) + '#' + tag + ' ' + note.slice(endIdx);
+    const newValue = note.slice(0, startIdx) + '#' + tag + ' ' + note.slice(endIdx);
     setNote(newValue);
     const newPos = startIdx + tag.length + 2;
 
@@ -80,7 +79,7 @@ export function NoteTagAutocomplete({ inputRef }: NoteTagAutocompleteProps) {
   async function handleCreate(tag: string) {
     if (!inputRef.current) return;
     try {
-      await send('tags-create', { tag });
+      await send('tags-create', {tag});
       void refetch();
       if (inputRef.current && inputRef.current.value === note) {
         handleSelect(tag);
@@ -177,7 +176,7 @@ export function NoteTagAutocomplete({ inputRef }: NoteTagAutocompleteProps) {
             onClick={() => handleCreate(currentWordNoHash)}
           >
             <SvgAdd height={8} width={8} />
-            <span style={{ whiteSpace: 'nowrap' }}>
+            <span style={{whiteSpace: 'nowrap'}}>
               <Trans>Create tag</Trans>
             </span>
             <div

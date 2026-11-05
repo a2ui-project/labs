@@ -15,7 +15,7 @@
  */
 
 import Virgin from '#app-gocardless/banks/virgin_nrnbgb22';
-import { mockTransactionAmount } from '#app-gocardless/services/tests/fixtures';
+import {mockTransactionAmount} from '#app-gocardless/services/tests/fixtures';
 
 describe('Virgin', () => {
   describe('#normalizeTransaction', () => {
@@ -26,10 +26,7 @@ describe('Virgin', () => {
         transactionAmount: mockTransactionAmount,
       };
 
-      const normalizedTransaction = Virgin.normalizeTransaction(
-        transaction,
-        true,
-      );
+      const normalizedTransaction = Virgin.normalizeTransaction(transaction, true);
 
       expect(normalizedTransaction?.payeeName).toEqual('Direct Debit Payment');
       expect(normalizedTransaction?.notes).toEqual('DIRECT DEBIT PAYMENT');
@@ -42,10 +39,7 @@ describe('Virgin', () => {
         transactionAmount: mockTransactionAmount,
       };
 
-      const normalizedTransaction = Virgin.normalizeTransaction(
-        transaction,
-        true,
-      );
+      const normalizedTransaction = Virgin.normalizeTransaction(transaction, true);
 
       expect(normalizedTransaction?.payeeName).toEqual('Joe Bloggs');
       expect(normalizedTransaction?.notes).toEqual('Food');
@@ -58,10 +52,7 @@ describe('Virgin', () => {
         transactionAmount: mockTransactionAmount,
       };
 
-      const normalizedTransaction = Virgin.normalizeTransaction(
-        transaction,
-        true,
-      );
+      const normalizedTransaction = Virgin.normalizeTransaction(transaction, true);
 
       expect(normalizedTransaction?.payeeName).toEqual('Tesco Express');
       expect(normalizedTransaction?.notes).toEqual('Card 99, Tesco Express');

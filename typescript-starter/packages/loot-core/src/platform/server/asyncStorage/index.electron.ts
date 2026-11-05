@@ -16,11 +16,11 @@
 
 // @ts-strict-ignore
 import * as fs from 'fs';
-import { join } from 'path';
+import {join} from 'path';
 
 import * as lootFs from '#platform/server/fs';
-import { logger } from '#platform/server/log';
-import type { GlobalPrefsJson } from '#types/prefs';
+import {logger} from '#platform/server/log';
+import type {GlobalPrefsJson} from '#types/prefs';
 
 import type * as T from './index-types';
 
@@ -36,7 +36,7 @@ let writeCounter = 0;
 // of order and let an older snapshot clobber a newer one on disk.
 let pendingSave: Promise<void> = Promise.resolve();
 
-export const init: T.Init = function ({ persist = true } = {}) {
+export const init: T.Init = function ({persist = true} = {}) {
   if (persist) {
     store = loadStore(getStorePath());
   } else {
@@ -61,11 +61,7 @@ function loadStore(storePath: string): GlobalPrefsJson {
 
   try {
     const parsed = JSON.parse(contents);
-    if (
-      parsed === null ||
-      typeof parsed !== 'object' ||
-      Array.isArray(parsed)
-    ) {
+    if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
       throw new Error('Global preferences are not a JSON object');
     }
     return parsed;
@@ -120,7 +116,7 @@ async function writeStore(): Promise<void> {
     // Best-effort cleanup of the temp file; ignore failures (it may never have
     // been created).
     try {
-      await fs.promises.rm(tmpPath, { force: true });
+      await fs.promises.rm(tmpPath, {force: true});
     } catch {}
     throw err;
   }
@@ -144,7 +140,7 @@ export const removeItem: T.RemoveItem = function (key) {
 
 export async function multiGet<K extends readonly (keyof GlobalPrefsJson)[]>(
   keys: K,
-): Promise<{ [P in K[number]]: GlobalPrefsJson[P] }> {
+): Promise<{[P in K[number]]: GlobalPrefsJson[P]}> {
   const results = keys.map(key => [key, store[key]]) as {
     [P in keyof K]: [K[P], GlobalPrefsJson[K[P]]];
   };
@@ -155,7 +151,7 @@ export async function multiGet<K extends readonly (keyof GlobalPrefsJson)[]>(
       acc[key] = value;
       return acc;
     },
-    {} as { [P in K[number]]: GlobalPrefsJson[P] },
+    {} as {[P in K[number]]: GlobalPrefsJson[P]},
   );
 }
 

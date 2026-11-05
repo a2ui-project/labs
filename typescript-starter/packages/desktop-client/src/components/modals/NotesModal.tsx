@@ -15,22 +15,22 @@
  */
 
 // @ts-strict-ignore
-import React, { useEffect, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useEffect, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgCheck } from '@actual-app/components/icons/v2';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgCheck} from '@actual-app/components/icons/v2';
+import {View} from '@actual-app/components/view';
 
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { Notes } from '#components/Notes';
-import { useNotes } from '#hooks/useNotes';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {Notes} from '#components/Notes';
+import {useNotes} from '#hooks/useNotes';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
-type NotesModalProps = Extract<ModalType, { name: 'notes' }>['options'];
+type NotesModalProps = Extract<ModalType, {name: 'notes'}>['options'];
 
-export function NotesModal({ id, name, onSave }: NotesModalProps) {
-  const { t } = useTranslation();
+export function NotesModal({id, name, onSave}: NotesModalProps) {
+  const {t} = useTranslation();
   const originalNotes = useNotes(id);
 
   const [notes, setNotes] = useState(originalNotes);
@@ -46,13 +46,13 @@ export function NotesModal({ id, name, onSave }: NotesModalProps) {
     <Modal
       name="notes"
       containerProps={{
-        style: { height: '50vh' },
+        style: {height: '50vh'},
       }}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
-            title={t('Notes: {{name}}', { name })}
+            title={t('Notes: {{name}}', {name})}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
           <View
@@ -93,7 +93,7 @@ export function NotesModal({ id, name, onSave }: NotesModalProps) {
                   state.close();
                 }}
               >
-                <SvgCheck width={17} height={17} style={{ paddingRight: 5 }} />
+                <SvgCheck width={17} height={17} style={{paddingRight: 5}} />
                 <Trans>Save notes</Trans>
               </Button>
             </View>

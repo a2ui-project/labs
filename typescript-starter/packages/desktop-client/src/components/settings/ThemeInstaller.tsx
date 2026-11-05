@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
-import { TextArea } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
-import { AutoSizer } from 'react-virtualized-auto-sizer';
+import React, {useCallback, useEffect, useState} from 'react';
+import {TextArea} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
+import {AutoSizer} from 'react-virtualized-auto-sizer';
 
-import { Button } from '@actual-app/components/button';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { baseInputStyle } from '@actual-app/components/input';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { Text } from '@actual-app/components/text';
-import { TextOneLine } from '@actual-app/components/text-one-line';
-import { theme as themeStyle } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {baseInputStyle} from '@actual-app/components/input';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {Text} from '@actual-app/components/text';
+import {TextOneLine} from '@actual-app/components/text-one-line';
+import {theme as themeStyle} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { Link } from '#components/common/Link';
-import { FixedSizeList } from '#components/FixedSizeList';
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import { useThemeCatalog } from '#hooks/useThemeCatalog';
+import {Link} from '#components/common/Link';
+import {FixedSizeList} from '#components/FixedSizeList';
+import {useGlobalPref} from '#hooks/useGlobalPref';
+import {useThemeCatalog} from '#hooks/useThemeCatalog';
 import {
   embedThemeFonts,
   extractRepoOwner,
@@ -40,9 +40,9 @@ import {
   normalizeGitHubRepo,
   validateThemeCss,
 } from '#style/customThemes';
-import type { CatalogTheme, InstalledTheme } from '#style/customThemes';
+import type {CatalogTheme, InstalledTheme} from '#style/customThemes';
 
-import { ColorPalette } from './ColorPalette';
+import {ColorPalette} from './ColorPalette';
 
 // Theme item dimensions
 const ITEMS_PER_ROW = 3;
@@ -58,28 +58,17 @@ type ThemeInstallerProps = {
   mode?: 'light' | 'dark';
 };
 
-export function ThemeInstaller({
-  onInstall,
-  onClose,
-  installedTheme,
-  mode,
-}: ThemeInstallerProps) {
-  const { t } = useTranslation();
-  const [customCssOverride, setCustomCssOverride] =
-    useGlobalPref('customCssOverride');
-  const [selectedCatalogTheme, setSelectedCatalogTheme] =
-    useState<CatalogTheme | null>(null);
+export function ThemeInstaller({onInstall, onClose, installedTheme, mode}: ThemeInstallerProps) {
+  const {t} = useTranslation();
+  const [customCssOverride, setCustomCssOverride] = useGlobalPref('customCssOverride');
+  const [selectedCatalogTheme, setSelectedCatalogTheme] = useState<CatalogTheme | null>(null);
   const [erroringTheme, setErroringTheme] = useState<CatalogTheme | null>(null);
   const [pastedCss, setPastedCss] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch catalog from GitHub using custom hook
-  const {
-    data: catalog,
-    isLoading: catalogLoading,
-    error: catalogError,
-  } = useThemeCatalog();
+  const {data: catalog, isLoading: catalogLoading, error: catalogError} = useThemeCatalog();
 
   // Mount-only: pref changes while the installer is open should not clobber
   // in-progress edits to the textarea.
@@ -92,11 +81,8 @@ export function ThemeInstaller({
 
   // Calculate theme item width based on container width (always 3 per row)
   const getItemWidth = useCallback((containerWidth: number) => {
-    const availableWidth =
-      containerWidth - THEME_ITEM_PADDING * 2 - SCROLLBAR_WIDTH;
-    return Math.floor(
-      (availableWidth - (ITEMS_PER_ROW - 1) * THEME_ITEM_GAP) / ITEMS_PER_ROW,
-    );
+    const availableWidth = containerWidth - THEME_ITEM_PADDING * 2 - SCROLLBAR_WIDTH;
+    return Math.floor((availableWidth - (ITEMS_PER_ROW - 1) * THEME_ITEM_GAP) / ITEMS_PER_ROW);
   }, []);
 
   // Helper function to check if a catalog theme matches an installed theme
@@ -129,8 +115,7 @@ export function ThemeInstaller({
       setIsLoading(true);
 
       try {
-        const css =
-          typeof options.css === 'string' ? options.css : await options.css;
+        const css = typeof options.css === 'string' ? options.css : await options.css;
         const validatedCss = css ? validateThemeCss(css) : '';
 
         const newTheme: InstalledTheme = {
@@ -169,9 +154,7 @@ export function ThemeInstaller({
 
       const normalizedRepo = normalizeGitHubRepo(theme.repo);
       // Fetch CSS and embed any referenced font files as data: URIs
-      const cssWithFonts = fetchThemeCss(theme.repo).then(css =>
-        embedThemeFonts(css, theme.repo),
-      );
+      const cssWithFonts = fetchThemeCss(theme.repo).then(css => embedThemeFonts(css, theme.repo));
       await installTheme({
         css: cssWithFonts,
         name: theme.name,
@@ -198,9 +181,7 @@ export function ThemeInstaller({
       setCustomCssOverride(validated);
       setPastedCss(validated);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : t('Failed to validate theme CSS'),
-      );
+      setError(err instanceof Error ? err.message : t('Failed to validate theme CSS'));
     }
   }, [pastedCss, setCustomCssOverride, t]);
 
@@ -221,7 +202,7 @@ export function ThemeInstaller({
           marginBottom: 16,
         }}
       >
-        <Text style={{ fontWeight: 600, fontSize: 14 }}>
+        <Text style={{fontWeight: 600, fontSize: 14}}>
           <Trans>Install Custom Theme</Trans>
         </Text>
         <Button variant="bare" onPress={onClose}>
@@ -230,7 +211,7 @@ export function ThemeInstaller({
       </View>
 
       {/* Catalog Virtualized List */}
-      <Text style={{ marginBottom: 8, color: themeStyle.pageTextSubdued }}>
+      <Text style={{marginBottom: 8, color: themeStyle.pageTextSubdued}}>
         <Trans>Choose from catalog:</Trans>
       </Text>
       {catalogError ? (
@@ -241,9 +222,7 @@ export function ThemeInstaller({
             fontSize: 12,
           }}
         >
-          <Trans>
-            Failed to load theme catalog. You can still paste custom CSS below.
-          </Trans>
+          <Trans>Failed to load theme catalog. You can still paste custom CSS below.</Trans>
         </Text>
       ) : (
         <View
@@ -270,7 +249,7 @@ export function ThemeInstaller({
             </View>
           ) : (
             <AutoSizer
-              renderProp={({ width = 0, height = 0 }) => {
+              renderProp={({width = 0, height = 0}) => {
                 if (width === 0 || height === 0) {
                   return null;
                 }
@@ -291,7 +270,7 @@ export function ThemeInstaller({
                     itemCount={rows.length}
                     itemSize={itemWidth + THEME_ITEM_GAP}
                     itemKey={index => `row-${index}`}
-                    renderRow={({ index, key, style }) => {
+                    renderRow={({index, key, style}) => {
                       const rowThemes = rows[index];
                       return (
                         <div
@@ -353,15 +332,12 @@ export function ThemeInstaller({
                                     right: 0,
                                     bottom: 0,
                                     borderRadius: 6,
-                                    backgroundColor:
-                                      themeStyle.overlayBackground,
+                                    backgroundColor: themeStyle.overlayBackground,
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     zIndex: 1,
                                     opacity: isLoadingSelected ? 1 : 0,
-                                    pointerEvents: isLoadingSelected
-                                      ? 'auto'
-                                      : 'none',
+                                    pointerEvents: isLoadingSelected ? 'auto' : 'none',
                                     transition: 'opacity 0.2s ease-in-out',
                                   }}
                                 >
@@ -391,7 +367,7 @@ export function ThemeInstaller({
                                   align="center"
                                   wrap={false}
                                   gap={4}
-                                  style={{ fontSize: 10 }}
+                                  style={{fontSize: 10}}
                                 >
                                   <TextOneLine
                                     style={{
@@ -399,7 +375,7 @@ export function ThemeInstaller({
                                     }}
                                   >
                                     {t('by')}{' '}
-                                    <Text style={{ fontWeight: 'bold' }}>
+                                    <Text style={{fontWeight: 'bold'}}>
                                       {extractRepoOwner(theme.repo)}
                                     </Text>
                                   </TextOneLine>
@@ -433,7 +409,7 @@ export function ThemeInstaller({
           marginBottom: 16,
         }}
       >
-        <Text style={{ marginBottom: 8, color: themeStyle.pageTextSubdued }}>
+        <Text style={{marginBottom: 8, color: themeStyle.pageTextSubdued}}>
           <Trans>Additional CSS overrides:</Trans>
         </Text>
         <TextArea

@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import type { ReactNode } from 'react';
-import { Trans } from 'react-i18next';
-import { useLocation } from 'react-router';
+import React, {useState} from 'react';
+import type {ReactNode} from 'react';
+import {Trans} from 'react-i18next';
+import {useLocation} from 'react-router';
 
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { tokens } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {tokens} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
 
-import { Link } from '#components/common/Link';
+import {Link} from '#components/common/Link';
 
 type SettingProps = {
   primaryAction?: ReactNode;
@@ -34,7 +34,7 @@ type SettingProps = {
   children: ReactNode;
 };
 
-export const Setting = ({ primaryAction, style, children }: SettingProps) => {
+export const Setting = ({primaryAction, style, children}: SettingProps) => {
   return (
     <View
       className={css([
@@ -68,7 +68,7 @@ type AdvancedToggleProps = {
   children: ReactNode;
 };
 
-export const AdvancedToggle = ({ children }: AdvancedToggleProps) => {
+export const AdvancedToggle = ({children}: AdvancedToggleProps) => {
   const location = useLocation();
   const [expanded, setExpanded] = useState(location.hash === '#advanced');
 
@@ -92,7 +92,7 @@ export const AdvancedToggle = ({ children }: AdvancedToggleProps) => {
         }
       }}
     >
-      <View style={{ fontSize: 20, fontWeight: 500, flexShrink: 0 }}>
+      <View style={{fontSize: 20, fontWeight: 500, flexShrink: 0}}>
         <Trans>Advanced Settings</Trans>
       </View>
       {children}
@@ -133,10 +133,8 @@ export function Column({
         ...style,
       }}
     >
-      <Text style={{ fontWeight: 500 }}>{title}</Text>
-      <View style={{ alignItems: 'flex-start', gap: '1em', width: '100%' }}>
-        {children}
-      </View>
+      <Text style={{fontWeight: 500}}>{title}</Text>
+      <View style={{alignItems: 'flex-start', gap: '1em', width: '100%'}}>{children}</View>
     </View>
   );
 }

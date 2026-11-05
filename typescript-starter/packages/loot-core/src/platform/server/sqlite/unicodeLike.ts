@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { LRUCache } from 'lru-cache';
+import {LRUCache} from 'lru-cache';
 
-const likePatternCache = new LRUCache<string, RegExp>({ max: 500 });
+const likePatternCache = new LRUCache<string, RegExp>({max: 500});
 
 const REGEX_SPECIAL = /[.*+^${}()|[\]\\?]/g;
 
@@ -46,10 +46,7 @@ function likePatternToRegex(pattern: string): RegExp {
   return new RegExp(regexStr, 'i');
 }
 
-export function unicodeLike(
-  pattern: string | null,
-  value: string | null,
-): number {
+export function unicodeLike(pattern: string | null, value: string | null): number {
   if (!pattern) return 0;
   if (!value) value = '';
 

@@ -16,33 +16,26 @@
 
 // @ts-strict-ignore
 import React from 'react';
-import type { ComponentProps } from 'react';
+import type {ComponentProps} from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
 
-import { DropHighlight, useDraggable, useDroppable } from '#components/sort';
-import type {
-  DragState,
-  OnDragChangeCallback,
-  OnDropCallback,
-} from '#components/sort';
-import { Row } from '#components/table';
-import { useDragRef } from '#hooks/useDragRef';
+import {DropHighlight, useDraggable, useDroppable} from '#components/sort';
+import type {DragState, OnDragChangeCallback, OnDropCallback} from '#components/sort';
+import {Row} from '#components/table';
+import {useDragRef} from '#hooks/useDragRef';
 
-import { RenderMonths } from './RenderMonths';
-import { SidebarCategory } from './SidebarCategory';
+import {RenderMonths} from './RenderMonths';
+import {SidebarCategory} from './SidebarCategory';
 
-import { useBudgetComponents } from '.';
+import {useBudgetComponents} from '.';
 
 type ExpenseCategoryProps = {
   cat: CategoryEntity;
   categoryGroup?: CategoryGroupEntity;
-  editingCell: { id: string; cell: string } | null;
+  editingCell: {id: string; cell: string} | null;
   dragState: DragState<CategoryEntity> | DragState<CategoryGroupEntity> | null;
   onEditName?: ComponentProps<typeof SidebarCategory>['onEditName'];
   onEditMonth?: (id: CategoryEntity['id'], month: string) => void;
@@ -74,7 +67,7 @@ export function ExpenseCategory({
     dragging = true;
   }
 
-  const { dragRef } = useDraggable({
+  const {dragRef} = useDraggable({
     type: 'category',
     onDragChange,
     item: cat,
@@ -82,13 +75,13 @@ export function ExpenseCategory({
   });
   const handleDragRef = useDragRef(dragRef);
 
-  const { dropRef, dropPos } = useDroppable({
+  const {dropRef, dropPos} = useDroppable({
     types: 'category',
     id: cat.id,
     onDrop: onReorder,
   });
 
-  const { ExpenseCategoryComponent: MonthComponent } = useBudgetComponents();
+  const {ExpenseCategoryComponent: MonthComponent} = useBudgetComponents();
 
   return (
     <Row
@@ -99,34 +92,26 @@ export function ExpenseCategory({
         opacity: cat.hidden || categoryGroup?.hidden ? 0.5 : undefined,
       }}
     >
-      <DropHighlight pos={dropPos} offset={{ top: 1 }} />
+      <DropHighlight pos={dropPos} offset={{top: 1}} />
 
-      <View style={{ flex: 1, flexDirection: 'row' }}>
+      <View style={{flex: 1, flexDirection: 'row'}}>
         <SidebarCategory
           innerRef={handleDragRef}
           category={cat}
           categoryGroup={categoryGroup}
           dragPreview={dragging && dragState.preview}
           dragging={dragging && !dragState.preview}
-          editing={
-            editingCell &&
-            editingCell.cell === 'name' &&
-            editingCell.id === cat.id
-          }
+          editing={editingCell && editingCell.cell === 'name' && editingCell.id === cat.id}
           onEditName={onEditName}
           onSave={onSave}
           onDelete={onDelete}
         />
 
         <RenderMonths>
-          {({ month }) => (
+          {({month}) => (
             <MonthComponent
               month={month}
-              editing={
-                editingCell &&
-                editingCell.id === cat.id &&
-                editingCell.cell === month
-              }
+              editing={editingCell && editingCell.id === cat.id && editingCell.cell === month}
               category={cat}
               onEdit={onEditMonth}
               onBudgetAction={onBudgetAction}

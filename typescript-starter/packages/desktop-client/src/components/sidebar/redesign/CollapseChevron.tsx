@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import {
-  SvgCheveronDown,
-  SvgCheveronRight,
-} from '@actual-app/components/icons/v1';
-import { theme } from '@actual-app/components/theme';
+import {SvgCheveronDown, SvgCheveronRight} from '@actual-app/components/icons/v1';
+import {theme} from '@actual-app/components/theme';
 
 type CollapseChevronProps = {
   isOpen: boolean;
@@ -33,7 +30,5 @@ export function CollapseChevron({
 }: CollapseChevronProps) {
   const Chevron = isOpen ? SvgCheveronDown : SvgCheveronRight;
 
-  return (
-    <Chevron width={size} height={size} style={{ flexShrink: 0, color }} />
-  );
+  return <Chevron width={size} height={size} style={{flexShrink: 0, color}} />;
 }

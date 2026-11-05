@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { ForecastSource } from './forecast';
-import type { CustomReportEntity } from './reports';
-import type { RuleConditionEntity } from './rule';
+import type {ForecastSource} from './forecast';
+import type {CustomReportEntity} from './reports';
+import type {RuleConditionEntity} from './rule';
 
 export type DashboardPageEntity = {
   id: string;
@@ -39,10 +39,7 @@ export type TimeFrame = {
     | 'previousQuarter';
 };
 
-type AbstractWidget<
-  T extends string,
-  Meta extends Record<string, unknown> | null = null,
-> = {
+type AbstractWidget<T extends string, Meta extends Record<string, unknown> | null = null> = {
   id: string;
   dashboard_page_id: string;
   type: T;
@@ -116,10 +113,7 @@ export type BudgetAnalysisWidget = AbstractWidget<
     showHiddenCategories?: boolean;
   } | null
 >;
-export type CustomReportWidget = AbstractWidget<
-  'custom-report',
-  { id: string }
->;
+export type CustomReportWidget = AbstractWidget<'custom-report', {id: string}>;
 export type CrossoverWidget = AbstractWidget<
   'crossover-card',
   {
@@ -137,7 +131,7 @@ export type CrossoverWidget = AbstractWidget<
 >;
 export type MarkdownWidget = AbstractWidget<
   'markdown-card',
-  { content: string; text_align?: 'left' | 'right' | 'center' }
+  {content: string; text_align?: 'left' | 'right' | 'center'}
 >;
 
 export type MonteCarloAllocationPreset =
@@ -155,10 +149,7 @@ export type MonteCarloWithdrawalStrategy =
   | 'best-performer'
   | 'target-mix';
 
-export type MonteCarloReturnModel =
-  | 'normal'
-  | 'historical-bootstrap'
-  | 'historical-sequence';
+export type MonteCarloReturnModel = 'normal' | 'historical-bootstrap' | 'historical-sequence';
 
 export type MonteCarloWithdrawalRuleType =
   | 'none'

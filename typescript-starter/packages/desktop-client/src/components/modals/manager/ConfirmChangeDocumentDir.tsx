@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button, ButtonWithLoading } from '@actual-app/components/button';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button, ButtonWithLoading} from '@actual-app/components/button';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { Information } from '#components/alerts';
-import { DirectoryDisplay } from '#components/common/DirectoryDisplay';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { Checkbox } from '#components/forms';
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {Information} from '#components/alerts';
+import {DirectoryDisplay} from '#components/common/DirectoryDisplay';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {Checkbox} from '#components/forms';
+import {useGlobalPref} from '#hooks/useGlobalPref';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
 export function ConfirmChangeDocumentDirModal({
   currentBudgetDirectory,
@@ -40,27 +40,21 @@ export function ConfirmChangeDocumentDirModal({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [moveFiles, setMoveFiles] = useState(false);
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
 
   const restartElectronServer = useCallback(() => {
     globalThis.window.Actual.restartElectronServer();
   }, []);
 
-  const [_documentDir, setDocumentDirPref] = useGlobalPref(
-    'documentDir',
-    restartElectronServer,
-  );
+  const [_documentDir, setDocumentDirPref] = useGlobalPref('documentDir', restartElectronServer);
 
   const moveDirectory = async (close: () => void) => {
     setError('');
     setLoading(true);
     try {
       if (moveFiles) {
-        await globalThis.window.Actual.moveBudgetDirectory(
-          currentBudgetDirectory,
-          newDirectory,
-        );
+        await globalThis.window.Actual.moveBudgetDirectory(currentBudgetDirectory, newDirectory);
       }
 
       setDocumentDirPref(newDirectory);
@@ -77,9 +71,7 @@ export function ConfirmChangeDocumentDirModal({
     } catch (error) {
       console.error('There was an error changing your directory', error);
       setError(
-        t(
-          'There was an error changing your directory, please check the directory and try again.',
-        ),
+        t('There was an error changing your directory, please check the directory and try again.'),
       );
     } finally {
       setLoading(false);
@@ -88,7 +80,7 @@ export function ConfirmChangeDocumentDirModal({
 
   return (
     <Modal name="confirm-change-document-dir">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Are you sure?')}
@@ -117,9 +109,7 @@ export function ConfirmChangeDocumentDirModal({
               }}
             >
               <Text>
-                <Trans>
-                  You are about to change Actual's data directory from:
-                </Trans>
+                <Trans>You are about to change Actual's data directory from:</Trans>
               </Text>
               <DirectoryDisplay directory={currentBudgetDirectory} />
               <Text>
@@ -145,24 +135,22 @@ export function ConfirmChangeDocumentDirModal({
                 <Trans>Move files to new directory</Trans>
               </label>
               {moveFiles && (
-                <Information style={{ color: theme.warningText, padding: 0 }}>
+                <Information style={{color: theme.warningText, padding: 0}}>
                   <Trans>
-                    Files in the destination folder with the same name will be
-                    overwritten.
+                    Files in the destination folder with the same name will be overwritten.
                   </Trans>
                 </Information>
               )}
 
               {!moveFiles && (
-                <Information style={{ padding: 0 }}>
+                <Information style={{padding: 0}}>
                   <Trans>
-                    Your files won't be moved. You can manually move them to the
-                    folder.
+                    Your files won't be moved. You can manually move them to the folder.
                   </Trans>
                 </Information>
               )}
 
-              {error && <Text style={{ color: theme.errorText }}>{error}</Text>}
+              {error && <Text style={{color: theme.errorText}}>{error}</Text>}
             </View>
             <View
               style={{

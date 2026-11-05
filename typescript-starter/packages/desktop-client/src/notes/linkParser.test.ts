@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { parseNotes } from './linkParser';
+import {parseNotes} from './linkParser';
 
 describe('linkParser', () => {
   describe('parseNotes', () => {
@@ -31,7 +31,7 @@ describe('linkParser', () => {
         });
         // The period should remain as a text segment
         const lastSegment = result[result.length - 1];
-        expect(lastSegment).toEqual({ type: 'text', content: '.' });
+        expect(lastSegment).toEqual({type: 'text', content: '.'});
       });
 
       it('should strip trailing comma from https URL', () => {
@@ -58,7 +58,7 @@ describe('linkParser', () => {
         });
         // The exclamation mark should remain as a text segment
         const lastSegment = result[result.length - 1];
-        expect(lastSegment).toEqual({ type: 'text', content: '!' });
+        expect(lastSegment).toEqual({type: 'text', content: '!'});
       });
 
       it('should strip multiple trailing punctuation characters', () => {
@@ -121,7 +121,7 @@ describe('linkParser', () => {
         });
         // The closing paren should remain as a text segment
         const lastSegment = result[result.length - 1];
-        expect(lastSegment).toEqual({ type: 'text', content: ')' });
+        expect(lastSegment).toEqual({type: 'text', content: ')'});
       });
     });
 

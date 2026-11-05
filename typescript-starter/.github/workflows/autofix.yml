@@ -35,7 +35,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       # Regenerates packages/desktop-client/src/data/news.json from the blog so
       # the reviewed file is always current; autofix.ci commits any change.
       - name: Generate news feed

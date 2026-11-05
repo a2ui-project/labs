@@ -14,33 +14,27 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
-import type { CSSProperties } from 'react';
+import {useEffect, useState} from 'react';
+import type {CSSProperties} from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { css, keyframes } from '@emotion/css';
-import { t } from 'i18next';
-import {
-  Layer,
-  Rectangle,
-  ResponsiveContainer,
-  Sankey,
-  Tooltip,
-} from 'recharts';
-import type { SankeyData } from 'recharts/types/chart/Sankey';
+import {theme} from '@actual-app/components/theme';
+import {css, keyframes} from '@emotion/css';
+import {t} from 'i18next';
+import {Layer, Rectangle, ResponsiveContainer, Sankey, Tooltip} from 'recharts';
+import type {SankeyData} from 'recharts/types/chart/Sankey';
 
-import { Container } from '#components/reports/Container';
-import { useFormat } from '#hooks/useFormat';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
-import { useReducedMotion } from '#hooks/useReducedMotion';
+import {Container} from '#components/reports/Container';
+import {useFormat} from '#hooks/useFormat';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
+import {useReducedMotion} from '#hooks/useReducedMotion';
 
 const fadeIn = keyframes({
-  from: { opacity: 0 },
-  to: { opacity: 1 },
+  from: {opacity: 0},
+  to: {opacity: 1},
 });
 
 // kept invisible until the card scrolls into view
-const hiddenClass = css({ opacity: 0 });
+const hiddenClass = css({opacity: 0});
 
 // stagger the load fade-in left-to-right, keyed off horizontal position
 function fadeInClass(fraction: number) {
@@ -123,7 +117,7 @@ function SankeyLink({
       cursor="default"
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      style={{ transition: 'stroke-opacity 0.2s ease' }}
+      style={{transition: 'stroke-opacity 0.2s ease'}}
     />
   );
 }
@@ -228,9 +222,7 @@ export function SankeyGraph({
   // is tracked as state because AutoSizer renders it on a later tick, so a
   // useRef-based observer would attach before the element exists.
   const [viewportEl, setViewportEl] = useState<HTMLDivElement | null>(null);
-  const [phase, setPhase] = useState<'waiting' | 'animating' | 'done'>(
-    'waiting',
-  );
+  const [phase, setPhase] = useState<'waiting' | 'animating' | 'done'>('waiting');
 
   useEffect(() => {
     if (!viewportEl || phase !== 'waiting') return;
@@ -254,7 +246,7 @@ export function SankeyGraph({
   return (
     <Container style={style}>
       {(width, height) => (
-        <div ref={setViewportEl} style={{ width: '100%', height: '100%' }}>
+        <div ref={setViewportEl} style={{width: '100%', height: '100%'}}>
           <ResponsiveContainer>
             <Sankey
               data={data}
@@ -290,9 +282,9 @@ export function SankeyGraph({
             >
               {showTooltip && (
                 <Tooltip
-                  content={({ active, payload }) => {
+                  content={({active, payload}) => {
                     if (!active || !payload?.length) return null;
-                    const { value = 0, name = '' } = payload[0];
+                    const {value = 0, name = ''} = payload[0];
                     const tooltipInfo =
                       hoveredLinkIndex !== null
                         ? (
@@ -316,15 +308,11 @@ export function SankeyGraph({
                           padding: 10,
                         })}
                       >
-                        <div style={{ lineHeight: 1.4 }}>
-                          {name && (
-                            <div style={{ marginBottom: 5 }}>{name}</div>
-                          )}
+                        <div style={{lineHeight: 1.4}}>
+                          {name && <div style={{marginBottom: 5}}>{name}</div>}
                           <div
                             style={{
-                              fontFamily: privacyMode
-                                ? t('Redacted Script')
-                                : undefined,
+                              fontFamily: privacyMode ? t('Redacted Script') : undefined,
                             }}
                           >
                             {format(value, 'financial')}
@@ -342,9 +330,7 @@ export function SankeyGraph({
                                   {item.name} (
                                   <span
                                     style={{
-                                      fontFamily: privacyMode
-                                        ? t('Redacted Script')
-                                        : undefined,
+                                      fontFamily: privacyMode ? t('Redacted Script') : undefined,
                                     }}
                                   >
                                     {format(item.value, 'financial')}

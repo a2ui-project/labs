@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-import {
-  Children,
-  cloneElement,
-  isValidElement,
-  useEffect,
-  useRef,
-} from 'react';
-import type { ReactElement, Ref, RefObject } from 'react';
+import {Children, cloneElement, isValidElement, useEffect, useRef} from 'react';
+import type {ReactElement, Ref, RefObject} from 'react';
 
 type InitialFocusProps<T extends HTMLElement> = {
   /**
@@ -29,9 +23,7 @@ type InitialFocusProps<T extends HTMLElement> = {
    * The child element should have a `ref` prop for this to work. For child components which receives a ref via another prop
    * e.g. `inputRef`, use a function as child and pass the ref to the appropriate prop.
    */
-  children:
-    | ReactElement<{ ref: Ref<T> }>
-    | ((ref: RefObject<T | null>) => ReactElement);
+  children: ReactElement<{ref: Ref<T>}> | ((ref: RefObject<T | null>) => ReactElement);
 };
 
 /**
@@ -71,9 +63,7 @@ export function InitialFocus<T extends HTMLElement = HTMLElement>({
 
   const child = Children.only(children);
   if (isValidElement(child)) {
-    return cloneElement(child, { ref });
+    return cloneElement(child, {ref});
   }
-  throw new Error(
-    'InitialFocus expects a single valid React element as its child.',
-  );
+  throw new Error('InitialFocus expects a single valid React element as its child.');
 }

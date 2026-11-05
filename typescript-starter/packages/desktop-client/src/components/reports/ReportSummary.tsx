@@ -15,25 +15,22 @@
  */
 
 import React from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  balanceTypeOpType,
-  DataEntity,
-} from '@actual-app/core/types/models';
+import type {balanceTypeOpType, DataEntity} from '@actual-app/core/types/models';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
 
-import { getIntervalFormat, ReportOptions } from './ReportOptions';
+import {getIntervalFormat, ReportOptions} from './ReportOptions';
 
 type ReportSummaryProps = {
   startDate: string;
@@ -53,7 +50,7 @@ export function ReportSummary({
   intervalsCount,
 }: ReportSummaryProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
   const intervalFormat = getIntervalFormat(interval, dateFormat);
@@ -119,7 +116,7 @@ export function ReportSummary({
               ? t('TOTAL DEPOSITS')
               : balanceTypeOp === 'totalBudgeted'
                 ? t('TOTAL BUDGETED')
-                : t('NET {{net}}', { net })}
+                : t('NET {{net}}', {net})}
         </Text>
         <FinancialText
           style={{
@@ -129,11 +126,9 @@ export function ReportSummary({
             fontWeight: 800,
           }}
         >
-          <PrivacyFilter>
-            {format(data[balanceTypeOp], 'financial')}
-          </PrivacyFilter>
+          <PrivacyFilter>{format(data[balanceTypeOp], 'financial')}</PrivacyFilter>
         </FinancialText>
-        <Text style={{ fontWeight: 600 }}>
+        <Text style={{fontWeight: 600}}>
           <Trans>For this time period</Trans>
         </Text>
       </View>
@@ -170,17 +165,13 @@ export function ReportSummary({
             fontWeight: 800,
           }}
         >
-          <PrivacyFilter>
-            {!isNaN(average) && format(average, 'financial')}
-          </PrivacyFilter>
+          <PrivacyFilter>{!isNaN(average) && format(average, 'financial')}</PrivacyFilter>
         </FinancialText>
-        <Text style={{ fontWeight: 600 }}>
+        <Text style={{fontWeight: 600}}>
           <Trans>
             Per{' '}
             {{
-              interval: (
-                ReportOptions.intervalMap.get(interval) || ''
-              ).toLowerCase(),
+              interval: (ReportOptions.intervalMap.get(interval) || '').toLowerCase(),
             }}
           </Trans>
         </Text>

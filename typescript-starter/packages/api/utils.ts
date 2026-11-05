@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { amountToInteger, integerToAmount } from '@actual-app/core/shared/util';
+export {amountToInteger, integerToAmount} from '@actual-app/core/shared/util';

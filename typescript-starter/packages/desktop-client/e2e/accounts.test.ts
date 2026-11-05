@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { join } from 'path';
+import {join} from 'path';
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import type { AccountPage } from './page-models/account-page';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { Navigation } from './page-models/navigation';
+import {expect, test} from './fixtures';
+import type {AccountPage} from './page-models/account-page';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {Navigation} from './page-models/navigation';
 
 test.describe('Accounts', () => {
   let page: Page;
@@ -29,7 +29,7 @@ test.describe('Accounts', () => {
   let configurationPage: ConfigurationPage;
   let accountPage: AccountPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new Navigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -92,7 +92,7 @@ test.describe('Accounts', () => {
     await navigation.rightClickAccount('Roth IRA');
     const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
-    await expect(menu.getByRole('button', { name: 'Rename' })).toBeVisible();
+    await expect(menu.getByRole('button', {name: 'Rename'})).toBeVisible();
   });
 
   test('right clicking a transaction row opens context menu', async () => {
@@ -105,7 +105,7 @@ test.describe('Accounts', () => {
     await accountPage.rightClickNthTransaction(0);
     const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
-    await expect(menu.getByRole('button', { name: 'Delete' })).toBeVisible();
+    await expect(menu.getByRole('button', {name: 'Delete'})).toBeVisible();
   });
 
   test('updates the running balance after editing a transaction amount', async () => {
@@ -158,20 +158,15 @@ test.describe('Accounts', () => {
     const dialogBox = await measure(dialog);
     const calendarGridBox = await measure(calendarGrid);
     const leftGap = calendarGridBox.x - dialogBox.x;
-    const rightGap =
-      dialogBox.x +
-      dialogBox.width -
-      (calendarGridBox.x + calendarGridBox.width);
+    const rightGap = dialogBox.x + dialogBox.width - (calendarGridBox.x + calendarGridBox.width);
     expect(Math.abs(leftGap - rightGap)).toBeLessThanOrEqual(2);
 
     // The calendar is fully visible even for months spanning six rows
     // (April 2017 relative to the pinned e2e date of January 2017)
-    await dialog.getByRole('button', { name: 'Next month' }).click();
-    await dialog.getByRole('button', { name: 'Next month' }).click();
-    await dialog.getByRole('button', { name: 'Next month' }).click();
-    await expect(dialog.locator('.calendar-header-title')).toHaveText(
-      'April 2017',
-    );
+    await dialog.getByRole('button', {name: 'Next month'}).click();
+    await dialog.getByRole('button', {name: 'Next month'}).click();
+    await dialog.getByRole('button', {name: 'Next month'}).click();
+    await expect(dialog.locator('.calendar-header-title')).toHaveText('April 2017');
 
     const sixRowDialogBox = await measure(dialog);
     const sixRowGridBox = await measure(calendarGrid);
@@ -183,7 +178,7 @@ test.describe('Accounts', () => {
 
     // On a wide screen the modal keeps a bounded width instead of
     // stretching to fit the 100%-wide calendar grid
-    await page.setViewportSize({ width: 2560, height: 1080 });
+    await page.setViewportSize({width: 2560, height: 1080});
     const wideDialogBox = await measure(dialog);
     expect(wideDialogBox.width).toBeLessThanOrEqual(700);
   });
@@ -209,40 +204,36 @@ test.describe('Accounts', () => {
     // Mark the middle transaction as cleared and lock it via
     // reconciliation so it becomes reconciled.
     await accountPage.transactionTableRow
-      .filter({ hasText: 'range-two' })
+      .filter({hasText: 'range-two'})
       .getByTestId('cleared')
       .click();
 
-    await page.getByRole('button', { name: 'Reconcile' }).click();
+    await page.getByRole('button', {name: 'Reconcile'}).click();
     // The reconciliation amount is pre-filled with the cleared balance,
     // so submitting right away results in a zero difference.
     const reconcilePopover = page.locator('[data-popover]');
     await reconcilePopover.getByRole('textbox').waitFor();
-    await reconcilePopover.getByRole('button', { name: 'Reconcile' }).click();
-    await page.getByRole('button', { name: 'Lock transactions' }).click();
+    await reconcilePopover.getByRole('button', {name: 'Reconcile'}).click();
+    await page.getByRole('button', {name: 'Lock transactions'}).click();
 
     // Showing the running balance keeps reconciled transactions loaded
     // even when they are hidden; they must still be excluded from
     // range selection.
     await accountPage.setTransactionColumnVisibility('balance', true);
     await accountPage.accountMenuButton.click();
-    await page
-      .getByRole('button', { name: 'Hide reconciled transactions' })
-      .click();
+    await page.getByRole('button', {name: 'Hide reconciled transactions'}).click();
 
-    await expect(
-      accountPage.transactionTableRow.filter({ hasText: 'range-two' }),
-    ).not.toBeVisible();
+    await expect(accountPage.transactionTableRow.filter({hasText: 'range-two'})).not.toBeVisible();
 
     // Shift-click from the first to the last visible transaction.
     await accountPage.transactionTableRow
-      .filter({ hasText: 'range-three' })
+      .filter({hasText: 'range-three'})
       .getByTestId('select')
       .click();
     await accountPage.transactionTableRow
-      .filter({ hasText: 'range-one' })
+      .filter({hasText: 'range-one'})
       .getByTestId('select')
-      .click({ modifiers: ['Shift'] });
+      .click({modifiers: ['Shift']});
 
     // Only the two visible transactions should be selected — not the
     // hidden reconciled one in between.
@@ -318,7 +309,7 @@ test.describe('Accounts', () => {
 
     async function importCsv(screenshot = false) {
       const fileChooserPromise = page.waitForEvent('filechooser');
-      await accountPage.page.getByRole('button', { name: 'Import' }).click();
+      await accountPage.page.getByRole('button', {name: 'Import'}).click();
 
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(join(__dirname, 'data/test.csv'));
@@ -327,7 +318,7 @@ test.describe('Accounts', () => {
         name: /Import \d+ transactions/,
       });
 
-      await importButton.waitFor({ state: 'visible' });
+      await importButton.waitFor({state: 'visible'});
 
       if (screenshot) await expect(page).toMatchThemeScreenshots();
 
@@ -344,7 +335,7 @@ test.describe('Accounts', () => {
       await importCsv(false);
 
       const fileChooserPromise = page.waitForEvent('filechooser');
-      await accountPage.page.getByRole('button', { name: 'Import' }).click();
+      await accountPage.page.getByRole('button', {name: 'Import'}).click();
 
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(join(__dirname, 'data/test.csv'));
@@ -353,21 +344,21 @@ test.describe('Accounts', () => {
         name: /Import \d+ transactions/,
       });
 
-      await importButton.waitFor({ state: 'visible' });
+      await importButton.waitFor({state: 'visible'});
 
       await expect(page).toMatchThemeScreenshots();
 
       await expect(importButton).toBeDisabled();
       expect(await importButton.innerText()).toMatch(/Import 0 transactions/);
 
-      await accountPage.page.getByRole('button', { name: 'Close' }).click();
+      await accountPage.page.getByRole('button', {name: 'Close'}).click();
 
       await expect(importButton).not.toBeVisible();
     });
 
     test('import notes checkbox is not shown for CSV files', async () => {
       const fileChooserPromise = page.waitForEvent('filechooser');
-      await accountPage.page.getByRole('button', { name: 'Import' }).click();
+      await accountPage.page.getByRole('button', {name: 'Import'}).click();
 
       const fileChooser = await fileChooserPromise;
       await fileChooser.setFiles(join(__dirname, 'data/test.csv'));

@@ -21,7 +21,7 @@
 import fs from 'node:fs';
 import http from 'node:http';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {fileURLToPath} from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.PORT) || 4180;
@@ -44,17 +44,14 @@ http
     const file = path.resolve(ROOT, urlPath.replace(/^\/+/, ''));
     if (
       path.relative(ROOT, file).startsWith('..') ||
-      !fs.statSync(file, { throwIfNoEntry: false })?.isFile()
+      !fs.statSync(file, {throwIfNoEntry: false})?.isFile()
     ) {
       res.writeHead(404);
       res.end('Not found');
       return;
     }
 
-    res.setHeader(
-      'Content-Type',
-      MIME[path.extname(file)] ?? 'application/octet-stream',
-    );
+    res.setHeader('Content-Type', MIME[path.extname(file)] ?? 'application/octet-stream');
     fs.createReadStream(file).pipe(res);
   })
   .listen(PORT, () => {

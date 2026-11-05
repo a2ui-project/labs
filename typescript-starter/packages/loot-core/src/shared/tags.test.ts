@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-import { renameTagInNotes } from './tags';
+import {renameTagInNotes} from './tags';
 
 describe('renameTagInNotes', () => {
   test('renames only whole, unescaped, case-sensitive tags', () => {
     expect(
-      renameTagInNotes(
-        '##Food #FoodCourt #food #Food#Work #Work#Food',
-        'Food',
-        'Groceries',
-      ),
+      renameTagInNotes('##Food #FoodCourt #food #Food#Work #Work#Food', 'Food', 'Groceries'),
     ).toBe('##Food #FoodCourt #food #Groceries#Work #Work#Groceries');
   });
 

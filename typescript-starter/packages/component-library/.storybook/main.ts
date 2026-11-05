@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import {dirname} from 'path';
+import {fileURLToPath} from 'url';
 
 import babel from '@rolldown/plugin-babel';
-import type { StorybookConfig } from '@storybook/react-vite';
-import react, { reactCompilerPreset } from '@vitejs/plugin-react';
+import type {StorybookConfig} from '@storybook/react-vite';
+import react, {reactCompilerPreset} from '@vitejs/plugin-react';
 
 // Any workspace package's source; node_modules stays excluded by the babel
 // plugin's default exclude.
-const reactCompilerInclude =
-  /[\\/]packages[\\/][^\\/]+[\\/]src[\\/].*\.[jt]sx?(?:$|\?)/;
+const reactCompilerInclude = /[\\/]packages[\\/][^\\/]+[\\/]src[\\/].*\.[jt]sx?(?:$|\?)/;
 
 /**
  * This function is used to resolve the absolute path of a package.
@@ -51,7 +50,7 @@ const config: StorybookConfig = {
   },
   staticDirs: ['./public'],
   async viteFinal(config) {
-    const { mergeConfig } = await import('vite');
+    const {mergeConfig} = await import('vite');
 
     return mergeConfig(config, {
       plugins: [

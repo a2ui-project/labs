@@ -14,47 +14,38 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useEffect, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { SvgInformationCircle } from '@actual-app/components/icons/v2';
-import { Input } from '@actual-app/components/input';
-import { Select } from '@actual-app/components/select';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { amountToInteger, integerToAmount } from '@actual-app/core/shared/util';
-import type {
-  ByTemplate,
-  SpendTemplate,
-} from '@actual-app/core/types/models/templates';
+import {SvgInformationCircle} from '@actual-app/components/icons/v2';
+import {Input} from '@actual-app/components/input';
+import {Select} from '@actual-app/components/select';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {amountToInteger, integerToAmount} from '@actual-app/core/shared/util';
+import type {ByTemplate, SpendTemplate} from '@actual-app/core/types/models/templates';
 
-import { updateTemplate } from '#components/budget/goals/actions';
-import type { Action } from '#components/budget/goals/actions';
-import { TWO_UP_FIELD_FLEX } from '#components/budget/goals/editor/fieldLayout';
-import { FormField, FormLabel } from '#components/forms';
-import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
-import { AmountInput } from '#components/util/AmountInput';
-import { MonthInput } from '#components/util/MonthInput';
-import { useFormat } from '#hooks/useFormat';
+import {updateTemplate} from '#components/budget/goals/actions';
+import type {Action} from '#components/budget/goals/actions';
+import {TWO_UP_FIELD_FLEX} from '#components/budget/goals/editor/fieldLayout';
+import {FormField, FormLabel} from '#components/forms';
+import {LabeledCheckbox} from '#components/forms/LabeledCheckbox';
+import {AmountInput} from '#components/util/AmountInput';
+import {MonthInput} from '#components/util/MonthInput';
+import {useFormat} from '#hooks/useFormat';
 
 type BySaveAutomationProps = {
   template: ByTemplate | SpendTemplate;
   dispatch: (action: Action) => void;
 };
 
-export const BySaveAutomation = ({
-  template,
-  dispatch,
-}: BySaveAutomationProps) => {
-  const { t } = useTranslation();
+export const BySaveAutomation = ({template, dispatch}: BySaveAutomationProps) => {
+  const {t} = useTranslation();
   const format = useFormat();
 
-  const amount = amountToInteger(
-    template.amount,
-    format.currency.decimalPlaces,
-  );
+  const amount = amountToInteger(template.amount, format.currency.decimalPlaces);
 
   const committedRepeat = template.repeat ?? 1;
   const [rawRepeat, setRawRepeat] = useState(String(committedRepeat));
@@ -67,7 +58,7 @@ export const BySaveAutomation = ({
     setRawRepeat(value);
     const parsed = Math.trunc(Number(value));
     if (value.trim() !== '' && parsed >= 1 && parsed !== committedRepeat) {
-      dispatch(updateTemplate({ type: template.type, repeat: parsed }));
+      dispatch(updateTemplate({type: template.type, repeat: parsed}));
     }
   };
 
@@ -75,7 +66,7 @@ export const BySaveAutomation = ({
     const parsed = Math.max(1, Math.trunc(Number(rawRepeat)) || 1);
     setRawRepeat(String(parsed));
     if (parsed !== committedRepeat) {
-      dispatch(updateTemplate({ type: template.type, repeat: parsed }));
+      dispatch(updateTemplate({type: template.type, repeat: parsed}));
     }
   };
 
@@ -85,8 +76,8 @@ export const BySaveAutomation = ({
 
   return (
     <>
-      <SpaceBetween align="center" gap={10} style={{ marginTop: 10 }}>
-        <FormField style={{ flex: TWO_UP_FIELD_FLEX }}>
+      <SpaceBetween align="center" gap={10} style={{marginTop: 10}}>
+        <FormField style={{flex: TWO_UP_FIELD_FLEX}}>
           <FormLabel title={t('Total amount')} htmlFor="by-amount-field" />
           <AmountInput
             id="by-amount-field"
@@ -102,19 +93,17 @@ export const BySaveAutomation = ({
             }
           />
         </FormField>
-        <FormField style={{ flex: TWO_UP_FIELD_FLEX }}>
+        <FormField style={{flex: TWO_UP_FIELD_FLEX}}>
           <FormLabel title={t('Target month')} htmlFor="by-month-field" />
           <MonthInput
             id="by-month-field"
             value={template.month ?? ''}
-            onChange={month =>
-              dispatch(updateTemplate({ type: template.type, month }))
-            }
+            onChange={month => dispatch(updateTemplate({type: template.type, month}))}
           />
         </FormField>
       </SpaceBetween>
-      <SpaceBetween align="center" gap={10} style={{ marginTop: 10 }}>
-        <FormField style={{ flex: TWO_UP_FIELD_FLEX }}>
+      <SpaceBetween align="center" gap={10} style={{marginTop: 10}}>
+        <FormField style={{flex: TWO_UP_FIELD_FLEX}}>
           <LabeledCheckbox
             id="by-repeats-field"
             checked={repeats}
@@ -136,19 +125,16 @@ export const BySaveAutomation = ({
               )
             }
           >
-            <span style={{ marginLeft: 6, fontSize: 12, whiteSpace: 'nowrap' }}>
+            <span style={{marginLeft: 6, fontSize: 12, whiteSpace: 'nowrap'}}>
               <Trans>Repeats</Trans>
             </span>
           </LabeledCheckbox>
         </FormField>
       </SpaceBetween>
       {repeats && (
-        <SpaceBetween align="center" gap={10} style={{ marginTop: 10 }}>
-          <FormField style={{ flex: TWO_UP_FIELD_FLEX }}>
-            <FormLabel
-              title={t('Repeat every')}
-              htmlFor="by-repeat-amount-field"
-            />
+        <SpaceBetween align="center" gap={10} style={{marginTop: 10}}>
+          <FormField style={{flex: TWO_UP_FIELD_FLEX}}>
+            <FormLabel title={t('Repeat every')} htmlFor="by-repeat-amount-field" />
             <Input
               id="by-repeat-amount-field"
               type="number"
@@ -159,7 +145,7 @@ export const BySaveAutomation = ({
               onBlur={commitRepeat}
             />
           </FormField>
-          <FormField style={{ flex: TWO_UP_FIELD_FLEX }}>
+          <FormField style={{flex: TWO_UP_FIELD_FLEX}}>
             <FormLabel title={t('Period')} htmlFor="by-period-field" />
             <Select
               id="by-period-field"
@@ -180,8 +166,8 @@ export const BySaveAutomation = ({
           </FormField>
         </SpaceBetween>
       )}
-      <SpaceBetween align="center" gap={10} style={{ marginTop: 10 }}>
-        <FormField style={{ flex: TWO_UP_FIELD_FLEX }}>
+      <SpaceBetween align="center" gap={10} style={{marginTop: 10}}>
+        <FormField style={{flex: TWO_UP_FIELD_FLEX}}>
           <LabeledCheckbox
             id="by-spend-down-field"
             checked={spendDown}
@@ -189,8 +175,8 @@ export const BySaveAutomation = ({
               dispatch(
                 updateTemplate(
                   e.target.checked
-                    ? { type: 'spend', from: fromMonth || template.month }
-                    : { type: 'by' },
+                    ? {type: 'spend', from: fromMonth || template.month}
+                    : {type: 'by'},
                 ),
               )
             }
@@ -214,22 +200,21 @@ export const BySaveAutomation = ({
                   e.stopPropagation();
                 }}
                 onMouseDown={e => e.stopPropagation()}
-                style={{ display: 'inline-flex' }}
+                style={{display: 'inline-flex'}}
               >
                 <Tooltip
                   content={
-                    <View style={{ maxWidth: 280 }}>
+                    <View style={{maxWidth: 280}}>
                       <Trans>
-                        Without this, spending before the target month leaves a
-                        gap that the next month's contribution has to make up.
-                        Turn this on to tell Actual spending is expected from a
-                        chosen month onwards, so it doesn't budget more to
-                        recover the shortfall.
+                        Without this, spending before the target month leaves a gap that the next
+                        month's contribution has to make up. Turn this on to tell Actual spending is
+                        expected from a chosen month onwards, so it doesn't budget more to recover
+                        the shortfall.
                       </Trans>
-                      <View style={{ marginTop: 6, fontStyle: 'italic' }}>
+                      <View style={{marginTop: 6, fontStyle: 'italic'}}>
                         <Trans>
-                          Example: budget for Christmas presents by December,
-                          with shopping starting in March.
+                          Example: budget for Christmas presents by December, with shopping starting
+                          in March.
                         </Trans>
                       </View>
                     </View>
@@ -239,7 +224,7 @@ export const BySaveAutomation = ({
                   <SvgInformationCircle
                     width={12}
                     height={12}
-                    style={{ color: theme.pageTextLight, cursor: 'help' }}
+                    style={{color: theme.pageTextLight, cursor: 'help'}}
                   />
                 </Tooltip>
               </span>
@@ -248,18 +233,13 @@ export const BySaveAutomation = ({
         </FormField>
       </SpaceBetween>
       {spendDown && (
-        <SpaceBetween align="center" gap={10} style={{ marginTop: 10 }}>
-          <FormField style={{ flex: TWO_UP_FIELD_FLEX }}>
-            <FormLabel
-              title={t('Start spending in')}
-              htmlFor="by-spend-from-field"
-            />
+        <SpaceBetween align="center" gap={10} style={{marginTop: 10}}>
+          <FormField style={{flex: TWO_UP_FIELD_FLEX}}>
+            <FormLabel title={t('Start spending in')} htmlFor="by-spend-from-field" />
             <MonthInput
               id="by-spend-from-field"
               value={fromMonth ?? ''}
-              onChange={from =>
-                dispatch(updateTemplate({ type: 'spend', from }))
-              }
+              onChange={from => dispatch(updateTemplate({type: 'spend', from}))}
             />
           </FormField>
         </SpaceBetween>

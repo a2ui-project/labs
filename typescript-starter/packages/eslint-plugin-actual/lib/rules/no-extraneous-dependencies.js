@@ -70,11 +70,7 @@ function findPackageJson(dir) {
 }
 
 function isExternalImport(source) {
-  if (
-    source.startsWith('.') ||
-    source.startsWith('#') ||
-    source.startsWith('virtual:')
-  ) {
+  if (source.startsWith('.') || source.startsWith('#') || source.startsWith('virtual:')) {
     return false;
   }
   // Check builtins using the package name to handle subpaths like fs/promises
@@ -88,8 +84,7 @@ module.exports = {
   meta: {
     type: 'problem',
     docs: {
-      description:
-        'Disallow importing packages not listed in dependencies or devDependencies',
+      description: 'Disallow importing packages not listed in dependencies or devDependencies',
     },
     schema: [],
     messages: {
@@ -117,7 +112,7 @@ module.exports = {
         context.report({
           node: source,
           messageId: 'extraneous',
-          data: { packageName },
+          data: {packageName},
         });
       }
     }

@@ -15,14 +15,14 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Page } from '#components/Page';
+import {Page} from '#components/Page';
 
-import { ManageTags } from './ManageTags';
+import {ManageTags} from './ManageTags';
 
 export const ManageTagsPage = () => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <Page header={t('Tags')}>

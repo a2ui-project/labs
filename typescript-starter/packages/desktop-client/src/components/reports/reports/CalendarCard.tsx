@@ -14,50 +14,41 @@
  * limitations under the License.
  */
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import type { Dispatch, Ref, SetStateAction } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {Dispatch, Ref, SetStateAction} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import {
-  SvgArrowThickDown,
-  SvgArrowThickUp,
-} from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Block} from '@actual-app/components/block';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgArrowThickDown, SvgArrowThickUp} from '@actual-app/components/icons/v1';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { CalendarWidget } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
-import { format as formatDate } from 'date-fns';
-import { debounce } from 'es-toolkit/compat';
+import type {CalendarWidget} from '@actual-app/core/types/models';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
+import {format as formatDate} from 'date-fns';
+import {debounce} from 'es-toolkit/compat';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { CalendarCardSkeleton } from '#components/reports/CalendarCardSkeleton';
-import { DateRange } from '#components/reports/DateRange';
-import { CalendarGraph } from '#components/reports/graphs/CalendarGraph';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { calendarSpreadsheet } from '#components/reports/spreadsheets/calendar-spreadsheet';
-import type { CalendarDataType } from '#components/reports/spreadsheets/calendar-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { useMergedRefs } from '#hooks/useMergedRefs';
-import { useNavigate } from '#hooks/useNavigate';
-import { useResizeObserver } from '#hooks/useResizeObserver';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {CalendarCardSkeleton} from '#components/reports/CalendarCardSkeleton';
+import {DateRange} from '#components/reports/DateRange';
+import {CalendarGraph} from '#components/reports/graphs/CalendarGraph';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {calendarSpreadsheet} from '#components/reports/spreadsheets/calendar-spreadsheet';
+import type {CalendarDataType} from '#components/reports/spreadsheets/calendar-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {useMergedRefs} from '#hooks/useMergedRefs';
+import {useNavigate} from '#hooks/useNavigate';
+import {useResizeObserver} from '#hooks/useResizeObserver';
 
 type CalendarCardProps = {
   widgetId: string;
@@ -74,7 +65,7 @@ export function CalendarCard({
   onMetaChange,
   firstDayOfWeekIdx,
 }: CalendarCardProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
   const [latestTransaction, setLatestTransaction] = useState<string>('');
@@ -82,9 +73,7 @@ export function CalendarCard({
   useEffect(() => {
     async function fetchLatestTransaction() {
       const latestTrans = await send('get-latest-transaction');
-      setLatestTransaction(
-        latestTrans ? latestTrans.date : monthUtils.currentDay(),
-      );
+      setLatestTransaction(latestTrans ? latestTrans.date : monthUtils.currentDay());
     }
     void fetchLatestTransaction();
   }, []);
@@ -99,21 +88,12 @@ export function CalendarCard({
     latestTransaction,
   );
   const params = useMemo(
-    () =>
-      calendarSpreadsheet(
-        start,
-        end,
-        meta?.conditions,
-        meta?.conditionsOp,
-        firstDayOfWeekIdx,
-      ),
+    () => calendarSpreadsheet(start, end, meta?.conditions, meta?.conditionsOp, firstDayOfWeekIdx),
     [start, end, meta?.conditions, meta?.conditionsOp, firstDayOfWeekIdx],
   );
 
-  const [cardOrientation, setCardOrientation] = useState<'row' | 'column'>(
-    'row',
-  );
-  const { isNarrowWidth } = useResponsive();
+  const [cardOrientation, setCardOrientation] = useState<'row' | 'column'>('row');
+  const {isNarrowWidth} = useResponsive();
 
   const cardRef = useResizeObserver(rect => {
     if (rect.height > rect.width) {
@@ -127,31 +107,22 @@ export function CalendarCard({
 
   const [nameMenuOpen, setNameMenuOpen] = useState(false);
 
-  const { totalIncome, totalExpense } = useMemo(() => {
+  const {totalIncome, totalExpense} = useMemo(() => {
     if (!data) {
-      return { totalIncome: 0, totalExpense: 0 };
+      return {totalIncome: 0, totalExpense: 0};
     }
     return {
-      totalIncome: data.calendarData.reduce(
-        (prev, cur) => prev + cur.totalIncome,
-        0,
-      ),
-      totalExpense: data.calendarData.reduce(
-        (prev, cur) => prev + cur.totalExpense,
-        0,
-      ),
+      totalIncome: data.calendarData.reduce((prev, cur) => prev + cur.totalIncome, 0),
+      totalExpense: data.calendarData.reduce((prev, cur) => prev + cur.totalExpense, 0),
     };
   }, [data]);
 
   const [monthNameFormats, setMonthNameFormats] = useState<string[]>([]);
-  const [selectedMonthNameFormat, setSelectedMonthNameFormat] =
-    useState<string>('MMMM yyyy');
+  const [selectedMonthNameFormat, setSelectedMonthNameFormat] = useState<string>('MMMM yyyy');
 
   useEffect(() => {
     if (data) {
-      setMonthNameFormats(
-        Array(data.calendarData.length).map(() => 'MMMM yyyy'),
-      );
+      setMonthNameFormats(Array(data.calendarData.length).map(() => 'MMMM yyyy'));
     } else {
       setMonthNameFormats([]);
     }
@@ -188,10 +159,10 @@ export function CalendarCard({
     >
       <View
         ref={el => (el ? cardRef(el) : undefined)}
-        style={{ flex: 1, margin: 2, overflow: 'hidden', width: '100%' }}
+        style={{flex: 1, margin: 2, overflow: 'hidden', width: '100%'}}
       >
-        <View style={{ flexDirection: 'row', padding: 20, paddingBottom: 0 }}>
-          <View style={{ flex: 1, marginBottom: -5 }}>
+        <View style={{flexDirection: 'row', padding: 20, paddingBottom: 0}}>
+          <View style={{flex: 1, marginBottom: -5}}>
             <ReportCardName
               name={meta?.name || t('Calendar')}
               isEditing={nameMenuOpen}
@@ -205,7 +176,7 @@ export function CalendarCard({
               onClose={() => setNameMenuOpen(false)}
             />
           </View>
-          <View style={{ textAlign: 'right' }}>
+          <View style={{textAlign: 'right'}}>
             <Block
               style={{
                 ...styles.mediumText,
@@ -214,7 +185,7 @@ export function CalendarCard({
             >
               <Tooltip
                 content={
-                  <View style={{ lineHeight: 1.5 }}>
+                  <View style={{lineHeight: 1.5}}>
                     <View
                       style={{
                         display: 'grid',
@@ -232,12 +203,10 @@ export function CalendarCard({
                           >
                             <Trans>Income:</Trans>
                           </View>
-                          <View style={{ color: theme.reportsNumberPositive }}>
+                          <View style={{color: theme.reportsNumberPositive}}>
                             {totalIncome !== 0 ? (
                               <PrivacyFilter>
-                                <FinancialText>
-                                  {format(totalIncome, 'financial')}
-                                </FinancialText>
+                                <FinancialText>{format(totalIncome, 'financial')}</FinancialText>
                               </PrivacyFilter>
                             ) : (
                               ''
@@ -255,12 +224,10 @@ export function CalendarCard({
                           >
                             <Trans>Expenses:</Trans>
                           </View>
-                          <View style={{ color: theme.reportsNumberNegative }}>
+                          <View style={{color: theme.reportsNumberNegative}}>
                             {totalExpense !== 0 ? (
                               <PrivacyFilter>
-                                <FinancialText>
-                                  {format(totalExpense, 'financial')}
-                                </FinancialText>
+                                <FinancialText>{format(totalExpense, 'financial')}</FinancialText>
                               </PrivacyFilter>
                             ) : (
                               ''
@@ -360,11 +327,9 @@ function CalendarCardInner({
   isEditing,
   format,
 }: CalendarCardInnerProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [monthNameVisible, setMonthNameVisible] = useState(true);
-  const monthFormatSizeContainers = useRef<(HTMLSpanElement | null)[]>(
-    new Array(5),
-  );
+  const monthFormatSizeContainers = useRef<(HTMLSpanElement | null)[]>(new Array(5));
   const monthNameContainerRef = useRef<HTMLDivElement>(null);
 
   const measureMonthFormats = useCallback(() => {
@@ -383,10 +348,7 @@ function CalendarCardInner({
 
         const suitableFormat = measurements.find(m => containerWidth > m.width);
         if (suitableFormat) {
-          if (
-            monthNameContainerRef.current &&
-            containerWidth > suitableFormat.width
-          ) {
+          if (monthNameContainerRef.current && containerWidth > suitableFormat.width) {
             setMonthNameFormats(prev => {
               if (prev[index] === suitableFormat.format) return prev;
               const newArray = [...prev];
@@ -401,8 +363,7 @@ function CalendarCardInner({
 
         if (
           monthNameContainerRef.current &&
-          monthNameContainerRef.current.scrollWidth >
-            monthNameContainerRef.current.clientWidth
+          monthNameContainerRef.current.scrollWidth > monthNameContainerRef.current.clientWidth
         ) {
           setMonthNameVisible(false);
         } else {
@@ -421,23 +382,20 @@ function CalendarCardInner({
     };
   }, [debouncedResizeCallback]);
 
-  const mergedRef = useMergedRefs(
-    monthNameContainerRef,
-    monthNameResizeRef,
-  ) as Ref<HTMLDivElement>;
+  const mergedRef = useMergedRefs(monthNameContainerRef, monthNameResizeRef) as Ref<HTMLDivElement>;
 
   const navigate = useNavigate();
 
   const monthFormats = [
-    { format: 'MMMM yyyy', text: formatDate(calendar.start, 'MMMM yyyy') },
-    { format: 'MMM yyyy', text: formatDate(calendar.start, 'MMM yyyy') },
-    { format: 'MMM yy', text: formatDate(calendar.start, 'MMM yy') },
-    { format: 'MMM', text: formatDate(calendar.start, 'MMM') },
-    { format: '', text: '' },
+    {format: 'MMMM yyyy', text: formatDate(calendar.start, 'MMMM yyyy')},
+    {format: 'MMM yyyy', text: formatDate(calendar.start, 'MMM yyyy')},
+    {format: 'MMM yy', text: formatDate(calendar.start, 'MMM yy')},
+    {format: 'MMM', text: formatDate(calendar.start, 'MMM')},
+    {format: '', text: ''},
   ];
 
   return (
-    <View style={{ flex: 1, overflow: 'visible' }}>
+    <View style={{flex: 1, overflow: 'visible'}}>
       <View
         style={{
           flexDirection: 'row',
@@ -477,8 +435,7 @@ function CalendarCardInner({
               );
             }}
           >
-            {selectedMonthNameFormat &&
-              formatDate(calendar.start, selectedMonthNameFormat)}
+            {selectedMonthNameFormat && formatDate(calendar.start, selectedMonthNameFormat)}
           </Button>
         </View>
         <View
@@ -498,15 +455,9 @@ function CalendarCardInner({
           >
             {calendar.totalIncome !== 0 ? (
               <>
-                <SvgArrowThickUp
-                  width={16}
-                  height={16}
-                  style={{ flexShrink: 0 }}
-                />
+                <SvgArrowThickUp width={16} height={16} style={{flexShrink: 0}} />
                 <PrivacyFilter>
-                  <FinancialText>
-                    {format(calendar.totalIncome, 'financial')}
-                  </FinancialText>
+                  <FinancialText>{format(calendar.totalIncome, 'financial')}</FinancialText>
                 </PrivacyFilter>
               </>
             ) : (
@@ -523,15 +474,9 @@ function CalendarCardInner({
           >
             {calendar.totalExpense !== 0 ? (
               <>
-                <SvgArrowThickDown
-                  width={16}
-                  height={16}
-                  style={{ flexShrink: 0 }}
-                />
+                <SvgArrowThickDown width={16} height={16} style={{flexShrink: 0}} />
                 <PrivacyFilter>
-                  <FinancialText>
-                    {format(calendar.totalExpense, 'financial')}
-                  </FinancialText>
+                  <FinancialText>{format(calendar.totalExpense, 'financial')}</FinancialText>
                 </PrivacyFilter>
               </>
             ) : (
@@ -547,22 +492,20 @@ function CalendarCardInner({
         isEditing={isEditing}
         onDayClick={date => {
           if (date) {
-            void navigate(
-              `/reports/calendar/${widgetId}?day=${formatDate(date, 'yyyy-MM-dd')}`,
-            );
+            void navigate(`/reports/calendar/${widgetId}?day=${formatDate(date, 'yyyy-MM-dd')}`);
           } else {
             void navigate(`/reports/calendar/${widgetId}`);
           }
         }}
       />
-      <View style={{ fontWeight: 'bold', fontSize: '12px' }}>
+      <View style={{fontWeight: 'bold', fontSize: '12px'}}>
         {monthFormats.map((item, idx) => (
           <span
             key={item.format}
             ref={node => {
               if (node) monthFormatSizeContainers.current[idx] = node;
             }}
-            style={{ position: 'fixed', top: -9999, left: -9999 }}
+            style={{position: 'fixed', top: -9999, left: -9999}}
             data-format={item.format}
           >
             {item.text}

@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-import { useRef, useState } from 'react';
-import { Dialog, DialogTrigger } from 'react-aria-components';
-import { useTranslation } from 'react-i18next';
+import {useRef, useState} from 'react';
+import {Dialog, DialogTrigger} from 'react-aria-components';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgExpandArrow } from '@actual-app/components/icons/v0';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { View } from '@actual-app/components/view';
-import type { DashboardPageEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgExpandArrow} from '@actual-app/components/icons/v0';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {View} from '@actual-app/components/view';
+import type {DashboardPageEntity} from '@actual-app/core/types/models';
 
-import { useNavigate } from '#hooks/useNavigate';
-import { useCreateDashboardPageMutation } from '#reports/mutations';
+import {useNavigate} from '#hooks/useNavigate';
+import {useCreateDashboardPageMutation} from '#reports/mutations';
 
 type DashboardSelectorProps = {
   dashboards: readonly DashboardPageEntity[];
   currentDashboard: DashboardPageEntity;
 };
 
-export function DashboardSelector({
-  dashboards,
-  currentDashboard,
-}: DashboardSelectorProps) {
-  const { t } = useTranslation();
+export function DashboardSelector({dashboards, currentDashboard}: DashboardSelectorProps) {
+  const {t} = useTranslation();
   const navigate = useNavigate();
   const triggerRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -47,7 +44,7 @@ export function DashboardSelector({
   const handleAddDashboard = async () => {
     const defaultName = t('New dashboard');
     createDashboardPageMutation.mutate(
-      { name: defaultName },
+      {name: defaultName},
       {
         onSuccess: id => {
           void navigate(`/reports/${id}`);
@@ -101,12 +98,7 @@ export function DashboardSelector({
       </Button>
 
       {menuOpen && (
-        <Popover
-          triggerRef={triggerRef}
-          isOpen
-          onOpenChange={setMenuOpen}
-          placement="bottom start"
-        >
+        <Popover triggerRef={triggerRef} isOpen onOpenChange={setMenuOpen} placement="bottom start">
           <Dialog>
             <Menu
               slot="close"

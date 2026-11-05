@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import type { ReactNode } from 'react';
-import { MemoryRouter } from 'react-router';
+import type {ReactNode} from 'react';
+import {MemoryRouter} from 'react-router';
 
 import type * as PlatformModule from '@actual-app/core/shared/platform';
-import { act, renderHook, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {act, renderHook, waitFor} from '@testing-library/react';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { createTestAppStore, resetTestProviders, TestProviders } from '#mocks';
-import { newsFeedFixture } from '#news/fixtures';
+import {createTestAppStore, resetTestProviders, TestProviders} from '#mocks';
+import {newsFeedFixture} from '#news/fixtures';
 
-import { useNewsNotification } from './useNewsNotification';
+import {useNewsNotification} from './useNewsNotification';
 
 let mockLastSeenNewsDate: string | undefined = undefined;
 const mockSetLastSeenNewsDate = vi.fn();
@@ -39,17 +39,15 @@ vi.mock('#hooks/useGlobalPref', () => ({
 }));
 
 vi.mock('@actual-app/core/shared/platform', async () => {
-  const actual = await vi.importActual<typeof PlatformModule>(
-    '@actual-app/core/shared/platform',
-  );
-  return { ...actual, isPlaywright: false };
+  const actual = await vi.importActual<typeof PlatformModule>('@actual-app/core/shared/platform');
+  return {...actual, isPlaywright: false};
 });
 
 describe('useNewsNotification', () => {
   const fetchMock = vi.fn();
   let store: ReturnType<typeof createTestAppStore>;
 
-  function wrapper({ children }: { children: ReactNode }) {
+  function wrapper({children}: {children: ReactNode}) {
     return (
       <TestProviders store={store}>
         <MemoryRouter>{children}</MemoryRouter>
@@ -69,7 +67,7 @@ describe('useNewsNotification', () => {
       status: 200,
       json: () => Promise.resolve(newsFeedFixture),
     });
-    window.Actual = { ...window.Actual, ACTUAL_VERSION: '99.9.9' };
+    window.Actual = {...window.Actual, ACTUAL_VERSION: '99.9.9'};
   });
 
   afterEach(() => {
@@ -77,11 +75,9 @@ describe('useNewsNotification', () => {
   });
 
   it('shows a notification for an unseen release', async () => {
-    renderHook(() => useNewsNotification(), { wrapper });
+    renderHook(() => useNewsNotification(), {wrapper});
 
-    await waitFor(() =>
-      expect(store.getState().notifications.notifications).toHaveLength(1),
-    );
+    await waitFor(() => expect(store.getState().notifications.notifications).toHaveLength(1));
     expect(store.getState().notifications.notifications[0]).toMatchObject({
       id: 'news-release-notification',
       title: "What's new in Actual 99.9.9",
@@ -107,11 +103,9 @@ describe('useNewsNotification', () => {
           ],
         }),
     });
-    renderHook(() => useNewsNotification(), { wrapper });
+    renderHook(() => useNewsNotification(), {wrapper});
 
-    await waitFor(() =>
-      expect(store.getState().notifications.notifications).toHaveLength(1),
-    );
+    await waitFor(() => expect(store.getState().notifications.notifications).toHaveLength(1));
     const notification = store.getState().notifications.notifications[0];
     expect(notification.title).toBe("What's new in Actual 99.9.9");
 
@@ -124,17 +118,15 @@ describe('useNewsNotification', () => {
 
   it('records the current position instead of notifying on first enable', async () => {
     mockLastSeenNewsDate = undefined;
-    renderHook(() => useNewsNotification(), { wrapper });
+    renderHook(() => useNewsNotification(), {wrapper});
 
-    await waitFor(() =>
-      expect(mockSetLastSeenNewsDate).toHaveBeenCalledWith('2026-01-01'),
-    );
+    await waitFor(() => expect(mockSetLastSeenNewsDate).toHaveBeenCalledWith('2026-01-01'));
     expect(store.getState().notifications.notifications).toEqual([]);
   });
 
   it('does nothing when the user has turned the news feed off', async () => {
     mockShowNewsFeed = false;
-    renderHook(() => useNewsNotification(), { wrapper });
+    renderHook(() => useNewsNotification(), {wrapper});
 
     await act(() => Promise.resolve());
 

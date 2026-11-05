@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const { visitParents } = require('unist-util-visit-parents');
+const {visitParents} = require('unist-util-visit-parents');
 
 function githubMentionPlugin() {
   const pattern = /@([\w-]+)/g;
@@ -25,7 +25,7 @@ function githubMentionPlugin() {
       let lastIndex = 0;
       const segments = [];
       while ((match = pattern.exec(text))) {
-        const { index } = match;
+        const {index} = match;
         const username = match[1];
         segments.push({
           type: 'text',

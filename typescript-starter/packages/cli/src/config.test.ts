@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { mkdtempSync, rmSync, writeFileSync } from 'fs';
-import { homedir, tmpdir } from 'os';
-import { join } from 'path';
+import {mkdtempSync, rmSync, writeFileSync} from 'fs';
+import {homedir, tmpdir} from 'os';
+import {join} from 'path';
 
-import { resolveConfig } from './config';
+import {resolveConfig} from './config';
 
 const mockSearch = vi.fn().mockResolvedValue(null);
 
@@ -30,7 +30,7 @@ vi.mock('cosmiconfig', () => ({
 
 function mockConfigFile(config: Record<string, unknown> | null) {
   if (config) {
-    mockSearch.mockResolvedValue({ config, isEmpty: false });
+    mockSearch.mockResolvedValue({config, isEmpty: false});
   } else {
     mockSearch.mockResolvedValue(null);
   }
@@ -148,13 +148,11 @@ describe('resolveConfig', () => {
 
   describe('validation', () => {
     it('throws when serverUrl is missing', async () => {
-      await expect(resolveConfig({ password: 'pw' })).rejects.toThrow(
-        'Server URL is required',
-      );
+      await expect(resolveConfig({password: 'pw'})).rejects.toThrow('Server URL is required');
     });
 
     it('throws when neither password nor sessionToken provided', async () => {
-      await expect(resolveConfig({ serverUrl: 'http://test' })).rejects.toThrow(
+      await expect(resolveConfig({serverUrl: 'http://test'})).rejects.toThrow(
         'Authentication required',
       );
     });
@@ -199,12 +197,12 @@ describe('resolveConfig', () => {
 
     it('prefers cacheTtl from CLI flag', async () => {
       process.env.ACTUAL_CACHE_TTL = '300';
-      const config = await resolveConfig({ cacheTtl: 10 });
+      const config = await resolveConfig({cacheTtl: 10});
       expect(config.cacheTtl).toBe(10);
     });
 
     it('rejects negative cacheTtl', async () => {
-      await expect(resolveConfig({ cacheTtl: -1 })).rejects.toThrow(/cacheTtl/);
+      await expect(resolveConfig({cacheTtl: -1})).rejects.toThrow(/cacheTtl/);
     });
 
     it('rejects non-integer cacheTtl from env', async () => {
@@ -229,17 +227,17 @@ describe('resolveConfig', () => {
     });
 
     it('sets refresh when provided on CLI opts', async () => {
-      const config = await resolveConfig({ refresh: true });
+      const config = await resolveConfig({refresh: true});
       expect(config.refresh).toBe(true);
     });
 
     it('sets refresh when --no-cache is passed (cliOpts.cache === false)', async () => {
-      const config = await resolveConfig({ cache: false });
+      const config = await resolveConfig({cache: false});
       expect(config.refresh).toBe(true);
     });
 
     it('does not set refresh when cliOpts.cache is true (flag absent)', async () => {
-      const config = await resolveConfig({ cache: true });
+      const config = await resolveConfig({cache: true});
       expect(config.refresh).toBe(false);
     });
 
@@ -249,12 +247,12 @@ describe('resolveConfig', () => {
     });
 
     it('sets noLock when --no-lock is passed (cliOpts.lock === false)', async () => {
-      const config = await resolveConfig({ lock: false });
+      const config = await resolveConfig({lock: false});
       expect(config.noLock).toBe(true);
     });
 
     it('leaves noLock false when cliOpts.lock is true (flag absent)', async () => {
-      const config = await resolveConfig({ lock: true });
+      const config = await resolveConfig({lock: true});
       expect(config.noLock).toBe(false);
     });
 
@@ -312,7 +310,7 @@ describe('resolveConfig', () => {
     });
 
     it('handles isEmpty result', async () => {
-      mockSearch.mockResolvedValue({ config: {}, isEmpty: true });
+      mockSearch.mockResolvedValue({config: {}, isEmpty: true});
 
       const config = await resolveConfig({
         serverUrl: 'http://test',
@@ -337,13 +335,13 @@ describe('resolveConfig', () => {
     });
 
     afterEach(() => {
-      rmSync(dir, { recursive: true, force: true });
+      rmSync(dir, {recursive: true, force: true});
     });
 
     it('reads a value from the file it points at, trimming whitespace', async () => {
       process.env.ACTUAL_PASSWORD_FILE = writeSecret('password', 'filepw\n');
 
-      const config = await resolveConfig({ serverUrl: 'http://test' });
+      const config = await resolveConfig({serverUrl: 'http://test'});
 
       expect(config.password).toBe('filepw');
     });
@@ -352,7 +350,7 @@ describe('resolveConfig', () => {
       process.env.ACTUAL_PASSWORD = 'envpw';
       process.env.ACTUAL_PASSWORD_FILE = writeSecret('password', 'filepw');
 
-      const config = await resolveConfig({ serverUrl: 'http://test' });
+      const config = await resolveConfig({serverUrl: 'http://test'});
 
       expect(config.password).toBe('filepw');
     });
@@ -370,21 +368,18 @@ describe('resolveConfig', () => {
 
     it('takes precedence over the config file', async () => {
       process.env.ACTUAL_PASSWORD_FILE = writeSecret('password', 'filepw');
-      mockConfigFile({ password: 'configpw' });
+      mockConfigFile({password: 'configpw'});
 
-      const config = await resolveConfig({ serverUrl: 'http://test' });
+      const config = await resolveConfig({serverUrl: 'http://test'});
 
       expect(config.password).toBe('filepw');
     });
 
     it('supports the session token and encryption password too', async () => {
       process.env.ACTUAL_SESSION_TOKEN_FILE = writeSecret('token', 'filetok\n');
-      process.env.ACTUAL_ENCRYPTION_PASSWORD_FILE = writeSecret(
-        'enc',
-        'fileenc',
-      );
+      process.env.ACTUAL_ENCRYPTION_PASSWORD_FILE = writeSecret('enc', 'fileenc');
 
-      const config = await resolveConfig({ serverUrl: 'http://test' });
+      const config = await resolveConfig({serverUrl: 'http://test'});
 
       expect(config.sessionToken).toBe('filetok');
       expect(config.encryptionPassword).toBe('fileenc');
@@ -408,7 +403,7 @@ describe('resolveConfig', () => {
       process.env.ACTUAL_PASSWORD = 'envpw';
       process.env.ACTUAL_PASSWORD_FILE = '';
 
-      await expect(resolveConfig({ serverUrl: 'http://test' })).rejects.toThrow(
+      await expect(resolveConfig({serverUrl: 'http://test'})).rejects.toThrow(
         'Could not read ACTUAL_PASSWORD_FILE',
       );
     });
@@ -417,7 +412,7 @@ describe('resolveConfig', () => {
       process.env.ACTUAL_PASSWORD = 'envpw';
       process.env.ACTUAL_PASSWORD_FILE = join(dir, 'does-not-exist');
 
-      await expect(resolveConfig({ serverUrl: 'http://test' })).rejects.toThrow(
+      await expect(resolveConfig({serverUrl: 'http://test'})).rejects.toThrow(
         'Could not read ACTUAL_PASSWORD_FILE',
       );
     });

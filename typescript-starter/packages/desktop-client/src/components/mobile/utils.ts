@@ -14,13 +14,9 @@
  * limitations under the License.
  */
 
-import type { useTranslation } from 'react-i18next';
+import type {useTranslation} from 'react-i18next';
 
-import type {
-  AccountEntity,
-  PayeeEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import type {AccountEntity, PayeeEntity, TransactionEntity} from '@actual-app/core/types/models';
 
 type GetPrettyPayeeProps = {
   t: ReturnType<typeof useTranslation>['t'];
@@ -29,12 +25,7 @@ type GetPrettyPayeeProps = {
   transferAccount?: AccountEntity;
 };
 
-export function getPrettyPayee({
-  t,
-  transaction,
-  payee,
-  transferAccount,
-}: GetPrettyPayeeProps) {
+export function getPrettyPayee({t, transaction, payee, transferAccount}: GetPrettyPayeeProps) {
   if (!transaction) {
     return '';
   }

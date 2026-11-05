@@ -30,10 +30,10 @@
 //
 // See https://actualbudget.org/docs/contributing/project-details/migrations
 
-import { spawnSync } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs';
+import {spawnSync} from 'child_process';
+import {readFileSync, writeFileSync} from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 
 import {
   findAddedMigrations,
@@ -43,8 +43,7 @@ import {
   parseMigrationTree,
 } from '../src/migrations/check';
 
-const POLICY_URL =
-  'https://actualbudget.org/docs/contributing/project-details/migrations';
+const POLICY_URL = 'https://actualbudget.org/docs/contributing/project-details/migrations';
 
 const migrationsDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -57,22 +56,18 @@ const migrationsDir = path.join(
 );
 
 function git(args: string[]): string {
-  const { status, stdout, stderr, error } = spawnSync('git', args);
+  const {status, stdout, stderr, error} = spawnSync('git', args);
   if (error) {
     throw error;
   }
   if (status !== 0) {
-    throw new Error(
-      `git ${args.join(' ')} failed (exit ${status}): ${stderr.toString()}`,
-    );
+    throw new Error(`git ${args.join(' ')} failed (exit ${status}): ${stderr.toString()}`);
   }
   return stdout.toString();
 }
 
 function readMigrations(ref: string) {
-  const migrations = parseMigrationTree(
-    git(['ls-tree', ref, migrationsDir + '/']),
-  );
+  const migrations = parseMigrationTree(git(['ls-tree', ref, migrationsDir + '/']));
   console.log(`Found ${migrations.length} migrations on ${ref}.`);
   return migrations;
 }
@@ -88,10 +83,7 @@ const headMigrations = readMigrations('HEAD');
 const problems: string[] = [];
 
 // 1. New migrations must be dated after the latest migration on master.
-const latestMasterMigration = Math.max(
-  0,
-  ...masterMigrations.map(migration => migration.id),
-);
+const latestMasterMigration = Math.max(0, ...masterMigrations.map(migration => migration.id));
 const newMigrations = findAddedMigrations(masterMigrations, headMigrations);
 const misdated = findMisdatedMigrations(newMigrations, latestMasterMigration);
 
@@ -104,10 +96,7 @@ for (const migration of misdated) {
 }
 
 // 2. Migrations that exist on the merge base must not be edited or deleted.
-const { modified, deleted } = findMutatedMigrations(
-  mergeBaseMigrations,
-  headMigrations,
-);
+const {modified, deleted} = findMutatedMigrations(mergeBaseMigrations, headMigrations);
 
 for (const name of modified) {
   problems.push(
@@ -127,7 +116,7 @@ for (const name of deleted) {
 // 3. Advisory: warn on new migrations that look like they remove or rename
 // schema. Not fatal — regexes over SQL can't be authoritative, so this only
 // surfaces an early hint on the PR.
-const riskyMigrations: { name: string; risks: string[] }[] = [];
+const riskyMigrations: {name: string; risks: string[]}[] = [];
 for (const migration of newMigrations) {
   let source = '';
   try {
@@ -145,7 +134,7 @@ for (const migration of newMigrations) {
     );
   }
   if (risks.length) {
-    riskyMigrations.push({ name: migration.name, risks });
+    riskyMigrations.push({name: migration.name, risks});
   }
 }
 
@@ -154,11 +143,7 @@ for (const migration of newMigrations) {
 // fork PRs) via an artifact. Always written — an empty list tells the
 // workflow to remove a stale comment once the warnings are resolved.
 writeFileSync(
-  path.join(
-    path.dirname(fileURLToPath(import.meta.url)),
-    '..',
-    'migration-warnings.json',
-  ),
+  path.join(path.dirname(fileURLToPath(import.meta.url)), '..', 'migration-warnings.json'),
   JSON.stringify(riskyMigrations),
 );
 

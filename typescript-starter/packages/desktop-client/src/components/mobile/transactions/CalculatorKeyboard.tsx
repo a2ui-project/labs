@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import React, { memo, useEffect, useRef, useState } from 'react';
-import type { ReactNode, RefObject } from 'react';
-import { Trans } from 'react-i18next';
+import React, {memo, useEffect, useRef, useState} from 'react';
+import type {ReactNode, RefObject} from 'react';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { CalculatorButtons } from '#components/common/CalculatorButtons';
+import {CalculatorButtons} from '#components/common/CalculatorButtons';
 
 export const CalculatorKeyboard = memo(function CalculatorAmountInput({
   inputRef,
@@ -58,10 +58,7 @@ export const CalculatorKeyboard = memo(function CalculatorAmountInput({
 
     if (!initialTransitionRef.current && initialTransitionDelay) {
       initialTransitionRef.current = true;
-      const handle = setTimeout(
-        () => setIsOpenDebounced(isOpen),
-        initialTransitionDelay,
-      );
+      const handle = setTimeout(() => setIsOpenDebounced(isOpen), initialTransitionDelay);
       return () => clearTimeout(handle);
     }
     setIsOpenDebounced(isOpen);
@@ -94,7 +91,7 @@ export const CalculatorKeyboard = memo(function CalculatorAmountInput({
     >
       {header}
       <CalculatorButtons
-        style={{ flex: 1 }}
+        style={{flex: 1}}
         inputRef={inputRef}
         onEquals={onEquals}
         onClear={onClear}
@@ -122,18 +119,10 @@ export const CalculatorKeyboard = memo(function CalculatorAmountInput({
         >
           <Trans>Reset</Trans>
         </NonFocusableButton>
-        <NonFocusableButton
-          variant="normal"
-          onPress={onDismiss}
-          data-testid="amount-dismiss"
-        >
+        <NonFocusableButton variant="normal" onPress={onDismiss} data-testid="amount-dismiss">
           <Trans>Dismiss</Trans>
         </NonFocusableButton>
-        <NonFocusableButton
-          variant="primary"
-          onPress={onApply}
-          data-testid="amount-apply"
-        >
+        <NonFocusableButton variant="primary" onPress={onApply} data-testid="amount-apply">
           <Trans>Apply</Trans>
         </NonFocusableButton>
       </View>

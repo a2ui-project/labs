@@ -15,14 +15,14 @@
  */
 
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type { AccountEntity } from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import type {AccountEntity} from '@actual-app/core/types/models';
 import * as d from 'date-fns';
 
-import type { useSpreadsheet } from '#hooks/useSpreadsheet';
-import { aqlQuery } from '#queries/aqlQuery';
+import type {useSpreadsheet} from '#hooks/useSpreadsheet';
+import {aqlQuery} from '#queries/aqlQuery';
 
-type MonthlyAgg = { date: string; amount: number };
+type MonthlyAgg = {date: string; amount: number};
 
 // Utility functions for Hampel identifier
 function calculateMedian(values: number[]): number {
@@ -31,9 +31,7 @@ function calculateMedian(values: number[]): number {
 
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0
-    ? (sorted[mid - 1] + sorted[mid]) / 2
-    : sorted[mid];
+  return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
 }
 
 function calculateMean(values: number[]): number {
@@ -137,26 +135,21 @@ export function createCrossoverSpreadsheet({
     // Aggregate monthly expenses for selected categories (expenses are negative amounts)
     const expensesPromise = (async () => {
       if (!expenseCategoryIds.length) {
-        return monthUtils
-          .rangeInclusive(start, end)
-          .map(date => ({ date, amount: 0 }));
+        return monthUtils.rangeInclusive(start, end).map(date => ({date, amount: 0}));
       }
 
       const query = q('transactions')
         .filter({
           $and: [
-            { $or: expenseCategoryIds.map(id => ({ category: id })) },
-            { date: { $gte: monthUtils.firstDayOfMonth(start) } },
-            { date: { $lte: monthUtils.lastDayOfMonth(end) } },
+            {$or: expenseCategoryIds.map(id => ({category: id}))},
+            {date: {$gte: monthUtils.firstDayOfMonth(start)}},
+            {date: {$lte: monthUtils.lastDayOfMonth(end)}},
           ],
         })
-        .groupBy({ $month: '$date' })
-        .select([
-          { date: { $month: '$date' } },
-          { amount: { $sum: '$amount' } },
-        ]);
+        .groupBy({$month: '$date'})
+        .select([{date: {$month: '$date'}}, {amount: {$sum: '$amount'}}]);
 
-      const { data } = await aqlQuery(query);
+      const {data} = await aqlQuery(query);
       return data as MonthlyAgg[];
     })();
 
@@ -166,12 +159,12 @@ export function createCrossoverSpreadsheet({
         // Get the account balance at the end of the first month (start month)
         const startingBalance = await aqlQuery(
           q('transactions')
-            .filter({ account: accountId })
+            .filter({account: accountId})
             .filter({
-              date: { $lte: monthUtils.lastDayOfMonth(start) },
+              date: {$lte: monthUtils.lastDayOfMonth(start)},
             })
-            .calculate({ $sum: '$amount' }),
-        ).then(({ data }) => (typeof data === 'number' ? data : 0));
+            .calculate({$sum: '$amount'}),
+        ).then(({data}) => (typeof data === 'number' ? data : 0));
         // Get all transactions from the start month onwards for balance calculations
         // We need to exclude the first month since we already have its ending balance as starting
         // Instead of adding months (which can cause invalid month strings), we'll filter out the first month later
@@ -179,17 +172,14 @@ export function createCrossoverSpreadsheet({
           q('transactions')
             .filter({
               account: accountId,
-              date: { $gte: monthUtils.firstDayOfMonth(start) },
+              date: {$gte: monthUtils.firstDayOfMonth(start)},
             })
             .filter({
-              $and: [{ date: { $lte: monthUtils.lastDayOfMonth(end) } }],
+              $and: [{date: {$lte: monthUtils.lastDayOfMonth(end)}}],
             })
-            .groupBy({ $month: '$date' })
-            .select([
-              { date: { $month: '$date' } },
-              { amount: { $sum: '$amount' } },
-            ]),
-        ).then(({ data }) => data as MonthlyAgg[]);
+            .groupBy({$month: '$date'})
+            .select([{date: {$month: '$date'}}, {amount: {$sum: '$amount'}}]),
+        ).then(({data}) => data as MonthlyAgg[]);
 
         // Filter out the first month since we already have its ending balance as starting
         const filteredBalances = balances.filter(b => b.date !== start);
@@ -318,8 +308,7 @@ function recalculate(
   // Use either provided estimatedReturn or simple trailing growth from balances
   // Determine default return from historical balances if not provided
   const annualReturn = params.estimatedReturn ?? null; // e.g. 0.05
-  let monthlyReturn =
-    annualReturn != null ? Math.pow(1 + annualReturn, 1 / 12) - 1 : null;
+  let monthlyReturn = annualReturn != null ? Math.pow(1 + annualReturn, 1 / 12) - 1 : null;
 
   // Always calculate the default return for display purposes
   let defaultMonthlyReturn: number | null = null;
@@ -435,9 +424,7 @@ function recalculate(
       targetMonthlyIncome = crossoverData.adjustedExpenses ?? null;
       // Calculate target nest egg: target monthly income / monthly safe withdrawal rate
       targetNestEgg =
-        targetMonthlyIncome != null
-          ? Math.round(targetMonthlyIncome / monthlySWR)
-          : null;
+        targetMonthlyIncome != null ? Math.round(targetMonthlyIncome / monthlySWR) : null;
     }
   }
 
@@ -446,8 +433,7 @@ function recalculate(
       data,
       start: params.start,
       end: params.end,
-      crossoverXLabel:
-        crossoverIndex != null ? (data[crossoverIndex]?.x ?? null) : null,
+      crossoverXLabel: crossoverIndex != null ? (data[crossoverIndex]?.x ?? null) : null,
     },
     // Provide some summary numbers
     lastKnownBalance: historicalBalances[historicalBalances.length - 1] || 0,
@@ -457,9 +443,7 @@ function recalculate(
     lastKnownMonthlyExpenses: lastExpense,
     // Return the calculated default return for display purposes
     historicalReturn:
-      defaultMonthlyReturn != null
-        ? Math.pow(1 + defaultMonthlyReturn, 12) - 1
-        : null,
+      defaultMonthlyReturn != null ? Math.pow(1 + defaultMonthlyReturn, 12) - 1 : null,
     // Years to retire calculation
     yearsToRetire,
     // Target monthly income at crossover point

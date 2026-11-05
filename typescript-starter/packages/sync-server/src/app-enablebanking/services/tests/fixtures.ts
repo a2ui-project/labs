@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { EnableBankingTransaction } from '#app-enablebanking/services/enablebanking-service';
+import type {EnableBankingTransaction} from '#app-enablebanking/services/enablebanking-service';
 
 export const mockAspsp = {
   name: 'Nordea',
@@ -43,8 +43,8 @@ export const mockAspspList = [
 ];
 
 export const mockSessionAccount = {
-  account_id: { iban: 'FI0455231152453547' },
-  account_servicer: { bic_fi: 'NDEAFIHH', name: 'Nordea' },
+  account_id: {iban: 'FI0455231152453547'},
+  account_servicer: {bic_fi: 'NDEAFIHH', name: 'Nordea'},
   name: 'Current Account',
   currency: 'EUR',
   uid: '07cc67f4-45d6-494b-adac-09b5cbc7e2b5',
@@ -52,8 +52,8 @@ export const mockSessionAccount = {
 };
 
 export const mockSessionAccountNoName = {
-  account_id: { iban: 'FI9876543210000001' },
-  account_servicer: { bic_fi: 'OKOYFIHH', name: 'OP' },
+  account_id: {iban: 'FI9876543210000001'},
+  account_servicer: {bic_fi: 'OKOYFIHH', name: 'OP'},
   currency: 'EUR',
   uid: '12345678-1234-1234-1234-123456789abc',
 };
@@ -66,7 +66,7 @@ export const mockSessionAccountMinimal = {
 export const mockSession = {
   session_id: 'test-session-id',
   accounts: [mockSessionAccount],
-  aspsp: { name: 'Nordea', country: 'FI' },
+  aspsp: {name: 'Nordea', country: 'FI'},
   access: {
     valid_until: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
   },
@@ -80,9 +80,9 @@ export const mockAuthResponse = {
 export const mockCreditTransaction = {
   entry_reference: 'ref-001',
   transaction_id: 'tx-001',
-  transaction_amount: { currency: 'EUR', amount: '100.50' },
-  creditor: { name: 'Salary Inc' },
-  debtor: { name: 'My Employer' },
+  transaction_amount: {currency: 'EUR', amount: '100.50'},
+  creditor: {name: 'Salary Inc'},
+  debtor: {name: 'My Employer'},
   credit_debit_indicator: 'CRDT',
   status: 'BOOK',
   booking_date: '2026-03-01',
@@ -92,9 +92,9 @@ export const mockCreditTransaction = {
 
 export const mockDebitTransaction = {
   entry_reference: 'ref-002',
-  transaction_amount: { currency: 'EUR', amount: '-25.99' },
-  creditor: { name: 'Grocery Store' },
-  debtor: { name: 'My Account' },
+  transaction_amount: {currency: 'EUR', amount: '-25.99'},
+  creditor: {name: 'Grocery Store'},
+  debtor: {name: 'My Account'},
   credit_debit_indicator: 'DBIT',
   status: 'BOOK',
   booking_date: '2026-03-02',
@@ -104,7 +104,7 @@ export const mockDebitTransaction = {
 
 export const mockPendingTransaction = {
   transaction_id: 'tx-003',
-  transaction_amount: { currency: 'EUR', amount: '-10.00' },
+  transaction_amount: {currency: 'EUR', amount: '-10.00'},
   status: 'PDNG',
   value_date: '2026-03-03',
   remittance_information: ['Card payment'],
@@ -112,14 +112,14 @@ export const mockPendingTransaction = {
 
 export const mockTransactionNoPayee = {
   entry_reference: 'ref-004',
-  transaction_amount: { currency: 'EUR', amount: '5.00' },
+  transaction_amount: {currency: 'EUR', amount: '5.00'},
   status: 'BOOK',
   booking_date: '2026-03-04',
   remittance_information: ['Transfer from savings'],
 } satisfies EnableBankingTransaction;
 
 export const mockTransactionMinimal = {
-  transaction_amount: { currency: 'EUR', amount: '1.23' },
+  transaction_amount: {currency: 'EUR', amount: '1.23'},
   status: 'BOOK',
 } satisfies EnableBankingTransaction;
 
@@ -128,19 +128,19 @@ export const mockTransactionMinimal = {
 // date: '', which Actual's client cannot insert.
 export const mockPendingTransactionNoDate = {
   transaction_id: 'tx-no-date',
-  transaction_amount: { currency: 'EUR', amount: '-7.50' },
+  transaction_amount: {currency: 'EUR', amount: '-7.50'},
   status: 'PDNG',
   remittance_information: ['Card payment, not yet booked'],
 } satisfies EnableBankingTransaction;
 
 export const mockBalance = {
-  balance_amount: { currency: 'EUR', amount: '1234.56' },
+  balance_amount: {currency: 'EUR', amount: '1234.56'},
   balance_type: 'CLAV',
   reference_date: '2026-03-24',
 };
 
 export const mockNegativeBalance = {
-  balance_amount: { currency: 'EUR', amount: '-50.75' },
+  balance_amount: {currency: 'EUR', amount: '-50.75'},
   balance_type: 'XPCD',
   reference_date: '2026-03-24',
 };

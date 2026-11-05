@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
-import type { Ref, RefCallback, RefObject } from 'react';
+import {useCallback} from 'react';
+import type {Ref, RefCallback, RefObject} from 'react';
 
 export function useMergedRefs<T>(
   ...refs: (

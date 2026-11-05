@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { radius, spacing } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {radius, spacing} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import {css} from '@emotion/css';
 
-import { AccountTree } from './AccountTree';
-import { CollapseChevron } from './CollapseChevron';
-import { CountPill } from './CountPill';
-import { sectionLabelStyle } from './styles';
+import {AccountTree} from './AccountTree';
+import {CollapseChevron} from './CollapseChevron';
+import {CountPill} from './CountPill';
+import {sectionLabelStyle} from './styles';
 
 type ClosedSectionProps = {
   accounts: AccountEntity[];
@@ -36,20 +36,15 @@ type ClosedSectionProps = {
   isDragDisabled: boolean;
 };
 
-export function ClosedSection({
-  accounts,
-  isOpen,
-  onToggle,
-  isDragDisabled,
-}: ClosedSectionProps) {
-  const { t } = useTranslation();
+export function ClosedSection({accounts, isOpen, onToggle, isDragDisabled}: ClosedSectionProps) {
+  const {t} = useTranslation();
 
   if (accounts.length === 0) {
     return null;
   }
 
   return (
-    <View style={{ marginTop: spacing.xxs }}>
+    <View style={{marginTop: spacing.xxs}}>
       <Button
         variant="bare"
         aria-expanded={isOpen}
@@ -72,7 +67,7 @@ export function ClosedSection({
         }}
       >
         <CollapseChevron isOpen={isOpen} color={theme.sidebarTextMuted} />
-        <Text style={{ ...sectionLabelStyle, color: theme.sidebarTextMuted }}>
+        <Text style={{...sectionLabelStyle, color: theme.sidebarTextMuted}}>
           <Trans>Closed</Trans>
         </Text>
         {!isOpen && <CountPill count={accounts.length} />}
@@ -81,7 +76,7 @@ export function ClosedSection({
         <AccountTree
           label={t('Closed accounts')}
           side="closed"
-          buckets={[{ group: null, accounts, failedCount: 0 }]}
+          buckets={[{group: null, accounts, failedCount: 0}]}
           showSyncDot={false}
           isDragDisabled={isDragDisabled}
         />

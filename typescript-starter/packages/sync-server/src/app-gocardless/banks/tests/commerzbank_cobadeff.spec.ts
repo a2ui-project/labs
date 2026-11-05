@@ -40,10 +40,7 @@ describe('CommerzbankCobadeff', () => {
           'SHOP NAME//CITY/DE 2024-12-19T15:34:31 KFN 1 AB 1234 Kartenzahlung',
         internalTransactionId: '3815213adb654baeadfb231c853',
       };
-      const normalizedTransaction = CommerzbankCobadeff.normalizeTransaction(
-        transaction,
-        false,
-      );
+      const normalizedTransaction = CommerzbankCobadeff.normalizeTransaction(transaction, false);
       expect(normalizedTransaction?.notes).toEqual(
         '2024-12-19T15:34:31 KFN 1 AB 1234, Kartenzahlung',
       );
@@ -78,10 +75,7 @@ describe('CommerzbankCobadeff', () => {
           'Long payee name that is eaxtly 35ch 901234567890/. Long description tha t gets cut and is very long, did I mention it is long End-to-En',
         internalTransactionId: '812354cfdea36465asdfe',
       };
-      const normalizedTransaction = CommerzbankCobadeff.normalizeTransaction(
-        transaction,
-        false,
-      );
+      const normalizedTransaction = CommerzbankCobadeff.normalizeTransaction(transaction, false);
       expect(normalizedTransaction?.notes).toEqual(
         '901234567890/. Long description tha t gets cut and is very long, did I mention it is long, End-to-End-Ref.: 901234567890, Mandatsref: ABC123DEF456, Gläubiger-ID: AB12CDE0000000000000000012, SEPA-BASISLASTSCHRIFT wiederholend',
       );
@@ -114,10 +108,7 @@ describe('CommerzbankCobadeff', () => {
           'CREDITOR NAME CREDITOR00BIC CREDITOR000IBAN DESCRIPTION End-to-End-Ref.: NOTPROVIDED Dauerauftrag',
         internalTransactionId: 'f617dc31ab77622bf13d6c95d6dd8b4a',
       };
-      const normalizedTransaction = CommerzbankCobadeff.normalizeTransaction(
-        transaction,
-        false,
-      );
+      const normalizedTransaction = CommerzbankCobadeff.normalizeTransaction(transaction, false);
       expect(normalizedTransaction?.notes).toEqual(
         'CREDITOR00BIC CREDITOR000IBAN DESCRIPTION, Dauerauftrag',
       );
@@ -139,10 +130,7 @@ describe('CommerzbankCobadeff', () => {
         remittanceInformationStructured: 'Example',
         // internalTransactionId: '3815213adb654baeadfb231c853',
       };
-      const normalizedTransaction = CommerzbankCobadeff.normalizeTransaction(
-        transaction,
-        false,
-      );
+      const normalizedTransaction = CommerzbankCobadeff.normalizeTransaction(transaction, false);
       expect(normalizedTransaction?.notes).toEqual('Example');
     });
   });

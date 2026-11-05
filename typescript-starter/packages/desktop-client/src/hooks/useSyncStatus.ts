@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-import { listen } from '@actual-app/core/platform/client/connection';
+import {listen} from '@actual-app/core/platform/client/connection';
 
-import { useMetadataPref } from '#hooks/useMetadataPref';
+import {useMetadataPref} from '#hooks/useMetadataPref';
 
 export type SyncState = null | 'offline' | 'local' | 'disabled' | 'error';
 
@@ -26,9 +26,7 @@ type UseSyncStatusOpts = {
   syncingEndDelayMs?: number;
 };
 
-export function useSyncStatus({
-  syncingEndDelayMs = 0,
-}: UseSyncStatusOpts = {}): {
+export function useSyncStatus({syncingEndDelayMs = 0}: UseSyncStatusOpts = {}): {
   isSyncing: boolean;
   syncState: SyncState;
 } {
@@ -77,5 +75,5 @@ export function useSyncStatus({
     };
   }, [cloudFileId, syncingEndDelayMs]);
 
-  return { isSyncing, syncState };
+  return {isSyncing, syncState};
 }

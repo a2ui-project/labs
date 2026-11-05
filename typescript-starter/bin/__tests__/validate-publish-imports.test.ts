@@ -18,12 +18,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
-import {
-  derivePublishImports,
-  validatePackage,
-} from '../validate-publish-imports.mts';
+import {derivePublishImports, validatePackage} from '../validate-publish-imports.mts';
 
 describe('derivePublishImports', () => {
   it('prepends ./build/ to .js paths', () => {
@@ -116,7 +113,7 @@ describe('validatePackage', () => {
   });
 
   afterEach(() => {
-    fs.rmSync(tmpDir, { recursive: true, force: true });
+    fs.rmSync(tmpDir, {recursive: true, force: true});
   });
 
   function writePackageJson(content: Record<string, unknown>) {
@@ -128,9 +125,9 @@ describe('validatePackage', () => {
   it('skips packages with no publishConfig', () => {
     const filePath = writePackageJson({
       name: 'test-pkg',
-      imports: { '#foo': './src/foo.js' },
+      imports: {'#foo': './src/foo.js'},
     });
-    const { result, warnings } = validatePackage(filePath);
+    const {result, warnings} = validatePackage(filePath);
     expect(result).toBeNull();
     expect(warnings).toEqual([]);
   });
@@ -138,10 +135,10 @@ describe('validatePackage', () => {
   it('skips packages with publishConfig but no publishConfig.imports', () => {
     const filePath = writePackageJson({
       name: 'test-pkg',
-      imports: { '#foo': './src/foo.js' },
-      publishConfig: { access: 'public' },
+      imports: {'#foo': './src/foo.js'},
+      publishConfig: {access: 'public'},
     });
-    const { result, warnings } = validatePackage(filePath);
+    const {result, warnings} = validatePackage(filePath);
     expect(result).toBeNull();
     expect(warnings).toEqual([]);
   });
@@ -150,10 +147,10 @@ describe('validatePackage', () => {
     const filePath = writePackageJson({
       name: 'test-pkg',
       publishConfig: {
-        imports: { '#foo': './build/src/foo.js' },
+        imports: {'#foo': './build/src/foo.js'},
       },
     });
-    const { result, warnings } = validatePackage(filePath);
+    const {result, warnings} = validatePackage(filePath);
     expect(result).toBeNull();
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toContain('orphaned');
@@ -173,7 +170,7 @@ describe('validatePackage', () => {
         },
       },
     });
-    const { result } = validatePackage(filePath);
+    const {result} = validatePackage(filePath);
     expect(result).not.toBeNull();
     expect(result!.missingKeys).toEqual([]);
     expect(result!.extraKeys).toEqual([]);
@@ -193,7 +190,7 @@ describe('validatePackage', () => {
         },
       },
     });
-    const { result } = validatePackage(filePath);
+    const {result} = validatePackage(filePath);
     expect(result!.missingKeys).toEqual(['#bar']);
   });
 
@@ -210,7 +207,7 @@ describe('validatePackage', () => {
         },
       },
     });
-    const { result } = validatePackage(filePath);
+    const {result} = validatePackage(filePath);
     expect(result!.extraKeys).toEqual(['#orphan']);
   });
 
@@ -226,9 +223,9 @@ describe('validatePackage', () => {
         },
       },
     });
-    const { result } = validatePackage(filePath);
+    const {result} = validatePackage(filePath);
     expect(result!.wrongValues).toEqual([
-      { key: '#foo', expected: './build/src/foo.js', actual: './src/foo.ts' },
+      {key: '#foo', expected: './build/src/foo.js', actual: './src/foo.ts'},
     ]);
   });
 });

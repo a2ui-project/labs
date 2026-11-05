@@ -16,29 +16,26 @@
 
 import React from 'react';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { View } from '@actual-app/components/view';
-import { useDebounceCallback } from 'usehooks-ts';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {View} from '@actual-app/components/view';
+import {useDebounceCallback} from 'usehooks-ts';
 
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useGlobalPref } from '#hooks/useGlobalPref';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useGlobalPref} from '#hooks/useGlobalPref';
 
-import { SidebarRedesign } from './redesign/SidebarRedesign';
-import { Sidebar } from './Sidebar';
-import { useSidebar } from './SidebarProvider';
+import {SidebarRedesign} from './redesign/SidebarRedesign';
+import {Sidebar} from './Sidebar';
+import {useSidebar} from './SidebarProvider';
 
 export function FloatableSidebar() {
   const [floatingSidebar] = useGlobalPref('floatingSidebar');
   const newSidebarUIEnabled = useFeatureFlag('newSidebarUI');
 
   const sidebar = useSidebar();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   const sidebarShouldFloat = floatingSidebar || sidebar.alwaysFloats;
-  const debouncedHideSidebar = useDebounceCallback(
-    () => sidebar.setHidden(true),
-    350,
-  );
+  const debouncedHideSidebar = useDebounceCallback(() => sidebar.setHidden(true), 350);
 
   return isNarrowWidth ? null : (
     <View
@@ -51,9 +48,7 @@ export function FloatableSidebar() {
             }
           : undefined
       }
-      onMouseLeave={
-        sidebarShouldFloat ? () => debouncedHideSidebar() : undefined
-      }
+      onMouseLeave={sidebarShouldFloat ? () => debouncedHideSidebar() : undefined}
       style={{
         position: sidebarShouldFloat ? 'absolute' : undefined,
         top: 8,
@@ -67,11 +62,8 @@ export function FloatableSidebar() {
             ? 'none'
             : '0 15px 30px 0 rgba(0,0,0,0.25), 0 3px 15px 0 rgba(0,0,0,.5)',
         transform: `translateY(${!sidebarShouldFloat ? -8 : 0}px)
-                      translateX(${
-                        sidebarShouldFloat && sidebar.hidden ? '-100' : '0'
-                      }%)`,
-        transition:
-          'transform .5s, box-shadow .5s, border-radius .5s, bottom .5s',
+                      translateX(${sidebarShouldFloat && sidebar.hidden ? '-100' : '0'}%)`,
+        transition: 'transform .5s, box-shadow .5s, border-radius .5s, bottom .5s',
       }}
     >
       {newSidebarUIEnabled ? <SidebarRedesign /> : <Sidebar />}

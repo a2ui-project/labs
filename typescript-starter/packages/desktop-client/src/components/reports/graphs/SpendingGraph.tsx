@@ -16,31 +16,24 @@
 
 // @ts-strict-ignore
 import React from 'react';
-import type { ComponentProps, CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import type {ComponentProps, CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { theme } from '@actual-app/components/theme';
-import type { SpendingEntity } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {theme} from '@actual-app/components/theme';
+import type {SpendingEntity} from '@actual-app/core/types/models';
+import {css} from '@emotion/css';
+import {Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis} from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { numberFormatterTooltip } from '#components/reports/numberFormatter';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {FinancialText} from '#components/FinancialText';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {numberFormatterTooltip} from '#components/reports/numberFormatter';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
-import { computePadding } from './util/computePadding';
+import {computePadding} from './util/computePadding';
 
 type PayloadItem = {
   value: number;
@@ -76,7 +69,7 @@ const CustomTooltip = ({
   compare,
   format,
 }: CustomTooltipProps) => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   if (active && payload && payload.length) {
     const comparison = ['average', 'budget'].includes(selection)
@@ -95,29 +88,24 @@ const CustomTooltip = ({
         })}
       >
         <div>
-          <div style={{ marginBottom: 10 }}>
+          <div style={{marginBottom: 10}}>
             <strong>
               <Trans>
                 Day:{' '}
                 {{
                   dayOfMonth:
-                    Number(payload[0].payload.day) >= 28
-                      ? t('28+')
-                      : payload[0].payload.day,
+                    Number(payload[0].payload.day) >= 28 ? t('28+') : payload[0].payload.day,
                 }}
               </Trans>
             </strong>
           </div>
-          <div style={{ lineHeight: 1.5 }}>
+          <div style={{lineHeight: 1.5}}>
             {payload[0].payload.months[compare]?.cumulative ? (
               <AlignedText
                 left={t('Compare:')}
                 right={
                   <FinancialText>
-                    {format(
-                      payload[0].payload.months[compare]?.cumulative * -1,
-                      'financial',
-                    )}
+                    {format(payload[0].payload.months[compare]?.cumulative * -1, 'financial')}
                   </FinancialText>
                 }
               />
@@ -131,11 +119,7 @@ const CustomTooltip = ({
                       ? t('Budgeted:')
                       : t('To:')
                 }
-                right={
-                  <FinancialText>
-                    {format(Math.round(comparison), 'financial')}
-                  </FinancialText>
-                }
+                right={<FinancialText>{format(Math.round(comparison), 'financial')}</FinancialText>}
               />
             )}
             {payload[0].payload.months[compare]?.cumulative ? (
@@ -144,10 +128,7 @@ const CustomTooltip = ({
                 right={
                   <FinancialText>
                     {format(
-                      Math.round(
-                        payload[0].payload.months[compare]?.cumulative * -1 -
-                          comparison,
-                      ),
+                      Math.round(payload[0].payload.months[compare]?.cumulative * -1 - comparison),
                       'financial',
                     )}
                   </FinancialText>
@@ -179,32 +160,23 @@ export function SpendingGraph({
   compareTo,
 }: SpendingGraphProps) {
   const privacyMode = usePrivacyMode();
-  const animationProps = useRechartsAnimation({ animationDuration: 1000 });
+  const animationProps = useRechartsAnimation({animationDuration: 1000});
   const balanceTypeOp = 'cumulative';
   const format = useFormat();
 
   const selection = mode === 'single-month' ? compareTo : mode;
 
   const thisMonthMax = data.intervalData.reduce((a, b) =>
-    a.months[compare]?.[balanceTypeOp] < b.months[compare]?.[balanceTypeOp]
-      ? a
-      : b,
+    a.months[compare]?.[balanceTypeOp] < b.months[compare]?.[balanceTypeOp] ? a : b,
   ).months[compare]?.[balanceTypeOp];
   const selectionMax = ['average', 'budget'].includes(selection)
     ? data.intervalData[27][selection]
     : data.intervalData.reduce((a, b) =>
-        a.months[selection]?.[balanceTypeOp] <
-        b.months[selection]?.[balanceTypeOp]
-          ? a
-          : b,
+        a.months[selection]?.[balanceTypeOp] < b.months[selection]?.[balanceTypeOp] ? a : b,
       ).months[selection]?.[balanceTypeOp];
   const maxYAxis = selectionMax > thisMonthMax;
-  const dataMax = Math.max(
-    ...data.intervalData.map(i => i.months[compare]?.cumulative),
-  );
-  const dataMin = Math.min(
-    ...data.intervalData.map(i => i.months[compare]?.cumulative),
-  );
+  const dataMax = Math.max(...data.intervalData.map(i => i.months[compare]?.cumulative));
+  const dataMin = Math.min(...data.intervalData.map(i => i.months[compare]?.cumulative));
 
   const tickFormatter: ComponentProps<typeof YAxis>['tickFormatter'] = tick => {
     if (!privacyMode) return `${format(tick, 'financial-no-decimals')}`;
@@ -226,10 +198,7 @@ export function SpendingGraph({
     if (['average', 'budget'].includes(month)) {
       return obj[month] && -1 * obj[month];
     } else {
-      return (
-        obj.months[month]?.[balanceTypeOp] &&
-        -1 * obj.months[month][balanceTypeOp]
-      );
+      return obj.months[month]?.[balanceTypeOp] && -1 * obj.months[month][balanceTypeOp];
     }
   };
 
@@ -241,13 +210,13 @@ export function SpendingGraph({
     <Container
       style={{
         ...style,
-        ...(compact && { height: 'auto' }),
+        ...(compact && {height: 'auto'}),
       }}
     >
       {(width, height) =>
         data.intervalData && (
           <div>
-            {!compact && <div style={{ marginTop: '5px' }} />}
+            {!compact && <div style={{marginTop: '5px'}} />}
             <AreaChart
               responsive
               width={width}
@@ -265,14 +234,12 @@ export function SpendingGraph({
                 bottom: 0,
               }}
             >
-              {compact ? null : (
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              )}
+              {compact ? null : <CartesianGrid strokeDasharray="3 3" vertical={false} />}
               {compact ? null : (
                 <XAxis
                   dataKey={val => getDate(val)}
-                  tick={{ fill: theme.pageText }}
-                  tickLine={{ stroke: theme.pageText }}
+                  tick={{fill: theme.pageText}}
+                  tickLine={{stroke: theme.pageText}}
                 />
               )}
               {compact ? null : (
@@ -280,8 +247,8 @@ export function SpendingGraph({
                   dataKey={val => getVal(val, maxYAxis ? compare : selection)}
                   domain={[0, 'auto']}
                   tickFormatter={tickFormatter}
-                  tick={{ fill: theme.pageText }}
-                  tickLine={{ stroke: theme.pageText }}
+                  tick={{fill: theme.pageText}}
+                  tickLine={{stroke: theme.pageText}}
                   tickSize={0}
                 />
               )}
@@ -298,26 +265,14 @@ export function SpendingGraph({
                 isAnimationActive={false}
               />
               <defs>
-                <linearGradient
-                  id={`fill${balanceTypeOp}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
+                <linearGradient id={`fill${balanceTypeOp}`} x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset={gradientOffset()}
                     stopColor={theme.reportsChartFill}
                     stopOpacity={0.2}
                   />
                 </linearGradient>
-                <linearGradient
-                  id={`stroke${balanceTypeOp}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
+                <linearGradient id={`stroke${balanceTypeOp}`} x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset={gradientOffset()}
                     stopColor={theme.reportsChartFill}

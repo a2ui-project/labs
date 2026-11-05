@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import { create, MessageSchema, toBinary } from '@actual-app/crdt';
+import {create, MessageSchema, toBinary} from '@actual-app/crdt';
 
 import * as encryption from '#server/encryption';
 

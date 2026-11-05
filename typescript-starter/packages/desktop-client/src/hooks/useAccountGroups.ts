@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 
-import { accountGroupQueries } from '#account-groups';
+import {accountGroupQueries} from '#account-groups';
 
 export function useAccountGroups() {
   return useQuery(accountGroupQueries.list());

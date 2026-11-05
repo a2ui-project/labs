@@ -17,7 +17,7 @@ name: Publish nightly desktop app
 # Publish nightly version of desktop app - Runs every day at midnight
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
   workflow_dispatch:
 
 defaults:
@@ -67,7 +67,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           # Avoid restoring potentially poisoned caches in release jobs.
-          cache: 'false'
+          cache: "false"
 
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         name: Setup Flatpak dependencies

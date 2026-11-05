@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { amountToInteger } from '#app-gocardless/utils';
+import {amountToInteger} from '#app-gocardless/utils';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -25,7 +25,7 @@ export default {
   institutionIds: ['ING_PL_INGBPLPW'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     editedTrans.date = transaction.valueDate;
 
@@ -34,29 +34,23 @@ export default {
 
   sortTransactions(transactions = []) {
     return transactions.sort((a, b) => {
-      return (
-        Number((b.transactionId ?? '').substr(2)) -
-        Number((a.transactionId ?? '').substr(2))
-      );
+      return Number((b.transactionId ?? '').substr(2)) - Number((a.transactionId ?? '').substr(2));
     });
   },
 
   calculateStartingBalance(sortedTransactions = [], balances = []) {
     if (sortedTransactions.length) {
-      const oldestTransaction =
-        sortedTransactions[sortedTransactions.length - 1];
+      const oldestTransaction = sortedTransactions[sortedTransactions.length - 1];
       const oldestKnownBalance = amountToInteger(
         oldestTransaction.balanceAfterTransaction?.balanceAmount.amount || 0,
       );
-      const oldestTransactionAmount = amountToInteger(
-        oldestTransaction.transactionAmount.amount,
-      );
+      const oldestTransactionAmount = amountToInteger(oldestTransaction.transactionAmount.amount);
 
       return oldestKnownBalance - oldestTransactionAmount;
     } else {
       return amountToInteger(
-        balances.find(balance => 'interimBooked' === balance.balanceType)
-          ?.balanceAmount.amount || 0,
+        balances.find(balance => 'interimBooked' === balance.balanceType)?.balanceAmount.amount ||
+          0,
       );
     }
   },

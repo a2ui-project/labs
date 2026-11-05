@@ -15,16 +15,14 @@
  */
 
 import * as api from '@actual-app/api';
-import type { Command } from 'commander';
+import type {Command} from 'commander';
 
-import { withConnection } from '#connection';
-import { readJsonInput } from '#input';
-import { printOutput } from '#output';
+import {withConnection} from '#connection';
+import {readJsonInput} from '#input';
+import {printOutput} from '#output';
 
 export function registerSchedulesCommand(program: Command) {
-  const schedules = program
-    .command('schedules')
-    .description('Manage scheduled transactions');
+  const schedules = program.command('schedules').description('Manage scheduled transactions');
 
   schedules
     .command('list')
@@ -37,7 +35,7 @@ export function registerSchedulesCommand(program: Command) {
           const result = await api.getSchedules();
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -51,13 +49,11 @@ export function registerSchedulesCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const schedule = readJsonInput(cmdOpts) as Parameters<
-            typeof api.createSchedule
-          >[0];
+          const schedule = readJsonInput(cmdOpts) as Parameters<typeof api.createSchedule>[0];
           const id = await api.createSchedule(schedule);
-          printOutput({ id }, opts.format);
+          printOutput({id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -72,13 +68,11 @@ export function registerSchedulesCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const fields = readJsonInput(cmdOpts) as Parameters<
-            typeof api.updateSchedule
-          >[1];
+          const fields = readJsonInput(cmdOpts) as Parameters<typeof api.updateSchedule>[1];
           await api.updateSchedule(id, fields, cmdOpts.resetNextDate);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -91,9 +85,9 @@ export function registerSchedulesCommand(program: Command) {
         opts,
         async () => {
           await api.deleteSchedule(id);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 }

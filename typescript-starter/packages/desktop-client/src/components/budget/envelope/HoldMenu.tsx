@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import { Form } from 'react-aria-components';
-import { Trans } from 'react-i18next';
+import React, {useState} from 'react';
+import {Form} from 'react-aria-components';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { View } from '@actual-app/components/view';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
+import {Button} from '@actual-app/components/button';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {View} from '@actual-app/components/view';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
 
-import { FinancialInput } from '#components/util/FinancialInput';
-import { useSheetValue } from '#hooks/useSheetValue';
+import {FinancialInput} from '#components/util/FinancialInput';
+import {useSheetValue} from '#hooks/useSheetValue';
 
 type HoldMenuProps = {
   onSubmit: (amount: number) => void;
   onClose: () => void;
 };
-export function HoldMenu({ onSubmit, onClose }: HoldMenuProps) {
+export function HoldMenu({onSubmit, onClose}: HoldMenuProps) {
   const [amount, setAmount] = useState<IntegerAmount | null>(null);
 
-  useSheetValue<'envelope-budget', 'to-budget'>('to-budget', ({ value }) => {
+  useSheetValue<'envelope-budget', 'to-budget'>('to-budget', ({value}) => {
     setAmount(Math.max(value || 0, 0));
   });
 
@@ -50,8 +50,8 @@ export function HoldMenu({ onSubmit, onClose }: HoldMenuProps) {
         onClose();
       }}
     >
-      <View style={{ padding: 10 }}>
-        <View style={{ marginBottom: 5 }}>
+      <View style={{padding: 10}}>
+        <View style={{marginBottom: 5}}>
           <Trans>Hold this amount:</Trans>
         </View>
         <View>

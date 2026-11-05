@@ -14,50 +14,50 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { RemoteFile } from '@actual-app/core/server/cloud-storage';
-import { getUnsafeZipMeta } from '@actual-app/core/shared/errors';
-import type { Budget } from '@actual-app/core/types/budget';
-import type { File } from '@actual-app/core/types/file';
-import type { Handlers } from '@actual-app/core/types/handlers';
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { t } from 'i18next';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {RemoteFile} from '@actual-app/core/server/cloud-storage';
+import {getUnsafeZipMeta} from '@actual-app/core/shared/errors';
+import type {Budget} from '@actual-app/core/types/budget';
+import type {File} from '@actual-app/core/types/file';
+import type {Handlers} from '@actual-app/core/types/handlers';
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
+import {t} from 'i18next';
 
-import { resetApp, setAppState } from '#app/appSlice';
-import { closeModal, pushModal } from '#modals/modalsSlice';
-import { loadGlobalPrefs, loadPrefs } from '#prefs/prefsSlice';
-import { createAppAsyncThunk } from '#redux';
-import { signOut } from '#users/usersSlice';
-import { getDownloadError, getSyncError, getUnsafeZipError } from '#util/error';
+import {resetApp, setAppState} from '#app/appSlice';
+import {closeModal, pushModal} from '#modals/modalsSlice';
+import {loadGlobalPrefs, loadPrefs} from '#prefs/prefsSlice';
+import {createAppAsyncThunk} from '#redux';
+import {signOut} from '#users/usersSlice';
+import {getDownloadError, getSyncError, getUnsafeZipError} from '#util/error';
 
 const sliceName = 'budgetfiles';
 
 export const loadBudgets = createAppAsyncThunk(
   `${sliceName}/loadBudgets`,
-  async (_, { dispatch }) => {
+  async (_, {dispatch}) => {
     const budgets = await send('get-budgets');
 
-    dispatch(setBudgets({ budgets }));
+    dispatch(setBudgets({budgets}));
   },
 );
 
 export const loadRemoteFiles = createAppAsyncThunk(
   `${sliceName}/loadRemoteFiles`,
-  async (_, { dispatch }) => {
+  async (_, {dispatch}) => {
     const files = await send('get-remote-files');
 
-    dispatch(setRemoteFiles({ remoteFiles: files }));
+    dispatch(setRemoteFiles({remoteFiles: files}));
   },
 );
 
 export const loadAllFiles = createAppAsyncThunk(
   `${sliceName}/loadAllFiles`,
-  async (_, { dispatch, getState }) => {
+  async (_, {dispatch, getState}) => {
     const budgets = await send('get-budgets');
     const files = await send('get-remote-files');
 
-    dispatch(setAllFiles({ budgets, remoteFiles: files }));
+    dispatch(setAllFiles({budgets, remoteFiles: files}));
 
     return getState().budgetfiles.allFiles;
   },
@@ -71,31 +71,25 @@ type LoadBudgetPayload = {
 
 export const loadBudget = createAppAsyncThunk(
   `${sliceName}/loadBudget`,
-  async ({ id, options = {} }: LoadBudgetPayload, { dispatch }) => {
-    dispatch(setAppState({ loadingText: t('Loading...') }));
+  async ({id, options = {}}: LoadBudgetPayload, {dispatch}) => {
+    dispatch(setAppState({loadingText: t('Loading...')}));
 
     // Loading a budget may fail
-    const { error } = await send('load-budget', { id, ...options });
+    const {error} = await send('load-budget', {id, ...options});
 
     if (error) {
       const message = getSyncError(error, id);
       if (error === 'out-of-sync-migrations') {
-        dispatch(pushModal({ modal: { name: 'out-of-sync-migrations' } }));
+        dispatch(pushModal({modal: {name: 'out-of-sync-migrations'}}));
       } else if (error === 'out-of-sync-data') {
         // confirm is not available on iOS
         if (typeof window.confirm !== 'undefined') {
           const showBackups = window.confirm(
-            message +
-              ' ' +
-              t(
-                'Make sure the app is up-to-date. Do you want to load a backup?',
-              ),
+            message + ' ' + t('Make sure the app is up-to-date. Do you want to load a backup?'),
           );
 
           if (showBackups) {
-            dispatch(
-              pushModal({ modal: { name: 'load-backup', options: {} } }),
-            );
+            dispatch(pushModal({modal: {name: 'load-backup', options: {}}}));
           }
         } else {
           alert(message + ' ' + t('Make sure the app is up-to-date.'));
@@ -108,20 +102,20 @@ export const loadBudget = createAppAsyncThunk(
       await dispatch(loadPrefs());
     }
 
-    dispatch(setAppState({ loadingText: null }));
+    dispatch(setAppState({loadingText: null}));
   },
 );
 
 export const closeBudget = createAppAsyncThunk(
   `${sliceName}/closeBudget`,
-  async (_, { dispatch, getState, extra: { queryClient } }) => {
+  async (_, {dispatch, getState, extra: {queryClient}}) => {
     const prefs = getState().prefs.local;
     if (prefs && prefs.id) {
       dispatch(resetApp());
       queryClient.clear();
-      dispatch(setAppState({ loadingText: t('Closing...') }));
+      dispatch(setAppState({loadingText: t('Closing...')}));
       await send('close-budget');
-      dispatch(setAppState({ loadingText: null }));
+      dispatch(setAppState({loadingText: null}));
       if (localStorage.getItem('SharedArrayBufferOverride')) {
         window.location.reload();
       }
@@ -131,7 +125,7 @@ export const closeBudget = createAppAsyncThunk(
 
 export const closeBudgetUI = createAppAsyncThunk(
   `${sliceName}/closeBudgetUI`,
-  async (_, { dispatch, getState, extra: { queryClient } }) => {
+  async (_, {dispatch, getState, extra: {queryClient}}) => {
     const prefs = getState().prefs.local;
     if (prefs && prefs.id) {
       dispatch(resetApp());
@@ -147,8 +141,8 @@ type DeleteBudgetPayload = {
 
 export const deleteBudget = createAppAsyncThunk(
   `${sliceName}/deleteBudget`,
-  async ({ id, cloudFileId }: DeleteBudgetPayload, { dispatch }) => {
-    await send('delete-budget', { id, cloudFileId });
+  async ({id, cloudFileId}: DeleteBudgetPayload, {dispatch}) => {
+    await send('delete-budget', {id, cloudFileId});
     await dispatch(loadAllFiles());
   },
 );
@@ -160,21 +154,17 @@ type CreateBudgetPayload = {
 
 export const createBudget = createAppAsyncThunk(
   `${sliceName}/createBudget`,
-  async (
-    { testMode = false, demoMode = false }: CreateBudgetPayload,
-    { dispatch },
-  ) => {
+  async ({testMode = false, demoMode = false}: CreateBudgetPayload, {dispatch}) => {
     dispatch(
       setAppState({
-        loadingText:
-          testMode || demoMode ? t('Making demo...') : t('Creating budget...'),
+        loadingText: testMode || demoMode ? t('Making demo...') : t('Creating budget...'),
       }),
     );
 
     if (demoMode) {
       await send('create-demo-budget');
     } else {
-      await send('create-budget', { testMode });
+      await send('create-budget', {testMode});
     }
 
     dispatch(closeModal());
@@ -184,7 +174,7 @@ export const createBudget = createAppAsyncThunk(
 
     // Set the loadingText to null after we've loaded the budget prefs
     // so that the existing manager page doesn't flash
-    dispatch(setAppState({ loadingText: null }));
+    dispatch(setAppState({loadingText: null}));
   },
 );
 
@@ -205,15 +195,8 @@ type DuplicateBudgetPayload = {
 export const duplicateBudget = createAppAsyncThunk(
   `${sliceName}/duplicateBudget`,
   async (
-    {
-      id,
-      oldName,
-      newName,
-      managePage,
-      loadBudget = 'none',
-      cloudSync,
-    }: DuplicateBudgetPayload,
-    { dispatch },
+    {id, oldName, newName, managePage, loadBudget = 'none', cloudSync}: DuplicateBudgetPayload,
+    {dispatch},
   ) => {
     if (!id) {
       throw new Error('Unable to duplicate a budget that is not local.');
@@ -247,7 +230,7 @@ export const duplicateBudget = createAppAsyncThunk(
         ? error
         : new Error('Error duplicating budget: ' + String(error));
     } finally {
-      dispatch(setAppState({ loadingText: null }));
+      dispatch(setAppState({loadingText: null}));
     }
   },
 );
@@ -259,8 +242,8 @@ type ImportBudgetPayload = {
 
 export const importBudget = createAppAsyncThunk(
   `${sliceName}/importBudget`,
-  async ({ filepath, type }: ImportBudgetPayload, { dispatch }) => {
-    const { error, meta } = await send('import-budget', { filepath, type });
+  async ({filepath, type}: ImportBudgetPayload, {dispatch}) => {
+    const {error, meta} = await send('import-budget', {filepath, type});
     if (error) {
       const zipMeta = getUnsafeZipMeta(meta);
       throw new Error(zipMeta ? getUnsafeZipError(zipMeta) : error);
@@ -277,10 +260,10 @@ type UploadBudgetPayload = {
 
 export const uploadBudget = createAppAsyncThunk(
   `${sliceName}/uploadBudget`,
-  async ({ id }: UploadBudgetPayload, { dispatch }) => {
-    const { error } = await send('upload-budget', { id });
+  async ({id}: UploadBudgetPayload, {dispatch}) => {
+    const {error} = await send('upload-budget', {id});
     if (error) {
-      return { error };
+      return {error};
     }
 
     await dispatch(loadAllFiles());
@@ -294,9 +277,9 @@ type CloseAndLoadBudgetPayload = {
 
 export const closeAndLoadBudget = createAppAsyncThunk(
   `${sliceName}/closeAndLoadBudget`,
-  async ({ fileId }: CloseAndLoadBudgetPayload, { dispatch }) => {
+  async ({fileId}: CloseAndLoadBudgetPayload, {dispatch}) => {
     await dispatch(closeBudget());
-    await dispatch(loadBudget({ id: fileId }));
+    await dispatch(loadBudget({id: fileId}));
   },
 );
 
@@ -306,9 +289,9 @@ type CloseAndDownloadBudgetPayload = {
 
 export const closeAndDownloadBudget = createAppAsyncThunk(
   `${sliceName}/closeAndDownloadBudget`,
-  async ({ cloudFileId }: CloseAndDownloadBudgetPayload, { dispatch }) => {
+  async ({cloudFileId}: CloseAndDownloadBudgetPayload, {dispatch}) => {
     await dispatch(closeBudget());
-    await dispatch(downloadBudget({ cloudFileId, replace: true }));
+    await dispatch(downloadBudget({cloudFileId, replace: true}));
   },
 );
 
@@ -320,8 +303,8 @@ type DownloadBudgetPayload = {
 export const downloadBudget = createAppAsyncThunk(
   `${sliceName}/downloadBudget`,
   async (
-    { cloudFileId, replace = false }: DownloadBudgetPayload,
-    { dispatch },
+    {cloudFileId, replace = false}: DownloadBudgetPayload,
+    {dispatch},
   ): Promise<string | null> => {
     dispatch(
       setAppState({
@@ -329,7 +312,7 @@ export const downloadBudget = createAppAsyncThunk(
       }),
     );
 
-    const { id, error } = await send('download-budget', {
+    const {id, error} = await send('download-budget', {
       cloudFileId,
     });
 
@@ -344,14 +327,12 @@ export const downloadBudget = createAppAsyncThunk(
           ),
           cloudFileId,
           onSuccess: () => {
-            void dispatch(downloadBudget({ cloudFileId, replace }));
+            void dispatch(downloadBudget({cloudFileId, replace}));
           },
         };
 
-        dispatch(
-          pushModal({ modal: { name: 'fix-encryption-key', options: opts } }),
-        );
-        dispatch(setAppState({ loadingText: null }));
+        dispatch(pushModal({modal: {name: 'fix-encryption-key', options: opts}}));
+        dispatch(setAppState({loadingText: null}));
       } else if (error.reason === 'file-exists') {
         alert(
           t(
@@ -360,10 +341,7 @@ export const downloadBudget = createAppAsyncThunk(
               'moved around outside of Actual.',
             {
               id:
-                error.meta &&
-                typeof error.meta === 'object' &&
-                'id' in error.meta &&
-                error.meta.id,
+                error.meta && typeof error.meta === 'object' && 'id' in error.meta && error.meta.id,
               name:
                 error.meta &&
                 typeof error.meta === 'object' &&
@@ -373,11 +351,9 @@ export const downloadBudget = createAppAsyncThunk(
           ),
         );
 
-        return await dispatch(
-          downloadBudget({ cloudFileId, replace: true }),
-        ).unwrap();
+        return await dispatch(downloadBudget({cloudFileId, replace: true})).unwrap();
       } else {
-        dispatch(setAppState({ loadingText: null }));
+        dispatch(setAppState({loadingText: null}));
         alert(getDownloadError(error));
       }
       return null;
@@ -388,9 +364,9 @@ export const downloadBudget = createAppAsyncThunk(
       await Promise.all([
         dispatch(loadGlobalPrefs()),
         dispatch(loadAllFiles()),
-        dispatch(loadBudget({ id })),
+        dispatch(loadBudget({id})),
       ]);
-      dispatch(setAppState({ loadingText: null }));
+      dispatch(setAppState({loadingText: null}));
       return id;
     }
   },
@@ -404,26 +380,23 @@ type LoadBackupPayload = {
 // Take in the budget id so that backups can be loaded when a budget isn't opened
 export const loadBackup = createAppAsyncThunk(
   `${sliceName}/loadBackup`,
-  async ({ budgetId, backupId }: LoadBackupPayload, { dispatch, getState }) => {
+  async ({budgetId, backupId}: LoadBackupPayload, {dispatch, getState}) => {
     const prefs = getState().prefs.local;
     if (prefs && prefs.id) {
       await dispatch(closeBudget());
     }
 
-    await send('backup-load', { id: budgetId, backupId });
-    await dispatch(loadBudget({ id: budgetId }));
+    await send('backup-load', {id: budgetId, backupId});
+    await dispatch(loadBudget({id: budgetId}));
   },
 );
 
-export const makeBackup = createAppAsyncThunk(
-  `${sliceName}/makeBackup`,
-  async (_, { getState }) => {
-    const prefs = getState().prefs.local;
-    if (prefs && prefs.id) {
-      await send('backup-make', { id: prefs.id });
-    }
-  },
-);
+export const makeBackup = createAppAsyncThunk(`${sliceName}/makeBackup`, async (_, {getState}) => {
+  const prefs = getState().prefs.local;
+  if (prefs && prefs.id) {
+    await send('backup-make', {id: prefs.id});
+  }
+});
 
 type BudgetsState = {
   budgets: Budget[];
@@ -456,25 +429,16 @@ const budgetfilesSlice = createSlice({
   reducers: {
     setBudgets(state, action: PayloadAction<SetBudgetsPayload>) {
       state.budgets = action.payload.budgets;
-      state.allFiles = reconcileFiles(
-        action.payload.budgets,
-        state.remoteFiles,
-      );
+      state.allFiles = reconcileFiles(action.payload.budgets, state.remoteFiles);
     },
     setRemoteFiles(state, action: PayloadAction<SetRemoteFilesPayload>) {
       state.remoteFiles = action.payload.remoteFiles;
-      state.allFiles = reconcileFiles(
-        state.budgets,
-        action.payload.remoteFiles,
-      );
+      state.allFiles = reconcileFiles(state.budgets, action.payload.remoteFiles);
     },
     setAllFiles(state, action: PayloadAction<SetAllFilesPayload>) {
       state.budgets = action.payload.budgets;
       state.remoteFiles = action.payload.remoteFiles;
-      state.allFiles = reconcileFiles(
-        action.payload.budgets,
-        action.payload.remoteFiles,
-      );
+      state.allFiles = reconcileFiles(action.payload.budgets, action.payload.remoteFiles);
     },
   },
   extraReducers: builder => {
@@ -485,7 +449,7 @@ const budgetfilesSlice = createSlice({
   },
 });
 
-export const { name, reducer, getInitialState } = budgetfilesSlice;
+export const {name, reducer, getInitialState} = budgetfilesSlice;
 
 export const actions = {
   ...budgetfilesSlice.actions,
@@ -507,7 +471,7 @@ export const actions = {
   makeBackup,
 };
 
-export const { setBudgets, setRemoteFiles, setAllFiles } = actions;
+export const {setBudgets, setRemoteFiles, setAllFiles} = actions;
 
 function sortFiles(arr: File[]) {
   arr.sort((x, y) => {
@@ -531,14 +495,11 @@ function sortFiles(arr: File[]) {
 // 4. detached - Downloaded but broken group id (reset sync state)
 // 5. broken - user shouldn't have access to this file
 // 6. unknown - user is offline so can't determine the status
-function reconcileFiles(
-  localFiles: Budget[],
-  remoteFiles: RemoteFile[] | null,
-): File[] {
+function reconcileFiles(localFiles: Budget[], remoteFiles: RemoteFile[] | null): File[] {
   const reconciled = new Set();
 
-  const files = localFiles.map((localFile): File & { deleted: boolean } => {
-    const { cloudFileId, groupId } = localFile;
+  const files = localFiles.map((localFile): File & {deleted: boolean} => {
+    const {cloudFileId, groupId} = localFile;
     if (cloudFileId && groupId) {
       // This is the case where for some reason getting the files from
       // the server failed. We don't want to scare the user, just show
@@ -600,7 +561,7 @@ function reconcileFiles(
         };
       }
     } else {
-      return { ...localFile, deleted: false, state: 'local', hasKey: true };
+      return {...localFile, deleted: false, state: 'local', hasKey: true};
     }
   });
 
@@ -628,7 +589,5 @@ function reconcileFiles(
 
   // One last pass to list all the broken (unauthorized) files at the
   // bottom
-  return sorted
-    .filter(f => f.state !== 'broken')
-    .concat(sorted.filter(f => f.state === 'broken'));
+  return sorted.filter(f => f.state !== 'broken').concat(sorted.filter(f => f.state === 'broken'));
 }

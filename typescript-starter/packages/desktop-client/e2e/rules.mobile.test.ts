@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { MobileNavigation } from './page-models/mobile-navigation';
-import type { MobileRulesPage } from './page-models/mobile-rules-page';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {MobileNavigation} from './page-models/mobile-navigation';
+import type {MobileRulesPage} from './page-models/mobile-rules-page';
 
 test.describe('Mobile Rules', () => {
   let page: Page;
@@ -27,7 +27,7 @@ test.describe('Mobile Rules', () => {
   let rulesPage: MobileRulesPage;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new MobileNavigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -53,17 +53,14 @@ test.describe('Mobile Rules', () => {
     await rulesPage.searchFor('Dominion');
 
     // Check that the header is present
-    await expect(page.getByRole('heading', { name: 'Rules' })).toBeVisible();
+    await expect(page.getByRole('heading', {name: 'Rules'})).toBeVisible();
 
     // Check that the add button is present
     await expect(rulesPage.addButton).toBeVisible();
 
     // Check that the search box is present with proper placeholder
     await expect(rulesPage.searchBox).toBeVisible();
-    await expect(rulesPage.searchBox).toHaveAttribute(
-      'placeholder',
-      'Filter rules…',
-    );
+    await expect(rulesPage.searchBox).toHaveAttribute('placeholder', 'Filter rules…');
 
     await expect(page).toMatchThemeScreenshots();
   });
@@ -84,7 +81,7 @@ test.describe('Mobile Rules', () => {
 
     // Click on the header to have consistent focused element
     // (otherwise sometimes the condition field is "hovered" and thus has a different background color)
-    await page.getByRole('heading', { name: 'Edit Rule' }).click();
+    await page.getByRole('heading', {name: 'Edit Rule'}).click();
 
     await expect(page).toMatchThemeScreenshots();
   });

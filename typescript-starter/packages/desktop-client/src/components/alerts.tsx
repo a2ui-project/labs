@@ -15,19 +15,16 @@
  */
 
 import React from 'react';
-import type { ComponentType, CSSProperties, ReactNode } from 'react';
+import type {ComponentType, CSSProperties, ReactNode} from 'react';
 
-import {
-  SvgExclamationOutline,
-  SvgInformationOutline,
-} from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {SvgExclamationOutline, SvgInformationOutline} from '@actual-app/components/icons/v1';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
 type AlertProps = {
-  icon: ComponentType<{ width?: number; style?: CSSProperties }>;
+  icon: ComponentType<{width?: number; style?: CSSProperties}>;
   color?: string;
   backgroundColor?: string;
   style?: CSSProperties;
@@ -69,11 +66,9 @@ export const Alert = ({
           ...iconStyle,
         }}
       >
-        <Icon width={13} style={{ marginTop: 2 }} />
+        <Icon width={13} style={{marginTop: 2}} />
       </View>
-      <Text style={{ width: '100%', zIndex: 1, lineHeight: 1.5 }}>
-        {children}
-      </Text>
+      <Text style={{width: '100%', zIndex: 1, lineHeight: 1.5}}>{children}</Text>
     </View>
   );
 };
@@ -84,11 +79,7 @@ type ScopedAlertProps = {
   children?: ReactNode;
 };
 
-export const Information = ({
-  style,
-  iconStyle,
-  children,
-}: ScopedAlertProps) => {
+export const Information = ({style, iconStyle, children}: ScopedAlertProps) => {
   return (
     <Alert
       icon={SvgInformationOutline}
@@ -106,7 +97,7 @@ export const Information = ({
   );
 };
 
-export const Warning = ({ style, iconStyle, children }: ScopedAlertProps) => {
+export const Warning = ({style, iconStyle, children}: ScopedAlertProps) => {
   return (
     <Alert
       icon={SvgExclamationOutline}
@@ -120,7 +111,7 @@ export const Warning = ({ style, iconStyle, children }: ScopedAlertProps) => {
   );
 };
 
-export const Error = ({ style, iconStyle, children }: ScopedAlertProps) => {
+export const Error = ({style, iconStyle, children}: ScopedAlertProps) => {
   return (
     <Alert
       icon={SvgExclamationOutline}

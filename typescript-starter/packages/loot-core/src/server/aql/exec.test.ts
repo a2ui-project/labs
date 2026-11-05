@@ -15,14 +15,14 @@
  */
 
 // @ts-strict-ignore
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 import * as db from '#server/db';
-import { q } from '#shared/query';
-import { makeChild } from '#shared/transactions';
+import {q} from '#shared/query';
+import {makeChild} from '#shared/transactions';
 
 import * as aql from './exec';
-import { schema, schemaConfig } from './schema';
+import {schema, schemaConfig} from './schema';
 
 beforeEach(global.emptyDatabase());
 
@@ -40,7 +40,7 @@ function compileAndRunAqlQuery(query, options?: unknown) {
 
 async function insertTransactions(repeatTimes = 1) {
   let transactions = [];
-  const group = await db.insertCategoryGroup({ name: 'group' });
+  const group = await db.insertCategoryGroup({name: 'group'});
 
   for (let i = 0; i < repeatTimes; i++) {
     const cat1 = await db.insertCategory({
@@ -71,14 +71,14 @@ async function insertTransactions(repeatTimes = 1) {
 
     transactions = transactions.concat([
       parent,
-      makeChild(parent, { amount: -20, category: cat1 }),
-      makeChild(parent, { amount: -5, category: cat1 }),
-      makeChild(parent, { amount: -30, category: cat1 }),
-      makeChild(parent, { amount: -45, category: cat2 }),
+      makeChild(parent, {amount: -20, category: cat1}),
+      makeChild(parent, {amount: -5, category: cat1}),
+      makeChild(parent, {amount: -30, category: cat1}),
+      makeChild(parent, {amount: -45, category: cat2}),
       parent2,
-      makeChild(parent2, { amount: -9, category: cat2 }),
-      makeChild(parent2, { amount: -80, category: cat1 }),
-      { account: 'acct', date: '2020-01-03', amount: -53, category: cat1 },
+      makeChild(parent2, {amount: -9, category: cat2}),
+      makeChild(parent2, {amount: -80, category: cat1}),
+      {account: 'acct', date: '2020-01-03', amount: -53, category: cat1},
     ]);
   }
 
@@ -92,16 +92,14 @@ describe('compileAndRunQuery', () => {
     await insertTransactions();
 
     // date
-    let { data } = await compileAndRunAqlQuery(
-      q('transactions').select('date').serialize(),
-    );
+    let {data} = await compileAndRunAqlQuery(q('transactions').select('date').serialize());
     expect(data[0].date).toBe('2020-01-04');
 
     // date-month
     data = (
       await compileAndRunAqlQuery(
         q('transactions')
-          .select({ month: { $month: '$date' } })
+          .select({month: {$month: '$date'}})
           .serialize(),
       )
     ).data;
@@ -111,7 +109,7 @@ describe('compileAndRunQuery', () => {
     data = (
       await compileAndRunAqlQuery(
         q('transactions')
-          .select({ year: { $year: '$date' } })
+          .select({year: {$year: '$date'}})
           .serialize(),
       )
     ).data;
@@ -139,22 +137,22 @@ describe('compileAndRunQuery', () => {
       cleared: true,
     });
 
-    let { data } = await compileAndRunAqlQuery(
+    let {data} = await compileAndRunAqlQuery(
       q('transactions')
-        .filter({ amount: { $lt: { $neg: ':amount' } } })
+        .filter({amount: {$lt: {$neg: ':amount'}}})
         .select()
         .serialize(),
-      { params: { amount: 5000 } },
+      {params: {amount: 5000}},
     );
     expect(data[0].id).toBe(transId);
 
     data = (
       await compileAndRunAqlQuery(
         q('transactions')
-          .filter({ date: { $transform: '$month', $eq: { $month: ':month' } } })
+          .filter({date: {$transform: '$month', $eq: {$month: ':month'}}})
           .select('date')
           .serialize(),
-        { params: { month: '2020-01-02' } },
+        {params: {month: '2020-01-02'}},
       )
     ).data;
     expect(data[0].id).toBe(transId);
@@ -162,30 +160,27 @@ describe('compileAndRunQuery', () => {
     data = (
       await compileAndRunAqlQuery(
         q('transactions')
-          .filter({ date: { $transform: '$year', $eq: { $year: ':month' } } })
+          .filter({date: {$transform: '$year', $eq: {$year: ':month'}}})
           .select('date')
           .serialize(),
-        { params: { month: '2020-01-02' } },
+        {params: {month: '2020-01-02'}},
       )
     ).data;
     expect(data[0].id).toBe(transId);
 
     data = (
       await compileAndRunAqlQuery(
-        q('transactions')
-          .filter({ cleared: ':cleared' })
-          .select('date')
-          .serialize(),
-        { params: { cleared: true } },
+        q('transactions').filter({cleared: ':cleared'}).select('date').serialize(),
+        {params: {cleared: true}},
       )
     ).data;
     expect(data[0].id).toBe(transId);
   });
 
   it('allows null as a parameter', async () => {
-    await db.insertCategoryGroup({ id: 'group', name: 'group' });
-    await db.insertCategory({ id: 'cat', name: 'cat', cat_group: 'group' });
-    await db.insertCategory({ id: 'cat2', name: 'cat2', cat_group: 'group' });
+    await db.insertCategoryGroup({id: 'group', name: 'group'});
+    await db.insertCategory({id: 'cat', name: 'cat', cat_group: 'group'});
+    await db.insertCategory({id: 'cat2', name: 'cat2', cat_group: 'group'});
     const transNoCat = await db.insertTransaction({
       account: 'acct',
       date: '2020-01-01',
@@ -205,55 +200,50 @@ describe('compileAndRunQuery', () => {
       category: 'cat2',
     });
 
-    const queryState = q('transactions')
-      .filter({ category: ':category' })
-      .select()
-      .serialize();
+    const queryState = q('transactions').filter({category: ':category'}).select().serialize();
 
-    let { data } = await compileAndRunAqlQuery(queryState, {
-      params: { category: null },
+    let {data} = await compileAndRunAqlQuery(queryState, {
+      params: {category: null},
     });
     expect(data[0].id).toBe(transNoCat);
 
-    data = (
-      await compileAndRunAqlQuery(queryState, { params: { category: 'cat' } })
-    ).data;
+    data = (await compileAndRunAqlQuery(queryState, {params: {category: 'cat'}})).data;
     expect(data[0].id).toBe(transCat);
 
     data = (
       await compileAndRunAqlQuery(
         q('transactions')
-          .filter({ category: { $ne: ':category' } })
+          .filter({category: {$ne: ':category'}})
           .select('category')
           .serialize(),
 
-        { params: { category: 'cat2' } },
+        {params: {category: 'cat2'}},
       )
     ).data;
     expect(data).toHaveLength(2);
     expect(data).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: transNoCat }),
-        expect.objectContaining({ id: transCat }),
-        expect.not.objectContaining({ id: transCat2 }),
+        expect.objectContaining({id: transNoCat}),
+        expect.objectContaining({id: transCat}),
+        expect.not.objectContaining({id: transCat2}),
       ]),
     );
 
     data = (
       await compileAndRunAqlQuery(
         q('transactions')
-          .filter({ category: { $ne: ':category' } })
+          .filter({category: {$ne: ':category'}})
           .select('category')
           .serialize(),
-        { params: { category: null } },
+        {params: {category: null}},
       )
     ).data;
     expect(data).toHaveLength(2);
     expect(data).toEqual(
       expect.arrayContaining([
-        expect.not.objectContaining({ id: transNoCat }),
-        expect.objectContaining({ id: transCat }),
-        expect.objectContaining({ id: transCat2 }),
+        expect.not.objectContaining({id: transNoCat}),
+        expect.objectContaining({id: transCat}),
+        expect.objectContaining({id: transCat2}),
       ]),
     );
   });
@@ -267,15 +257,15 @@ describe('compileAndRunQuery', () => {
       amount: -5001,
     });
 
-    const { data } = await compileAndRunAqlQuery(
+    const {data} = await compileAndRunAqlQuery(
       q('transactions')
         .filter({
-          amount: { $lt: { $neg: ':amount' } },
-          date: [{ $lte: ':date' }, { $gte: ':date' }],
+          amount: {$lt: {$neg: ':amount'}},
+          date: [{$lte: ':date'}, {$gte: ':date'}],
         })
         .select()
         .serialize(),
-      { params: { amount: 5000, date: '2020-01-01' } },
+      {params: {amount: 5000, date: '2020-01-01'}},
     );
     expect(data[0].id).toBe(transId);
   });
@@ -289,17 +279,13 @@ describe('compileAndRunQuery', () => {
     const ids = rows.slice(0, 3).map(row => row.id);
     ids.sort((a, b) => String(a).localeCompare(String(b)));
 
-    const { data } = await compileAndRunAqlQuery(
+    const {data} = await compileAndRunAqlQuery(
       q('transactions')
-        .filter({ id: { $oneof: repeat(ids, 1000) }, amount: { $lt: 50 } })
+        .filter({id: {$oneof: repeat(ids, 1000)}, amount: {$lt: 50}})
         .select('id')
         .raw()
         .serialize(),
     );
-    expect(
-      data
-        .map(row => row.id)
-        .sort((a, b) => String(a).localeCompare(String(b))),
-    ).toEqual(ids);
+    expect(data.map(row => row.id).sort((a, b) => String(a).localeCompare(String(b)))).toEqual(ids);
   });
 });

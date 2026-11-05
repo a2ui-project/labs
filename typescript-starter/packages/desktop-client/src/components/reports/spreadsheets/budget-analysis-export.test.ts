@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { buildBudgetAnalysisCsv } from './budget-analysis-export';
+import {buildBudgetAnalysisCsv} from './budget-analysis-export';
 
 describe('buildBudgetAnalysisCsv', () => {
   const rows = [
@@ -50,9 +50,7 @@ describe('buildBudgetAnalysisCsv', () => {
 
   it('converts integer amounts to decimal strings', () => {
     // budgeted 100000 → 1000, spent -75000 → -750, overspending 0 → 0, balance 25000 → 250
-    expect(lines(buildBudgetAnalysisCsv(rows))[1]).toBe(
-      '2024-01,1000,-750,0,250',
-    );
+    expect(lines(buildBudgetAnalysisCsv(rows))[1]).toBe('2024-01,1000,-750,0,250');
   });
 
   it('handles negative spent values correctly', () => {
@@ -64,9 +62,7 @@ describe('buildBudgetAnalysisCsv', () => {
   it('returns only the header row for empty input', () => {
     const result = lines(buildBudgetAnalysisCsv([]));
     expect(result).toHaveLength(1);
-    expect(result[0]).toBe(
-      'Month,Budgeted,Spent,Overspending Adjustment,Balance',
-    );
+    expect(result[0]).toBe('Month,Budgeted,Spent,Overspending Adjustment,Balance');
   });
 
   it('escapes fields containing commas with double quotes', () => {
@@ -79,8 +75,6 @@ describe('buildBudgetAnalysisCsv', () => {
         overspendingAdjustment: 0,
       },
     ];
-    expect(
-      lines(buildBudgetAnalysisCsv(specialRows))[1].startsWith('"2024,01"'),
-    ).toBe(true);
+    expect(lines(buildBudgetAnalysisCsv(specialRows))[1].startsWith('"2024,01"')).toBe(true);
   });
 });

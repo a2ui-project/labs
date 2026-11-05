@@ -14,39 +14,33 @@
  * limitations under the License.
  */
 
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgDelete } from '@actual-app/components/icons/v0';
-import { SvgAlertTriangle } from '@actual-app/components/icons/v2';
-import { Input } from '@actual-app/components/input';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { tokens } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
-import { dayFromDate, firstDayOfMonth } from '@actual-app/core/shared/months';
-import type {
-  CategoryGroupEntity,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {SvgDelete} from '@actual-app/components/icons/v0';
+import {SvgAlertTriangle} from '@actual-app/components/icons/v2';
+import {Input} from '@actual-app/components/input';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {tokens} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
+import {dayFromDate, firstDayOfMonth} from '@actual-app/core/shared/months';
+import type {CategoryGroupEntity, ScheduleEntity} from '@actual-app/core/types/models';
+import {css} from '@emotion/css';
 
-import { ActiveEditor } from '#components/budget/goals/ActiveEditor';
-import type { AutomationEntry } from '#components/budget/goals/automationExamples';
+import {ActiveEditor} from '#components/budget/goals/ActiveEditor';
+import type {AutomationEntry} from '#components/budget/goals/automationExamples';
 import {
   AutomationErrorDetail,
   AutomationErrorTitle,
 } from '#components/budget/goals/automationMessages';
-import type { DisplayTemplateType } from '#components/budget/goals/constants';
-import { getDisplayTemplateMeta } from '#components/budget/goals/displayTemplateMeta';
-import {
-  getInitialState,
-  templateReducer,
-} from '#components/budget/goals/reducer';
-import type { AutomationErrorKind } from '#components/budget/goals/validateAutomation';
+import type {DisplayTemplateType} from '#components/budget/goals/constants';
+import {getDisplayTemplateMeta} from '#components/budget/goals/displayTemplateMeta';
+import {getInitialState, templateReducer} from '#components/budget/goals/reducer';
+import type {AutomationErrorKind} from '#components/budget/goals/validateAutomation';
 
-import { NON_CONTRIBUTION_TYPES, TypePicker } from './TypePicker';
+import {NON_CONTRIBUTION_TYPES, TypePicker} from './TypePicker';
 
 const CONFIG_PANEL_CLASS = css({
   '& > *:first-child': {
@@ -80,28 +74,20 @@ const MOBILE_TOUCH_FIELDS_CLASS = css({
   },
 });
 
-const SINGLETON_TYPES: ReadonlySet<DisplayTemplateType> = new Set([
-  'limit',
-  'refill',
-  'remainder',
-]);
+const SINGLETON_TYPES: ReadonlySet<DisplayTemplateType> = new Set(['limit', 'refill', 'remainder']);
 
 function getDefaultWeeklyStart(entries: AutomationEntry[]): string {
   const starts: string[] = [];
 
-  for (const { template } of entries) {
+  for (const {template} of entries) {
     if (template.type === 'periodic' && template.starting) {
       starts.push(template.starting);
-    } else if (
-      (template.type === 'by' || template.type === 'spend') &&
-      template.month
-    ) {
+    } else if ((template.type === 'by' || template.type === 'spend') && template.month) {
       starts.push(`${template.month}-01`);
     }
   }
 
-  const earliest =
-    starts.length > 0 ? starts.reduce((a, b) => (a < b ? a : b)) : null;
+  const earliest = starts.length > 0 ? starts.reduce((a, b) => (a < b ? a : b)) : null;
 
   return earliest ?? dayFromDate(firstDayOfMonth(new Date()));
 }
@@ -129,7 +115,7 @@ export function AutomationEditorPane({
   setEntries,
   onDelete,
 }: AutomationEditorPaneProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const active = entries[activeIdx];
   const activeError = automationErrors[activeIdx];
 
@@ -162,8 +148,7 @@ export function AutomationEditorPane({
               ...entry,
               template: {
                 ...entry.template,
-                description:
-                  description.trim() === '' ? undefined : description,
+                description: description.trim() === '' ? undefined : description,
               },
             }
           : entry,
@@ -186,7 +171,7 @@ export function AutomationEditorPane({
           case 'average':
           case 'copy':
           case 'refill':
-            return { ...entry, template: { ...t, priority } };
+            return {...entry, template: {...t, priority}};
           default:
             return entry;
         }
@@ -203,7 +188,7 @@ export function AutomationEditorPane({
 
   if (!active || !state) {
     return (
-      <View style={{ padding: 20, color: theme.pageTextLight }}>
+      <View style={{padding: 20, color: theme.pageTextLight}}>
         <Trans>Select an automation on the left.</Trans>
       </View>
     );
@@ -218,10 +203,7 @@ export function AutomationEditorPane({
         scrollbarGutter: 'stable',
       }}
     >
-      <View
-        className={MOBILE_TOUCH_FIELDS_CLASS}
-        style={{ padding: 20, gap: 14, flexShrink: 0 }}
-      >
+      <View className={MOBILE_TOUCH_FIELDS_CLASS} style={{padding: 20, gap: 14, flexShrink: 0}}>
         {activeError && (
           <View
             style={{
@@ -239,10 +221,10 @@ export function AutomationEditorPane({
             <SvgAlertTriangle
               width={14}
               height={14}
-              style={{ marginTop: 2, color: 'inherit', flexShrink: 0 }}
+              style={{marginTop: 2, color: 'inherit', flexShrink: 0}}
             />
-            <View style={{ minWidth: 0 }}>
-              <Text style={{ fontWeight: 600, color: 'inherit' }}>
+            <View style={{minWidth: 0}}>
+              <Text style={{fontWeight: 600, color: 'inherit'}}>
                 <AutomationErrorTitle error={activeError} />
               </Text>
               <Text
@@ -275,7 +257,7 @@ export function AutomationEditorPane({
             <TypePicker
               active={state.displayType}
               disabledTypes={disabledTypes}
-              onPick={type => dispatch({ type: 'set-type', payload: type })}
+              onPick={type => dispatch({type: 'set-type', payload: type})}
             />
           </>
         )}
@@ -341,51 +323,48 @@ export function AutomationEditorPane({
           />
         )}
 
-        <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
-          {'priority' in state.template &&
-            typeof state.template.priority === 'number' && (
-              <View
+        <View style={{flexDirection: 'row', gap: 12, alignItems: 'center'}}>
+          {'priority' in state.template && typeof state.template.priority === 'number' && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <Text
                 style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 8,
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: theme.pageTextLight,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
                 }}
               >
-                <Text
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 600,
-                    color: theme.pageTextLight,
-                    letterSpacing: '0.04em',
-                    textTransform: 'uppercase',
-                  }}
-                >
-                  <Trans>Priority</Trans>
-                </Text>
-                <Input
-                  type="number"
-                  aria-label={t('Priority')}
-                  style={{ width: 64 }}
-                  value={String(state.template.priority)}
-                  onChangeValue={value => {
-                    if (value === '') return;
-                    const parsed = Math.round(Number(value));
-                    if (Number.isNaN(parsed)) return;
-                    setPriority(Math.max(0, parsed));
-                  }}
-                />
-              </View>
-            )}
-          <View style={{ flex: 1 }} />
+                <Trans>Priority</Trans>
+              </Text>
+              <Input
+                type="number"
+                aria-label={t('Priority')}
+                style={{width: 64}}
+                value={String(state.template.priority)}
+                onChangeValue={value => {
+                  if (value === '') return;
+                  const parsed = Math.round(Number(value));
+                  if (Number.isNaN(parsed)) return;
+                  setPriority(Math.max(0, parsed));
+                }}
+              />
+            </View>
+          )}
+          <View style={{flex: 1}} />
           <Button
             variant="bare"
             onPress={() => onDelete(activeIdx)}
-            style={{ color: theme.errorText }}
+            style={{color: theme.errorText}}
           >
-            <span
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-            >
-              <SvgDelete width={10} height={10} style={{ color: 'inherit' }} />
+            <span style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
+              <SvgDelete width={10} height={10} style={{color: 'inherit'}} />
               <Trans>Delete automation</Trans>
             </span>
           </Button>
@@ -416,7 +395,7 @@ export function AutomationEditorPane({
             border: `1px solid ${theme.formInputBorder}`,
             backgroundColor: theme.tableBackground,
             color: theme.tableText,
-            '::placeholder': { color: theme.pageTextLight },
+            '::placeholder': {color: theme.pageTextLight},
           })}
           value={active.template.description ?? ''}
           onChange={e => setDescription(e.target.value)}

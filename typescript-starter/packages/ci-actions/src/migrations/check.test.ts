@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 import {
   findAddedMigrations,
@@ -33,8 +33,8 @@ const treeOutput = [
 describe('parseMigrationTree', () => {
   it('parses names, ids, and hashes, skipping hidden files', () => {
     expect(parseMigrationTree(treeOutput)).toEqual([
-      { name: '1000_first.sql', id: 1000, hash: 'aaa111' },
-      { name: '2000_second.js', id: 2000, hash: 'bbb222' },
+      {name: '1000_first.sql', id: 1000, hash: 'aaa111'},
+      {name: '2000_second.js', id: 2000, hash: 'bbb222'},
     ]);
   });
 
@@ -46,12 +46,9 @@ describe('parseMigrationTree', () => {
 describe('findAddedMigrations', () => {
   it('returns migrations present on head but not on base', () => {
     const base = parseMigrationTree(treeOutput);
-    const head = [
-      ...base,
-      { name: '3000_third.sql', id: 3000, hash: 'ddd444' },
-    ];
+    const head = [...base, {name: '3000_third.sql', id: 3000, hash: 'ddd444'}];
     expect(findAddedMigrations(base, head)).toEqual([
-      { name: '3000_third.sql', id: 3000, hash: 'ddd444' },
+      {name: '3000_third.sql', id: 3000, hash: 'ddd444'},
     ]);
   });
 });
@@ -59,7 +56,7 @@ describe('findAddedMigrations', () => {
 describe('findMutatedMigrations', () => {
   it('detects modified and deleted migrations', () => {
     const base = parseMigrationTree(treeOutput);
-    const head = [{ name: '1000_first.sql', id: 1000, hash: 'changed' }];
+    const head = [{name: '1000_first.sql', id: 1000, hash: 'changed'}];
     expect(findMutatedMigrations(base, head)).toEqual({
       modified: ['1000_first.sql'],
       deleted: ['2000_second.js'],
@@ -78,9 +75,9 @@ describe('findMutatedMigrations', () => {
 describe('findMisdatedMigrations', () => {
   it('flags migrations dated at or before the latest existing one', () => {
     const added = [
-      { name: '1500_late.sql', id: 1500, hash: 'a' },
-      { name: '2000_same.sql', id: 2000, hash: 'b' },
-      { name: '2500_ok.sql', id: 2500, hash: 'c' },
+      {name: '1500_late.sql', id: 1500, hash: 'a'},
+      {name: '2000_same.sql', id: 2000, hash: 'b'},
+      {name: '2500_ok.sql', id: 2500, hash: 'c'},
     ];
     expect(findMisdatedMigrations(added, 2000).map(m => m.name)).toEqual([
       '1500_late.sql',
@@ -91,9 +88,7 @@ describe('findMisdatedMigrations', () => {
 
 describe('findRiskyStatements', () => {
   it('flags DROP TABLE, DROP COLUMN, and RENAME statements', () => {
-    expect(findRiskyStatements('ALTER TABLE x DROP COLUMN y;')).toEqual([
-      'drops a column',
-    ]);
+    expect(findRiskyStatements('ALTER TABLE x DROP COLUMN y;')).toEqual(['drops a column']);
     expect(findRiskyStatements('DROP TABLE x;')).toEqual(['drops a table']);
     expect(findRiskyStatements('ALTER TABLE x RENAME TO y;')).toEqual([
       'renames a table or column',
@@ -105,11 +100,7 @@ describe('findRiskyStatements', () => {
 
   it('ignores additive statements and comments', () => {
     expect(findRiskyStatements('ALTER TABLE x ADD COLUMN y TEXT;')).toEqual([]);
-    expect(
-      findRiskyStatements('-- do not DROP TABLE here\nCREATE TABLE y (id);'),
-    ).toEqual([]);
-    expect(
-      findRiskyStatements('/* DROP COLUMN in a block comment */ SELECT 1;'),
-    ).toEqual([]);
+    expect(findRiskyStatements('-- do not DROP TABLE here\nCREATE TABLE y (id);')).toEqual([]);
+    expect(findRiskyStatements('/* DROP COLUMN in a block comment */ SELECT 1;')).toEqual([]);
   });
 });

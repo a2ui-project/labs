@@ -18,20 +18,17 @@
 // are not always (e.g. Emscripten filesystem errors carry function properties)
 // and a failed clone masks the real error.
 
-export type Message = { type: string; id?: string } & Record<string, unknown>;
+export type Message = {type: string; id?: string} & Record<string, unknown>;
 
 export function serializeError(error: unknown): Record<string, unknown> {
   if (error == null || typeof error !== 'object') {
-    return { name: 'Error', message: String(error) };
+    return {name: 'Error', message: String(error)};
   }
 
   const errorObject = error as Record<string, unknown>;
   const plain: Record<string, unknown> = {
     name: typeof errorObject.name === 'string' ? errorObject.name : 'Error',
-    message:
-      typeof errorObject.message === 'string'
-        ? errorObject.message
-        : String(error),
+    message: typeof errorObject.message === 'string' ? errorObject.message : String(error),
   };
   if (typeof errorObject.stack === 'string') {
     plain.stack = errorObject.stack;
@@ -76,9 +73,7 @@ export function safePost(post: (msg: unknown) => void, msg: Message): void {
             type: 'ServerError',
             message:
               'Failed to serialize server response: ' +
-              (postError instanceof Error
-                ? postError.message
-                : String(postError)),
+              (postError instanceof Error ? postError.message : String(postError)),
           },
         });
       } catch {

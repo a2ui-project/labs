@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { TransactionEntity } from '#types/models';
+import type {TransactionEntity} from '#types/models';
 
 export function validForMerge(
   transactionA: TransactionEntity | undefined,

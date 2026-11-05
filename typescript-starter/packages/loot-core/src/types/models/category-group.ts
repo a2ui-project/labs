@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { CategoryEntity } from './category';
+import type {CategoryEntity} from './category';
 
 export type CategoryGroupEntity = {
   id: string;

@@ -15,26 +15,22 @@
  */
 
 import ReactMarkdown from 'react-markdown';
-import type { Components } from 'react-markdown';
+import type {Components} from 'react-markdown';
 
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { css } from '@emotion/css';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {css} from '@emotion/css';
 import rehypeExternalLinks from 'rehype-external-links';
 import remarkGfm from 'remark-gfm';
 
-import {
-  markdownBaseStyles,
-  remarkBreaks,
-  sequentialNewlinesPlugin,
-} from '#util/markdown';
+import {markdownBaseStyles, remarkBreaks, sequentialNewlinesPlugin} from '#util/markdown';
 
 // Notes-style rendering: blank lines are kept as visible line breaks.
 const notesRemarkPlugins = [sequentialNewlinesPlugin, remarkGfm, remarkBreaks];
 // Standard markdown: blank lines separate paragraphs, as on the website.
 const standardRemarkPlugins = [remarkGfm];
 const rehypePlugins = [
-  [rehypeExternalLinks, { target: '_blank', rel: ['noopener', 'noreferrer'] }],
+  [rehypeExternalLinks, {target: '_blank', rel: ['noopener', 'noreferrer']}],
 ] satisfies Parameters<typeof ReactMarkdown>[0]['rehypePlugins'];
 
 type MarkdownProps = {
@@ -53,18 +49,11 @@ type MarkdownProps = {
  * Renders markdown with the app's standard plugin set and base styles: GitHub
  * flavoured markdown and links opening in a new tab.
  */
-export function Markdown({
-  children,
-  style,
-  components,
-  preserveBlankLines = true,
-}: MarkdownProps) {
+export function Markdown({children, style, components, preserveBlankLines = true}: MarkdownProps) {
   return (
-    <Text className={css([markdownBaseStyles, { display: 'block' }, style])}>
+    <Text className={css([markdownBaseStyles, {display: 'block'}, style])}>
       <ReactMarkdown
-        remarkPlugins={
-          preserveBlankLines ? notesRemarkPlugins : standardRemarkPlugins
-        }
+        remarkPlugins={preserveBlankLines ? notesRemarkPlugins : standardRemarkPlugins}
         rehypePlugins={rehypePlugins}
         components={components}
       >

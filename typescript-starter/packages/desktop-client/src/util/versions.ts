@@ -24,10 +24,7 @@ function parseSemanticVersion(versionString): [number, number, number] {
     .map(n => parseInt(n));
 }
 
-export function cmpSemanticVersion(
-  versionStringA: string,
-  versionStringB: string,
-): number {
+export function cmpSemanticVersion(versionStringA: string, versionStringB: string): number {
   const x = parseSemanticVersion(versionStringA);
   const y = parseSemanticVersion(versionStringB);
 

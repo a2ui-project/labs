@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {fileURLToPath} from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -15,9 +15,7 @@ export function derivePublishImports(
   const result: Record<string, string> = {};
   for (const [key, value] of Object.entries(imports)) {
     if (typeof value !== 'string') {
-      throw new Error(
-        `Unsupported imports target for "${key}". Expected a string path.`,
-      );
+      throw new Error(`Unsupported imports target for "${key}". Expected a string path.`);
     }
     const withBuildPrefix = value.replace(/^\.\//, './build/');
     const withJsExtension = withBuildPrefix.replace(/\.tsx?$/, '.js');
@@ -31,7 +29,7 @@ export type ValidationResult = {
   packageName: string;
   missingKeys: string[];
   extraKeys: string[];
-  wrongValues: Array<{ key: string; expected: string; actual: string }>;
+  wrongValues: Array<{key: string; expected: string; actual: string}>;
 };
 
 /**
@@ -48,20 +46,17 @@ export function validatePackage(packageJsonPath: string): {
   const packageName: string = content.name ?? packageJsonPath;
 
   const imports: Record<string, string | object> | undefined = content.imports;
-  const publishImports: Record<string, string> | undefined =
-    content.publishConfig?.imports;
+  const publishImports: Record<string, string> | undefined = content.publishConfig?.imports;
 
   // No publishConfig.imports → skip
   if (!publishImports) {
-    return { result: null, warnings };
+    return {result: null, warnings};
   }
 
   // Has publishConfig.imports but no imports → warn
   if (!imports) {
-    warnings.push(
-      `${packageName}: orphaned publishConfig.imports (no imports field)`,
-    );
-    return { result: null, warnings };
+    warnings.push(`${packageName}: orphaned publishConfig.imports (no imports field)`);
+    return {result: null, warnings};
   }
 
   const expected = derivePublishImports(imports);
@@ -105,9 +100,7 @@ export function fixPackage(packageJsonPath: string): boolean {
   const expected = derivePublishImports(content.imports);
 
   // Check if already correct
-  if (
-    JSON.stringify(content.publishConfig.imports) === JSON.stringify(expected)
-  ) {
+  if (JSON.stringify(content.publishConfig.imports) === JSON.stringify(expected)) {
     return false;
   }
 
@@ -118,7 +111,7 @@ export function fixPackage(packageJsonPath: string): boolean {
 
 function findPackageJsonFiles(): string[] {
   const packagesDir = path.resolve(__dirname, '..', 'packages');
-  const entries = fs.readdirSync(packagesDir, { withFileTypes: true });
+  const entries = fs.readdirSync(packagesDir, {withFileTypes: true});
   const results: string[] = [];
   for (const entry of entries) {
     if (entry.isDirectory()) {
@@ -139,10 +132,7 @@ function resolvePackageJsonPaths(filePaths: string[]): string[] {
     let dir = path.dirname(resolvedPath);
     while (dir.startsWith(packagesRoot + path.sep)) {
       const candidate = path.join(dir, 'package.json');
-      if (
-        fs.existsSync(candidate) &&
-        candidate.startsWith(packagesRoot + path.sep)
-      ) {
+      if (fs.existsSync(candidate) && candidate.startsWith(packagesRoot + path.sep)) {
         seen.add(candidate);
         break;
       }
@@ -158,9 +148,7 @@ function main() {
   const filePaths = args.filter(arg => !arg.startsWith('--'));
 
   const packageJsonFiles =
-    filePaths.length > 0
-      ? resolvePackageJsonPaths(filePaths)
-      : findPackageJsonFiles();
+    filePaths.length > 0 ? resolvePackageJsonPaths(filePaths) : findPackageJsonFiles();
 
   let hasErrors = false;
   const allWarnings: string[] = [];
@@ -173,7 +161,7 @@ function main() {
         console.log(`Fixed publishConfig.imports in ${name}`);
       }
     } else {
-      const { result, warnings } = validatePackage(pkgPath);
+      const {result, warnings} = validatePackage(pkgPath);
       allWarnings.push(...warnings);
 
       if (result) {
@@ -192,7 +180,7 @@ function main() {
           for (const key of result.extraKeys) {
             console.error(`  Extra key: ${key}`);
           }
-          for (const { key, expected, actual } of result.wrongValues) {
+          for (const {key, expected, actual} of result.wrongValues) {
             console.error(`  Wrong value for ${key}:`);
             console.error(`    expected: ${expected}`);
             console.error(`    actual:   ${actual}`);
@@ -207,9 +195,7 @@ function main() {
   }
 
   if (hasErrors) {
-    console.error(
-      '\npublishConfig.imports is out of sync. Run with --fix to auto-fix.',
-    );
+    console.error('\npublishConfig.imports is out of sync. Run with --fix to auto-fix.');
     process.exit(1);
   }
 }

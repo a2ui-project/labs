@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {theme} from '@actual-app/components/theme';
+import {css} from '@emotion/css';
 import * as d from 'date-fns';
 import {
   Bar,
@@ -33,13 +33,13 @@ import {
   YAxis,
 } from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {FinancialText} from '#components/FinancialText';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
 const MAX_BAR_SIZE = 50;
 const ANIMATION_DURATION = 1000; // in ms
@@ -61,20 +61,15 @@ type CustomTooltipProps = {
   format: (value: unknown, type?: FormatType) => string;
 };
 
-function CustomTooltip({
-  active,
-  payload,
-  isConcise,
-  format,
-}: CustomTooltipProps) {
+function CustomTooltip({active, payload, isConcise, format}: CustomTooltipProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   if (!active || !payload || !Array.isArray(payload) || !payload[0]) {
     return null;
   }
 
-  const [{ payload: data }] = payload;
+  const [{payload: data}] = payload;
 
   return (
     <div
@@ -88,27 +83,21 @@ function CustomTooltip({
       })}
     >
       <div>
-        <div style={{ marginBottom: 10 }}>
+        <div style={{marginBottom: 10}}>
           <strong>
             {d.format(data.date, isConcise ? 'MMMM yyyy' : 'MMMM dd, yyyy', {
               locale,
             })}
           </strong>
         </div>
-        <div style={{ lineHeight: 1.5 }}>
+        <div style={{lineHeight: 1.5}}>
           <AlignedText
             left={t('Income:')}
-            right={
-              <FinancialText>{format(data.income, 'financial')}</FinancialText>
-            }
+            right={<FinancialText>{format(data.income, 'financial')}</FinancialText>}
           />
           <AlignedText
             left={t('Expenses:')}
-            right={
-              <FinancialText>
-                {format(data.expenses, 'financial')}
-              </FinancialText>
-            }
+            right={<FinancialText>{format(data.expenses, 'financial')}</FinancialText>}
           />
           <AlignedText
             left={t('Change:')}
@@ -121,18 +110,12 @@ function CustomTooltip({
           {data.transfers !== 0 && (
             <AlignedText
               left={t('Transfers:')}
-              right={
-                <FinancialText>
-                  {format(data.transfers, 'financial')}
-                </FinancialText>
-              }
+              right={<FinancialText>{format(data.transfers, 'financial')}</FinancialText>}
             />
           )}
           <AlignedText
             left={t('Balance:')}
-            right={
-              <FinancialText>{format(data.balance, 'financial')}</FinancialText>
-            }
+            right={<FinancialText>{format(data.balance, 'financial')}</FinancialText>}
           />
         </div>
       </div>
@@ -142,10 +125,10 @@ function CustomTooltip({
 
 type CashFlowGraphProps = {
   graphData: {
-    expenses: { x: Date; y: number }[];
-    income: { x: Date; y: number }[];
-    balances: { x: Date; y: number }[];
-    transfers: { x: Date; y: number }[];
+    expenses: {x: Date; y: number}[];
+    income: {x: Date; y: number}[];
+    balances: {x: Date; y: number}[];
+    transfers: {x: Date; y: number}[];
   };
   isConcise: boolean;
   showBalance?: boolean;
@@ -176,17 +159,11 @@ export function CashFlowGraph({
   return (
     <Container style={style}>
       {(width, height) => (
-        <ComposedChart
-          responsive
-          width={width}
-          height={height}
-          stackOffset="sign"
-          data={data}
-        >
+        <ComposedChart responsive width={width} height={height} stackOffset="sign" data={data}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="date"
-            tick={{ fill: theme.reportsLabel }}
+            tick={{fill: theme.reportsLabel}}
             tickFormatter={x => {
               return d.format(x, isConcise ? "MMM ''yy" : 'MMM d', {
                 locale,
@@ -195,12 +172,10 @@ export function CashFlowGraph({
             minTickGap={50}
           />
           <YAxis
-            tick={{ fill: theme.reportsLabel }}
+            tick={{fill: theme.reportsLabel}}
             tickCount={8}
             tickFormatter={value =>
-              privacyMode && !yAxisIsHovered
-                ? '...'
-                : format(value, 'financial-no-decimals')
+              privacyMode && !yAxisIsHovered ? '...' : format(value, 'financial-no-decimals')
             }
             onMouseEnter={() => setYAxisIsHovered(true)}
             onMouseLeave={() => setYAxisIsHovered(false)}

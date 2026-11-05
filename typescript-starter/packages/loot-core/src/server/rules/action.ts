@@ -17,28 +17,22 @@
 // @ts-strict-ignore
 import * as dateFns from 'date-fns';
 import * as Handlebars from 'handlebars';
-import { HyperFormula } from 'hyperformula';
+import {HyperFormula} from 'hyperformula';
 import enUS from 'hyperformula/i18n/languages/enUS';
 
-import { logger } from '#platform/server/log';
-import type { TransactionForRules } from '#server/transactions/transaction-rules';
-import {
-  CustomFunctionsPlugin,
-  customFunctionsTranslations,
-} from '#shared/formulas/customFunctions';
-import { currentDay, format, parseDate } from '#shared/months';
-import { FIELD_TYPES } from '#shared/rules';
-import { amountToInteger } from '#shared/util';
+import {logger} from '#platform/server/log';
+import type {TransactionForRules} from '#server/transactions/transaction-rules';
+import {CustomFunctionsPlugin, customFunctionsTranslations} from '#shared/formulas/customFunctions';
+import {currentDay, format, parseDate} from '#shared/months';
+import {FIELD_TYPES} from '#shared/rules';
+import {amountToInteger} from '#shared/util';
 
-import { assert } from './rule-utils';
+import {assert} from './rule-utils';
 
 if (!HyperFormula.getRegisteredLanguagesCodes().includes('enUS')) {
   HyperFormula.registerLanguage('enUS', enUS);
 }
-HyperFormula.registerFunctionPlugin(
-  CustomFunctionsPlugin,
-  customFunctionsTranslations,
-);
+HyperFormula.registerFunctionPlugin(CustomFunctionsPlugin, customFunctionsTranslations);
 
 const ACTION_OPS = [
   'set',
@@ -61,11 +55,7 @@ export class Action {
   private handlebarsTemplate?: Handlebars.TemplateDelegate;
 
   constructor(op: ActionOperator, field, value, options) {
-    assert(
-      ACTION_OPS.includes(op),
-      'internal',
-      `Invalid action operation: ${op}`,
-    );
+    assert(ACTION_OPS.includes(op), 'internal', `Invalid action operation: ${op}`);
 
     if (op === 'set') {
       const typeName = FIELD_TYPES.get(field);
@@ -113,17 +103,11 @@ export class Action {
               object._ruleErrors = [];
             }
 
-            const result = this.executeFormulaSync(
-              this.options.formula,
-              object,
-            );
+            const result = this.executeFormulaSync(this.options.formula, object);
 
             switch (this.type) {
               case 'number': {
-                const numValue =
-                  typeof result === 'number'
-                    ? result
-                    : parseFloat(String(result));
+                const numValue = typeof result === 'number' ? result : parseFloat(String(result));
 
                 if (isNaN(numValue)) {
                   const error = `Formula for "${this.field}" must produce a numeric value. Got: ${JSON.stringify(result)}`;
@@ -145,9 +129,7 @@ export class Action {
               }
               case 'boolean': {
                 object[this.field] =
-                  typeof result === 'boolean'
-                    ? result
-                    : String(result).toLowerCase() === 'true';
+                  typeof result === 'boolean' ? result : String(result).toLowerCase() === 'true';
                 break;
               }
               case 'string': {
@@ -216,20 +198,12 @@ export class Action {
               object._ruleErrors = [];
             }
             if (!this.options?.formula) {
-              object._ruleErrors.push(
-                'Formula method selected but no formula specified',
-              );
+              object._ruleErrors.push('Formula method selected but no formula specified');
               break;
             }
             try {
-              const result = this.executeFormulaSync(
-                this.options.formula,
-                object,
-              );
-              const numValue =
-                typeof result === 'number'
-                  ? result
-                  : parseFloat(String(result));
+              const result = this.executeFormulaSync(this.options.formula, object);
+              const numValue = typeof result === 'number' ? result : parseFloat(String(result));
 
               if (isNaN(numValue)) {
                 object._ruleErrors.push(
@@ -252,14 +226,10 @@ export class Action {
         object.schedule = this.value;
         break;
       case 'prepend-notes':
-        object[this.field] = object[this.field]
-          ? this.value + object[this.field]
-          : this.value;
+        object[this.field] = object[this.field] ? this.value + object[this.field] : this.value;
         break;
       case 'append-notes':
-        object[this.field] = object[this.field]
-          ? object[this.field] + this.value
-          : this.value;
+        object[this.field] = object[this.field] ? object[this.field] + this.value : this.value;
         break;
       case 'delete-transaction':
         object['tombstone'] = 1;
@@ -283,10 +253,7 @@ export class Action {
         args?: unknown[];
       };
 
-      if (
-        typedNode.type === 'CELL_REFERENCE' &&
-        typeof typedNode.value === 'string'
-      ) {
+      if (typedNode.type === 'CELL_REFERENCE' && typeof typedNode.value === 'string') {
         variables.add(typedNode.value);
       }
 
@@ -307,10 +274,7 @@ export class Action {
     return variables;
   }
 
-  executeFormulaSync(
-    formula: string,
-    transaction: Partial<TransactionForRules>,
-  ): unknown {
+  executeFormulaSync(formula: string, transaction: Partial<TransactionForRules>): unknown {
     let hfInstance: ReturnType<typeof HyperFormula.buildEmpty> | null = null;
 
     if (!formula || !formula.startsWith('=')) {
@@ -366,11 +330,9 @@ export class Action {
         }
         hfInstance.addNamedExpression(key, cellValue);
       }
-      hfInstance.setCellContents({ sheet: sheetId, col: 0, row: 0 }, [
-        [formula],
-      ]);
+      hfInstance.setCellContents({sheet: sheetId, col: 0, row: 0}, [[formula]]);
 
-      const cellAddress = { sheet: sheetId, col: 0, row: 0 };
+      const cellAddress = {sheet: sheetId, col: 0, row: 0};
       const cellValue = hfInstance.getCellValue(cellAddress);
 
       if (cellValue && typeof cellValue === 'object' && 'type' in cellValue) {
@@ -400,7 +362,7 @@ export class Action {
       field: this.field,
       value: this.value,
       type: this.type,
-      ...(this.options ? { options: this.options } : {}),
+      ...(this.options ? {options: this.options} : {}),
     };
   }
 }

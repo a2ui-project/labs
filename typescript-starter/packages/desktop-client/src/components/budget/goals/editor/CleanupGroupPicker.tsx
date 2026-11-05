@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useEffect, useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Input } from '@actual-app/components/input';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Input} from '@actual-app/components/input';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import type { CleanupGroup } from '#hooks/useCleanupGroups';
+import type {CleanupGroup} from '#hooks/useCleanupGroups';
 
 type CleanupGroupPickerProps = {
   id?: string;
@@ -40,24 +40,20 @@ export function CleanupGroupPicker({
   placeholder,
   autoFocus,
 }: CleanupGroupPickerProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const trimmed = query.trim();
-  const matches = groups.filter(g =>
-    g.name.toLowerCase().includes(trimmed.toLowerCase()),
-  );
-  const exact = matches.find(
-    g => g.name.toLowerCase() === trimmed.toLowerCase(),
-  );
+  const matches = groups.filter(g => g.name.toLowerCase().includes(trimmed.toLowerCase()));
+  const exact = matches.find(g => g.name.toLowerCase() === trimmed.toLowerCase());
   const showCreate = trimmed.length > 0 && !exact;
-  type Item = { kind: 'group'; group: CleanupGroup } | { kind: 'create' };
+  type Item = {kind: 'group'; group: CleanupGroup} | {kind: 'create'};
   const items: Item[] = [
-    ...matches.map(group => ({ kind: 'group' as const, group })),
-    ...(showCreate ? [{ kind: 'create' as const }] : []),
+    ...matches.map(group => ({kind: 'group' as const, group})),
+    ...(showCreate ? [{kind: 'create' as const}] : []),
   ];
 
   useEffect(() => {
@@ -87,7 +83,7 @@ export function CleanupGroupPicker({
   };
 
   return (
-    <View ref={containerRef} style={{ position: 'relative' }}>
+    <View ref={containerRef} style={{position: 'relative'}}>
       <Input
         id={id}
         autoFocus={autoFocus}
@@ -143,9 +139,7 @@ export function CleanupGroupPicker({
                 style={{
                   padding: '8px 10px',
                   cursor: 'pointer',
-                  backgroundColor: active
-                    ? theme.menuAutoCompleteBackgroundHover
-                    : 'transparent',
+                  backgroundColor: active ? theme.menuAutoCompleteBackgroundHover : 'transparent',
                   fontSize: 12,
                   fontWeight: isCreate ? 500 : undefined,
                   color: isCreate
@@ -159,7 +153,7 @@ export function CleanupGroupPicker({
               >
                 {item.kind === 'group'
                   ? item.group.name
-                  : `+ ${t('Create "{{name}}"', { name: trimmed })}`}
+                  : `+ ${t('Create "{{name}}"', {name: trimmed})}`}
               </View>
             );
           })}

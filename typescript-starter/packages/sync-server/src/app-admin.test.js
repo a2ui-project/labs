@@ -15,10 +15,10 @@
  */
 
 import request from 'supertest';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { getAccountDb } from './account-db';
-import { handlers as app } from './app-admin';
+import {getAccountDb} from './account-db';
+import {handlers as app} from './app-admin';
 
 const ADMIN_ROLE = 'ADMIN';
 const BASIC_ROLE = 'BASIC';
@@ -67,13 +67,9 @@ describe('disabled-user session revocation', () => {
   });
 
   it('should return 401 when the token belongs to a disabled user', async () => {
-    getAccountDb().mutate('UPDATE users SET enabled = 0 WHERE id = ?', [
-      targetUserId,
-    ]);
+    getAccountDb().mutate('UPDATE users SET enabled = 0 WHERE id = ?', [targetUserId]);
 
-    const res = await request(app)
-      .get('/users')
-      .set('x-actual-token', targetSessionToken);
+    const res = await request(app).get('/users').set('x-actual-token', targetSessionToken);
 
     expect(res.statusCode).toEqual(401);
     expect(res.body).toHaveProperty('status', 'error');
@@ -94,25 +90,23 @@ describe('disabled-user session revocation', () => {
 
     expect(res.statusCode).toEqual(200);
 
-    const session = getAccountDb().first(
-      'SELECT token FROM sessions WHERE token = ?',
-      [targetSessionToken],
-    );
+    const session = getAccountDb().first('SELECT token FROM sessions WHERE token = ?', [
+      targetSessionToken,
+    ]);
     expect(session).toBeNull();
   });
 
   it('should remove existing sessions when an admin deletes the user', async () => {
     const res = await request(app)
       .delete('/users')
-      .send({ ids: [targetUserId] })
+      .send({ids: [targetUserId]})
       .set('x-actual-token', adminSessionToken);
 
     expect(res.statusCode).toEqual(200);
 
-    const session = getAccountDb().first(
-      'SELECT token FROM sessions WHERE token = ?',
-      [targetSessionToken],
-    );
+    const session = getAccountDb().first('SELECT token FROM sessions WHERE token = ?', [
+      targetSessionToken,
+    ]);
     expect(session).toBeNull();
   });
 });
@@ -125,9 +119,7 @@ describe('/admin', () => {
       createUser(adminId, 'admin', ADMIN_ROLE, 1);
       createSession(adminId, sessionToken);
 
-      const res = await request(app)
-        .get('/owner-created')
-        .set('x-actual-token', sessionToken);
+      const res = await request(app).get('/owner-created').set('x-actual-token', sessionToken);
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toBe(true);
@@ -154,9 +146,7 @@ describe('/admin', () => {
       });
 
       it('should return 200 and a list of users', async () => {
-        const res = await request(app)
-          .get('/users')
-          .set('x-actual-token', sessionToken);
+        const res = await request(app).get('/users').set('x-actual-token', sessionToken);
 
         expect(res.statusCode).toEqual(200);
         expect(res.body.length).toBeGreaterThan(0);
@@ -225,10 +215,7 @@ describe('/admin', () => {
 
         duplicateUserId = res.body.data.id;
 
-        res = await request(app)
-          .post('/users')
-          .send(newUser)
-          .set('x-actual-token', sessionToken);
+        res = await request(app).post('/users').send(newUser).set('x-actual-token', sessionToken);
 
         expect(res.statusCode).toEqual(400);
         expect(res.body.status).toBe('error');
@@ -389,10 +376,7 @@ describe('/admin', () => {
           userId: testUserId,
         };
 
-        await request(app)
-          .post('/access')
-          .send(newUserAccess)
-          .set('x-actual-token', sessionToken);
+        await request(app).post('/access').send(newUserAccess).set('x-actual-token', sessionToken);
 
         const res = await request(app)
           .post('/access')
@@ -421,10 +405,10 @@ describe('/admin', () => {
           fileId,
           sessionUserId,
         ]);
-        getAccountDb().mutate(
-          'INSERT INTO user_access (user_id, file_id) VALUES (?, ?)',
-          [testUserId, fileId],
-        );
+        getAccountDb().mutate('INSERT INTO user_access (user_id, file_id) VALUES (?, ?)', [
+          testUserId,
+          fileId,
+        ]);
       });
 
       afterEach(() => {
@@ -441,7 +425,7 @@ describe('/admin', () => {
         const res = await request(app)
           .delete('/access')
           .send(deleteAccess)
-          .query({ fileId })
+          .query({fileId})
           .set('x-actual-token', sessionToken);
 
         expect(res.statusCode).toEqual(200);
@@ -457,7 +441,7 @@ describe('/admin', () => {
         const res = await request(app)
           .delete('/access')
           .send(deleteAccess)
-          .query({ fileId })
+          .query({fileId})
           .set('x-actual-token', sessionToken);
 
         expect(res.statusCode).toEqual(400);

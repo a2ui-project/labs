@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgDelete } from '@actual-app/components/icons/v0';
-import { SvgAdd } from '@actual-app/components/icons/v1';
-import { Input } from '@actual-app/components/input';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { v4 as uuidv4 } from 'uuid';
+import {Button} from '@actual-app/components/button';
+import {SvgDelete} from '@actual-app/components/icons/v0';
+import {SvgAdd} from '@actual-app/components/icons/v1';
+import {Input} from '@actual-app/components/input';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {v4 as uuidv4} from 'uuid';
 
-import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
-import { MonteCarloNumberInput } from '#components/reports/reports/monte-carlo/MonteCarloNumberInput';
+import {LabeledCheckbox} from '#components/forms/LabeledCheckbox';
+import {MonteCarloNumberInput} from '#components/reports/reports/monte-carlo/MonteCarloNumberInput';
 import {
   createMonteCarloIncomeStream,
   MAX_AMOUNT,
@@ -37,8 +37,8 @@ import type {
   MonteCarloContribution,
   MonteCarloIncomeStream,
 } from '#components/reports/reports/monte-carlo/monteCarloSimulation';
-import { Field, Row, TableHeader } from '#components/table';
-import { FinancialInput } from '#components/util/FinancialInput';
+import {Field, Row, TableHeader} from '#components/table';
+import {FinancialInput} from '#components/util/FinancialInput';
 
 const INCOME_ROW_HEIGHT = 43;
 
@@ -61,29 +61,22 @@ export function MonteCarloIncomeStreams({
   targetAge,
   onConfigChange,
 }: MonteCarloIncomeStreamsProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
-  function updateIncomeStream(
-    incomeStreamId: string,
-    changes: Partial<MonteCarloIncomeStream>,
-  ) {
+  function updateIncomeStream(incomeStreamId: string, changes: Partial<MonteCarloIncomeStream>) {
     onConfigChange({
       incomeStreams: incomeStreams.map(incomeStream =>
-        incomeStream.id === incomeStreamId
-          ? { ...incomeStream, ...changes }
-          : incomeStream,
+        incomeStream.id === incomeStreamId ? {...incomeStream, ...changes} : incomeStream,
       ),
     });
   }
 
   function removeIncomeStream(incomeStreamId: string) {
     onConfigChange({
-      incomeStreams: incomeStreams.filter(
-        incomeStream => incomeStream.id !== incomeStreamId,
-      ),
+      incomeStreams: incomeStreams.filter(incomeStream => incomeStream.id !== incomeStreamId),
       contributions: contributions.map(contribution =>
         contribution.sourceIncomeStreamId === incomeStreamId
-          ? { ...contribution, sourceIncomeStreamId: null, beforeTax: false }
+          ? {...contribution, sourceIncomeStreamId: null, beforeTax: false}
           : contribution,
       ),
     });
@@ -96,7 +89,7 @@ export function MonteCarloIncomeStreams({
   }
 
   return (
-    <View style={{ gap: 10 }}>
+    <View style={{gap: 10}}>
       <View
         style={{
           ...styles.tableContainer,
@@ -107,28 +100,24 @@ export function MonteCarloIncomeStreams({
           overflowX: 'auto',
         }}
       >
-        <View style={{ minWidth: 'fit-content' }}>
+        <View style={{minWidth: 'fit-content'}}>
           <TableHeader>
-            <Field width="flex" style={{ minWidth: 150 }}>
+            <Field width="flex" style={{minWidth: 150}}>
               <Trans>Income name</Trans>
             </Field>
-            <Field width="flex" style={{ minWidth: 100 }}>
+            <Field width="flex" style={{minWidth: 100}}>
               <Trans>From age</Trans>
             </Field>
-            <Field width="flex" style={{ minWidth: 100 }}>
+            <Field width="flex" style={{minWidth: 100}}>
               <Trans>To age</Trans>
             </Field>
-            <Field width="flex" style={{ minWidth: 140 }}>
+            <Field width="flex" style={{minWidth: 140}}>
               <Trans>Amount (per year)</Trans>
             </Field>
-            <Field width="flex" style={{ minWidth: 130 }}>
-              {usesTaxBands ? (
-                <Trans>Taxable portion (%)</Trans>
-              ) : (
-                <Trans>Tax (%)</Trans>
-              )}
+            <Field width="flex" style={{minWidth: 130}}>
+              {usesTaxBands ? <Trans>Taxable portion (%)</Trans> : <Trans>Tax (%)</Trans>}
             </Field>
-            <Field width="flex" style={{ minWidth: 170 }}>
+            <Field width="flex" style={{minWidth: 170}}>
               <Trans>Inflation</Trans>
             </Field>
             <Field width={36} />
@@ -141,23 +130,23 @@ export function MonteCarloIncomeStreams({
               height={INCOME_ROW_HEIGHT}
               style={{
                 backgroundColor: theme.tableBackground,
-                ':hover': { backgroundColor: theme.tableRowBackgroundHover },
+                ':hover': {backgroundColor: theme.tableRowBackgroundHover},
               }}
             >
-              <Field width="flex" style={{ minWidth: 150 }} truncate={false}>
+              <Field width="flex" style={{minWidth: 150}} truncate={false}>
                 <Input
                   defaultValue={incomeStream.name}
-                  placeholder={t('Income {{number}}', { number: index + 1 })}
+                  placeholder={t('Income {{number}}', {number: index + 1})}
                   aria-label={t('Income name')}
                   onUpdate={newName => {
                     if (newName !== incomeStream.name) {
-                      updateIncomeStream(incomeStream.id, { name: newName });
+                      updateIncomeStream(incomeStream.id, {name: newName});
                     }
                   }}
                 />
               </Field>
 
-              <Field width="flex" style={{ minWidth: 100 }} truncate={false}>
+              <Field width="flex" style={{minWidth: 100}} truncate={false}>
                 <MonteCarloNumberInput
                   value={incomeStream.fromAge}
                   aria-label={t('From age')}
@@ -167,13 +156,11 @@ export function MonteCarloIncomeStreams({
                   max={incomeStream.toAge ?? targetAge}
                   step={1}
                   placeholder={t('Now')}
-                  onCommit={newValue =>
-                    updateIncomeStream(incomeStream.id, { fromAge: newValue })
-                  }
+                  onCommit={newValue => updateIncomeStream(incomeStream.id, {fromAge: newValue})}
                 />
               </Field>
 
-              <Field width="flex" style={{ minWidth: 100 }} truncate={false}>
+              <Field width="flex" style={{minWidth: 100}} truncate={false}>
                 <MonteCarloNumberInput
                   value={incomeStream.toAge}
                   aria-label={t('To age')}
@@ -183,13 +170,11 @@ export function MonteCarloIncomeStreams({
                   max={targetAge}
                   step={1}
                   placeholder={t('End of plan')}
-                  onCommit={newValue =>
-                    updateIncomeStream(incomeStream.id, { toAge: newValue })
-                  }
+                  onCommit={newValue => updateIncomeStream(incomeStream.id, {toAge: newValue})}
                 />
               </Field>
 
-              <Field width="flex" style={{ minWidth: 140 }} truncate={false}>
+              <Field width="flex" style={{minWidth: 140}} truncate={false}>
                 <FinancialInput
                   value={incomeStream.annualAmount}
                   aria-label={t('Amount (per year)')}
@@ -204,7 +189,7 @@ export function MonteCarloIncomeStreams({
                 />
               </Field>
 
-              <Field width="flex" style={{ minWidth: 130 }} truncate={false}>
+              <Field width="flex" style={{minWidth: 130}} truncate={false}>
                 {usesTaxBands ? (
                   <MonteCarloNumberInput
                     value={incomeStream.taxableFraction}
@@ -234,7 +219,7 @@ export function MonteCarloIncomeStreams({
                 )}
               </Field>
 
-              <Field width="flex" style={{ minWidth: 170 }} truncate={false}>
+              <Field width="flex" style={{minWidth: 170}} truncate={false}>
                 <LabeledCheckbox
                   id={`income-inflation-${incomeStream.id}`}
                   checked={incomeStream.adjustsWithInflation}
@@ -248,16 +233,12 @@ export function MonteCarloIncomeStreams({
                 </LabeledCheckbox>
               </Field>
 
-              <Field
-                width={36}
-                truncate={false}
-                style={{ alignItems: 'center' }}
-              >
+              <Field width={36} truncate={false} style={{alignItems: 'center'}}>
                 <Button
                   variant="bare"
                   aria-label={t('Remove income')}
                   onPress={() => removeIncomeStream(incomeStream.id)}
-                  style={{ padding: 6 }}
+                  style={{padding: 6}}
                 >
                   <SvgDelete width={12} height={12} />
                 </Button>
@@ -267,9 +248,9 @@ export function MonteCarloIncomeStreams({
         </View>
       </View>
 
-      <View style={{ flexDirection: 'row' }}>
+      <View style={{flexDirection: 'row'}}>
         <Button onPress={addIncomeStream}>
-          <SvgAdd width={10} height={10} style={{ marginRight: 5 }} />
+          <SvgAdd width={10} height={10} style={{marginRight: 5}} />
           <Trans>Add income</Trans>
         </Button>
       </View>

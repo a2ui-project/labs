@@ -15,8 +15,8 @@
  */
 
 import * as db from '#server/db';
-import { batchMessages } from '#server/sync';
-import type { CategoryGroupEntity } from '#types/models';
+import {batchMessages} from '#server/sync';
+import type {CategoryGroupEntity} from '#types/models';
 
 export async function sortCategories({
   groupId,
@@ -30,9 +30,7 @@ export async function sortCategories({
   if (!group?.categories?.length) return;
 
   const sorted = [...group.categories].sort((a, b) =>
-    direction === 'asc'
-      ? a.name.localeCompare(b.name)
-      : b.name.localeCompare(a.name),
+    direction === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name),
   );
 
   for (let i = sorted.length - 1; i >= 0; i--) {

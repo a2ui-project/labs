@@ -35,11 +35,7 @@ export function extractTagsForFilter(value: string) {
 // Tags in notes are delimited by whitespace or another '#', and a doubled
 // '#' escapes the tag (see `parseNotes`). Matching is case sensitive because
 // tag identity elsewhere (colors, discovery) is case sensitive too.
-export function renameTagInNotes(
-  notes: string,
-  oldTag: string,
-  newTag: string,
-) {
+export function renameTagInNotes(notes: string, oldTag: string, newTag: string) {
   const escaped = oldTag.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const pattern = new RegExp(`(?<!#)#${escaped}(?=[\\s#]|$)`, 'g');
   return notes.replace(pattern, () => `#${newTag}`);

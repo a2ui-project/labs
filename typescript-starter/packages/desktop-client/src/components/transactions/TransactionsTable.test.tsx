@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 
-import {
-  generateAccount,
-  generateCategoryGroups,
-  generateTransaction,
-} from '@actual-app/core/mocks';
-import { initServer } from '@actual-app/core/platform/client/connection';
+import {generateAccount, generateCategoryGroups, generateTransaction} from '@actual-app/core/mocks';
+import {initServer} from '@actual-app/core/platform/client/connection';
 import {
   addSplitTransaction,
   realizeTempTransactions,
   splitTransaction,
   updateTransaction,
 } from '@actual-app/core/shared/transactions';
-import { integerToCurrency } from '@actual-app/core/shared/util';
+import {integerToCurrency} from '@actual-app/core/shared/util';
 import type {
   AccountEntity,
   CategoryEntity,
@@ -38,28 +34,20 @@ import type {
   TagEntity,
   TransactionEntity,
 } from '@actual-app/core/types/models';
-import {
-  act,
-  fireEvent,
-  render,
-  renderHook,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import {act, fireEvent, render, renderHook, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { format as formatDate, parse as parseDate } from 'date-fns';
-import { v4 as uuidv4 } from 'uuid';
+import {format as formatDate, parse as parseDate} from 'date-fns';
+import {v4 as uuidv4} from 'uuid';
 
-import { AuthProvider } from '#auth/AuthProvider';
-import { SchedulesProvider } from '#hooks/useCachedSchedules';
-import { SelectedProviderWithItems } from '#hooks/useSelected';
-import { SplitsExpandedProvider } from '#hooks/useSplitsExpanded';
-import { SpreadsheetProvider } from '#hooks/useSpreadsheet';
-import { createTestQueryClient, TestProviders } from '#mocks';
+import {AuthProvider} from '#auth/AuthProvider';
+import {SchedulesProvider} from '#hooks/useCachedSchedules';
+import {SelectedProviderWithItems} from '#hooks/useSelected';
+import {SplitsExpandedProvider} from '#hooks/useSplitsExpanded';
+import {SpreadsheetProvider} from '#hooks/useSpreadsheet';
+import {createTestQueryClient, TestProviders} from '#mocks';
 import * as modalsSlice from '#modals/modalsSlice';
-import { payeeQueries } from '#payees';
-import { tagQueries } from '#tags/queries';
+import {payeeQueries} from '#payees';
+import {tagQueries} from '#tags/queries';
 
 import {
   DEFAULT_AMOUNT_COLUMN_WIDTHS,
@@ -69,10 +57,7 @@ import {
 
 const queryClient = createTestQueryClient();
 
-vi.mock(
-  '@actual-app/core/platform/client/connection',
-  () => import('#mocks/connection'),
-);
+vi.mock('@actual-app/core/platform/client/connection', () => import('#mocks/connection'));
 vi.mock('../../hooks/useSyncedPref', () => ({
   useSyncedPref: vi.fn().mockReturnValue([undefined, vi.fn()]),
 }));
@@ -105,24 +90,24 @@ const payees: PayeeEntity[] = [
 queryClient.setQueryData(payeeQueries.list().queryKey, payees);
 
 const tags: TagEntity[] = [
-  { id: 'tag1', tag: 'vacation' },
-  { id: 'tag2', tag: 'taxes' },
-  { id: 'tag3', tag: 'groceries' },
+  {id: 'tag1', tag: 'vacation'},
+  {id: 'tag2', tag: 'taxes'},
+  {id: 'tag3', tag: 'groceries'},
 ];
 queryClient.setQueryData(tagQueries.list().queryKey, tags);
 
 const categoryGroups = generateCategoryGroups([
   {
     name: 'Investments and Savings',
-    categories: [{ name: 'Savings' }],
+    categories: [{name: 'Savings'}],
   },
   {
     name: 'Usual Expenses',
-    categories: [{ name: 'Food' }, { name: 'General' }, { name: 'Home' }],
+    categories: [{name: 'Food'}, {name: 'General'}, {name: 'Home'}],
   },
   {
     name: 'Projects',
-    categories: [{ name: 'Big Projects' }, { name: 'Shed' }],
+    categories: [{name: 'Big Projects'}, {name: 'Shed'}],
   },
 ]);
 vi.mock('../../hooks/useCategories', () => ({
@@ -190,7 +175,7 @@ type LiveTransactionTableProps = {
 };
 
 function LiveTransactionTable(props: LiveTransactionTableProps) {
-  const { transactions: transactionsProp, onTransactionsChange } = props;
+  const {transactions: transactionsProp, onTransactionsChange} = props;
 
   const [transactions, setTransactions] = useState(transactionsProp);
 
@@ -200,13 +185,13 @@ function LiveTransactionTable(props: LiveTransactionTableProps) {
   }, [transactions, transactionsProp, onTransactionsChange]);
 
   const onSplit = (id: string) => {
-    const { data, diff } = splitTransaction(transactions, id);
+    const {data, diff} = splitTransaction(transactions, id);
     setTransactions(data);
     return diff.added[0].id;
   };
 
   const onSave = (transaction: TransactionEntity) => {
-    const { data } = updateTransaction(transactions, transaction);
+    const {data} = updateTransaction(transactions, transaction);
     setTransactions(data);
   };
 
@@ -216,7 +201,7 @@ function LiveTransactionTable(props: LiveTransactionTableProps) {
   };
 
   const onAddSplit = (id: string) => {
-    const { data, diff } = addSplitTransaction(transactions, id);
+    const {data, diff} = addSplitTransaction(transactions, id);
     setTransactions(data);
     return diff.added[0].id;
   };
@@ -268,16 +253,16 @@ function initBasicServer() {
     query: async query => {
       switch (query.table) {
         case 'payees':
-          return { data: payees, dependencies: [] };
+          return {data: payees, dependencies: []};
         case 'accounts':
-          return { data: accounts, dependencies: [] };
+          return {data: accounts, dependencies: []};
         case 'transactions':
           return {
             data: generateTransactions(5, [6]),
             dependencies: [],
           };
         case 'schedules':
-          return { data: schedules, dependencies: [] };
+          return {data: schedules, dependencies: []};
         default:
           throw new Error(`queried unknown table: ${query.table}`);
       }
@@ -344,17 +329,14 @@ function renderTransactions(extraProps?: Partial<LiveTransactionTableProps>) {
     },
   };
 
-  const result = render(
-    <LiveTransactionTable {...defaultProps} {...extraProps} />,
-  );
+  const result = render(<LiveTransactionTable {...defaultProps} {...extraProps} />);
   return {
     ...result,
     getTransactions: () => transactions,
     updateProps: (props: Partial<LiveTransactionTableProps>) =>
-      render(
-        <LiveTransactionTable {...defaultProps} {...extraProps} {...props} />,
-        { container: result.container },
-      ),
+      render(<LiveTransactionTable {...defaultProps} {...extraProps} {...props} />, {
+        container: result.container,
+      }),
   };
 }
 
@@ -373,12 +355,7 @@ function queryNewField(
   return field as HTMLInputElement;
 }
 
-function queryField(
-  container: HTMLElement,
-  name: string,
-  subSelector: string = '',
-  idx: number,
-) {
+function queryField(container: HTMLElement, name: string, subSelector: string = '', idx: number) {
   const field = container.querySelectorAll(
     `[data-testid="transaction-table"] [data-testid="${name}"]`,
   )[idx];
@@ -425,10 +402,7 @@ function editField(container: HTMLElement, name: string, rowIndex: number) {
 }
 
 expect.extend({
-  payeesToHaveFavoriteStars(
-    container: Element[],
-    validPayeeListWithFavorite: string[],
-  ) {
+  payeesToHaveFavoriteStars(container: Element[], validPayeeListWithFavorite: string[]) {
     const incorrectStarList: string[] = [];
     const foundStarList: string[] = [];
     validPayeeListWithFavorite.forEach(payeeItem => {
@@ -448,22 +422,15 @@ expect.extend({
     ) {
       return {
         message: () =>
-          `Expected ${validPayeeListWithFavorite.join(
-            ', ',
-          )} to have favorite stars.` +
+          `Expected ${validPayeeListWithFavorite.join(', ')} to have favorite stars.` +
           `Received ${
             foundStarList.length
-          } items with favorite stars. Incorrect: ${incorrectStarList.join(
-            ', ',
-          )}`,
+          } items with favorite stars. Incorrect: ${incorrectStarList.join(', ')}`,
         pass: false,
       };
     } else {
       return {
-        message: () =>
-          `Expected ${String(
-            validPayeeListWithFavorite,
-          )} to have favorite stars`,
+        message: () => `Expected ${String(validPayeeListWithFavorite)} to have favorite stars`,
         pass: true,
       };
     }
@@ -521,15 +488,13 @@ describe('Transactions', () => {
       reconciled: false,
     };
 
-    const { container } = renderTransactions({
+    const {container} = renderTransactions({
       transactions: [previewTransaction],
       isAdding: false,
     });
 
     await waitFor(() => {
-      expect(queryField(container, 'notes', 'div', 0).textContent).toBe(
-        scheduleName,
-      );
+      expect(queryField(container, 'notes', 'div', 0).textContent).toBe(scheduleName);
     });
   });
 
@@ -592,7 +557,7 @@ describe('Transactions', () => {
       },
     ];
 
-    const { container } = renderTransactions({
+    const {container} = renderTransactions({
       transactions: [previewParent, ...previewChildren],
       isAdding: false,
     });
@@ -601,14 +566,12 @@ describe('Transactions', () => {
     // persisted split transaction would show (most common child payee),
     // instead of being blank.
     await waitFor(() => {
-      expect(queryField(container, 'payee', '', 0).textContent).toContain(
-        'Alice',
-      );
+      expect(queryField(container, 'payee', '', 0).textContent).toContain('Alice');
     });
   });
 
   test('transactions table shows the correct data', () => {
-    const { container, getTransactions } = renderTransactions();
+    const {container, getTransactions} = renderTransactions();
 
     getTransactions().forEach((transaction, idx) => {
       expect(queryField(container, 'date', 'div', idx).textContent).toBe(
@@ -620,22 +583,17 @@ describe('Transactions', () => {
       expect(queryField(container, 'payee', 'div', idx).textContent).toBe(
         payees.find(p => p.id === transaction.payee)?.name,
       );
-      expect(queryField(container, 'notes', 'div', idx).textContent).toBe(
-        transaction.notes,
-      );
+      expect(queryField(container, 'notes', 'div', idx).textContent).toBe(transaction.notes);
       expect(queryField(container, 'category', 'div', idx).textContent).toBe(
         transaction.category
-          ? categories.find(category => category.id === transaction.category)
-              ?.name
+          ? categories.find(category => category.id === transaction.category)?.name
           : 'Categorize',
       );
       if (transaction.amount < 0) {
         expect(queryField(container, 'debit', 'div', idx).textContent).toBe(
           integerToCurrency(-transaction.amount),
         );
-        expect(queryField(container, 'credit', 'div', idx).textContent).toBe(
-          '',
-        );
+        expect(queryField(container, 'credit', 'div', idx).textContent).toBe('');
       } else {
         expect(queryField(container, 'debit', 'div', idx).textContent).toBe('');
         expect(queryField(container, 'credit', 'div', idx).textContent).toBe(
@@ -647,43 +605,35 @@ describe('Transactions', () => {
 
   describe('Group column', () => {
     test('group column is hidden by default', () => {
-      const { container } = renderTransactions();
-      expect(
-        container.querySelector('[data-testid="group"]'),
-      ).not.toBeInTheDocument();
+      const {container} = renderTransactions();
+      expect(container.querySelector('[data-testid="group"]')).not.toBeInTheDocument();
     });
 
     test('group column header renders when showGroup is true', () => {
-      const { container } = renderTransactions({ showGroup: true });
+      const {container} = renderTransactions({showGroup: true});
       expect(
-        container.querySelector(
-          '[data-testid="transaction-table"] [data-testid="group"]',
-        ),
+        container.querySelector('[data-testid="transaction-table"] [data-testid="group"]'),
       ).toBeInTheDocument();
     });
 
     test('group cell shows the correct group name', () => {
-      const { container } = renderTransactions({ showGroup: true });
+      const {container} = renderTransactions({showGroup: true});
 
       // Transaction 0 has no category — group cell should be empty
       expect(queryField(container, 'group', 'div', 0).textContent).toBe('');
 
       // Transaction 1 has category "General" in group "Usual Expenses"
-      expect(queryField(container, 'group', 'div', 1).textContent).toBe(
-        'Usual Expenses',
-      );
+      expect(queryField(container, 'group', 'div', 1).textContent).toBe('Usual Expenses');
 
       // Transaction 2 has category "Food" in group "Usual Expenses"
-      expect(queryField(container, 'group', 'div', 2).textContent).toBe(
-        'Usual Expenses',
-      );
+      expect(queryField(container, 'group', 'div', 2).textContent).toBe('Usual Expenses');
     });
 
     test('group column renders for child transactions as well', () => {
       const transactions = generateTransactions(3, [1]);
       transactions[0].amount = -1000;
 
-      const { container } = renderTransactions({
+      const {container} = renderTransactions({
         showGroup: true,
         transactions,
       });
@@ -696,7 +646,7 @@ describe('Transactions', () => {
   });
 
   test('keybindings enter/tab/alt should move around', async () => {
-    const { container } = renderTransactions();
+    const {container} = renderTransactions();
 
     // Enter/tab goes down/right
     let input = await editField(container, 'notes', 2);
@@ -743,7 +693,7 @@ describe('Transactions', () => {
   });
 
   test('keybinding escape resets the value', async () => {
-    const { container } = renderTransactions();
+    const {container} = renderTransactions();
 
     let input = await editField(container, 'notes', 2);
     let oldValue = input.value;
@@ -763,16 +713,11 @@ describe('Transactions', () => {
   });
 
   test('text fields save when moved away from', async () => {
-    const { container, getTransactions } = renderTransactions();
+    const {container, getTransactions} = renderTransactions();
 
     // All of these keys move to a different field, and the value in
     // the previous input should be saved
-    const ks = [
-      '[Tab]',
-      '[Enter]',
-      '{Shift>}[Tab]{/Shift}',
-      '{Shift>}[Enter]{/Shift}',
-    ];
+    const ks = ['[Tab]', '[Enter]', '{Shift>}[Tab]{/Shift}', '{Shift>}[Enter]{/Shift}'];
 
     for (const [idx] of ks.entries()) {
       const input = await editField(container, 'notes', 2);
@@ -801,16 +746,13 @@ describe('Transactions', () => {
   });
 
   test('dropdown automatically opens and can be filtered', async () => {
-    const { container } = renderTransactions();
+    const {container} = renderTransactions();
 
     const categories = categoryGroups.flatMap(group => group.categories);
     const input = await editField(container, 'category', 2);
     expect(
-      [
-        ...screen
-          .getByTestId('autocomplete')
-          .querySelectorAll('[data-testid*="category-item"]'),
-      ].length,
+      [...screen.getByTestId('autocomplete').querySelectorAll('[data-testid*="category-item"]')]
+        .length,
     ).toBe(categoryGroups.length + categories.length);
 
     await userEvent.clear(input);
@@ -831,29 +773,23 @@ describe('Transactions', () => {
     await userEvent.clear(input);
     await userEvent.type(input, 'Usual Expenses');
 
-    items = screen
-      .getByTestId('autocomplete')
-      .querySelectorAll('[data-testid$="category-item"]');
+    items = screen.getByTestId('autocomplete').querySelectorAll('[data-testid$="category-item"]');
     expect(items.length).toBe(3);
   }, 30000);
 
   test('dropdown selects an item with keyboard', async () => {
-    const { container, getTransactions } = renderTransactions();
+    const {container, getTransactions} = renderTransactions();
 
     const input = await editField(container, 'category', 2);
 
     // No item should be highlighted
-    let highlighted = screen
-      .getByTestId('autocomplete')
-      .querySelector('[data-highlighted]');
+    let highlighted = screen.getByTestId('autocomplete').querySelector('[data-highlighted]');
     expect(highlighted).toBeNull();
 
     await userEvent.keyboard('[ArrowDown][ArrowDown][ArrowDown][ArrowDown]');
 
     // The right item should be highlighted
-    highlighted = screen
-      .getByTestId('autocomplete')
-      .querySelector('[data-highlighted]');
+    highlighted = screen.getByTestId('autocomplete').querySelector('[data-highlighted]');
     expect(highlighted).not.toBeNull();
     expect(highlighted!.textContent).toBe('General 129.87');
 
@@ -880,7 +816,7 @@ describe('Transactions', () => {
   });
 
   test('dropdown selects an item when clicking', async () => {
-    const { container, getTransactions } = renderTransactions();
+    const {container, getTransactions} = renderTransactions();
 
     await editField(container, 'category', 2);
 
@@ -888,30 +824,22 @@ describe('Transactions', () => {
     const items = screen
       .getByTestId('autocomplete')
       .querySelectorAll('[data-testid$="category-item"]');
-    let highlighted = screen
-      .getByTestId('autocomplete')
-      .querySelector('[data-highlighted]');
+    let highlighted = screen.getByTestId('autocomplete').querySelector('[data-highlighted]');
     expect(highlighted).toBeNull();
 
     // Hover over an item
     await userEvent.hover(items[2]);
 
     // Make sure the expected category is highlighted
-    highlighted = screen
-      .getByTestId('autocomplete')
-      .querySelector('[data-highlighted]');
+    highlighted = screen.getByTestId('autocomplete').querySelector('[data-highlighted]');
     expect(highlighted).not.toBeNull();
     expect(highlighted!.textContent).toBe('General 129.87');
 
     // Click the item and check the before/after values
-    expect(getTransactions()[2].category).toBe(
-      categories.find(c => c.name === 'Food')?.id,
-    );
+    expect(getTransactions()[2].category).toBe(categories.find(c => c.name === 'Food')?.id);
     await userEvent.click(items[2]);
     await waitForAutocomplete();
-    expect(getTransactions()[2].category).toBe(
-      categories.find(c => c.name === 'General')?.id,
-    );
+    expect(getTransactions()[2].category).toBe(categories.find(c => c.name === 'General')?.id);
 
     // It should still be editing the category
     expect(screen.queryByTestId('autocomplete')).toBe(null);
@@ -919,7 +847,7 @@ describe('Transactions', () => {
   });
 
   test("dropdown hovers but doesn't change value", async () => {
-    const { container, getTransactions } = renderTransactions();
+    const {container, getTransactions} = renderTransactions();
 
     const input = await editField(container, 'category', 2);
     const oldCategory = getTransactions()[2].category;
@@ -933,9 +861,7 @@ describe('Transactions', () => {
     await userEvent.hover(items[3]);
 
     // Make sure one of them is highlighted
-    const highlighted = screen
-      .getByTestId('autocomplete')
-      .querySelectorAll('[data-highlighted]');
+    const highlighted = screen.getByTestId('autocomplete').querySelectorAll('[data-highlighted]');
     expect(highlighted).toHaveLength(1);
 
     // Navigate away from the field with the keyboard
@@ -946,16 +872,14 @@ describe('Transactions', () => {
     const currentCategory = getTransactions()[2].category;
     expect(currentCategory).toBe(oldCategory);
     // @ts-expect-error fix me
-    expect(highlighted.textContent).not.toBe(
-      categories.find(c => c.id === currentCategory)?.name,
-    );
+    expect(highlighted.textContent).not.toBe(categories.find(c => c.id === currentCategory)?.name);
   });
 
   test('dropdown payee displays on new transaction with account list column', async () => {
-    const { container, updateProps, queryByTestId } = renderTransactions({
+    const {container, updateProps, queryByTestId} = renderTransactions({
       currentAccountId: null,
     });
-    updateProps({ isAdding: true });
+    updateProps({isAdding: true});
     expect(queryByTestId('new-transaction')).toBeTruthy();
 
     await editNewField(container, 'payee');
@@ -965,23 +889,18 @@ describe('Transactions', () => {
       .querySelectorAll('[data-testid$="payee-item"]');
 
     expect(
-      Array.from(renderedPayees.values()).map(p =>
-        p.getAttribute('data-testid'),
-      ),
+      Array.from(renderedPayees.values()).map(p => p.getAttribute('data-testid')),
     ).toStrictEqual([
       'Alice-payee-item',
       'Bob-payee-item',
       'This guy on the side of the road-payee-item',
     ]);
     // @ts-expect-error fix me
-    expect(renderedPayees).payeesToHaveFavoriteStars([
-      'Alice-payee-item',
-      'Bob-payee-item',
-    ]);
+    expect(renderedPayees).payeesToHaveFavoriteStars(['Alice-payee-item', 'Bob-payee-item']);
   });
 
   test('dropdown payee displays on existing non-transfer transaction', async () => {
-    const { container } = renderTransactions();
+    const {container} = renderTransactions();
 
     await editField(container, 'payee', 2);
 
@@ -990,9 +909,7 @@ describe('Transactions', () => {
       .querySelectorAll('[data-testid$="payee-item"]');
 
     expect(
-      Array.from(renderedPayees.values()).map(p =>
-        p.getAttribute('data-testid'),
-      ),
+      Array.from(renderedPayees.values()).map(p => p.getAttribute('data-testid')),
     ).toStrictEqual([
       'Alice-payee-item',
       'Bob-payee-item',
@@ -1002,7 +919,7 @@ describe('Transactions', () => {
 
   // TODO: fix this test
   test.skip('dropdown invalid value resets correctly', async () => {
-    const { container, getTransactions } = renderTransactions();
+    const {container, getTransactions} = renderTransactions();
 
     // Invalid values should be rejected and nullified
     let input = await editField(container, 'category', 2);
@@ -1011,9 +928,7 @@ describe('Transactions', () => {
 
     // For this first test case, make sure the tooltip is gone. We
     // don't need to check this in all the other cases
-    const tooltipItems = container.querySelectorAll(
-      '[data-testid="category-item-group"]',
-    );
+    const tooltipItems = container.querySelectorAll('[data-testid="category-item-group"]');
     expect(tooltipItems.length).toBe(0);
 
     expect(getTransactions()[2].category).not.toBe(null);
@@ -1041,7 +956,7 @@ describe('Transactions', () => {
   });
 
   test('dropdown escape resets the value ', async () => {
-    const { container } = renderTransactions();
+    const {container} = renderTransactions();
 
     const input = await editField(container, 'category', 2);
     const oldValue = input.value;
@@ -1053,12 +968,11 @@ describe('Transactions', () => {
   });
 
   test('adding a new transaction works', async () => {
-    const { queryByTestId, container, getTransactions, updateProps } =
-      renderTransactions();
+    const {queryByTestId, container, getTransactions, updateProps} = renderTransactions();
 
     expect(getTransactions().length).toBe(5);
     expect(queryByTestId('new-transaction')).toBe(null);
-    updateProps({ isAdding: true });
+    updateProps({isAdding: true});
     expect(queryByTestId('new-transaction')).toBeTruthy();
 
     let input = queryNewField(container, 'date', 'input');
@@ -1082,20 +996,18 @@ describe('Transactions', () => {
     expect(getTransactions()[0].notes).toBe('a transaction');
 
     // The date field should be re-focused to enter a new transaction
-    expect(container.ownerDocument.activeElement).toBe(
-      queryNewField(container, 'date', 'input'),
-    );
+    expect(container.ownerDocument.activeElement).toBe(queryNewField(container, 'date', 'input'));
     expect(queryNewField(container, 'debit').textContent).toBe('0.00');
   });
 
   test('clicking cleared while editing the amount keeps the amount', async () => {
-    const { container, updateProps } = renderTransactions({
+    const {container, updateProps} = renderTransactions({
       // Rules run over the backend, so saving a new transaction only lands in
       // state a tick later. Clicking another cell in the meantime must not
       // read back the pre-save amount.
       onApplyRules: async transaction => transaction,
     });
-    updateProps({ isAdding: true });
+    updateProps({isAdding: true});
 
     const input = await editNewField(container, 'debit');
     await userEvent.clear(input);
@@ -1103,18 +1015,14 @@ describe('Transactions', () => {
 
     // Click "cleared" directly, without tabbing/entering out of the amount
     // field first
-    await userEvent.click(
-      within(queryNewField(container, 'cleared')).getByTestId('cell-button'),
-    );
+    await userEvent.click(within(queryNewField(container, 'cleared')).getByTestId('cell-button'));
 
-    await waitFor(() =>
-      expect(queryNewField(container, 'debit').textContent).toBe('100.00'),
-    );
+    await waitFor(() => expect(queryNewField(container, 'debit').textContent).toBe('100.00'));
   });
 
   test('adding a new split transaction works', async () => {
-    const { container, getTransactions, updateProps } = renderTransactions();
-    updateProps({ isAdding: true });
+    const {container, getTransactions, updateProps} = renderTransactions();
+    updateProps({isAdding: true});
 
     let input = await editNewField(container, 'debit');
     await userEvent.clear(input);
@@ -1130,17 +1038,13 @@ describe('Transactions', () => {
     input = await editNewField(container, 'debit', 1);
     await userEvent.clear(input);
     await userEvent.type(input, '45.00');
-    expect(
-      container.querySelector('[data-testid="transaction-error"]'),
-    ).toBeTruthy();
+    expect(container.querySelector('[data-testid="transaction-error"]')).toBeTruthy();
 
     input = await editNewField(container, 'debit', 2);
     await userEvent.clear(input);
     await userEvent.type(input, '10.00');
     await userEvent.tab();
-    expect(container.querySelector('[data-testid="transaction-error"]')).toBe(
-      null,
-    );
+    expect(container.querySelector('[data-testid="transaction-error"]')).toBe(null);
 
     const addButton = container.querySelector('[data-testid="add-button"]')!;
 
@@ -1156,12 +1060,12 @@ describe('Transactions', () => {
   });
 
   test('escape closes the new transaction rows', async () => {
-    const { container, updateProps } = renderTransactions({
+    const {container, updateProps} = renderTransactions({
       onCloseAddTransaction: () => {
-        updateProps({ isAdding: false });
+        updateProps({isAdding: false});
       },
     });
-    updateProps({ isAdding: true });
+    updateProps({isAdding: true});
 
     // While adding a transaction, pressing escape should close the
     // new transaction form
@@ -1171,19 +1075,15 @@ describe('Transactions', () => {
 
     await userEvent.type(input, '[Escape]');
     await userEvent.type(input, '[Escape]');
-    expect(
-      container.querySelector('[data-testid="new-transaction"]'),
-    ).toBeNull();
+    expect(container.querySelector('[data-testid="new-transaction"]')).toBeNull();
 
     // The cancel button should also close the new transaction form
-    updateProps({ isAdding: true });
+    updateProps({isAdding: true});
     const cancelButton = container.querySelectorAll(
       '[data-testid="new-transaction"] [data-testid="cancel-button"]',
     )[0];
     await userEvent.click(cancelButton);
-    expect(container.querySelector('[data-testid="new-transaction"]')).toBe(
-      null,
-    );
+    expect(container.querySelector('[data-testid="new-transaction"]')).toBe(null);
   });
 
   describe('Schedule button for future-dated new transactions', () => {
@@ -1191,8 +1091,8 @@ describe('Transactions', () => {
       '[data-testid="new-transaction"] [data-testid="schedule-button"]';
 
     test('shows the Schedule button for a future-dated new transaction', async () => {
-      const { container, updateProps } = renderTransactions();
-      updateProps({ isAdding: true });
+      const {container, updateProps} = renderTransactions();
+      updateProps({isAdding: true});
 
       const dateInput = queryNewField(container, 'date', 'input');
       await userEvent.clear(dateInput);
@@ -1202,15 +1102,15 @@ describe('Transactions', () => {
     });
 
     test('hides the Schedule button for a non-future-dated new transaction', () => {
-      const { container, updateProps } = renderTransactions();
-      updateProps({ isAdding: true });
+      const {container, updateProps} = renderTransactions();
+      updateProps({isAdding: true});
 
       expect(container.querySelector(scheduleButtonSelector)).toBeNull();
     });
 
     test('creates a schedule directly when the date is within the upcoming window', async () => {
-      const { container, getTransactions, updateProps } = renderTransactions();
-      updateProps({ isAdding: true });
+      const {container, getTransactions, updateProps} = renderTransactions();
+      updateProps({isAdding: true});
 
       const dateInput = queryNewField(container, 'date', 'input');
       await userEvent.clear(dateInput);
@@ -1227,8 +1127,8 @@ describe('Transactions', () => {
 
     test('opens the convert-to-schedule modal when the date is beyond the upcoming window', async () => {
       const pushModalSpy = vi.spyOn(modalsSlice, 'pushModal');
-      const { container, getTransactions, updateProps } = renderTransactions();
-      updateProps({ isAdding: true });
+      const {container, getTransactions, updateProps} = renderTransactions();
+      updateProps({isAdding: true});
 
       const dateInput = queryNewField(container, 'date', 'input');
       await userEvent.clear(dateInput);
@@ -1245,7 +1145,7 @@ describe('Transactions', () => {
 
       const modal = pushModalSpy.mock.calls[0][0].modal as Extract<
         modalsSlice.Modal,
-        { name: 'convert-to-schedule' }
+        {name: 'convert-to-schedule'}
       >;
       expect(modal.name).toBe('convert-to-schedule');
       pushModalSpy.mockRestore();
@@ -1253,8 +1153,8 @@ describe('Transactions', () => {
 
     test('confirming the modal creates a schedule', async () => {
       const pushModalSpy = vi.spyOn(modalsSlice, 'pushModal');
-      const { container, getTransactions, updateProps } = renderTransactions();
-      updateProps({ isAdding: true });
+      const {container, getTransactions, updateProps} = renderTransactions();
+      updateProps({isAdding: true});
 
       const dateInput = queryNewField(container, 'date', 'input');
       await userEvent.clear(dateInput);
@@ -1269,7 +1169,7 @@ describe('Transactions', () => {
 
       const modal = pushModalSpy.mock.calls[0][0].modal as Extract<
         modalsSlice.Modal,
-        { name: 'convert-to-schedule' }
+        {name: 'convert-to-schedule'}
       >;
       modal.options.onConfirm();
 
@@ -1282,8 +1182,8 @@ describe('Transactions', () => {
 
     test('cancelling the modal keeps the transaction without creating a schedule', async () => {
       const pushModalSpy = vi.spyOn(modalsSlice, 'pushModal');
-      const { container, getTransactions, updateProps } = renderTransactions();
-      updateProps({ isAdding: true });
+      const {container, getTransactions, updateProps} = renderTransactions();
+      updateProps({isAdding: true});
 
       const dateInput = queryNewField(container, 'date', 'input');
       await userEvent.clear(dateInput);
@@ -1298,7 +1198,7 @@ describe('Transactions', () => {
 
       const modal = pushModalSpy.mock.calls[0][0].modal as Extract<
         modalsSlice.Modal,
-        { name: 'convert-to-schedule' }
+        {name: 'convert-to-schedule'}
       >;
       modal.options.onCancel?.();
 
@@ -1308,8 +1208,8 @@ describe('Transactions', () => {
     });
 
     test('ctrl/cmd+shift+enter creates a schedule when the date is within the upcoming window', async () => {
-      const { container, getTransactions, updateProps } = renderTransactions();
-      updateProps({ isAdding: true });
+      const {container, getTransactions, updateProps} = renderTransactions();
+      updateProps({isAdding: true});
 
       const dateInput = queryNewField(container, 'date', 'input');
       await userEvent.clear(dateInput);
@@ -1325,8 +1225,8 @@ describe('Transactions', () => {
 
     test('ctrl/cmd+shift+enter opens the convert-to-schedule modal when the date is beyond the upcoming window', async () => {
       const pushModalSpy = vi.spyOn(modalsSlice, 'pushModal');
-      const { container, getTransactions, updateProps } = renderTransactions();
-      updateProps({ isAdding: true });
+      const {container, getTransactions, updateProps} = renderTransactions();
+      updateProps({isAdding: true});
 
       const dateInput = queryNewField(container, 'date', 'input');
       await userEvent.clear(dateInput);
@@ -1343,8 +1243,8 @@ describe('Transactions', () => {
     });
 
     test('ctrl/cmd+shift+enter does nothing for a non-future-dated transaction', async () => {
-      const { container, getTransactions, updateProps } = renderTransactions();
-      updateProps({ isAdding: true });
+      const {container, getTransactions, updateProps} = renderTransactions();
+      updateProps({isAdding: true});
 
       const input = await editNewField(container, 'notes');
       await userEvent.clear(input);
@@ -1358,17 +1258,15 @@ describe('Transactions', () => {
   });
 
   test('ctrl/cmd+enter adds transaction and closes form', async () => {
-    const { container, getTransactions, updateProps } = renderTransactions({
+    const {container, getTransactions, updateProps} = renderTransactions({
       onCloseAddTransaction: () => {
-        updateProps({ isAdding: false });
+        updateProps({isAdding: false});
       },
     });
 
     expect(getTransactions().length).toBe(5);
-    updateProps({ isAdding: true });
-    expect(
-      container.querySelector('[data-testid="new-transaction"]'),
-    ).toBeTruthy();
+    updateProps({isAdding: true});
+    expect(container.querySelector('[data-testid="new-transaction"]')).toBeTruthy();
 
     let input = await editNewField(container, 'notes');
     await userEvent.clear(input);
@@ -1384,22 +1282,20 @@ describe('Transactions', () => {
     expect(getTransactions()[0].amount).toBe(-5000);
     expect(getTransactions()[0].notes).toBe('test transaction');
 
-    expect(container.querySelector('[data-testid="new-transaction"]')).toBe(
-      null,
-    );
+    expect(container.querySelector('[data-testid="new-transaction"]')).toBe(null);
   });
 
   test('ctrl/cmd+enter saves amount value when pressed immediately after typing', async () => {
     // Regression test for issue #6901: Ctrl+Enter should wait for the amount
     // field value to be committed before adding the transaction
-    const { container, getTransactions, updateProps } = renderTransactions({
+    const {container, getTransactions, updateProps} = renderTransactions({
       onCloseAddTransaction: () => {
-        updateProps({ isAdding: false });
+        updateProps({isAdding: false});
       },
     });
 
     expect(getTransactions().length).toBe(5);
-    updateProps({ isAdding: true });
+    updateProps({isAdding: true});
 
     // Type in notes field
     let input = await editNewField(container, 'notes');
@@ -1420,21 +1316,19 @@ describe('Transactions', () => {
     expect(getTransactions()[0].notes).toBe('quick entry test');
 
     // Form should be closed
-    expect(container.querySelector('[data-testid="new-transaction"]')).toBe(
-      null,
-    );
+    expect(container.querySelector('[data-testid="new-transaction"]')).toBe(null);
   });
 
   test('ctrl/cmd+enter saves credit amount when pressed immediately after typing', async () => {
     // Test the same fix for credit field (issue #6901)
-    const { container, getTransactions, updateProps } = renderTransactions({
+    const {container, getTransactions, updateProps} = renderTransactions({
       onCloseAddTransaction: () => {
-        updateProps({ isAdding: false });
+        updateProps({isAdding: false});
       },
     });
 
     expect(getTransactions().length).toBe(5);
-    updateProps({ isAdding: true });
+    updateProps({isAdding: true});
 
     // Type amount in credit field and immediately press Ctrl+Enter
     const input = await editNewField(container, 'credit');
@@ -1447,23 +1341,19 @@ describe('Transactions', () => {
     expect(getTransactions().length).toBe(6);
     expect(getTransactions()[0].amount).toBe(9999); // 99.99 in cents
 
-    expect(container.querySelector('[data-testid="new-transaction"]')).toBe(
-      null,
-    );
+    expect(container.querySelector('[data-testid="new-transaction"]')).toBe(null);
   });
 
   test('ctrl/cmd+click on add button adds transaction and closes form', async () => {
-    const { container, getTransactions, updateProps } = renderTransactions({
+    const {container, getTransactions, updateProps} = renderTransactions({
       onCloseAddTransaction: () => {
-        updateProps({ isAdding: false });
+        updateProps({isAdding: false});
       },
     });
 
     expect(getTransactions().length).toBe(5);
-    updateProps({ isAdding: true });
-    expect(
-      container.querySelector('[data-testid="new-transaction"]'),
-    ).toBeTruthy();
+    updateProps({isAdding: true});
+    expect(container.querySelector('[data-testid="new-transaction"]')).toBeTruthy();
 
     let input = await editNewField(container, 'notes');
     await userEvent.clear(input);
@@ -1475,44 +1365,35 @@ describe('Transactions', () => {
     await userEvent.tab();
 
     const addButton = container.querySelector('[data-testid="add-button"]')!;
-    fireEvent.click(addButton, { ctrlKey: true });
+    fireEvent.click(addButton, {ctrlKey: true});
 
     expect(getTransactions().length).toBe(6);
     expect(getTransactions()[0].amount).toBe(-5000);
     expect(getTransactions()[0].notes).toBe('test transaction');
 
-    expect(container.querySelector('[data-testid="new-transaction"]')).toBe(
-      null,
-    );
+    expect(container.querySelector('[data-testid="new-transaction"]')).toBe(null);
   });
 
   test('transaction can be selected', async () => {
-    const { container } = renderTransactions();
+    const {container} = renderTransactions();
 
     await editField(container, 'date', 2);
-    const selectCell = queryField(
-      container,
-      'select',
-      '[data-testid=cell-button]',
-      2,
-    );
+    const selectCell = queryField(container, 'select', '[data-testid=cell-button]', 2);
 
     await userEvent.click(selectCell);
     // The header is is selected as well as the single transaction
-    expect(container.querySelectorAll('[data-testid=select] svg').length).toBe(
-      2,
-    );
+    expect(container.querySelectorAll('[data-testid=select] svg').length).toBe(2);
   });
 
   test('transaction can be split, updated, and deleted', async () => {
-    const { container, getTransactions, updateProps } = renderTransactions();
+    const {container, getTransactions, updateProps} = renderTransactions();
 
     const transactions = [...getTransactions()];
     // Change the id to simulate a new transaction being added, and
     // work with that one. This makes sure that the transaction table
     // properly references new data.
-    transactions[0] = { ...transactions[0], id: uuidv4() };
-    updateProps({ transactions });
+    transactions[0] = {...transactions[0], id: uuidv4()};
+    updateProps({transactions});
 
     function expectErrorToNotExist(transactions: TransactionEntity[]) {
       transactions.forEach(transaction => {
@@ -1561,9 +1442,7 @@ describe('Transactions', () => {
 
     // Add another split transaction and make sure everything is
     // updated properly
-    await userEvent.click(
-      toolbar.querySelector('[data-testid="add-split-button"]')!,
-    );
+    await userEvent.click(toolbar.querySelector('[data-testid="add-split-button"]')!);
     expect(getTransactions().length).toBe(7);
     expect(getTransactions()[2].amount).toBe(0);
     expectErrorToExist(getTransactions().slice(0, 3));
@@ -1646,7 +1525,7 @@ describe('Transactions', () => {
   });
 
   test('transaction with splits shows 0 in correct column', async () => {
-    const { container, getTransactions } = renderTransactions();
+    const {container, getTransactions} = renderTransactions();
 
     await editField(container, 'category', 0);
 
@@ -1679,7 +1558,7 @@ describe('Transactions', () => {
 
   describe('Tag Autocomplete', () => {
     test('adding a tag at the end of the note', async () => {
-      const { container, getTransactions } = renderTransactions();
+      const {container, getTransactions} = renderTransactions();
       const input = await editField(container, 'notes', 2);
       await userEvent.clear(input);
       await userEvent.type(input, 'going on #vac');
@@ -1691,7 +1570,7 @@ describe('Transactions', () => {
     });
 
     test('adding a tag at the start of the note', async () => {
-      const { container, getTransactions } = renderTransactions();
+      const {container, getTransactions} = renderTransactions();
       const input = await editField(container, 'notes', 2);
       await userEvent.clear(input);
       await userEvent.type(input, ' is fun');
@@ -1707,7 +1586,7 @@ describe('Transactions', () => {
     });
 
     test('adding a tag in the middle of the note', async () => {
-      const { container, getTransactions } = renderTransactions();
+      const {container, getTransactions} = renderTransactions();
       const input = await editField(container, 'notes', 2);
       await userEvent.clear(input);
       await userEvent.type(input, 'going on  is fun');
@@ -1723,7 +1602,7 @@ describe('Transactions', () => {
     });
 
     test('select a tag with both Tab and Enter', async () => {
-      const { container, getTransactions } = renderTransactions();
+      const {container, getTransactions} = renderTransactions();
 
       // Test Tab
       let input = await editField(container, 'notes', 2);
@@ -1747,7 +1626,7 @@ describe('Transactions', () => {
     });
 
     test('creating a new tag via the autocomplete', async () => {
-      const { container, getTransactions } = renderTransactions();
+      const {container, getTransactions} = renderTransactions();
       const input = await editField(container, 'notes', 2);
       await userEvent.clear(input);
       await userEvent.type(input, 'spending on #coffee');
@@ -1769,14 +1648,8 @@ describe('Transactions', () => {
     // jsdom doesn't lay out elements, so scrollWidth/clientWidth are always
     // 0. Stub them so the truncation check has something meaningful to read.
     let isOverflowing = false;
-    const originalScrollWidth = Object.getOwnPropertyDescriptor(
-      Element.prototype,
-      'scrollWidth',
-    )!;
-    const originalClientWidth = Object.getOwnPropertyDescriptor(
-      Element.prototype,
-      'clientWidth',
-    )!;
+    const originalScrollWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollWidth')!;
+    const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')!;
 
     beforeAll(() => {
       Object.defineProperty(Element.prototype, 'scrollWidth', {
@@ -1794,16 +1667,8 @@ describe('Transactions', () => {
     });
 
     afterAll(() => {
-      Object.defineProperty(
-        Element.prototype,
-        'scrollWidth',
-        originalScrollWidth,
-      );
-      Object.defineProperty(
-        Element.prototype,
-        'clientWidth',
-        originalClientWidth,
-      );
+      Object.defineProperty(Element.prototype, 'scrollWidth', originalScrollWidth);
+      Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth);
     });
 
     test('shows the full note and renders tags when the note is truncated', async () => {
@@ -1812,18 +1677,14 @@ describe('Transactions', () => {
       transactions[0].notes =
         'a very long note about weekend spending #groceries that overflows the column';
 
-      const { container } = renderTransactions({ transactions });
+      const {container} = renderTransactions({transactions});
       const notesText = queryField(container, 'notes', 'span', 0);
 
       await userEvent.hover(notesText);
 
-      const tooltip = await screen.findByRole('tooltip', {}, { timeout: 1000 });
-      expect(tooltip.textContent).toContain(
-        'a very long note about weekend spending',
-      );
-      expect(
-        within(tooltip).getByRole('button', { name: '#groceries' }),
-      ).toBeInTheDocument();
+      const tooltip = await screen.findByRole('tooltip', {}, {timeout: 1000});
+      expect(tooltip.textContent).toContain('a very long note about weekend spending');
+      expect(within(tooltip).getByRole('button', {name: '#groceries'})).toBeInTheDocument();
     });
 
     test('does not show a tooltip when the note fits without truncation', async () => {
@@ -1831,7 +1692,7 @@ describe('Transactions', () => {
       const transactions = generateTransactions(1);
       transactions[0].notes = 'short note';
 
-      const { container } = renderTransactions({ transactions });
+      const {container} = renderTransactions({transactions});
       const notesText = queryField(container, 'notes', 'span', 0);
 
       await userEvent.hover(notesText);
@@ -1847,11 +1708,11 @@ describe('Transactions', () => {
 
 describe('useAmountColumnWidths', () => {
   function transaction(amount: number) {
-    return generateTransaction({ account: accounts[0].id, amount })[0];
+    return generateTransaction({account: accounts[0].id, amount})[0];
   }
 
   it('does not narrow below the default minimum for short-value accounts', () => {
-    const { result } = renderHook(() =>
+    const {result} = renderHook(() =>
       useAmountColumnWidths([transaction(150), transaction(-200)], null),
     );
 
@@ -1859,22 +1720,16 @@ describe('useAmountColumnWidths', () => {
   });
 
   it('widens the balance column for a long formatted balance value', () => {
-    const { result } = renderHook(() =>
-      useAmountColumnWidths([transaction(150)], { 'tx-1': 123456789012345 }),
+    const {result} = renderHook(() =>
+      useAmountColumnWidths([transaction(150)], {'tx-1': 123456789012345}),
     );
 
-    expect(result.current.balance).toBeGreaterThan(
-      DEFAULT_AMOUNT_COLUMN_WIDTHS.balance,
-    );
+    expect(result.current.balance).toBeGreaterThan(DEFAULT_AMOUNT_COLUMN_WIDTHS.balance);
   });
 
   it('widens the amount column for a long formatted amount', () => {
-    const { result } = renderHook(() =>
-      useAmountColumnWidths([transaction(123456789012)], null),
-    );
+    const {result} = renderHook(() => useAmountColumnWidths([transaction(123456789012)], null));
 
-    expect(result.current.amount).toBeGreaterThan(
-      DEFAULT_AMOUNT_COLUMN_WIDTHS.amount,
-    );
+    expect(result.current.amount).toBeGreaterThan(DEFAULT_AMOUNT_COLUMN_WIDTHS.amount);
   });
 });

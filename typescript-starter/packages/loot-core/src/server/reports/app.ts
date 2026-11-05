@@ -14,30 +14,25 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { createApp } from '#server/app';
-import { aqlQuery } from '#server/aql';
+import {createApp} from '#server/app';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { ValidationError } from '#server/errors';
-import { requiredFields } from '#server/models';
-import { mutator } from '#server/mutators';
-import { undoable } from '#server/undo';
-import { q } from '#shared/query';
-import type { CustomReportData, CustomReportEntity } from '#types/models';
+import {ValidationError} from '#server/errors';
+import {requiredFields} from '#server/models';
+import {mutator} from '#server/mutators';
+import {undoable} from '#server/undo';
+import {q} from '#shared/query';
+import type {CustomReportData, CustomReportEntity} from '#types/models';
 
 export const reportModel = {
-  validate(
-    report: Omit<CustomReportEntity, 'tombstone'>,
-    { update }: { update?: boolean } = {},
-  ) {
+  validate(report: Omit<CustomReportEntity, 'tombstone'>, {update}: {update?: boolean} = {}) {
     requiredFields('Report', report, ['conditionsOp'], update);
 
     if (!update || 'conditionsOp' in report) {
       if (!['and', 'or'].includes(report.conditionsOp)) {
-        throw new ValidationError(
-          'Invalid filter conditionsOp: ' + report.conditionsOp,
-        );
+        throw new ValidationError('Invalid filter conditionsOp: ' + report.conditionsOp);
       }
     }
 
@@ -111,17 +106,11 @@ function sort(reports: CustomReportEntity[]) {
 
 async function getReports() {
   // Use aql because it auto deserialized json columns e.g. conditions
-  const { data }: { data: CustomReportData[] } = await aqlQuery(
-    q('custom_reports').select('*'),
-  );
+  const {data}: {data: CustomReportData[]} = await aqlQuery(q('custom_reports').select('*'));
   return sort(data.map(r => reportModel.toJS(r)));
 }
 
-async function reportNameExists(
-  name: string,
-  reportId: string,
-  newItem: boolean,
-) {
+async function reportNameExists(name: string, reportId: string, newItem: boolean) {
   const idForName = await db.first<Pick<db.DbCustomReport, 'id'>>(
     'SELECT id from custom_reports WHERE tombstone = 0 AND name = ?',
     [name],

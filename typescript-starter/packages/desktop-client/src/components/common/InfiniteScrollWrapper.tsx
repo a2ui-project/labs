@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import React, { useRef } from 'react';
-import type { ReactNode, UIEvent } from 'react';
+import React, {useRef} from 'react';
+import type {ReactNode, UIEvent} from 'react';
 
-import { View } from '@actual-app/components/view';
+import {View} from '@actual-app/components/view';
 
 type InfiniteScrollWrapperProps = {
   loadMore?: () => void;
@@ -29,19 +29,14 @@ type InfiniteScrollWrapperProps = {
  * Calls the `loadMore` callback when the bottom of the list is reached
  * by scrolling to the bottom of the list.
  */
-export function InfiniteScrollWrapper({
-  loadMore,
-  children,
-}: InfiniteScrollWrapperProps) {
+export function InfiniteScrollWrapper({loadMore, children}: InfiniteScrollWrapperProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   function onScroll(e: UIEvent<HTMLElement>) {
     if (
       loadMore &&
       Math.abs(
-        e.currentTarget.scrollHeight -
-          e.currentTarget.clientHeight -
-          e.currentTarget.scrollTop,
+        e.currentTarget.scrollHeight - e.currentTarget.clientHeight - e.currentTarget.scrollTop,
       ) < 1
     ) {
       loadMore();
@@ -53,7 +48,7 @@ export function InfiniteScrollWrapper({
       style={{
         flex: 1,
         outline: 'none',
-        '& .animated .animated-row': { transition: '.25s transform' },
+        '& .animated .animated-row': {transition: '.25s transform'},
 
         // Hide the last border of the item in the table
         marginBottom: -1,
@@ -61,11 +56,7 @@ export function InfiniteScrollWrapper({
       tabIndex={0}
       data-testid="table"
     >
-      <View
-        innerRef={scrollRef}
-        style={{ maxWidth: '100%', overflow: 'auto' }}
-        onScroll={onScroll}
-      >
+      <View innerRef={scrollRef} style={{maxWidth: '100%', overflow: 'auto'}} onScroll={onScroll}>
         <div>{children}</div>
       </View>
     </View>

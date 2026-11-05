@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Label } from '@actual-app/components/label';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {Label} from '@actual-app/components/label';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as asyncStorage from '@actual-app/core/platform/server/asyncStorage';
 
-import { closeBudget } from '#budgetfiles/budgetfilesSlice';
-import { Error as ErrorAlert } from '#components/alerts';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { FormField } from '#components/forms';
+import {closeBudget} from '#budgetfiles/budgetfilesSlice';
+import {Error as ErrorAlert} from '#components/alerts';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {FormField} from '#components/forms';
 import {
   ConfirmOldPasswordForm,
   ConfirmPasswordForm,
@@ -38,19 +38,14 @@ import {
   useMultiuserEnabled,
   useRefreshLoginMethods,
 } from '#components/ServerContext';
-import { popModal } from '#modals/modalsSlice';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {popModal} from '#modals/modalsSlice';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
-type PasswordEnableModalProps = Extract<
-  ModalType,
-  { name: 'enable-password-auth' }
->['options'];
+type PasswordEnableModalProps = Extract<ModalType, {name: 'enable-password-auth'}>['options'];
 
-export function PasswordEnableModal({
-  onSave: originalOnSave,
-}: PasswordEnableModalProps) {
-  const { t } = useTranslation();
+export function PasswordEnableModal({onSave: originalOnSave}: PasswordEnableModalProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
 
   const [error, setError] = useState<string | null>(null);
@@ -68,14 +63,12 @@ export function PasswordEnableModal({
   };
 
   function getErrorMessage(error: string): string {
-    return (
-      errorMessages[error as keyof typeof errorMessages] || t('Internal error')
-    );
+    return errorMessages[error as keyof typeof errorMessages] || t('Internal error');
   }
 
   async function onSetPassword(password: string) {
     setError(null);
-    const { error } = (await send('enable-password', { password })) || {};
+    const {error} = (await send('enable-password', {password})) || {};
     if (!error) {
       originalOnSave?.();
       await refreshLoginMethods();
@@ -88,23 +81,21 @@ export function PasswordEnableModal({
 
   return (
     <Modal name="enable-password-auth">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Revert to server password')}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
 
-          <View style={{ flexDirection: 'column' }}>
-            <FormField style={{ flex: 1 }}>
-              {!availableLoginMethods.some(
-                login => login.method === 'password',
-              ) && (
+          <View style={{flexDirection: 'column'}}>
+            <FormField style={{flex: 1}}>
+              {!availableLoginMethods.some(login => login.method === 'password') && (
                 <ConfirmPasswordForm
                   buttons={
                     <Button
                       variant="bare"
-                      style={{ fontSize: 15, marginRight: 10 }}
+                      style={{fontSize: 15, marginRight: 10}}
                       onPress={() => dispatch(popModal())}
                     >
                       <Trans>Cancel</Trans>
@@ -114,14 +105,12 @@ export function PasswordEnableModal({
                   onError={(error: string) => setError(getErrorMessage(error))}
                 />
               )}
-              {availableLoginMethods.some(
-                login => login.method === 'password',
-              ) && (
+              {availableLoginMethods.some(login => login.method === 'password') && (
                 <ConfirmOldPasswordForm
                   buttons={
                     <Button
                       variant="bare"
-                      style={{ fontSize: 15, marginRight: 10 }}
+                      style={{fontSize: 15, marginRight: 10}}
                       onPress={() => dispatch(popModal())}
                     >
                       <Trans>Cancel</Trans>

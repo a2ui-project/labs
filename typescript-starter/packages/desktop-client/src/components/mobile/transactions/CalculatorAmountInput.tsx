@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-import React, {
-  memo,
-  useCallback,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
-import type { CSSProperties, FocusEvent, ReactNode, RefObject } from 'react';
+import React, {memo, useCallback, useLayoutEffect, useRef, useState} from 'react';
+import type {CSSProperties, FocusEvent, ReactNode, RefObject} from 'react';
 
-import { defaultInputClassName } from '@actual-app/components/input';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { evalArithmetic } from '@actual-app/core/shared/arithmetic';
-import { isIOS } from '@actual-app/core/shared/platform';
-import { amountToCurrency } from '@actual-app/core/shared/util';
-import { css, cx } from '@emotion/css';
+import {defaultInputClassName} from '@actual-app/components/input';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {evalArithmetic} from '@actual-app/core/shared/arithmetic';
+import {isIOS} from '@actual-app/core/shared/platform';
+import {amountToCurrency} from '@actual-app/core/shared/util';
+import {css, cx} from '@emotion/css';
 
-import { makeAmountFullStyle } from '#components/budget/util';
+import {makeAmountFullStyle} from '#components/budget/util';
 
-import { CalculatorKeyboard } from './CalculatorKeyboard';
+import {CalculatorKeyboard} from './CalculatorKeyboard';
 
 export const calculatorAmountLargeStyle = {
   ...styles.veryLargeText,
@@ -78,7 +72,7 @@ const placeholderClassName = css({
   '&[data-focused]::placeholder': {
     color: 'transparent',
   },
-  '::placeholder': { color: theme.pageTextSubdued },
+  '::placeholder': {color: theme.pageTextSubdued},
 });
 
 export const CalculatorAmountInput = memo(function CalculatorAmountInput({
@@ -104,16 +98,13 @@ export const CalculatorAmountInput = memo(function CalculatorAmountInput({
 
   const [liveValue, setLiveValue] = useState(() => value);
   const [expression, setExpression] = useState(() => formatAmount(liveValue));
-  const valueIsNegative = () =>
-    isNegativeAmount(negate && value === 0 ? -value : value);
+  const valueIsNegative = () => isNegativeAmount(negate && value === 0 ? -value : value);
   const isNegative = useRef(valueIsNegative());
 
   const blurRef = useRef<HTMLDivElement>(null);
   const [focused, setFocused] = useState(false);
   const isKeepingFocusRef = useRef(false);
-  const keepFocusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const keepFocusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const keepFocus = useCallback(() => {
     isKeepingFocusRef.current = true;
     if (keepFocusTimeoutRef.current) {
@@ -220,10 +211,7 @@ export const CalculatorAmountInput = memo(function CalculatorAmountInput({
         }}
         inputMode="none"
         autoCapitalize="none"
-        className={cx(
-          variant === 'normal' && defaultInputClassName,
-          placeholderClassName,
-        )}
+        className={cx(variant === 'normal' && defaultInputClassName, placeholderClassName)}
         style={{
           ...makeAmountFullStyle(liveValue, {
             positiveColor: theme.numberPositive,
@@ -231,9 +219,7 @@ export const CalculatorAmountInput = memo(function CalculatorAmountInput({
             zeroColor: theme.pageTextSubdued,
           }),
           scrollMarginTop: 100,
-          ...(variant === 'large'
-            ? calculatorAmountLargeStyle
-            : calculatorAmountNormalStyle),
+          ...(variant === 'large' ? calculatorAmountLargeStyle : calculatorAmountNormalStyle),
           ...style,
         }}
         disabled={props.disabled}

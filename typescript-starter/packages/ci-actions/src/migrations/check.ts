@@ -40,7 +40,7 @@ export function parseMigrationTree(lsTreeOutput: string): MigrationEntry[] {
       const [meta, filePath] = line.split('\t');
       const hash = meta?.split(/\s+/)[2] ?? '';
       const name = filePath?.split('/').pop() ?? '';
-      return { name, id: Number.parseInt(name.split('_')[0], 10), hash };
+      return {name, id: Number.parseInt(name.split('_')[0], 10), hash};
     })
     .filter(entry => entry.name !== '' && !entry.name.startsWith('.'))
     .filter(entry => Number.isFinite(entry.id));
@@ -57,10 +57,8 @@ export function findAddedMigrations(
 export function findMutatedMigrations(
   base: MigrationEntry[],
   head: MigrationEntry[],
-): { modified: string[]; deleted: string[] } {
-  const headByName = new Map(
-    head.map(migration => [migration.name, migration]),
-  );
+): {modified: string[]; deleted: string[]} {
+  const headByName = new Map(head.map(migration => [migration.name, migration]));
 
   const modified: string[] = [];
   const deleted: string[] = [];
@@ -72,7 +70,7 @@ export function findMutatedMigrations(
       modified.push(migration.name);
     }
   }
-  return { modified, deleted };
+  return {modified, deleted};
 }
 
 export function findMisdatedMigrations(
@@ -83,8 +81,8 @@ export function findMisdatedMigrations(
 }
 
 const RISKY_PATTERNS = [
-  { pattern: /\bDROP\s+TABLE\b/i, description: 'drops a table' },
-  { pattern: /\bDROP\s+COLUMN\b/i, description: 'drops a column' },
+  {pattern: /\bDROP\s+TABLE\b/i, description: 'drops a table'},
+  {pattern: /\bDROP\s+COLUMN\b/i, description: 'drops a column'},
   {
     pattern: /\bRENAME\s+(COLUMN|TO)\b/i,
     description: 'renames a table or column',
@@ -94,10 +92,8 @@ const RISKY_PATTERNS = [
 // Advisory only: regexes over SQL text can't see every destructive change,
 // so this just surfaces an early hint on obviously suspicious SQL.
 export function findRiskyStatements(source: string): string[] {
-  const withoutComments = source
-    .replace(/--[^\n]*/g, '')
-    .replace(/\/\*[\s\S]*?\*\//g, '');
-  return RISKY_PATTERNS.filter(({ pattern }) =>
-    pattern.test(withoutComments),
-  ).map(({ description }) => description);
+  const withoutComments = source.replace(/--[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
+  return RISKY_PATTERNS.filter(({pattern}) => pattern.test(withoutComments)).map(
+    ({description}) => description,
+  );
 }

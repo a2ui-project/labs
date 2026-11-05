@@ -14,27 +14,11 @@
  * limitations under the License.
  */
 
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-  PayeeEntity,
-} from '#types/models';
+import type {CategoryEntity, CategoryGroupEntity, PayeeEntity} from '#types/models';
 
-import {
-  convertForInsert,
-  convertForUpdate,
-  convertFromSelect,
-  schema,
-  schemaConfig,
-} from './aql';
-import type {
-  DbAccount,
-  DbAccountGroup,
-  DbCategory,
-  DbCategoryGroup,
-  DbPayee,
-} from './db';
-import { ValidationError } from './errors';
+import {convertForInsert, convertForUpdate, convertFromSelect, schema, schemaConfig} from './aql';
+import type {DbAccount, DbAccountGroup, DbCategory, DbCategoryGroup, DbPayee} from './db';
+import {ValidationError} from './errors';
 
 export function requiredFields<T extends object, K extends keyof T>(
   name: string,
@@ -69,23 +53,12 @@ export function fromDateRepr(number: number) {
   }
 
   const dateString = number.toString();
-  return (
-    dateString.slice(0, 4) +
-    '-' +
-    dateString.slice(4, 6) +
-    '-' +
-    dateString.slice(6)
-  );
+  return dateString.slice(0, 4) + '-' + dateString.slice(4, 6) + '-' + dateString.slice(6);
 }
 
 export const accountModel = {
-  validate(account: Partial<DbAccount>, { update }: { update?: boolean } = {}) {
-    requiredFields(
-      'account',
-      account,
-      update ? ['name', 'offbudget', 'closed'] : ['name'],
-      update,
-    );
+  validate(account: Partial<DbAccount>, {update}: {update?: boolean} = {}) {
+    requiredFields('account', account, update ? ['name', 'offbudget', 'closed'] : ['name'], update);
 
     return account as DbAccount;
   },
@@ -94,25 +67,17 @@ export const accountModel = {
 export const accountGroupModel = {
   validate<T extends Partial<DbAccountGroup>>(
     accountGroup: T,
-    { update }: { update?: boolean } = {},
+    {update}: {update?: boolean} = {},
   ): Omit<T, 'sort_order'> {
-    requiredFields<Partial<DbAccountGroup>, 'name'>(
-      'accountGroup',
-      accountGroup,
-      ['name'],
-      update,
-    );
+    requiredFields<Partial<DbAccountGroup>, 'name'>('accountGroup', accountGroup, ['name'], update);
 
-    const { sort_order: _sort_order, ...rest } = accountGroup;
+    const {sort_order: _sort_order, ...rest} = accountGroup;
     return rest;
   },
 };
 
 export const categoryModel = {
-  validate(
-    category: Partial<DbCategory>,
-    { update }: { update?: boolean } = {},
-  ): DbCategory {
+  validate(category: Partial<DbCategory>, {update}: {update?: boolean} = {}): DbCategory {
     requiredFields(
       'category',
       category,
@@ -120,13 +85,10 @@ export const categoryModel = {
       update,
     );
 
-    const { sort_order: _sort_order, ...rest } = category;
-    return { ...rest } as DbCategory;
+    const {sort_order: _sort_order, ...rest} = category;
+    return {...rest} as DbCategory;
   },
-  toDb(
-    category: CategoryEntity,
-    { update }: { update?: boolean } = {},
-  ): DbCategory {
+  toDb(category: CategoryEntity, {update}: {update?: boolean} = {}): DbCategory {
     return (
       update
         ? convertForUpdate(schema, schemaConfig, 'categories', category)
@@ -134,19 +96,14 @@ export const categoryModel = {
     ) as DbCategory;
   },
   fromDb(category: DbCategory): CategoryEntity {
-    return convertFromSelect(
-      schema,
-      schemaConfig,
-      'categories',
-      category,
-    ) as CategoryEntity;
+    return convertFromSelect(schema, schemaConfig, 'categories', category) as CategoryEntity;
   },
 };
 
 export const categoryGroupModel = {
   validate(
     categoryGroup: Partial<DbCategoryGroup>,
-    { update }: { update?: boolean } = {},
+    {update}: {update?: boolean} = {},
   ): DbCategoryGroup {
     requiredFields(
       'categoryGroup',
@@ -155,27 +112,14 @@ export const categoryGroupModel = {
       update,
     );
 
-    const { sort_order: _sort_order, ...rest } = categoryGroup;
-    return { ...rest } as DbCategoryGroup;
+    const {sort_order: _sort_order, ...rest} = categoryGroup;
+    return {...rest} as DbCategoryGroup;
   },
-  toDb(
-    categoryGroup: CategoryGroupEntity,
-    { update }: { update?: boolean } = {},
-  ): DbCategoryGroup {
+  toDb(categoryGroup: CategoryGroupEntity, {update}: {update?: boolean} = {}): DbCategoryGroup {
     return (
       update
-        ? convertForUpdate(
-            schema,
-            schemaConfig,
-            'category_groups',
-            categoryGroup,
-          )
-        : convertForInsert(
-            schema,
-            schemaConfig,
-            'category_groups',
-            categoryGroup,
-          )
+        ? convertForUpdate(schema, schemaConfig, 'category_groups', categoryGroup)
+        : convertForInsert(schema, schemaConfig, 'category_groups', categoryGroup)
     ) as DbCategoryGroup;
   },
   fromDb(
@@ -183,7 +127,7 @@ export const categoryGroupModel = {
       categories: DbCategory[];
     },
   ): CategoryGroupEntity {
-    const { categories, ...rest } = categoryGroup;
+    const {categories, ...rest} = categoryGroup;
     const categoryGroupEntity = convertFromSelect(
       schema,
       schemaConfig,
@@ -201,11 +145,11 @@ export const categoryGroupModel = {
 };
 
 export const payeeModel = {
-  validate(payee: Partial<DbPayee>, { update }: { update?: boolean } = {}) {
+  validate(payee: Partial<DbPayee>, {update}: {update?: boolean} = {}) {
     requiredFields('payee', payee, update ? [] : ['name'], update);
     return payee as DbPayee;
   },
-  toDb(payee: PayeeEntity, { update }: { update?: boolean } = {}): DbPayee {
+  toDb(payee: PayeeEntity, {update}: {update?: boolean} = {}): DbPayee {
     return (
       update
         ? convertForUpdate(schema, schemaConfig, 'payees', payee)
@@ -213,11 +157,6 @@ export const payeeModel = {
     ) as DbPayee;
   },
   fromDb(payee: DbPayee): PayeeEntity {
-    return convertFromSelect(
-      schema,
-      schemaConfig,
-      'payees',
-      payee,
-    ) as PayeeEntity;
+    return convertFromSelect(schema, schemaConfig, 'payees', payee) as PayeeEntity;
   },
 };

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { getLocale } from '@actual-app/core/shared/locale';
+import {getLocale} from '@actual-app/core/shared/locale';
 
-import { useGlobalPref } from './useGlobalPref';
+import {useGlobalPref} from './useGlobalPref';
 
 /** The user's language code (BCP 47), falling back to the browser's. */
 export function useLanguage() {

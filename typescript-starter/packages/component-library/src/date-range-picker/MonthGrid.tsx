@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
+import {useMemo} from 'react';
 
-import { View } from '#View';
+import {View} from '#View';
 
-import { GridButton } from './GridButton';
-import {
-  currentMonth,
-  formatDate,
-  monthFromIndex,
-  rangePosition,
-} from './util';
+import {GridButton} from './GridButton';
+import {currentMonth, formatDate, monthFromIndex, rangePosition} from './util';
 
 type MonthGridProps = {
   year: string;
@@ -54,11 +49,11 @@ export function MonthGrid({
   // re-renders on every hover while a range is being picked.
   const months = useMemo(
     () =>
-      Array.from({ length: 12 }, (_, i) => {
+      Array.from({length: 12}, (_, i) => {
         const month = monthFromIndex(year, i);
         return {
           month,
-          label: formatDate(month, locale, { month: 'short' }),
+          label: formatDate(month, locale, {month: 'short'}),
           fullLabel: formatDate(month, locale, {
             month: 'long',
             year: 'numeric',
@@ -75,7 +70,7 @@ export function MonthGrid({
         gap: 4,
       }}
     >
-      {months.map(({ month, label, fullLabel }) => (
+      {months.map(({month, label, fullLabel}) => (
         <GridButton
           key={month}
           selected={month === rangeStart || month === rangeEnd}

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { app } from '#server/main-app';
+import {app} from '#server/main-app';
 
-export function isError(value: unknown): value is { error: unknown } {
-  return (value as { error: unknown }).error !== undefined;
+export function isError(value: unknown): value is {error: unknown} {
+  return (value as {error: unknown}).error !== undefined;
 }
 
 // Sync messages carry table/column names as data, and a newer app
@@ -39,12 +39,12 @@ export function resetDeferredMessagesNotification() {
 export function notifyDeferredMessages() {
   if (!hasNotifiedDeferredMessages) {
     hasNotifiedDeferredMessages = true;
-    app.events.emit('sync', { type: 'deferred-messages' });
+    app.events.emit('sync', {type: 'deferred-messages'});
   }
 }
 
 // A deferred change was dropped or discarded. Emitted per incident; the
 // client-side notification id dedupes while one is displayed.
 export function notifyDroppedMessages() {
-  app.events.emit('sync', { type: 'dropped-messages' });
+  app.events.emit('sync', {type: 'dropped-messages'});
 }

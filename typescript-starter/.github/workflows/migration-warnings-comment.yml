@@ -27,7 +27,7 @@ on:
   # See SECURITY note above: artifact content is validated and only ever
   # treated as data.
   workflow_run: # zizmor: ignore[dangerous-triggers]
-    workflows: ['Test']
+    workflows: ["Test"]
     types:
       - completed
 

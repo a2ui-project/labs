@@ -15,22 +15,22 @@
  */
 
 // @ts-strict-ignore
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router';
+import React, {useEffect, useState} from 'react';
+import {useLocation} from 'react-router';
 
-import { theme } from '@actual-app/components/theme';
-import { send } from '@actual-app/core/platform/client/connection';
-import { isElectron } from '@actual-app/core/shared/environment';
-import type { Handlers } from '@actual-app/core/types/handlers';
+import {theme} from '@actual-app/components/theme';
+import {send} from '@actual-app/core/platform/client/connection';
+import {isElectron} from '@actual-app/core/shared/environment';
+import type {Handlers} from '@actual-app/core/types/handlers';
 
 import {
   useSetLoginMethods,
   useSetMultiuserEnabled,
   useSetServerURL,
 } from '#components/ServerContext';
-import { useNavigate } from '#hooks/useNavigate';
-import { useDispatch } from '#redux';
-import { loggedIn } from '#users/usersSlice';
+import {useNavigate} from '#hooks/useNavigate';
+import {useDispatch} from '#redux';
+import {loggedIn} from '#users/usersSlice';
 
 // There are two URLs that dance with each other: `/login` and
 // `/bootstrap`. Both of these URLs check the state of the the server
@@ -72,11 +72,12 @@ export function useBootstrapped(redirect = true) {
       if (url == null && !bootstrapped) {
         // A server hasn't been specified yet
         const serverURL = window.location.origin;
-        const result: Awaited<
-          ReturnType<Handlers['subscribe-needs-bootstrap']>
-        > = await send('subscribe-needs-bootstrap', {
-          url: serverURL,
-        });
+        const result: Awaited<ReturnType<Handlers['subscribe-needs-bootstrap']>> = await send(
+          'subscribe-needs-bootstrap',
+          {
+            url: serverURL,
+          },
+        );
         if (isCancelled) {
           return;
         }
@@ -84,14 +85,13 @@ export function useBootstrapped(redirect = true) {
         if ('error' in result || !result.hasServer) {
           console.log('error' in result && result.error);
 
-          const isTransientFailure =
-            'error' in result && result.error === 'network-failure';
+          const isTransientFailure = 'error' in result && result.error === 'network-failure';
           if (isElectron() || isTransientFailure) {
             void navigate('/config-server');
             return;
           }
 
-          await setServerURL(null, { validate: false });
+          await setServerURL(null, {validate: false});
           if (isCancelled) {
             return;
           }
@@ -103,7 +103,7 @@ export function useBootstrapped(redirect = true) {
           return;
         }
 
-        await setServerURL(serverURL, { validate: false });
+        await setServerURL(serverURL, {validate: false});
         if (isCancelled) {
           return;
         }
@@ -117,15 +117,15 @@ export function useBootstrapped(redirect = true) {
           ensure('/bootstrap');
         }
       } else {
-        const result: Awaited<
-          ReturnType<Handlers['subscribe-needs-bootstrap']>
-        > = await send('subscribe-needs-bootstrap');
+        const result: Awaited<ReturnType<Handlers['subscribe-needs-bootstrap']>> = await send(
+          'subscribe-needs-bootstrap',
+        );
         if (isCancelled) {
           return;
         }
 
         if ('error' in result) {
-          void navigate('/error', { state: { error: result.error } });
+          void navigate('/error', {state: {error: result.error}});
         } else if (result.bootstrapped) {
           ensure(`/login`);
 
@@ -143,23 +143,15 @@ export function useBootstrapped(redirect = true) {
     return () => {
       isCancelled = true;
     };
-  }, [
-    dispatch,
-    location,
-    navigate,
-    redirect,
-    setLoginMethods,
-    setMultiuserEnabled,
-    setServerURL,
-  ]);
+  }, [dispatch, location, navigate, redirect, setLoginMethods, setMultiuserEnabled, setServerURL]);
 
-  return { checked };
+  return {checked};
 }
 
 type TitleProps = {
   text: string;
 };
-export function Title({ text }: TitleProps) {
+export function Title({text}: TitleProps) {
   return (
     <h1
       style={{

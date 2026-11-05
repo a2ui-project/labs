@@ -16,10 +16,10 @@
 
 import * as sheet from '#server/sheet';
 import * as monthUtils from '#shared/months';
-import type { ForecastDataPoint } from '#types/models/forecast';
+import type {ForecastDataPoint} from '#types/models/forecast';
 
-import type { AccountWithComputedBalance } from './forecast-accounts';
-import type { ForecastDateContext } from './forecast-projection';
+import type {AccountWithComputedBalance} from './forecast-accounts';
+import type {ForecastDateContext} from './forecast-projection';
 
 const TRACKING_BUDGET_FORECAST_ACCOUNT_ID = 'tracking-budget';
 const TRACKING_BUDGET_FORECAST_ACCOUNT_NAME = 'Tracking Budget';
@@ -39,12 +39,8 @@ function getTrackingBudgetMonth(month: string): TrackingBudgetMonth {
 
   return {
     month,
-    budgetedIncome: numberOrZero(
-      sheet.getCellValue(sheetName, 'total-budget-income'),
-    ),
-    budgetedExpenses: numberOrZero(
-      sheet.getCellValue(sheetName, 'total-budgeted'),
-    ),
+    budgetedIncome: numberOrZero(sheet.getCellValue(sheetName, 'total-budget-income')),
+    budgetedExpenses: numberOrZero(sheet.getCellValue(sheetName, 'total-budgeted')),
   };
 }
 
@@ -58,21 +54,14 @@ export function projectTrackingBudgetForecast({
   months?: TrackingBudgetMonth[];
 }) {
   let runningBalance = accounts.reduce(
-    (sum, account) =>
-      account.offbudget === 0 ? sum + account.balance_current : sum,
+    (sum, account) => (account.offbudget === 0 ? sum + account.balance_current : sum),
     0,
   );
-  const forecastStartMonth = monthUtils.monthFromDate(
-    dateContext.forecastStartDate,
-  );
-  const forecastEndMonth = monthUtils.monthFromDate(
-    dateContext.forecastEndDate,
-  );
+  const forecastStartMonth = monthUtils.monthFromDate(dateContext.forecastStartDate);
+  const forecastEndMonth = monthUtils.monthFromDate(dateContext.forecastEndDate);
   const forecastMonths =
     months ??
-    monthUtils
-      .rangeInclusive(forecastStartMonth, forecastEndMonth)
-      .map(getTrackingBudgetMonth);
+    monthUtils.rangeInclusive(forecastStartMonth, forecastEndMonth).map(getTrackingBudgetMonth);
 
   const dataPoints: ForecastDataPoint[] = forecastMonths.map(month => {
     runningBalance += month.budgetedIncome - month.budgetedExpenses;

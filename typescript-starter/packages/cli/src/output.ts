@@ -41,10 +41,7 @@ function formatCellValue(key: string, value: unknown): string {
   return String(value ?? '');
 }
 
-export function formatOutput(
-  data: unknown,
-  format: OutputFormat = 'json',
-): string {
+export function formatOutput(data: unknown, format: OutputFormat = 'json'): string {
   switch (format) {
     case 'json':
       return JSON.stringify(data, null, 2);
@@ -62,7 +59,7 @@ function formatTable(data: unknown): string {
     if (data && typeof data === 'object') {
       const table = new Table();
       for (const [key, value] of Object.entries(data)) {
-        table.push({ [key]: formatCellValue(key, value) });
+        table.push({[key]: formatCellValue(key, value)});
       }
       return table.toString();
     }
@@ -74,7 +71,7 @@ function formatTable(data: unknown): string {
   }
 
   const keys = Object.keys(data[0] as Record<string, unknown>);
-  const table = new Table({ head: keys });
+  const table = new Table({head: keys});
 
   for (const row of data) {
     const r = row as Record<string, unknown>;
@@ -122,12 +119,7 @@ function formatCsvCell(key: string, value: unknown): string {
 }
 
 function escapeCsv(value: string): string {
-  if (
-    value.includes(',') ||
-    value.includes('"') ||
-    value.includes('\n') ||
-    value.includes('\r')
-  ) {
+  if (value.includes(',') || value.includes('"') || value.includes('\n') || value.includes('\r')) {
     return '"' + value.replace(/"/g, '""') + '"';
   }
   return value;

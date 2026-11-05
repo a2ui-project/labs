@@ -102,8 +102,4 @@ const prepositions = [
   'without',
 ];
 
-export const lowerCaseSet = new Set([
-  ...conjunctions,
-  ...articles,
-  ...prepositions,
-]);
+export const lowerCaseSet = new Set([...conjunctions, ...articles, ...prepositions]);

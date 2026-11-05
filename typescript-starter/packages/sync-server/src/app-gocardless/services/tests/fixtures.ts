@@ -27,7 +27,7 @@ import type {
   DetailedAccountWithInstitution,
 } from '#app-gocardless/gocardless.types';
 
-export const mockedBalances: { balances: Balance[] } = {
+export const mockedBalances: {balances: Balance[]} = {
   balances: [
     {
       balanceAmount: {
@@ -48,7 +48,7 @@ export const mockedBalances: { balances: Balance[] } = {
   ],
 };
 
-export const mockTransactions: { transactions: Transactions } = {
+export const mockTransactions: {transactions: Transactions} = {
   transactions: {
     booked: [
       {
@@ -88,7 +88,7 @@ export const mockTransactions: { transactions: Transactions } = {
   },
 };
 
-export const mockAccountDetails: { account: GoCardlessAccountDetails } = {
+export const mockAccountDetails: {account: GoCardlessAccountDetails} = {
   account: {
     resourceId: 'PL00000000000000000987654321',
     iban: 'PL00000000000000000987654321',
@@ -143,8 +143,7 @@ export const mockRequisition = {
 
 export const mockDeleteRequisition = {
   summary: 'Requisition deleted',
-  detail:
-    "Requisition '$REQUISITION_ID' deleted with all its End User Agreements",
+  detail: "Requisition '$REQUISITION_ID' deleted with all its End User Agreements",
 };
 
 export const mockCreateRequisition = {
@@ -173,17 +172,16 @@ export const mockDetailedAccountExample2 = {
   name: 'account-example-two',
 } as DetailedAccount;
 
-export const mockExtendAccountsAboutInstitutions: DetailedAccountWithInstitution[] =
-  [
-    {
-      ...mockDetailedAccountExample1,
-      institution: mockInstitution,
-    },
-    {
-      ...mockDetailedAccountExample2,
-      institution: mockInstitution,
-    },
-  ];
+export const mockExtendAccountsAboutInstitutions: DetailedAccountWithInstitution[] = [
+  {
+    ...mockDetailedAccountExample1,
+    institution: mockInstitution,
+  },
+  {
+    ...mockDetailedAccountExample2,
+    institution: mockInstitution,
+  },
+];
 
 export const mockRequisitionWithExampleAccounts = {
   ...mockRequisition,
@@ -191,4 +189,4 @@ export const mockRequisitionWithExampleAccounts = {
   accounts: [mockDetailedAccountExample1.id, mockDetailedAccountExample2.id],
 };
 
-export const mockTransactionAmount = { amount: '100', currency: 'EUR' };
+export const mockTransactionAmount = {amount: '100', currency: 'EUR'};

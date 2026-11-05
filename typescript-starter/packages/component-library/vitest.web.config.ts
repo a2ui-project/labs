@@ -15,13 +15,12 @@
  */
 
 import babel from '@rolldown/plugin-babel';
-import react, { reactCompilerPreset } from '@vitejs/plugin-react';
-import { defineConfig } from 'vitest/config';
+import react, {reactCompilerPreset} from '@vitejs/plugin-react';
+import {defineConfig} from 'vitest/config';
 
 // Any workspace package's source; node_modules stays excluded by the babel
 // plugin's default exclude.
-const reactCompilerInclude =
-  /[\\/]packages[\\/][^\\/]+[\\/]src[\\/].*\.[jt]sx?(?:$|\?)/;
+const reactCompilerInclude = /[\\/]packages[\\/][^\\/]+[\\/]src[\\/].*\.[jt]sx?(?:$|\?)/;
 
 export default defineConfig({
   test: {

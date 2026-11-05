@@ -16,7 +16,7 @@
 
 import * as merkle from './merkle';
 
-export { merkle };
+export {merkle};
 export {
   getClock,
   setClock,

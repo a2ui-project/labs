@@ -37,9 +37,7 @@ export function readFileEnv(
     return fs.readFileSync(filePath, 'utf8').trim();
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(
-      `Could not read ${fileEnvVar} from '${filePath}': ${reason}`,
-    );
+    throw new Error(`Could not read ${fileEnvVar} from '${filePath}': ${reason}`);
   }
 }
 

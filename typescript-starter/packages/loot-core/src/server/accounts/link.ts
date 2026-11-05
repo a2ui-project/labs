@@ -15,11 +15,11 @@
  */
 
 // @ts-strict-ignore
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 import * as db from '#server/db';
 
-type Institution = string | { name?: string | null };
+type Institution = string | {name?: string | null};
 
 function getInstitutionName(institution: Institution | null | undefined) {
   if (typeof institution === 'string') {

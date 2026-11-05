@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import type { SVGProps } from 'react';
+import React, {useState} from 'react';
+import type {SVGProps} from 'react';
 
 export const SvgLoading = (props: SVGProps<SVGSVGElement>) => {
-  const { color = 'currentColor' } = props;
+  const {color = 'currentColor'} = props;
   const [gradientId] = useState('gradient-' + Math.random());
 
   return (
-    <svg {...props} viewBox="0 0 38 38" style={{ ...props.style }}>
+    <svg {...props} viewBox="0 0 38 38" style={{...props.style}}>
       <defs>
-        <linearGradient
-          x1="8.042%"
-          y1="0%"
-          x2="65.682%"
-          y2="23.865%"
-          id={gradientId}
-        >
+        <linearGradient x1="8.042%" y1="0%" x2="65.682%" y2="23.865%" id={gradientId}>
           <stop stopColor={color} stopOpacity={0} offset="0%" />
           <stop stopColor={color} stopOpacity={0.631} offset="63.146%" />
           <stop stopColor={color} offset="100%" />

@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { AccountGroupsModal } from './AccountGroupsModal';
+export {AccountGroupsModal} from './AccountGroupsModal';

@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import type { TFunction } from 'i18next';
-import { v4 as uuidv4 } from 'uuid';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import type {QueryClient, QueryKey} from '@tanstack/react-query';
+import type {TFunction} from 'i18next';
+import {v4 as uuidv4} from 'uuid';
 
-import { pushModal } from '#modals/modalsSlice';
-import { addNotification } from '#notifications/notificationsSlice';
-import type { Notification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import type { AppDispatch } from '#redux/store';
+import {pushModal} from '#modals/modalsSlice';
+import {addNotification} from '#notifications/notificationsSlice';
+import type {Notification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import type {AppDispatch} from '#redux/store';
 
-import { categoryQueries } from './queries';
+import {categoryQueries} from './queries';
 
 function invalidateQueries(queryClient: QueryClient, queryKey?: QueryKey) {
   void queryClient.invalidateQueries({
@@ -41,11 +38,7 @@ function invalidateQueries(queryClient: QueryClient, queryKey?: QueryKey) {
   });
 }
 
-function dispatchErrorNotification(
-  dispatch: AppDispatch,
-  message: string,
-  error?: Error,
-) {
+function dispatchErrorNotification(dispatch: AppDispatch, message: string, error?: Error) {
   dispatch(
     addNotification({
       notification: {
@@ -67,10 +60,7 @@ function dispatchCategoryNameAlreadyExistsNotification(
     addNotification({
       notification: {
         type: 'error',
-        message: t(
-          'Category "{{name}}" already exists in group (it may be hidden)',
-          { name },
-        ),
+        message: t('Category "{{name}}" already exists in group (it may be hidden)', {name}),
       },
     }),
   );
@@ -85,29 +75,23 @@ export type BudgetTemplateNotification = Notification & {
 // i18next-parser does not extract keys nested inside translation strings.
 // t('budget-template-source', { count: 1, defaultValue_one: '{{count}} source', defaultValue_other: '{{count}} sources' })
 // t('budget-template-sinking-fund', { count: 1, defaultValue_one: '{{count}} sinking fund', defaultValue_other: '{{count}} sinking funds' })
-function formatCleanupApplied(
-  notification: BudgetTemplateNotification,
-  t: TFunction,
-) {
+function formatCleanupApplied(notification: BudgetTemplateNotification, t: TFunction) {
   const sourceCount = notification.sourceCount ?? 0;
   const sinkCount = notification.sinkCount ?? 0;
 
   return t(
     'Successfully returned funds from $t(budget-template-source, {"count": {{sourceCount}}}) and funded $t(budget-template-sinking-fund, {"count": {{sinkCount}}}).',
-    { sourceCount, sinkCount },
+    {sourceCount, sinkCount},
   );
 }
 
-function formatCleanupAppliedWithErrors(
-  notification: BudgetTemplateNotification,
-  t: TFunction,
-) {
+function formatCleanupAppliedWithErrors(notification: BudgetTemplateNotification, t: TFunction) {
   const sourceCount = notification.sourceCount ?? 0;
   const sinkCount = notification.sinkCount ?? 0;
 
   return t(
     'Successfully returned funds from $t(budget-template-source, {"count": {{sourceCount}}}) and funded $t(budget-template-sinking-fund, {"count": {{sinkCount}}}). There were errors interpreting some templates:',
-    { sourceCount, sinkCount },
+    {sourceCount, sinkCount},
   );
 }
 
@@ -117,7 +101,7 @@ export function translateBudgetTemplateNotification(
 ): Notification {
   switch (notification.message) {
     case 'templates-up-to-date':
-      return { ...notification, message: t('Everything is up to date') };
+      return {...notification, message: t('Everything is up to date')};
     case 'template-errors':
       return {
         ...notification,
@@ -131,11 +115,11 @@ export function translateBudgetTemplateNotification(
         }),
       };
     case 'templates-check-passed':
-      return { ...notification, message: t('All templates passed! 🎉') };
+      return {...notification, message: t('All templates passed! 🎉')};
     case 'cleanup-no-funds':
-      return { ...notification, message: t('Global: Funds not available:') };
+      return {...notification, message: t('Global: Funds not available:')};
     case 'cleanup-up-to-date':
-      return { ...notification, message: t('All categories were up to date.') };
+      return {...notification, message: t('All categories were up to date.')};
     case 'cleanup-applied':
       return {
         ...notification,
@@ -161,15 +145,10 @@ type CreateCategoryPayload = {
 export function useCreateCategoryMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({
-      name,
-      groupId,
-      isIncome,
-      isHidden,
-    }: CreateCategoryPayload) => {
+    mutationFn: async ({name, groupId, isIncome, isHidden}: CreateCategoryPayload) => {
       const id = await send('category-create', {
         name,
         groupId,
@@ -197,10 +176,10 @@ type UpdateCategoryPayload = {
 export function useUpdateCategoryMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ category }: UpdateCategoryPayload) => {
+    mutationFn: async ({category}: UpdateCategoryPayload) => {
       await send('category-update', category);
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -222,29 +201,24 @@ type SaveCategoryPayload = {
 export function useSaveCategoryMutation() {
   const createCategory = useCreateCategoryMutation();
   const updateCategory = useUpdateCategoryMutation();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ category }: SaveCategoryPayload) => {
-      const { grouped: categoryGroups = [] } =
-        await queryClient.ensureQueryData(categoryQueries.list());
+    mutationFn: async ({category}: SaveCategoryPayload) => {
+      const {grouped: categoryGroups = []} = await queryClient.ensureQueryData(
+        categoryQueries.list(),
+      );
 
       const group = categoryGroups.find(g => g.id === category.group);
       const categoriesInGroup = group?.categories ?? [];
       const exists = categoriesInGroup.some(
-        c =>
-          c.id !== category.id &&
-          c.name.toUpperCase() === category.name.toUpperCase(),
+        c => c.id !== category.id && c.name.toUpperCase() === category.name.toUpperCase(),
       );
 
       if (exists) {
-        dispatchCategoryNameAlreadyExistsNotification(
-          dispatch,
-          t,
-          category.name,
-        );
+        dispatchCategoryNameAlreadyExistsNotification(dispatch, t, category.name);
         return;
       }
 
@@ -256,7 +230,7 @@ export function useSaveCategoryMutation() {
           isHidden: !!category.hidden,
         });
       } else {
-        await updateCategory.mutateAsync({ category });
+        await updateCategory.mutateAsync({category});
       }
     },
   });
@@ -269,7 +243,7 @@ type DeleteCategoryPayload = {
 export function useDeleteCategoryMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const deleteCategory = async ({
     id,
@@ -278,12 +252,12 @@ export function useDeleteCategoryMutation() {
     id: CategoryEntity['id'];
     transferId?: CategoryEntity['id'];
   }) => {
-    await send('category-delete', { id, transferId });
+    await send('category-delete', {id, transferId});
   };
 
   return useMutation({
-    mutationFn: async ({ id }: DeleteCategoryPayload) => {
-      const mustTransfer = await send('must-category-transfer', { id });
+    mutationFn: async ({id}: DeleteCategoryPayload) => {
+      const mustTransfer = await send('must-category-transfer', {id});
 
       if (mustTransfer) {
         dispatch(
@@ -294,7 +268,7 @@ export function useDeleteCategoryMutation() {
                 category: id,
                 onDelete: async transferCategory => {
                   if (id !== transferCategory) {
-                    await deleteCategory({ id, transferId: transferCategory });
+                    await deleteCategory({id, transferId: transferCategory});
                   }
                 },
               },
@@ -302,7 +276,7 @@ export function useDeleteCategoryMutation() {
           }),
         );
       } else {
-        await deleteCategory({ id });
+        await deleteCategory({id});
       }
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -326,11 +300,11 @@ type MoveCategoryPayload = {
 export function useMoveCategoryMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id, groupId, targetId }: MoveCategoryPayload) => {
-      await send('category-move', { id, groupId, targetId });
+    mutationFn: async ({id, groupId, targetId}: MoveCategoryPayload) => {
+      await send('category-move', {id, groupId, targetId});
     },
     onSuccess: () => invalidateQueries(queryClient),
     onError: error => {
@@ -354,32 +328,26 @@ export function useReorderCategoryMutation() {
   const moveCategory = useMoveCategoryMutation();
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id, groupId, targetId }: ReoderCategoryPayload) => {
-      const { grouped: categoryGroups = [], list: categories = [] } =
+    mutationFn: async ({id, groupId, targetId}: ReoderCategoryPayload) => {
+      const {grouped: categoryGroups = [], list: categories = []} =
         await queryClient.ensureQueryData(categoryQueries.list());
 
       const moveCandidate = categories.filter(c => c.id === id)[0];
       const group = categoryGroups.find(g => g.id === groupId);
       const categoriesInGroup = group?.categories ?? [];
       const exists = categoriesInGroup.some(
-        c =>
-          c.id !== moveCandidate.id &&
-          c.name.toUpperCase() === moveCandidate.name.toUpperCase(),
+        c => c.id !== moveCandidate.id && c.name.toUpperCase() === moveCandidate.name.toUpperCase(),
       );
 
       if (exists) {
-        dispatchCategoryNameAlreadyExistsNotification(
-          dispatch,
-          t,
-          moveCandidate.name,
-        );
+        dispatchCategoryNameAlreadyExistsNotification(dispatch, t, moveCandidate.name);
         return;
       }
 
-      await moveCategory.mutateAsync({ id, groupId, targetId });
+      await moveCategory.mutateAsync({id, groupId, targetId});
     },
   });
 }
@@ -391,11 +359,11 @@ type CreateCategoryGroupPayload = {
 export function useCreateCategoryGroupMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ name }: CreateCategoryGroupPayload) => {
-      const id = await send('category-group-create', { name });
+    mutationFn: async ({name}: CreateCategoryGroupPayload) => {
+      const id = await send('category-group-create', {name});
       return id;
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -417,17 +385,13 @@ type UpdateCategoryGroupPayload = {
 export function useUpdateCategoryGroupMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   return useMutation({
-    mutationFn: async ({ group }: UpdateCategoryGroupPayload) => {
-      const { grouped: categoryGroups } = await queryClient.ensureQueryData(
-        categoryQueries.list(),
-      );
+    mutationFn: async ({group}: UpdateCategoryGroupPayload) => {
+      const {grouped: categoryGroups} = await queryClient.ensureQueryData(categoryQueries.list());
 
       const exists = categoryGroups.some(
-        g =>
-          g.id !== group.id &&
-          g.name.toUpperCase() === group.name.toUpperCase(),
+        g => g.id !== group.id && g.name.toUpperCase() === group.name.toUpperCase(),
       );
 
       if (exists) {
@@ -442,7 +406,7 @@ export function useUpdateCategoryGroupMutation() {
 
       // Strip off the categories field if it exist. It's not a real db
       // field but groups have this extra field in the client most of the time
-      const { categories: _, ...groupNoCategories } = group;
+      const {categories: _, ...groupNoCategories} = group;
       await send('category-group-update', groupNoCategories);
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -466,11 +430,11 @@ export function useSaveCategoryGroupMutation() {
   const updateCategoryGroup = useUpdateCategoryGroupMutation();
 
   return useMutation({
-    mutationFn: async ({ group }: SaveCategoryGroupPayload) => {
+    mutationFn: async ({group}: SaveCategoryGroupPayload) => {
       if (group.id === 'new') {
-        await createCategoryGroup.mutateAsync({ name: group.name });
+        await createCategoryGroup.mutateAsync({name: group.name});
       } else {
-        await updateCategoryGroup.mutateAsync({ group });
+        await updateCategoryGroup.mutateAsync({group});
       }
     },
   });
@@ -483,13 +447,11 @@ type DeleteCategoryGroupPayload = {
 export function useDeleteCategoryGroupMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id }: DeleteCategoryGroupPayload) => {
-      const { grouped: categoryGroups } = await queryClient.ensureQueryData(
-        categoryQueries.list(),
-      );
+    mutationFn: async ({id}: DeleteCategoryGroupPayload) => {
+      const {grouped: categoryGroups} = await queryClient.ensureQueryData(categoryQueries.list());
       const group = categoryGroups.find(g => g.id === id);
 
       if (!group) {
@@ -500,7 +462,7 @@ export function useDeleteCategoryGroupMutation() {
 
       let mustTransfer = false;
       for (const category of categories) {
-        if (await send('must-category-transfer', { id: category.id })) {
+        if (await send('must-category-transfer', {id: category.id})) {
           mustTransfer = true;
           break;
         }
@@ -524,7 +486,7 @@ export function useDeleteCategoryGroupMutation() {
           }),
         );
       } else {
-        await send('category-group-delete', { id });
+        await send('category-group-delete', {id});
       }
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -547,11 +509,11 @@ type MoveCategoryGroupPayload = {
 export function useMoveCategoryGroupMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id, targetId }: MoveCategoryGroupPayload) => {
-      await send('category-group-move', { id, targetId });
+    mutationFn: async ({id, targetId}: MoveCategoryGroupPayload) => {
+      await send('category-group-move', {id, targetId});
     },
     onSuccess: () => invalidateQueries(queryClient),
     onError: error => {
@@ -591,11 +553,11 @@ type SortCategoriesPayload = {
 export function useSortCategoriesMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ groupId, direction }: SortCategoriesPayload) => {
-      await send('categories-sort', { groupId, direction });
+    mutationFn: async ({groupId, direction}: SortCategoriesPayload) => {
+      await send('categories-sort', {groupId, direction});
     },
     onSuccess: () => invalidateQueries(queryClient),
     onError: error => {
@@ -777,10 +739,10 @@ type ApplyBudgetActionPayload =
 
 export function useBudgetActions() {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ month, type, args }: ApplyBudgetActionPayload) => {
+    mutationFn: async ({month, type, args}: ApplyBudgetActionPayload) => {
       switch (type) {
         case 'budget-amount':
           await send('budget/budget-amount', {
@@ -790,33 +752,33 @@ export function useBudgetActions() {
           });
           return null;
         case 'copy-last':
-          await send('budget/copy-previous-month', { month });
+          await send('budget/copy-previous-month', {month});
           return null;
         case 'set-zero':
-          await send('budget/set-zero', { month });
+          await send('budget/set-zero', {month});
           return null;
         case 'set-3-avg':
-          await send('budget/set-3month-avg', { month });
+          await send('budget/set-3month-avg', {month});
           return null;
         case 'set-6-avg':
-          await send('budget/set-6month-avg', { month });
+          await send('budget/set-6month-avg', {month});
           return null;
         case 'set-12-avg':
-          await send('budget/set-12month-avg', { month });
+          await send('budget/set-12month-avg', {month});
           return null;
         case 'check-templates':
           return await send('budget/check-templates');
         case 'apply-goal-template':
-          return await send('budget/apply-goal-template', { month });
+          return await send('budget/apply-goal-template', {month});
         case 'overwrite-goal-template':
-          return await send('budget/overwrite-goal-template', { month });
+          return await send('budget/overwrite-goal-template', {month});
         case 'apply-single-category-template':
           return await send('budget/apply-single-template', {
             month,
             category: args.category,
           });
         case 'cleanup-goal-template':
-          return await send('budget/cleanup-goal-template', { month });
+          return await send('budget/cleanup-goal-template', {month});
         case 'hold':
           await send('budget/hold-for-next-month', {
             month,
@@ -824,7 +786,7 @@ export function useBudgetActions() {
           });
           return null;
         case 'reset-hold':
-          await send('budget/reset-hold', { month });
+          await send('budget/reset-hold', {month});
           return null;
         case 'cover-overspending':
           await send('budget/cover-overspending', {
@@ -868,7 +830,7 @@ export function useBudgetActions() {
           return null;
         }
         case 'reset-income-carryover':
-          await send('budget/reset-income-carryover', { month });
+          await send('budget/reset-income-carryover', {month});
           return null;
         case 'apply-multiple-templates':
           return await send('budget/apply-multiple-templates', {

@@ -16,16 +16,16 @@
 
 import React from 'react';
 
-import { generateAccount } from '@actual-app/core/mocks';
-import { q } from '@actual-app/core/shared/query';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import { render, screen } from '@testing-library/react';
+import {generateAccount} from '@actual-app/core/mocks';
+import {q} from '@actual-app/core/shared/query';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useSheetValue } from '#hooks/useSheetValue';
-import { TestProviders } from '#mocks';
+import {useSheetValue} from '#hooks/useSheetValue';
+import {TestProviders} from '#mocks';
 
-import { ReconcileMenu, ReconcilingMessage } from './Reconcile';
+import {ReconcileMenu, ReconcilingMessage} from './Reconcile';
 
 vi.mock('#hooks/useSheetValue', () => ({
   useSheetValue: vi.fn(),
@@ -67,9 +67,7 @@ describe('ReconcilingMessage math & UI', () => {
 
     expect(screen.getByText('All reconciled!')).toBeInTheDocument();
     // No reconciliation transaction button when diff is zero
-    expect(
-      screen.queryByText('Create reconciliation transaction'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText('Create reconciliation transaction')).not.toBeInTheDocument();
 
     // Done button triggers callback
     await userEvent.click(screen.getByText('Lock transactions'));
@@ -98,9 +96,7 @@ describe('ReconcilingMessage math & UI', () => {
     // Positive diff shows plus sign
     expect(screen.getByText('+70.00')).toBeInTheDocument();
 
-    await userEvent.click(
-      screen.getByText('Create reconciliation transaction'),
-    );
+    await userEvent.click(screen.getByText('Create reconciliation transaction'));
     expect(onCreateTransaction).toHaveBeenCalledWith(7000);
   });
 
@@ -124,9 +120,7 @@ describe('ReconcilingMessage math & UI', () => {
     expect(screen.getByText('100.00')).toBeInTheDocument();
     expect(screen.getByText('-20.00')).toBeInTheDocument();
 
-    await userEvent.click(
-      screen.getByText('Create reconciliation transaction'),
-    );
+    await userEvent.click(screen.getByText('Create reconciliation transaction'));
     expect(onCreateTransaction).toHaveBeenCalledWith(-2000);
   });
 });
@@ -163,7 +157,7 @@ describe('ReconcileMenu arithmetic evaluation', () => {
     await userEvent.type(input, '100+25.50-10');
 
     // Submit
-    await userEvent.click(screen.getByRole('button', { name: 'Reconcile' }));
+    await userEvent.click(screen.getByRole('button', {name: 'Reconcile'}));
 
     // 100 + 25.50 - 10 = 115.50 -> 11550 integer
     expect(onReconcile).toHaveBeenCalledWith(11550);
@@ -192,7 +186,7 @@ describe('ReconcileMenu arithmetic evaluation', () => {
     await userEvent.type(input, 'abcd');
 
     // Submit
-    await userEvent.click(screen.getByRole('button', { name: 'Reconcile' }));
+    await userEvent.click(screen.getByRole('button', {name: 'Reconcile'}));
 
     // Input has no digits, so it should use cleared balance for reconciliation
     expect(onReconcile).toHaveBeenCalledWith(123456);
@@ -207,27 +201,19 @@ describe('ReconcileMenu arithmetic evaluation', () => {
     const onClose = vi.fn();
 
     // Ensure the account is the connected variant so balance_current is a number
-    const connectedAccount = generateAccount(
-      'Checking',
-      true,
-      false,
-    ) as AccountEntity;
+    const connectedAccount = generateAccount('Checking', true, false) as AccountEntity;
     connectedAccount.balance_current = 4321;
 
     render(
       <TestProviders>
-        <ReconcileMenu
-          account={connectedAccount}
-          onReconcile={onReconcile}
-          onClose={onClose}
-        />
+        <ReconcileMenu account={connectedAccount} onReconcile={onReconcile} onClose={onClose} />
       </TestProviders>,
     );
 
     // Fill from last synced value (43.21)
     await userEvent.click(screen.getByText('Use last synced total'));
 
-    await userEvent.click(screen.getByRole('button', { name: 'Reconcile' }));
+    await userEvent.click(screen.getByRole('button', {name: 'Reconcile'}));
     expect(onReconcile).toHaveBeenCalledWith(4321);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
@@ -250,7 +236,7 @@ describe('ReconcileMenu arithmetic evaluation', () => {
     const input = screen.getByRole('textbox');
     await userEvent.clear(input);
 
-    await userEvent.click(screen.getByRole('button', { name: 'Reconcile' }));
+    await userEvent.click(screen.getByRole('button', {name: 'Reconcile'}));
     expect(onReconcile).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
   });
@@ -271,7 +257,7 @@ describe('ReconcileMenu arithmetic evaluation', () => {
       </TestProviders>,
     );
 
-    await userEvent.click(screen.getByRole('button', { name: 'Reconcile' }));
+    await userEvent.click(screen.getByRole('button', {name: 'Reconcile'}));
     expect(onReconcile).toHaveBeenCalledWith(null);
     expect(onClose).toHaveBeenCalledTimes(1);
   });

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import type { FocusEvent, ReactNode } from 'react';
-import { memo, useEffect, useState } from 'react';
+import type {FocusEvent, ReactNode} from 'react';
+import {memo, useEffect, useState} from 'react';
 
-import { styles } from '@actual-app/components/styles';
-import { amountToInteger, integerToAmount } from '@actual-app/core/shared/util';
+import {styles} from '@actual-app/components/styles';
+import {amountToInteger, integerToAmount} from '@actual-app/core/shared/util';
 
-import { AmountInput as LegacyAmountInput } from '#components/util/AmountInput';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {AmountInput as LegacyAmountInput} from '#components/util/AmountInput';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
-import { CalculatorAmountInput } from './CalculatorAmountInput';
+import {CalculatorAmountInput} from './CalculatorAmountInput';
 
 export type SplitAmountInputProps = {
   value: number;
@@ -106,7 +106,7 @@ export const SplitAmountInput = memo(function SplitAmountInput({
           onChange?.(nextAmount);
         }
       }}
-      style={{ marginRight: 8 }}
+      style={{marginRight: 8}}
       value={amountToInteger(value)}
       zeroSign={negate ? '-' : '+'}
     />

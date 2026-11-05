@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import type { Backup } from '#server/budgetfiles/backups';
-import type { UndoState } from '#server/undo';
+import type {Backup} from '#server/budgetfiles/backups';
+import type {UndoState} from '#server/undo';
 
 type SyncSubtype =
   | 'out-of-sync'
@@ -110,14 +110,14 @@ type ImportProgressEvent = {
    * The batch that was just imported, when a step works in batches rather than
    * one item at a time.
    */
-  batch?: { amount: number; account: string };
+  batch?: {amount: number; account: string};
 };
 
 type PrefsUpdatedEvent = undefined;
 type SchedulesOfflineEvent = undefined;
 type ServerErrorEvent = undefined;
 type ShowBudgetsEvent = undefined;
-type StartImportEvent = { budgetName: string };
+type StartImportEvent = {budgetName: string};
 type StartLoadEvent = undefined;
 type ApiFetchRedirectedEvent = undefined;
 

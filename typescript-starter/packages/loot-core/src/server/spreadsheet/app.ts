@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { createApp } from '#server/app';
+import {createApp} from '#server/app';
 import * as sheet from '#server/sheet';
-import type { QueryState } from '#shared/query';
+import type {QueryState} from '#shared/query';
 
-import { resolveName, unresolveName } from './util';
+import {resolveName, unresolveName} from './util';
 
 export type SpreadsheetHandlers = {
   'get-cell': typeof getCell;
@@ -32,21 +32,15 @@ app.method('get-cell', getCell);
 app.method('get-cell-names', getCellNames);
 app.method('create-query', createQuery);
 
-async function getCell({
-  sheetName,
-  name,
-}: {
-  sheetName: string;
-  name: string;
-}) {
+async function getCell({sheetName, name}: {sheetName: string; name: string}) {
   const node = sheet.get()._getNode(resolveName(sheetName, name));
-  return { name: node.name, value: node.value };
+  return {name: node.name, value: node.value};
 }
 
-async function getCellNames({ sheetName }: { sheetName: string }) {
+async function getCellNames({sheetName}: {sheetName: string}) {
   const names = [];
   for (const name of sheet.get().getNodes().keys()) {
-    const { sheet: nodeSheet, name: nodeName } = unresolveName(name);
+    const {sheet: nodeSheet, name: nodeName} = unresolveName(name);
     if (nodeSheet === sheetName) {
       names.push(nodeName);
     }

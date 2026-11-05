@@ -17,7 +17,7 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const { themes } = require('prism-react-renderer');
+const {themes} = require('prism-react-renderer');
 
 const defaultOptions = {
   editUrl: 'https://github.com/actualbudget/actual/tree/master/packages/docs',
@@ -75,8 +75,7 @@ module.exports = {
           feedOptions: {
             type: 'rss',
             title: 'Actual Budget Blog',
-            description:
-              'Stay updated with the latest blog posts from Actual Budget',
+            description: 'Stay updated with the latest blog posts from Actual Budget',
             copyright: `Copyright © ${new Date().getFullYear()} Actual Budget. All rights reserved.`,
           },
           onUntruncatedBlogPosts: 'ignore',

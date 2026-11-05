@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -23,17 +23,16 @@ export default {
   institutionIds: ['HYPE_HYEEIT22'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     /** Online card payments - identified by "crd" transaction code
      *  always start with PAGAMENTO PRESSO + <payee name>
      */
     if (transaction.proprietaryBankTransactionCode === 'crd') {
       // remove PAGAMENTO PRESSO and set payee name
-      editedTrans.debtorName =
-        transaction.remittanceInformationUnstructured?.slice(
-          'PAGAMENTO PRESSO '.length,
-        );
+      editedTrans.debtorName = transaction.remittanceInformationUnstructured?.slice(
+        'PAGAMENTO PRESSO '.length,
+      );
     }
     /**
      * In-app money transfers (p2p) and bank transfers (bon) have remittance info structure like
@@ -70,10 +69,7 @@ export default {
           idx = next_idx;
           continue;
         }
-        str =
-          str.slice(0, start_idx) +
-          String.fromCodePoint(...codepoints) +
-          str.slice(idx + 6);
+        str = str.slice(0, start_idx) + String.fromCodePoint(...codepoints) + str.slice(idx + 6);
         codepoints = [];
         idx = str.indexOf('\\U'); // slight inefficiency?
         start_idx = idx;

@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-import {
-  disableOpenID,
-  getActiveLoginMethod,
-  needsBootstrap,
-} from '#account-db';
-import { promptPassword } from '#util/prompt';
+import {disableOpenID, getActiveLoginMethod, needsBootstrap} from '#account-db';
+import {promptPassword} from '#util/prompt';
 
 if (needsBootstrap()) {
   console.log('System needs to be bootstrapped first. OpenID is not enabled.');
@@ -37,7 +33,7 @@ if (needsBootstrap()) {
     }
 
     const password = await promptPassword();
-    const { error } = (await disableOpenID({ password })) || {};
+    const {error} = (await disableOpenID({password})) || {};
 
     if (error) {
       console.log('Error disabling OpenID:', error);

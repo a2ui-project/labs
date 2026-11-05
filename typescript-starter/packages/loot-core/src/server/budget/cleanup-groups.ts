@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 import * as db from '#server/db';
 
@@ -24,13 +24,13 @@ export async function resolveCleanupGroup(name: string): Promise<string> {
     throw new Error('Cleanup group name cannot be empty');
   }
   const key = trimmed.toLowerCase();
-  const existing = await db.first<{ id: string; tombstone: 0 | 1 }>(
+  const existing = await db.first<{id: string; tombstone: 0 | 1}>(
     `SELECT id, tombstone FROM cleanup_groups WHERE lower(name) = ? LIMIT 1`,
     [key],
   );
   if (existing) {
     if (existing.tombstone) {
-      await db.update('cleanup_groups', { id: existing.id, tombstone: 0 });
+      await db.update('cleanup_groups', {id: existing.id, tombstone: 0});
     }
     return existing.id;
   }
@@ -43,13 +43,9 @@ export async function resolveCleanupGroup(name: string): Promise<string> {
   return id;
 }
 
-export async function createCleanupGroup({
-  name,
-}: {
-  name: string;
-}): Promise<{ id: string }> {
+export async function createCleanupGroup({name}: {name: string}): Promise<{id: string}> {
   const id = await resolveCleanupGroup(name);
-  return { id };
+  return {id};
 }
 
 export async function tombstoneOrphanCleanupGroups(): Promise<void> {

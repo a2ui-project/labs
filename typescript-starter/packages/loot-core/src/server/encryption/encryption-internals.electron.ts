@@ -29,11 +29,7 @@ export const encrypt: typeof T.encrypt = async (masterKey, value) => {
   const masterKeyBuffer = masterKey.getValue().raw;
   // let iv = createKeyBuffer({ numBytes: 12, secret: masterKeyBuffer });
   const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv(
-    ENCRYPTION_ALGORITHM,
-    masterKeyBuffer,
-    iv,
-  );
+  const cipher = crypto.createCipheriv(ENCRYPTION_ALGORITHM, masterKeyBuffer, iv);
   let encrypted = cipher.update(value);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
 
@@ -52,7 +48,7 @@ export const encrypt: typeof T.encrypt = async (masterKey, value) => {
 
 export const decrypt: typeof T.decrypt = async (masterKey, encrypted, meta) => {
   const masterKeyBuffer = masterKey.getValue().raw;
-  const { algorithm, iv: originalIv, authTag: originalAuthTag } = meta;
+  const {algorithm, iv: originalIv, authTag: originalAuthTag} = meta;
   const iv = Buffer.from(originalIv, 'base64');
   const authTag = Buffer.from(originalAuthTag, 'base64');
 
@@ -65,8 +61,8 @@ export const decrypt: typeof T.decrypt = async (masterKey, encrypted, meta) => {
 };
 
 // @ts-expect-error fix me
-export const createKey: typeof T.createKey = async ({ secret, salt }) => {
-  const buffer = createKeyBuffer({ secret, salt });
+export const createKey: typeof T.createKey = async ({secret, salt}) => {
+  const buffer = createKeyBuffer({secret, salt});
   return {
     raw: buffer,
     base64: buffer.toString('base64'),

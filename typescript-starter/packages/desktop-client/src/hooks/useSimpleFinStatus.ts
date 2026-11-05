@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { useSyncServerStatus } from './useSyncServerStatus';
+import {useSyncServerStatus} from './useSyncServerStatus';
 
 export function useSimpleFinStatus() {
-  const [configuredSimpleFin, setConfiguredSimpleFin] = useState<
-    boolean | null
-  >(null);
+  const [configuredSimpleFin, setConfiguredSimpleFin] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const status = useSyncServerStatus();
 

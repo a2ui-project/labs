@@ -15,43 +15,35 @@
  */
 
 // @ts-strict-ignore
-import React, { useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useMemo, useState} from 'react';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { theme } from '@actual-app/components/theme';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {theme} from '@actual-app/components/theme';
 import type {
   balanceTypeOpType,
   DataEntity,
   LegendEntity,
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ReferenceLine,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import {css} from '@emotion/css';
+import {CartesianGrid, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis} from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { getCustomTick } from '#components/reports/getCustomTick';
-import { numberFormatterTooltip } from '#components/reports/numberFormatter';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {FinancialText} from '#components/FinancialText';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {getCustomTick} from '#components/reports/getCustomTick';
+import {numberFormatterTooltip} from '#components/reports/numberFormatter';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
-import { showActivity } from './showActivity';
-import { computeTrendLines } from './util/computeTrendLines';
+import {showActivity} from './showActivity';
+import {computeTrendLines} from './util/computeTrendLines';
 
 type PayloadItem = {
   dataKey: string;
@@ -72,21 +64,14 @@ type CustomTooltipProps = {
   format: (value: unknown, type: FormatType) => string;
 };
 
-const CustomTooltip = ({
-  compact,
-  tooltip,
-  legend,
-  active,
-  payload,
-  format,
-}: CustomTooltipProps) => {
-  const { t } = useTranslation();
+const CustomTooltip = ({compact, tooltip, legend, active, payload, format}: CustomTooltipProps) => {
+  const {t} = useTranslation();
 
   const dataKeyToName = useMemo(() => {
     return new Map(legend.map(entry => [entry.dataKey, entry.name]));
   }, [legend]);
 
-  const { sumTotals, items } = useMemo(() => {
+  const {sumTotals, items} = useMemo(() => {
     return (payload ?? [])
       .sort((p1: PayloadItem, p2: PayloadItem) => p2.value - p1.value)
       .reduce(
@@ -116,10 +101,10 @@ const CustomTooltip = ({
         })}
       >
         <div>
-          <div style={{ marginBottom: 10 }}>
+          <div style={{marginBottom: 10}}>
             <strong>{payload[0].payload.date}</strong>
           </div>
-          <div style={{ lineHeight: 1.5 }}>
+          <div style={{lineHeight: 1.5}}>
             {items.map((p: PayloadItem, index: number) => {
               const displayName = dataKeyToName.get(p.dataKey) ?? p.dataKey;
               return (
@@ -127,15 +112,10 @@ const CustomTooltip = ({
                   <AlignedText
                     key={index}
                     left={displayName}
-                    right={
-                      <FinancialText>
-                        {format(p.value, 'financial')}
-                      </FinancialText>
-                    }
+                    right={<FinancialText>{format(p.value, 'financial')}</FinancialText>}
                     style={{
                       color: p.color,
-                      textDecoration:
-                        tooltip === p.dataKey ? 'underline' : 'inherit',
+                      textDecoration: tooltip === p.dataKey ? 'underline' : 'inherit',
                     }}
                   />
                 )
@@ -144,9 +124,7 @@ const CustomTooltip = ({
             {payload.length > 5 && compact && '...'}
             <AlignedText
               left={t('Total')}
-              right={
-                <FinancialText>{format(sumTotals, 'financial')}</FinancialText>
-              }
+              right={<FinancialText>{format(sumTotals, 'financial')}</FinancialText>}
               style={{
                 fontWeight: 600,
               }}
@@ -187,8 +165,8 @@ export function LineGraph({
 }: LineGraphProps) {
   const animationProps = useRechartsAnimation();
   const navigate = useNavigate();
-  const { data: categories = { grouped: [], list: [] } } = useCategories();
-  const { data: accounts = [] } = useAccounts();
+  const {data: categories = {grouped: [], list: []}} = useCategories();
+  const {data: accounts = []} = useAccounts();
   const privacyMode = usePrivacyMode();
   const format = useFormat();
 
@@ -201,9 +179,7 @@ export function LineGraph({
 
   const leftMargin = Math.abs(largestValue) > 1000000 ? 20 : 5;
 
-  const trendLines = showTrendLines
-    ? computeTrendLines(data.intervalData, data.legend)
-    : [];
+  const trendLines = showTrendLines ? computeTrendLines(data.intervalData, data.legend) : [];
 
   const onShowActivity = (id, payload, uncategorizedId) => {
     showActivity({
@@ -228,20 +204,20 @@ export function LineGraph({
     <Container
       style={{
         ...style,
-        ...(compact && { height: 'auto' }),
+        ...(compact && {height: 'auto'}),
       }}
     >
       {(width, height) =>
         data && (
           <div>
-            {!compact && <div style={{ marginTop: '15px' }} />}
+            {!compact && <div style={{marginTop: '15px'}} />}
             <LineChart
               responsive
               width={width}
               height={height}
               data={data.intervalData}
-              margin={{ top: 10, right: 10, left: leftMargin, bottom: 10 }}
-              style={{ cursor: pointer }}
+              margin={{top: 10, right: 10, left: leftMargin, bottom: 10}}
+              style={{cursor: pointer}}
             >
               {showTooltip && (
                 <Tooltip
@@ -261,20 +237,17 @@ export function LineGraph({
               {!compact && (
                 <XAxis
                   dataKey="date"
-                  tick={{ fill: theme.pageText }}
-                  tickLine={{ stroke: theme.pageText }}
+                  tick={{fill: theme.pageText}}
+                  tickLine={{stroke: theme.pageText}}
                 />
               )}
               {!compact && (
                 <YAxis
                   tickFormatter={value =>
-                    getCustomTick(
-                      format(value, 'financial-no-decimals'),
-                      privacyMode,
-                    )
+                    getCustomTick(format(value, 'financial-no-decimals'), privacyMode)
                   }
-                  tick={{ fill: theme.pageText }}
-                  tickLine={{ stroke: theme.pageText }}
+                  tick={{fill: theme.pageText}}
+                  tickLine={{stroke: theme.pageText}}
                   tickSize={0}
                 />
               )}
@@ -312,11 +285,7 @@ export function LineGraph({
                       onClick: (e, payload) =>
                         ((compact && showTooltip) || !compact) &&
                         groupBy !== 'Interval' &&
-                        onShowActivity(
-                          entry.id,
-                          payload,
-                          entry.uncategorizedId,
-                        ),
+                        onShowActivity(entry.id, payload, entry.uncategorizedId),
                     }}
                   />
                 );

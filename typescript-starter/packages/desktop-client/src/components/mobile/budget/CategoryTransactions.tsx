@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 
-import { q } from '@actual-app/core/shared/query';
-import { isPreviewId } from '@actual-app/core/shared/transactions';
-import type {
-  CategoryEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import {isPreviewId} from '@actual-app/core/shared/transactions';
+import type {CategoryEntity, TransactionEntity} from '@actual-app/core/types/models';
 
-import { TransactionListWithBalances } from '#components/mobile/transactions/TransactionListWithBalances';
-import { SchedulesProvider } from '#hooks/useCachedSchedules';
-import { useCategoryPreviewTransactions } from '#hooks/useCategoryPreviewTransactions';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { useTransactions } from '#hooks/useTransactions';
-import { useTransactionsSearch } from '#hooks/useTransactionsSearch';
+import {TransactionListWithBalances} from '#components/mobile/transactions/TransactionListWithBalances';
+import {SchedulesProvider} from '#hooks/useCachedSchedules';
+import {useCategoryPreviewTransactions} from '#hooks/useCategoryPreviewTransactions';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {useTransactions} from '#hooks/useTransactions';
+import {useTransactionsSearch} from '#hooks/useTransactionsSearch';
 import * as bindings from '#spreadsheet/bindings';
 
 type CategoryTransactionsProps = {
@@ -37,10 +34,7 @@ type CategoryTransactionsProps = {
   month: string;
 };
 
-export function CategoryTransactions({
-  category,
-  month,
-}: CategoryTransactionsProps) {
+export function CategoryTransactions({category, month}: CategoryTransactionsProps) {
   const schedulesQuery = useMemo(() => q('schedules').select('*'), []);
 
   return (
@@ -55,24 +49,19 @@ type TransactionListWithPreviewsProps = {
   month: string;
 };
 
-function TransactionListWithPreviews({
-  category,
-  month,
-}: TransactionListWithPreviewsProps) {
+function TransactionListWithPreviews({category, month}: TransactionListWithPreviewsProps) {
   const navigate = useNavigate();
 
   const baseTransactionsQuery = useCallback(
     () =>
       q('transactions')
-        .options({ splits: 'inline' })
+        .options({splits: 'inline'})
         .filter(getCategoryMonthFilter(category, month))
         .select('*'),
     [category, month],
   );
 
-  const [transactionsQuery, setTransactionsQuery] = useState(
-    baseTransactionsQuery(),
-  );
+  const [transactionsQuery, setTransactionsQuery] = useState(baseTransactionsQuery());
   const {
     transactions,
     isPending: isTransactionsLoading,
@@ -84,7 +73,7 @@ function TransactionListWithPreviews({
 
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
 
-  const { isSearching, search: onSearch } = useTransactionsSearch({
+  const {isSearching, search: onSearch} = useTransactionsSearch({
     updateQuery: setTransactionsQuery,
     resetQuery: () => setTransactionsQuery(baseTransactionsQuery()),
     dateFormat,
@@ -102,12 +91,9 @@ function TransactionListWithPreviews({
 
   const balance = bindings.categoryBalance(category.id, month);
   const balanceCleared = bindings.categoryBalanceCleared(category.id, month);
-  const balanceUncleared = bindings.categoryBalanceUncleared(
-    category.id,
-    month,
-  );
+  const balanceUncleared = bindings.categoryBalanceUncleared(category.id, month);
 
-  const { previewTransactions, isLoading: isPreviewTransactionsLoading } =
+  const {previewTransactions, isLoading: isPreviewTransactionsLoading} =
     useCategoryPreviewTransactions({
       categoryId: category.id,
       month,
@@ -120,9 +106,7 @@ function TransactionListWithPreviews({
   return (
     <TransactionListWithBalances
       isLoading={
-        isSearching
-          ? isTransactionsLoading
-          : isTransactionsLoading || isPreviewTransactionsLoading
+        isSearching ? isTransactionsLoading : isTransactionsLoading || isPreviewTransactionsLoading
       }
       transactions={transactionsToDisplay}
       balance={balance}
@@ -140,6 +124,6 @@ function TransactionListWithPreviews({
 function getCategoryMonthFilter(category: CategoryEntity, month: string) {
   return {
     category: category.id,
-    date: { $transform: '$month', $eq: month },
+    date: {$transform: '$month', $eq: month},
   };
 }

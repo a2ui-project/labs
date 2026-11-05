@@ -16,7 +16,7 @@
 
 import path from 'node:path';
 
-import type { CapacitorConfig } from '@capacitor/cli';
+import type {CapacitorConfig} from '@capacitor/cli';
 
 const actualAppWebBuildPath = path.join(
   path.dirname(require.resolve('@actual-app/web/package.json')),
@@ -48,8 +48,7 @@ const devConfig: CapacitorConfig = {
 };
 
 // NODE_ENV is unset in development, 'production' in production builds.
-const config: CapacitorConfig =
-  process.env.NODE_ENV === 'production' ? baseConfig : devConfig;
+const config: CapacitorConfig = process.env.NODE_ENV === 'production' ? baseConfig : devConfig;
 
 // https://capacitorjs.com/docs/config
 // eslint-disable-next-line import/no-default-export

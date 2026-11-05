@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-import { Dialog, DialogTrigger } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import {Dialog, DialogTrigger} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button, ButtonWithLoading } from '@actual-app/components/button';
+import {Button, ButtonWithLoading} from '@actual-app/components/button';
 import {
   SvgCheveronDown,
   SvgCheveronRight,
   SvgDotsHorizontalTriple,
 } from '@actual-app/components/icons/v1';
-import { Menu } from '@actual-app/components/menu';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { Popover } from '@actual-app/components/popover';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Menu} from '@actual-app/components/menu';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {Popover} from '@actual-app/components/popover';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { Warning } from '#components/alerts';
-import { Link } from '#components/common/Link';
+import {Warning} from '#components/alerts';
+import {Link} from '#components/common/Link';
 
-import type { BuiltInBankSyncProviderState } from './useBuiltInBankSyncProviders';
+import type {BuiltInBankSyncProviderState} from './useBuiltInBankSyncProviders';
 
 type BuiltInProvidersProps = {
   providers: BuiltInBankSyncProviderState[];
@@ -50,11 +50,11 @@ export function BuiltInProviders({
   isCollapsed = false,
   onToggleCollapse,
 }: BuiltInProvidersProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const Cheveron = isCollapsed ? SvgCheveronRight : SvgCheveronDown;
   const title = (
-    <Text style={{ fontSize: 20, fontWeight: 600 }}>
+    <Text style={{fontSize: 20, fontWeight: 600}}>
       <Trans>Providers</Trans>
     </Text>
   );
@@ -65,34 +65,34 @@ export function BuiltInProviders({
         variant="bare"
         aria-expanded={false}
         onPress={onToggleCollapse}
-        style={{ alignSelf: 'flex-start' }}
+        style={{alignSelf: 'flex-start'}}
       >
         {title}
-        <Cheveron width={20} height={20} style={{ marginLeft: 5 }} />
+        <Cheveron width={20} height={20} style={{marginLeft: 5}} />
       </Button>
     );
   }
 
   return (
-    <View style={{ gap: 12 }}>
-      <View style={{ gap: 4 }}>
+    <View style={{gap: 12}}>
+      <View style={{gap: 4}}>
         {onToggleCollapse ? (
           <Button
             variant="bare"
             aria-expanded
             onPress={onToggleCollapse}
-            style={{ alignSelf: 'flex-start' }}
+            style={{alignSelf: 'flex-start'}}
           >
             {title}
-            <Cheveron width={20} height={20} style={{ marginLeft: 5 }} />
+            <Cheveron width={20} height={20} style={{marginLeft: 5}} />
           </Button>
         ) : (
           title
         )}
-        <Paragraph style={{ fontSize: 15, color: theme.pageTextSubdued }}>
+        <Paragraph style={{fontSize: 15, color: theme.pageTextSubdued}}>
           <Trans>
-            Set up a bank sync provider, then link new accounts or connect an
-            existing Actual account.
+            Set up a bank sync provider, then link new accounts or connect an existing Actual
+            account.
           </Trans>
         </Paragraph>
       </View>
@@ -106,10 +106,10 @@ export function BuiltInProviders({
             backgroundColor: theme.tableBackground,
           }}
         >
-          <Button isDisabled style={{ padding: '10px 0', fontSize: 15 }}>
+          <Button isDisabled style={{padding: '10px 0', fontSize: 15}}>
             <Trans>Set up bank sync</Trans>
           </Button>
-          <Paragraph style={{ fontSize: 15, marginTop: 10 }}>
+          <Paragraph style={{fontSize: 15, marginTop: 10}}>
             <Trans>
               Connect to an Actual server to set up{' '}
               <Link
@@ -165,9 +165,7 @@ export function BuiltInProviders({
                       flexWrap: 'wrap',
                     }}
                   >
-                    <Text style={{ fontSize: 17, fontWeight: 600 }}>
-                      {provider.displayName}
-                    </Text>
+                    <Text style={{fontSize: 17, fontWeight: 600}}>{provider.displayName}</Text>
                     {provider.isConfigured && provider.credentialSource && (
                       <Text
                         style={{
@@ -190,9 +188,7 @@ export function BuiltInProviders({
                   </View>
                   <Text
                     style={{
-                      color: provider.isConfigured
-                        ? theme.noticeTextDark
-                        : theme.pageTextSubdued,
+                      color: provider.isConfigured ? theme.noticeTextDark : theme.pageTextSubdued,
                       fontSize: 13,
                       fontWeight: 500,
                     }}
@@ -216,7 +212,7 @@ export function BuiltInProviders({
                       <SvgDotsHorizontalTriple
                         width={15}
                         height={15}
-                        style={{ transform: 'rotateZ(90deg)' }}
+                        style={{transform: 'rotateZ(90deg)'}}
                       />
                     </Button>
 
@@ -257,11 +253,7 @@ export function BuiltInProviders({
                   isDisabled={!provider.canConfigure}
                   onPress={() => provider.onConfigure()}
                 >
-                  {provider.isConfigured ? (
-                    <Trans>Edit setup</Trans>
-                  ) : (
-                    <Trans>Set up</Trans>
-                  )}
+                  {provider.isConfigured ? <Trans>Edit setup</Trans> : <Trans>Set up</Trans>}
                 </Button>
                 <ButtonWithLoading
                   variant="primary"
@@ -275,10 +267,9 @@ export function BuiltInProviders({
               {provider.supportsPerBudgetFile &&
                 provider.credentialSource === 'global' &&
                 !provider.canConfigure && (
-                  <Text style={{ color: theme.pageTextSubdued, fontSize: 13 }}>
+                  <Text style={{color: theme.pageTextSubdued, fontSize: 13}}>
                     <Trans>
-                      Reset credentials before setting credentials for this
-                      budget file.
+                      Reset credentials before setting credentials for this budget file.
                     </Trans>
                   </Text>
                 )}
@@ -291,14 +282,13 @@ export function BuiltInProviders({
         <Warning>
           {permissionWarning === 'file-owner' ? (
             <Trans>
-              You don&apos;t have the required permissions to configure all bank
-              sync providers. You can set up Pluggy.ai because you are the owner
-              of this budget file.
+              You don&apos;t have the required permissions to configure all bank sync providers. You
+              can set up Pluggy.ai because you are the owner of this budget file.
             </Trans>
           ) : (
             <Trans>
-              You don&apos;t have the required permissions to configure bank
-              sync providers. Please contact an Admin.
+              You don&apos;t have the required permissions to configure bank sync providers. Please
+              contact an Admin.
             </Trans>
           )}
         </Warning>

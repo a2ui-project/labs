@@ -36,7 +36,7 @@ jobs:
         uses: aidan-mundy/react-to-issue@109392cac5159c2df6c47c8ab3b5d6b708852fe5 # v1.1.2
         with:
           issue-number: ${{ github.event.issue.number }}
-          reactions: '+1'
+          reactions: "+1"
       - name: Create comment
         env:
           COMMENT_BODY: |

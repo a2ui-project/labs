@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
 
-import type { ContextMenuItem } from './types';
+import type {ContextMenuItem} from './types';
 
 const sliceName = 'contextMenu';
 
 type ContextMenuState = {
   isOpen: boolean;
-  position: { x: number; y: number };
+  position: {x: number; y: number};
   items: ContextMenuItem[];
 };
 
 const initialState: ContextMenuState = {
   isOpen: false,
-  position: { x: 0, y: 0 },
+  position: {x: 0, y: 0},
   items: [],
 };
 
@@ -67,6 +67,5 @@ const contextMenuSlice = createSlice({
   },
 });
 
-export const { name, reducer, getInitialState } = contextMenuSlice;
-export const { setContextMenuPosition, closeContextMenu, addItems } =
-  contextMenuSlice.actions;
+export const {name, reducer, getInitialState} = contextMenuSlice;
+export const {setContextMenuPosition, closeContextMenu, addItems} = contextMenuSlice.actions;

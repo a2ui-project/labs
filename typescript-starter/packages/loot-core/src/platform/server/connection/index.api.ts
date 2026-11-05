@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { logger } from '#platform/server/log';
-import type { ServerEvents } from '#types/server-events';
+import {logger} from '#platform/server/log';
+import type {ServerEvents} from '#types/server-events';
 
 import type * as T from './index-types';
 

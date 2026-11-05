@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { groupById } from '@actual-app/core/shared/util';
-import { useQuery } from '@tanstack/react-query';
+import {groupById} from '@actual-app/core/shared/util';
+import {useQuery} from '@tanstack/react-query';
 
-import { categoryQueries } from '#budget';
+import {categoryQueries} from '#budget';
 
 export function useCategories() {
   return useQuery(categoryQueries.list());

@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useRef, useState } from 'react';
-import type { CSSProperties, MouseEvent } from 'react';
+import React, {useCallback, useRef, useState} from 'react';
+import type {CSSProperties, MouseEvent} from 'react';
 
-import { Popover } from '@actual-app/components/popover';
-import { View } from '@actual-app/components/view';
+import {Popover} from '@actual-app/components/popover';
+import {View} from '@actual-app/components/view';
 
-import { CoverMenu } from '#components/budget/envelope/CoverMenu';
-import { useEnvelopeSheetValue } from '#components/budget/envelope/EnvelopeBudgetComponents';
-import { HoldMenu } from '#components/budget/envelope/HoldMenu';
-import { TransferMenu } from '#components/budget/envelope/TransferMenu';
-import { useFormat } from '#hooks/useFormat';
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {CoverMenu} from '#components/budget/envelope/CoverMenu';
+import {useEnvelopeSheetValue} from '#components/budget/envelope/EnvelopeBudgetComponents';
+import {HoldMenu} from '#components/budget/envelope/HoldMenu';
+import {TransferMenu} from '#components/budget/envelope/TransferMenu';
+import {useFormat} from '#hooks/useFormat';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
-import { ToBudgetAmount } from './ToBudgetAmount';
-import { ToBudgetMenu } from './ToBudgetMenu';
+import {ToBudgetAmount} from './ToBudgetAmount';
+import {ToBudgetMenu} from './ToBudgetMenu';
 
 type ToBudgetProps = {
   month: string;
@@ -63,15 +63,12 @@ export function ToBudget({
     value: 0,
   });
   if (typeof availableValue !== 'number' && availableValue !== null) {
-    throw new Error(
-      'Expected availableValue to be a number but got ' + availableValue,
-    );
+    throw new Error('Expected availableValue to be a number but got ' + availableValue);
   }
 
   const [menuOpen, setMenuOpen] = useState(false);
-  const [position, setPosition] = useState({ crossOffset: 0, offset: 0 });
-  const resetPosition = (crossOffset = 0, offset = 0) =>
-    setPosition({ crossOffset, offset });
+  const [position, setPosition] = useState({crossOffset: 0, offset: 0});
+  const resetPosition = (crossOffset = 0, offset = 0) => setPosition({crossOffset, offset});
 
   const handleContextMenu = (e: MouseEvent) => {
     e.preventDefault();
@@ -109,7 +106,7 @@ export function ToBudget({
         placement="bottom"
         isOpen={menuOpen}
         onOpenChange={closeMenu}
-        style={{ width: 200, margin: 1 }}
+        style={{width: 200, margin: 1}}
         isNonModal
         {...position}
       >
@@ -131,7 +128,7 @@ export function ToBudget({
             <HoldMenu
               onClose={closeMenu}
               onSubmit={amount => {
-                onBudgetAction(month, 'hold', { amount });
+                onBudgetAction(month, 'hold', {amount});
               }}
             />
           )}

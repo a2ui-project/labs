@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { rebuild } from '@electron/rebuild';
+import {rebuild} from '@electron/rebuild';
 import copyFiles from 'copyfiles';
-import { Arch } from 'electron-builder';
-import type { AfterPackContext } from 'electron-builder';
+import {Arch} from 'electron-builder';
+import type {AfterPackContext} from 'electron-builder';
 
 /* The beforePackHook runs before packing the Electron app for an architecture
 We hook in here to build anything architecture dependent - such as beter-sqlite3
@@ -62,9 +62,7 @@ const beforePackHook = async (context: AfterPackContext) => {
     if (context.packager.platform.name === 'windows') {
       console.info(`Windows build - copying appx files...`);
 
-      await new Promise(resolve =>
-        copyFiles(['./appx/**/*', './build'], { error: true }, resolve),
-      );
+      await new Promise(resolve => copyFiles(['./appx/**/*', './build'], {error: true}, resolve));
 
       console.info(`Copied appx files!`);
     }

@@ -18,7 +18,7 @@
 // enforces the additive-only migration policy in CI. Nothing enforces
 // that policy at runtime — see `checkDatabaseValidity` for what the app
 // itself tolerates.
-import type { Database } from '@jlongster/sql.js';
+import type {Database} from '@jlongster/sql.js';
 
 import * as sqlite from '#platform/server/sqlite';
 
@@ -105,14 +105,14 @@ function checkClauses(sql: string): string[] {
 export type SchemaSnapshot = Map<string, TableSnapshot>;
 
 export function snapshotSchema(db: Database): SchemaSnapshot {
-  const tables = sqlite.runQuery<{ name: string; sql: string }>(
+  const tables = sqlite.runQuery<{name: string; sql: string}>(
     db,
     "SELECT name, sql FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
     [],
     true,
   );
   return new Map(
-    tables.map(({ name: table, sql }): [string, TableSnapshot] => {
+    tables.map(({name: table, sql}): [string, TableSnapshot] => {
       const columns = new Map(
         sqlite
           .runQuery<{
@@ -126,19 +126,12 @@ export function snapshotSchema(db: Database): SchemaSnapshot {
             // PRAGMA reports the DEFAULT as verbatim SQL text; an
             // explicit `DEFAULT NULL` comes back as the string "NULL",
             // which is not a usable default for a NOT NULL column
-            const rawDefault =
-              column.dflt_value == null
-                ? null
-                : normalizeSql(column.dflt_value);
-            const defaultValue =
-              rawDefault?.toUpperCase() === 'NULL' ? null : rawDefault;
+            const rawDefault = column.dflt_value == null ? null : normalizeSql(column.dflt_value);
+            const defaultValue = rawDefault?.toUpperCase() === 'NULL' ? null : rawDefault;
             return [
               column.name,
               {
-                required:
-                  column.notnull !== 0 &&
-                  defaultValue == null &&
-                  column.pk === 0,
+                required: column.notnull !== 0 && defaultValue == null && column.pk === 0,
                 notNull: column.notnull !== 0,
                 pk: column.pk !== 0,
                 type: normalizeSql(column.type).toLowerCase(),
@@ -149,7 +142,7 @@ export function snapshotSchema(db: Database): SchemaSnapshot {
       );
       const uniques = new Set(
         sqlite
-          .runQuery<{ name: string; unique: number; origin: string }>(
+          .runQuery<{name: string; unique: number; origin: string}>(
             db,
             `PRAGMA index_list("${table}")`,
             [],
@@ -158,18 +151,13 @@ export function snapshotSchema(db: Database): SchemaSnapshot {
           .filter(index => index.unique !== 0 && index.origin !== 'pk')
           .map(index =>
             sqlite
-              .runQuery<{ name: string }>(
-                db,
-                `PRAGMA index_info("${index.name}")`,
-                [],
-                true,
-              )
+              .runQuery<{name: string}>(db, `PRAGMA index_info("${index.name}")`, [], true)
               .map(column => column.name)
               .sort()
               .join(','),
           ),
       );
-      return [table, { columns, uniques, checks: checkClauses(sql) }];
+      return [table, {columns, uniques, checks: checkClauses(sql)}];
     }),
   );
 }
@@ -186,18 +174,16 @@ export function findAdditiveViolations(
 ): string[] {
   const violations: string[] = [];
 
-  for (const [table, { columns: beforeColumns }] of before) {
+  for (const [table, {columns: beforeColumns}] of before) {
     const afterColumns = after.get(table)?.columns;
     for (const name of beforeColumns.keys()) {
       if (!afterColumns?.has(name)) {
-        violations.push(
-          `column "${table}.${name}" (or its table) was removed or renamed`,
-        );
+        violations.push(`column "${table}.${name}" (or its table) was removed or renamed`);
       }
     }
   }
 
-  for (const [table, { columns: afterColumns, uniques, checks }] of after) {
+  for (const [table, {columns: afterColumns, uniques, checks}] of after) {
     const beforeTable = before.get(table);
 
     // The internal-table exemption applies only at creation; once a
@@ -212,21 +198,17 @@ export function findAdditiveViolations(
       const prev = beforeTable?.columns.get(name);
       if (!prev) {
         if (column.required) {
-          violations.push(
-            `new column "${table}.${name}" is NOT NULL without a DEFAULT`,
-          );
+          violations.push(`new column "${table}.${name}" is NOT NULL without a DEFAULT`);
         }
         continue;
       }
       // A table rebuild can change an existing column in place; any
       // attribute change breaks one side of the version skew
-      const changed = (
-        ['notNull', 'pk', 'type', 'defaultValue'] as const
-      ).filter(key => column[key] !== prev[key]);
+      const changed = (['notNull', 'pk', 'type', 'defaultValue'] as const).filter(
+        key => column[key] !== prev[key],
+      );
       if (changed.length > 0) {
-        violations.push(
-          `existing column "${table}.${name}" changed: ${changed.join(', ')}`,
-        );
+        violations.push(`existing column "${table}.${name}" changed: ${changed.join(', ')}`);
       }
     }
 
@@ -236,16 +218,12 @@ export function findAdditiveViolations(
     if (beforeTable) {
       for (const unique of uniques) {
         if (!beforeTable.uniques.has(unique)) {
-          violations.push(
-            `table "${table}" gained a UNIQUE constraint on (${unique})`,
-          );
+          violations.push(`table "${table}" gained a UNIQUE constraint on (${unique})`);
         }
       }
       for (const unique of beforeTable.uniques) {
         if (!uniques.has(unique)) {
-          violations.push(
-            `table "${table}" lost a UNIQUE constraint on (${unique})`,
-          );
+          violations.push(`table "${table}" lost a UNIQUE constraint on (${unique})`);
         }
       }
 
@@ -258,13 +236,9 @@ export function findAdditiveViolations(
       // Sync addresses rows by their `id` column (see `apply` in
       // #server/sync), so a new synced table needs exactly that as its
       // primary key — no other name, no composite keys
-      const pks = [...afterColumns]
-        .filter(([, c]) => c.pk)
-        .map(([name]) => name);
+      const pks = [...afterColumns].filter(([, c]) => c.pk).map(([name]) => name);
       if (pks.length !== 1 || pks[0] !== 'id') {
-        violations.push(
-          `new table "${table}" must have a single primary key named "id"`,
-        );
+        violations.push(`new table "${table}" must have a single primary key named "id"`);
       }
     }
   }

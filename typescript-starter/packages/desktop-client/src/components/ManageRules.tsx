@@ -15,53 +15,49 @@
  */
 
 // @ts-strict-ignore
-import React, { useEffect, useEffectEvent, useMemo, useState } from 'react';
-import type { Dispatch, SetStateAction } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useEffect, useEffectEvent, useMemo, useState} from 'react';
+import type {Dispatch, SetStateAction} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as undo from '@actual-app/core/platform/client/undo';
-import { getNormalisedString } from '@actual-app/core/shared/normalisation';
-import { q } from '@actual-app/core/shared/query';
-import type {
-  NewRuleEntity,
-  RuleEntity,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
+import {getNormalisedString} from '@actual-app/core/shared/normalisation';
+import {q} from '@actual-app/core/shared/query';
+import type {NewRuleEntity, RuleEntity, ScheduleEntity} from '@actual-app/core/types/models';
 
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { usePayees } from '#hooks/usePayees';
-import { useSchedules } from '#hooks/useSchedules';
-import { SelectedProvider, useSelected } from '#hooks/useSelected';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
-import { friendlyOp, mapField } from '#util/rule';
-import { describeSchedule } from '#util/schedule';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {usePayees} from '#hooks/usePayees';
+import {useSchedules} from '#hooks/useSchedules';
+import {SelectedProvider, useSelected} from '#hooks/useSelected';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
+import {friendlyOp, mapField} from '#util/rule';
+import {describeSchedule} from '#util/schedule';
 
-import { InfiniteScrollWrapper } from './common/InfiniteScrollWrapper';
-import { Link } from './common/Link';
-import { Search } from './common/Search';
-import { RulesHeader } from './rules/RulesHeader';
-import { RulesList } from './rules/RulesList';
+import {InfiniteScrollWrapper} from './common/InfiniteScrollWrapper';
+import {Link} from './common/Link';
+import {Search} from './common/Search';
+import {RulesHeader} from './rules/RulesHeader';
+import {RulesList} from './rules/RulesList';
 
 export type FilterData = {
-  payees?: Array<{ id: string; name: string }>;
-  categories?: Array<{ id: string; name: string }>;
-  accounts?: Array<{ id: string; name: string }>;
+  payees?: Array<{id: string; name: string}>;
+  categories?: Array<{id: string; name: string}>;
+  accounts?: Array<{id: string; name: string}>;
   schedules?: readonly ScheduleEntity[];
 };
 
 export function mapValue(
   field: string,
   value: unknown,
-  { payees = [], categories = [], accounts = [] }: Partial<FilterData>,
+  {payees = [], categories = [], accounts = []}: Partial<FilterData>,
 ) {
   if (!value) return '';
 
@@ -119,9 +115,7 @@ export function ruleToString(rule: RuleEntity, data: FilterData) {
       return [];
     }
   });
-  return (
-    (rule.stage || '') + ' ' + conditions.join(' ') + ' ' + actions.join(' ')
-  );
+  return (rule.stage || '') + ' ' + conditions.join(' ') + ' ' + actions.join(' ');
 }
 
 type ManageRulesProps = {
@@ -130,24 +124,20 @@ type ManageRulesProps = {
   setLoading?: Dispatch<SetStateAction<boolean>>;
 };
 
-export function ManageRules({
-  isModal,
-  payeeId,
-  setLoading = () => {},
-}: ManageRulesProps) {
-  const { t } = useTranslation();
+export function ManageRules({isModal, payeeId, setLoading = () => {}}: ManageRulesProps) {
+  const {t} = useTranslation();
 
   const [allRules, setAllRules] = useState<RuleEntity[]>([]);
   const [page, setPage] = useState(0);
   const [filter, setFilter] = useState('');
   const dispatch = useDispatch();
 
-  const { schedules = [] } = useSchedules({
+  const {schedules = []} = useSchedules({
     query: useMemo(() => q('schedules').select('*'), []),
   });
-  const { data: { list: categories } = { list: [] } } = useCategories();
-  const { data: payees } = usePayees();
-  const { data: accounts = [] } = useAccounts();
+  const {data: {list: categories} = {list: []}} = useCategories();
+  const {data: payees} = usePayees();
+  const {data: accounts = []} = useAccounts();
   const filterData = useMemo(
     () => ({
       payees,
@@ -206,7 +196,7 @@ export function ManageRules({
     }
 
     if (payeeId) {
-      undo.setUndoState('openModal', { name: 'manage-rules', options: {} });
+      undo.setUndoState('openModal', {name: 'manage-rules', options: {}});
     }
 
     void loadData();
@@ -226,18 +216,14 @@ export function ManageRules({
   const onDeleteSelected = async () => {
     setLoading(true);
 
-    const { someDeletionsFailed } = await send('rule-delete-all', [
-      ...selectedInst.items,
-    ]);
+    const {someDeletionsFailed} = await send('rule-delete-all', [...selectedInst.items]);
 
     if (someDeletionsFailed) {
-      alert(
-        t('Some rules were not deleted because they are linked to schedules.'),
-      );
+      alert(t('Some rules were not deleted because they are linked to schedules.'));
     }
 
     await loadRules();
-    selectedInst.dispatch({ type: 'select-none' });
+    selectedInst.dispatch({type: 'select-none'});
     setLoading(false);
   };
 
@@ -327,9 +313,7 @@ export function ManageRules({
             }}
           >
             <Text>
-              <Trans>
-                Rules are always run in the order that you see them.
-              </Trans>{' '}
+              <Trans>Rules are always run in the order that you see them.</Trans>{' '}
               <Link
                 variant="external"
                 to="https://actualbudget.org/docs/budgeting/rules/"
@@ -339,18 +323,14 @@ export function ManageRules({
               </Link>
             </Text>
           </View>
-          <View style={{ flex: 1 }} />
-          <Search
-            placeholder={t('Filter rules...')}
-            value={filter}
-            onChange={onSearchChange}
-          />
+          <View style={{flex: 1}} />
+          <Search placeholder={t('Filter rules...')} value={filter} onChange={onSearchChange} />
         </View>
         <View style={styles.tableContainer}>
           <RulesHeader />
           <InfiniteScrollWrapper loadMore={loadMore}>
             {filteredRules.length === 0 ? (
-              <EmptyMessage text={t('No rules')} style={{ marginTop: 15 }} />
+              <EmptyMessage text={t('No rules')} style={{marginTop: 15}} />
             ) : (
               <RulesList
                 rules={filteredRules}
@@ -371,11 +351,11 @@ export function ManageRules({
             flexShrink: 0,
           }}
         >
-          <SpaceBetween gap={10} style={{ justifyContent: 'flex-end' }}>
+          <SpaceBetween gap={10} style={{justifyContent: 'flex-end'}}>
             {selectedInst.items.size > 0 && (
               <Button onPress={onDeleteSelected}>
                 <Trans count={selectedInst.items.size}>
-                  Delete {{ count: selectedInst.items.size }} rules
+                  Delete {{count: selectedInst.items.size}} rules
                 </Trans>
               </Button>
             )}
@@ -389,7 +369,7 @@ export function ManageRules({
   );
 }
 
-function EmptyMessage({ text, style }) {
+function EmptyMessage({text, style}) {
   return (
     <View
       style={{

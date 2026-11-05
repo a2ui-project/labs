@@ -16,10 +16,10 @@
 
 // @ts-strict-ignore
 import * as connection from '@actual-app/core/platform/client/connection';
-import { q } from '@actual-app/core/shared/query';
-import { resetTracer, tracer } from '@actual-app/core/shared/test-helpers';
+import {q} from '@actual-app/core/shared/query';
+import {resetTracer, tracer} from '@actual-app/core/shared/test-helpers';
 
-import { liveQuery } from './liveQuery';
+import {liveQuery} from './liveQuery';
 
 function wait(n) {
   return new Promise(resolve => setTimeout(() => resolve(`wait(${n})`), n));
@@ -62,7 +62,7 @@ function mockPublishEvent(name, args) {
   }
 }
 
-async function mockSend(name, args, { delay }) {
+async function mockSend(name, args, {delay}) {
   switch (name) {
     case 'query':
       const query = args;
@@ -72,15 +72,15 @@ async function mockSend(name, args, { delay }) {
       if (delay) {
         await wait(delay);
       }
-      return { data: query.selectExpressions, dependencies: ['transactions'] };
+      return {data: query.selectExpressions, dependencies: ['transactions']};
     default:
       throw new Error(`Command not implemented: ${name}`);
   }
 }
 
-function mockServer({ send = mockSend, listen = mockListen }) {
+function mockServer({send = mockSend, listen = mockListen}) {
   vi.spyOn(connection, 'send').mockImplementation((name, args) => {
-    return send(name, args, { delay: 0 });
+    return send(name, args, {delay: 0});
   });
   vi.spyOn(connection, 'listen').mockImplementation(listen);
 }
@@ -93,7 +93,7 @@ function clearMockServer() {
 function mockBasicServer(delay?) {
   mockServer({
     send: (name, args) => {
-      return mockSend(name, args, { delay });
+      return mockSend(name, args, {delay});
     },
   });
 }
@@ -109,7 +109,7 @@ describe('liveQuery', () => {
     tracer.start();
 
     const query = q('transactions').select('*');
-    liveQuery(query, { onData: data => tracer.event('data', data) });
+    liveQuery(query, {onData: data => tracer.event('data', data)});
 
     await tracer.expect('server-query');
     await tracer.expect('data', ['*']);
@@ -131,7 +131,7 @@ describe('liveQuery', () => {
     const query = q('transactions').select('*');
     liveQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { onlySync: true },
+      options: {onlySync: true},
     });
 
     await tracer.expect('server-query');
@@ -154,7 +154,7 @@ describe('liveQuery', () => {
     const query = q('transactions').select('*');
     liveQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { onlySync: true },
+      options: {onlySync: true},
     });
 
     await tracer.expect('server-query');
@@ -181,7 +181,7 @@ describe('liveQuery', () => {
               requestId++;
             }
             await wait(500);
-            return { data: requestId, dependencies: ['transactions'] };
+            return {data: requestId, dependencies: ['transactions']};
           default:
             throw new Error(`Command not implemented: ${name}`);
         }
@@ -192,7 +192,7 @@ describe('liveQuery', () => {
     const query = q('transactions').select('*');
     const lq = liveQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { onlySync: true },
+      options: {onlySync: true},
     });
 
     // Users should never call `run` manually but we'll do it to
@@ -222,7 +222,7 @@ describe('liveQuery', () => {
 
     liveQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { onlySync: true },
+      options: {onlySync: true},
     });
 
     // Simulate a sync event
@@ -251,7 +251,7 @@ describe('liveQuery', () => {
 
     liveQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { onlySync: true },
+      options: {onlySync: true},
     });
 
     await tracer.expect('server-query');

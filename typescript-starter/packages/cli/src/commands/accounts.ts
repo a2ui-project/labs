@@ -15,11 +15,11 @@
  */
 
 import * as api from '@actual-app/api';
-import type { Command } from 'commander';
+import type {Command} from 'commander';
 
-import { withConnection } from '#connection';
-import { printOutput } from '#output';
-import { parseBoolFlag, parseIntFlag } from '#utils';
+import {withConnection} from '#connection';
+import {printOutput} from '#output';
+import {parseBoolFlag, parseIntFlag} from '#utils';
 
 export function registerAccountsCommand(program: Command) {
   const accounts = program.command('accounts').description('Manage accounts');
@@ -34,15 +34,11 @@ export function registerAccountsCommand(program: Command) {
         opts,
         async () => {
           const allAccounts = await api.getAccounts();
-          const accounts = allAccounts.filter(
-            a => cmdOpts.includeClosed || !a.closed,
-          );
+          const accounts = allAccounts.filter(a => cmdOpts.includeClosed || !a.closed);
           // Stable sort: on-budget first, off-budget second
           // (preserves API sort_order within each group)
           accounts.sort((a, b) => Number(a.offbudget) - Number(b.offbudget));
-          const balances = await Promise.all(
-            accounts.map(a => api.getAccountBalance(a.id)),
-          );
+          const balances = await Promise.all(accounts.map(a => api.getAccountBalance(a.id)));
           const output = accounts.map((a, i) => ({
             id: a.id,
             name: a.name,
@@ -52,7 +48,7 @@ export function registerAccountsCommand(program: Command) {
           }));
           printOutput(output, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -61,11 +57,7 @@ export function registerAccountsCommand(program: Command) {
     .description('Create a new account')
     .requiredOption('--name <name>', 'Account name')
     .option('--offbudget', 'Create as off-budget account', false)
-    .option(
-      '--balance <amount>',
-      'Initial balance in cents (e.g. 50000 = 500.00)',
-      '0',
-    )
+    .option('--balance <amount>', 'Initial balance in cents (e.g. 50000 = 500.00)', '0')
     .action(async cmdOpts => {
       const balance = parseIntFlag(cmdOpts.balance, '--balance');
       const opts = program.opts();
@@ -73,12 +65,12 @@ export function registerAccountsCommand(program: Command) {
         opts,
         async () => {
           const id = await api.createAccount(
-            { name: cmdOpts.name, offbudget: cmdOpts.offbudget },
+            {name: cmdOpts.name, offbudget: cmdOpts.offbudget},
             balance,
           );
-          printOutput({ id }, opts.format);
+          printOutput({id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -101,44 +93,32 @@ export function registerAccountsCommand(program: Command) {
         fields.offbudget = parseBoolFlag(cmdOpts.offbudget, '--offbudget');
       }
       if (Object.keys(fields).length === 0) {
-        throw new Error(
-          'No update fields provided. Use --name or --offbudget.',
-        );
+        throw new Error('No update fields provided. Use --name or --offbudget.');
       }
       await withConnection(
         opts,
         async () => {
           await api.updateAccount(id, fields);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
   accounts
     .command('close <id>')
     .description('Close an account')
-    .option(
-      '--transfer-account <id>',
-      'Transfer remaining balance to this account',
-    )
-    .option(
-      '--transfer-category <id>',
-      'Transfer remaining balance to this category',
-    )
+    .option('--transfer-account <id>', 'Transfer remaining balance to this account')
+    .option('--transfer-category <id>', 'Transfer remaining balance to this category')
     .action(async (id: string, cmdOpts) => {
       const opts = program.opts();
       await withConnection(
         opts,
         async () => {
-          await api.closeAccount(
-            id,
-            cmdOpts.transferAccount,
-            cmdOpts.transferCategory,
-          );
-          printOutput({ success: true, id }, opts.format);
+          await api.closeAccount(id, cmdOpts.transferAccount, cmdOpts.transferCategory);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -151,9 +131,9 @@ export function registerAccountsCommand(program: Command) {
         opts,
         async () => {
           await api.reopenAccount(id);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -166,9 +146,9 @@ export function registerAccountsCommand(program: Command) {
         opts,
         async () => {
           await api.deleteAccount(id);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -181,9 +161,7 @@ export function registerAccountsCommand(program: Command) {
       if (cmdOpts.cutoff) {
         const cutoffDate = new Date(cmdOpts.cutoff);
         if (Number.isNaN(cutoffDate.getTime())) {
-          throw new Error(
-            'Invalid cutoff date: expected a valid date (e.g. YYYY-MM-DD).',
-          );
+          throw new Error('Invalid cutoff date: expected a valid date (e.g. YYYY-MM-DD).');
         }
         cutoff = cutoffDate;
       }
@@ -192,9 +170,9 @@ export function registerAccountsCommand(program: Command) {
         opts,
         async () => {
           const balance = await api.getAccountBalance(id, cutoff);
-          printOutput({ id, balance }, opts.format);
+          printOutput({id, balance}, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 }

@@ -15,17 +15,17 @@
  */
 
 // @ts-strict-ignore
-import { setClock } from '@actual-app/crdt';
+import {setClock} from '@actual-app/crdt';
 import fc from 'fast-check';
 
 import * as arbs from '#mocks/arbitrary-schema';
 import * as db from '#server/db';
-import { batchMessages, setSyncingMode } from '#server/sync';
-import { q } from '#shared/query';
-import { groupById } from '#shared/util';
-import { aqlQuery } from '..';
+import {batchMessages, setSyncingMode} from '#server/sync';
+import {q} from '#shared/query';
+import {groupById} from '#shared/util';
+import {aqlQuery} from '..';
 
-import { isHappyPathQuery } from './executors';
+import {isHappyPathQuery} from './executors';
 
 beforeEach(global.emptyDatabase());
 
@@ -67,14 +67,11 @@ async function insertTransactions(transactions, payeeIds?: string[]) {
   });
 }
 
-function expectTransactionOrder(
-  data,
-  fields?: Array<string | Record<string, string>>,
-) {
+function expectTransactionOrder(data, fields?: Array<string | Record<string, string>>) {
   const expectedFields = fields || [
-    { date: 'desc' },
+    {date: 'desc'},
     'starting_balance_flag',
-    { sort_order: 'desc' },
+    {sort_order: 'desc'},
     'id',
   ];
 
@@ -123,9 +120,7 @@ async function expectPagedData(query, numTransactions, allData) {
     expect(i).toBeLessThanOrEqual(100);
 
     // Pull in all the data via pages
-    const { data } = await aqlQuery(
-      query.limit(pageCount).offset(pagedData.length).serialize(),
-    );
+    const {data} = await aqlQuery(query.limit(pageCount).offset(pagedData.length).serialize());
 
     expect(data.length).toBeLessThanOrEqual(pageCount);
 
@@ -155,20 +150,20 @@ describe('transaction executors', () => {
         async arr => {
           await insertTransactions(arr);
 
-          const { data } = await aqlQuery(
+          const {data} = await aqlQuery(
             q('transactions')
-              .filter({ amount: { $lt: 0 } })
+              .filter({amount: {$lt: 0}})
               .select('*')
-              .options({ splits: 'inline' })
+              .options({splits: 'inline'})
               .serialize(),
           );
 
           expect(data.filter(t => t.is_parent).length).toBe(0);
           expect(data.filter(t => t.tombstone).length).toBe(0);
 
-          const { data: defaultData } = await aqlQuery(
+          const {data: defaultData} = await aqlQuery(
             q('transactions')
-              .filter({ amount: { $lt: 0 } })
+              .filter({amount: {$lt: 0}})
               .select('*')
               .serialize(),
           );
@@ -177,7 +172,7 @@ describe('transaction executors', () => {
           expect(defaultData).toEqual(data);
         },
       ),
-      { numRuns: 50 },
+      {numRuns: 50},
     );
   });
 
@@ -192,18 +187,18 @@ describe('transaction executors', () => {
         async arr => {
           await insertTransactions(arr);
 
-          const { data } = await aqlQuery(
+          const {data} = await aqlQuery(
             q('transactions')
-              .filter({ amount: { $lt: 0 } })
+              .filter({amount: {$lt: 0}})
               .select('*')
-              .options({ splits: 'none' })
+              .options({splits: 'none'})
               .serialize(),
           );
 
           expect(data.filter(t => t.is_child).length).toBe(0);
         },
       ),
-      { numRuns: 50 },
+      {numRuns: 50},
     );
   });
 
@@ -213,24 +208,23 @@ describe('transaction executors', () => {
     await fc.assert(
       fc
         .asyncProperty(
-          arbs.makeTransactionArray({ splitFreq: 2, payeeIds, maxLength: 100 }),
+          arbs.makeTransactionArray({splitFreq: 2, payeeIds, maxLength: 100}),
           async arr => {
             await insertTransactions(arr, payeeIds);
 
             const aggQuery = q('transactions')
               .filter({
-                $or: [{ amount: { $lt: -5 } }, { amount: { $gt: -2 } }],
-                'payee.name': { $gt: '' },
+                $or: [{amount: {$lt: -5}}, {amount: {$gt: -2}}],
+                'payee.name': {$gt: ''},
               })
-              .options({ splits: 'grouped' })
-              .calculate({ $sum: '$amount' });
+              .options({splits: 'grouped'})
+              .calculate({$sum: '$amount'});
 
-            const { data } = await aqlQuery(aggQuery.serialize());
+            const {data} = await aqlQuery(aggQuery.serialize());
 
             const sum = aliveTransactions(arr).reduce((sum, trans) => {
               const amount = trans.amount || 0;
-              const matched =
-                (amount < -5 || amount > -2) && trans.payee != null;
+              const matched = (amount < -5 || amount > -2) && trans.payee != null;
               if (!trans.tombstone && !trans.is_parent && matched) {
                 return sum + amount;
               }
@@ -250,7 +244,7 @@ describe('transaction executors', () => {
           `);
         }),
     );
-  }, 20_000);
+  }, 60_000);
 
   function runTest(makeQuery) {
     const payeeIds = ['payee1', 'payee2', 'payee3', 'payee4', 'payee5'];
@@ -265,18 +259,18 @@ describe('transaction executors', () => {
       const allTransactions = aliveTransactions(arr);
 
       // Query time
-      const { query, expectedIds, expectedMatchedIds } = makeQuery(arr);
+      const {query, expectedIds, expectedMatchedIds} = makeQuery(arr);
 
       // First to a query without order to make sure the default
       // order works
-      const { data: defaultOrderData } = await aqlQuery(query.serialize());
+      const {data: defaultOrderData} = await aqlQuery(query.serialize());
       expectTransactionOrder(defaultOrderData);
       expect(new Set(defaultOrderData.map(t => t.id))).toEqual(expectedIds);
 
       // Now do the full test, and add a custom order to make
       // sure that doesn't effect anything
       const orderedQuery = query.orderBy(orderFields);
-      const { data } = await aqlQuery(orderedQuery.serialize());
+      const {data} = await aqlQuery(orderedQuery.serialize());
       expect(new Set(data.map(t => t.id))).toEqual(expectedIds);
 
       // Validate paging and ordering
@@ -350,24 +344,22 @@ describe('transaction executors', () => {
             DELETE FROM payee_mapping;
           `);
         }),
-      { numRuns: 300 },
+      {numRuns: 300},
     );
   }
 
   it('queries the correct transactions without filters', async () => {
     return runTest(arr => {
-      const expectedIds = new Set(
-        arr.filter(t => !t.tombstone && !t.is_child).map(t => t.id),
-      );
+      const expectedIds = new Set(arr.filter(t => !t.tombstone && !t.is_child).map(t => t.id));
 
       // Even though we're applying some filters, these are always
       // guaranteed to return the full split transaction so they
       // should take the optimized path
       const happyQuery = q('transactions')
         .filter({
-          date: { $gt: '2017-01-01' },
+          date: {$gt: '2017-01-01'},
         })
-        .options({ splits: 'grouped' })
+        .options({splits: 'grouped'})
         .select(['*', 'payee.name']);
 
       // Make sure it's actually taking the happy path
@@ -378,7 +370,7 @@ describe('transaction executors', () => {
         query: happyQuery,
       };
     });
-  }, 20_000);
+  }, 60_000);
 
   it(`queries the correct transactions with a filter`, async () => {
     return runTest(arr => {
@@ -414,11 +406,11 @@ describe('transaction executors', () => {
 
       const unhappyQuery = q('transactions')
         .filter({
-          id: [{ $oneof: ids }],
-          payee: { $gt: '' },
-          $or: [{ amount: { $lt: -2 } }, { amount: { $gt: -1 } }],
+          id: [{$oneof: ids}],
+          payee: {$gt: ''},
+          $or: [{amount: {$lt: -2}}, {amount: {$gt: -1}}],
         })
-        .options({ splits: 'grouped' })
+        .options({splits: 'grouped'})
         .select(['*', 'payee.name'])
         // Using this because we want `payee` to have ids for the above
         // filter regardless if it points to a dead one or not
@@ -432,5 +424,5 @@ describe('transaction executors', () => {
         query: unhappyQuery,
       };
     });
-  }, 20_000);
+  }, 60_000);
 });

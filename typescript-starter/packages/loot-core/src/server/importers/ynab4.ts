@@ -15,16 +15,16 @@
  */
 
 // @ts-strict-ignore
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { logger } from '#platform/server/log';
-import { send } from '#server/main-app';
-import { safeUnzip } from '#server/util/zip';
+import {logger} from '#platform/server/log';
+import {send} from '#server/main-app';
+import {safeUnzip} from '#server/util/zip';
 import * as monthUtils from '#shared/months';
-import { amountToInteger, groupBy, sortByKey } from '#shared/util';
+import {amountToInteger, groupBy, sortByKey} from '#shared/util';
 
-import { runImportSteps } from './progress';
-import type { ImportTick } from './progress';
+import {runImportSteps} from './progress';
+import type {ImportTick} from './progress';
 import type * as YNAB4 from './ynab4-types';
 
 // Importer
@@ -84,10 +84,7 @@ async function importCategories(
         }
 
         if (masterCategory.subCategories) {
-          const subCategories = sortByKey(
-            masterCategory.subCategories,
-            'sortableIndex',
-          );
+          const subCategories = sortByKey(masterCategory.subCategories, 'sortableIndex');
           subCategories.reverse();
 
           // This can't be done in parallel because sort order depends
@@ -132,11 +129,7 @@ async function importCategories(
   );
 }
 
-async function importPayees(
-  data: YNAB4.YFull,
-  entityIdMap: Map<string, string>,
-  tick: ImportTick,
-) {
+async function importPayees(data: YNAB4.YFull, entityIdMap: Map<string, string>, tick: ImportTick) {
   for (const payee of data.payees) {
     if (!payee.isTombstone) {
       const id = await send('api/payee-create', {
@@ -160,19 +153,14 @@ export async function importTransactions(
   tick: ImportTick,
 ) {
   const categories = await send('api/categories-get');
-  const incomeCategoryId: string = categories.find(
-    cat => cat.name === 'Income',
-  ).id;
+  const incomeCategoryId: string = categories.find(cat => cat.name === 'Income').id;
   const accounts = await send('api/accounts-get');
   const payees = await send('api/payees-get');
 
   function getCategory(id: string) {
     if (id == null || id === 'Category/__Split__') {
       return null;
-    } else if (
-      id === 'Category/__ImmediateIncome__' ||
-      id === 'Category/__DeferredIncome__'
-    ) {
+    } else if (id === 'Category/__ImmediateIncome__' || id === 'Category/__DeferredIncome__') {
       return incomeCategoryId;
     }
     return entityIdMap.get(id);
@@ -218,19 +206,15 @@ export async function importTransactions(
             let payee = null;
             let imported_payee = null;
             if (transferId) {
-              payee = payees.find(
-                p => p.transfer_acct === entityIdMap.get(t.targetAccountId),
-              ).id;
+              payee = payees.find(p => p.transfer_acct === entityIdMap.get(t.targetAccountId)).id;
             } else {
               payee = entityIdMap.get(t.payeeId);
-              imported_payee = data.payees.find(
-                p => p.entityId === t.payeeId,
-              )?.name;
+              imported_payee = data.payees.find(p => p.entityId === t.payeeId)?.name;
             }
 
             return {
               transfer_id: transferId,
-              ...(payee != null ? { payee } : {}),
+              ...(payee != null ? {payee} : {}),
               imported_payee,
             };
           }
@@ -243,9 +227,7 @@ export async function importTransactions(
               : getCategory(transaction.categoryId),
             date: transaction.date,
             notes: transaction.memo || null,
-            cleared:
-              transaction.cleared === 'Cleared' ||
-              transaction.cleared === 'Reconciled',
+            cleared: transaction.cleared === 'Cleared' || transaction.cleared === 'Reconciled',
             reconciled: transaction.cleared === 'Reconciled',
             ...transferProperties(transaction),
 
@@ -276,17 +258,13 @@ export async function importTransactions(
       });
       tick(
         toImport.length,
-        data.accounts.find(account => account.entityId === accountId)
-          ?.accountName,
+        data.accounts.find(account => account.entityId === accountId)?.accountName,
       );
     }),
   );
 }
 
-function fillInBudgets(
-  data: YNAB4.YFull,
-  categoryBudgets: YNAB4.MonthlySubCategoryBudget[],
-) {
+function fillInBudgets(data: YNAB4.YFull, categoryBudgets: YNAB4.MonthlySubCategoryBudget[]) {
   // YNAB only contains entries for categories that have been actually
   // budgeted. That would be fine except that we need to set the
   // "carryover" flag on each month when carrying debt across months.
@@ -376,10 +354,7 @@ function estimateRecentness(str: string) {
   }, 0);
 }
 
-function findLatestDevice(
-  zipped: Record<string, Uint8Array>,
-  entries: string[],
-): string {
+function findLatestDevice(zipped: Record<string, Uint8Array>, entries: string[]): string {
   let devices = entries
     .map(entry => {
       const contents = Buffer.from(zipped[entry]).toString('utf8');
@@ -503,17 +478,13 @@ export function parseFile(buffer: Buffer): YNAB4.YFull {
   const meta = JSON.parse(metaStr.toString('utf8'));
   const budgetPath = join(root, meta.relativeDataFolderName);
 
-  const deviceFiles = entries.filter(e =>
-    e.startsWith(join(budgetPath, 'devices')),
-  );
+  const deviceFiles = entries.filter(e => e.startsWith(join(budgetPath, 'devices')));
   const deviceGUID = findLatestDevice(zipped, deviceFiles);
 
   const yfullPath = join(budgetPath, deviceGUID, 'Budget.yfull');
   let contents;
   try {
-    contents = Buffer.from(zipped[getFile(entries, yfullPath)]).toString(
-      'utf8',
-    );
+    contents = Buffer.from(zipped[getFile(entries, yfullPath)]).toString('utf8');
   } catch (e) {
     logger.log(e);
     throw new Error('Error reading Budget.yfull file');
@@ -526,6 +497,6 @@ export function parseFile(buffer: Buffer): YNAB4.YFull {
   }
 }
 
-function countLive(entities: { isTombstone?: boolean }[]) {
+function countLive(entities: {isTombstone?: boolean}[]) {
   return entities.filter(entity => !entity.isTombstone).length;
 }

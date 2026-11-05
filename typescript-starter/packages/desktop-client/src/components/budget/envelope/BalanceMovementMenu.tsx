@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useRef, useState } from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 
-import { useFormat } from '#hooks/useFormat';
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {useFormat} from '#hooks/useFormat';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
-import { BalanceMenu } from './BalanceMenu';
-import { CoverMenu } from './CoverMenu';
-import { useEnvelopeSheetValue } from './EnvelopeBudgetComponents';
-import { TransferMenu } from './TransferMenu';
+import {BalanceMenu} from './BalanceMenu';
+import {CoverMenu} from './CoverMenu';
+import {useEnvelopeSheetValue} from './EnvelopeBudgetComponents';
+import {TransferMenu} from './TransferMenu';
 
 type BalanceMovementMenuProps = {
   categoryId: string;
@@ -39,8 +39,7 @@ export function BalanceMovementMenu({
 }: BalanceMovementMenuProps) {
   const format = useFormat();
 
-  const catBalance =
-    useEnvelopeSheetValue(envelopeBudget.catBalance(categoryId)) ?? 0;
+  const catBalance = useEnvelopeSheetValue(envelopeBudget.catBalance(categoryId)) ?? 0;
 
   const [menu, _setMenu] = useState('menu');
 

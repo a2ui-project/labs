@@ -16,7 +16,7 @@
 
 import * as api from '@actual-app/api';
 
-import type { CacheState } from './cache';
+import type {CacheState} from './cache';
 import {
   CACHE_VERSION,
   decideSyncAction,
@@ -24,10 +24,10 @@ import {
   readCacheState,
   writeCacheState,
 } from './cache';
-import type { CliConfig, CliGlobalOpts } from './config';
-import { resolveConfig } from './config';
-import { acquireExclusive, acquireShared } from './lock';
-import type { Release } from './lock';
+import type {CliConfig, CliGlobalOpts} from './config';
+import {resolveConfig} from './config';
+import {acquireExclusive, acquireShared} from './lock';
+import type {Release} from './lock';
 
 type ConnectionOptions = {
   mutates: boolean;
@@ -41,14 +41,10 @@ function info(message: string, verbose?: boolean) {
 async function resolveBudgetIdForSyncId(syncId: string): Promise<string> {
   const budgets = await api.getBudgets();
   const match = budgets.find(
-    b =>
-      typeof b.id === 'string' &&
-      (b.groupId === syncId || b.cloudFileId === syncId),
+    b => typeof b.id === 'string' && (b.groupId === syncId || b.cloudFileId === syncId),
   );
   if (!match?.id) {
-    throw new Error(
-      `Could not resolve on-disk budget id for syncId ${syncId} after download.`,
-    );
+    throw new Error(`Could not resolve on-disk budget id for syncId ${syncId} after download.`);
   }
   return match.id;
 }
@@ -56,7 +52,7 @@ async function resolveBudgetIdForSyncId(syncId: string): Promise<string> {
 export async function withConnection<T>(
   globalOpts: CliGlobalOpts,
   fn: (config: CliConfig) => Promise<T>,
-  { mutates, skipBudget = false }: ConnectionOptions,
+  {mutates, skipBudget = false}: ConnectionOptions,
 ): Promise<T> {
   const config = await resolveConfig(globalOpts);
 
@@ -85,9 +81,7 @@ export async function withConnection<T>(
   try {
     if (skipBudget) return await fn(config);
     if (!config.syncId) {
-      throw new Error(
-        'Sync ID is required for this command. Set --sync-id or ACTUAL_SYNC_ID.',
-      );
+      throw new Error('Sync ID is required for this command. Set --sync-id or ACTUAL_SYNC_ID.');
     }
 
     const meta = getMetaDir(config.dataDir, config.syncId);
@@ -106,7 +100,7 @@ export async function withConnection<T>(
       const cachedState = readCacheState(meta);
       const decision = decideSyncAction({
         state: cachedState,
-        config: { syncId: config.syncId, serverUrl: config.serverUrl },
+        config: {syncId: config.syncId, serverUrl: config.serverUrl},
         now: Date.now(),
         ttlMs: config.cacheTtl * 1000,
         mutates,
@@ -137,9 +131,7 @@ export async function withConnection<T>(
         };
         writeCacheState(meta, state);
       } else if (decision.action === 'skip') {
-        const age = Math.round(
-          (Date.now() - decision.state.lastSyncedAt) / 1000,
-        );
+        const age = Math.round((Date.now() - decision.state.lastSyncedAt) / 1000);
         info(`Using cached budget (synced ${age}s ago)...`, globalOpts.verbose);
         await api.loadBudget(decision.state.budgetId);
         state = decision.state;
@@ -154,13 +146,13 @@ export async function withConnection<T>(
         await api.downloadBudget(config.syncId, {
           password: config.encryptionPassword,
         });
-        state = { ...decision.state, lastSyncedAt: Date.now() };
+        state = {...decision.state, lastSyncedAt: Date.now()};
         writeCacheState(meta, state);
       } else {
         info(`Syncing budget ${config.syncId}...`, globalOpts.verbose);
         await api.loadBudget(decision.state.budgetId);
         await api.sync();
-        state = { ...decision.state, lastSyncedAt: Date.now() };
+        state = {...decision.state, lastSyncedAt: Date.now()};
         writeCacheState(meta, state);
       }
 
@@ -169,7 +161,7 @@ export async function withConnection<T>(
       if (mutates) {
         info(`Pushing changes for ${config.syncId}...`, globalOpts.verbose);
         await api.sync();
-        state = { ...state, lastSyncedAt: Date.now() };
+        state = {...state, lastSyncedAt: Date.now()};
         writeCacheState(meta, state);
       }
 

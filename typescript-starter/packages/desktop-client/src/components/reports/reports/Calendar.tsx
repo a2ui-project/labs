@@ -14,76 +14,76 @@
  * limitations under the License.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Ref } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams, useSearchParams } from 'react-router';
-import { animated, config, useSpring } from 'react-spring';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {Ref} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams, useSearchParams} from 'react-router';
+import {animated, config, useSpring} from 'react-spring';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
 import {
   SvgArrowThickDown,
   SvgArrowThickUp,
   SvgCheveronDown,
   SvgCheveronUp,
 } from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type { Query } from '@actual-app/core/shared/query';
-import { ungroupTransactions } from '@actual-app/core/shared/transactions';
+import {q} from '@actual-app/core/shared/query';
+import type {Query} from '@actual-app/core/shared/query';
+import {ungroupTransactions} from '@actual-app/core/shared/transactions';
 import type {
   CalendarWidget,
   RuleConditionEntity,
   TimeFrame,
   TransactionEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
-import { useDrag } from '@use-gesture/react';
-import { format as formatDate, parseISO } from 'date-fns';
+import {css} from '@emotion/css';
+import {useDrag} from '@use-gesture/react';
+import {format as formatDate, parseISO} from 'date-fns';
 
-import { EditablePageHeaderTitle } from '#components/EditablePageHeaderTitle';
-import { FinancialText } from '#components/FinancialText';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { TransactionList as TransactionListMobile } from '#components/mobile/transactions/TransactionList';
-import { MobilePageHeader, Page, PageHeader } from '#components/Page';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { DateRange } from '#components/reports/DateRange';
-import { CalendarGraph } from '#components/reports/graphs/CalendarGraph';
-import { Header } from '#components/reports/Header';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { calendarSpreadsheet } from '#components/reports/spreadsheets/calendar-spreadsheet';
-import type { CalendarDataType } from '#components/reports/spreadsheets/calendar-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { fromDateRepr } from '#components/reports/util';
-import type { TableHandleRef } from '#components/table';
-import { TransactionList } from '#components/transactions/TransactionList';
-import { useAccounts } from '#hooks/useAccounts';
-import { SchedulesProvider } from '#hooks/useCachedSchedules';
-import { useCategories } from '#hooks/useCategories';
-import { useDashboardWidget } from '#hooks/useDashboardWidget';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { DisplayPayeeProvider } from '#hooks/useDisplayPayee';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { useMergedRefs } from '#hooks/useMergedRefs';
-import { useNavigate } from '#hooks/useNavigate';
-import { usePayees } from '#hooks/usePayees';
-import { useResizeObserver } from '#hooks/useResizeObserver';
-import { useRuleConditionFilters } from '#hooks/useRuleConditionFilters';
-import { SelectedProviderWithItems } from '#hooks/useSelected';
-import { SplitsExpandedProvider } from '#hooks/useSplitsExpanded';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { useTransactions } from '#hooks/useTransactions';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { useUpdateDashboardWidgetMutation } from '#reports/mutations';
+import {EditablePageHeaderTitle} from '#components/EditablePageHeaderTitle';
+import {FinancialText} from '#components/FinancialText';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {TransactionList as TransactionListMobile} from '#components/mobile/transactions/TransactionList';
+import {MobilePageHeader, Page, PageHeader} from '#components/Page';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {DateRange} from '#components/reports/DateRange';
+import {CalendarGraph} from '#components/reports/graphs/CalendarGraph';
+import {Header} from '#components/reports/Header';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {calendarSpreadsheet} from '#components/reports/spreadsheets/calendar-spreadsheet';
+import type {CalendarDataType} from '#components/reports/spreadsheets/calendar-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {fromDateRepr} from '#components/reports/util';
+import type {TableHandleRef} from '#components/table';
+import {TransactionList} from '#components/transactions/TransactionList';
+import {useAccounts} from '#hooks/useAccounts';
+import {SchedulesProvider} from '#hooks/useCachedSchedules';
+import {useCategories} from '#hooks/useCategories';
+import {useDashboardWidget} from '#hooks/useDashboardWidget';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {DisplayPayeeProvider} from '#hooks/useDisplayPayee';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {useMergedRefs} from '#hooks/useMergedRefs';
+import {useNavigate} from '#hooks/useNavigate';
+import {usePayees} from '#hooks/usePayees';
+import {useResizeObserver} from '#hooks/useResizeObserver';
+import {useRuleConditionFilters} from '#hooks/useRuleConditionFilters';
+import {SelectedProviderWithItems} from '#hooks/useSelected';
+import {SplitsExpandedProvider} from '#hooks/useSplitsExpanded';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {useTransactions} from '#hooks/useTransactions';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {useUpdateDashboardWidgetMutation} from '#reports/mutations';
 
 const CHEVRON_HEIGHT = 42;
 const SUMMARY_HEIGHT = 140;
@@ -91,7 +91,7 @@ const SUMMARY_HEIGHT = 140;
 export function Calendar() {
   const params = useParams();
   const [searchParams] = useSearchParams();
-  const { data: widget, isPending } = useDashboardWidget<CalendarWidget>({
+  const {data: widget, isPending} = useDashboardWidget<CalendarWidget>({
     id: params.id,
     type: 'calendar-card',
   });
@@ -108,34 +108,30 @@ type CalendarInnerProps = {
   parameters: URLSearchParams;
 };
 
-function CalendarInner({ widget, parameters }: CalendarInnerProps) {
+function CalendarInner({widget, parameters}: CalendarInnerProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
-  const [start, setStart] = useState(
-    monthUtils.dayFromDate(monthUtils.currentMonth()),
-  );
+  const [start, setStart] = useState(monthUtils.dayFromDate(monthUtils.currentMonth()));
   const [end, setEnd] = useState(monthUtils.currentDay());
   const [mode, setMode] = useState<TimeFrame['mode']>('full');
   const [query, setQuery] = useState<Query | undefined>(undefined);
   const [dirty, setDirty] = useState(false);
   const [latestTransaction, setLatestTransaction] = useState('');
 
-  const {
-    transactions: transactionsGrouped,
-    fetchNextPage: loadMoreTransactions,
-  } = useTransactions({ query });
+  const {transactions: transactionsGrouped, fetchNextPage: loadMoreTransactions} = useTransactions({
+    query,
+  });
 
   const allTransactions = useMemo(
     () => ungroupTransactions(transactionsGrouped as TransactionEntity[]),
     [transactionsGrouped],
   );
 
-  const { data: accounts = [] } = useAccounts();
-  const { data: payees = [] } = usePayees();
-  const { data: { grouped: categoryGroups } = { grouped: [] } } =
-    useCategories();
+  const {data: accounts = []} = useAccounts();
+  const {data: payees = []} = usePayees();
+  const {data: {grouped: categoryGroups} = {grouped: []}} = useCategories();
 
   const [_firstDayOfWeekIdx] = useSyncedPref('firstDayOfWeekIdx');
   const firstDayOfWeekIdx = _firstDayOfWeekIdx || '0';
@@ -146,10 +142,7 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
     onDelete: onDeleteFilter,
     onUpdate: onUpdateFilter,
     onConditionsOpChange,
-  } = useRuleConditionFilters(
-    widget?.meta?.conditions,
-    widget?.meta?.conditionsOp,
-  );
+  } = useRuleConditionFilters(widget?.meta?.conditions, widget?.meta?.conditionsOp);
 
   useEffect(() => {
     const day = parameters.get('day');
@@ -194,13 +187,7 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
       setDirty(false);
     }
 
-    return calendarSpreadsheet(
-      start,
-      end,
-      conditions,
-      conditionsOp,
-      firstDayOfWeekIdx,
-    );
+    return calendarSpreadsheet(start, end, conditions, conditionsOp, firstDayOfWeekIdx);
   }, [start, end, conditions, conditionsOp, firstDayOfWeekIdx, dirty]);
 
   const [sortField, setSortField] = useState('');
@@ -212,15 +199,15 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
     send('make-filters-from-conditions', {
       conditions: conditions.filter(cond => !cond.customName),
     })
-      .then((data: { filters: unknown[] }) => {
+      .then((data: {filters: unknown[]}) => {
         let query = q('transactions')
           .filter({
             [conditionsOpKey]: data.filters,
           })
           .filter({
             $and: [
-              { date: { $gte: monthUtils.firstDayOfMonth(start) } },
-              { date: { $lte: monthUtils.lastDayOfMonth(end) } },
+              {date: {$gte: monthUtils.firstDayOfMonth(start)}},
+              {date: {$lte: monthUtils.lastDayOfMonth(end)}},
             ],
           })
           .select('*');
@@ -231,7 +218,7 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
           });
         }
 
-        setQuery(query.options({ splits: 'grouped' }));
+        setQuery(query.options({splits: 'grouped'}));
       })
       .catch((error: unknown) => {
         console.error('Error generating filters:', error);
@@ -243,16 +230,12 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
   const ref = useResizeObserver(() => {
     setFlexAlignment(
       scrollbarContainer.current &&
-        scrollbarContainer.current.scrollWidth >
-          scrollbarContainer.current.clientWidth
+        scrollbarContainer.current.scrollWidth > scrollbarContainer.current.clientWidth
         ? 'flex-start'
         : 'center',
     );
   });
-  const mergedRef = useMergedRefs(
-    ref,
-    scrollbarContainer,
-  ) as Ref<HTMLDivElement>;
+  const mergedRef = useMergedRefs(ref, scrollbarContainer) as Ref<HTMLDivElement>;
 
   const data = useReport('calendar', params);
 
@@ -267,32 +250,22 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
     async function run() {
       const earliestTransaction = await send('get-earliest-transaction');
       setEarliestTransaction(
-        earliestTransaction
-          ? earliestTransaction.date
-          : monthUtils.currentDay(),
+        earliestTransaction ? earliestTransaction.date : monthUtils.currentDay(),
       );
 
       const latestTransaction = await send('get-latest-transaction');
-      setLatestTransaction(
-        latestTransaction ? latestTransaction.date : monthUtils.currentDay(),
-      );
+      setLatestTransaction(latestTransaction ? latestTransaction.date : monthUtils.currentDay());
 
       const currentMonth = monthUtils.currentMonth();
       let earliestMonth = earliestTransaction
-        ? monthUtils.monthFromDate(
-            parseISO(fromDateRepr(earliestTransaction.date)),
-          )
+        ? monthUtils.monthFromDate(parseISO(fromDateRepr(earliestTransaction.date)))
         : currentMonth;
       const latestTransactionMonth = latestTransaction
-        ? monthUtils.monthFromDate(
-            parseISO(fromDateRepr(latestTransaction.date)),
-          )
+        ? monthUtils.monthFromDate(parseISO(fromDateRepr(latestTransaction.date)))
         : currentMonth;
 
       const latestMonth =
-        latestTransactionMonth > currentMonth
-          ? latestTransactionMonth
-          : currentMonth;
+        latestTransactionMonth > currentMonth ? latestTransactionMonth : currentMonth;
 
       // Make sure the month selects are at least populates with a
       // year's worth of months. We can undo this when we have fancier
@@ -334,7 +307,7 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const title = widget?.meta?.name || t('Calendar');
   const table = useRef<TableHandleRef<TransactionEntity>>(null);
   const dateFormat = useDateFormat();
@@ -409,19 +382,13 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
       },
     );
   }
-  const { totalIncome, totalExpense } = useMemo(() => {
+  const {totalIncome, totalExpense} = useMemo(() => {
     if (!data || !data.calendarData) {
-      return { totalIncome: 0, totalExpense: 0 };
+      return {totalIncome: 0, totalExpense: 0};
     }
     return {
-      totalIncome: data.calendarData.reduce(
-        (prev, cur) => prev + cur.totalIncome,
-        0,
-      ),
-      totalExpense: data.calendarData.reduce(
-        (prev, cur) => prev + cur.totalExpense,
-        0,
-      ),
+      totalIncome: data.calendarData.reduce((prev, cur) => prev + cur.totalIncome, 0),
+      totalExpense: data.calendarData.reduce((prev, cur) => prev + cur.totalExpense, 0),
     };
   }, [data]);
 
@@ -458,9 +425,9 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
   const openY = 0;
   const [mobileTransactionsOpen, setMobileTransactionsOpen] = useState(false);
 
-  const [{ y }, api] = useSpring(
+  const [{y}, api] = useSpring(
     () => ({
-      from: { y: closeY.current },
+      from: {y: closeY.current},
       immediate: false,
     }),
     [],
@@ -469,15 +436,15 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
   useEffect(() => {
     closeY.current = totalHeight;
     void api.start({
-      to: { y: mobileTransactionsOpen ? openY : closeY.current },
+      to: {y: mobileTransactionsOpen ? openY : closeY.current},
       immediate: false,
     });
   }, [totalHeight, mobileTransactionsOpen, api]);
 
   const open = useCallback(
-    ({ canceled }: { canceled: boolean }) => {
+    ({canceled}: {canceled: boolean}) => {
       void api.start({
-        to: { y: openY },
+        to: {y: openY},
         immediate: false,
         config: canceled ? config.wobbly : config.stiff,
       });
@@ -489,8 +456,8 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
   const close = useCallback(
     (velocity = 0) => {
       void api.start({
-        to: { y: closeY.current },
-        config: { ...config.stiff, velocity },
+        to: {y: closeY.current},
+        config: {...config.stiff, velocity},
       });
       setMobileTransactionsOpen(false);
     },
@@ -498,10 +465,10 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
   );
 
   const bind = useDrag(
-    ({ offset: [, oy], cancel }) => {
+    ({offset: [, oy], cancel}) => {
       if (oy < 0) {
         cancel();
-        void api.start({ to: { y: 0 }, immediate: true });
+        void api.start({to: {y: 0}, immediate: true});
         return;
       }
 
@@ -512,10 +479,10 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
       } else if (!mobileTransactionsOpen) {
         if (oy / totalHeight > 0.05) {
           cancel();
-          open({ canceled: true });
+          open({canceled: true});
           setMobileTransactionsOpen(true);
         } else {
-          void api.start({ to: { y: oy }, immediate: true });
+          void api.start({to: {y: oy}, immediate: true});
         }
       }
     },
@@ -539,28 +506,19 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
         isNarrowWidth ? (
           <MobilePageHeader
             title={title}
-            leftContent={
-              <MobileBackButton onPress={() => navigate('/reports')} />
-            }
+            leftContent={<MobileBackButton onPress={() => navigate('/reports')} />}
           />
         ) : (
           <PageHeader
             title={
-              widget ? (
-                <EditablePageHeaderTitle
-                  title={title}
-                  onSave={onSaveWidgetName}
-                />
-              ) : (
-                title
-              )
+              widget ? <EditablePageHeaderTitle title={title} onSave={onSaveWidgetName} /> : title
             }
           />
         )
       }
       padding={0}
     >
-      <View style={{ minHeight: !isNarrowWidth ? '120px' : 'unset' }}>
+      <View style={{minHeight: !isNarrowWidth ? '120px' : 'unset'}}>
         <Header
           allMonths={allMonths}
           start={start}
@@ -585,7 +543,7 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
           )}
         </Header>
       </View>
-      <View ref={refContainer as Ref<HTMLDivElement>} style={{ flexGrow: 1 }}>
+      <View ref={refContainer as Ref<HTMLDivElement>} style={{flexGrow: 1}}>
         <View
           style={{
             backgroundColor: theme.pageBackground,
@@ -646,9 +604,7 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
           items={[]}
           fetchAllIds={async () => []}
           registerDispatch={() => {}}
-          selectAllFilter={(item: TransactionEntity) =>
-            !item._unmatched && !item.is_parent
-          }
+          selectAllFilter={(item: TransactionEntity) => !item._unmatched && !item.is_parent}
         >
           <SchedulesProvider query={undefined}>
             <View
@@ -735,15 +691,11 @@ function CalendarInner({ widget, parameters }: CalendarInnerProps) {
                 >
                   <Button
                     variant="bare"
-                    onPress={() =>
-                      !mobileTransactionsOpen
-                        ? open({ canceled: false })
-                        : close()
-                    }
+                    onPress={() => (!mobileTransactionsOpen ? open({canceled: false}) : close())}
                     className={css({
                       color: theme.pageTextSubdued,
                       height: 42,
-                      '&[data-pressed]': { backgroundColor: 'transparent' },
+                      '&[data-pressed]': {backgroundColor: 'transparent'},
                     })}
                   >
                     {!mobileTransactionsOpen && (
@@ -818,7 +770,7 @@ function CalendarWithHeader({
   conditionsOp,
   format,
 }: CalendarWithHeaderProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <View
@@ -876,13 +828,11 @@ function CalendarWithHeader({
         >
           {formatDate(calendar.start, 'MMMM yyyy')}
         </Button>
-        <View
-          style={{ display: 'grid', gridTemplateColumns: '16px 1fr', gap: 2 }}
-        >
+        <View style={{display: 'grid', gridTemplateColumns: '16px 1fr', gap: 2}}>
           <SvgArrowThickUp
             width={16}
             height={16}
-            style={{ color: theme.reportsNumberPositive, flexShrink: 0 }}
+            style={{color: theme.reportsNumberPositive, flexShrink: 0}}
           />
           <View
             style={{
@@ -894,15 +844,13 @@ function CalendarWithHeader({
             aria-label={t('Income')}
           >
             <PrivacyFilter>
-              <FinancialText>
-                {format(calendar.totalIncome, 'financial')}
-              </FinancialText>
+              <FinancialText>{format(calendar.totalIncome, 'financial')}</FinancialText>
             </PrivacyFilter>
           </View>
           <SvgArrowThickDown
             width={16}
             height={16}
-            style={{ color: theme.reportsNumberNegative, flexShrink: 0 }}
+            style={{color: theme.reportsNumberNegative, flexShrink: 0}}
           />
           <View
             style={{
@@ -914,14 +862,12 @@ function CalendarWithHeader({
             aria-label={t('Expenses')}
           >
             <PrivacyFilter>
-              <FinancialText>
-                {format(calendar.totalExpense, 'financial')}
-              </FinancialText>
+              <FinancialText>{format(calendar.totalExpense, 'financial')}</FinancialText>
             </PrivacyFilter>
           </View>
         </View>
       </View>
-      <View style={{ flexGrow: 1, display: 'block', marginBottom: 20 }}>
+      <View style={{flexGrow: 1, display: 'block', marginBottom: 20}}>
         <CalendarGraph
           data={calendar.data}
           start={calendar.start}
@@ -992,7 +938,7 @@ function CalendarCardHeader({
         }}
       >
         <DateRange start={start} end={end} />
-        <View style={{ lineHeight: 1.5 }}>
+        <View style={{lineHeight: 1.5}}>
           <View
             style={{
               display: 'grid',
@@ -1008,7 +954,7 @@ function CalendarCardHeader({
             >
               <Trans>Income:</Trans>
             </View>
-            <View style={{ color: theme.reportsNumberPositive }}>
+            <View style={{color: theme.reportsNumberPositive}}>
               <PrivacyFilter>{format(totalIncome, 'financial')}</PrivacyFilter>
             </View>
 
@@ -1020,7 +966,7 @@ function CalendarCardHeader({
             >
               <Trans>Expenses:</Trans>
             </View>
-            <View style={{ color: theme.reportsNumberNegative }}>
+            <View style={{color: theme.reportsNumberNegative}}>
               <PrivacyFilter>{format(totalExpense, 'financial')}</PrivacyFilter>
             </View>
           </View>

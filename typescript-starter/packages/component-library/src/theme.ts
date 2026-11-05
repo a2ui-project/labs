@@ -51,8 +51,7 @@ export const theme = {
   tableBorderHover: 'var(--color-tableBorderHover)',
   tableBorderSeparator: 'var(--color-tableBorderSeparator)',
   tableRowBackgroundHighlight: 'var(--color-tableRowBackgroundHighlight)',
-  tableRowBackgroundHighlightText:
-    'var(--color-tableRowBackgroundHighlightText)',
+  tableRowBackgroundHighlightText: 'var(--color-tableRowBackgroundHighlightText)',
   tableRowBackgroundAlternate:
     'var(--color-tableRowBackgroundAlternate, var(--color-tableBackground))',
   tableRowHeaderBackground: 'var(--color-tableRowHeaderBackground)',
@@ -88,8 +87,7 @@ export const theme = {
   menuBorderHover: 'var(--color-menuBorderHover)',
   menuKeybindingText: 'var(--color-menuKeybindingText)',
   menuAutoCompleteBackground: 'var(--color-menuAutoCompleteBackground)',
-  menuAutoCompleteBackgroundHover:
-    'var(--color-menuAutoCompleteBackgroundHover)',
+  menuAutoCompleteBackgroundHover: 'var(--color-menuAutoCompleteBackgroundHover)',
   menuAutoCompleteText: 'var(--color-menuAutoCompleteText)',
   menuAutoCompleteTextHover: 'var(--color-menuAutoCompleteTextHover)',
   menuAutoCompleteTextHeader: 'var(--color-menuAutoCompleteTextHeader)',
@@ -121,8 +119,7 @@ export const theme = {
   buttonMenuSelectedText: 'var(--color-buttonMenuSelectedText)',
   buttonMenuSelectedTextHover: 'var(--color-buttonMenuSelectedTextHover)',
   buttonMenuSelectedBackground: 'var(--color-buttonMenuSelectedBackground)',
-  buttonMenuSelectedBackgroundHover:
-    'var(--color-buttonMenuSelectedBackgroundHover)',
+  buttonMenuSelectedBackgroundHover: 'var(--color-buttonMenuSelectedBackgroundHover)',
   buttonMenuSelectedBorder: 'var(--color-buttonMenuSelectedBorder)',
   buttonPrimaryText: 'var(--color-buttonPrimaryText)',
   buttonPrimaryTextHover: 'var(--color-buttonPrimaryTextHover)',
@@ -131,8 +128,7 @@ export const theme = {
   buttonPrimaryBorder: 'var(--color-buttonPrimaryBorder)',
   buttonPrimaryShadow: 'var(--color-buttonPrimaryShadow)',
   buttonPrimaryDisabledText: 'var(--color-buttonPrimaryDisabledText)',
-  buttonPrimaryDisabledBackground:
-    'var(--color-buttonPrimaryDisabledBackground)',
+  buttonPrimaryDisabledBackground: 'var(--color-buttonPrimaryDisabledBackground)',
   buttonPrimaryDisabledBorder: 'var(--color-buttonPrimaryDisabledBorder)',
   buttonNormalText: 'var(--color-buttonNormalText)',
   buttonNormalTextHover: 'var(--color-buttonNormalTextHover)',
@@ -192,8 +188,7 @@ export const theme = {
   formInputText: 'var(--color-formInputText)',
   formInputTextSelected: 'var(--color-formInputTextSelected)',
   formInputTextPlaceholder: 'var(--color-formInputTextPlaceholder)',
-  formInputTextPlaceholderSelected:
-    'var(--color-formInputTextPlaceholderSelected)',
+  formInputTextPlaceholderSelected: 'var(--color-formInputTextPlaceholderSelected)',
   formInputTextSelection: 'var(--color-formInputTextSelection)',
   formInputShadowSelected: 'var(--color-formInputShadowSelected)',
   formInputTextHighlight: 'var(--color-formInputTextHighlight)',
@@ -202,8 +197,7 @@ export const theme = {
   checkboxBorderSelected: 'var(--color-checkboxBorderSelected)',
   checkboxShadowSelected: 'var(--color-checkboxShadowSelected)',
   checkboxToggleBackground: 'var(--color-checkboxToggleBackground)',
-  checkboxToggleBackgroundSelected:
-    'var(--color-checkboxToggleBackgroundSelected)',
+  checkboxToggleBackgroundSelected: 'var(--color-checkboxToggleBackgroundSelected)',
   checkboxToggleDisabled: 'var(--color-checkboxToggleDisabled)',
   pillBackground: 'var(--color-pillBackground)',
   pillBackgroundLight: 'var(--color-pillBackgroundLight)',

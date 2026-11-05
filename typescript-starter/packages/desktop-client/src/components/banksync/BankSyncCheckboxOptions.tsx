@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import type { ReactNode } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import type {ReactNode} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgQuestion } from '@actual-app/components/icons/v1';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
+import {Button} from '@actual-app/components/button';
+import {SvgQuestion} from '@actual-app/components/icons/v1';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
 
-import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
-import { ToggleField } from '#components/mobile/MobileForms';
+import {LabeledCheckbox} from '#components/forms/LabeledCheckbox';
+import {ToggleField} from '#components/mobile/MobileForms';
 
 type CheckboxOptionProps = {
   id: string;
@@ -55,23 +55,13 @@ function CheckboxOption({
         }}
       >
         <Text>{children}</Text>
-        <ToggleField
-          id={id}
-          isOn={checked}
-          onToggle={onChange}
-          isDisabled={disabled}
-        />
+        <ToggleField id={id} isOn={checked} onToggle={onChange} isDisabled={disabled} />
       </SpaceBetween>
     );
   }
 
   return (
-    <LabeledCheckbox
-      id={id}
-      checked={checked}
-      onChange={onChange}
-      disabled={disabled}
-    >
+    <LabeledCheckbox id={id} checked={checked} onChange={onChange} disabled={disabled}>
       {children}
     </LabeledCheckbox>
   );
@@ -96,17 +86,12 @@ function CheckboxOptionWithHelp({
   helpMode,
   children,
 }: CheckboxOptionWithHelpProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [showHelp, setShowHelp] = useState(false);
 
   if (helpMode === 'desktop') {
     return (
-      <LabeledCheckbox
-        id={id}
-        checked={checked}
-        onChange={onChange}
-        disabled={disabled}
-      >
+      <LabeledCheckbox id={id} checked={checked} onChange={onChange} disabled={disabled}>
         <Tooltip content={helpText}>
           <SpaceBetween gap={5}>
             <Text>{children}</Text>
@@ -118,12 +103,8 @@ function CheckboxOptionWithHelp({
   }
 
   return (
-    <SpaceBetween
-      direction="vertical"
-      gap={5}
-      style={{ marginBottom: 5, width: '100%' }}
-    >
-      <SpaceBetween style={{ justifyContent: 'space-between', width: '100%' }}>
+    <SpaceBetween direction="vertical" gap={5} style={{marginBottom: 5, width: '100%'}}>
+      <SpaceBetween style={{justifyContent: 'space-between', width: '100%'}}>
         <SpaceBetween gap={5}>
           <Text>{children}</Text>
           <Button
@@ -139,12 +120,7 @@ function CheckboxOptionWithHelp({
             <SvgQuestion height={12} width={12} />
           </Button>
         </SpaceBetween>
-        <ToggleField
-          id={id}
-          isOn={checked}
-          onToggle={onChange}
-          isDisabled={disabled}
-        />
+        <ToggleField id={id} isOn={checked} onToggle={onChange} isDisabled={disabled} />
       </SpaceBetween>
       {showHelp && (
         <Text
@@ -187,7 +163,7 @@ export function BankSyncCheckboxOptions({
   setUpdateDates,
   helpMode = 'desktop',
 }: BankSyncCheckboxOptionsProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <>

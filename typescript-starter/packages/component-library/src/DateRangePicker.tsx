@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { useRef, useState } from 'react';
+import {useRef, useState} from 'react';
 
-import { Button } from '#Button';
-import { useResponsive } from '#hooks/useResponsive';
-import { Popover } from '#Popover';
-import type { CSSProperties } from '#styles';
-import { Text } from '#Text';
-import { theme } from '#theme';
-import { View } from '#View';
+import {Button} from '#Button';
+import {useResponsive} from '#hooks/useResponsive';
+import {Popover} from '#Popover';
+import type {CSSProperties} from '#styles';
+import {Text} from '#Text';
+import {theme} from '#theme';
+import {View} from '#View';
 
-import { DayRangeCalendar } from './date-range-picker/DayRangeCalendar';
-import { GranularityToggle } from './date-range-picker/GranularityToggle';
-import { RangeSelector } from './date-range-picker/RangeSelector';
+import {DayRangeCalendar} from './date-range-picker/DayRangeCalendar';
+import {GranularityToggle} from './date-range-picker/GranularityToggle';
+import {RangeSelector} from './date-range-picker/RangeSelector';
 import {
   clamp,
   currentDay,
@@ -100,7 +100,7 @@ export function DateRangePicker({
   const effectiveMax = maxDate ?? NO_MAX;
   const triggerRef = useRef<HTMLButtonElement>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   const allowsDay = granularities.includes('day');
   const showGranularityToggle = allowsDay && granularities.includes('month');
@@ -151,14 +151,10 @@ export function DateRangePicker({
     // Only reshape the draft; committing here recomputes the caller's view,
     // which can unmount this picker and close the popover. Commit on close.
     setDraftStart(
-      next === 'day'
-        ? clamp(firstDayOfMonth(draftStart), dayMin, dayMax)
-        : getMonth(draftStart),
+      next === 'day' ? clamp(firstDayOfMonth(draftStart), dayMin, dayMax) : getMonth(draftStart),
     );
     setDraftEnd(
-      next === 'day'
-        ? clamp(lastDayOfMonth(draftEnd), dayMin, dayMax)
-        : getMonth(draftEnd),
+      next === 'day' ? clamp(lastDayOfMonth(draftEnd), dayMin, dayMax) : getMonth(draftEnd),
     );
     setDraftPreset(null);
   }
@@ -201,7 +197,7 @@ export function DateRangePicker({
           month: 'numeric',
           day: 'numeric',
         }))
-      : formatDate(value, locale, { month: 'short', year: 'numeric' });
+      : formatDate(value, locale, {month: 'short', year: 'numeric'});
   const label = `${formatLabel(shownStart)} – ${formatLabel(shownEnd)}`;
 
   return (
@@ -223,16 +219,16 @@ export function DateRangePicker({
             closeAndCommit();
           }
         }}
-        style={{ padding: 0 }}
+        style={{padding: 0}}
       >
-        <View style={{ flexDirection: isNarrowWidth ? 'column' : 'row' }}>
+        <View style={{flexDirection: isNarrowWidth ? 'column' : 'row'}}>
           <View
             style={{
               padding: 15,
               ...(hasSidebar &&
                 (isNarrowWidth
-                  ? { borderBottom: `1px solid ${theme.tableBorder}` }
-                  : { borderRight: `1px solid ${theme.tableBorder}` })),
+                  ? {borderBottom: `1px solid ${theme.tableBorder}`}
+                  : {borderRight: `1px solid ${theme.tableBorder}`})),
             }}
           >
             {isDay ? (
@@ -260,7 +256,7 @@ export function DateRangePicker({
           </View>
 
           {hasSidebar && (
-            <View style={{ padding: 15, minWidth: 140, gap: 16 }}>
+            <View style={{padding: 15, minWidth: 140, gap: 16}}>
               {showGranularityToggle && (
                 <View>
                   <Text style={sectionTitleStyle}>{labels.selectBy}</Text>
@@ -289,8 +285,7 @@ export function DateRangePicker({
                       // of storing it, so it survives closing and reopening
                       // without persisting anything.
                       const [presetStart, presetEnd] = preset.getRange();
-                      const isActive =
-                        presetStart === draftStart && presetEnd === draftEnd;
+                      const isActive = presetStart === draftStart && presetEnd === draftEnd;
                       return (
                         <Button
                           key={preset.key}

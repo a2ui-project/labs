@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { CloseAccountModal } from './close-account-modal';
+import {CloseAccountModal} from './close-account-modal';
 
 type TransactionEntry = {
   debit?: string;
@@ -54,9 +54,7 @@ export class AccountPage {
     this.addNewTransactionButton = this.page.getByRole('button', {
       name: 'Add New',
     });
-    this.newTransactionRow = this.page
-      .getByTestId('new-transaction')
-      .getByTestId('row');
+    this.newTransactionRow = this.page.getByTestId('new-transaction').getByTestId('row');
     this.addTransactionButton = this.page.getByTestId('add-button');
     this.cancelTransactionButton = this.page.getByRole('button', {
       name: 'Cancel',
@@ -68,21 +66,15 @@ export class AccountPage {
     this.transactionTable = this.page.getByTestId('transaction-table');
     this.transactionTableRow = this.transactionTable.getByTestId('row');
 
-    this.filterButton = this.page.getByRole('button', { name: 'Filter' });
+    this.filterButton = this.page.getByRole('button', {name: 'Filter'});
     this.filterSelectTooltip = this.page.getByTestId('filters-select-tooltip');
 
     this.selectButton = this.page.getByTestId('transactions-select-button');
     this.selectTooltip = this.page.getByTestId('transactions-select-tooltip');
 
-    this.sidebarAllAccountsBalance = this.page.getByTestId(
-      'sidebar-all-accounts-balance',
-    );
-    this.sidebarOnBudgetBalance = this.page.getByTestId(
-      'sidebar-on-budget-balance',
-    );
-    this.sidebarOffBudgetBalance = this.page.getByTestId(
-      'sidebar-off-budget-balance',
-    );
+    this.sidebarAllAccountsBalance = this.page.getByTestId('sidebar-all-accounts-balance');
+    this.sidebarOnBudgetBalance = this.page.getByTestId('sidebar-on-budget-balance');
+    this.sidebarOffBudgetBalance = this.page.getByTestId('sidebar-off-budget-balance');
   }
 
   async waitFor(...options: Parameters<Locator['waitFor']>) {
@@ -116,10 +108,7 @@ export class AccountPage {
   /**
    * Create split transactions
    */
-  async createSplitTransaction([
-    rootTransaction,
-    ...transactions
-  ]: TransactionEntry[]) {
+  async createSplitTransaction([rootTransaction, ...transactions]: TransactionEntry[]) {
     await this.addNewTransactionButton.click();
 
     // Root transaction
@@ -135,13 +124,10 @@ export class AccountPage {
     // Child transactions
     for (let i = 0; i < transactions.length; i++) {
       if (i >= initialSplitCount) {
-        await this.page.getByRole('button', { name: 'Add Split' }).click();
+        await this.page.getByRole('button', {name: 'Add Split'}).click();
       }
 
-      await this._fillTransactionFields(
-        this.newTransactionRow.nth(i + 1),
-        transactions[i],
-      );
+      await this._fillTransactionFields(this.newTransactionRow.nth(i + 1), transactions[i]);
     }
 
     await this.addTransactionButton.click();
@@ -181,7 +167,7 @@ export class AccountPage {
 
   async clickSelectAction(action: string | RegExp) {
     await this.selectButton.click();
-    await this.selectTooltip.getByRole('button', { name: action }).click();
+    await this.selectTooltip.getByRole('button', {name: action}).click();
   }
 
   /**
@@ -189,7 +175,7 @@ export class AccountPage {
    */
   async clickCloseAccount() {
     await this.accountMenuButton.click();
-    await this.page.getByRole('button', { name: 'Close Account' }).click();
+    await this.page.getByRole('button', {name: 'Close Account'}).click();
     return new CloseAccountModal(this.page.getByTestId('close-account-modal'));
   }
 
@@ -198,9 +184,7 @@ export class AccountPage {
    */
   async openTransactionColumnsModal() {
     await this.accountMenuButton.click();
-    await this.page
-      .getByRole('button', { name: 'Manage table columns' })
-      .click();
+    await this.page.getByRole('button', {name: 'Manage table columns'}).click();
     return this.page.getByTestId('transaction-table-columns-modal');
   }
 
@@ -213,8 +197,8 @@ export class AccountPage {
     if ((await toggle.isChecked()) !== visible) {
       await modal.locator(`label[for="toggle-column-${columnId}"]`).click();
     }
-    await modal.getByRole('button', { name: 'Save', exact: true }).click();
-    await modal.waitFor({ state: 'hidden' });
+    await modal.getByRole('button', {name: 'Save', exact: true}).click();
+    await modal.waitFor({state: 'hidden'});
   }
 
   /**
@@ -222,7 +206,7 @@ export class AccountPage {
    */
   async filterBy(field: string | RegExp) {
     await this.filterButton.click();
-    await this.filterSelectTooltip.getByRole('button', { name: field }).click();
+    await this.filterSelectTooltip.getByRole('button', {name: field}).click();
 
     return new FilterTooltip(this.page.getByTestId('filters-menu-tooltip'));
   }
@@ -240,16 +224,10 @@ export class AccountPage {
    * Remove the nth filter
    */
   async removeFilter(idx: number) {
-    await this.page
-      .getByRole('button', { name: 'Delete filter' })
-      .nth(idx)
-      .click();
+    await this.page.getByRole('button', {name: 'Delete filter'}).nth(idx).click();
   }
 
-  async _fillTransactionFields(
-    transactionRow: Locator,
-    transaction: TransactionEntry,
-  ) {
+  async _fillTransactionFields(transactionRow: Locator, transaction: TransactionEntry) {
     if (transaction.debit) {
       const debitCell = transactionRow.getByTestId('debit');
       await debitCell.click();
@@ -317,7 +295,7 @@ export class AccountPage {
   }
 
   async rightClickNthTransaction(index: number) {
-    await this.transactionTableRow.nth(index).click({ button: 'right' });
+    await this.transactionTableRow.nth(index).click({button: 'right'});
   }
 }
 
@@ -327,6 +305,6 @@ class FilterTooltip {
 
   constructor(locator: Locator) {
     this.locator = locator;
-    this.applyButton = locator.getByRole('button', { name: 'Apply' });
+    this.applyButton = locator.getByRole('button', {name: 'Apply'});
   }
 }

@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-import type { Request, Response } from 'express';
+import type {Request, Response} from 'express';
 
-export function handleError(
-  func: (req: Request, res: Response) => Promise<unknown>,
-) {
+export function handleError(func: (req: Request, res: Response) => Promise<unknown>) {
   return (req: Request, res: Response) => {
     func(req, res).catch(err => {
       console.log('Error', req.originalUrl, err.message || String(err));

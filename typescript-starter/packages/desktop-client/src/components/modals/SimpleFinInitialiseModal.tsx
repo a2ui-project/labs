@@ -15,36 +15,26 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { ButtonWithLoading } from '@actual-app/components/button';
-import { Input } from '@actual-app/components/input';
-import { Text } from '@actual-app/components/text';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {ButtonWithLoading} from '@actual-app/components/button';
+import {Input} from '@actual-app/components/input';
+import {Text} from '@actual-app/components/text';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { Error } from '#components/alerts';
-import { Link } from '#components/common/Link';
-import {
-  Modal,
-  ModalButtons,
-  ModalCloseButton,
-  ModalHeader,
-} from '#components/common/Modal';
-import { FormField, FormLabel } from '#components/forms';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { getSecretsError } from '#util/error';
+import {Error} from '#components/alerts';
+import {Link} from '#components/common/Link';
+import {Modal, ModalButtons, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {FormField, FormLabel} from '#components/forms';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {getSecretsError} from '#util/error';
 
-type SimpleFinInitialiseModalProps = Extract<
-  ModalType,
-  { name: 'simplefin-init' }
->['options'];
+type SimpleFinInitialiseModalProps = Extract<ModalType, {name: 'simplefin-init'}>['options'];
 
-export const SimpleFinInitialiseModal = ({
-  onSuccess,
-}: SimpleFinInitialiseModalProps) => {
-  const { t } = useTranslation();
+export const SimpleFinInitialiseModal = ({onSuccess}: SimpleFinInitialiseModalProps) => {
+  const {t} = useTranslation();
   const [token, setToken] = useState('');
   const [isValid, setIsValid] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -58,7 +48,7 @@ export const SimpleFinInitialiseModal = ({
 
     setIsLoading(true);
 
-    const { error, reason } =
+    const {error, reason} =
       (await send('secret-set', {
         name: 'simplefin_token',
         value: token,
@@ -79,24 +69,19 @@ export const SimpleFinInitialiseModal = ({
   };
 
   return (
-    <Modal name="simplefin-init" containerProps={{ style: { width: 300 } }}>
-      {({ state }) => (
+    <Modal name="simplefin-init" containerProps={{style: {width: 300}}}>
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Set-up SimpleFIN')}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
-          <View style={{ display: 'flex', gap: 10 }}>
+          <View style={{display: 'flex', gap: 10}}>
             <Text>
               <Trans>
-                In order to enable bank sync via SimpleFIN (only for North
-                American banks), you will need to create a token. This can be
-                done by creating an account with{' '}
-                <Link
-                  variant="external"
-                  to="https://bridge.simplefin.org/"
-                  linkColor="purple"
-                >
+                In order to enable bank sync via SimpleFIN (only for North American banks), you will
+                need to create a token. This can be done by creating an account with{' '}
+                <Link variant="external" to="https://bridge.simplefin.org/" linkColor="purple">
                   SimpleFIN
                 </Link>
                 .

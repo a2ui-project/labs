@@ -17,18 +17,16 @@
 import fs from 'fs';
 import path from 'path';
 
-import { visualizer } from 'rollup-plugin-visualizer';
-import { defineConfig } from 'vite';
+import {visualizer} from 'rollup-plugin-visualizer';
+import {defineConfig} from 'vite';
 
-const pkg = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'),
-);
+const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
 
 export default defineConfig({
   define: {
     __CLI_VERSION__: JSON.stringify(pkg.version),
   },
-  ssr: { noExternal: true, external: ['@actual-app/api'] },
+  ssr: {noExternal: true, external: ['@actual-app/api']},
   build: {
     ssr: true,
     target: 'node22',
@@ -45,7 +43,7 @@ export default defineConfig({
       },
     },
   },
-  plugins: [visualizer({ template: 'raw-data', filename: 'dist/stats.json' })],
+  plugins: [visualizer({template: 'raw-data', filename: 'dist/stats.json'})],
   test: {
     globals: true,
     include: ['src/**/*.test.ts'],

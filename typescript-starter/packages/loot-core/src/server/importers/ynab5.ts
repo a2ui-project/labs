@@ -15,18 +15,18 @@
  */
 
 // @ts-strict-ignore
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { logger } from '#platform/server/log';
-import { send } from '#server/main-app';
-import { ruleModel } from '#server/transactions/transaction-rules';
+import {logger} from '#platform/server/log';
+import {send} from '#server/main-app';
+import {ruleModel} from '#server/transactions/transaction-rules';
 import * as monthUtils from '#shared/months';
-import { q } from '#shared/query';
-import { groupBy, sortByKey } from '#shared/util';
-import type { RecurConfig, RecurPattern, RuleEntity } from '#types/models';
+import {q} from '#shared/query';
+import {groupBy, sortByKey} from '#shared/util';
+import type {RecurConfig, RecurPattern, RuleEntity} from '#types/models';
 
-import { runImportSteps } from './progress';
-import type { ImportTick } from './progress';
+import {runImportSteps} from './progress';
+import type {ImportTick} from './progress';
 import type {
   Budget,
   Payee,
@@ -72,17 +72,11 @@ function equalsIgnoreCase(stringa: string, stringb: string): boolean {
   );
 }
 
-function findByNameIgnoreCase<T extends { name: string }>(
-  categories: T[],
-  name: string,
-) {
+function findByNameIgnoreCase<T extends {name: string}>(categories: T[], name: string) {
   return categories.find(cat => equalsIgnoreCase(cat.name, name));
 }
 
-function findIdByName<T extends { id: string; name: string }>(
-  categories: Array<T>,
-  name: string,
-) {
+function findIdByName<T extends {id: string; name: string}>(categories: Array<T>, name: string) {
   return findByNameIgnoreCase<T>(categories, name)?.id;
 }
 
@@ -118,8 +112,8 @@ function getYnabTwiceMonthlyPatterns(dateFirst: string): RecurPattern[] {
   const secondDay = getDayOfMonth(monthUtils.addDays(dateFirst, 15));
 
   return [
-    { type: 'day', value: firstDay === 31 ? -1 : firstDay },
-    { type: 'day', value: secondDay === 31 ? -1 : secondDay },
+    {type: 'day', value: firstDay === 31 ? -1 : firstDay},
+    {type: 'day', value: secondDay === 31 ? -1 : secondDay},
   ];
 }
 
@@ -133,20 +127,20 @@ function mapYnabFrequency(
 } {
   switch (frequency) {
     case 'daily':
-      return { frequency: 'daily' };
+      return {frequency: 'daily'};
     case 'weekly':
-      return { frequency: 'weekly' };
+      return {frequency: 'weekly'};
     case 'monthly':
       return {
         frequency: 'monthly',
         patterns: getYnabMonthlyPatterns(dateFirst),
       };
     case 'yearly':
-      return { frequency: 'yearly' };
+      return {frequency: 'yearly'};
     case 'everyOtherWeek':
-      return { frequency: 'weekly', interval: 2 };
+      return {frequency: 'weekly', interval: 2};
     case 'every4Weeks':
-      return { frequency: 'weekly', interval: 4 };
+      return {frequency: 'weekly', interval: 4};
     case 'everyOtherMonth':
       return {
         frequency: 'monthly',
@@ -166,7 +160,7 @@ function mapYnabFrequency(
         patterns: getYnabMonthlyPatterns(dateFirst),
       };
     case 'everyOtherYear':
-      return { frequency: 'yearly', interval: 2 };
+      return {frequency: 'yearly', interval: 2};
     case 'twiceAMonth': {
       return {
         frequency: 'monthly',
@@ -185,9 +179,7 @@ function mapYnabFrequency(
   }
 }
 
-function getScheduleDateValue(
-  scheduled: ScheduledTransaction,
-): RecurConfig | string {
+function getScheduleDateValue(scheduled: ScheduledTransaction): RecurConfig | string {
   const dateFirst = scheduled.date_first;
   const frequency = scheduled.frequency;
 
@@ -211,10 +203,7 @@ function getFlaggedTransactions(data: Budget): FlaggedTransaction[] {
   return [...data.transactions, ...data.scheduled_transactions];
 }
 
-function getFlagTag(
-  transaction: FlaggedTransaction,
-  flagNameConflicts: Set<string>,
-): string {
+function getFlagTag(transaction: FlaggedTransaction, flagNameConflicts: Set<string>): string {
   const tagName = transaction.flag_name?.trim() ?? '';
   const colorKey = transaction.flag_color?.trim() ?? '';
 
@@ -272,10 +261,7 @@ function buildTransactionNotes(
   return notes.length > 0 ? notes : null;
 }
 
-function buildRuleUpdate(
-  rule: RuleEntity,
-  actions: RuleEntity['actions'],
-): RuleEntity {
+function buildRuleUpdate(rule: RuleEntity, actions: RuleEntity['actions']): RuleEntity {
   return {
     id: rule.id,
     stage: rule.stage ?? null,
@@ -285,11 +271,7 @@ function buildRuleUpdate(
   };
 }
 
-function importAccounts(
-  data: Budget,
-  entityIdMap: Map<string, string>,
-  tick: ImportTick,
-) {
+function importAccounts(data: Budget, entityIdMap: Map<string, string>, tick: ImportTick) {
   return Promise.all(
     data.accounts.map(async account => {
       if (!account.deleted) {
@@ -307,11 +289,7 @@ function importAccounts(
   );
 }
 
-async function importCategories(
-  data: Budget,
-  entityIdMap: Map<string, string>,
-  tick: ImportTick,
-) {
+async function importCategories(data: Budget, entityIdMap: Map<string, string>, tick: ImportTick) {
   // Hidden categories are put in its own group by YNAB,
   // so it's already handled.
 
@@ -320,10 +298,7 @@ async function importCategories(
   const ynabIncomeCategories = ['To be Budgeted', 'Inflow: Ready to Assign'];
 
   function checkSpecialCat(cat) {
-    if (
-      cat.category_group_id ===
-      findIdByName(data.category_groups, 'Internal Master Category')
-    ) {
+    if (cat.category_group_id === findIdByName(data.category_groups, 'Internal Master Category')) {
       if (
         ynabIncomeCategories.some(ynabIncomeCategory =>
           equalsIgnoreCase(cat.name, ynabIncomeCategory),
@@ -334,13 +309,10 @@ async function importCategories(
         return 'internal';
       }
     } else if (
-      cat.category_group_id ===
-      findIdByName(data.category_groups, 'Credit Card Payments')
+      cat.category_group_id === findIdByName(data.category_groups, 'Credit Card Payments')
     ) {
       return 'creditCard';
-    } else if (
-      cat.category_group_id === findIdByName(data.category_groups, 'Income')
-    ) {
+    } else if (cat.category_group_id === findIdByName(data.category_groups, 'Income')) {
       return 'income';
     }
   }
@@ -359,9 +331,9 @@ async function importCategories(
       const name = count === 0 ? baseName : `${baseName} (${count})`;
       try {
         const id = await send('api/category-group-create', {
-          group: { ...params, name },
+          group: {...params, name},
         });
-        return { id, name };
+        return {id, name};
       } catch (e) {
         if (count >= MAX_RETRY) {
           const errorMsg = normalizeError(e);
@@ -384,9 +356,9 @@ async function importCategories(
       const name = count === 0 ? baseName : `${baseName} (${count})`;
       try {
         const id = await send('api/category-create', {
-          category: { ...params, name },
+          category: {...params, name},
         });
-        return { id, name };
+        return {id, name};
       } catch (e) {
         if (count >= MAX_RETRY) {
           const errorMsg = normalizeError(e);
@@ -428,9 +400,7 @@ async function importCategories(
         entityIdMap.set(group.id, groupId);
       }
 
-      const cats = data.categories.filter(
-        cat => cat.category_group_id === group.id,
-      );
+      const cats = data.categories.filter(cat => cat.category_group_id === group.id);
 
       for (const cat of cats.reverse()) {
         if (!cat.deleted) {
@@ -471,16 +441,12 @@ async function importCategories(
   }
 }
 
-export function importPayees(
-  data: Budget,
-  entityIdMap: Map<string, string>,
-  tick?: ImportTick,
-) {
+export function importPayees(data: Budget, entityIdMap: Map<string, string>, tick?: ImportTick) {
   return Promise.all(
     data.payees.map(async payee => {
       if (!payee.deleted && !payee.transfer_account_id) {
         const id = await send('api/payee-create', {
-          payee: { name: payee.name },
+          payee: {name: payee.name},
         });
         entityIdMap.set(payee.id, id);
         tick?.();
@@ -536,9 +502,7 @@ async function importPayeeLocations(
       tick();
     } catch (error) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : String(error ?? 'Unknown error');
+        error instanceof Error ? error.message : String(error ?? 'Unknown error');
       logger.error(
         `Failed to import location for payee ${actualPayeeId} at (${latitude}, ${longitude}): ${errorMessage}`,
       );
@@ -570,9 +534,7 @@ function getTagsToCreate(data: Budget, flagNameConflicts: Set<string>) {
       continue;
     }
 
-    const mappedName = flagNameConflicts.has(tagName)
-      ? `${tagName}-${colorKey}`
-      : tagName;
+    const mappedName = flagNameConflicts.has(tagName) ? `${tagName}-${colorKey}` : tagName;
 
     if (!tagsToCreate.has(mappedName)) {
       tagsToCreate.set(mappedName, tagColor);
@@ -615,10 +577,7 @@ export async function importTransactions(
   const startingPayeeYNAB = findIdByName(data.payees, 'Starting Balance');
 
   const transactionsGrouped = groupBy(data.transactions, 'account_id');
-  const subtransactionsGrouped = groupBy(
-    data.subtransactions,
-    'transaction_id',
-  );
+  const subtransactionsGrouped = groupBy(data.subtransactions, 'transaction_id');
 
   const payeesByTransferAcct = payees
     .filter(payee => payee?.transfer_acct)
@@ -645,12 +604,8 @@ export async function importTransactions(
   for (const transaction of data.transactions) {
     entityIdMap.set(transaction.id, uuidv4());
 
-    if (
-      transaction.transfer_account_id &&
-      !transaction.transfer_transaction_id
-    ) {
-      const key =
-        transaction.account_id + '#' + transaction.transfer_account_id;
+    if (transaction.transfer_account_id && !transaction.transfer_transaction_id) {
+      const key = transaction.account_id + '#' + transaction.transfer_account_id;
       if (!orphanTransferMap.has(key)) {
         orphanTransferMap.set(key, [transaction]);
       } else {
@@ -659,10 +614,7 @@ export async function importTransactions(
     }
 
     if (orphanSubtransferTrxId.includes(transaction.id)) {
-      orphanSubtransferAcctIdByTrxIdMap.set(
-        transaction.id,
-        transaction.account_id,
-      );
+      orphanSubtransferAcctIdByTrxIdMap.set(transaction.id, transaction.account_id);
       orphanSubtransferDateByTrxIdMap.set(transaction.id, transaction.date);
     }
   }
@@ -670,21 +622,18 @@ export async function importTransactions(
   // Compute link between subtransaction transfers and orphaned transaction
   // transfers. The goal is to match each transfer subtransaction to the related
   // transfer transaction according to the accounts, date, amount and memo.
-  const orphanSubtransferMap = orphanSubtransfer.reduce(
-    (map, subtransaction) => {
-      const key =
-        subtransaction.transfer_account_id +
-        '#' +
-        orphanSubtransferAcctIdByTrxIdMap.get(subtransaction.transaction_id);
-      if (!map.has(key)) {
-        map.set(key, [subtransaction]);
-      } else {
-        map.get(key).push(subtransaction);
-      }
-      return map;
-    },
-    new Map<string, Subtransaction[]>(),
-  );
+  const orphanSubtransferMap = orphanSubtransfer.reduce((map, subtransaction) => {
+    const key =
+      subtransaction.transfer_account_id +
+      '#' +
+      orphanSubtransferAcctIdByTrxIdMap.get(subtransaction.transaction_id);
+    if (!map.has(key)) {
+      map.set(key, [subtransaction]);
+    } else {
+      map.get(key).push(subtransaction);
+    }
+    return map;
+  }, new Map<string, Subtransaction[]>());
 
   // The comparator will be used to order transfer transactions and their
   // corresponding tranfer subtransaction in two aligned list. Hopefully
@@ -697,14 +646,8 @@ export async function importTransactions(
     // a and b can be a Transaction (having a date attribute) or a
     // Subtransaction (missing that date attribute)
 
-    const date_a =
-      'date' in a
-        ? a.date
-        : orphanSubtransferDateByTrxIdMap.get(a.transaction_id);
-    const date_b =
-      'date' in b
-        ? b.date
-        : orphanSubtransferDateByTrxIdMap.get(b.transaction_id);
+    const date_a = 'date' in a ? a.date : orphanSubtransferDateByTrxIdMap.get(a.transaction_id);
+    const date_b = 'date' in b ? b.date : orphanSubtransferDateByTrxIdMap.get(b.transaction_id);
     // A transaction and the related subtransaction have inverted amounts.
     // To have those in the same order, the subtransaction has to be reversed
     // to have the same amount.
@@ -734,10 +677,7 @@ export async function importTransactions(
       let subtransactionIdx = 0;
       do {
         switch (
-          orphanTransferComparator(
-            transactions[transactionIdx],
-            subtransactions[subtransactionIdx],
-          )
+          orphanTransferComparator(transactions[transactionIdx], subtransactions[subtransactionIdx])
         ) {
           case 0:
             // The current list indexes are matching: the transaction and
@@ -770,10 +710,7 @@ export async function importTransactions(
           default:
             throw new Error(`Unrecognized orphan transfer comparator result`);
         }
-      } while (
-        transactionIdx < transactions.length &&
-        subtransactionIdx < subtransactions.length
-      );
+      } while (transactionIdx < transactions.length && subtransactionIdx < subtransactions.length);
     }
   });
 
@@ -811,8 +748,7 @@ export async function importTransactions(
                     amount: amountFromYnab(subtrans.amount),
                     category: entityIdMap.get(subtrans.category_id) || null,
                     notes: subtrans.memo,
-                    transfer_id:
-                      orphanTrxIdSubtrxIdMap.get(subtrans.id) || null,
+                    transfer_id: orphanTrxIdSubtrxIdMap.get(subtrans.id) || null,
                     payee: null,
                     imported_payee: null,
                   };
@@ -829,12 +765,8 @@ export async function importTransactions(
             fallbackPayeeId?: string | null,
           ) {
             if (trx.transfer_account_id) {
-              const mappedTransferAccountId = entityIdMap.get(
-                trx.transfer_account_id,
-              );
-              newTrx.payee = payeeTransferAcctHashMap.get(
-                mappedTransferAccountId,
-              )?.id;
+              const mappedTransferAccountId = entityIdMap.get(trx.transfer_account_id);
+              newTrx.payee = payeeTransferAcctHashMap.get(mappedTransferAccountId)?.id;
             } else if (trx.payee_id) {
               newTrx.payee = entityIdMap.get(trx.payee_id);
               newTrx.imported_payee = data.payees.find(
@@ -851,11 +783,7 @@ export async function importTransactions(
               const newSubtransaction = newTransaction.subtransactions.find(
                 newSubtrans => newSubtrans.id === entityIdMap.get(subtrans.id),
               );
-              transactionPayeeUpdate(
-                subtrans,
-                newSubtransaction,
-                newTransaction.payee,
-              );
+              transactionPayeeUpdate(subtrans, newSubtransaction, newTransaction.payee);
             });
           }
 
@@ -877,10 +805,7 @@ export async function importTransactions(
         learnCategories: true,
         runTransfers: false,
       });
-      tick?.(
-        toImport.length,
-        data.accounts.find(account => account.id === accountId)?.name,
-      );
+      tick?.(toImport.length, data.accounts.find(account => account.id === accountId)?.name);
     }),
   );
 }
@@ -939,22 +864,17 @@ export async function importScheduledTransactions(
     }
   }
 
-  async function getRuleForSchedule(
-    scheduleId: string,
-  ): Promise<RuleEntity | null> {
-    const { data: ruleId } = (await send('api/query', {
-      query: q('schedules')
-        .filter({ id: scheduleId })
-        .calculate('rule')
-        .serialize(),
-    })) as { data: string | null };
+  async function getRuleForSchedule(scheduleId: string): Promise<RuleEntity | null> {
+    const {data: ruleId} = (await send('api/query', {
+      query: q('schedules').filter({id: scheduleId}).calculate('rule').serialize(),
+    })) as {data: string | null};
     if (!ruleId) {
       return null;
     }
 
-    const { data: ruleData } = (await send('api/query', {
-      query: q('rules').filter({ id: ruleId }).select('*').serialize(),
-    })) as { data: Array<Record<string, unknown>> };
+    const {data: ruleData} = (await send('api/query', {
+      query: q('rules').filter({id: ruleId}).select('*').serialize(),
+    })) as {data: Array<Record<string, unknown>>};
     const ruleRow = ruleData?.[0];
     if (!ruleRow) {
       return null;
@@ -977,9 +897,7 @@ export async function importScheduledTransactions(
 
     let mappedPayeeId: string | undefined;
     if (scheduled.transfer_account_id) {
-      const mappedTransferAccountId = entityIdMap.get(
-        scheduled.transfer_account_id,
-      );
+      const mappedTransferAccountId = entityIdMap.get(scheduled.transfer_account_id);
       mappedPayeeId = mappedTransferAccountId
         ? payeeTransferAcctHashMap.get(mappedTransferAccountId)?.id
         : undefined;
@@ -1077,7 +995,7 @@ export async function importScheduledTransactions(
         actions.push({
           op: 'set-split-amount',
           value: amountFromYnab(subtransaction.amount),
-          options: { splitIndex, method: 'fixed-amount' },
+          options: {splitIndex, method: 'fixed-amount'},
         });
 
         if (subtransaction.memo) {
@@ -1085,14 +1003,12 @@ export async function importScheduledTransactions(
             op: 'set',
             field: 'notes',
             value: subtransaction.memo,
-            options: { splitIndex },
+            options: {splitIndex},
           });
         }
 
         if (subtransaction.transfer_account_id) {
-          const mappedTransferAccountId = entityIdMap.get(
-            subtransaction.transfer_account_id,
-          );
+          const mappedTransferAccountId = entityIdMap.get(subtransaction.transfer_account_id);
           const transferPayeeId = mappedTransferAccountId
             ? payeeTransferAcctHashMap.get(mappedTransferAccountId)?.id
             : undefined;
@@ -1101,7 +1017,7 @@ export async function importScheduledTransactions(
               op: 'set',
               field: 'payee',
               value: transferPayeeId,
-              options: { splitIndex },
+              options: {splitIndex},
             });
           }
         } else if (subtransaction.payee_id) {
@@ -1111,7 +1027,7 @@ export async function importScheduledTransactions(
               op: 'set',
               field: 'payee',
               value: mappedPayeeId,
-              options: { splitIndex },
+              options: {splitIndex},
             });
           }
         } else if (parentPayeeId) {
@@ -1119,7 +1035,7 @@ export async function importScheduledTransactions(
             op: 'set',
             field: 'payee',
             value: parentPayeeId,
-            options: { splitIndex },
+            options: {splitIndex},
           });
         }
 
@@ -1130,7 +1046,7 @@ export async function importScheduledTransactions(
               op: 'set',
               field: 'category',
               value: mappedCategoryId,
-              options: { splitIndex },
+              options: {splitIndex},
             });
           }
         }
@@ -1144,11 +1060,7 @@ export async function importScheduledTransactions(
   }
 }
 
-async function importBudgets(
-  data: Budget,
-  entityIdMap: Map<string, string>,
-  tick: ImportTick,
-) {
+async function importBudgets(data: Budget, entityIdMap: Map<string, string>, tick: ImportTick) {
   // There should be info in the docs to deal with
   // no credit card category and how YNAB and Actual
   // handle differently the amount To be Budgeted
@@ -1159,14 +1071,8 @@ async function importBudgets(
 
   const budgets = sortByKey(data.months, 'month');
 
-  const internalCatIdYnab = findIdByName(
-    data.category_groups,
-    'Internal Master Category',
-  );
-  const creditcardCatIdYnab = findIdByName(
-    data.category_groups,
-    'Credit Card Payments',
-  );
+  const internalCatIdYnab = findIdByName(data.category_groups, 'Internal Master Category');
+  const creditcardCatIdYnab = findIdByName(data.category_groups, 'Credit Card Payments');
 
   await send('api/batch-budget-start');
   try {
@@ -1237,9 +1143,7 @@ export async function doImport(data: Budget) {
     },
     {
       step: 'payees',
-      total: data.payees.filter(
-        payee => !payee.deleted && !payee.transfer_account_id,
-      ).length,
+      total: data.payees.filter(payee => !payee.deleted && !payee.transfer_account_id).length,
       run: tick => importPayees(data, entityIdMap, tick),
     },
     {
@@ -1255,14 +1159,12 @@ export async function doImport(data: Budget) {
     {
       step: 'transactions',
       total: data.transactions.length,
-      run: tick =>
-        importTransactions(data, entityIdMap, flagNameConflicts, tick),
+      run: tick => importTransactions(data, entityIdMap, flagNameConflicts, tick),
     },
     {
       step: 'scheduled-transactions',
       total: data.scheduled_transactions.length,
-      run: tick =>
-        importScheduledTransactions(data, entityIdMap, flagNameConflicts, tick),
+      run: tick => importScheduledTransactions(data, entityIdMap, flagNameConflicts, tick),
     },
     {
       step: 'budgets',
@@ -1272,6 +1174,6 @@ export async function doImport(data: Budget) {
   ]);
 }
 
-function countLive(entities: { deleted?: boolean }[]) {
+function countLive(entities: {deleted?: boolean}[]) {
   return entities.filter(entity => !entity.deleted).length;
 }

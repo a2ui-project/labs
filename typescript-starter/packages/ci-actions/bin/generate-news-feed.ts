@@ -27,11 +27,11 @@
 // Run from the repo root: `yarn generate:news-feed`.
 
 import * as fs from 'node:fs/promises';
-import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
-import { buildNewsFeed, getPostSlug, parsePost } from '../src/news-feed/parse';
-import type { NewsEntry } from '../src/news-feed/parse';
+import {buildNewsFeed, getPostSlug, parsePost} from '../src/news-feed/parse';
+import type {NewsEntry} from '../src/news-feed/parse';
 
 const SITE_URL = 'https://actualbudget.org';
 const RELEASE_LIMIT = 10;
@@ -45,23 +45,15 @@ const outputPath = join(repoRoot, 'packages/desktop-client/src/data/news.json');
 // be represented makes `parsePost` throw, which fails the run (exit code 1).
 const warn = (message: string) => console.warn(message);
 
-const postFilenames = (await fs.readdir(blogDir))
-  .filter(name => /\.mdx?$/.test(name))
-  .sort();
+const postFilenames = (await fs.readdir(blogDir)).filter(name => /\.mdx?$/.test(name)).sort();
 const postContents = new Map<string, string>();
 for (const filename of postFilenames) {
-  postContents.set(
-    filename,
-    await fs.readFile(join(blogDir, filename), 'utf-8'),
-  );
+  postContents.set(filename, await fs.readFile(join(blogDir, filename), 'utf-8'));
 }
 // Links between posts are written against filenames; resolve them to the
 // slugs Docusaurus actually publishes (front matter can override the default).
 const postSlugs = new Map(
-  [...postContents].map(([filename, contents]) => [
-    filename,
-    getPostSlug(filename, contents),
-  ]),
+  [...postContents].map(([filename, contents]) => [filename, getPostSlug(filename, contents)]),
 );
 
 const entries: NewsEntry[] = [];
@@ -84,9 +76,7 @@ const feed = buildNewsFeed({
 
 await fs.writeFile(outputPath, `${JSON.stringify(feed, null, 2)}\n`);
 
-const releaseCount = feed.entries.filter(
-  entry => entry.type === 'release',
-).length;
+const releaseCount = feed.entries.filter(entry => entry.type === 'release').length;
 console.log(
   `Generated ${outputPath} with ${feed.entries.length} entries (${releaseCount} releases, ${feed.entries.length - releaseCount} posts).`,
 );

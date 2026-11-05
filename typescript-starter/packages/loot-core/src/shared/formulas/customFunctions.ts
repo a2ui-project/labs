@@ -23,13 +23,13 @@ import {
   FunctionPlugin,
   SimpleRangeValue,
 } from 'hyperformula';
-import type { InterpreterState } from 'hyperformula/typings/interpreter/InterpreterState';
-import type { ProcedureAst } from 'hyperformula/typings/parser';
+import type {InterpreterState} from 'hyperformula/typings/interpreter/InterpreterState';
+import type {ProcedureAst} from 'hyperformula/typings/parser';
 
-import { getCurrency } from '#shared/currencies';
-import type { Currency } from '#shared/currencies';
-import { integerToAmount } from '#shared/util';
-import type { NumberFormats } from '#shared/util';
+import {getCurrency} from '#shared/currencies';
+import type {Currency} from '#shared/currencies';
+import {integerToAmount} from '#shared/util';
+import type {NumberFormats} from '#shared/util';
 
 type CurrencySymbolPosition = 'before' | 'after';
 
@@ -131,9 +131,7 @@ function categoryRangeToIds(categories: SimpleRangeValue): string[] {
 
 function categoryIdsToRange(categoryIds: string[]): SimpleRangeValue {
   return SimpleRangeValue.onlyValues(
-    categoryIds.length > 0
-      ? categoryIds.map(categoryId => [categoryId])
-      : [['']],
+    categoryIds.length > 0 ? categoryIds.map(categoryId => [categoryId]) : [['']],
   );
 }
 
@@ -159,10 +157,7 @@ function formatCurrencyValue({
   const fixedNum = absNum.toFixed(decimals);
   const [integerPart, decimalPart] = fixedNum.split('.');
 
-  const formattedInteger = integerPart.replace(
-    /\B(?=(\d{3})+(?!\d))/g,
-    thousandsSeparator,
-  );
+  const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, thousandsSeparator);
 
   const formattedAmount =
     decimals > 0 && decimalPart
@@ -217,50 +212,35 @@ export class CustomFunctionsPlugin extends FunctionPlugin {
   }
 
   balanceOf(ast: ProcedureAst, state: InterpreterState) {
-    return this.runFunction(
-      ast.args,
-      state,
-      this.metadata('BALANCE_OF'),
-      (accountKey: string) => {
-        const ctx = this.getCustomFunctionsContext();
-        if (ctx?.balanceOfPrefetch) {
-          // Rule formulas: prefetched relative to the transaction being evaluated.
-          return ctx.balanceOfPrefetch.get(accountKey) ?? 0;
-        }
+    return this.runFunction(ast.args, state, this.metadata('BALANCE_OF'), (accountKey: string) => {
+      const ctx = this.getCustomFunctionsContext();
+      if (ctx?.balanceOfPrefetch) {
+        // Rule formulas: prefetched relative to the transaction being evaluated.
+        return ctx.balanceOfPrefetch.get(accountKey) ?? 0;
+      }
 
-        // Report/query formulas: no single transaction to be "before", so this
-        // resolves to the account's current balance.
-        const formulaQueryCtx = this.getFormulaQueryContext();
-        formulaQueryCtx?.balanceOfNames?.add(accountKey);
-        return formulaQueryCtx?.balanceOfPrefetch?.get(accountKey) ?? 0;
-      },
-    );
+      // Report/query formulas: no single transaction to be "before", so this
+      // resolves to the account's current balance.
+      const formulaQueryCtx = this.getFormulaQueryContext();
+      formulaQueryCtx?.balanceOfNames?.add(accountKey);
+      return formulaQueryCtx?.balanceOfPrefetch?.get(accountKey) ?? 0;
+    });
   }
 
   query(ast: ProcedureAst, state: InterpreterState) {
-    return this.runFunction(
-      ast.args,
-      state,
-      this.metadata('QUERY'),
-      (queryName: string) => {
-        const ctx = this.getFormulaQueryContext();
-        ctx?.queryNames?.add(queryName);
-        return ctx?.querySumPrefetch?.get(queryName) ?? 0;
-      },
-    );
+    return this.runFunction(ast.args, state, this.metadata('QUERY'), (queryName: string) => {
+      const ctx = this.getFormulaQueryContext();
+      ctx?.queryNames?.add(queryName);
+      return ctx?.querySumPrefetch?.get(queryName) ?? 0;
+    });
   }
 
   queryCount(ast: ProcedureAst, state: InterpreterState) {
-    return this.runFunction(
-      ast.args,
-      state,
-      this.metadata('QUERY_COUNT'),
-      (queryName: string) => {
-        const ctx = this.getFormulaQueryContext();
-        ctx?.queryCountNames?.add(queryName);
-        return ctx?.queryCountPrefetch?.get(queryName) ?? 0;
-      },
-    );
+    return this.runFunction(ast.args, state, this.metadata('QUERY_COUNT'), (queryName: string) => {
+      const ctx = this.getFormulaQueryContext();
+      ctx?.queryCountNames?.add(queryName);
+      return ctx?.queryCountPrefetch?.get(queryName) ?? 0;
+    });
   }
 
   queryExtractCategories(ast: ProcedureAst, state: InterpreterState) {
@@ -271,9 +251,7 @@ export class CustomFunctionsPlugin extends FunctionPlugin {
       (queryName: string) => {
         const ctx = this.getFormulaQueryContext();
         ctx?.queryExtractCategoryNames?.add(queryName);
-        return categoryIdsToRange(
-          ctx?.queryExtractCategoriesPrefetch?.get(queryName) ?? [],
-        );
+        return categoryIdsToRange(ctx?.queryExtractCategoriesPrefetch?.get(queryName) ?? []);
       },
     );
   }
@@ -284,12 +262,9 @@ export class CustomFunctionsPlugin extends FunctionPlugin {
     }
 
     const [queryNameAst] = ast.args;
-    const queryName =
-      queryNameAst.type === 'STRING' ? queryNameAst.value : undefined;
+    const queryName = queryNameAst.type === 'STRING' ? queryNameAst.value : undefined;
     const categoryCount = queryName
-      ? this.getFormulaQueryContext()?.queryExtractCategoriesPrefetch?.get(
-          queryName,
-        )?.length
+      ? this.getFormulaQueryContext()?.queryExtractCategoriesPrefetch?.get(queryName)?.length
       : undefined;
 
     return new ArraySize(1, Math.max(categoryCount ?? 1, 1));
@@ -326,12 +301,7 @@ export class CustomFunctionsPlugin extends FunctionPlugin {
       ast.args,
       state,
       this.metadata('BUDGET_QUERY'),
-      (
-        dimension: string,
-        categories: SimpleRangeValue,
-        startMonth: string,
-        endMonth: string,
-      ) => {
+      (dimension: string, categories: SimpleRangeValue, startMonth: string, endMonth: string) => {
         const ctx = this.getFormulaQueryContext();
         const request: BudgetQueryRequest = {
           dimension: dimension.toLowerCase(),
@@ -380,9 +350,7 @@ export class CustomFunctionsPlugin extends FunctionPlugin {
           hasDecimalSeparatorArg && decimalSeparator !== undefined
             ? decimalSeparator
             : prefs.decimalSeparator;
-        const actualDecimals = hasDecimalsArg
-          ? (decimals ?? 2)
-          : prefs.decimalPlaces;
+        const actualDecimals = hasDecimalsArg ? (decimals ?? 2) : prefs.decimalPlaces;
 
         const fixedNum = num.toFixed(actualDecimals);
         const [integerPart, decimalPart] = fixedNum.split('.');
@@ -432,9 +400,7 @@ export class CustomFunctionsPlugin extends FunctionPlugin {
         const actualCurrencySymbol = hasCurrencySymbolArg
           ? (currencySymbol ?? '')
           : prefs.currency.symbol;
-        const actualDecimals = hasDecimalsArg
-          ? (decimals ?? 2)
-          : prefs.currency.decimalPlaces;
+        const actualDecimals = hasDecimalsArg ? (decimals ?? 2) : prefs.currency.decimalPlaces;
         const actualThousandsSeparator =
           hasThousandsSeparatorArg && thousandsSeparator !== undefined
             ? thousandsSeparator
@@ -444,10 +410,7 @@ export class CustomFunctionsPlugin extends FunctionPlugin {
             ? decimalSeparator
             : prefs.decimalSeparator;
         const actualCurrencySymbolPosition = hasCurrencySymbolPositionArg
-          ? getCurrencySymbolPositionFromArg(
-              currencySymbolPosition,
-              prefs.currencySymbolPosition,
-            )
+          ? getCurrencySymbolPositionFromArg(currencySymbolPosition, prefs.currencySymbolPosition)
           : prefs.currencySymbolPosition;
         const actualCurrencySpaceBetweenAmountAndSymbol =
           hasCurrencySpaceBetweenAmountAndSymbolArg &&
@@ -462,8 +425,7 @@ export class CustomFunctionsPlugin extends FunctionPlugin {
           thousandsSeparator: actualThousandsSeparator,
           decimalSeparator: actualDecimalSeparator,
           currencySymbolPosition: actualCurrencySymbolPosition,
-          currencySpaceBetweenAmountAndSymbol:
-            actualCurrencySpaceBetweenAmountAndSymbol,
+          currencySpaceBetweenAmountAndSymbol: actualCurrencySpaceBetweenAmountAndSymbol,
         });
       },
     );
@@ -473,12 +435,12 @@ export class CustomFunctionsPlugin extends FunctionPlugin {
 CustomFunctionsPlugin.implementedFunctions = {
   BALANCE_OF: {
     method: 'balanceOf',
-    parameters: [{ argumentType: FunctionArgumentType.STRING }],
+    parameters: [{argumentType: FunctionArgumentType.STRING}],
   },
   FIXED: {
     method: 'fixed',
     parameters: [
-      { argumentType: FunctionArgumentType.NUMBER },
+      {argumentType: FunctionArgumentType.NUMBER},
       {
         argumentType: FunctionArgumentType.NUMBER,
         optionalArg: true,
@@ -489,7 +451,7 @@ CustomFunctionsPlugin.implementedFunctions = {
   INTEGER_TO_AMOUNT: {
     method: 'integerToAmount',
     parameters: [
-      { argumentType: FunctionArgumentType.NUMBER },
+      {argumentType: FunctionArgumentType.NUMBER},
       {
         argumentType: FunctionArgumentType.NUMBER,
         optionalArg: true,
@@ -499,38 +461,38 @@ CustomFunctionsPlugin.implementedFunctions = {
   },
   QUERY: {
     method: 'query',
-    parameters: [{ argumentType: FunctionArgumentType.STRING }],
+    parameters: [{argumentType: FunctionArgumentType.STRING}],
   },
   QUERY_COUNT: {
     method: 'queryCount',
-    parameters: [{ argumentType: FunctionArgumentType.STRING }],
+    parameters: [{argumentType: FunctionArgumentType.STRING}],
   },
   QUERY_EXTRACT_CATEGORIES: {
     method: 'queryExtractCategories',
     sizeOfResultArrayMethod: 'queryExtractCategoriesSize',
-    parameters: [{ argumentType: FunctionArgumentType.STRING }],
+    parameters: [{argumentType: FunctionArgumentType.STRING}],
   },
   QUERY_EXTRACT_TIMEFRAME_END: {
     method: 'queryExtractTimeframeEnd',
-    parameters: [{ argumentType: FunctionArgumentType.STRING }],
+    parameters: [{argumentType: FunctionArgumentType.STRING}],
   },
   QUERY_EXTRACT_TIMEFRAME_START: {
     method: 'queryExtractTimeframeStart',
-    parameters: [{ argumentType: FunctionArgumentType.STRING }],
+    parameters: [{argumentType: FunctionArgumentType.STRING}],
   },
   BUDGET_QUERY: {
     method: 'budgetQuery',
     parameters: [
-      { argumentType: FunctionArgumentType.STRING },
-      { argumentType: FunctionArgumentType.RANGE },
-      { argumentType: FunctionArgumentType.STRING },
-      { argumentType: FunctionArgumentType.STRING },
+      {argumentType: FunctionArgumentType.STRING},
+      {argumentType: FunctionArgumentType.RANGE},
+      {argumentType: FunctionArgumentType.STRING},
+      {argumentType: FunctionArgumentType.STRING},
     ],
   },
   FORMATNUMBER: {
     method: 'formatNumber',
     parameters: [
-      { argumentType: FunctionArgumentType.NUMBER },
+      {argumentType: FunctionArgumentType.NUMBER},
       {
         argumentType: FunctionArgumentType.NUMBER,
         optionalArg: true,
@@ -551,7 +513,7 @@ CustomFunctionsPlugin.implementedFunctions = {
   FORMATCURRENCY: {
     method: 'formatCurrency',
     parameters: [
-      { argumentType: FunctionArgumentType.NUMBER },
+      {argumentType: FunctionArgumentType.NUMBER},
       {
         argumentType: FunctionArgumentType.STRING,
         optionalArg: true,

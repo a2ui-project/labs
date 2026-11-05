@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import { Trans } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgCheckCircle1 } from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import type { TransObjectLiteral } from '@actual-app/core/types/util';
+import {Button} from '@actual-app/components/button';
+import {SvgCheckCircle1} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import type {TransObjectLiteral} from '@actual-app/core/types/util';
 
-import { useFormat } from '#hooks/useFormat';
-import { useSheetValue } from '#hooks/useSheetValue';
+import {useFormat} from '#hooks/useFormat';
+import {useSheetValue} from '#hooks/useSheetValue';
 import * as bindings from '#spreadsheet/bindings';
 
 type ReconcilingBannerProps = {
@@ -66,8 +66,7 @@ export function ReconcilingBanner({
 
   const clearedBalance = format(cleared, 'financial');
   const bankBalance = format(targetBalance, 'financial');
-  const difference =
-    (targetDiff > 0 ? '+' : '') + format(targetDiff, 'financial');
+  const difference = (targetDiff > 0 ? '+' : '') + format(targetDiff, 'financial');
 
   const isBalanced = targetDiff === 0;
 
@@ -90,7 +89,7 @@ export function ReconcilingBanner({
           gridArea: '1 / 1',
           justifyContent: 'center',
           gap: 10,
-          ...(!isBalanced && { visibility: 'hidden' }),
+          ...(!isBalanced && {visibility: 'hidden'}),
         }}
       >
         <View
@@ -114,7 +113,7 @@ export function ReconcilingBanner({
         <Button
           variant="primary"
           isDisabled={isUpdating}
-          style={{ height: styles.mobileMinHeight }}
+          style={{height: styles.mobileMinHeight}}
           onPress={() => runAction(onDone)}
         >
           <Trans>Lock transactions</Trans>
@@ -125,7 +124,7 @@ export function ReconcilingBanner({
           gridArea: '1 / 1',
           justifyContent: 'center',
           gap: 10,
-          ...(isBalanced && { visibility: 'hidden' }),
+          ...(isBalanced && {visibility: 'hidden'}),
         }}
       >
         <Text
@@ -136,13 +135,9 @@ export function ReconcilingBanner({
           }}
         >
           <Trans>
-            Your cleared balance{' '}
-            <strong>{{ clearedBalance } as TransObjectLiteral}</strong> needs{' '}
-            <strong>{{ difference } as TransObjectLiteral}</strong> to match
-            your bank&apos;s balance of{' '}
-            <Text style={{ fontWeight: 700 }}>
-              {{ bankBalance } as TransObjectLiteral}
-            </Text>
+            Your cleared balance <strong>{{clearedBalance} as TransObjectLiteral}</strong> needs{' '}
+            <strong>{{difference} as TransObjectLiteral}</strong> to match your bank&apos;s balance
+            of <Text style={{fontWeight: 700}}>{{bankBalance} as TransObjectLiteral}</Text>
           </Trans>
         </Text>
         <View
@@ -154,7 +149,7 @@ export function ReconcilingBanner({
         >
           <Button
             isDisabled={isUpdating}
-            style={{ flex: 1, minHeight: styles.mobileMinHeight }}
+            style={{flex: 1, minHeight: styles.mobileMinHeight}}
             onPress={() => runAction(() => onCreateTransaction(targetDiff))}
           >
             <Trans>Create reconciliation transaction</Trans>
@@ -162,7 +157,7 @@ export function ReconcilingBanner({
           <Button
             variant="primary"
             isDisabled={isUpdating}
-            style={{ flex: 1, minHeight: styles.mobileMinHeight }}
+            style={{flex: 1, minHeight: styles.mobileMinHeight}}
             onPress={() => runAction(onDone)}
           >
             <Trans>Exit reconciliation</Trans>

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import { usePreferredDarkTheme, useTheme } from '#style/theme';
+import {useGlobalPref} from '#hooks/useGlobalPref';
+import {usePreferredDarkTheme, useTheme} from '#style/theme';
 
 const VAR_STRING_REGEX = /^var\((--.*)\)$/;
 const DEFAULT_THEME_COLOR = '#5c3dbb';
@@ -31,9 +31,7 @@ const DEFAULT_THEME_COLOR = '#5c3dbb';
 export function useMetaThemeColor(color?: string) {
   const [activeTheme] = useTheme();
   const [darkThemePreference] = usePreferredDarkTheme();
-  const [installedCustomLightTheme] = useGlobalPref(
-    'installedCustomLightTheme',
-  );
+  const [installedCustomLightTheme] = useGlobalPref('installedCustomLightTheme');
   const [installedCustomDarkTheme] = useGlobalPref('installedCustomDarkTheme');
   const [customCssOverride] = useGlobalPref('customCssOverride');
   const systemColorScheme = useSystemColorScheme();
@@ -41,8 +39,7 @@ export function useMetaThemeColor(color?: string) {
   useEffect(() => {
     if (!color) return;
 
-    const resolved =
-      getPropertyValueFromVarString(color) || DEFAULT_THEME_COLOR;
+    const resolved = getPropertyValueFromVarString(color) || DEFAULT_THEME_COLOR;
 
     ensureThemeColorMetaTag();
     setThemeColorMetaContent(resolved);
@@ -59,16 +56,12 @@ export function useMetaThemeColor(color?: string) {
 }
 
 function useSystemColorScheme() {
-  const [systemColorScheme, setSystemColorScheme] = useState(() =>
-    getSystemColorScheme(),
-  );
+  const [systemColorScheme, setSystemColorScheme] = useState(() => getSystemColorScheme());
 
   useEffect(() => {
     if (!window.matchMedia) return;
 
-    const darkThemeMediaQuery = window.matchMedia(
-      '(prefers-color-scheme: dark)',
-    );
+    const darkThemeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleColorSchemeChange = () => {
       setSystemColorScheme(darkThemeMediaQuery.matches ? 'dark' : 'light');
     };
@@ -77,10 +70,7 @@ function useSystemColorScheme() {
     handleColorSchemeChange();
 
     return () => {
-      darkThemeMediaQuery.removeEventListener(
-        'change',
-        handleColorSchemeChange,
-      );
+      darkThemeMediaQuery.removeEventListener('change', handleColorSchemeChange);
     };
   }, []);
 
@@ -88,9 +78,7 @@ function useSystemColorScheme() {
 }
 
 function getSystemColorScheme() {
-  return window.matchMedia?.('(prefers-color-scheme: dark)').matches
-    ? 'dark'
-    : 'light';
+  return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 function ensureThemeColorMetaTag() {
@@ -116,9 +104,6 @@ function getPropertyValueFromVarString(varString: string) {
   if (!VAR_STRING_REGEX.test(varString)) return varString;
   const match = varString.match(VAR_STRING_REGEX);
   return match
-    ? window
-        .getComputedStyle(document.documentElement)
-        .getPropertyValue(match[1])
-        .trim()
+    ? window.getComputedStyle(document.documentElement).getPropertyValue(match[1]).trim()
     : varString;
 }

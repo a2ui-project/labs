@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { ChangeEvent, ReactNode } from 'react';
+import type {ChangeEvent, ReactNode} from 'react';
 import {
   ColorPicker as AriaColorPicker,
   ColorSwatch as AriaColorSwatch,
@@ -30,16 +30,16 @@ import type {
   ColorSwatchProps,
 } from 'react-aria-components';
 
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import { Input } from './Input';
-import { Popover } from './Popover';
+import {Input} from './Input';
+import {Popover} from './Popover';
 
 function ColorSwatch(props: ColorSwatchProps) {
   return (
     <AriaColorSwatch
       {...props}
-      style={({ color }) => ({
+      style={({color}) => ({
         background: color.toString('hex'),
         width: '32px',
         height: '32px',
@@ -98,10 +98,7 @@ type ColorSwatchPickerProps = {
   colorset?: string[];
 };
 
-function ColorSwatchPicker({
-  columns = 5,
-  colorset = DEFAULT_COLOR_SET,
-}: ColorSwatchPickerProps) {
+function ColorSwatchPicker({columns = 5, colorset = DEFAULT_COLOR_SET}: ColorSwatchPickerProps) {
   const pickers = [];
 
   for (let l = 0; l < colorset.length / columns; l++) {
@@ -165,12 +162,7 @@ type ColorPickerProps = {
   colorset?: string[];
 } & AriaColorPickerProps;
 
-export function ColorPicker({
-  children,
-  columns,
-  colorset,
-  ...props
-}: ColorPickerProps) {
+export function ColorPicker({children, columns, colorset, ...props}: ColorPickerProps) {
   const onInput = (value: string) => {
     if (!isColor(value)) {
       return;
@@ -202,11 +194,9 @@ export function ColorPicker({
           >
             <ColorSwatchPicker columns={columns} colorset={colorset} />
             <ColorField
-              onInput={({ target: { value } }: ChangeEvent<HTMLInputElement>) =>
-                onInput(value)
-              }
+              onInput={({target: {value}}: ChangeEvent<HTMLInputElement>) => onInput(value)}
             >
-              <Input placeholder="#RRGGBB" style={{ width: '100px' }} />
+              <Input placeholder="#RRGGBB" style={{width: '100px'}} />
             </ColorField>
           </Dialog>
         </Popover>

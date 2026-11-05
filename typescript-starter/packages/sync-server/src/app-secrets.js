@@ -16,18 +16,15 @@
 
 import express from 'express';
 
-import { isAdmin } from './account-db';
-import { SecretName, secretsService } from './services/secrets-service';
+import {isAdmin} from './account-db';
+import {SecretName, secretsService} from './services/secrets-service';
 import * as UserService from './services/user-service';
-import {
-  requestLoggerMiddleware,
-  validateSessionMiddleware,
-} from './util/middlewares';
-import { isValidFileId } from './util/paths';
+import {requestLoggerMiddleware, validateSessionMiddleware} from './util/middlewares';
+import {isValidFileId} from './util/paths';
 
 const app = express();
 
-export { app as handlers };
+export {app as handlers};
 app.use(express.json());
 app.use(requestLoggerMiddleware);
 app.use(validateSessionMiddleware);
@@ -39,7 +36,7 @@ function canManageGlobalSecrets(userId) {
 
 // Per-budget-file secrets are managed by file owners
 function isBudgetFileOwner(fileId, userId) {
-  const { granted } = UserService.checkFilePermission(fileId, userId) || {
+  const {granted} = UserService.checkFilePermission(fileId, userId) || {
     granted: 0,
   };
   return granted > 0;
@@ -50,7 +47,7 @@ function canManagePerBudgetFileSecrets(fileId, userId) {
 }
 
 app.post('/', async (req, res) => {
-  const { name, value } = req.body || {};
+  const {name, value} = req.body || {};
   const fileId = req.get('X-Actual-File-Id');
   const perBudgetFile = fileId != null;
 
@@ -93,7 +90,7 @@ app.post('/', async (req, res) => {
   const secretFileId = perBudgetFile ? fileId : null;
   secretsService.set(name, value, secretFileId);
 
-  res.status(200).send({ status: 'ok' });
+  res.status(200).send({status: 'ok'});
 });
 
 app.delete('/:name', async (req, res) => {
@@ -117,7 +114,7 @@ app.delete('/:name', async (req, res) => {
     }
 
     secretsService.reset(name);
-    res.status(200).send({ status: 'ok' });
+    res.status(200).send({status: 'ok'});
     return;
   }
 
@@ -140,7 +137,7 @@ app.delete('/:name', async (req, res) => {
   }
 
   secretsService.reset(name, fileId);
-  res.status(200).send({ status: 'ok' });
+  res.status(200).send({status: 'ok'});
 });
 
 app.get('/:name', async (req, res) => {

@@ -16,12 +16,9 @@
 
 import createDebug from 'debug';
 
-import {
-  EnableBankingError,
-  handleEnableBankingError,
-} from '#app-enablebanking/utils/errors';
-import { getJWT } from '#app-enablebanking/utils/jwt';
-import { SecretName, secretsService } from '#services/secrets-service';
+import {EnableBankingError, handleEnableBankingError} from '#app-enablebanking/utils/errors';
+import {getJWT} from '#app-enablebanking/utils/jwt';
+import {SecretName, secretsService} from '#services/secrets-service';
 
 const debug = createDebug('actual:enable-banking:service');
 
@@ -32,9 +29,9 @@ const BASE_URL = 'https://api.enablebanking.com';
 export type EnableBankingTransaction = {
   entry_reference?: string;
   transaction_id?: string;
-  transaction_amount: { currency: string; amount: string };
-  creditor?: { name?: string };
-  debtor?: { name?: string };
+  transaction_amount: {currency: string; amount: string};
+  creditor?: {name?: string};
+  debtor?: {name?: string};
   credit_debit_indicator?: 'CRDT' | 'DBIT';
   status?: 'BOOK' | 'PDNG';
   booking_date?: string;
@@ -44,14 +41,14 @@ export type EnableBankingTransaction = {
 };
 
 type EnableBankingBalance = {
-  balance_amount: { currency: string; amount: string };
+  balance_amount: {currency: string; amount: string};
   balance_type: string;
   reference_date?: string;
 };
 
 export type EnableBankingSessionAccount = {
-  account_id?: { iban?: string };
-  account_servicer?: { bic_fi?: string; name?: string };
+  account_id?: {iban?: string};
+  account_servicer?: {bic_fi?: string; name?: string};
   name?: string;
   currency?: string;
   uid: string;
@@ -60,7 +57,7 @@ export type EnableBankingSessionAccount = {
 export type EnableBankingSession = {
   session_id: string;
   accounts: EnableBankingSessionAccount[];
-  aspsp?: { name?: string; country?: string };
+  aspsp?: {name?: string; country?: string};
 };
 
 type EnableBankingAspsp = {
@@ -81,7 +78,7 @@ type BankSyncTransaction = EnableBankingTransaction & {
   date: string;
   bookingDate: string;
   valueDate?: string;
-  transactionAmount: { amount: string; currency: string };
+  transactionAmount: {amount: string; currency: string};
   payeeName: string;
   notes?: string;
   remittanceInformationUnstructured?: string;
@@ -89,7 +86,7 @@ type BankSyncTransaction = EnableBankingTransaction & {
 };
 
 type BankSyncBalance = {
-  balanceAmount: { amount: number; currency: string };
+  balanceAmount: {amount: number; currency: string};
   balanceType: string;
   referenceDate?: string;
 };
@@ -111,10 +108,8 @@ export type PsuHeaders = {
 
 // --- Helper functions ---
 
-function getCredentials(): { applicationId: string; secretKey: string } {
-  const applicationId = secretsService.get(
-    SecretName.enablebanking_applicationId,
-  );
+function getCredentials(): {applicationId: string; secretKey: string} {
+  const applicationId = secretsService.get(SecretName.enablebanking_applicationId);
   const secretKey = secretsService.get(SecretName.enablebanking_secretKey);
 
   if (!applicationId || !secretKey) {
@@ -125,11 +120,11 @@ function getCredentials(): { applicationId: string; secretKey: string } {
     );
   }
 
-  return { applicationId, secretKey };
+  return {applicationId, secretKey};
 }
 
 function getAuthorizationHeader(): string {
-  const { applicationId, secretKey } = getCredentials();
+  const {applicationId, secretKey} = getCredentials();
   const token = getJWT(applicationId, secretKey);
   return `Bearer ${token}`;
 }
@@ -165,7 +160,7 @@ async function request<T>(
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  const options: RequestInit = { method, headers, signal: controller.signal };
+  const options: RequestInit = {method, headers, signal: controller.signal};
   if (body !== undefined) {
     options.body = JSON.stringify(body);
   }
@@ -175,11 +170,7 @@ async function request<T>(
     response = await fetch(url, options);
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new EnableBankingError(
-        'TIMED_OUT',
-        'TIMED_OUT',
-        'Request timed out',
-      );
+      throw new EnableBankingError('TIMED_OUT', 'TIMED_OUT', 'Request timed out');
     }
     throw error;
   } finally {
@@ -219,12 +210,9 @@ function cleanRemittanceArray(arr: string[]): string[] {
   return arr.map(stripSepaPrefix).filter(Boolean);
 }
 
-export function normalizeTransaction(
-  tx: EnableBankingTransaction,
-): BankSyncTransaction {
+export function normalizeTransaction(tx: EnableBankingTransaction): BankSyncTransaction {
   const transactionId = tx.entry_reference || tx.transaction_id || '';
-  const bookingDate =
-    tx.booking_date || tx.value_date || tx.transaction_date || '';
+  const bookingDate = tx.booking_date || tx.value_date || tx.transaction_date || '';
   const valueDate = tx.value_date;
 
   let payeeName = '';
@@ -236,10 +224,7 @@ export function normalizeTransaction(
     payeeName = tx.creditor.name;
   } else if (tx.debtor?.name) {
     payeeName = tx.debtor.name;
-  } else if (
-    tx.remittance_information &&
-    tx.remittance_information.length > 0
-  ) {
+  } else if (tx.remittance_information && tx.remittance_information.length > 0) {
     const cleanedFallback = cleanRemittanceArray(tx.remittance_information);
     if (cleanedFallback.length > 0) {
       payeeName = cleanedFallback[0];
@@ -295,11 +280,7 @@ export function isImportableTransaction(tx: BankSyncTransaction): boolean {
   // Trim and reject empty amounts explicitly: Number('') is 0 (finite), so an
   // empty/whitespace amount would otherwise slip through as a zero transaction.
   const amount = tx.transactionAmount.amount.trim();
-  return (
-    IMPORTABLE_DATE_REGEX.test(tx.date) &&
-    amount !== '' &&
-    Number.isFinite(Number(amount))
-  );
+  return IMPORTABLE_DATE_REGEX.test(tx.date) && amount !== '' && Number.isFinite(Number(amount));
 }
 
 export function normalizeBalance(bal: EnableBankingBalance): BankSyncBalance {
@@ -316,7 +297,7 @@ export function normalizeBalance(bal: EnableBankingBalance): BankSyncBalance {
 
 export function normalizeAccount(
   account: EnableBankingSessionAccount,
-  aspsp?: { name?: string },
+  aspsp?: {name?: string},
 ): NormalizedAccount {
   return {
     account_id: account.uid,
@@ -331,24 +312,14 @@ export function normalizeAccount(
 
 export const enableBankingService = {
   isConfigured(): boolean {
-    const applicationId = secretsService.get(
-      SecretName.enablebanking_applicationId,
-    );
+    const applicationId = secretsService.get(SecretName.enablebanking_applicationId);
     const secretKey = secretsService.get(SecretName.enablebanking_secretKey);
     return !!(applicationId && secretKey);
   },
 
-  async validateCredentials(
-    applicationId: string,
-    secretKey: string,
-  ): Promise<unknown> {
+  async validateCredentials(applicationId: string, secretKey: string): Promise<unknown> {
     const token = getJWT(applicationId, secretKey);
-    return request<unknown>(
-      'GET',
-      '/application',
-      undefined,
-      `Bearer ${token}`,
-    );
+    return request<unknown>('GET', '/application', undefined, `Bearer ${token}`);
   },
 
   async getApplication(): Promise<unknown> {
@@ -361,7 +332,7 @@ export const enableBankingService = {
   },
 
   async startAuth(
-    aspsp: { name: string; country: string },
+    aspsp: {name: string; country: string},
     redirectUrl: string,
     state: string,
     maxConsentValidity?: number,
@@ -380,7 +351,7 @@ export const enableBankingService = {
     const validUntil = new Date(Date.now() + consentMs);
 
     return request<EnableBankingAuthResponse>('POST', '/auth', {
-      aspsp: { name: aspsp.name, country: aspsp.country },
+      aspsp: {name: aspsp.name, country: aspsp.country},
       redirect_url: redirectUrl,
       state,
       access: {
@@ -391,21 +362,18 @@ export const enableBankingService = {
   },
 
   async createSession(code: string): Promise<EnableBankingSession> {
-    return request<EnableBankingSession>('POST', '/sessions', { code });
+    return request<EnableBankingSession>('POST', '/sessions', {code});
   },
 
   async getSession(sessionId: string): Promise<EnableBankingSession> {
-    return request<EnableBankingSession>(
-      'GET',
-      `/sessions/${encodeURIComponent(sessionId)}`,
-    );
+    return request<EnableBankingSession>('GET', `/sessions/${encodeURIComponent(sessionId)}`);
   },
 
   async getBalances(
     accountUid: string,
     psuHeaders?: PsuHeaders,
-  ): Promise<{ balances: EnableBankingBalance[] }> {
-    return request<{ balances: EnableBankingBalance[] }>(
+  ): Promise<{balances: EnableBankingBalance[]}> {
+    return request<{balances: EnableBankingBalance[]}>(
       'GET',
       `/accounts/${encodeURIComponent(accountUid)}/balances`,
       undefined,
@@ -455,10 +423,7 @@ export const enableBankingService = {
       );
       allTransactions.push(...result.transactions);
 
-      if (
-        result.continuation_key &&
-        result.continuation_key === continuationKey
-      ) {
+      if (result.continuation_key && result.continuation_key === continuationKey) {
         break;
       }
 

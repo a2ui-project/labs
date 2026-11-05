@@ -15,7 +15,7 @@
  */
 
 import SwedbankHabaLV22 from '#app-gocardless/banks/swedbank_habalv22';
-import type { Transaction } from '#app-gocardless/gocardless-node.types';
+import type {Transaction} from '#app-gocardless/gocardless-node.types';
 
 describe('#normalizeTransaction', () => {
   const bookedCardTransaction = {
@@ -34,9 +34,9 @@ describe('#normalizeTransaction', () => {
   };
 
   it('extracts card transaction date', () => {
-    expect(
-      SwedbankHabaLV22.normalizeTransaction(bookedCardTransaction, true)?.date,
-    ).toEqual('2024-10-28');
+    expect(SwedbankHabaLV22.normalizeTransaction(bookedCardTransaction, true)?.date).toEqual(
+      '2024-10-28',
+    );
   });
 
   it.each([
@@ -66,9 +66,8 @@ describe('#normalizeTransaction', () => {
   };
 
   it('extracts pending card transaction creditor name', () => {
-    expect(
-      SwedbankHabaLV22.normalizeTransaction(pendingCardTransaction, false)
-        ?.payeeName,
-    ).toEqual('Some Creditor Name');
+    expect(SwedbankHabaLV22.normalizeTransaction(pendingCardTransaction, false)?.payeeName).toEqual(
+      'Some Creditor Name',
+    );
   });
 });

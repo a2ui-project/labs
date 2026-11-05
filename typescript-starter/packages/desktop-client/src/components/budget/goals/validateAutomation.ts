@@ -15,23 +15,23 @@
  */
 
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { ScheduleEntity } from '@actual-app/core/types/models';
-import type { Template } from '@actual-app/core/types/models/templates';
+import type {ScheduleEntity} from '@actual-app/core/types/models';
+import type {Template} from '@actual-app/core/types/models/templates';
 
-import type { DisplayTemplateType } from './constants';
+import type {DisplayTemplateType} from './constants';
 
 export type AutomationErrorKind =
-  | { kind: 'schedule-not-found'; name: string }
-  | { kind: 'refill-no-cap' }
-  | { kind: 'limit-no-contributor' }
-  | { kind: 'percentage-out-of-range'; percent: number }
-  | { kind: 'percentage-no-source' }
-  | { kind: 'percentage-source-not-found'; source: string }
-  | { kind: 'by-no-month' }
-  | { kind: 'by-target-past'; month: string }
-  | { kind: 'spend-no-from' }
-  | { kind: 'spend-from-after-target' }
-  | { kind: 'adjustment-out-of-range' };
+  | {kind: 'schedule-not-found'; name: string}
+  | {kind: 'refill-no-cap'}
+  | {kind: 'limit-no-contributor'}
+  | {kind: 'percentage-out-of-range'; percent: number}
+  | {kind: 'percentage-no-source'}
+  | {kind: 'percentage-source-not-found'; source: string}
+  | {kind: 'by-no-month'}
+  | {kind: 'by-target-past'; month: string}
+  | {kind: 'spend-no-from'}
+  | {kind: 'spend-from-after-target'}
+  | {kind: 'adjustment-out-of-range'};
 
 function isAdjustmentOutOfRange(template: Template): boolean {
   if (
@@ -45,9 +45,9 @@ function isAdjustmentOutOfRange(template: Template): boolean {
 }
 
 export type GlobalConflictKind =
-  | { kind: 'over-income'; total: number; income: number }
-  | { kind: 'percent-over-100'; total: number }
-  | { kind: 'schedule-priority-mismatch' };
+  | {kind: 'over-income'; total: number; income: number}
+  | {kind: 'percent-over-100'; total: number}
+  | {kind: 'schedule-priority-mismatch'};
 
 export function validateAutomation(
   template: Template,
@@ -65,43 +65,37 @@ export function validateAutomation(
     case 'schedule': {
       if (template.type !== 'schedule') return null;
       if (!template.scheduleId && !template.name) {
-        return { kind: 'schedule-not-found', name: '' };
+        return {kind: 'schedule-not-found', name: ''};
       }
       const match = schedules.find(s =>
-        template.scheduleId
-          ? s.id === template.scheduleId
-          : s.name === template.name,
+        template.scheduleId ? s.id === template.scheduleId : s.name === template.name,
       );
       if (!match || match.completed || match.tombstone) {
-        return { kind: 'schedule-not-found', name: template.name ?? '' };
+        return {kind: 'schedule-not-found', name: template.name ?? ''};
       }
       if (isAdjustmentOutOfRange(template)) {
-        return { kind: 'adjustment-out-of-range' };
+        return {kind: 'adjustment-out-of-range'};
       }
       return null;
     }
     case 'historical':
       if (isAdjustmentOutOfRange(template)) {
-        return { kind: 'adjustment-out-of-range' };
+        return {kind: 'adjustment-out-of-range'};
       }
       return null;
     case 'refill':
       if (!allTemplates.some(t => t.type === 'limit')) {
-        return { kind: 'refill-no-cap' };
+        return {kind: 'refill-no-cap'};
       }
       return null;
     case 'limit':
-      if (
-        !allTemplates.some(
-          t => t.type !== 'limit' && t.type !== 'goal' && t.type !== 'error',
-        )
-      ) {
-        return { kind: 'limit-no-contributor' };
+      if (!allTemplates.some(t => t.type !== 'limit' && t.type !== 'goal' && t.type !== 'error')) {
+        return {kind: 'limit-no-contributor'};
       }
       return null;
     case 'percentage':
       if (template.type !== 'percentage') return null;
-      if (!template.category) return { kind: 'percentage-no-source' };
+      if (!template.category) return {kind: 'percentage-no-source'};
       if (template.percent <= 0 || template.percent > 100) {
         return {
           kind: 'percentage-out-of-range',
@@ -122,32 +116,27 @@ export function validateAutomation(
     case 'by': {
       if (template.type !== 'by' && template.type !== 'spend') return null;
       if (!template.month || !monthUtils.isValidYearMonth(template.month)) {
-        return { kind: 'by-no-month' };
+        return {kind: 'by-no-month'};
       }
       const targetMonth = template.month;
       const startOfTodayMonth = monthUtils.monthFromDate(today);
       // Pass bare YYYY-MM strings, matching the server-side check in
       // CategoryTemplateContext.checkByAndScheduleAndSpend and avoiding the
       // local-vs-UTC parsing footgun called out in shared/months.ts:_parse.
-      const monthsRemaining = monthUtils.differenceInCalendarMonths(
-        targetMonth,
-        startOfTodayMonth,
-      );
+      const monthsRemaining = monthUtils.differenceInCalendarMonths(targetMonth, startOfTodayMonth);
       // Recurring goals (annual/repeat) anchored on a past month are
       // legitimate — the engine rolls them forward by the period. Only flag
       // the past-target case for one-shot goals. Mirrors the server check in
       // CategoryTemplateContext.checkByAndScheduleAndSpend.
       if (monthsRemaining < 0 && !template.annual && !template.repeat) {
-        return { kind: 'by-target-past', month: targetMonth };
+        return {kind: 'by-target-past', month: targetMonth};
       }
       if (template.type === 'spend') {
         if (!template.from || !monthUtils.isValidYearMonth(template.from)) {
-          return { kind: 'spend-no-from' };
+          return {kind: 'spend-no-from'};
         }
-        if (
-          monthUtils.differenceInCalendarMonths(targetMonth, template.from) < 0
-        ) {
-          return { kind: 'spend-from-after-target' };
+        if (monthUtils.differenceInCalendarMonths(targetMonth, template.from) < 0) {
+          return {kind: 'spend-from-after-target'};
         }
       }
       return null;
@@ -167,9 +156,7 @@ export function validatePercentageAllocation(
     percentBySource.set(key, (percentBySource.get(key) ?? 0) + t.percent);
   }
   const maxPercent = Math.max(0, ...percentBySource.values());
-  return maxPercent > 100
-    ? { kind: 'percent-over-100', total: maxPercent }
-    : null;
+  return maxPercent > 100 ? {kind: 'percent-over-100', total: maxPercent} : null;
 }
 
 // The engine (CategoryTemplateContext.checkByAndScheduleAndSpend) requires
@@ -185,5 +172,5 @@ export function validateSchedulePriorities(
       priorities.add(t.priority);
     }
   }
-  return priorities.size > 1 ? { kind: 'schedule-priority-mismatch' } : null;
+  return priorities.size > 1 ? {kind: 'schedule-priority-mismatch'} : null;
 }

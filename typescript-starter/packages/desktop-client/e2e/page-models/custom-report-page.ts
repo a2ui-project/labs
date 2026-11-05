@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class CustomReportPage {
   readonly page: Page;
@@ -39,20 +39,16 @@ export class CustomReportPage {
   }
 
   async selectViz(vizName: string | RegExp) {
-    await this.pageContent.getByRole('button', { name: vizName }).click();
+    await this.pageContent.getByRole('button', {name: vizName}).click();
   }
 
   async selectMode(mode: 'total' | 'time') {
     switch (mode) {
       case 'total':
-        await this.pageContent
-          .getByRole('button', { name: 'Total', exact: true })
-          .click();
+        await this.pageContent.getByRole('button', {name: 'Total', exact: true}).click();
         break;
       case 'time':
-        await this.pageContent
-          .getByRole('button', { name: 'Time', exact: true })
-          .click();
+        await this.pageContent.getByRole('button', {name: 'Time', exact: true}).click();
         break;
       default:
         throw new Error(`Unrecognized mode: ${String(mode)}`);

@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgShare01 = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}

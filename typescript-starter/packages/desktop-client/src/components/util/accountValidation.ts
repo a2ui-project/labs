@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import type { AccountEntity } from '@actual-app/core/types/models';
-import { t } from 'i18next';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import {t} from 'i18next';
 
 export function validateAccountName(
   newAccountName: string,
@@ -28,7 +28,7 @@ export function validateAccountName(
       account => account.name === newAccountName && account.id !== accountId,
     );
     if (duplicateNamedAccounts.length) {
-      return t('Name {{ newAccountName }} already exists.', { newAccountName });
+      return t('Name {{ newAccountName }} already exists.', {newAccountName});
     } else {
       return '';
     }

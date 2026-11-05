@@ -15,21 +15,18 @@
  */
 
 // @ts-strict-ignore
-import type { RuleEntity } from '@actual-app/core/types/models';
-import { t } from 'i18next';
-import { v4 as uuidv4 } from 'uuid';
+import type {RuleEntity} from '@actual-app/core/types/models';
+import {t} from 'i18next';
+import {v4 as uuidv4} from 'uuid';
 
 export type ActionSplit = {
   id: string;
   actions: RuleEntity['actions'];
 };
 
-export function groupActionsBySplitIndex(
-  actions: RuleEntity['actions'],
-): ActionSplit[] {
+export function groupActionsBySplitIndex(actions: RuleEntity['actions']): ActionSplit[] {
   return actions.reduce((acc, action) => {
-    const splitIndex =
-      'options' in action ? (action.options?.splitIndex ?? 0) : 0;
+    const splitIndex = 'options' in action ? (action.options?.splitIndex ?? 0) : 0;
     acc[splitIndex] = acc[splitIndex] ?? {
       id: uuidv4(),
       actions: [],
@@ -43,7 +40,7 @@ export function getAllocationMethods(hasFormulaMode = false) {
   return {
     'fixed-amount': t('a fixed amount'),
     'fixed-percent': t('a fixed percent of the remainder'),
-    ...(hasFormulaMode && { formula: t('based on a formula') }),
+    ...(hasFormulaMode && {formula: t('based on a formula')}),
     remainder: t('an equal portion of the remainder'),
   };
 }

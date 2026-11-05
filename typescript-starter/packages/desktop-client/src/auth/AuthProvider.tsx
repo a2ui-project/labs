@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import React, { createContext, useContext } from 'react';
-import type { ReactNode } from 'react';
+import React, {createContext, useContext} from 'react';
+import type {ReactNode} from 'react';
 
-import { useServerURL } from '#components/ServerContext';
-import { useSelector } from '#redux';
+import {useServerURL} from '#components/ServerContext';
+import {useSelector} from '#redux';
 
-import type { Permissions } from './types';
+import type {Permissions} from './types';
 
 type AuthContextType = {
   hasPermission: (permission?: Permissions) => boolean;
@@ -32,7 +32,7 @@ type AuthProviderProps = {
   children?: ReactNode;
 };
 
-export const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({children}: AuthProviderProps) => {
   const userData = useSelector(state => state.user.data);
   const serverUrl = useServerURL();
 
@@ -41,17 +41,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return true;
     }
 
-    return (
-      !serverUrl ||
-      userData?.permission?.toUpperCase() === permission?.toUpperCase()
-    );
+    return !serverUrl || userData?.permission?.toUpperCase() === permission?.toUpperCase();
   };
 
-  return (
-    <AuthContext.Provider value={{ hasPermission }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{hasPermission}}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

@@ -15,13 +15,13 @@
  */
 
 import React from 'react';
-import type { ComponentProps } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import type {ComponentProps} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Input } from '@actual-app/components/input';
-import { View } from '@actual-app/components/view';
+import {Input} from '@actual-app/components/input';
+import {View} from '@actual-app/components/view';
 
-import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
+import {LabeledCheckbox} from '#components/forms/LabeledCheckbox';
 
 type MultiplierOptionProps = {
   multiplierEnabled: boolean;
@@ -36,19 +36,15 @@ export function MultiplierOption({
   onToggle,
   onChangeAmount,
 }: MultiplierOptionProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   return (
-    <View style={{ flexDirection: 'row', gap: 10, height: 28 }}>
-      <LabeledCheckbox
-        id="add_multiplier"
-        checked={multiplierEnabled}
-        onChange={onToggle}
-      >
+    <View style={{flexDirection: 'row', gap: 10, height: 28}}>
+      <LabeledCheckbox id="add_multiplier" checked={multiplierEnabled} onChange={onToggle}>
         <Trans>Multiply amount</Trans>
       </LabeledCheckbox>
       <Input
         type="text"
-        style={{ display: multiplierEnabled ? 'inherit' : 'none' }}
+        style={{display: multiplierEnabled ? 'inherit' : 'none'}}
         value={multiplierAmount}
         placeholder={t('Multiplier')}
         onChangeValue={onChangeAmount}

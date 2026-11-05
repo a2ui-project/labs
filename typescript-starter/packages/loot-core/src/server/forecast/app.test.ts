@@ -15,23 +15,20 @@
  */
 
 import MockDate from 'mockdate';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
-import { createAllBudgets } from '#server/budget/base';
+import {createAllBudgets} from '#server/budget/base';
 import * as db from '#server/db';
-import { loadMappings } from '#server/db/mappings';
-import {
-  createSchedule as createScheduleBase,
-  getRuleForSchedule,
-} from '#server/schedules/app';
+import {loadMappings} from '#server/db/mappings';
+import {createSchedule as createScheduleBase, getRuleForSchedule} from '#server/schedules/app';
 import * as sheet from '#server/sheet';
-import { loadRules, updateRule } from '#server/transactions/transaction-rules';
-import type { RuleConditionEntity } from '#types/models';
+import {loadRules, updateRule} from '#server/transactions/transaction-rules';
+import type {RuleConditionEntity} from '#types/models';
 
-import { generateForecast } from './app';
-import { FORECAST_UNASSIGNED_ACCOUNT_ID } from './forecast-schedules';
+import {generateForecast} from './app';
+import {FORECAST_UNASSIGNED_ACCOUNT_ID} from './forecast-schedules';
 
-const { emptyDatabase } = global as typeof globalThis & {
+const {emptyDatabase} = global as typeof globalThis & {
   emptyDatabase: () => () => Promise<void>;
 };
 const createSchedule = createScheduleBase as (args: {
@@ -45,13 +42,13 @@ async function createForecastWithPostedMonthlySchedule({
   txId: string;
   txDate: string;
 }) {
-  const accountId = await db.insertAccount({ id: 'acct', name: 'Checking' });
+  const accountId = await db.insertAccount({id: 'acct', name: 'Checking'});
   const salaryAmount = 500_000;
 
   const scheduleId = await createSchedule({
     conditions: [
-      { op: 'is', field: 'account', value: accountId },
-      { op: 'is', field: 'amount', value: salaryAmount },
+      {op: 'is', field: 'account', value: accountId},
+      {op: 'is', field: 'amount', value: salaryAmount},
       {
         op: 'is',
         field: 'date',
@@ -79,9 +76,7 @@ async function createForecastWithPostedMonthlySchedule({
 
   return {
     salaryAmount,
-    balanceByDate: Object.fromEntries(
-      result.dataPoints.map(({ date, balance }) => [date, balance]),
-    ),
+    balanceByDate: Object.fromEntries(result.dataPoints.map(({date, balance}) => [date, balance])),
     dataPointByDate: Object.fromEntries(
       result.dataPoints.map(dataPoint => [dataPoint.date, dataPoint]),
     ),
@@ -95,13 +90,13 @@ async function createForecastWithPostedDailySchedule({
   txId: string;
   txDate: string;
 }) {
-  const accountId = await db.insertAccount({ id: 'acct', name: 'Checking' });
+  const accountId = await db.insertAccount({id: 'acct', name: 'Checking'});
   const amount = -5_000;
 
   const scheduleId = await createSchedule({
     conditions: [
-      { op: 'is', field: 'account', value: accountId },
-      { op: 'is', field: 'amount', value: amount },
+      {op: 'is', field: 'account', value: accountId},
+      {op: 'is', field: 'amount', value: amount},
       {
         op: 'is',
         field: 'date',
@@ -129,9 +124,7 @@ async function createForecastWithPostedDailySchedule({
 
   return {
     amount,
-    balanceByDate: Object.fromEntries(
-      result.dataPoints.map(({ date, balance }) => [date, balance]),
-    ),
+    balanceByDate: Object.fromEntries(result.dataPoints.map(({date, balance}) => [date, balance])),
     dataPointByDate: Object.fromEntries(
       result.dataPoints.map(dataPoint => [dataPoint.date, dataPoint]),
     ),
@@ -151,7 +144,7 @@ afterEach(() => {
 
 describe('forecast app', () => {
   it('shows the real running balance for historical months', async () => {
-    const accountId = await db.insertAccount({ id: 'acct', name: 'Checking' });
+    const accountId = await db.insertAccount({id: 'acct', name: 'Checking'});
 
     await db.insertTransaction({
       id: 'starting-deposit',
@@ -173,7 +166,7 @@ describe('forecast app', () => {
     });
 
     const balanceByDate = Object.fromEntries(
-      result.dataPoints.map(({ date, balance }) => [date, balance]),
+      result.dataPoints.map(({date, balance}) => [date, balance]),
     );
 
     expect(balanceByDate['2024-01-01']).toBe(0);
@@ -191,7 +184,7 @@ describe('forecast app', () => {
   });
 
   it('treats an explicit empty account selection as no accounts', async () => {
-    const accountId = await db.insertAccount({ id: 'acct', name: 'Checking' });
+    const accountId = await db.insertAccount({id: 'acct', name: 'Checking'});
 
     await db.insertTransaction({
       id: 'starting-deposit',
@@ -222,21 +215,19 @@ describe('forecast app', () => {
         startDate: '2024-03-01',
         endDate: '2024-03-31',
       }),
-    ).rejects.toThrow(
-      'Tracking budget forecasts require a Tracking Budget file.',
-    );
+    ).rejects.toThrow('Tracking budget forecasts require a Tracking Budget file.');
 
     await sheet.loadSpreadsheet(db);
     sheet.get().meta().budgetType = 'tracking';
-    await db.update('preferences', { id: 'budgetType', value: 'tracking' });
-    await db.insertCategoryGroup({ id: 'expenses', name: 'Expenses' });
+    await db.update('preferences', {id: 'budgetType', value: 'tracking'});
+    await db.insertCategoryGroup({id: 'expenses', name: 'Expenses'});
     await db.insertCategoryGroup({
       id: 'income',
       name: 'Income',
       is_income: 1,
     });
     await createAllBudgets();
-    await db.insertAccount({ id: 'acct', name: 'Checking' });
+    await db.insertAccount({id: 'acct', name: 'Checking'});
     await db.insertTransaction({
       id: 'starting-deposit',
       account: 'acct',
@@ -262,10 +253,10 @@ describe('forecast app', () => {
   });
 
   it('ignores reconstructed schedule occurrences before today', async () => {
-    const accountId = await db.insertAccount({ id: 'acct', name: 'Checking' });
+    const accountId = await db.insertAccount({id: 'acct', name: 'Checking'});
     const scheduleConditions = [
-      { op: 'is', field: 'account', value: accountId },
-      { op: 'is', field: 'amount', value: -100 },
+      {op: 'is', field: 'account', value: accountId},
+      {op: 'is', field: 'amount', value: -100},
       {
         op: 'is',
         field: 'date',
@@ -276,7 +267,7 @@ describe('forecast app', () => {
       },
     ] satisfies RuleConditionEntity[];
 
-    await createSchedule({ conditions: scheduleConditions });
+    await createSchedule({conditions: scheduleConditions});
 
     const result = await generateForecast({
       accountIds: [accountId],
@@ -294,7 +285,7 @@ describe('forecast app', () => {
     });
     expect(dataPointByDate['2024-03-15']).toMatchObject({
       balance: -100,
-      transactions: [{ amount: -100 }],
+      transactions: [{amount: -100}],
     });
     expect(dataPointByDate['2024-04-14']).toMatchObject({
       balance: -100,
@@ -302,7 +293,7 @@ describe('forecast app', () => {
     });
     expect(dataPointByDate['2024-04-15']).toMatchObject({
       balance: -200,
-      transactions: [{ amount: -100 }],
+      transactions: [{amount: -100}],
     });
   });
 
@@ -323,9 +314,9 @@ describe('forecast app', () => {
 
     await createSchedule({
       conditions: [
-        { op: 'is', field: 'account', value: checkingId },
-        { op: 'is', field: 'payee', value: transferPayeeId },
-        { op: 'is', field: 'amount', value: -250 },
+        {op: 'is', field: 'account', value: checkingId},
+        {op: 'is', field: 'payee', value: transferPayeeId},
+        {op: 'is', field: 'amount', value: -250},
         {
           op: 'is',
           field: 'date',
@@ -355,39 +346,30 @@ describe('forecast app', () => {
       ]),
     );
     const savingsOnlyDataPointByDate = Object.fromEntries(
-      savingsOnlyResult.dataPoints.map(dataPoint => [
-        dataPoint.date,
-        dataPoint,
-      ]),
+      savingsOnlyResult.dataPoints.map(dataPoint => [dataPoint.date, dataPoint]),
     );
 
-    expect(
-      combinedDataPointByAccountAndDate.get('checking:2024-03-20'),
-    ).toMatchObject({
+    expect(combinedDataPointByAccountAndDate.get('checking:2024-03-20')).toMatchObject({
       balance: -250,
-      transactions: [{ amount: -250, scheduleId: expect.any(String) }],
+      transactions: [{amount: -250, scheduleId: expect.any(String)}],
     });
-    expect(
-      combinedDataPointByAccountAndDate.get('savings:2024-03-20'),
-    ).toMatchObject({
+    expect(combinedDataPointByAccountAndDate.get('savings:2024-03-20')).toMatchObject({
       balance: 250,
-      transactions: [{ amount: 250, scheduleId: expect.any(String) }],
+      transactions: [{amount: 250, scheduleId: expect.any(String)}],
     });
     expect(combinedResult.lowestBalance.balance).toBe(0);
     expect(savingsOnlyDataPointByDate['2024-03-20']).toMatchObject({
       balance: 250,
-      transactions: [{ amount: 250, scheduleId: expect.any(String) }],
+      transactions: [{amount: 250, scheduleId: expect.any(String)}],
     });
     expect(
       combinedResult.dataPoints.every(dataPoint =>
         [checkingId, savingsId].includes(dataPoint.accountId),
       ),
     ).toBe(true);
-    expect(
-      savingsOnlyResult.dataPoints.every(
-        dataPoint => dataPoint.accountId === savingsId,
-      ),
-    ).toBe(true);
+    expect(savingsOnlyResult.dataPoints.every(dataPoint => dataPoint.accountId === savingsId)).toBe(
+      true,
+    );
   });
 
   it('matches payee filters for destination-only transfer forecasts', async () => {
@@ -412,9 +394,9 @@ describe('forecast app', () => {
 
     await createSchedule({
       conditions: [
-        { op: 'is', field: 'account', value: checkingId },
-        { op: 'is', field: 'payee', value: transferToSavingsPayeeId },
-        { op: 'is', field: 'amount', value: -250 },
+        {op: 'is', field: 'account', value: checkingId},
+        {op: 'is', field: 'payee', value: transferToSavingsPayeeId},
+        {op: 'is', field: 'amount', value: -250},
         {
           op: 'is',
           field: 'date',
@@ -430,9 +412,7 @@ describe('forecast app', () => {
       accountIds: [savingsId],
       startDate: '2024-03-01',
       endDate: '2024-04-30',
-      conditions: [
-        { op: 'is', field: 'payee', value: transferToCheckingPayeeId },
-      ],
+      conditions: [{op: 'is', field: 'payee', value: transferToCheckingPayeeId}],
     });
 
     const dataPointByDate = Object.fromEntries(
@@ -464,7 +444,7 @@ describe('forecast app', () => {
   });
 
   it('applies standard historical report filters to posted transactions', async () => {
-    const accountId = await db.insertAccount({ id: 'acct', name: 'Checking' });
+    const accountId = await db.insertAccount({id: 'acct', name: 'Checking'});
     const groceryPayeeId = await db.insertPayee({
       id: 'payee-grocery',
       name: 'Grocery Store',
@@ -492,11 +472,11 @@ describe('forecast app', () => {
     const result = await generateForecast({
       startDate: '2024-03-01',
       endDate: '2024-03-31',
-      conditions: [{ op: 'is', field: 'payee', value: groceryPayeeId }],
+      conditions: [{op: 'is', field: 'payee', value: groceryPayeeId}],
     });
 
     const balanceByDate = Object.fromEntries(
-      result.dataPoints.map(({ date, balance }) => [date, balance]),
+      result.dataPoints.map(({date, balance}) => [date, balance]),
     );
 
     expect(balanceByDate['2024-03-09']).toBe(0);
@@ -506,7 +486,7 @@ describe('forecast app', () => {
   });
 
   it('does not double-count split parents in posted transaction balances', async () => {
-    const accountId = await db.insertAccount({ id: 'acct', name: 'Checking' });
+    const accountId = await db.insertAccount({id: 'acct', name: 'Checking'});
 
     const parentId = await db.insertTransaction({
       id: 'split-parent',
@@ -541,7 +521,7 @@ describe('forecast app', () => {
     });
 
     const balanceByDate = Object.fromEntries(
-      result.dataPoints.map(({ date, balance }) => [date, balance]),
+      result.dataPoints.map(({date, balance}) => [date, balance]),
     );
 
     expect(balanceByDate['2024-03-09']).toBe(0);
@@ -550,7 +530,7 @@ describe('forecast app', () => {
   });
 
   it('does not double-count schedule occurrences already posted on the due date', async () => {
-    const { salaryAmount, balanceByDate, dataPointByDate } =
+    const {salaryAmount, balanceByDate, dataPointByDate} =
       await createForecastWithPostedMonthlySchedule({
         txId: 'posted-salary',
         txDate: '2024-03-10',
@@ -564,27 +544,26 @@ describe('forecast app', () => {
   });
 
   it('does not double-count daily recurring schedule occurrences with op is posted on the due date', async () => {
-    const { amount, balanceByDate, dataPointByDate } =
-      await createForecastWithPostedDailySchedule({
-        txId: 'posted-daily',
-        txDate: '2024-03-10',
-      });
+    const {amount, balanceByDate, dataPointByDate} = await createForecastWithPostedDailySchedule({
+      txId: 'posted-daily',
+      txDate: '2024-03-10',
+    });
 
     expect(balanceByDate['2024-03-10']).toBe(amount);
     expect(dataPointByDate['2024-03-10'].transactions).toEqual([]);
     expect(dataPointByDate['2024-03-11']).toMatchObject({
       balance: amount * 2,
-      transactions: [{ amount }],
+      transactions: [{amount}],
     });
     expect(dataPointByDate['2024-03-12']).toMatchObject({
       balance: amount * 3,
-      transactions: [{ amount }],
+      transactions: [{amount}],
     });
   });
 
   it('filters future schedule occurrences using rule-derived fields like category', async () => {
-    const accountId = await db.insertAccount({ id: 'acct', name: 'Checking' });
-    const groupId = await db.insertCategoryGroup({ name: 'Bills' });
+    const accountId = await db.insertAccount({id: 'acct', name: 'Checking'});
+    const groupId = await db.insertCategoryGroup({name: 'Bills'});
     const categoryId = await db.insertCategory({
       name: 'Utilities',
       cat_group: groupId,
@@ -592,8 +571,8 @@ describe('forecast app', () => {
 
     const scheduleId = await createSchedule({
       conditions: [
-        { op: 'is', field: 'account', value: accountId },
-        { op: 'is', field: 'amount', value: -75 },
+        {op: 'is', field: 'account', value: accountId},
+        {op: 'is', field: 'amount', value: -75},
         {
           op: 'is',
           field: 'date',
@@ -609,8 +588,8 @@ describe('forecast app', () => {
     await updateRule({
       ...scheduleRule.serialize(),
       actions: [
-        { op: 'link-schedule', value: scheduleId },
-        { op: 'set', field: 'category', value: categoryId },
+        {op: 'link-schedule', value: scheduleId},
+        {op: 'set', field: 'category', value: categoryId},
       ],
     });
     await loadRules();
@@ -618,7 +597,7 @@ describe('forecast app', () => {
     const result = await generateForecast({
       startDate: '2024-03-01',
       endDate: '2024-04-30',
-      conditions: [{ op: 'is', field: 'category', value: categoryId }],
+      conditions: [{op: 'is', field: 'category', value: categoryId}],
     });
 
     const dataPointByDate = Object.fromEntries(
@@ -627,11 +606,11 @@ describe('forecast app', () => {
 
     expect(dataPointByDate['2024-03-15']).toMatchObject({
       balance: -75,
-      transactions: [{ amount: -75, scheduleId }],
+      transactions: [{amount: -75, scheduleId}],
     });
     expect(dataPointByDate['2024-04-15']).toMatchObject({
       balance: -150,
-      transactions: [{ amount: -75, scheduleId }],
+      transactions: [{amount: -75, scheduleId}],
     });
   });
 
@@ -673,8 +652,8 @@ describe('forecast app', () => {
       endDate: '2024-03-31',
       conditionsOp: 'or',
       conditions: [
-        { op: 'is', field: 'account', value: savingsId },
-        { op: 'is', field: 'payee', value: groceryPayeeId },
+        {op: 'is', field: 'account', value: savingsId},
+        {op: 'is', field: 'payee', value: groceryPayeeId},
       ],
     });
 
@@ -710,11 +689,11 @@ describe('forecast app', () => {
   });
 
   it('includes account-less schedules when includeAccountlessSchedules is true', async () => {
-    const accountId = await db.insertAccount({ id: 'acct', name: 'Checking' });
+    const accountId = await db.insertAccount({id: 'acct', name: 'Checking'});
 
     await createSchedule({
       conditions: [
-        { op: 'is', field: 'amount', value: -75 },
+        {op: 'is', field: 'amount', value: -75},
         {
           op: 'is',
           field: 'date',
@@ -744,18 +723,16 @@ describe('forecast app', () => {
       balance: -75,
     });
     expect(
-      result.dataPoints.some(
-        dataPoint => dataPoint.accountId === FORECAST_UNASSIGNED_ACCOUNT_ID,
-      ),
+      result.dataPoints.some(dataPoint => dataPoint.accountId === FORECAST_UNASSIGNED_ACCOUNT_ID),
     ).toBe(true);
   });
 
   it('excludes account-less schedules when includeAccountlessSchedules is false', async () => {
-    const accountId = await db.insertAccount({ id: 'acct', name: 'Checking' });
+    const accountId = await db.insertAccount({id: 'acct', name: 'Checking'});
 
     await createSchedule({
       conditions: [
-        { op: 'is', field: 'amount', value: -75 },
+        {op: 'is', field: 'amount', value: -75},
         {
           op: 'is',
           field: 'date',
@@ -781,9 +758,7 @@ describe('forecast app', () => {
 
     expect(combinedBalance('2024-03-15')).toBe(0);
     expect(
-      result.dataPoints.every(
-        dataPoint => dataPoint.accountId !== FORECAST_UNASSIGNED_ACCOUNT_ID,
-      ),
+      result.dataPoints.every(dataPoint => dataPoint.accountId !== FORECAST_UNASSIGNED_ACCOUNT_ID),
     ).toBe(true);
   });
 });

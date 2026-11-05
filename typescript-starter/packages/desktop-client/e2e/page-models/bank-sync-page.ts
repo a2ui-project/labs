@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
 export class BankSyncPage {
   readonly page: Page;
@@ -24,6 +24,6 @@ export class BankSyncPage {
   }
 
   async waitToLoad() {
-    await this.page.waitForSelector('text=Bank Sync', { timeout: 10000 });
+    await this.page.waitForSelector('text=Bank Sync', {timeout: 10000});
   }
 }

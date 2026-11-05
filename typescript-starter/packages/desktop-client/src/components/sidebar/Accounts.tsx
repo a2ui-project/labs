@@ -14,46 +14,44 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { AccountEntity } from '@actual-app/core/types/models';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity} from '@actual-app/core/types/models';
 
-import { useMoveAccountMutation } from '#accounts';
-import { isAccountFailedSync } from '#accounts/syncStatus';
-import { useAccounts } from '#hooks/useAccounts';
-import { useClosedAccounts } from '#hooks/useClosedAccounts';
-import { useLocalPref } from '#hooks/useLocalPref';
-import { useOffBudgetAccounts } from '#hooks/useOffBudgetAccounts';
-import { useOnBudgetAccounts } from '#hooks/useOnBudgetAccounts';
-import { useUpdatedAccounts } from '#hooks/useUpdatedAccounts';
-import { useSelector } from '#redux';
+import {useMoveAccountMutation} from '#accounts';
+import {isAccountFailedSync} from '#accounts/syncStatus';
+import {useAccounts} from '#hooks/useAccounts';
+import {useClosedAccounts} from '#hooks/useClosedAccounts';
+import {useLocalPref} from '#hooks/useLocalPref';
+import {useOffBudgetAccounts} from '#hooks/useOffBudgetAccounts';
+import {useOnBudgetAccounts} from '#hooks/useOnBudgetAccounts';
+import {useUpdatedAccounts} from '#hooks/useUpdatedAccounts';
+import {useSelector} from '#redux';
 import * as bindings from '#spreadsheet/bindings';
 
-import { Account } from './Account';
-import { SecondaryItem } from './SecondaryItem';
+import {Account} from './Account';
+import {SecondaryItem} from './SecondaryItem';
 
 const fontWeight = 600;
 
 export function Accounts() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [isDragging, setIsDragging] = useState(false);
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const updatedAccounts = useUpdatedAccounts();
-  const { data: offbudgetAccounts = [] } = useOffBudgetAccounts();
-  const { data: onBudgetAccounts = [] } = useOnBudgetAccounts();
-  const { data: closedAccounts = [] } = useClosedAccounts();
+  const {data: offbudgetAccounts = []} = useOffBudgetAccounts();
+  const {data: onBudgetAccounts = []} = useOnBudgetAccounts();
+  const {data: closedAccounts = []} = useClosedAccounts();
   const syncingAccountIds = useSelector(state => state.account.accountsSyncing);
 
   const getAccountPath = (account: AccountEntity) => `/accounts/${account.id}`;
 
-  const [showClosedAccounts, setShowClosedAccountsPref] = useLocalPref(
-    'ui.showClosedAccounts',
-  );
+  const [showClosedAccounts, setShowClosedAccountsPref] = useLocalPref('ui.showClosedAccounts');
 
-  function onDragChange(drag: { state: string }) {
+  function onDragChange(drag: {state: string}) {
     setIsDragging(drag.state === 'start');
   }
 
@@ -69,18 +67,14 @@ export function Accounts() {
     return undefined;
   };
 
-  async function onReorder(
-    id: string,
-    dropPos: 'top' | 'bottom' | null,
-    targetId: string,
-  ) {
+  async function onReorder(id: string, dropPos: 'top' | 'bottom' | null, targetId: string) {
     let targetIdToMove: string | null = targetId;
     if (dropPos === 'bottom') {
       const idx = accounts.findIndex(a => a.id === targetId) + 1;
       targetIdToMove = idx < accounts.length ? accounts[idx].id : null;
     }
 
-    moveAccount.mutate({ id, targetId: targetIdToMove });
+    moveAccount.mutate({id, targetId: targetIdToMove});
   }
 
   const onToggleClosedAccounts = () => {
@@ -105,12 +99,12 @@ export function Accounts() {
         }}
       />
 
-      <View style={{ overflow: 'auto' }}>
+      <View style={{overflow: 'auto'}}>
         <Account
           name={t('All accounts')}
           to="/accounts"
           query={bindings.allAccountBalance()}
-          style={{ fontWeight, marginTop: 15 }}
+          style={{fontWeight, marginTop: 15}}
           isExactPathMatch
           balanceTestId="sidebar-all-accounts-balance"
         />
@@ -181,12 +175,8 @@ export function Accounts() {
 
         {closedAccounts.length > 0 && (
           <SecondaryItem
-            style={{ marginTop: 15 }}
-            title={
-              showClosedAccounts
-                ? t('Closed accounts')
-                : t('Closed accounts...')
-            }
+            style={{marginTop: 15}}
+            title={showClosedAccounts ? t('Closed accounts') : t('Closed accounts...')}
             onClick={onToggleClosedAccounts}
             bold
           />

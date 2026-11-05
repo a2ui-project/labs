@@ -15,41 +15,30 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { ButtonWithLoading } from '@actual-app/components/button';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { Input } from '@actual-app/components/input';
-import { Text } from '@actual-app/components/text';
-import { Toggle } from '@actual-app/components/toggle';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {ButtonWithLoading} from '@actual-app/components/button';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {Input} from '@actual-app/components/input';
+import {Text} from '@actual-app/components/text';
+import {Toggle} from '@actual-app/components/toggle';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { Error } from '#components/alerts';
-import { Link } from '#components/common/Link';
-import {
-  Modal,
-  ModalButtons,
-  ModalCloseButton,
-  ModalHeader,
-} from '#components/common/Modal';
-import { FormField, FormLabel } from '#components/forms';
-import { useCurrentAccess } from '#hooks/useCurrentAccess';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { getSecretsError } from '#util/error';
+import {Error} from '#components/alerts';
+import {Link} from '#components/common/Link';
+import {Modal, ModalButtons, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {FormField, FormLabel} from '#components/forms';
+import {useCurrentAccess} from '#hooks/useCurrentAccess';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {getSecretsError} from '#util/error';
 
-type PluggyAiInitialiseProps = Extract<
-  ModalType,
-  { name: 'pluggyai-init' }
->['options'];
+type PluggyAiInitialiseProps = Extract<ModalType, {name: 'pluggyai-init'}>['options'];
 
-export const PluggyAiInitialiseModal = ({
-  onSuccess,
-  credentialSource,
-}: PluggyAiInitialiseProps) => {
-  const { t } = useTranslation();
-  const { cloudFileId, isAdmin: canSetGlobalCredentials } = useCurrentAccess();
+export const PluggyAiInitialiseModal = ({onSuccess, credentialSource}: PluggyAiInitialiseProps) => {
+  const {t} = useTranslation();
+  const {cloudFileId, isAdmin: canSetGlobalCredentials} = useCurrentAccess();
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
   const [itemIds, setItemIds] = useState('');
@@ -59,18 +48,14 @@ export const PluggyAiInitialiseModal = ({
   const [isValid, setIsValid] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(
-    t(
-      'It is required to provide both the client id, client secret and at least one item id.',
-    ),
+    t('It is required to provide both the client id, client secret and at least one item id.'),
   );
 
   const onSubmit = async (close: () => void) => {
     if (!clientId || !clientSecret || !itemIds) {
       setIsValid(false);
       setError(
-        t(
-          'It is required to provide both the client id, client secret and at least one item id.',
-        ),
+        t('It is required to provide both the client id, client secret and at least one item id.'),
       );
       return;
     }
@@ -91,7 +76,7 @@ export const PluggyAiInitialiseModal = ({
         value: clientId,
         fileId,
       })) || {};
-    let { error, reason } = result;
+    let {error, reason} = result;
 
     if (error) {
       setIsLoading(false);
@@ -106,7 +91,7 @@ export const PluggyAiInitialiseModal = ({
         value: clientSecret,
         fileId,
       })) || {};
-    ({ error, reason } = result);
+    ({error, reason} = result);
 
     if (error) {
       setIsLoading(false);
@@ -121,7 +106,7 @@ export const PluggyAiInitialiseModal = ({
         value: itemIds,
         fileId,
       })) || {};
-    ({ error, reason } = result);
+    ({error, reason} = result);
 
     if (error) {
       setIsLoading(false);
@@ -137,19 +122,18 @@ export const PluggyAiInitialiseModal = ({
   };
 
   return (
-    <Modal name="pluggyai-init" containerProps={{ style: { width: '30vw' } }}>
-      {({ state }) => (
+    <Modal name="pluggyai-init" containerProps={{style: {width: '30vw'}}}>
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Set-up Pluggy.ai')}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
-          <View style={{ display: 'flex', gap: 10 }}>
+          <View style={{display: 'flex', gap: 10}}>
             <Text>
               <Trans>
-                In order to enable bank sync via Pluggy.ai (only for Brazilian
-                banks) you will need to create access credentials. This can be
-                done by creating an account with{' '}
+                In order to enable bank sync via Pluggy.ai (only for Brazilian banks) you will need
+                to create access credentials. This can be done by creating an account with{' '}
                 <Link
                   variant="external"
                   to="https://actualbudget.org/docs/advanced/bank-sync/"
@@ -196,10 +180,7 @@ export const PluggyAiInitialiseModal = ({
             </FormField>
 
             <FormField>
-              <FormLabel
-                title={t('Client Secret:')}
-                htmlFor="client-secret-field"
-              />
+              <FormLabel title={t('Client Secret:')} htmlFor="client-secret-field" />
               <Input
                 id="client-secret-field"
                 type="password"
@@ -212,10 +193,7 @@ export const PluggyAiInitialiseModal = ({
             </FormField>
 
             <FormField>
-              <FormLabel
-                title={t('Item Ids (comma separated):')}
-                htmlFor="item-ids-field"
-              />
+              <FormLabel title={t('Item Ids (comma separated):')} htmlFor="item-ids-field" />
               <Input
                 id="item-ids-field"
                 type="text"

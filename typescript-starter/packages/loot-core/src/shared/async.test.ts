@@ -15,14 +15,14 @@
  */
 
 // @ts-strict-ignore
-import { once, sequential } from './async';
+import {once, sequential} from './async';
 
 function timeout(n) {
   return new Promise(resolve => setTimeout(resolve, n));
 }
 
 function makeFunction(data) {
-  return async function fn(n, { throwError = false } = {}) {
+  return async function fn(n, {throwError = false} = {}) {
     data.push(n);
     await timeout(10);
 
@@ -76,7 +76,7 @@ describe('async', () => {
   test('sequential fn should still flush queue when error is thrown', async () => {
     const test = async fn => {
       fn(1);
-      fn(2, { throwError: true }).catch(() => {
+      fn(2, {throwError: true}).catch(() => {
         // Ignore errors
       });
       await fn(3);
@@ -104,7 +104,7 @@ describe('async', () => {
       // happened in here, it wouldn't effect anything else)
       expect(data).toEqual([1, 1, 1, 2]);
     });
-    fn(2, { throwError: true }).catch(() => {
+    fn(2, {throwError: true}).catch(() => {
       // Same as above
       expect(data).toEqual([1, 1, 1, 2, 3]);
     });

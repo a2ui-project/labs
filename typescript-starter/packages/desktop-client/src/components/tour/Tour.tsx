@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-import { lazy, Suspense } from 'react';
+import {lazy, Suspense} from 'react';
 
-import { useTour } from './TourProvider';
+import {useTour} from './TourProvider';
 
-const TourHost = lazy(() =>
-  import('./TourHost').then(module => ({ default: module.TourHost })),
-);
+const TourHost = lazy(() => import('./TourHost').then(module => ({default: module.TourHost})));
 
 export function Tour() {
-  const { activeTourId } = useTour();
+  const {activeTourId} = useTour();
 
   if (activeTourId == null) {
     return null;

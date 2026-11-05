@@ -17,7 +17,7 @@
 // @ts-strict-ignore
 import * as dateFns from 'date-fns';
 
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 import {
   addDays,
   isAfter,
@@ -27,20 +27,10 @@ import {
   subDays,
   yearFromDate,
 } from '#shared/months';
-import {
-  FIELD_TYPES,
-  getApproxNumberThreshold,
-  isValidOp,
-  sortNumbers,
-} from '#shared/rules';
-import { extractTagsForFilter } from '#shared/tags';
+import {FIELD_TYPES, getApproxNumberThreshold, isValidOp, sortNumbers} from '#shared/rules';
+import {extractTagsForFilter} from '#shared/tags';
 
-import {
-  assert,
-  parseBetweenAmount,
-  parseDateString,
-  parseRecurDate,
-} from './rule-utils';
+import {assert, parseBetweenAmount, parseDateString, parseRecurDate} from './rule-utils';
 
 export const CONDITION_TYPES = {
   date: {
@@ -53,11 +43,7 @@ export const CONDITION_TYPES = {
           : value.frequency != null
             ? parseRecurDate(value)
             : null;
-      assert(
-        parsed,
-        'date-format',
-        `Invalid date format (field: ${fieldName})`,
-      );
+      assert(parsed, 'date-format', `Invalid date format (field: ${fieldName})`);
 
       // Approximate only works with exact & recurring dates
       if (op === 'isapprox') {
@@ -123,18 +109,12 @@ export const CONDITION_TYPES = {
         assert(
           Array.isArray(value),
           'no-empty-array',
-          `oneOf must have an array value (field: ${fieldName}): ${JSON.stringify(
-            value,
-          )}`,
+          `oneOf must have an array value (field: ${fieldName}): ${JSON.stringify(value)}`,
         );
         return value.filter(Boolean).map(val => val.toLowerCase());
       }
 
-      assert(
-        typeof value === 'string',
-        'not-string',
-        `Invalid string value (field: ${fieldName})`,
-      );
+      assert(typeof value === 'string', 'not-string', `Invalid string value (field: ${fieldName})`);
 
       if (
         op === 'contains' ||
@@ -162,16 +142,12 @@ export const CONDITION_TYPES = {
     nullable: false,
     parse(op, value, fieldName) {
       const parsed =
-        typeof value === 'number'
-          ? { type: 'literal', value }
-          : parseBetweenAmount(value);
+        typeof value === 'number' ? {type: 'literal', value} : parseBetweenAmount(value);
 
       assert(
         parsed != null,
         'not-number',
-        `Value must be a number or between amount: ${JSON.stringify(
-          value,
-        )} (field: ${fieldName})`,
+        `Value must be a number or between amount: ${JSON.stringify(value)} (field: ${fieldName})`,
       );
 
       if (op === 'isbetween') {
@@ -223,11 +199,7 @@ export class Condition {
 
     // It's important to validate rules because a faulty rule might mess
     // up the user's transaction (and be very confusing)
-    assert(
-      type,
-      'internal',
-      `Invalid condition type: ${typeName} (field: ${field})`,
-    );
+    assert(type, 'internal', `Invalid condition type: ${typeName} (field: ${field})`);
     assert(
       isValidOp(field, op),
       'internal',
@@ -293,7 +265,7 @@ export class Condition {
           }
 
           if (this.value.type === 'recur') {
-            const { schedule } = this.value;
+            const {schedule} = this.value;
             if (this.op === 'isapprox') {
               const fieldDate = parseDate(fieldValue);
               return schedule.occursBetween(
@@ -301,10 +273,10 @@ export class Condition {
                 dateFns.addDays(fieldDate, 2),
               );
             } else {
-              return schedule.occursOn({ date: parseDate(fieldValue) });
+              return schedule.occursOn({date: parseDate(fieldValue)});
             }
           } else {
-            const { date } = this.value;
+            const {date} = this.value;
 
             if (this.op === 'isapprox') {
               const fullDate = parseDate(date);
@@ -328,10 +300,7 @@ export class Condition {
           const number = this.value.value;
           if (this.op === 'isapprox') {
             const threshold = getApproxNumberThreshold(number);
-            return (
-              fieldValue >= number - threshold &&
-              fieldValue <= number + threshold
-            );
+            return fieldValue >= number - threshold && fieldValue <= number + threshold;
           }
           return fieldValue === number;
         }
@@ -368,9 +337,7 @@ export class Condition {
         const normalizedFieldValue = String(fieldValue);
         const tags = extractTagsForFilter(this.value);
         return !tags.some(tag => {
-          const escapedTag = tag
-            .toLowerCase()
-            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const escapedTag = tag.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           const pattern = new RegExp(`(?<!#)${escapedTag}([\\s#]|$)`);
           return !pattern.test(normalizedFieldValue);
         });
@@ -382,9 +349,7 @@ export class Condition {
         const normalizedFieldValue = String(fieldValue);
         const tags = extractTagsForFilter(this.value);
         return tags.some(tag => {
-          const escapedTag = tag
-            .toLowerCase()
-            .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const escapedTag = tag.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
           const pattern = new RegExp(`(?<!#)${escapedTag}([\\s#]|$)`);
           return pattern.test(normalizedFieldValue);
         });
@@ -407,10 +372,7 @@ export class Condition {
         if (fieldValue === null) {
           return false;
         } else if (type === 'date') {
-          return (
-            fieldValue === this.value.date ||
-            isAfter(fieldValue, this.value.date)
-          );
+          return fieldValue === this.value.date || isAfter(fieldValue, this.value.date);
         }
 
         return fieldValue >= extractValue(this.value);
@@ -425,10 +387,7 @@ export class Condition {
         if (fieldValue === null) {
           return false;
         } else if (type === 'date') {
-          return (
-            fieldValue === this.value.date ||
-            isBefore(fieldValue, this.value.date)
-          );
+          return fieldValue === this.value.date || isBefore(fieldValue, this.value.date);
         }
         return fieldValue <= extractValue(this.value);
       case 'matches':
@@ -472,7 +431,7 @@ export class Condition {
       field: this.field,
       value: this.unparsedValue,
       type: this.type,
-      ...(this.options ? { options: this.options } : null),
+      ...(this.options ? {options: this.options} : null),
     };
   }
 }

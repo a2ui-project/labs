@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import React, { createContext, useContext, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
-import { createPortal } from 'react-dom';
+import React, {createContext, useContext, useState} from 'react';
+import type {CSSProperties, ReactNode} from 'react';
+import {createPortal} from 'react-dom';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
 const HEADER_HEIGHT = 50;
 
@@ -31,7 +31,7 @@ type PageHeaderProps = {
   style?: CSSProperties;
 };
 
-export function PageHeader({ title, style }: PageHeaderProps) {
+export function PageHeader({title, style}: PageHeaderProps) {
   return (
     <View
       style={{
@@ -62,12 +62,7 @@ type MobilePageHeaderProps = {
   rightContent?: ReactNode;
 };
 
-export function MobilePageHeader({
-  title,
-  style,
-  leftContent,
-  rightContent,
-}: MobilePageHeaderProps) {
+export function MobilePageHeader({title, style, leftContent, rightContent}: MobilePageHeaderProps) {
   return (
     <View
       style={{
@@ -134,11 +129,7 @@ const MobilePageHeaderSlotRefContext = createContext<
   ((element: HTMLElement | null) => void) | null
 >(null);
 
-export function MobilePageHeaderProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function MobilePageHeaderProvider({children}: {children: ReactNode}) {
   const [slot, setSlot] = useState<HTMLElement | null>(null);
   return (
     <MobilePageHeaderSlotRefContext.Provider value={setSlot}>
@@ -153,7 +144,7 @@ type MobilePageHeaderSlotProps = {
   style?: CSSProperties;
 };
 
-export function MobilePageHeaderSlot({ style }: MobilePageHeaderSlotProps) {
+export function MobilePageHeaderSlot({style}: MobilePageHeaderSlotProps) {
   const slotRef = useContext(MobilePageHeaderSlotRefContext);
   return (
     <View
@@ -176,8 +167,8 @@ type PageProps = {
   footer?: ReactNode;
 };
 
-export function Page({ header, style, padding, children, footer }: PageProps) {
-  const { isNarrowWidth } = useResponsive();
+export function Page({header, style, padding, children, footer}: PageProps) {
+  const {isNarrowWidth} = useResponsive();
   const mobileHeaderSlot = useContext(MobilePageHeaderSlotContext);
   const childrenPadding = padding != null ? padding : isNarrowWidth ? 10 : 20;
 
@@ -214,9 +205,7 @@ export function Page({ header, style, padding, children, footer }: PageProps) {
           ...style,
         }}
       >
-        {mobileHeaderSlot
-          ? createPortal(headerToRender, mobileHeaderSlot)
-          : headerToRender}
+        {mobileHeaderSlot ? createPortal(headerToRender, mobileHeaderSlot) : headerToRender}
         {main}
         {footer}
       </View>

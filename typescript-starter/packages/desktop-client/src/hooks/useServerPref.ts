@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 
-import type { ServerPrefs } from '@actual-app/core/types/prefs';
+import type {ServerPrefs} from '@actual-app/core/types/prefs';
 
-import { saveServerPrefs } from '#prefs/prefsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {saveServerPrefs} from '#prefs/prefsSlice';
+import {useDispatch, useSelector} from '#redux';
 
-type SetServerPrefAction<K extends keyof ServerPrefs> = (
-  value: ServerPrefs[K],
-) => void;
+type SetServerPrefAction<K extends keyof ServerPrefs> = (value: ServerPrefs[K]) => void;
 
 export function useServerPref<K extends keyof ServerPrefs>(
   prefName: K,
@@ -34,7 +32,7 @@ export function useServerPref<K extends keyof ServerPrefs>(
     value => {
       void dispatch(
         saveServerPrefs({
-          prefs: { [prefName]: value },
+          prefs: {[prefName]: value},
         }),
       );
     },

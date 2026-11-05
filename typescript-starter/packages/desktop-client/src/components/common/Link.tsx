@@ -15,17 +15,17 @@
  */
 
 import React from 'react';
-import type { ComponentProps, MouseEventHandler, ReactNode } from 'react';
-import { NavLink, useMatch } from 'react-router';
+import type {ComponentProps, MouseEventHandler, ReactNode} from 'react';
+import {NavLink, useMatch} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { styles } from '@actual-app/components/styles';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {styles} from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {css} from '@emotion/css';
 
-import { useNavigate } from '#hooks/useNavigate';
+import {useNavigate} from '#hooks/useNavigate';
 
 type TextLinkProps = {
   style?: CSSProperties;
@@ -33,10 +33,7 @@ type TextLinkProps = {
   children?: ReactNode;
 };
 
-type ButtonLinkProps = Omit<
-  ComponentProps<typeof Button>,
-  'variant' | 'style'
-> & {
+type ButtonLinkProps = Omit<ComponentProps<typeof Button>, 'variant' | 'style'> & {
   buttonVariant?: ComponentProps<typeof Button>['variant'];
   style?: CSSProperties;
   to?: string;
@@ -79,7 +76,7 @@ const ExternalLink = ({
       href={to ?? ''}
       target="_blank"
       rel="noopener noreferrer"
-      style={{ color: externalLinkColors[linkColor] }}
+      style={{color: externalLinkColors[linkColor]}}
       className={className}
       onClick={onClick}
     >
@@ -88,7 +85,7 @@ const ExternalLink = ({
   );
 };
 
-const TextLink = ({ style, onClick, children, ...props }: TextLinkProps) => {
+const TextLink = ({style, onClick, children, ...props}: TextLinkProps) => {
   return (
     <Text
       style={{
@@ -110,10 +107,10 @@ const TextLink = ({ style, onClick, children, ...props }: TextLinkProps) => {
   );
 };
 
-const ButtonLink = ({ to, style, activeStyle, ...props }: ButtonLinkProps) => {
+const ButtonLink = ({to, style, activeStyle, ...props}: ButtonLinkProps) => {
   const navigate = useNavigate();
   const path = to ?? '';
-  const match = useMatch({ path, end: false });
+  const match = useMatch({path, end: false});
   return (
     <Button
       className={() =>
@@ -144,7 +141,7 @@ const InternalLink = ({
   isExactPathMatch = false,
 }: InternalLinkProps) => {
   const path = to ?? '';
-  const match = useMatch({ path, end: isExactPathMatch });
+  const match = useMatch({path, end: isExactPathMatch});
 
   return (
     <NavLink
@@ -162,30 +159,30 @@ const InternalLink = ({
 };
 
 type LinkProps =
-  | ({ variant: 'button' } & ButtonLinkProps)
-  | ({ variant: 'internal' } & InternalLinkProps)
-  | ({ variant: 'external' } & ExternalLinkProps)
-  | ({ variant: 'text' } & TextLinkProps);
+  | ({variant: 'button'} & ButtonLinkProps)
+  | ({variant: 'internal'} & InternalLinkProps)
+  | ({variant: 'external'} & ExternalLinkProps)
+  | ({variant: 'text'} & TextLinkProps);
 
 export function Link(props: LinkProps) {
   switch (props.variant) {
     case 'internal': {
-      const { variant: _, ...internalProps } = props;
+      const {variant: _, ...internalProps} = props;
       return <InternalLink {...internalProps} />;
     }
 
     case 'external': {
-      const { variant: _, ...externalProps } = props;
+      const {variant: _, ...externalProps} = props;
       return <ExternalLink {...externalProps} />;
     }
 
     case 'button': {
-      const { variant: _, ...buttonProps } = props;
+      const {variant: _, ...buttonProps} = props;
       return <ButtonLink {...buttonProps} />;
     }
 
     case 'text': {
-      const { variant: _, ...textProps } = props;
+      const {variant: _, ...textProps} = props;
       return <TextLink {...textProps} />;
     }
 

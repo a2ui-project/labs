@@ -16,12 +16,12 @@
 
 import React from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { render, screen } from '@testing-library/react';
+import {theme} from '@actual-app/components/theme';
+import {render, screen} from '@testing-library/react';
 
-import { TestProviders } from '#mocks';
+import {TestProviders} from '#mocks';
 
-import { Change } from './Change';
+import {Change} from './Change';
 
 describe('Change', () => {
   it('renders a positive amount with a plus sign and positive color', () => {
@@ -60,7 +60,7 @@ describe('Change', () => {
   it('merges custom style prop', () => {
     render(
       <TestProviders>
-        <Change amount={1000} style={{ fontWeight: 'bold' }} />
+        <Change amount={1000} style={{fontWeight: 'bold'}} />
       </TestProviders>,
     );
     const el = screen.getByText('+10.00');

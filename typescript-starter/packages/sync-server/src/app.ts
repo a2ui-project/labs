@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import fs, { readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import fs, {readFileSync} from 'node:fs';
+import {join, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 
-import { bootstrap } from './account-db';
+import {bootstrap} from './account-db';
 import * as accountApp from './app-account';
 import * as adminApp from './app-admin';
 import * as akahuApp from './app-akahu/app-akahu.js';
@@ -34,7 +34,7 @@ import * as pluggai from './app-pluggyai/app-pluggyai';
 import * as secretApp from './app-secrets';
 import * as simpleFinApp from './app-simplefin/app-simplefin';
 import * as syncApp from './app-sync';
-import { config } from './load-config';
+import {config} from './load-config';
 
 const app = express();
 
@@ -56,7 +56,7 @@ if (process.env.NODE_ENV !== 'development') {
   );
 }
 
-app.use(express.json({ limit: `${config.get('upload.fileSizeLimitMB')}mb` }));
+app.use(express.json({limit: `${config.get('upload.fileSizeLimitMB')}mb`}));
 
 app.use(
   express.raw({
@@ -102,9 +102,7 @@ app.get('/info', (_req, res) => {
       while (currentPath !== pathRoot && directoriesSearched < 5) {
         const packageJsonPath = resolve(currentPath, 'package.json');
         if (fs.existsSync(packageJsonPath)) {
-          const packageJson = JSON.parse(
-            readFileSync(packageJsonPath, 'utf-8'),
-          );
+          const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
 
           if (packageJson.name === '@actual-app/sync-server') {
             return packageJson;
@@ -134,7 +132,7 @@ app.get('/info', (_req, res) => {
 });
 
 app.get('/health', (_req, res) => {
-  res.status(200).json({ status: 'UP' });
+  res.status(200).json({status: 'UP'});
 });
 
 app.get('/metrics', (_req, res) => {
@@ -170,9 +168,7 @@ app.use((req, res, next) => {
   next();
 });
 if (isDev) {
-  console.log(
-    'Running in development mode - Proxying frontend routes to React Dev Server',
-  );
+  console.log('Running in development mode - Proxying frontend routes to React Dev Server');
 
   // Imported within Dev block to allow dev dependency in package.json (reduces package size in production)
   const httpProxyMiddleware = await import('http-proxy-middleware');
@@ -187,10 +183,8 @@ if (isDev) {
 } else {
   console.log('Running in production mode - Serving static React app');
 
-  app.use(express.static(config.get('webRoot'), { index: false }));
-  app.get('/{*splat}', (req, res) =>
-    res.sendFile('index.html', { root: config.get('webRoot') }),
-  );
+  app.use(express.static(config.get('webRoot'), {index: false}));
+  app.get('/{*splat}', (req, res) => res.sendFile('index.html', {root: config.get('webRoot')}));
 }
 
 function parseHTTPSConfig(value: string) {
@@ -204,10 +198,8 @@ function sendServerStartedMessage() {
   // Signify to any parent process that the server has started. Used in electron desktop app
   // oxlint-disable-next-line typescript/ban-ts-comment
   // @ts-ignore-error electron types
-  process.parentPort?.postMessage({ type: 'server-started' });
-  console.log(
-    'Listening on ' + config.get('hostname') + ':' + config.get('port') + '...',
-  );
+  process.parentPort?.postMessage({type: 'server-started'});
+  console.log('Listening on ' + config.get('hostname') + ':' + config.get('port') + '...');
 }
 
 export async function run() {
@@ -215,13 +207,10 @@ export async function run() {
   const port = typeof portVal === 'string' ? parseInt(portVal) : portVal;
   const hostname = config.get('hostname');
   const openIdConfig = config?.getProperties()?.openId;
-  if (
-    openIdConfig?.discoveryURL ||
-    openIdConfig?.issuer?.authorization_endpoint
-  ) {
+  if (openIdConfig?.discoveryURL || openIdConfig?.issuer?.authorization_endpoint) {
     console.log('OpenID configuration found. Preparing server to use it');
     try {
-      const result = await bootstrap({ openId: openIdConfig }, true);
+      const result = await bootstrap({openId: openIdConfig}, true);
       if ('error' in result && result.error) {
         console.log(result.error);
       } else {

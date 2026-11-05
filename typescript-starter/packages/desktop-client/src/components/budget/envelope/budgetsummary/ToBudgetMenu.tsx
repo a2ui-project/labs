@@ -15,18 +15,15 @@
  */
 
 import React from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {ComponentPropsWithoutRef} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
+import {Menu} from '@actual-app/components/menu';
 
-import { useEnvelopeSheetValue } from '#components/budget/envelope/EnvelopeBudgetComponents';
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {useEnvelopeSheetValue} from '#components/budget/envelope/EnvelopeBudgetComponents';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
-type ToBudgetMenuProps = Omit<
-  ComponentPropsWithoutRef<typeof Menu>,
-  'onMenuSelect' | 'items'
-> & {
+type ToBudgetMenuProps = Omit<ComponentPropsWithoutRef<typeof Menu>, 'onMenuSelect' | 'items'> & {
   onTransfer: () => void;
   onCover: () => void;
   onHoldBuffer: () => void;
@@ -44,12 +41,11 @@ export function ToBudgetMenu({
   month,
   ...props
 }: ToBudgetMenuProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const toBudget = useEnvelopeSheetValue(envelopeBudget.toBudget) ?? 0;
   const forNextMonth = useEnvelopeSheetValue(envelopeBudget.forNextMonth) ?? 0;
-  const manualBuffered =
-    useEnvelopeSheetValue(envelopeBudget.manualBuffered) ?? 0;
+  const manualBuffered = useEnvelopeSheetValue(envelopeBudget.manualBuffered) ?? 0;
   const autoBuffered = useEnvelopeSheetValue(envelopeBudget.autoBuffered) ?? 0;
   const items = [
     ...(toBudget > 0

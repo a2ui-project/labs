@@ -17,18 +17,13 @@
 // @ts-strict-ignore
 import mitt from 'mitt';
 
-import { logger } from '#platform/server/log';
-import {
-  aqlCompiledQuery,
-  compileQuery,
-  schema,
-  schemaConfig,
-} from '#server/aql';
-import type { BudgetType } from '#server/prefs';
-import type { QueryState } from '#shared/query';
+import {logger} from '#platform/server/log';
+import {aqlCompiledQuery, compileQuery, schema, schemaConfig} from '#server/aql';
+import type {BudgetType} from '#server/prefs';
+import type {QueryState} from '#shared/query';
 
-import { Graph } from './graph-data-structure';
-import { resolveName, unresolveName } from './util';
+import {Graph} from './graph-data-structure';
+import {resolveName, unresolveName} from './util';
 
 export type Node = {
   name: string;
@@ -36,7 +31,7 @@ export type Node = {
   value: string | number | boolean;
   sheet: unknown;
   query?: QueryState;
-  sql?: { sqlPieces: unknown; state: { dependencies: unknown[] } };
+  sql?: {sqlPieces: unknown; state: {dependencies: unknown[]}};
   dynamic?: boolean;
   _run?: unknown;
   _dependencies?: string[];
@@ -85,7 +80,7 @@ export class Spreadsheet {
   // Spreadsheet interface
 
   _getNode(name: string): Node {
-    const { sheet } = unresolveName(name);
+    const {sheet} = unresolveName(name);
 
     if (!this.nodes.has(name)) {
       this.nodes.set(name, {
@@ -191,11 +186,7 @@ export class Spreadsheet {
             );
           }
         } else if (node.sql) {
-          result = aqlCompiledQuery(
-            node.query,
-            node.sql.sqlPieces,
-            node.sql.state,
-          );
+          result = aqlCompiledQuery(node.query, node.sql.sqlPieces, node.sql.state);
         } else {
           idx++;
           continue;
@@ -234,7 +225,7 @@ export class Spreadsheet {
     // If everything computed in one loop (no async operations) notify
     // the user and empty the queue
     if (idx === this.computeQueue.length) {
-      this.events.emit('change', { names: this.computeQueue });
+      this.events.emit('change', {names: this.computeQueue});
 
       // Cache the updated cells
       this.saveCachedCells(this.computeQueue);
@@ -254,14 +245,14 @@ export class Spreadsheet {
   markCacheSafe() {
     if (!this.cacheBarrier) {
       if (this.setCacheStatus) {
-        this.setCacheStatus({ clean: true });
+        this.setCacheStatus({clean: true});
       }
     }
   }
 
   markCacheDirty() {
     if (this.setCacheStatus) {
-      this.setCacheStatus({ clean: false });
+      this.setCacheStatus({clean: false});
     }
   }
 
@@ -377,12 +368,8 @@ export class Spreadsheet {
 
     if (node.query !== query) {
       node.query = query;
-      const { sqlPieces, state } = compileQuery(
-        node.query,
-        schema,
-        schemaConfig,
-      );
-      node.sql = { sqlPieces, state };
+      const {sqlPieces, state} = compileQuery(node.query, schema, schemaConfig);
+      node.sql = {sqlPieces, state};
 
       this.transaction(() => {
         this._markDirty(name);
@@ -390,11 +377,7 @@ export class Spreadsheet {
     }
   }
 
-  createStatic(
-    sheetName: string,
-    cellName: string,
-    initialValue: number | boolean,
-  ): void {
+  createStatic(sheetName: string, cellName: string, initialValue: number | boolean): void {
     const name = resolveName(sheetName, cellName);
     const exists = this.nodes.has(name);
     if (!exists) {
@@ -486,9 +469,7 @@ export class Spreadsheet {
     });
 
     const node = this.getNode(name);
-    const newDeps = deps.filter(
-      dep => (node._dependencies || []).indexOf(dep) === -1,
-    );
+    const newDeps = deps.filter(dep => (node._dependencies || []).indexOf(dep) === -1);
 
     if (newDeps.length > 0) {
       node._dependencies = (node._dependencies || []).concat(newDeps);
@@ -499,11 +480,7 @@ export class Spreadsheet {
     }
   }
 
-  removeDependencies(
-    sheetName: string,
-    cellName: string,
-    deps: string[],
-  ): void {
+  removeDependencies(sheetName: string, cellName: string, deps: string[]): void {
     const name = resolveName(sheetName, cellName);
 
     deps = deps.map(dep => {
@@ -515,9 +492,7 @@ export class Spreadsheet {
 
     const node = this.getNode(name);
 
-    node._dependencies = (node._dependencies || []).filter(
-      dep => deps.indexOf(dep) === -1,
-    );
+    node._dependencies = (node._dependencies || []).filter(dep => deps.indexOf(dep) === -1);
 
     deps.forEach(dep => {
       this.graph.removeEdge(dep, name);
@@ -536,10 +511,7 @@ export class Spreadsheet {
     // TODO: Create an index of deps so we don't have to iterate
     // across all nodes
     this.nodes.forEach(node => {
-      if (
-        node.sql &&
-        node.sql.state.dependencies.some(dep => tables.has(dep))
-      ) {
+      if (node.sql && node.sql.state.dependencies.some(dep => tables.has(dep))) {
         this._markDirty(node.name);
       }
     });

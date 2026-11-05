@@ -1,10 +1,10 @@
 import path from 'path';
 
-import { collectEmbeddedAssets } from '@actual-app/core/default-filesystem';
-import { peggyLoader } from '@actual-app/vite-plugin-peggy';
-import { defineConfig } from 'vite';
-import type { Plugin } from 'vite';
-import { nodePolyfills } from 'vite-plugin-node-polyfills';
+import {collectEmbeddedAssets} from '@actual-app/core/default-filesystem';
+import {peggyLoader} from '@actual-app/vite-plugin-peggy';
+import {defineConfig} from 'vite';
+import type {Plugin} from 'vite';
+import {nodePolyfills} from 'vite-plugin-node-polyfills';
 
 const distDir = path.resolve(__dirname, 'dist');
 
@@ -22,7 +22,7 @@ function embeddedAssets(): Plugin {
     },
     load(thisId) {
       if (thisId !== resolved) return undefined;
-      const { wasmBase64, dataFiles, index } = collectEmbeddedAssets();
+      const {wasmBase64, dataFiles, index} = collectEmbeddedAssets();
       return [
         `export const wasmBase64 = ${JSON.stringify(wasmBase64)};`,
         `export const dataIndex = ${JSON.stringify(index)};`,

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import type { UnsafeZipMeta } from '#shared/errors';
+import type {UnsafeZipMeta} from '#shared/errors';
 
 // TODO: normalize error types
 export class PostError extends Error {
-  meta: { meta: string } | undefined;
+  meta: {meta: string} | undefined;
   reason: string;
   type: 'PostError';
 
-  constructor(reason: string, meta?: { meta: string }, options?: ErrorOptions) {
+  constructor(reason: string, meta?: {meta: string}, options?: ErrorOptions) {
     super('PostError: ' + reason, options);
     this.type = 'PostError';
     this.reason = reason;
@@ -62,8 +62,8 @@ export class SyncError extends Error {
         isMissingKey: boolean;
       }
     | {
-        error: { message: string; stack: string };
-        query: { sql: string; params: Array<string | number> };
+        error: {message: string; stack: string};
+        query: {sql: string; params: Array<string | number>};
       }
     | undefined;
   reason: string;
@@ -75,8 +75,8 @@ export class SyncError extends Error {
           isMissingKey: boolean;
         }
       | {
-          error: { message: string; stack: string };
-          query: { sql: string; params: Array<string | number> };
+          error: {message: string; stack: string};
+          query: {sql: string; params: Array<string | number>};
         },
   ) {
     super('SyncError: ' + reason);
@@ -98,9 +98,7 @@ export class DocumentDirError extends Error {
 
   constructor(path: string, cause: unknown) {
     const code =
-      cause && typeof cause === 'object' && 'code' in cause
-        ? String(cause.code)
-        : undefined;
+      cause && typeof cause === 'object' && 'code' in cause ? String(cause.code) : undefined;
     const causeMessage = cause instanceof Error ? cause.message : String(cause);
 
     super(`DocumentDirError: could not access ${path} (${causeMessage})`, {
@@ -132,7 +130,7 @@ export function APIError(
     actionErrors: string[];
   },
 ) {
-  return { type: 'APIError', message: msg, meta };
+  return {type: 'APIError', message: msg, meta};
 }
 
 /**
@@ -145,8 +143,8 @@ export function APIError(
 export function withErrorCode<E extends Error>(
   error: E,
   code: string | undefined,
-): E & { code?: string } {
-  return code == null ? error : Object.assign(error, { code });
+): E & {code?: string} {
+  return code == null ? error : Object.assign(error, {code});
 }
 
 export function FileDownloadError(
@@ -158,12 +156,9 @@ export function FileDownloadError(
     id?: string;
   } & Partial<UnsafeZipMeta>,
 ) {
-  return { type: 'FileDownloadError', reason, meta };
+  return {type: 'FileDownloadError', reason, meta};
 }
 
-export function FileUploadError(
-  reason: string,
-  meta?: { isMissingKey: boolean },
-) {
-  return { type: 'FileUploadError', reason, meta };
+export function FileUploadError(reason: string, meta?: {isMissingKey: boolean}) {
+  return {type: 'FileUploadError', reason, meta};
 }

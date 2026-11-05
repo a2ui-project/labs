@@ -18,7 +18,7 @@ import fs from 'fs';
 import path from 'path';
 
 import electron from 'electron';
-import type { BrowserWindow } from 'electron';
+import type {BrowserWindow} from 'electron';
 
 type WindowState = Electron.Rectangle & {
   isMaximized?: boolean;
@@ -37,9 +37,7 @@ const getDataDir = () => {
 async function loadState() {
   let state: WindowState | undefined = undefined;
   try {
-    state = JSON.parse(
-      fs.readFileSync(path.join(getDataDir(), 'window.json'), 'utf8'),
-    );
+    state = JSON.parse(fs.readFileSync(path.join(getDataDir(), 'window.json'), 'utf8'));
   } catch {
     console.log('Could not load window state');
   }
@@ -64,11 +62,7 @@ function updateState(win: BrowserWindow, state: WindowState) {
 
 async function saveState(win: BrowserWindow, state: WindowState) {
   updateState(win, state);
-  fs.writeFileSync(
-    path.join(getDataDir(), 'window.json'),
-    JSON.stringify(state),
-    'utf8',
-  );
+  fs.writeFileSync(path.join(getDataDir(), 'window.json'), JSON.stringify(state), 'utf8');
 }
 
 export function listen(win: BrowserWindow, state: WindowState) {
@@ -100,10 +94,7 @@ function hasBounds(state: WindowState) {
 }
 
 function validateState(state?: WindowState): Partial<WindowState> {
-  if (
-    !state ||
-    !(hasBounds(state) || state.isMaximized || state.isFullScreen)
-  ) {
+  if (!state || !(hasBounds(state) || state.isMaximized || state.isFullScreen)) {
     return {};
   }
 

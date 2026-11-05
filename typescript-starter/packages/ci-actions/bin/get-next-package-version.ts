@@ -15,16 +15,12 @@
  * limitations under the License.
  */
 
-
 // This script is used in GitHub Actions to get the next version based on the current package.json version.
 // It supports three types of versioning: nightly, hotfix, and monthly.
 import fs from 'node:fs';
-import { parseArgs } from 'node:util';
+import {parseArgs} from 'node:util';
 
-import {
-  getNextVersion,
-  isValidVersionType,
-} from '../src/versions/get-next-package-version';
+import {getNextVersion, isValidVersionType} from '../src/versions/get-next-package-version';
 
 const options = {
   'package-json': {
@@ -51,16 +47,14 @@ function fail(message: string): never {
   process.exit(1);
 }
 
-const { values } = parseArgs({
+const {values} = parseArgs({
   options,
   allowPositionals: true,
 });
 
 const packageJsonPath = values['package-json'];
 if (!packageJsonPath) {
-  fail(
-    'Please specify the path to package.json using --package-json or -p option.',
-  );
+  fail('Please specify the path to package.json using --package-json or -p option.');
 }
 
 try {
@@ -102,19 +96,12 @@ try {
       : newVersion.split('.')[2] === '0'
         ? 'monthly'
         : 'hotfix';
-    fs.appendFileSync(
-      process.env.GITHUB_OUTPUT,
-      `version=${newVersion}\ntype=${resolvedType}\n`,
-    );
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${newVersion}\ntype=${resolvedType}\n`);
   }
 
   if (values.update) {
     packageJson.version = newVersion;
-    fs.writeFileSync(
-      packageJsonPath,
-      JSON.stringify(packageJson, null, 2) + '\n',
-      'utf8',
-    );
+    fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n', 'utf8');
   }
 } catch (error) {
   fail(`Error: ${error instanceof Error ? error.message : String(error)}`);

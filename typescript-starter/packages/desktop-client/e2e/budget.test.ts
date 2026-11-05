@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import type { BudgetPage } from './page-models/budget-page';
-import { ConfigurationPage } from './page-models/configuration-page';
+import {expect, test} from './fixtures';
+import type {BudgetPage} from './page-models/budget-page';
+import {ConfigurationPage} from './page-models/configuration-page';
 
 test.describe('Budget', () => {
   let page: Page;
   let configurationPage: ConfigurationPage;
   let budgetPage: BudgetPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     configurationPage = new ConfigurationPage(page);
 
@@ -60,9 +60,7 @@ test.describe('Budget', () => {
 
     await budgetPage.transferAllBalance(1, 2);
 
-    await expect
-      .poll(() => budgetPage.getBalanceForRow(2))
-      .toEqual(currentFundsA + currentFundsB);
+    await expect.poll(() => budgetPage.getBalanceForRow(2)).toEqual(currentFundsA + currentFundsB);
     await expect(page).toMatchThemeScreenshots();
   });
 
@@ -79,30 +77,28 @@ test.describe('Budget', () => {
     const accountPage = await budgetPage.clickOnSpentAmountForRow(1);
     expect(page.url()).toContain('/accounts');
     expect(await accountPage.accountName.textContent()).toMatch('All Accounts');
-    await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByRole('button', {name: 'Back'}).click();
   });
 
   test('right clicking a category opens context menu', async () => {
     await budgetPage.rightClickCategory(1);
     const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
-    await expect(menu.getByRole('button', { name: 'Rename' })).toBeVisible();
+    await expect(menu.getByRole('button', {name: 'Rename'})).toBeVisible();
   });
 
   test('right clicking a category group opens context menu', async () => {
     await budgetPage.rightClickCategoryGroup('Usual Expenses');
     const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
-    await expect(menu.getByRole('button', { name: 'Rename' })).toBeVisible();
+    await expect(menu.getByRole('button', {name: 'Rename'})).toBeVisible();
   });
 
   test('right clicking budget name opens context menu', async () => {
-    await page.getByTestId('budget-name').click({ button: 'right' });
+    await page.getByTestId('budget-name').click({button: 'right'});
     const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
-    await expect(
-      menu.getByRole('button', { name: 'Switch file' }),
-    ).toBeVisible();
+    await expect(menu.getByRole('button', {name: 'Switch file'})).toBeVisible();
   });
 });
 
@@ -111,7 +107,7 @@ test.describe('Budget scroll position', () => {
   let configurationPage: ConfigurationPage;
   let budgetPage: BudgetPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     configurationPage = new ConfigurationPage(page);
 
@@ -122,15 +118,12 @@ test.describe('Budget scroll position', () => {
     const categoryCount = 20;
     await page.evaluate(async count => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const $send = (window as any).$send as (
-        type: string,
-        args?: unknown,
-      ) => Promise<string>;
+      const $send = (window as any).$send as (type: string, args?: unknown) => Promise<string>;
       const groupId = await $send('category-group-create', {
         name: 'Extra Categories',
       });
       for (let i = 1; i <= count; i++) {
-        await $send('category-create', { name: `Category ${i}`, groupId });
+        await $send('category-create', {name: `Category ${i}`, groupId});
       }
       // Invalidate the category query so React re-renders with the new categories.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -138,9 +131,7 @@ test.describe('Budget scroll position', () => {
         queryKey: ['categories', 'lists'],
       });
     }, categoryCount);
-    await page
-      .getByText(`Category ${categoryCount}`, { exact: true })
-      .waitFor({ state: 'visible' });
+    await page.getByText(`Category ${categoryCount}`, {exact: true}).waitFor({state: 'visible'});
 
     await page.mouse.move(0, 0);
   });
@@ -159,7 +150,7 @@ test.describe('Budget scroll position', () => {
     await budgetPage.clickOnSpentAmountForLastVisibleRow();
     expect(page.url()).toContain('/accounts');
 
-    await page.getByRole('button', { name: 'Back' }).click();
+    await page.getByRole('button', {name: 'Back'}).click();
     await budgetPage.waitFor();
 
     const scrollTopAfterReturningFromSpent = await budgetPage.getScrollTop();

@@ -16,12 +16,12 @@
 
 import React from 'react';
 
-import { render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import {render} from '@testing-library/react';
+import {describe, expect, it} from 'vitest';
 
-import { TestProviders } from '#mocks';
+import {TestProviders} from '#mocks';
 
-import { BudgetAnalysisGraph } from './BudgetAnalysisGraph';
+import {BudgetAnalysisGraph} from './BudgetAnalysisGraph';
 
 const sampleData = {
   intervalData: [
@@ -46,12 +46,7 @@ describe('BudgetAnalysisGraph – balanceOnly', () => {
   it('renders the balance series label when balanceOnly is true', () => {
     render(
       <TestProviders>
-        <BudgetAnalysisGraph
-          data={sampleData}
-          graphType="Line"
-          balanceOnly
-          showBalance={false}
-        />
+        <BudgetAnalysisGraph data={sampleData} graphType="Line" balanceOnly showBalance={false} />
       </TestProviders>,
     );
     // The LineChart should render without throwing; the balance dataKey should be present
@@ -62,12 +57,7 @@ describe('BudgetAnalysisGraph – balanceOnly', () => {
   it('renders all series when balanceOnly is false', () => {
     render(
       <TestProviders>
-        <BudgetAnalysisGraph
-          data={sampleData}
-          graphType="Line"
-          balanceOnly={false}
-          showBalance
-        />
+        <BudgetAnalysisGraph data={sampleData} graphType="Line" balanceOnly={false} showBalance />
       </TestProviders>,
     );
     expect(document.querySelector('svg')).toBeInTheDocument();
@@ -76,12 +66,7 @@ describe('BudgetAnalysisGraph – balanceOnly', () => {
   it('renders a bar chart when graphType is Bar and balanceOnly is false', () => {
     render(
       <TestProviders>
-        <BudgetAnalysisGraph
-          data={sampleData}
-          graphType="Bar"
-          balanceOnly={false}
-          showBalance
-        />
+        <BudgetAnalysisGraph data={sampleData} graphType="Bar" balanceOnly={false} showBalance />
       </TestProviders>,
     );
     expect(document.querySelector('svg')).toBeInTheDocument();

@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgMinusSolid = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -26,9 +26,6 @@ export const SvgMinusSolid = (props: SVGProps<SVGSVGElement>) => (
       ...props.style,
     }}
   >
-    <path
-      d="M10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20m5-11H5v2h10z"
-      fill="currentColor"
-    />
+    <path d="M10 20a10 10 0 1 1 0-20 10 10 0 0 1 0 20m5-11H5v2h10z" fill="currentColor" />
   </svg>
 );

@@ -27,7 +27,7 @@ export async function createPayee(description: string) {
   if (row) {
     return row.id;
   } else {
-    return (await db.insertPayee({ name: description })) as db.DbPayee['id'];
+    return (await db.insertPayee({name: description})) as db.DbPayee['id'];
   }
 }
 

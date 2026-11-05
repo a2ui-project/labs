@@ -16,15 +16,15 @@
 
 import React from 'react';
 
-import type { PayeeEntity } from '@actual-app/core/types/models';
-import { render, screen } from '@testing-library/react';
+import type {PayeeEntity} from '@actual-app/core/types/models';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { useNavigate } from '#hooks/useNavigate';
-import { createTestQueryClient, TestProviders } from '#mocks';
-import { payeeQueries } from '#payees';
+import {useNavigate} from '#hooks/useNavigate';
+import {createTestQueryClient, TestProviders} from '#mocks';
+import {payeeQueries} from '#payees';
 
-import { MobilePayeesPage } from './MobilePayeesPage';
+import {MobilePayeesPage} from './MobilePayeesPage';
 
 vi.mock('@use-gesture/react', () => ({
   useDrag: vi.fn().mockReturnValue(() => ({})),
@@ -79,9 +79,7 @@ describe('MobilePayeesPage', () => {
   it('renders payees page with header', () => {
     renderPayeesPage();
 
-    expect(
-      screen.getByRole('heading', { name: /payees/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', {name: /payees/i})).toBeInTheDocument();
   });
 
   it('renders search box', () => {
@@ -176,9 +174,7 @@ describe('MobilePayeesPage', () => {
     renderPayeesPage();
 
     // Page should render even with no payees
-    expect(
-      screen.getByRole('heading', { name: /payees/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', {name: /payees/i})).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/filter payees/i)).toBeInTheDocument();
   });
 });

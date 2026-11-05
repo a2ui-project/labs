@@ -15,32 +15,32 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { createBudget } from '#budgetfiles/budgetfilesSlice';
-import { Link } from '#components/common/Link';
-import { useRefreshLoginMethods } from '#components/ServerContext';
-import { useNavigate } from '#hooks/useNavigate';
-import { useDispatch } from '#redux';
+import {createBudget} from '#budgetfiles/budgetfilesSlice';
+import {Link} from '#components/common/Link';
+import {useRefreshLoginMethods} from '#components/ServerContext';
+import {useNavigate} from '#hooks/useNavigate';
+import {useDispatch} from '#redux';
 
-import { Title, useBootstrapped } from './common';
-import { ConfirmPasswordForm } from './ConfirmPasswordForm';
+import {Title, useBootstrapped} from './common';
+import {ConfirmPasswordForm} from './ConfirmPasswordForm';
 
 export function Bootstrap() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const [error, setError] = useState(null);
   const refreshLoginMethods = useRefreshLoginMethods();
 
-  const { checked } = useBootstrapped();
+  const {checked} = useBootstrapped();
   const navigate = useNavigate();
 
   function getErrorMessage(error) {
@@ -58,13 +58,13 @@ export function Bootstrap() {
       case 'missing-client-secret':
         return t('Client secret cannot be empty');
       default:
-        return t(`An unknown error occurred: {{error}}`, { error });
+        return t(`An unknown error occurred: {{error}}`, {error});
     }
   }
 
   async function onSetPassword(password) {
     setError(null);
-    const { error } = await send('subscribe-bootstrap', { password });
+    const {error} = await send('subscribe-bootstrap', {password});
 
     if (error) {
       setError(error);
@@ -75,7 +75,7 @@ export function Bootstrap() {
   }
 
   async function onDemo() {
-    await dispatch(createBudget({ demoMode: true }));
+    await dispatch(createBudget({demoMode: true}));
   }
 
   if (!checked) {
@@ -83,23 +83,22 @@ export function Bootstrap() {
   }
 
   return (
-    <View style={{ maxWidth: 450 }}>
+    <View style={{maxWidth: 450}}>
       <Title text={t('Welcome to Actual!')} />
-      <Paragraph style={{ fontSize: 16, color: theme.pageTextDark }}>
+      <Paragraph style={{fontSize: 16, color: theme.pageTextDark}}>
         <Trans>
-          Actual is a super fast privacy-focused app for managing your finances.
-          To secure your data, you'll need to set a password for your server.
+          Actual is a super fast privacy-focused app for managing your finances. To secure your
+          data, you'll need to set a password for your server.
         </Trans>
       </Paragraph>
 
-      <Paragraph isLast style={{ fontSize: 16, color: theme.pageTextDark }}>
+      <Paragraph isLast style={{fontSize: 16, color: theme.pageTextDark}}>
         <Trans>
           Consider opening{' '}
           <Link variant="external" to="https://actualbudget.org/docs/tour/">
             our tour
           </Link>{' '}
-          in a new tab for some guidance on what to do when you've set your
-          password.
+          in a new tab for some guidance on what to do when you've set your password.
         </Trans>
       </Paragraph>
 

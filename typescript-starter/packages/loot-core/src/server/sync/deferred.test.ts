@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { Timestamp } from '@actual-app/crdt';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {Timestamp} from '@actual-app/crdt';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 import * as db from '#server/db';
 
-import { replayPendingMessages } from './replay';
-import { deserializeValueSafe } from './serialization';
+import {replayPendingMessages} from './replay';
+import {deserializeValueSafe} from './serialization';
 
-import { applyMessages, setSyncingMode } from './index';
+import {applyMessages, setSyncingMode} from './index';
 
 beforeEach(() => {
   setSyncingMode('enabled');
@@ -97,7 +97,7 @@ describe('Deferred sync messages (newer schema)', () => {
 
     // The known-column message must still create the row, even though
     // the unknown-column message for the same row came first
-    const row = await db.first<{ id: string; amount: number }>(
+    const row = await db.first<{id: string; amount: number}>(
       'SELECT * FROM transactions WHERE id = ?',
       ['t1'],
     );
@@ -112,11 +112,7 @@ describe('Deferred sync messages (newer schema)', () => {
 
     // ...and both messages made it into the crdt log, so the merkle
     // stays in sync with other clients
-    const crdt = db.runQuery<{ column: string }>(
-      'SELECT * FROM messages_crdt',
-      [],
-      true,
-    );
+    const crdt = db.runQuery<{column: string}>('SELECT * FROM messages_crdt', [], true);
     expect(crdt.length).toBe(2);
   });
 
@@ -131,7 +127,7 @@ describe('Deferred sync messages (newer schema)', () => {
           timestamp: sendTimestamp(),
         },
       ]),
-    ).rejects.toMatchObject({ reason: 'invalid-schema' });
+    ).rejects.toMatchObject({reason: 'invalid-schema'});
 
     expect(getPending().length).toBe(0);
   });
@@ -183,22 +179,21 @@ describe('Deferred sync messages (newer schema)', () => {
     // t1's two brand_new_column messages leave one pending row
     const coalesced = getPending();
     expect(coalesced.length).toBe(3);
-    expect(
-      coalesced.find(p => p.row === 't1' && p.column === 'brand_new_column')
-        ?.value,
-    ).toBe('S:new value');
+    expect(coalesced.find(p => p.row === 't1' && p.column === 'brand_new_column')?.value).toBe(
+      'S:new value',
+    );
 
     // "Run the migration" that the newer client already has
     db.execQuery('ALTER TABLE transactions ADD COLUMN brand_new_column TEXT');
     replayPendingMessages();
 
-    const t1 = await db.first<{ brand_new_column: string }>(
+    const t1 = await db.first<{brand_new_column: string}>(
       'SELECT * FROM transactions WHERE id = ?',
       ['t1'],
     );
     expect(t1?.brand_new_column).toBe('new value');
 
-    const t2 = await db.first<{ brand_new_column: string }>(
+    const t2 = await db.first<{brand_new_column: string}>(
       'SELECT * FROM transactions WHERE id = ?',
       ['t2'],
     );
@@ -213,10 +208,7 @@ describe('Deferred sync messages (newer schema)', () => {
     db.execQuery('CREATE TABLE gadgets (id TEXT PRIMARY KEY, name TEXT)');
     replayPendingMessages();
 
-    const g1 = await db.first<{ name: string }>(
-      'SELECT * FROM gadgets WHERE id = ?',
-      ['g1'],
-    );
+    const g1 = await db.first<{name: string}>('SELECT * FROM gadgets WHERE id = ?', ['g1']);
     expect(g1?.name).toBe('flux capacitor');
     pending = getPending();
     expect(pending.length).toBe(0);
@@ -247,15 +239,10 @@ describe('Deferred sync messages (newer schema)', () => {
     // The migration arrives with a CHECK constraint that the first
     // deferred value violates; replay must still apply the second one
     // and must not leave the failing message wedged in the queue
-    db.execQuery(
-      'CREATE TABLE gadgets (id TEXT PRIMARY KEY, size INTEGER CHECK(size >= 0))',
-    );
+    db.execQuery('CREATE TABLE gadgets (id TEXT PRIMARY KEY, size INTEGER CHECK(size >= 0))');
     replayPendingMessages();
 
-    const g2 = await db.first<{ size: number }>(
-      'SELECT * FROM gadgets WHERE id = ?',
-      ['g2'],
-    );
+    const g2 = await db.first<{size: number}>('SELECT * FROM gadgets WHERE id = ?', ['g2']);
     expect(g2?.size).toBe(10);
     expect(getPending().length).toBe(0);
   });
@@ -281,11 +268,7 @@ describe('Deferred sync messages (newer schema)', () => {
     const pending = getPending();
     expect(pending.length).toBe(1);
     expect(pending[0].value).toBe('B:true');
-    const crdt = db.runQuery<{ value: string }>(
-      'SELECT * FROM messages_crdt',
-      [],
-      true,
-    );
+    const crdt = db.runQuery<{value: string}>('SELECT * FROM messages_crdt', [], true);
     expect(crdt.length).toBe(1);
     expect(String(crdt[0].value)).toBe('B:true');
   });
@@ -330,7 +313,7 @@ describe('Deferred sync messages (newer schema)', () => {
     `);
     replayPendingMessages();
 
-    const g1 = await db.first<{ a: string; b: string; c: string }>(
+    const g1 = await db.first<{a: string; b: string; c: string}>(
       'SELECT * FROM gadgets WHERE id = ?',
       ['g1'],
     );
@@ -372,10 +355,7 @@ describe('Deferred sync messages (newer schema)', () => {
     replayPendingMessages();
 
     // Last write wins: the stale pending value is discarded, not applied
-    const t1 = await db.first<{ notes: string }>(
-      'SELECT * FROM transactions WHERE id = ?',
-      ['t1'],
-    );
+    const t1 = await db.first<{notes: string}>('SELECT * FROM transactions WHERE id = ?', ['t1']);
     expect(t1?.notes).toBe('newer value');
     expect(getPending().length).toBe(0);
   });
@@ -406,10 +386,7 @@ describe('Deferred sync messages (newer schema)', () => {
 
     // The known-format message applied; the newer-format one stays
     // pending for a future upgrade instead of aborting the replay
-    const g1 = await db.first<{ name: string }>(
-      'SELECT * FROM gadgets WHERE id = ?',
-      ['g1'],
-    );
+    const g1 = await db.first<{name: string}>('SELECT * FROM gadgets WHERE id = ?', ['g1']);
     expect(g1?.name).toBe('flux capacitor');
     const pending = getPending();
     expect(pending.length).toBe(1);

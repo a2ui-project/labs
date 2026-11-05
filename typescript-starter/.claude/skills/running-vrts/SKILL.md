@@ -39,7 +39,7 @@ reduce noise from charts and data.
 Import from the local fixtures, not `@playwright/test`:
 
 ```ts
-import { expect, test } from './fixtures';
+import {expect, test} from './fixtures';
 ```
 
 Patterns to copy:

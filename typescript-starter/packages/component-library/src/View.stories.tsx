@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Text } from './Text';
-import { View } from './View';
+import {Text} from './Text';
+import {View} from './View';
 
 const meta = {
   title: 'Components/View',
@@ -35,13 +35,12 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     children: 'A basic View container',
-    style: { padding: 20, backgroundColor: '#f5f5f5', borderRadius: 4 },
+    style: {padding: 20, backgroundColor: '#f5f5f5', borderRadius: 4},
   },
   parameters: {
     docs: {
       description: {
-        story:
-          'View is the fundamental layout building block, rendering a styled div element.',
+        story: 'View is the fundamental layout building block, rendering a styled div element.',
       },
     },
   },
@@ -107,21 +106,9 @@ export const FlexColumn: Story = {
         backgroundColor: '#f5f5f5',
       }}
     >
-      <View
-        style={{ padding: 15, backgroundColor: '#e3f2fd', borderRadius: 4 }}
-      >
-        Row 1
-      </View>
-      <View
-        style={{ padding: 15, backgroundColor: '#e8f5e9', borderRadius: 4 }}
-      >
-        Row 2
-      </View>
-      <View
-        style={{ padding: 15, backgroundColor: '#fff3e0', borderRadius: 4 }}
-      >
-        Row 3
-      </View>
+      <View style={{padding: 15, backgroundColor: '#e3f2fd', borderRadius: 4}}>Row 1</View>
+      <View style={{padding: 15, backgroundColor: '#e8f5e9', borderRadius: 4}}>Row 2</View>
+      <View style={{padding: 15, backgroundColor: '#fff3e0', borderRadius: 4}}>Row 3</View>
     </View>
   ),
   parameters: {
@@ -145,7 +132,7 @@ export const Nested: Story = {
         width: '100%',
       }}
     >
-      <Text style={{ fontWeight: 'bold', marginBottom: 10 }}>Parent View</Text>
+      <Text style={{fontWeight: 'bold', marginBottom: 10}}>Parent View</Text>
       <View
         style={{
           display: 'flex',

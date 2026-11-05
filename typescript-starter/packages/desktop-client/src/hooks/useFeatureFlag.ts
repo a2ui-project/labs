@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { FeatureFlag } from '@actual-app/core/types/prefs';
+import type {FeatureFlag} from '@actual-app/core/types/prefs';
 
-import { useSyncedPref } from './useSyncedPref';
+import {useSyncedPref} from './useSyncedPref';
 
 const DEFAULT_FEATURE_FLAG_STATE: Record<FeatureFlag, boolean> = {
   newSidebarUI: false,
@@ -38,7 +38,5 @@ const DEFAULT_FEATURE_FLAG_STATE: Record<FeatureFlag, boolean> = {
 export function useFeatureFlag(name: FeatureFlag): boolean {
   const [value] = useSyncedPref(`flags.${name}`);
 
-  return value === undefined
-    ? DEFAULT_FEATURE_FLAG_STATE[name] || false
-    : String(value) === 'true';
+  return value === undefined ? DEFAULT_FEATURE_FLAG_STATE[name] || false : String(value) === 'true';
 }

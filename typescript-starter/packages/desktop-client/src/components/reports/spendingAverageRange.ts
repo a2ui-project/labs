@@ -15,7 +15,7 @@
  */
 
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { SpendingAverageRange } from '@actual-app/core/types/models';
+import type {SpendingAverageRange} from '@actual-app/core/types/models';
 
 export type SpendingAverageRangeKey =
   | 'last-3-months'
@@ -31,9 +31,7 @@ export const DEFAULT_SPENDING_AVERAGE_RANGE: SpendingAverageRange = {
 
 const supportedLastNMonths = [3, 6, 12] as const;
 
-function isSupportedLastNMonths(
-  months: number,
-): months is (typeof supportedLastNMonths)[number] {
+function isSupportedLastNMonths(months: number): months is (typeof supportedLastNMonths)[number] {
   return supportedLastNMonths.some(supported => supported === months);
 }
 
@@ -44,10 +42,7 @@ export function normalizeSpendingAverageRange(
     return DEFAULT_SPENDING_AVERAGE_RANGE;
   }
 
-  if (
-    averageRange.mode === 'last-n-months' &&
-    !isSupportedLastNMonths(averageRange.months)
-  ) {
+  if (averageRange.mode === 'last-n-months' && !isSupportedLastNMonths(averageRange.months)) {
     return DEFAULT_SPENDING_AVERAGE_RANGE;
   }
 
@@ -57,13 +52,13 @@ export function normalizeSpendingAverageRange(
 export function spendingAverageRangeFromKey(key: string): SpendingAverageRange {
   switch (key) {
     case 'last-6-months':
-      return { mode: 'last-n-months', months: 6 };
+      return {mode: 'last-n-months', months: 6};
     case 'last-12-months':
-      return { mode: 'last-n-months', months: 12 };
+      return {mode: 'last-n-months', months: 12};
     case 'year-to-date':
-      return { mode: 'year-to-date' };
+      return {mode: 'year-to-date'};
     case 'all-time':
-      return { mode: 'all-time' };
+      return {mode: 'all-time'};
     case 'last-3-months':
     default:
       return DEFAULT_SPENDING_AVERAGE_RANGE;
@@ -138,10 +133,7 @@ export function resolveSpendingAverageRange({
   };
 }
 
-type Translate = (
-  key: string,
-  options?: Record<string, string | number>,
-) => string;
+type Translate = (key: string, options?: Record<string, string | number>) => string;
 
 export function getSpendingAverageRangeLabel(
   averageRange: SpendingAverageRange | undefined,
@@ -151,7 +143,7 @@ export function getSpendingAverageRangeLabel(
 
   switch (normalizedRange.mode) {
     case 'last-n-months':
-      return t('Last {{count}} months', { count: normalizedRange.months });
+      return t('Last {{count}} months', {count: normalizedRange.months});
     case 'year-to-date':
       return t('YTD');
     case 'all-time':
@@ -173,8 +165,8 @@ export function getSpendingAverageSummaryLabel({
   const rangeLabel = getSpendingAverageRangeLabel(averageRange, t);
 
   return isCurrentMonth
-    ? t('Spent Average MTD ({{rangeLabel}}):', { rangeLabel })
-    : t('Spent Average ({{rangeLabel}}):', { rangeLabel });
+    ? t('Spent Average MTD ({{rangeLabel}}):', {rangeLabel})
+    : t('Spent Average ({{rangeLabel}}):', {rangeLabel});
 }
 
 export function getSpendingAverageRangeOptions(

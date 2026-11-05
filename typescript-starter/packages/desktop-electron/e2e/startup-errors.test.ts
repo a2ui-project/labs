@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-import { expect } from '@playwright/test';
+import {expect} from '@playwright/test';
 
-import { test } from './fixtures';
+import {test} from './fixtures';
 
 test.describe('Startup errors', () => {
-  test.use({ blockDocumentDir: true });
+  test.use({blockDocumentDir: true});
 
   test('shows which folder could not be used when the data folder is blocked', async ({
     electronPage,
   }) => {
-    await expect(
-      electronPage.getByText('Data folder unavailable'),
-    ).toBeVisible();
+    await expect(electronPage.getByText('Data folder unavailable')).toBeVisible();
 
     await expect(
       electronPage.getByText(
@@ -39,10 +37,8 @@ test.describe('Startup errors', () => {
     await expect(electronPage.getByText(/blocked[\\/]Actual$/)).toBeVisible();
 
     await expect(
-      electronPage.getByRole('button', { name: 'Choose a different folder' }),
+      electronPage.getByRole('button', {name: 'Choose a different folder'}),
     ).toBeVisible();
-    await expect(
-      electronPage.getByRole('button', { name: 'Restart app' }),
-    ).toBeVisible();
+    await expect(electronPage.getByRole('button', {name: 'Restart app'})).toBeVisible();
   });
 });

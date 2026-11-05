@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { cursorTo } from 'node:readline';
+import {cursorTo} from 'node:readline';
 
 export async function promptPassword() {
   const password = await askForPassword('Enter a password, then press enter: ');
@@ -24,9 +24,7 @@ export async function promptPassword() {
     return promptPassword();
   }
 
-  const password2 = await askForPassword(
-    'Enter the password again, then press enter: ',
-  );
+  const password2 = await askForPassword('Enter the password again, then press enter: ');
 
   if (password !== password2) {
     console.log('Passwords do not match.');

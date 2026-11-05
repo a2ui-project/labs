@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const { eslintCompatPlugin } = require('@oxlint/plugins');
+const {eslintCompatPlugin} = require('@oxlint/plugins');
 
 module.exports = eslintCompatPlugin({
   meta: {

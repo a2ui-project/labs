@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { AkahuClient } from 'akahu';
+import {AkahuClient} from 'akahu';
 import type {
   Account,
   CurrencyConversion,
@@ -23,16 +23,13 @@ import type {
   Transaction,
 } from 'akahu';
 // For some reason this is not provided in the provided index.d.ts file
-import type { EnrichedPendingTransaction } from 'akahu/dist/models/transactions';
+import type {EnrichedPendingTransaction} from 'akahu/dist/models/transactions';
 import express from 'express';
 
-import { handleError } from '#app-gocardless/util/handle-error';
-import { SecretName, secretsService } from '#services/secrets-service';
-import {
-  requestLoggerMiddleware,
-  validateSessionMiddleware,
-} from '#util/middlewares';
-import { createMutex } from '#util/mutex';
+import {handleError} from '#app-gocardless/util/handle-error';
+import {SecretName, secretsService} from '#services/secrets-service';
+import {requestLoggerMiddleware, validateSessionMiddleware} from '#util/middlewares';
+import {createMutex} from '#util/mutex';
 
 type AkahuTransaction = {
   booked: boolean;
@@ -42,7 +39,7 @@ type AkahuTransaction = {
   category?: string;
   transactionId?: string;
   sortOrder: number;
-  transactionAmount: { amount: number; currency: string };
+  transactionAmount: {amount: number; currency: string};
   merchant?: {
     name: string;
     website?: string;
@@ -59,7 +56,7 @@ type AkahuTransaction = {
 };
 
 const app = express();
-export { app as handlers };
+export {app as handlers};
 app.use(express.json());
 app.use(requestLoggerMiddleware);
 app.use(validateSessionMiddleware);
@@ -98,7 +95,7 @@ app.post(
     }
 
     try {
-      const akahu = new AkahuClient({ appToken });
+      const akahu = new AkahuClient({appToken});
       const accounts = await akahu.accounts.list(userToken);
 
       res.send({
@@ -108,8 +105,7 @@ app.post(
         },
       });
     } catch (error) {
-      const errorMessage =
-        error instanceof Error && error.message ? error.message : String(error);
+      const errorMessage = error instanceof Error && error.message ? error.message : String(error);
 
       res.send({
         status: 'error',
@@ -124,7 +120,7 @@ app.post(
 app.post(
   '/transactions',
   handleError(async (req, res) => {
-    const { accountId, startDate } = req.body || {};
+    const {accountId, startDate} = req.body || {};
 
     if (!accountId || !startDate) {
       return res.send({
@@ -149,7 +145,7 @@ app.post(
     }
 
     try {
-      const akahu = new AkahuClient({ appToken });
+      const akahu = new AkahuClient({appToken});
 
       const account = await getRefreshedAccount(akahu, userToken, accountId);
       if (!account) {
@@ -171,22 +167,21 @@ app.post(
       }
 
       const now = new Date();
-      const endDate = new Date(
-        now.getFullYear(),
-        now.getMonth() + 1,
-        1,
-      ).toISOString();
+      const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString();
 
       // Fetch all transactions using pagination
       const transactions: Transaction[] = [];
       let cursor = undefined;
       do {
-        const { items, cursor: nextCursor } =
-          await akahu.accounts.listTransactions(userToken, accountId, {
+        const {items, cursor: nextCursor} = await akahu.accounts.listTransactions(
+          userToken,
+          accountId,
+          {
             start: new Date(startDate).toISOString(),
             end: endDate,
             cursor,
-          });
+          },
+        );
 
         transactions.push(...items);
         cursor = nextCursor && nextCursor.next ? nextCursor.next : undefined;
@@ -198,9 +193,7 @@ app.post(
       );
 
       const date = getDate(
-        account.refreshed?.balance
-          ? new Date(account.refreshed.balance)
-          : new Date(),
+        account.refreshed?.balance ? new Date(account.refreshed.balance) : new Date(),
       );
       const currentBalance = convertToCents(account.balance.current);
 
@@ -249,8 +242,7 @@ app.post(
         }
       }
 
-      const sortFunction = (a: AkahuTransaction, b: AkahuTransaction) =>
-        b.sortOrder - a.sortOrder;
+      const sortFunction = (a: AkahuTransaction, b: AkahuTransaction) => b.sortOrder - a.sortOrder;
       const bookedSorted = booked.sort(sortFunction);
       const pendingSorted = pending.sort(sortFunction);
       const allSorted = all.sort(sortFunction);
@@ -268,8 +260,7 @@ app.post(
         },
       });
     } catch (error) {
-      const errorMessage =
-        error instanceof Error && error.message ? error.message : String(error);
+      const errorMessage = error instanceof Error && error.message ? error.message : String(error);
 
       res.send({
         status: 'error',

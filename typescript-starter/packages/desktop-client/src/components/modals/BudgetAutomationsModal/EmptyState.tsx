@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { SvgAlertTriangle } from '@actual-app/components/icons/v2';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {SvgAlertTriangle} from '@actual-app/components/icons/v2';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { getAutomationExamples } from '#components/budget/goals/automationExamples';
-import type { AutomationEntry } from '#components/budget/goals/automationExamples';
-import { getDisplayTemplateMeta } from '#components/budget/goals/displayTemplateMeta';
+import {getAutomationExamples} from '#components/budget/goals/automationExamples';
+import type {AutomationEntry} from '#components/budget/goals/automationExamples';
+import {getDisplayTemplateMeta} from '#components/budget/goals/displayTemplateMeta';
 
 type EmptyStateProps = {
   onAdd: (create: () => AutomationEntry) => void;
 };
 
-export function EmptyState({ onAdd }: EmptyStateProps) {
+export function EmptyState({onAdd}: EmptyStateProps) {
   const examples = getAutomationExamples();
 
   return (
@@ -53,7 +53,7 @@ export function EmptyState({ onAdd }: EmptyStateProps) {
           justifyContent: 'center',
         }}
       >
-        <SvgAlertTriangle width={20} height={20} style={{ color: 'inherit' }} />
+        <SvgAlertTriangle width={20} height={20} style={{color: 'inherit'}} />
       </View>
       <Text
         style={{
@@ -75,8 +75,8 @@ export function EmptyState({ onAdd }: EmptyStateProps) {
         }}
       >
         <Trans>
-          Budget automations keep this category funded with one click each
-          month. Start with one of these.
+          Budget automations keep this category funded with one click each month. Start with one of
+          these.
         </Trans>
       </Text>
       <View

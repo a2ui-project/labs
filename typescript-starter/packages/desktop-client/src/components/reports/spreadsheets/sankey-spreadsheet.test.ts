@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import type { RuleConditionEntity } from '@actual-app/core/types/models';
-import { describe, expect, it, vi } from 'vitest';
+import type {RuleConditionEntity} from '@actual-app/core/types/models';
+import {describe, expect, it, vi} from 'vitest';
 
 import {
   addHiddenNodes,
@@ -43,7 +43,7 @@ import {
   nodesInLayer,
   sortGraph,
 } from './sankey-spreadsheet';
-import type { Graph, NodeData } from './sankey-spreadsheet';
+import type {Graph, NodeData} from './sankey-spreadsheet';
 
 // Mock i18n
 vi.mock('i18next', () => ({
@@ -314,9 +314,9 @@ describe('sankey-spreadsheet', () => {
   describe('moveNodeToEnd', () => {
     it('moves a node entry to the end of the array', () => {
       const entries: Array<[string, NodeData]> = [
-        ['node1', { to: new Map(), type: GraphLayers.Category }],
-        ['node2', { to: new Map(), type: GraphLayers.Category }],
-        ['node3', { to: new Map(), type: GraphLayers.Category }],
+        ['node1', {to: new Map(), type: GraphLayers.Category}],
+        ['node2', {to: new Map(), type: GraphLayers.Category}],
+        ['node3', {to: new Map(), type: GraphLayers.Category}],
       ];
 
       moveNodeToEnd(entries, 'node1');
@@ -328,8 +328,8 @@ describe('sankey-spreadsheet', () => {
 
     it('does nothing if node not found', () => {
       const entries: Array<[string, NodeData]> = [
-        ['node1', { to: new Map(), type: GraphLayers.Category }],
-        ['node2', { to: new Map(), type: GraphLayers.Category }],
+        ['node1', {to: new Map(), type: GraphLayers.Category}],
+        ['node2', {to: new Map(), type: GraphLayers.Category}],
       ];
 
       moveNodeToEnd(entries, 'nonexistent');
@@ -342,9 +342,9 @@ describe('sankey-spreadsheet', () => {
   describe('moveNodeToStart', () => {
     it('moves a node entry to the start of the array', () => {
       const entries: Array<[string, NodeData]> = [
-        ['node1', { to: new Map(), type: GraphLayers.Category }],
-        ['node2', { to: new Map(), type: GraphLayers.Category }],
-        ['node3', { to: new Map(), type: GraphLayers.Category }],
+        ['node1', {to: new Map(), type: GraphLayers.Category}],
+        ['node2', {to: new Map(), type: GraphLayers.Category}],
+        ['node3', {to: new Map(), type: GraphLayers.Category}],
       ];
 
       moveNodeToStart(entries, 'node3');
@@ -356,8 +356,8 @@ describe('sankey-spreadsheet', () => {
 
     it('does nothing if node not found', () => {
       const entries: Array<[string, NodeData]> = [
-        ['node1', { to: new Map(), type: GraphLayers.Category }],
-        ['node2', { to: new Map(), type: GraphLayers.Category }],
+        ['node1', {to: new Map(), type: GraphLayers.Category}],
+        ['node2', {to: new Map(), type: GraphLayers.Category}],
       ];
 
       moveNodeToStart(entries, 'nonexistent');
@@ -372,7 +372,7 @@ describe('sankey-spreadsheet', () => {
       id: string,
       name: string,
       isIncome: boolean,
-      categories: Array<{ id: string; name: string }>,
+      categories: Array<{id: string; name: string}>,
     ) => ({
       id,
       name,
@@ -388,12 +388,8 @@ describe('sankey-spreadsheet', () => {
 
     it('returns all groups if no conditions', () => {
       const groups = [
-        createCategoryGroup('g1', 'Group 1', false, [
-          { id: 'c1', name: 'Cat 1' },
-        ]),
-        createCategoryGroup('g2', 'Group 2', false, [
-          { id: 'c2', name: 'Cat 2' },
-        ]),
+        createCategoryGroup('g1', 'Group 1', false, [{id: 'c1', name: 'Cat 1'}]),
+        createCategoryGroup('g2', 'Group 2', false, [{id: 'c2', name: 'Cat 2'}]),
       ];
 
       const result = filterCategoryGroups(groups, [], 'and');
@@ -403,13 +399,13 @@ describe('sankey-spreadsheet', () => {
     it('filters by category id with "is" operator', () => {
       const groups = [
         createCategoryGroup('g1', 'Group 1', false, [
-          { id: 'c1', name: 'Cat 1' },
-          { id: 'c2', name: 'Cat 2' },
+          {id: 'c1', name: 'Cat 1'},
+          {id: 'c2', name: 'Cat 2'},
         ]),
       ];
 
       const conditions: RuleConditionEntity[] = [
-        { field: 'category', op: 'is', value: 'c1', customName: '' },
+        {field: 'category', op: 'is', value: 'c1', customName: ''},
       ];
 
       const result = filterCategoryGroups(groups, conditions, 'and');
@@ -421,13 +417,13 @@ describe('sankey-spreadsheet', () => {
     it('filters by category id with "isNot" operator', () => {
       const groups = [
         createCategoryGroup('g1', 'Group 1', false, [
-          { id: 'c1', name: 'Cat 1' },
-          { id: 'c2', name: 'Cat 2' },
+          {id: 'c1', name: 'Cat 1'},
+          {id: 'c2', name: 'Cat 2'},
         ]),
       ];
 
       const conditions: RuleConditionEntity[] = [
-        { field: 'category', op: 'isNot', value: 'c1', customName: '' },
+        {field: 'category', op: 'isNot', value: 'c1', customName: ''},
       ];
 
       const result = filterCategoryGroups(groups, conditions, 'and');
@@ -439,8 +435,8 @@ describe('sankey-spreadsheet', () => {
     it('filters by category name with "contains" operator', () => {
       const groups = [
         createCategoryGroup('g1', 'Group 1', false, [
-          { id: 'c1', name: 'Groceries' },
-          { id: 'c2', name: 'Entertainment' },
+          {id: 'c1', name: 'Groceries'},
+          {id: 'c2', name: 'Entertainment'},
         ]),
       ];
 
@@ -461,16 +457,12 @@ describe('sankey-spreadsheet', () => {
 
     it('filters by category group with "is" operator', () => {
       const groups = [
-        createCategoryGroup('g1', 'Group 1', false, [
-          { id: 'c1', name: 'Cat 1' },
-        ]),
-        createCategoryGroup('g2', 'Group 2', false, [
-          { id: 'c2', name: 'Cat 2' },
-        ]),
+        createCategoryGroup('g1', 'Group 1', false, [{id: 'c1', name: 'Cat 1'}]),
+        createCategoryGroup('g2', 'Group 2', false, [{id: 'c2', name: 'Cat 2'}]),
       ];
 
       const conditions: RuleConditionEntity[] = [
-        { field: 'category_group', op: 'is', value: 'g2', customName: '' },
+        {field: 'category_group', op: 'is', value: 'g2', customName: ''},
       ];
 
       const result = filterCategoryGroups(groups, conditions, 'and');
@@ -479,14 +471,10 @@ describe('sankey-spreadsheet', () => {
     });
 
     it('returns empty if no categories match', () => {
-      const groups = [
-        createCategoryGroup('g1', 'Group 1', false, [
-          { id: 'c1', name: 'Cat 1' },
-        ]),
-      ];
+      const groups = [createCategoryGroup('g1', 'Group 1', false, [{id: 'c1', name: 'Cat 1'}])];
 
       const conditions: RuleConditionEntity[] = [
-        { field: 'category', op: 'is', value: 'nonexistent', customName: '' },
+        {field: 'category', op: 'is', value: 'nonexistent', customName: ''},
       ];
 
       const result = filterCategoryGroups(groups, conditions, 'and');
@@ -496,14 +484,14 @@ describe('sankey-spreadsheet', () => {
     it('handles "oneOf" operator for category', () => {
       const groups = [
         createCategoryGroup('g1', 'Group 1', false, [
-          { id: 'c1', name: 'Cat 1' },
-          { id: 'c2', name: 'Cat 2' },
-          { id: 'c3', name: 'Cat 3' },
+          {id: 'c1', name: 'Cat 1'},
+          {id: 'c2', name: 'Cat 2'},
+          {id: 'c3', name: 'Cat 3'},
         ]),
       ];
 
       const conditions: RuleConditionEntity[] = [
-        { field: 'category', op: 'oneOf', value: ['c1', 'c3'], customName: '' },
+        {field: 'category', op: 'oneOf', value: ['c1', 'c3'], customName: ''},
       ];
 
       const result = filterCategoryGroups(groups, conditions, 'and');
@@ -794,10 +782,7 @@ describe('sankey-spreadsheet', () => {
 
         const layer = getLayer(graph, key);
         const percentage = Number.parseFloat(node.percentageLabel);
-        percentagesByLayer.set(
-          layer,
-          (percentagesByLayer.get(layer) ?? 0) + percentage,
-        );
+        percentagesByLayer.set(layer, (percentagesByLayer.get(layer) ?? 0) + percentage);
       }
 
       expect(percentagesByLayer.size).toBeGreaterThan(0);
@@ -818,11 +803,7 @@ describe('sankey-spreadsheet', () => {
       addNode(graph, 'group1', GraphLayers.CategoryGroup, 'Group 1');
       addNode(graph, 'cat2', GraphLayers.Category, 'Category 2');
 
-      filterGraphByLayers(
-        graph,
-        GraphLayers.Account,
-        GraphLayers.CategoryGroup,
-      );
+      filterGraphByLayers(graph, GraphLayers.Account, GraphLayers.CategoryGroup);
 
       expect(graph.has('payee1')).toBe(false);
       expect(graph.has('cat1')).toBe(false);
@@ -840,11 +821,7 @@ describe('sankey-spreadsheet', () => {
       addNode(graph, 'group1', GraphLayers.CategoryGroup, 'Group 1');
       addNode(graph, 'cat2', GraphLayers.Category, 'Category 2');
 
-      filterGraphByLayers(
-        graph,
-        GraphLayers.IncomePayee,
-        GraphLayers.CategoryGroup,
-      );
+      filterGraphByLayers(graph, GraphLayers.IncomePayee, GraphLayers.CategoryGroup);
 
       expect(graph.has('payee1')).toBe(true);
       expect(graph.has('cat1')).toBe(true);

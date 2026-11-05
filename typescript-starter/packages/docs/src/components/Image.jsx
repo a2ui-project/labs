@@ -45,9 +45,9 @@ const theme = {
   },
 };
 
-export default function Image({ img, ...props }) {
+export default function Image({img, ...props}) {
   if (img) {
-    const { src, ...rest } = img;
+    const {src, ...rest} = img;
     const match = src.src.match(/@(\d+)x/);
     if (match) {
       const scale = parseInt(match[1]);

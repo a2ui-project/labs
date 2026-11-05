@@ -20,7 +20,7 @@ export const SORT_INCREMENT = 16384;
 // before needing to resequence. Used by moveTransaction().
 export const TRANSACTION_SORT_INCREMENT = 1024;
 
-function midpoint<T extends { sort_order: number }>(
+function midpoint<T extends {sort_order: number}>(
   items: T[],
   to: number,
   sortIncrement: number = SORT_INCREMENT,
@@ -37,7 +37,7 @@ function midpoint<T extends { sort_order: number }>(
   }
 }
 
-export function shoveSortOrders<T extends { id: string; sort_order: number }>(
+export function shoveSortOrders<T extends {id: string; sort_order: number}>(
   items: T[],
   targetId: string | null = null,
   sortIncrement: number = SORT_INCREMENT,
@@ -45,7 +45,7 @@ export function shoveSortOrders<T extends { id: string; sort_order: number }>(
   const to = items.findIndex(item => item.id === targetId);
   const target = items[to];
   const before = items[to - 1];
-  const updates: Array<{ id: string; sort_order: number }> = [];
+  const updates: Array<{id: string; sort_order: number}> = [];
 
   // If no target is specified, append at the end
   if (!targetId || to === -1) {
@@ -58,7 +58,7 @@ export function shoveSortOrders<T extends { id: string; sort_order: number }>(
       order = sortIncrement;
     }
 
-    return { updates, sort_order: order };
+    return {updates, sort_order: order};
   } else {
     if (target.sort_order - (before ? before.sort_order : 0) <= 2) {
       let next = to;
@@ -71,14 +71,14 @@ export function shoveSortOrders<T extends { id: string; sort_order: number }>(
           break;
         }
 
-        updates.push({ id: items[next].id, sort_order: order });
+        updates.push({id: items[next].id, sort_order: order});
 
         next++;
         order += sortIncrement;
       }
     }
 
-    return { updates, sort_order: midpoint(items, to, sortIncrement) };
+    return {updates, sort_order: midpoint(items, to, sortIncrement)};
   }
 }
 
@@ -91,7 +91,7 @@ export function shoveSortOrders<T extends { id: string; sort_order: number }>(
  * @param sortIncrement - The increment to use when no next item exists
  * @param nextIdx - Optional index of the next item (to skip movingId)
  */
-function midpointDescending<T extends { sort_order: number }>(
+function midpointDescending<T extends {sort_order: number}>(
   items: T[],
   targetIdx: number,
   sortIncrement: number = SORT_INCREMENT,
@@ -124,18 +124,16 @@ function midpointDescending<T extends { sort_order: number }>(
  * @param sortIncrement - The increment to use when shoving items
  * @returns Object with sort_order for the new position and updates array for shoved items
  */
-export function shoveSortOrdersDescending<
-  T extends { id: string; sort_order: number },
->(
+export function shoveSortOrdersDescending<T extends {id: string; sort_order: number}>(
   items: T[],
   targetId: string | null = null,
   movingId: string | null = null,
   sortIncrement: number = SORT_INCREMENT,
 ): {
   sort_order: number;
-  updates: Array<{ id: string; sort_order: number }>;
+  updates: Array<{id: string; sort_order: number}>;
 } {
-  const updates: Array<{ id: string; sort_order: number }> = [];
+  const updates: Array<{id: string; sort_order: number}> = [];
 
   // If no target is specified, place at the top (highest sort_order)
   if (!targetId) {
@@ -145,7 +143,7 @@ export function shoveSortOrdersDescending<
     } else {
       order = sortIncrement;
     }
-    return { updates, sort_order: order };
+    return {updates, sort_order: order};
   }
 
   const targetIdx = items.findIndex(item => item.id === targetId);
@@ -153,10 +151,8 @@ export function shoveSortOrdersDescending<
   // Target not found, place at end (lowest sort_order)
   if (targetIdx === -1) {
     const order =
-      items.length > 0
-        ? items[items.length - 1].sort_order - sortIncrement
-        : sortIncrement;
-    return { updates, sort_order: order };
+      items.length > 0 ? items[items.length - 1].sort_order - sortIncrement : sortIncrement;
+    return {updates, sort_order: order};
   }
 
   const target = items[targetIdx];
@@ -191,7 +187,7 @@ export function shoveSortOrdersDescending<
 
     // Only update if we need to make room
     if (items[i].sort_order >= newOrder) {
-      updates.push({ id: items[i].id, sort_order: newOrder });
+      updates.push({id: items[i].id, sort_order: newOrder});
       newOrder = newOrder - sortIncrement;
     } else {
       break;

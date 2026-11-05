@@ -14,33 +14,24 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
-import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  LineChart,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import {css} from '@emotion/css';
+import {Bar, CartesianGrid, ComposedChart, Line, LineChart, Tooltip, XAxis, YAxis} from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import { Container } from '#components/reports/Container';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {FinancialText} from '#components/FinancialText';
+import {Container} from '#components/reports/Container';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
-import { computePadding } from './util/computePadding';
+import {computePadding} from './util/computePadding';
 
 /**
  * Interval data for the Budget Analysis graph.
@@ -94,13 +85,13 @@ function CustomTooltip({
   balanceOnly,
 }: CustomTooltipProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   if (!active || !payload || !Array.isArray(payload) || !payload[0]) {
     return null;
   }
 
-  const [{ payload: data }] = payload;
+  const [{payload: data}] = payload;
 
   return (
     <div
@@ -114,20 +105,16 @@ function CustomTooltip({
       })}
     >
       <div>
-        <div style={{ marginBottom: 10 }}>
+        <div style={{marginBottom: 10}}>
           <strong>
-            {monthUtils.format(
-              data.date,
-              isConcise ? 'MMMM yyyy' : 'MMMM dd, yyyy',
-              locale,
-            )}
+            {monthUtils.format(data.date, isConcise ? 'MMMM yyyy' : 'MMMM dd, yyyy', locale)}
           </strong>
         </div>
-        <div style={{ lineHeight: 1.5 }}>
+        <div style={{lineHeight: 1.5}}>
           {!balanceOnly && (
             <AlignedText
               left={
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{display: 'flex', alignItems: 'center', gap: 5}}>
                   <span
                     style={{
                       width: 10,
@@ -139,17 +126,13 @@ function CustomTooltip({
                   <Trans>Budgeted:</Trans>
                 </span>
               }
-              right={
-                <FinancialText>
-                  {format(data.budgeted, 'financial')}
-                </FinancialText>
-              }
+              right={<FinancialText>{format(data.budgeted, 'financial')}</FinancialText>}
             />
           )}
           {!balanceOnly && (
             <AlignedText
               left={
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{display: 'flex', alignItems: 'center', gap: 5}}>
                   <span
                     style={{
                       width: 10,
@@ -161,15 +144,13 @@ function CustomTooltip({
                   <Trans>Spent:</Trans>
                 </span>
               }
-              right={
-                <FinancialText>{format(data.spent, 'financial')}</FinancialText>
-              }
+              right={<FinancialText>{format(data.spent, 'financial')}</FinancialText>}
             />
           )}
           {!balanceOnly && (
             <AlignedText
               left={
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{display: 'flex', alignItems: 'center', gap: 5}}>
                   <span
                     style={{
                       width: 10,
@@ -182,16 +163,14 @@ function CustomTooltip({
                 </span>
               }
               right={
-                <FinancialText>
-                  {format(data.overspendingAdjustment, 'financial')}
-                </FinancialText>
+                <FinancialText>{format(data.overspendingAdjustment, 'financial')}</FinancialText>
               }
             />
           )}
           {(showBalance || balanceOnly) && (
             <AlignedText
               left={
-                <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{display: 'flex', alignItems: 'center', gap: 5}}>
                   <span
                     style={{
                       width: 10,
@@ -224,7 +203,7 @@ export function BudgetAnalysisGraph({
   balanceOnly = false,
   isConcise = true,
 }: BudgetAnalysisGraphProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const locale = useLocale();
   const privacyMode = usePrivacyMode();
@@ -254,45 +233,41 @@ export function BudgetAnalysisGraph({
     item.overspendingAdjustment,
   ]);
 
-  const leftPadding = computePadding(allValues, value =>
-    format(value, 'financial-no-decimals'),
-  );
+  const leftPadding = computePadding(allValues, value => format(value, 'financial-no-decimals'));
 
   const commonProps = {
     width: 0,
     height: 0,
     data: graphData,
-    margin: { top: 5, right: 5, left: 5 + leftPadding, bottom: 5 },
+    margin: {top: 5, right: 5, left: 5 + leftPadding, bottom: 5},
   };
 
   return (
     <Container style={style}>
       {(width, height) => {
-        const chartProps = { ...commonProps, width, height };
+        const chartProps = {...commonProps, width, height};
 
         const sharedAxes = (
           <>
             <CartesianGrid strokeDasharray="3 3" stroke={theme.pillBorder} />
             <XAxis
               dataKey="date"
-              tick={{ fill: theme.reportsLabel }}
+              tick={{fill: theme.reportsLabel}}
               tickFormatter={formatDate}
               minTickGap={50}
             />
             <YAxis
-              tick={{ fill: theme.reportsLabel }}
+              tick={{fill: theme.reportsLabel}}
               tickCount={8}
               tickFormatter={value =>
-                privacyMode && !yAxisIsHovered
-                  ? '...'
-                  : format(value, 'financial-no-decimals')
+                privacyMode && !yAxisIsHovered ? '...' : format(value, 'financial-no-decimals')
               }
               onMouseEnter={() => setYAxisIsHovered(true)}
               onMouseLeave={() => setYAxisIsHovered(false)}
               stroke={theme.pageTextSubdued}
             />
             <Tooltip
-              cursor={{ fill: 'transparent' }}
+              cursor={{fill: 'transparent'}}
               content={
                 <CustomTooltip
                   isConcise={isConcise}

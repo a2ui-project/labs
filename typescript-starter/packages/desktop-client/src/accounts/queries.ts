@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import { queryOptions } from '@tanstack/react-query';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import {queryOptions} from '@tanstack/react-query';
 
 function selectActive(accounts: AccountEntity[]) {
   return accounts.filter(account => !account.closed);
@@ -49,13 +49,11 @@ export const accountQueries = {
   listOnBudget: () =>
     queryOptions<AccountEntity[]>({
       ...accountQueries.list(),
-      select: accounts =>
-        selectActive(accounts).filter(account => !account.offbudget),
+      select: accounts => selectActive(accounts).filter(account => !account.offbudget),
     }),
   listOffBudget: () =>
     queryOptions<AccountEntity[]>({
       ...accountQueries.list(),
-      select: accounts =>
-        selectActive(accounts).filter(account => !!account.offbudget),
+      select: accounts => selectActive(accounts).filter(account => !!account.offbudget),
     }),
 };

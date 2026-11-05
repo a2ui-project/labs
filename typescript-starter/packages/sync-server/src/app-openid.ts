@@ -17,9 +17,9 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 
-import { disableOpenID, enableOpenID, isAdmin } from './account-db';
-import { isValidRedirectUrl, loginWithOpenIdFinalize } from './accounts/openid';
-import { checkPassword } from './accounts/password';
+import {disableOpenID, enableOpenID, isAdmin} from './account-db';
+import {isValidRedirectUrl, loginWithOpenIdFinalize} from './accounts/openid';
+import {checkPassword} from './accounts/password';
 import * as UserService from './services/user-service';
 import {
   errorMiddleware,
@@ -29,7 +29,7 @@ import {
 
 const app = express();
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({extended: true}));
 app.use(requestLoggerMiddleware);
 
 const openIdConfigRateLimiter = rateLimit({
@@ -37,10 +37,10 @@ const openIdConfigRateLimiter = rateLimit({
   max: 5,
   legacyHeaders: false,
   standardHeaders: true,
-  message: { status: 'error', reason: 'too-many-requests' },
+  message: {status: 'error', reason: 'too-many-requests'},
 });
 
-export { app as handlers, openIdConfigRateLimiter };
+export {app as handlers, openIdConfigRateLimiter};
 
 app.post('/enable', validateSessionMiddleware, async (req, res) => {
   if (!isAdmin(res.locals.user_id)) {
@@ -52,13 +52,13 @@ app.post('/enable', validateSessionMiddleware, async (req, res) => {
     return;
   }
 
-  const { error } = (await enableOpenID(req.body)) || {};
+  const {error} = (await enableOpenID(req.body)) || {};
 
   if (error) {
-    res.status(500).send({ status: 'error', reason: error });
+    res.status(500).send({status: 'error', reason: error});
     return;
   }
-  res.send({ status: 'ok' });
+  res.send({status: 'ok'});
 });
 
 app.post('/disable', validateSessionMiddleware, async (req, res) => {
@@ -71,57 +71,53 @@ app.post('/disable', validateSessionMiddleware, async (req, res) => {
     return;
   }
 
-  const { error } = (await disableOpenID(req.body)) || {};
+  const {error} = (await disableOpenID(req.body)) || {};
 
   if (error) {
-    res.status(401).send({ status: 'error', reason: error });
+    res.status(401).send({status: 'error', reason: error});
     return;
   }
-  res.send({ status: 'ok' });
+  res.send({status: 'ok'});
 });
 
 app.post('/config', openIdConfigRateLimiter, async (req, res) => {
   const ownerCount = UserService.getOwnerCount();
 
   if (ownerCount > 0) {
-    res.status(400).send({ status: 'error', reason: 'already-bootstraped' });
+    res.status(400).send({status: 'error', reason: 'already-bootstraped'});
     return;
   }
 
   if (!(await checkPassword(req.body.password))) {
-    res.status(400).send({ status: 'error', reason: 'invalid-password' });
+    res.status(400).send({status: 'error', reason: 'invalid-password'});
     return;
   }
 
   const auth = UserService.getOpenIDConfig();
 
   if (!auth) {
-    res
-      .status(500)
-      .send({ status: 'error', reason: 'OpenID configuration not found' });
+    res.status(500).send({status: 'error', reason: 'OpenID configuration not found'});
     return;
   }
 
   try {
     const openIdConfig = JSON.parse(auth.extra_data);
-    res.send({ status: 'ok', data: { openId: openIdConfig } });
+    res.send({status: 'ok', data: {openId: openIdConfig}});
   } catch {
-    res
-      .status(500)
-      .send({ status: 'error', reason: 'Invalid OpenID configuration' });
+    res.status(500).send({status: 'error', reason: 'Invalid OpenID configuration'});
   }
 });
 
 app.get('/callback', async (req, res) => {
-  const { error, url } = await loginWithOpenIdFinalize(req.query);
+  const {error, url} = await loginWithOpenIdFinalize(req.query);
 
   if (error) {
-    res.status(400).send({ status: 'error', reason: error });
+    res.status(400).send({status: 'error', reason: error});
     return;
   }
 
   if (!isValidRedirectUrl(url)) {
-    res.status(400).send({ status: 'error', reason: 'Invalid redirect URL' });
+    res.status(400).send({status: 'error', reason: 'Invalid redirect URL'});
     return;
   }
 

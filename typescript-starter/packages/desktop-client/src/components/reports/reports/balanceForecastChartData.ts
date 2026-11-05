@@ -15,11 +15,11 @@
  */
 
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { ForecastResult } from '@actual-app/core/types/models/forecast';
+import type {ForecastResult} from '@actual-app/core/types/models/forecast';
 import * as d from 'date-fns';
 
 type Granularity = 'Daily' | 'Monthly';
-type ChartDataPoint = { date: string; balance: number };
+type ChartDataPoint = {date: string; balance: number};
 
 function getCombinedBalanceByDate(forecastData: ForecastResult) {
   const balancesByDateAndAccount: Record<string, Record<string, number>> = {};
@@ -29,14 +29,11 @@ function getCombinedBalanceByDate(forecastData: ForecastResult) {
       balancesByDateAndAccount[dataPoint.date] = {};
     }
 
-    balancesByDateAndAccount[dataPoint.date][dataPoint.accountId] =
-      dataPoint.balance;
+    balancesByDateAndAccount[dataPoint.date][dataPoint.accountId] = dataPoint.balance;
   }
 
   const combinedBalanceByDate: Record<string, number> = {};
-  for (const [date, balancesByAccount] of Object.entries(
-    balancesByDateAndAccount,
-  )) {
+  for (const [date, balancesByAccount] of Object.entries(balancesByDateAndAccount)) {
     combinedBalanceByDate[date] = Object.values(balancesByAccount).reduce(
       (sum, balance) => sum + balance,
       0,
@@ -60,9 +57,7 @@ function getCombinedBalanceByMonth(forecastData: ForecastResult) {
   }
 
   const combinedBalanceByMonth: Record<string, number> = {};
-  for (const [month, balancesByAccount] of Object.entries(
-    balancesByMonthAndAccount,
-  )) {
+  for (const [month, balancesByAccount] of Object.entries(balancesByMonthAndAccount)) {
     combinedBalanceByMonth[month] = Object.values(balancesByAccount).reduce(
       (sum, balance) => sum + balance,
       0,
@@ -92,12 +87,8 @@ export function buildBalanceForecastChartData({
     const combinedBalanceByDate = getCombinedBalanceByDate(forecastData);
 
     // Expand month-shaped bounds to full months; keep day-shaped bounds exact.
-    const startDay = monthUtils.isValidYearMonth(start)
-      ? monthUtils.firstDayOfMonth(start)
-      : start;
-    const endDay = monthUtils.isValidYearMonth(end)
-      ? monthUtils.lastDayOfMonth(end)
-      : end;
+    const startDay = monthUtils.isValidYearMonth(start) ? monthUtils.firstDayOfMonth(start) : start;
+    const endDay = monthUtils.isValidYearMonth(end) ? monthUtils.lastDayOfMonth(end) : end;
 
     // Carry the balance forward from the latest point before the visible
     // range, so a day-shaped start doesn't begin the chart at zero.
@@ -105,8 +96,7 @@ export function buildBalanceForecastChartData({
       .filter(date => date < startDay)
       .sort()
       .at(-1);
-    let runningBalance =
-      priorDate === undefined ? 0 : combinedBalanceByDate[priorDate];
+    let runningBalance = priorDate === undefined ? 0 : combinedBalanceByDate[priorDate];
 
     const startDate = monthUtils.parseDate(startDay);
     const endDate = monthUtils.parseDate(endDay);
@@ -117,7 +107,7 @@ export function buildBalanceForecastChartData({
       if (combinedBalanceByDate[dayStr] !== undefined) {
         runningBalance = combinedBalanceByDate[dayStr];
       }
-      result.push({ date: dayStr, balance: runningBalance });
+      result.push({date: dayStr, balance: runningBalance});
       current.setDate(current.getDate() + 1);
     }
 
@@ -139,7 +129,7 @@ export function buildBalanceForecastChartData({
       runningBalance = combinedBalanceByMonth[month];
     }
 
-    result.push({ date: month, balance: runningBalance });
+    result.push({date: month, balance: runningBalance});
   }
 
   return result;

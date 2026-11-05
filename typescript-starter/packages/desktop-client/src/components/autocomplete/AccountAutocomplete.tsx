@@ -15,35 +15,28 @@
  */
 
 // @ts-strict-ignore
-import React, { Fragment, useMemo } from 'react';
-import type {
-  ComponentProps,
-  ComponentPropsWithoutRef,
-  CSSProperties,
-  ReactElement,
-} from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {Fragment, useMemo} from 'react';
+import type {ComponentProps, ComponentPropsWithoutRef, CSSProperties, ReactElement} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { styles } from '@actual-app/components/styles';
-import { TextOneLine } from '@actual-app/components/text-one-line';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {styles} from '@actual-app/components/styles';
+import {TextOneLine} from '@actual-app/components/text-one-line';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import {css, cx} from '@emotion/css';
 
-import { useAccounts } from '#hooks/useAccounts';
+import {useAccounts} from '#hooks/useAccounts';
 
-import { Autocomplete } from './Autocomplete';
-import { ItemHeader } from './ItemHeader';
+import {Autocomplete} from './Autocomplete';
+import {ItemHeader} from './ItemHeader';
 
 type AccountAutocompleteItem = AccountEntity;
 
 type AccountListProps = {
   items: AccountAutocompleteItem[];
-  getItemProps: (arg: {
-    item: AccountAutocompleteItem;
-  }) => ComponentProps<typeof View>;
+  getItemProps: (arg: {item: AccountAutocompleteItem}) => ComponentProps<typeof View>;
   highlightedIndex: number;
   embedded: boolean;
   renderAccountItemGroupHeader?: (
@@ -62,44 +55,43 @@ function AccountList({
   renderAccountItemGroupHeader = defaultRenderAccountItemGroupHeader,
   renderAccountItem = defaultRenderAccountItem,
 }: AccountListProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   // Split by onbudget, offbudget, closed and add their indeces relative
   // to the full list. This is needed to highlight the correct item.
-  const { onBudgetAccounts, offBudgetAccounts, closedAccounts } =
-    useMemo(() => {
-      return items.reduce(
-        (acc, item, index) => {
-          if (item.closed) {
-            acc.closedAccounts.push({
-              ...item,
-              highlightedIndex: index,
-            });
-          } else if (item.offbudget) {
-            acc.offBudgetAccounts.push({
-              ...item,
-              highlightedIndex: index,
-            });
-          } else {
-            acc.onBudgetAccounts.push({
-              ...item,
-              highlightedIndex: index,
-            });
-          }
-          return acc;
-        },
-        {
-          onBudgetAccounts: [] as (AccountAutocompleteItem & {
-            highlightedIndex: number;
-          })[],
-          offBudgetAccounts: [] as (AccountAutocompleteItem & {
-            highlightedIndex: number;
-          })[],
-          closedAccounts: [] as (AccountAutocompleteItem & {
-            highlightedIndex: number;
-          })[],
-        },
-      );
-    }, [items]);
+  const {onBudgetAccounts, offBudgetAccounts, closedAccounts} = useMemo(() => {
+    return items.reduce(
+      (acc, item, index) => {
+        if (item.closed) {
+          acc.closedAccounts.push({
+            ...item,
+            highlightedIndex: index,
+          });
+        } else if (item.offbudget) {
+          acc.offBudgetAccounts.push({
+            ...item,
+            highlightedIndex: index,
+          });
+        } else {
+          acc.onBudgetAccounts.push({
+            ...item,
+            highlightedIndex: index,
+          });
+        }
+        return acc;
+      },
+      {
+        onBudgetAccounts: [] as (AccountAutocompleteItem & {
+          highlightedIndex: number;
+        })[],
+        offBudgetAccounts: [] as (AccountAutocompleteItem & {
+          highlightedIndex: number;
+        })[],
+        closedAccounts: [] as (AccountAutocompleteItem & {
+          highlightedIndex: number;
+        })[],
+      },
+    );
+  }, [items]);
 
   return (
     <View>
@@ -107,18 +99,18 @@ function AccountList({
         style={{
           overflow: 'auto',
           padding: '5px 0',
-          ...(!embedded && { maxHeight: 175 }),
+          ...(!embedded && {maxHeight: 175}),
         }}
       >
         {onBudgetAccounts.length > 0 && (
           <Fragment key="On budget">
-            {renderAccountItemGroupHeader({ title: t('On budget') })}
+            {renderAccountItemGroupHeader({title: t('On budget')})}
           </Fragment>
         )}
         {onBudgetAccounts.map(item => (
           <Fragment key={item.id}>
             {renderAccountItem({
-              ...(getItemProps ? getItemProps({ item }) : {}),
+              ...(getItemProps ? getItemProps({item}) : {}),
               item,
               highlighted: highlightedIndex === item.highlightedIndex,
               embedded,
@@ -128,13 +120,13 @@ function AccountList({
 
         {offBudgetAccounts.length > 0 && (
           <Fragment key="Off budget">
-            {renderAccountItemGroupHeader({ title: t('Off budget') })}
+            {renderAccountItemGroupHeader({title: t('Off budget')})}
           </Fragment>
         )}
         {offBudgetAccounts.map(item => (
           <Fragment key={item.id}>
             {renderAccountItem({
-              ...(getItemProps ? getItemProps({ item }) : {}),
+              ...(getItemProps ? getItemProps({item}) : {}),
               item,
               highlighted: highlightedIndex === item.highlightedIndex,
               embedded,
@@ -144,13 +136,13 @@ function AccountList({
 
         {closedAccounts.length > 0 && (
           <Fragment key="Closed accounts">
-            {renderAccountItemGroupHeader({ title: t('Closed accounts') })}
+            {renderAccountItemGroupHeader({title: t('Closed accounts')})}
           </Fragment>
         )}
         {closedAccounts.map(item => (
           <Fragment key={item.id}>
             {renderAccountItem({
-              ...(getItemProps ? getItemProps({ item }) : {}),
+              ...(getItemProps ? getItemProps({item}) : {}),
               item,
               highlighted: highlightedIndex === item.highlightedIndex,
               embedded,
@@ -162,9 +154,7 @@ function AccountList({
   );
 }
 
-type AccountAutocompleteProps = ComponentProps<
-  typeof Autocomplete<AccountAutocompleteItem>
-> & {
+type AccountAutocompleteProps = ComponentProps<typeof Autocomplete<AccountAutocompleteItem>> & {
   embedded?: boolean;
   includeClosedAccounts?: boolean;
   hiddenAccounts?: AccountEntity['id'][];
@@ -187,24 +177,18 @@ export function AccountAutocomplete({
   inputProps,
   ...props
 }: AccountAutocompleteProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
 
   //remove closed accounts if needed
   //then sort by closed, then offbudget
   const accountSuggestions: AccountAutocompleteItem[] = accounts
     .filter(item => {
-      return (
-        (includeClosedAccounts ? item : !item.closed) &&
-        !hiddenAccounts?.includes(item.id)
-      );
+      return (includeClosedAccounts ? item : !item.closed) && !hiddenAccounts?.includes(item.id);
     })
     .sort(
-      (a, b) =>
-        a.closed - b.closed ||
-        a.offbudget - b.offbudget ||
-        a.sort_order - b.sort_order,
+      (a, b) => a.closed - b.closed || a.offbudget - b.offbudget || a.sort_order - b.sort_order,
     );
 
   return (
@@ -247,14 +231,8 @@ type AccountItemProps = {
   embedded?: boolean;
 };
 
-function AccountItem({
-  item,
-  className,
-  highlighted,
-  embedded,
-  ...props
-}: AccountItemProps) {
-  const { isNarrowWidth } = useResponsive();
+function AccountItem({item, className, highlighted, embedded, ...props}: AccountItemProps) {
+  const {isNarrowWidth} = useResponsive();
   const narrowStyle = isNarrowWidth
     ? {
         ...styles.mobileMenuItem,
@@ -292,12 +270,8 @@ function AccountItem({
       className={cx(
         className,
         css({
-          backgroundColor: highlighted
-            ? theme.menuAutoCompleteBackgroundHover
-            : 'transparent',
-          color: highlighted
-            ? theme.menuAutoCompleteItemTextHover
-            : theme.menuAutoCompleteItemText,
+          backgroundColor: highlighted ? theme.menuAutoCompleteBackgroundHover : 'transparent',
+          color: highlighted ? theme.menuAutoCompleteItemTextHover : theme.menuAutoCompleteItemText,
           padding: 4,
           paddingLeft: 20,
           borderRadius: embedded ? 4 : 0,

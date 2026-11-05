@@ -27,11 +27,11 @@ import {
   Timestamp,
   toBinary,
 } from '@actual-app/crdt';
-import type { Clock } from '@actual-app/crdt';
+import type {Clock} from '@actual-app/crdt';
 
-import type { Message } from '#server/sync';
+import type {Message} from '#server/sync';
 
-import { basic as defaultMockData } from './mockData.json';
+import {basic as defaultMockData} from './mockData.json';
 
 const handlers = {};
 let currentMockData = defaultMockData;
@@ -65,9 +65,7 @@ handlers['/'] = () => {
 handlers['/sync/sync'] = async (data: Uint8Array): Promise<Uint8Array> => {
   const requestPb = fromBinary(SyncRequestSchema, data);
 
-  const newMessages = currentMessages.filter(
-    msg => msg.timestamp > requestPb.since,
-  );
+  const newMessages = currentMessages.filter(msg => msg.timestamp > requestPb.since);
 
   requestPb.messages.forEach(msg => {
     if (!currentMessages.find(m => m.timestamp === msg.timestamp)) {
@@ -77,10 +75,7 @@ handlers['/sync/sync'] = async (data: Uint8Array): Promise<Uint8Array> => {
         content: msg.content,
       });
 
-      currentClock.merkle = merkle.insert(
-        currentClock.merkle,
-        Timestamp.parse(msg.timestamp),
-      );
+      currentClock.merkle = merkle.insert(currentClock.merkle, Timestamp.parse(msg.timestamp));
     }
   });
 
@@ -102,7 +97,7 @@ handlers['/sync/sync'] = async (data: Uint8Array): Promise<Uint8Array> => {
 
 handlers['/gocardless/accounts'] = () => {
   // Ignore the parameters and just return the accounts.
-  return { accounts: currentMockData.accounts };
+  return {accounts: currentMockData.accounts};
 };
 
 export const filterMockData = func => {
@@ -122,7 +117,7 @@ export const getClock = (): Clock => {
 
 export const getMessages = (): Message[] => {
   return currentMessages.map(msg => {
-    const { timestamp, content } = msg;
+    const {timestamp, content} = msg;
     const fields = fromBinary(MessageSchema, content);
 
     return {
@@ -143,4 +138,4 @@ export const handleRequest = (url, data) => {
   return Promise.resolve(handlers[url](data));
 };
 
-export { handlers, handleRequest as handleRequestBinary };
+export {handlers, handleRequest as handleRequestBinary};

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { peggyLoader } from '@actual-app/vite-plugin-peggy';
-import { defineConfig } from 'vitest/config';
+import {peggyLoader} from '@actual-app/vite-plugin-peggy';
+import {defineConfig} from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -45,7 +45,7 @@ export default defineConfig({
       : ['default'],
   },
   ssr: {
-    resolve: { conditions: ['electron', 'module', 'node', 'development'] },
+    resolve: {conditions: ['electron', 'module', 'node', 'development']},
   },
   resolve: {
     conditions: ['electron', 'module', 'browser', 'development'],

@@ -15,11 +15,8 @@
  */
 
 import MbankRetailBrexplpw from '#app-gocardless/banks/mbank_retail_brexplpw';
-import type {
-  Balance,
-  Transaction,
-} from '#app-gocardless/gocardless-node.types';
-import type { DetailedAccountWithInstitution } from '#app-gocardless/gocardless.types';
+import type {Balance, Transaction} from '#app-gocardless/gocardless-node.types';
+import type {DetailedAccountWithInstitution} from '#app-gocardless/gocardless.types';
 
 describe('MbankRetailBrexplpw', () => {
   describe('#normalizeAccount', () => {
@@ -30,11 +27,7 @@ describe('MbankRetailBrexplpw', () => {
       displayName: 'EKONTO',
       product: 'RACHUNEK BIEŻĄCY',
       usage: 'PRIV',
-      ownerAddressUnstructured: [
-        'POL',
-        'UL. EXAMPLE STREET 10 M.1',
-        '00-000 WARSZAWA',
-      ],
+      ownerAddressUnstructured: ['POL', 'UL. EXAMPLE STREET 10 M.1', '00-000 WARSZAWA'],
       id: 'd3eccc94-9536-48d3-98be-813f79199ee3',
       created: '2023-01-18T13:24:55.879512Z',
       last_accessed: null,
@@ -61,8 +54,7 @@ describe('MbankRetailBrexplpw', () => {
       },
     } as unknown as DetailedAccountWithInstitution;
     it('returns normalized account data returned to Frontend', () => {
-      expect(MbankRetailBrexplpw.normalizeAccount(accountRaw))
-        .toMatchInlineSnapshot(`
+      expect(MbankRetailBrexplpw.normalizeAccount(accountRaw)).toMatchInlineSnapshot(`
         {
           "account_id": "d3eccc94-9536-48d3-98be-813f79199ee3",
           "iban": "PL00000000000000000987654321",
@@ -100,46 +92,46 @@ describe('MbankRetailBrexplpw', () => {
       const sortedTransactions = MbankRetailBrexplpw.sortTransactions([
         {
           transactionId: '202212300001',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
         {
           transactionId: '202212300003',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
         {
           transactionId: '202212300002',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
         {
           transactionId: '202212300000',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
         {
           transactionId: '202112300001',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
       ]);
 
       expect(sortedTransactions).toEqual([
         {
           transactionId: '202212300003',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
         {
           transactionId: '202212300002',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
         {
           transactionId: '202212300001',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
         {
           transactionId: '202212300000',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
         {
           transactionId: '202112300001',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
       ]);
     });
@@ -150,8 +142,7 @@ describe('MbankRetailBrexplpw', () => {
     });
 
     it('returns empty array for undefined input', () => {
-      const sortedTransactions =
-        MbankRetailBrexplpw.sortTransactions(undefined);
+      const sortedTransactions = MbankRetailBrexplpw.sortTransactions(undefined);
       expect(sortedTransactions).toEqual([]);
     });
   });
@@ -159,7 +150,7 @@ describe('MbankRetailBrexplpw', () => {
   describe('#countStartingBalance', () => {
     const balances: Balance[] = [
       {
-        balanceAmount: { amount: '1000.00', currency: 'PLN' },
+        balanceAmount: {amount: '1000.00', currency: 'PLN'},
         balanceType: 'interimBooked',
       },
     ];
@@ -167,24 +158,20 @@ describe('MbankRetailBrexplpw', () => {
     it('returns the same balance amount when no transactions', () => {
       const transactions: Transaction[] = [];
 
-      expect(
-        MbankRetailBrexplpw.calculateStartingBalance(transactions, balances),
-      ).toEqual(100000);
+      expect(MbankRetailBrexplpw.calculateStartingBalance(transactions, balances)).toEqual(100000);
     });
 
     it('returns the balance minus the available transactions', () => {
       const transactions = [
         {
-          transactionAmount: { amount: '200.00', currency: 'PLN' },
+          transactionAmount: {amount: '200.00', currency: 'PLN'},
         },
         {
-          transactionAmount: { amount: '300.50', currency: 'PLN' },
+          transactionAmount: {amount: '300.50', currency: 'PLN'},
         },
       ];
 
-      expect(
-        MbankRetailBrexplpw.calculateStartingBalance(transactions, balances),
-      ).toEqual(49950);
+      expect(MbankRetailBrexplpw.calculateStartingBalance(transactions, balances)).toEqual(49950);
     });
   });
 });

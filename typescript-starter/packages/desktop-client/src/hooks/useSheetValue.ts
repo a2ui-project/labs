@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-import { useLayoutEffect, useRef, useState } from 'react';
+import {useLayoutEffect, useRef, useState} from 'react';
 
-import type {
-  Binding,
-  BindingObject,
-  SheetFields,
-  SheetNames,
-  Spreadsheets,
-} from '#spreadsheet';
+import type {Binding, BindingObject, SheetFields, SheetNames, Spreadsheets} from '#spreadsheet';
 
-import { useSheetName } from './useSheetName';
-import { useSpreadsheet } from './useSpreadsheet';
+import {useSheetName} from './useSheetName';
+import {useSpreadsheet} from './useSpreadsheet';
 
-type SheetValueResult<
-  SheetName extends SheetNames,
-  FieldName extends SheetFields<SheetName>,
-> = {
+type SheetValueResult<SheetName extends SheetNames, FieldName extends SheetFields<SheetName>> = {
   name: string;
   value: Spreadsheets[SheetName][FieldName] | null;
 };
@@ -42,13 +33,11 @@ export function useSheetValue<
   binding: Binding<SheetName, FieldName>,
   onChange?: (result: SheetValueResult<SheetName, FieldName>) => void,
 ): SheetValueResult<SheetName, FieldName>['value'] {
-  const { sheetName, fullSheetName } = useSheetName(binding);
+  const {sheetName, fullSheetName} = useSheetName(binding);
 
   const memoizedBinding = useMemoizedBinding(
     () =>
-      typeof binding === 'string'
-        ? { name: binding, value: undefined, query: undefined }
-        : binding,
+      typeof binding === 'string' ? {name: binding, value: undefined, query: undefined} : binding,
     binding,
   );
 
@@ -95,20 +84,14 @@ export function useSheetValue<
   return result.value;
 }
 
-type MemoKey<
-  SheetName extends SheetNames,
-  FieldName extends SheetFields<SheetName>,
-> = {
+type MemoKey<SheetName extends SheetNames, FieldName extends SheetFields<SheetName>> = {
   name: string;
   value?: Spreadsheets[SheetName][FieldName] | undefined;
   // We check the serialized query to see if it has changed
   serializedQuery?: string;
 };
 
-function useMemoizedBinding<
-  SheetName extends SheetNames,
-  FieldName extends SheetFields<SheetName>,
->(
+function useMemoizedBinding<SheetName extends SheetNames, FieldName extends SheetFields<SheetName>>(
   memoBinding: () => BindingObject<SheetName, FieldName>,
   key: Binding<SheetName, FieldName>,
 ): BindingObject<SheetName, FieldName> {

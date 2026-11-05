@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Select } from '@actual-app/components/select';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {Select} from '@actual-app/components/select';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { GROUP_HEADING_STYLE } from '#components/reports/reports/monte-carlo/monteCarloStyles';
-import { useFormat } from '#hooks/useFormat';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {GROUP_HEADING_STYLE} from '#components/reports/reports/monte-carlo/monteCarloStyles';
+import {useFormat} from '#hooks/useFormat';
 
 const PAGE_SIZE = 20;
 
@@ -67,7 +67,7 @@ export function MonteCarloRunsTable({
   startAge,
   onSelectRun,
 }: MonteCarloRunsTableProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
   const [sortOrder, setSortOrder] = useState<SortOrder>('worst-first');
@@ -81,9 +81,7 @@ export function MonteCarloRunsTable({
   function jumpToPercentile(percentile: number) {
     const worstFirstRank = Math.round(percentile * (simulationCount - 1));
     const rank =
-      sortOrder === 'worst-first'
-        ? worstFirstRank
-        : simulationCount - 1 - worstFirstRank;
+      sortOrder === 'worst-first' ? worstFirstRank : simulationCount - 1 - worstFirstRank;
     setPage(Math.floor(rank / PAGE_SIZE));
     setHighlightedRank(rank);
   }
@@ -94,12 +92,10 @@ export function MonteCarloRunsTable({
   // Best-first reads the same ranking from the other end, so no copy of
   // the full list is made for either order
   const pageIndices = Array.from(
-    { length: Math.max(0, Math.min(PAGE_SIZE, simulationCount - pageStart)) },
+    {length: Math.max(0, Math.min(PAGE_SIZE, simulationCount - pageStart))},
     (_, offset) => {
       const rank = pageStart + offset;
-      return rankedIndices[
-        sortOrder === 'best-first' ? simulationCount - 1 - rank : rank
-      ];
+      return rankedIndices[sortOrder === 'best-first' ? simulationCount - 1 - rank : rank];
     },
   );
 
@@ -133,7 +129,7 @@ export function MonteCarloRunsTable({
             ['worst-first', t('Worst outcomes first')],
             ['best-first', t('Best outcomes first')],
           ]}
-          style={{ width: 200 }}
+          style={{width: 200}}
         />
       </View>
 
@@ -148,20 +144,16 @@ export function MonteCarloRunsTable({
           gap: 10,
         }}
       >
-        <Text style={{ ...GROUP_HEADING_STYLE, width: 80 }}>
+        <Text style={{...GROUP_HEADING_STYLE, width: 80}}>
           <Trans>Rank</Trans>
         </Text>
-        <Text style={{ ...GROUP_HEADING_STYLE, flex: 1 }}>
+        <Text style={{...GROUP_HEADING_STYLE, flex: 1}}>
           <Trans>Outcome</Trans>
         </Text>
-        <Text
-          style={{ ...GROUP_HEADING_STYLE, width: 160, textAlign: 'right' }}
-        >
+        <Text style={{...GROUP_HEADING_STYLE, width: 160, textAlign: 'right'}}>
           <Trans>Ending balance</Trans>
         </Text>
-        <Text
-          style={{ ...GROUP_HEADING_STYLE, width: 160, textAlign: 'right' }}
-        >
+        <Text style={{...GROUP_HEADING_STYLE, width: 160, textAlign: 'right'}}>
           <Trans>Total withdrawn</Trans>
         </Text>
       </View>
@@ -194,18 +186,14 @@ export function MonteCarloRunsTable({
                 paddingRight: 8,
               }}
             >
-              <Text style={{ width: 80, textAlign: 'left' }}>
-                <FinancialText as="span">
-                  {String(pageStart + rowNumber + 1)}
-                </FinancialText>
+              <Text style={{width: 80, textAlign: 'left'}}>
+                <FinancialText as="span">{String(pageStart + rowNumber + 1)}</FinancialText>
               </Text>
               <Text
                 style={{
                   flex: 1,
                   textAlign: 'left',
-                  color: hasSurvived
-                    ? theme.reportsNumberPositive
-                    : theme.reportsNumberNegative,
+                  color: hasSurvived ? theme.reportsNumberPositive : theme.reportsNumberNegative,
                 }}
               >
                 {hasSurvived
@@ -216,27 +204,21 @@ export function MonteCarloRunsTable({
                       age: startAge + depletionYear - 1,
                     })}
               </Text>
-              <Text style={{ width: 160, textAlign: 'right' }}>
+              <Text style={{width: 160, textAlign: 'right'}}>
                 {hasSurvived ? (
                   <PrivacyFilter>
                     <FinancialText as="span">
-                      {format(
-                        Math.round(endingBalances[simulationIndex]),
-                        'financial',
-                      )}
+                      {format(Math.round(endingBalances[simulationIndex]), 'financial')}
                     </FinancialText>
                   </PrivacyFilter>
                 ) : (
                   <FinancialText as="span">-</FinancialText>
                 )}
               </Text>
-              <Text style={{ width: 160, textAlign: 'right' }}>
+              <Text style={{width: 160, textAlign: 'right'}}>
                 <PrivacyFilter>
                   <FinancialText as="span">
-                    {format(
-                      Math.round(totalWithdrawnBySimulation[simulationIndex]),
-                      'financial',
-                    )}
+                    {format(Math.round(totalWithdrawnBySimulation[simulationIndex]), 'financial')}
                   </FinancialText>
                 </PrivacyFilter>
               </Text>
@@ -265,7 +247,7 @@ export function MonteCarloRunsTable({
             }
           }}
           options={[['', t('Jump to…')], ...getRunPercentileOptions(t)]}
-          style={{ width: 170 }}
+          style={{width: 170}}
         />
         <Button
           isDisabled={currentPage === 0}

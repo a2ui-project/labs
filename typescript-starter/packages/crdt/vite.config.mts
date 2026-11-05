@@ -1,7 +1,7 @@
 import path from 'path';
 
-import { visualizer } from 'rollup-plugin-visualizer';
-import { defineConfig } from 'vite';
+import {visualizer} from 'rollup-plugin-visualizer';
+import {defineConfig} from 'vite';
 
 export default defineConfig({
   ssr: {
@@ -20,5 +20,5 @@ export default defineConfig({
       fileName: () => 'index.js',
     },
   },
-  plugins: [visualizer({ template: 'raw-data', filename: 'dist/stats.json' })],
+  plugins: [visualizer({template: 'raw-data', filename: 'dist/stats.json'})],
 });

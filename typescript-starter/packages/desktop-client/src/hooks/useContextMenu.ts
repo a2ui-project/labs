@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
-import type { RefObject } from 'react';
+import {useCallback} from 'react';
+import type {RefObject} from 'react';
 
-import type { Falsy } from '@actual-app/core/types/util';
+import type {Falsy} from '@actual-app/core/types/util';
 
-import {
-  addItems,
-  setContextMenuPosition,
-} from '#contextmenu/contextMenuSlice';
-import type { ContextMenuItem } from '#contextmenu/types';
-import { useRefEventListener } from '#hooks/useRefEventListener';
-import { useDispatch } from '#redux';
+import {addItems, setContextMenuPosition} from '#contextmenu/contextMenuSlice';
+import type {ContextMenuItem} from '#contextmenu/types';
+import {useRefEventListener} from '#hooks/useRefEventListener';
+import {useDispatch} from '#redux';
 
 type UseContextMenuProps = {
   triggerRef: RefObject<HTMLElement | null>;
@@ -33,11 +30,7 @@ type UseContextMenuProps = {
   items: Falsy<ContextMenuItem>[];
 };
 
-export function useContextMenu({
-  triggerRef,
-  enabled = true,
-  items,
-}: UseContextMenuProps) {
+export function useContextMenu({triggerRef, enabled = true, items}: UseContextMenuProps) {
   const dispatch = useDispatch();
 
   const processedItems = items.filter(
@@ -48,7 +41,7 @@ export function useContextMenu({
     if (enabled) {
       e.preventDefault();
       dispatch(addItems(processedItems));
-      dispatch(setContextMenuPosition({ x: e.clientX, y: e.clientY }));
+      dispatch(setContextMenuPosition({x: e.clientX, y: e.clientY}));
     }
   });
 
@@ -66,5 +59,5 @@ export function useContextMenu({
     );
   }, [triggerRef, enabled]);
 
-  return { handleContextMenu };
+  return {handleContextMenu};
 }

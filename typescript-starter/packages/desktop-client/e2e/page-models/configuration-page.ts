@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { BootstrapPage } from './bootstrap-page';
-import { BudgetPage } from './budget-page';
+import {BootstrapPage} from './bootstrap-page';
+import {BudgetPage} from './budget-page';
 
 export class ConfigurationPage {
   readonly page: Page;
@@ -30,9 +30,7 @@ export class ConfigurationPage {
   }
 
   async createTestFile() {
-    await this.page
-      .getByRole('button', { name: 'Try the demo', exact: true })
-      .click();
+    await this.page.getByRole('button', {name: 'Try the demo', exact: true}).click();
     const budgetPage = new BudgetPage(this.page);
     // Wait for the budget page to be fully mounted before returning so
     // callers don't race the virtualized budget-table's layout step.
@@ -41,30 +39,28 @@ export class ConfigurationPage {
   }
 
   async createDemoFile() {
-    await this.page.getByRole('button', { name: 'Try the demo' }).click();
+    await this.page.getByRole('button', {name: 'Try the demo'}).click();
     const budgetPage = new BudgetPage(this.page);
     await budgetPage.waitFor();
     return budgetPage;
   }
 
   async clickOnConnectServer() {
-    await this.page
-      .getByRole('button', { name: 'Connect to a sync server' })
-      .click();
+    await this.page.getByRole('button', {name: 'Connect to a sync server'}).click();
   }
 
   async clickOnNoServer() {
-    await this.page.getByRole('button', { name: "Don't use a server" }).click();
+    await this.page.getByRole('button', {name: "Don't use a server"}).click();
   }
 
   async clickOnStartSyncServer() {
-    await this.page.getByRole('button', { name: 'Start' }).click();
+    await this.page.getByRole('button', {name: 'Start'}).click();
     await this.page.waitForURL('**/bootstrap');
     return new BootstrapPage(this.page);
   }
 
   async startFresh() {
-    await this.page.getByRole('button', { name: 'Start budgeting' }).click();
+    await this.page.getByRole('button', {name: 'Start budgeting'}).click();
 
     const budgetPage = new BudgetPage(this.page);
     await budgetPage.waitFor();
@@ -73,7 +69,7 @@ export class ConfigurationPage {
 
   async importBudget(type: 'YNAB4' | 'nYNAB' | 'Actual', file: string) {
     const fileChooserPromise = this.page.waitForEvent('filechooser');
-    await this.page.getByRole('button', { name: 'Import my budget' }).click();
+    await this.page.getByRole('button', {name: 'Import my budget'}).click();
 
     switch (type) {
       case 'YNAB4':
@@ -82,16 +78,12 @@ export class ConfigurationPage {
             name: 'YNAB4 The old unsupported desktop app',
           })
           .click();
-        await this.page
-          .getByRole('button', { name: 'Select zip file...' })
-          .click();
+        await this.page.getByRole('button', {name: 'Select zip file...'}).click();
         break;
 
       case 'nYNAB':
-        await this.page
-          .getByRole('button', { name: 'nYNAB The newer web app' })
-          .click();
-        await this.page.getByRole('button', { name: 'Select file...' }).click();
+        await this.page.getByRole('button', {name: 'nYNAB The newer web app'}).click();
+        await this.page.getByRole('button', {name: 'Select file...'}).click();
         break;
 
       case 'Actual':
@@ -100,7 +92,7 @@ export class ConfigurationPage {
             name: 'Actual Import a file exported from Actual',
           })
           .click();
-        await this.page.getByRole('button', { name: 'Select file...' }).click();
+        await this.page.getByRole('button', {name: 'Select file...'}).click();
         break;
 
       default:

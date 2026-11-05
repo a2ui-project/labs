@@ -16,12 +16,12 @@
 
 import React from 'react';
 
-import { View } from '@actual-app/components/view';
-import type { AccountEntity } from '@actual-app/core/types/models';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity} from '@actual-app/core/types/models';
 
-import { useLocale } from '#hooks/useLocale';
+import {useLocale} from '#hooks/useLocale';
 
-import { AccountRow } from './AccountRow';
+import {AccountRow} from './AccountRow';
 
 type AccountsListProps = {
   accounts: AccountEntity[];
@@ -30,12 +30,7 @@ type AccountsListProps = {
   onAction: (account: AccountEntity, action: 'link' | 'edit') => void;
 };
 
-export function AccountsList({
-  accounts,
-  hoveredAccount,
-  onHover,
-  onAction,
-}: AccountsListProps) {
+export function AccountsList({accounts, hoveredAccount, onHover, onAction}: AccountsListProps) {
   const locale = useLocale();
 
   if (accounts.length === 0) {

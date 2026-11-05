@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { amountToInteger } from '#app-gocardless/utils';
+import {amountToInteger} from '#app-gocardless/utils';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -25,36 +25,28 @@ export default {
   institutionIds: ['BERLINER_SPARKASSE_BELADEBEXXX'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     let remittanceInformationUnstructured;
 
     if (transaction.remittanceInformationUnstructured) {
-      remittanceInformationUnstructured =
-        transaction.remittanceInformationUnstructured;
+      remittanceInformationUnstructured = transaction.remittanceInformationUnstructured;
     } else if (transaction.remittanceInformationStructured) {
-      remittanceInformationUnstructured =
-        transaction.remittanceInformationStructured;
-    } else if (
-      (transaction.remittanceInformationStructuredArray?.length ?? 0) > 0
-    ) {
+      remittanceInformationUnstructured = transaction.remittanceInformationStructured;
+    } else if ((transaction.remittanceInformationStructuredArray?.length ?? 0) > 0) {
       remittanceInformationUnstructured =
         transaction.remittanceInformationStructuredArray?.join(' ');
     }
 
     if (transaction.additionalInformation) {
-      remittanceInformationUnstructured +=
-        ' ' + transaction.additionalInformation;
+      remittanceInformationUnstructured += ' ' + transaction.additionalInformation;
     }
 
     const usefulCreditorName =
-      transaction.ultimateCreditor ||
-      transaction.creditorName ||
-      transaction.debtorName;
+      transaction.ultimateCreditor || transaction.creditorName || transaction.debtorName;
 
     editedTrans.creditorName = usefulCreditorName;
-    editedTrans.remittanceInformationUnstructured =
-      remittanceInformationUnstructured;
+    editedTrans.remittanceInformationUnstructured = remittanceInformationUnstructured;
 
     return Fallback.normalizeTransaction(transaction, booked, editedTrans);
   },
@@ -68,9 +60,7 @@ export default {
    *  it includes transaction placed during current day
    */
   calculateStartingBalance(sortedTransactions = [], balances = []) {
-    const currentBalance = balances.find(
-      balance => 'interimAvailable' === balance.balanceType,
-    );
+    const currentBalance = balances.find(balance => 'interimAvailable' === balance.balanceType);
 
     return sortedTransactions.reduce(
       (total, trans) => {

@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgRemove } from '@actual-app/components/icons/v2';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { Input } from '@actual-app/components/input';
-import { theme } from '@actual-app/components/theme';
-import { spacing } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgRemove} from '@actual-app/components/icons/v2';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {Input} from '@actual-app/components/input';
+import {theme} from '@actual-app/components/theme';
+import {spacing} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
 
 type AccountSearchFieldProps = {
   value: string;
@@ -30,12 +30,8 @@ type AccountSearchFieldProps = {
   onClose: () => void;
 };
 
-export function AccountSearchField({
-  value,
-  onChange,
-  onClose,
-}: AccountSearchFieldProps) {
-  const { t } = useTranslation();
+export function AccountSearchField({value, onChange, onClose}: AccountSearchFieldProps) {
+  const {t} = useTranslation();
 
   return (
     <View
@@ -66,7 +62,7 @@ export function AccountSearchField({
         variant="bare"
         aria-label={t('Close search')}
         onPress={onClose}
-        style={{ color: theme.sidebarTextSubdued, padding: spacing.xxs }}
+        style={{color: theme.sidebarTextSubdued, padding: spacing.xxs}}
       >
         <SvgRemove width={9} height={9} />
       </Button>

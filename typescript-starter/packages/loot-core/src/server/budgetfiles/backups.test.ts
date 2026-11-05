@@ -17,7 +17,7 @@
 // @ts-strict-ignore
 import * as dateFns from 'date-fns';
 
-import { updateBackups } from './backups';
+import {updateBackups} from './backups';
 
 describe('Backups', () => {
   test('backups work', async () => {
@@ -37,10 +37,10 @@ describe('Backups', () => {
     expect(
       cleanDates(
         await getUpdatedBackups([
-          { id: 'backup1', date: dateFns.parseISO('2017-01-01') },
-          { id: 'backup2', date: dateFns.parseISO('2017-01-01') },
-          { id: 'backup3', date: dateFns.parseISO('2017-01-01') },
-          { id: 'backup4', date: dateFns.parseISO('2017-01-01') },
+          {id: 'backup1', date: dateFns.parseISO('2017-01-01')},
+          {id: 'backup2', date: dateFns.parseISO('2017-01-01')},
+          {id: 'backup3', date: dateFns.parseISO('2017-01-01')},
+          {id: 'backup4', date: dateFns.parseISO('2017-01-01')},
         ]),
       ),
     ).toMatchSnapshot();
@@ -50,10 +50,10 @@ describe('Backups', () => {
     expect(
       cleanDates(
         await getUpdatedBackups([
-          { id: 'backup1', date: dateFns.parseISO('2017-01-01') },
-          { id: 'backup2', date: dateFns.parseISO('2017-01-01') },
-          { id: 'backup3', date: dateFns.parseISO('2016-12-30') },
-          { id: 'backup4', date: dateFns.parseISO('2016-12-29') },
+          {id: 'backup1', date: dateFns.parseISO('2017-01-01')},
+          {id: 'backup2', date: dateFns.parseISO('2017-01-01')},
+          {id: 'backup3', date: dateFns.parseISO('2016-12-30')},
+          {id: 'backup4', date: dateFns.parseISO('2016-12-29')},
         ]),
       ),
     ).toMatchSnapshot();
@@ -63,11 +63,11 @@ describe('Backups', () => {
     expect(
       cleanDates(
         await getUpdatedBackups([
-          { id: 'backup1', date: dateFns.parseISO('2017-01-01') },
-          { id: 'backup2', date: dateFns.parseISO('2017-01-01') },
-          { id: 'backup3', date: dateFns.parseISO('2016-12-29') },
-          { id: 'backup4', date: dateFns.parseISO('2016-12-29') },
-          { id: 'backup5', date: dateFns.parseISO('2016-12-29') },
+          {id: 'backup1', date: dateFns.parseISO('2017-01-01')},
+          {id: 'backup2', date: dateFns.parseISO('2017-01-01')},
+          {id: 'backup3', date: dateFns.parseISO('2016-12-29')},
+          {id: 'backup4', date: dateFns.parseISO('2016-12-29')},
+          {id: 'backup5', date: dateFns.parseISO('2016-12-29')},
         ]),
       ),
     ).toMatchSnapshot();
@@ -76,18 +76,18 @@ describe('Backups', () => {
     expect(
       cleanDates(
         await getUpdatedBackups([
-          { id: 'backup1', date: dateFns.parseISO('2017-01-01') },
-          { id: 'backup2', date: dateFns.parseISO('2017-01-01') },
-          { id: 'backup3', date: dateFns.parseISO('2016-12-29') },
-          { id: 'backup4', date: dateFns.parseISO('2016-12-28') },
-          { id: 'backup5', date: dateFns.parseISO('2016-12-27') },
-          { id: 'backup6', date: dateFns.parseISO('2016-12-26') },
-          { id: 'backup7', date: dateFns.parseISO('2016-12-25') },
-          { id: 'backup8', date: dateFns.parseISO('2016-12-24') },
-          { id: 'backup9', date: dateFns.parseISO('2016-12-23') },
-          { id: 'backup10', date: dateFns.parseISO('2016-12-22') },
-          { id: 'backup11', date: dateFns.parseISO('2016-12-21') },
-          { id: 'backup12', date: dateFns.parseISO('2016-12-20') },
+          {id: 'backup1', date: dateFns.parseISO('2017-01-01')},
+          {id: 'backup2', date: dateFns.parseISO('2017-01-01')},
+          {id: 'backup3', date: dateFns.parseISO('2016-12-29')},
+          {id: 'backup4', date: dateFns.parseISO('2016-12-28')},
+          {id: 'backup5', date: dateFns.parseISO('2016-12-27')},
+          {id: 'backup6', date: dateFns.parseISO('2016-12-26')},
+          {id: 'backup7', date: dateFns.parseISO('2016-12-25')},
+          {id: 'backup8', date: dateFns.parseISO('2016-12-24')},
+          {id: 'backup9', date: dateFns.parseISO('2016-12-23')},
+          {id: 'backup10', date: dateFns.parseISO('2016-12-22')},
+          {id: 'backup11', date: dateFns.parseISO('2016-12-21')},
+          {id: 'backup12', date: dateFns.parseISO('2016-12-20')},
         ]),
       ),
     ).toMatchSnapshot();

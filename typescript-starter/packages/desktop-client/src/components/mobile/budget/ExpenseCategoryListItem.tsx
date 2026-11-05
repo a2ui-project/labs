@@ -14,36 +14,36 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { GridListItem } from 'react-aria-components';
-import { useTranslation } from 'react-i18next';
+import {useCallback} from 'react';
+import type {ComponentPropsWithoutRef} from 'react';
+import {GridListItem} from 'react-aria-components';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgCheveronRight } from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { BudgetType } from '@actual-app/core/server/prefs';
+import {Button} from '@actual-app/components/button';
+import {SvgCheveronRight} from '@actual-app/components/icons/v1';
+import {styles} from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {BudgetType} from '@actual-app/core/server/prefs';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { CategoryEntity } from '@actual-app/core/types/models';
+import type {CategoryEntity} from '@actual-app/core/types/models';
 
-import { useCategoriesById } from '#hooks/useCategories';
-import { useFormat } from '#hooks/useFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { useSheetValue } from '#hooks/useSheetValue';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { useUndo } from '#hooks/useUndo';
-import { collapseModals, pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
-import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
+import {useCategoriesById} from '#hooks/useCategories';
+import {useFormat} from '#hooks/useFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {useSheetValue} from '#hooks/useSheetValue';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {useUndo} from '#hooks/useUndo';
+import {collapseModals, pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
+import {envelopeBudget, trackingBudget} from '#spreadsheet/bindings';
 
-import { BalanceCell } from './BalanceCell';
-import { BudgetCell } from './BudgetCell';
-import { getColumnWidth, ROW_HEIGHT } from './BudgetTable';
-import { SpentCell } from './SpentCell';
+import {BalanceCell} from './BalanceCell';
+import {BudgetCell} from './BudgetCell';
+import {getColumnWidth, ROW_HEIGHT} from './BudgetTable';
+import {SpentCell} from './SpentCell';
 
 type ExpenseCategoryNameProps = {
   category: CategoryEntity;
@@ -51,11 +51,7 @@ type ExpenseCategoryNameProps = {
   show3Columns: boolean;
 };
 
-function ExpenseCategoryName({
-  category,
-  onEditCategory,
-  show3Columns,
-}: ExpenseCategoryNameProps) {
+function ExpenseCategoryName({category, onEditCategory, show3Columns}: ExpenseCategoryNameProps) {
   const sidebarColumnWidth = getColumnWidth({
     show3Columns,
     isSidebar: true,
@@ -106,7 +102,7 @@ function ExpenseCategoryName({
             {category.name}
           </Text>
           <SvgCheveronRight
-            style={{ flexShrink: 0, color: theme.tableTextSubdued }}
+            style={{flexShrink: 0, color: theme.tableTextSubdued}}
             width={14}
             height={14}
           />
@@ -135,7 +131,7 @@ function ExpenseCategoryCells({
   onOpenBalanceMenu,
   onShowActivity,
 }: ExpenseCategoryCellsProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const columnWidth = getColumnWidth({
     show3Columns,
     isSidebar: false,
@@ -167,7 +163,7 @@ function ExpenseCategoryCells({
     >
       <View
         style={{
-          ...(!show3Columns && !showBudgetedColumn && { display: 'none' }),
+          ...(!show3Columns && !showBudgetedColumn && {display: 'none'}),
           width: columnWidth,
           justifyContent: 'center',
           alignItems: 'flex-end',
@@ -183,7 +179,7 @@ function ExpenseCategoryCells({
       </View>
       <View
         style={{
-          ...(!show3Columns && showBudgetedColumn && { display: 'none' }),
+          ...(!show3Columns && showBudgetedColumn && {display: 'none'}),
           width: columnWidth,
           justifyContent: 'center',
           alignItems: 'flex-end',
@@ -239,18 +235,17 @@ export function ExpenseCategoryListItem({
   showBudgetedColumn,
   ...props
 }: ExpenseCategoryListItemProps) {
-  const { value: category } = props;
+  const {value: category} = props;
 
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
   const format = useFormat();
 
-  const balanceMenuModalName =
-    `${budgetType as BudgetType}-balance-menu` as const;
+  const balanceMenuModalName = `${budgetType as BudgetType}-balance-menu` as const;
   const dispatch = useDispatch();
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
   const {
-    data: { list: categoriesById } = {
+    data: {list: categoriesById} = {
       list: {} as Record<string, CategoryEntity>,
     },
   } = useCategoriesById();
@@ -264,15 +259,12 @@ export function ExpenseCategoryListItem({
         category: category.id,
         flag: carryover,
       });
-      dispatch(collapseModals({ rootModalName: balanceMenuModalName }));
+      dispatch(collapseModals({rootModalName: balanceMenuModalName}));
     },
     [category, onBudgetAction, month, dispatch, balanceMenuModalName],
   );
 
-  const catBalance = useSheetValue<
-    'envelope-budget' | 'tracking-budget',
-    'leftover'
-  >(
+  const catBalance = useSheetValue<'envelope-budget' | 'tracking-budget', 'leftover'>(
     budgetType === 'envelope'
       ? envelopeBudget.catBalance(category?.id)
       : trackingBudget.catBalance(category?.id),
@@ -298,7 +290,7 @@ export function ExpenseCategoryListItem({
                 to: toCategoryId,
                 currencyCode: format.currency.code,
               });
-              dispatch(collapseModals({ rootModalName: balanceMenuModalName }));
+              dispatch(collapseModals({rootModalName: balanceMenuModalName}));
               showUndoNotification({
                 message: t(
                   'Transferred {{amount}} from {{fromCategoryName}} to {{toCategoryName}}.',
@@ -348,7 +340,7 @@ export function ExpenseCategoryListItem({
                 amount,
                 currencyCode: format.currency.code,
               });
-              dispatch(collapseModals({ rootModalName: balanceMenuModalName }));
+              dispatch(collapseModals({rootModalName: balanceMenuModalName}));
               showUndoNotification({
                 message: t(
                   `Covered {{amount}} {{toCategoryName}} overspending from {{fromCategoryName}}.`,
@@ -410,15 +402,7 @@ export function ExpenseCategoryListItem({
         }),
       );
     }
-  }, [
-    category,
-    balanceMenuModalName,
-    dispatch,
-    month,
-    onCarryover,
-    onTransfer,
-    onCover,
-  ]);
+  }, [category, balanceMenuModalName, dispatch, month, onCarryover, onTransfer, onCover]);
 
   const navigate = useNavigate();
   const onShowActivity = useCallback(() => {
@@ -433,11 +417,7 @@ export function ExpenseCategoryListItem({
   }
 
   return (
-    <GridListItem
-      textValue={category.name}
-      data-testid="category-row"
-      {...props}
-    >
+    <GridListItem textValue={category.name} data-testid="category-row" {...props}>
       <View
         style={{
           height: ROW_HEIGHT,

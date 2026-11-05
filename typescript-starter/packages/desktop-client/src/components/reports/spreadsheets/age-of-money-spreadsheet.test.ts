@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-import type { RuleConditionEntity } from '@actual-app/core/types/models';
-import { describe, expect, it } from 'vitest';
+import type {RuleConditionEntity} from '@actual-app/core/types/models';
+import {describe, expect, it} from 'vitest';
 
-import type {
-  Transaction,
-  TransactionWithCategory,
-} from './age-of-money-spreadsheet';
+import type {Transaction, TransactionWithCategory} from './age-of-money-spreadsheet';
 import {
   buildTransferInclusionFilter,
   calculateAgeOfMoney,
@@ -34,12 +31,8 @@ import {
 describe('Age of Money calculations', () => {
   describe('calculateAgeOfMoney', () => {
     it('calculates age correctly with simple FIFO matching', () => {
-      const income: Transaction[] = [
-        { id: '1', date: '2024-01-01', amount: 1000 },
-      ];
-      const expenses: Transaction[] = [
-        { id: '2', date: '2024-01-15', amount: -500 },
-      ];
+      const income: Transaction[] = [{id: '1', date: '2024-01-01', amount: 1000}];
+      const expenses: Transaction[] = [{id: '2', date: '2024-01-15', amount: -500}];
 
       const result = calculateAgeOfMoney(income, expenses);
 
@@ -50,12 +43,10 @@ describe('Age of Money calculations', () => {
 
     it('uses FIFO order - oldest income first', () => {
       const income: Transaction[] = [
-        { id: '1', date: '2024-01-01', amount: 500 },
-        { id: '2', date: '2024-01-15', amount: 500 },
+        {id: '1', date: '2024-01-01', amount: 500},
+        {id: '2', date: '2024-01-15', amount: 500},
       ];
-      const expenses: Transaction[] = [
-        { id: '3', date: '2024-02-01', amount: -400 },
-      ];
+      const expenses: Transaction[] = [{id: '3', date: '2024-02-01', amount: -400}];
 
       const result = calculateAgeOfMoney(income, expenses);
 
@@ -66,12 +57,10 @@ describe('Age of Money calculations', () => {
 
     it('spans multiple income buckets for large expenses', () => {
       const income: Transaction[] = [
-        { id: '1', date: '2024-01-01', amount: 200 },
-        { id: '2', date: '2024-01-15', amount: 300 },
+        {id: '1', date: '2024-01-01', amount: 200},
+        {id: '2', date: '2024-01-15', amount: 300},
       ];
-      const expenses: Transaction[] = [
-        { id: '3', date: '2024-02-01', amount: -400 },
-      ];
+      const expenses: Transaction[] = [{id: '3', date: '2024-02-01', amount: -400}];
 
       const result = calculateAgeOfMoney(income, expenses);
 
@@ -82,13 +71,11 @@ describe('Age of Money calculations', () => {
     });
 
     it('handles multiple expenses consuming buckets sequentially', () => {
-      const income: Transaction[] = [
-        { id: '1', date: '2024-01-01', amount: 1000 },
-      ];
+      const income: Transaction[] = [{id: '1', date: '2024-01-01', amount: 1000}];
       const expenses: Transaction[] = [
-        { id: '2', date: '2024-01-10', amount: -300 },
-        { id: '3', date: '2024-01-20', amount: -300 },
-        { id: '4', date: '2024-01-30', amount: -300 },
+        {id: '2', date: '2024-01-10', amount: -300},
+        {id: '3', date: '2024-01-20', amount: -300},
+        {id: '4', date: '2024-01-30', amount: -300},
       ];
 
       const result = calculateAgeOfMoney(income, expenses);
@@ -101,12 +88,8 @@ describe('Age of Money calculations', () => {
     });
 
     it('flags insufficient data when expenses exceed income', () => {
-      const income: Transaction[] = [
-        { id: '1', date: '2024-01-01', amount: 100 },
-      ];
-      const expenses: Transaction[] = [
-        { id: '2', date: '2024-01-15', amount: -500 },
-      ];
+      const income: Transaction[] = [{id: '1', date: '2024-01-01', amount: 100}];
+      const expenses: Transaction[] = [{id: '2', date: '2024-01-15', amount: -500}];
 
       const result = calculateAgeOfMoney(income, expenses);
 
@@ -115,9 +98,7 @@ describe('Age of Money calculations', () => {
 
     it('returns empty ages array when no income', () => {
       const income: Transaction[] = [];
-      const expenses: Transaction[] = [
-        { id: '1', date: '2024-01-15', amount: -500 },
-      ];
+      const expenses: Transaction[] = [{id: '1', date: '2024-01-15', amount: -500}];
 
       const result = calculateAgeOfMoney(income, expenses);
 
@@ -126,9 +107,7 @@ describe('Age of Money calculations', () => {
     });
 
     it('returns empty ages array when no expenses', () => {
-      const income: Transaction[] = [
-        { id: '1', date: '2024-01-01', amount: 1000 },
-      ];
+      const income: Transaction[] = [{id: '1', date: '2024-01-01', amount: 1000}];
       const expenses: Transaction[] = [];
 
       const result = calculateAgeOfMoney(income, expenses);
@@ -138,12 +117,8 @@ describe('Age of Money calculations', () => {
     });
 
     it('handles income and expenses on the same day (age = 0)', () => {
-      const income: Transaction[] = [
-        { id: '1', date: '2024-01-15', amount: 1000 },
-      ];
-      const expenses: Transaction[] = [
-        { id: '2', date: '2024-01-15', amount: -500 },
-      ];
+      const income: Transaction[] = [{id: '1', date: '2024-01-15', amount: 1000}];
+      const expenses: Transaction[] = [{id: '2', date: '2024-01-15', amount: -500}];
 
       const result = calculateAgeOfMoney(income, expenses);
 
@@ -153,12 +128,12 @@ describe('Age of Money calculations', () => {
 
     it('sorts transactions by date regardless of input order', () => {
       const income: Transaction[] = [
-        { id: '2', date: '2024-01-15', amount: 500 },
-        { id: '1', date: '2024-01-01', amount: 500 }, // Earlier but listed second
+        {id: '2', date: '2024-01-15', amount: 500},
+        {id: '1', date: '2024-01-01', amount: 500}, // Earlier but listed second
       ];
       const expenses: Transaction[] = [
-        { id: '4', date: '2024-02-15', amount: -200 },
-        { id: '3', date: '2024-02-01', amount: -200 }, // Earlier but listed second
+        {id: '4', date: '2024-02-15', amount: -200},
+        {id: '3', date: '2024-02-01', amount: -200}, // Earlier but listed second
       ];
 
       const result = calculateAgeOfMoney(income, expenses);
@@ -181,9 +156,9 @@ describe('Age of Money calculations', () => {
 
     it('calculates average of all ages when less than count', () => {
       const ages = [
-        { date: '2024-01-01', age: 10 },
-        { date: '2024-01-02', age: 20 },
-        { date: '2024-01-03', age: 30 },
+        {date: '2024-01-01', age: 10},
+        {date: '2024-01-02', age: 20},
+        {date: '2024-01-03', age: 30},
       ];
 
       const result = calculateAverageAge(ages, 10);
@@ -193,11 +168,11 @@ describe('Age of Money calculations', () => {
 
     it('calculates average of last N ages when more than count', () => {
       const ages = [
-        { date: '2024-01-01', age: 5 },
-        { date: '2024-01-02', age: 10 },
-        { date: '2024-01-03', age: 15 },
-        { date: '2024-01-04', age: 20 },
-        { date: '2024-01-05', age: 25 },
+        {date: '2024-01-01', age: 5},
+        {date: '2024-01-02', age: 10},
+        {date: '2024-01-03', age: 15},
+        {date: '2024-01-04', age: 20},
+        {date: '2024-01-05', age: 25},
       ];
 
       const result = calculateAverageAge(ages, 3);
@@ -207,8 +182,8 @@ describe('Age of Money calculations', () => {
 
     it('rounds the result to nearest integer', () => {
       const ages = [
-        { date: '2024-01-01', age: 10 },
-        { date: '2024-01-02', age: 11 },
+        {date: '2024-01-01', age: 10},
+        {date: '2024-01-02', age: 11},
       ];
 
       const result = calculateAverageAge(ages, 10);
@@ -217,7 +192,7 @@ describe('Age of Money calculations', () => {
     });
 
     it('uses default count of 10', () => {
-      const ages = Array.from({ length: 15 }, (_, i) => ({
+      const ages = Array.from({length: 15}, (_, i) => ({
         date: `2024-01-${String(i + 1).padStart(2, '0')}`,
         age: (i + 1) * 10,
       }));
@@ -237,14 +212,14 @@ describe('Age of Money calculations', () => {
     });
 
     it('returns stable for single data point', () => {
-      const result = calculateTrend([{ date: 'Jan 2024', ageOfMoney: 30 }]);
+      const result = calculateTrend([{date: 'Jan 2024', ageOfMoney: 30}]);
       expect(result).toBe('stable');
     });
 
     it('returns up when age increased by more than threshold', () => {
       const data = [
-        { date: 'Jan 2024', ageOfMoney: 20 },
-        { date: 'Feb 2024', ageOfMoney: 25 },
+        {date: 'Jan 2024', ageOfMoney: 20},
+        {date: 'Feb 2024', ageOfMoney: 25},
       ];
 
       const result = calculateTrend(data);
@@ -254,8 +229,8 @@ describe('Age of Money calculations', () => {
 
     it('returns down when age decreased by more than threshold', () => {
       const data = [
-        { date: 'Jan 2024', ageOfMoney: 30 },
-        { date: 'Feb 2024', ageOfMoney: 25 },
+        {date: 'Jan 2024', ageOfMoney: 30},
+        {date: 'Feb 2024', ageOfMoney: 25},
       ];
 
       const result = calculateTrend(data);
@@ -265,8 +240,8 @@ describe('Age of Money calculations', () => {
 
     it('returns stable when change is within threshold', () => {
       const data = [
-        { date: 'Jan 2024', ageOfMoney: 30 },
-        { date: 'Feb 2024', ageOfMoney: 31 },
+        {date: 'Jan 2024', ageOfMoney: 30},
+        {date: 'Feb 2024', ageOfMoney: 31},
       ];
 
       const result = calculateTrend(data);
@@ -276,10 +251,10 @@ describe('Age of Money calculations', () => {
 
     it('uses only the last two data points', () => {
       const data = [
-        { date: 'Jan 2024', ageOfMoney: 10 },
-        { date: 'Feb 2024', ageOfMoney: 50 },
-        { date: 'Mar 2024', ageOfMoney: 30 },
-        { date: 'Apr 2024', ageOfMoney: 35 },
+        {date: 'Jan 2024', ageOfMoney: 10},
+        {date: 'Feb 2024', ageOfMoney: 50},
+        {date: 'Mar 2024', ageOfMoney: 30},
+        {date: 'Apr 2024', ageOfMoney: 35},
       ];
 
       const result = calculateTrend(data);
@@ -292,10 +267,10 @@ describe('Age of Money calculations', () => {
   describe('classifyTransactions', () => {
     it('classifies positive amount with income category as income', () => {
       const transactions: TransactionWithCategory[] = [
-        { id: '1', date: '2024-01-01', amount: 1000, categoryIsIncome: true },
+        {id: '1', date: '2024-01-01', amount: 1000, categoryIsIncome: true},
       ];
 
-      const { income, expenses } = classifyTransactions(transactions);
+      const {income, expenses} = classifyTransactions(transactions);
 
       expect(income).toHaveLength(1);
       expect(income[0].amount).toBe(1000);
@@ -306,10 +281,10 @@ describe('Age of Money calculations', () => {
       const transactions: TransactionWithCategory[] = [
         // This is a refund - positive amount but NOT an income category
         // For AoM purposes, refunds are treated as income (money entering your pool)
-        { id: '1', date: '2024-01-15', amount: 50, categoryIsIncome: false },
+        {id: '1', date: '2024-01-15', amount: 50, categoryIsIncome: false},
       ];
 
-      const { income, expenses } = classifyTransactions(transactions);
+      const {income, expenses} = classifyTransactions(transactions);
 
       expect(income).toHaveLength(1);
       expect(income[0].amount).toBe(50);
@@ -318,10 +293,10 @@ describe('Age of Money calculations', () => {
 
     it('classifies negative amount as expense regardless of category', () => {
       const transactions: TransactionWithCategory[] = [
-        { id: '1', date: '2024-01-10', amount: -200, categoryIsIncome: false },
+        {id: '1', date: '2024-01-10', amount: -200, categoryIsIncome: false},
       ];
 
-      const { income, expenses } = classifyTransactions(transactions);
+      const {income, expenses} = classifyTransactions(transactions);
 
       expect(income).toHaveLength(0);
       expect(expenses).toHaveLength(1);
@@ -331,18 +306,18 @@ describe('Age of Money calculations', () => {
     it('correctly separates mixed transactions', () => {
       const transactions: TransactionWithCategory[] = [
         // Salary - income category
-        { id: '1', date: '2024-01-01', amount: 3000, categoryIsIncome: true },
+        {id: '1', date: '2024-01-01', amount: 3000, categoryIsIncome: true},
         // Groceries - expense
-        { id: '2', date: '2024-01-05', amount: -150, categoryIsIncome: false },
+        {id: '2', date: '2024-01-05', amount: -150, categoryIsIncome: false},
         // Refund from store - positive but NOT income category (still income for AoM)
-        { id: '3', date: '2024-01-10', amount: 25, categoryIsIncome: false },
+        {id: '3', date: '2024-01-10', amount: 25, categoryIsIncome: false},
         // Freelance work - income category
-        { id: '4', date: '2024-01-15', amount: 500, categoryIsIncome: true },
+        {id: '4', date: '2024-01-15', amount: 500, categoryIsIncome: true},
         // Rent - expense
-        { id: '5', date: '2024-01-20', amount: -1200, categoryIsIncome: false },
+        {id: '5', date: '2024-01-20', amount: -1200, categoryIsIncome: false},
       ];
 
-      const { income, expenses } = classifyTransactions(transactions);
+      const {income, expenses} = classifyTransactions(transactions);
 
       // All positive amounts are income (including refunds)
       expect(income).toHaveLength(3);
@@ -355,11 +330,11 @@ describe('Age of Money calculations', () => {
 
     it('handles uncategorized transactions based on amount sign', () => {
       const transactions: TransactionWithCategory[] = [
-        { id: '1', date: '2024-01-01', amount: 100, categoryIsIncome: null },
-        { id: '2', date: '2024-01-02', amount: -50, categoryIsIncome: null },
+        {id: '1', date: '2024-01-01', amount: 100, categoryIsIncome: null},
+        {id: '2', date: '2024-01-02', amount: -50, categoryIsIncome: null},
       ];
 
-      const { income, expenses } = classifyTransactions(transactions);
+      const {income, expenses} = classifyTransactions(transactions);
 
       // Positive amount = income, negative = expense (regardless of category)
       expect(income).toHaveLength(1);
@@ -372,12 +347,12 @@ describe('Age of Money calculations', () => {
       // Scenario: $1000 income on Jan 1, $50 refund on Jan 5, $200 expense on Jan 15
       // The refund ADDS to the income pool as a new bucket
       const transactions: TransactionWithCategory[] = [
-        { id: '1', date: '2024-01-01', amount: 1000, categoryIsIncome: true },
-        { id: '2', date: '2024-01-05', amount: 50, categoryIsIncome: false }, // Refund
-        { id: '3', date: '2024-01-15', amount: -200, categoryIsIncome: false },
+        {id: '1', date: '2024-01-01', amount: 1000, categoryIsIncome: true},
+        {id: '2', date: '2024-01-05', amount: 50, categoryIsIncome: false}, // Refund
+        {id: '3', date: '2024-01-15', amount: -200, categoryIsIncome: false},
       ];
 
-      const { income, expenses } = classifyTransactions(transactions);
+      const {income, expenses} = classifyTransactions(transactions);
 
       // Refund is classified as income
       expect(income).toHaveLength(2);
@@ -431,8 +406,8 @@ describe('Age of Money calculations', () => {
     it('produces unique date labels across years with daily granularity', () => {
       // Create ages spanning two years with the same calendar day
       const ages = [
-        { date: '2015-03-15', age: 30 },
-        { date: '2016-03-15', age: 45 },
+        {date: '2015-03-15', age: 30},
+        {date: '2016-03-15', age: 45},
       ];
 
       const graphData = calculateGraphData(ages, '2015-03', '2016-03', 'daily');
@@ -450,9 +425,9 @@ describe('Age of Money calculations', () => {
     it('does not produce duplicate date labels in daily mode over 2 years', () => {
       // Generate ages for the same day in two consecutive years
       const ages = [
-        { date: '2015-06-01', age: 20 },
-        { date: '2015-12-15', age: 25 },
-        { date: '2016-06-01', age: 35 },
+        {date: '2015-06-01', age: 20},
+        {date: '2015-12-15', age: 25},
+        {date: '2016-06-01', age: 35},
       ];
 
       const graphData = calculateGraphData(ages, '2015-06', '2016-06', 'daily');
@@ -488,26 +463,21 @@ describe('Age of Money calculations', () => {
       // Then groceries on Feb 1 draws from the remaining Jan 1 income,
       // giving age = 31 days.
 
-      const income: Transaction[] = [
-        { id: 'paycheck', date: '2024-01-01', amount: 2000 },
-      ];
+      const income: Transaction[] = [{id: 'paycheck', date: '2024-01-01', amount: 2000}];
 
       // With off-budget transfer included as spending
       const expensesWithTransfer: Transaction[] = [
-        { id: 'to-investment', date: '2024-01-20', amount: -500 },
-        { id: 'groceries', date: '2024-02-01', amount: -300 },
+        {id: 'to-investment', date: '2024-01-20', amount: -500},
+        {id: 'groceries', date: '2024-02-01', amount: -300},
       ];
 
       // Without off-budget transfer (old behavior)
       const expensesWithoutTransfer: Transaction[] = [
-        { id: 'groceries', date: '2024-02-01', amount: -300 },
+        {id: 'groceries', date: '2024-02-01', amount: -300},
       ];
 
       const withTransfer = calculateAgeOfMoney(income, expensesWithTransfer);
-      const withoutTransfer = calculateAgeOfMoney(
-        income,
-        expensesWithoutTransfer,
-      );
+      const withoutTransfer = calculateAgeOfMoney(income, expensesWithoutTransfer);
 
       // With transfer: two ages calculated
       expect(withTransfer.ages).toHaveLength(2);
@@ -552,23 +522,18 @@ describe('Age of Money calculations', () => {
       // Age = Jan 15 (last bucket used) to Feb 10 = 26 days.
 
       const incomeWithTransfer: Transaction[] = [
-        { id: 'paycheck', date: '2024-01-01', amount: 1000 },
-        { id: 'from-savings', date: '2024-01-15', amount: 2000 },
+        {id: 'paycheck', date: '2024-01-01', amount: 1000},
+        {id: 'from-savings', date: '2024-01-15', amount: 2000},
       ];
 
       const incomeWithoutTransfer: Transaction[] = [
-        { id: 'paycheck', date: '2024-01-01', amount: 1000 },
+        {id: 'paycheck', date: '2024-01-01', amount: 1000},
       ];
 
-      const expenses: Transaction[] = [
-        { id: 'rent', date: '2024-02-10', amount: -1500 },
-      ];
+      const expenses: Transaction[] = [{id: 'rent', date: '2024-02-10', amount: -1500}];
 
       const withTransfer = calculateAgeOfMoney(incomeWithTransfer, expenses);
-      const withoutTransfer = calculateAgeOfMoney(
-        incomeWithoutTransfer,
-        expenses,
-      );
+      const withoutTransfer = calculateAgeOfMoney(incomeWithoutTransfer, expenses);
 
       // With transfer: rent spans two buckets, uses Jan 15 date
       expect(withTransfer.ages).toHaveLength(1);
@@ -609,12 +574,12 @@ describe('Age of Money calculations', () => {
       // returned money creates a younger bucket (Mar 1 vs Jan 1).
 
       const income: Transaction[] = [
-        { id: 'paycheck', date: '2024-01-01', amount: 3000 },
-        { id: 'from-investment', date: '2024-03-01', amount: 1000 },
+        {id: 'paycheck', date: '2024-01-01', amount: 3000},
+        {id: 'from-investment', date: '2024-03-01', amount: 1000},
       ];
       const expenses: Transaction[] = [
-        { id: 'to-investment', date: '2024-01-10', amount: -1000 },
-        { id: 'groceries', date: '2024-03-15', amount: -2500 },
+        {id: 'to-investment', date: '2024-01-10', amount: -1000},
+        {id: 'groceries', date: '2024-03-15', amount: -2500},
       ];
 
       const result = calculateAgeOfMoney(income, expenses);
@@ -638,34 +603,27 @@ describe('Age of Money calculations', () => {
 
   describe('buildTransferInclusionFilter', () => {
     const defaultFilter = {
-      $or: [
-        { 'payee.transfer_acct': null },
-        { 'payee.transfer_acct.offbudget': true },
-      ],
+      $or: [{'payee.transfer_acct': null}, {'payee.transfer_acct.offbudget': true}],
     };
 
     it('excludes on-budget transfers when no account filter is set', () => {
       expect(buildTransferInclusionFilter([])).toEqual(defaultFilter);
-      expect(
-        buildTransferInclusionFilter([
-          { field: 'category', op: 'is', value: 'cat-1' },
-        ]),
-      ).toEqual(defaultFilter);
+      expect(buildTransferInclusionFilter([{field: 'category', op: 'is', value: 'cat-1'}])).toEqual(
+        defaultFilter,
+      );
     });
 
     it('includes transfers to filtered-out accounts for "is" account filter', () => {
-      const conditions: RuleConditionEntity[] = [
-        { field: 'account', op: 'is', value: 'chequing' },
-      ];
+      const conditions: RuleConditionEntity[] = [{field: 'account', op: 'is', value: 'chequing'}];
 
       expect(buildTransferInclusionFilter(conditions)).toEqual({
         $or: [
-          { 'payee.transfer_acct': null },
-          { 'payee.transfer_acct.offbudget': true },
+          {'payee.transfer_acct': null},
+          {'payee.transfer_acct.offbudget': true},
           {
             $and: [
-              { 'payee.transfer_acct.offbudget': false },
-              { 'payee.transfer_acct': { $ne: 'chequing' } },
+              {'payee.transfer_acct.offbudget': false},
+              {'payee.transfer_acct': {$ne: 'chequing'}},
             ],
           },
         ],
@@ -674,17 +632,17 @@ describe('Age of Money calculations', () => {
 
     it('includes only transfers to excluded accounts for "isNot" filter', () => {
       const conditions: RuleConditionEntity[] = [
-        { field: 'account', op: 'isNot', value: 'credit-card' },
+        {field: 'account', op: 'isNot', value: 'credit-card'},
       ];
 
       expect(buildTransferInclusionFilter(conditions)).toEqual({
         $or: [
-          { 'payee.transfer_acct': null },
-          { 'payee.transfer_acct.offbudget': true },
+          {'payee.transfer_acct': null},
+          {'payee.transfer_acct.offbudget': true},
           {
             $and: [
-              { 'payee.transfer_acct.offbudget': false },
-              { 'payee.transfer_acct': { $eq: 'credit-card' } },
+              {'payee.transfer_acct.offbudget': false},
+              {'payee.transfer_acct': {$eq: 'credit-card'}},
             ],
           },
         ],
@@ -693,20 +651,20 @@ describe('Age of Money calculations', () => {
 
     it('keeps transfers within a multi-account filter excluded', () => {
       const conditions: RuleConditionEntity[] = [
-        { field: 'account', op: 'oneOf', value: ['chequing', 'savings'] },
+        {field: 'account', op: 'oneOf', value: ['chequing', 'savings']},
       ];
 
       expect(buildTransferInclusionFilter(conditions)).toEqual({
         $or: [
-          { 'payee.transfer_acct': null },
-          { 'payee.transfer_acct.offbudget': true },
+          {'payee.transfer_acct': null},
+          {'payee.transfer_acct.offbudget': true},
           {
             $and: [
-              { 'payee.transfer_acct.offbudget': false },
+              {'payee.transfer_acct.offbudget': false},
               {
                 $and: [
-                  { 'payee.transfer_acct': { $ne: 'chequing' } },
-                  { 'payee.transfer_acct': { $ne: 'savings' } },
+                  {'payee.transfer_acct': {$ne: 'chequing'}},
+                  {'payee.transfer_acct': {$ne: 'savings'}},
                 ],
               },
             ],
@@ -718,19 +676,14 @@ describe('Age of Money calculations', () => {
     it('treats empty oneOf as matching no accounts (inverted notOneOf is tautology)', () => {
       // account oneOf [] inverts to notOneOf []. Everything is outside the
       // empty set, so on-budget transfers to any counterpart are included.
-      const conditions: RuleConditionEntity[] = [
-        { field: 'account', op: 'oneOf', value: [] },
-      ];
+      const conditions: RuleConditionEntity[] = [{field: 'account', op: 'oneOf', value: []}];
 
       expect(buildTransferInclusionFilter(conditions)).toEqual({
         $or: [
-          { 'payee.transfer_acct': null },
-          { 'payee.transfer_acct.offbudget': true },
+          {'payee.transfer_acct': null},
+          {'payee.transfer_acct.offbudget': true},
           {
-            $and: [
-              { 'payee.transfer_acct.offbudget': false },
-              { 'payee.transfer_acct': { $ne: null } },
-            ],
+            $and: [{'payee.transfer_acct.offbudget': false}, {'payee.transfer_acct': {$ne: null}}],
           },
         ],
       });
@@ -738,22 +691,19 @@ describe('Age of Money calculations', () => {
 
     it('combines multiple account conditions with De Morgan for and/or', () => {
       const conditions: RuleConditionEntity[] = [
-        { field: 'account', op: 'is', value: 'a' },
-        { field: 'account', op: 'isNot', value: 'b' },
+        {field: 'account', op: 'is', value: 'a'},
+        {field: 'account', op: 'isNot', value: 'b'},
       ];
 
       expect(buildTransferInclusionFilter(conditions, 'and')).toEqual({
         $or: [
-          { 'payee.transfer_acct': null },
-          { 'payee.transfer_acct.offbudget': true },
+          {'payee.transfer_acct': null},
+          {'payee.transfer_acct.offbudget': true},
           {
             $and: [
-              { 'payee.transfer_acct.offbudget': false },
+              {'payee.transfer_acct.offbudget': false},
               {
-                $or: [
-                  { 'payee.transfer_acct': { $ne: 'a' } },
-                  { 'payee.transfer_acct': { $eq: 'b' } },
-                ],
+                $or: [{'payee.transfer_acct': {$ne: 'a'}}, {'payee.transfer_acct': {$eq: 'b'}}],
               },
             ],
           },
@@ -762,16 +712,13 @@ describe('Age of Money calculations', () => {
 
       expect(buildTransferInclusionFilter(conditions, 'or')).toEqual({
         $or: [
-          { 'payee.transfer_acct': null },
-          { 'payee.transfer_acct.offbudget': true },
+          {'payee.transfer_acct': null},
+          {'payee.transfer_acct.offbudget': true},
           {
             $and: [
-              { 'payee.transfer_acct.offbudget': false },
+              {'payee.transfer_acct.offbudget': false},
               {
-                $and: [
-                  { 'payee.transfer_acct': { $ne: 'a' } },
-                  { 'payee.transfer_acct': { $eq: 'b' } },
-                ],
+                $and: [{'payee.transfer_acct': {$ne: 'a'}}, {'payee.transfer_acct': {$eq: 'b'}}],
               },
             ],
           },
@@ -781,7 +728,7 @@ describe('Age of Money calculations', () => {
 
     it('falls back to default exclusion for unsupported account ops', () => {
       const conditions: RuleConditionEntity[] = [
-        { field: 'account', op: 'matches', value: 'cheq.*' },
+        {field: 'account', op: 'matches', value: 'cheq.*'},
       ];
 
       expect(buildTransferInclusionFilter(conditions)).toEqual(defaultFilter);
@@ -811,9 +758,9 @@ describe('Age of Money calculations', () => {
       // End month spans into the future (Jan 2017 is the test "today" month
       // and would otherwise produce 31 daily entries through Jan 31).
       const ages = [
-        { date: '2016-12-15', age: 5 },
-        { date: '2016-12-31', age: 10 },
-        { date: '2017-01-01', age: 12 },
+        {date: '2016-12-15', age: 5},
+        {date: '2016-12-31', age: 10},
+        {date: '2017-01-01', age: 12},
       ];
 
       const graphData = calculateGraphData(ages, '2016-12', '2017-01', 'daily');
@@ -832,16 +779,11 @@ describe('Age of Money calculations', () => {
       // End month spans well into the future. Without the clamp this would
       // generate weekly buckets through the end of February.
       const ages = [
-        { date: '2016-12-15', age: 5 },
-        { date: '2017-01-01', age: 12 },
+        {date: '2016-12-15', age: 5},
+        {date: '2017-01-01', age: 12},
       ];
 
-      const graphData = calculateGraphData(
-        ages,
-        '2016-12',
-        '2017-02',
-        'weekly',
-      );
+      const graphData = calculateGraphData(ages, '2016-12', '2017-02', 'weekly');
 
       // Today (2017-01-01) falls in the week starting Mon Dec 26, 2016.
       // With the clamp, generated weeks are: Nov 28, Dec 5, Dec 12, Dec 19,
@@ -859,16 +801,11 @@ describe('Age of Money calculations', () => {
       // even if it isn't over yet — this matches user expectations and
       // mirrors how other monthly reports behave.
       const ages = [
-        { date: '2016-12-15', age: 8 },
-        { date: '2017-01-01', age: 10 },
+        {date: '2016-12-15', age: 8},
+        {date: '2017-01-01', age: 10},
       ];
 
-      const graphData = calculateGraphData(
-        ages,
-        '2016-12',
-        '2017-01',
-        'monthly',
-      );
+      const graphData = calculateGraphData(ages, '2016-12', '2017-01', 'monthly');
 
       // Two months: Dec 2016 and Jan 2017. The Jan entry must still appear.
       expect(graphData).toHaveLength(2);

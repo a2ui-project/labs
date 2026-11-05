@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { join, resolve } from 'node:path';
+import {join, resolve} from 'node:path';
 
-import { bootstrapOpenId } from './accounts/openid';
+import {bootstrapOpenId} from './accounts/openid';
 import {
   bootstrapPassword,
   hashPassword,
@@ -25,8 +25,8 @@ import {
   setPasswordHash,
   verifyPassword,
 } from './accounts/password';
-import { openDatabase } from './db';
-import { config } from './load-config';
+import {openDatabase} from './db';
+import {config} from './load-config';
 
 let _accountDb;
 
@@ -49,11 +49,7 @@ export function listLoginMethods() {
   const accountDb = getAccountDb();
   const rows = accountDb.all('SELECT method, display_name, active FROM auth');
   return rows
-    .filter(f =>
-      rows.length > 1 && config.get('enforceOpenId')
-        ? f.method === 'openid'
-        : true,
-    )
+    .filter(f => (rows.length > 1 && config.get('enforceOpenId') ? f.method === 'openid' : true))
     .map(r => ({
       method: r.method,
       active: r.active,
@@ -63,8 +59,7 @@ export function listLoginMethods() {
 
 export function getActiveLoginMethod() {
   const accountDb = getAccountDb();
-  const { method } =
-    accountDb.first('SELECT method FROM auth WHERE active = 1') || {};
+  const {method} = accountDb.first('SELECT method FROM auth WHERE active = 1') || {};
   return method;
 }
 
@@ -77,13 +72,11 @@ export function getActiveLoginMethod() {
 export function getLoginMethod(req) {
   if (
     typeof req !== 'undefined' &&
-    (req.body || { loginMethod: null }).loginMethod &&
+    (req.body || {loginMethod: null}).loginMethod &&
     config.get('allowedLoginMethods').includes(req.body.loginMethod)
   ) {
     const accountDb = getAccountDb();
-    const row = accountDb.first('SELECT method FROM auth WHERE method = ?', [
-      req.body.loginMethod,
-    ]);
+    const row = accountDb.first('SELECT method FROM auth WHERE method = ?', [req.body.loginMethod]);
     if (row) return req.body.loginMethod;
   }
 
@@ -101,7 +94,7 @@ export function getLoginMethod(req) {
 
 export async function bootstrap(loginSettings, forced = false) {
   if (!loginSettings) {
-    return { error: 'invalid-login-settings' };
+    return {error: 'invalid-login-settings'};
   }
   const passEnabled = 'password' in loginSettings;
   const openIdEnabled = 'openId' in loginSettings;
@@ -111,14 +104,14 @@ export async function bootstrap(loginSettings, forced = false) {
   let passwordHash;
   if (passEnabled) {
     if (!isValidPassword(loginSettings.password)) {
-      return { error: 'invalid-password' };
+      return {error: 'invalid-password'};
     }
     passwordHash = await hashPassword(loginSettings.password);
   }
 
   accountDb.mutate('BEGIN TRANSACTION');
   try {
-    const { countOfOwner } =
+    const {countOfOwner} =
       accountDb.first(
         `SELECT count(*) as countOfOwner
    FROM users
@@ -128,18 +121,18 @@ export async function bootstrap(loginSettings, forced = false) {
     if (!forced && (!openIdEnabled || countOfOwner > 0)) {
       if (!needsBootstrap()) {
         accountDb.mutate('ROLLBACK');
-        return { error: 'already-bootstrapped' };
+        return {error: 'already-bootstrapped'};
       }
     }
 
     if (!passEnabled && !openIdEnabled) {
       accountDb.mutate('ROLLBACK');
-      return { error: 'no-auth-method-selected' };
+      return {error: 'no-auth-method-selected'};
     }
 
     if (passEnabled && openIdEnabled && !forced) {
       accountDb.mutate('ROLLBACK');
-      return { error: 'max-one-method-allowed' };
+      return {error: 'max-one-method-allowed'};
     }
 
     if (passEnabled) {
@@ -147,10 +140,10 @@ export async function bootstrap(loginSettings, forced = false) {
     }
 
     if (openIdEnabled && forced) {
-      const { error } = await bootstrapOpenId(loginSettings.openId);
+      const {error} = await bootstrapOpenId(loginSettings.openId);
       if (error) {
         accountDb.mutate('ROLLBACK');
-        return { error };
+        return {error};
       }
     }
 
@@ -172,12 +165,12 @@ export function hasPermission(userId, permission) {
 
 export async function enableOpenID(loginSettings) {
   if (!loginSettings || !loginSettings.openId) {
-    return { error: 'invalid-login-settings' };
+    return {error: 'invalid-login-settings'};
   }
 
-  const { error } = (await bootstrapOpenId(loginSettings.openId)) || {};
+  const {error} = (await bootstrapOpenId(loginSettings.openId)) || {};
   if (error) {
-    return { error };
+    return {error};
   }
 
   getAccountDb().mutate('DELETE FROM sessions');
@@ -185,32 +178,30 @@ export async function enableOpenID(loginSettings) {
 
 export async function disableOpenID(loginSettings) {
   if (!loginSettings || !loginSettings.password) {
-    return { error: 'invalid-login-settings' };
+    return {error: 'invalid-login-settings'};
   }
 
   const accountDb = getAccountDb();
-  const { extra_data: passwordHash } =
-    accountDb.first('SELECT extra_data FROM auth WHERE method = ?', [
-      'password',
-    ]) || {};
+  const {extra_data: passwordHash} =
+    accountDb.first('SELECT extra_data FROM auth WHERE method = ?', ['password']) || {};
 
   if (!passwordHash) {
-    return { error: 'invalid-password' };
+    return {error: 'invalid-password'};
   }
 
   if (!loginSettings?.password) {
-    return { error: 'invalid-password' };
+    return {error: 'invalid-password'};
   }
 
   const confirmed = await verifyPassword(loginSettings.password, passwordHash);
 
   if (!confirmed) {
-    return { error: 'invalid-password' };
+    return {error: 'invalid-password'};
   }
 
-  const { error } = await bootstrapPassword(loginSettings.password);
+  const {error} = await bootstrapPassword(loginSettings.password);
   if (error) {
-    return { error };
+    return {error};
   }
 
   try {
@@ -230,7 +221,7 @@ export async function disableOpenID(loginSettings) {
     });
   } catch (err) {
     console.error('Error cleaning up openid information:', err);
-    return { error: 'database-error' };
+    return {error: 'database-error'};
   }
 }
 
@@ -252,11 +243,11 @@ export function getUserInfo(userId) {
 
 export function getUserPermission(userId) {
   const accountDb = getAccountDb();
-  const { role } = accountDb.first(
+  const {role} = accountDb.first(
     `SELECT role FROM users
           WHERE users.id = ?`,
     [userId],
-  ) || { role: '' };
+  ) || {role: ''};
 
   return role;
 }

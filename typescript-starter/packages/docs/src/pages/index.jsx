@@ -33,25 +33,19 @@ export default function Hello() {
     'Actual Budget is a super fast and privacy-focused app for managing your finances. At its heart is the well proven and much loved Envelope Budgeting methodology.';
 
   return (
-    <Layout
-      title={title}
-      description={pageDescription}
-      style={{ position: 'relative' }}
-    >
+    <Layout title={title} description={pageDescription} style={{position: 'relative'}}>
       <img alt="" src="/img/homepage/hero-bg.svg" className={classes.heroBg} />
 
       <div className={`${classes.main} ${classes.container}`}>
         <h1 className={classes.heroHeading}>Your Finances — made simple</h1>
         <p className={classes.heroText}>
-          Actual Budget is a super fast and privacy-focused app for managing
-          your finances. At its heart is the well proven and much loved Envelope
-          Budgeting methodology.
+          Actual Budget is a super fast and privacy-focused app for managing your finances. At its
+          heart is the well proven and much loved Envelope Budgeting methodology.
           <br />
-          <strong>You own your data</strong> and can do whatever you want with
-          it. Featuring multi-device sync, optional end-to-end encryption and so
-          much more.
+          <strong>You own your data</strong> and can do whatever you want with it. Featuring
+          multi-device sync, optional end-to-end encryption and so much more.
         </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1em' }}>
+        <div style={{display: 'flex', flexDirection: 'column', gap: '1em'}}>
           <div>
             <Button primary to="https://www.pikapods.com/pods?run=actual">
               Set up on PikaPods in 2 minutes
@@ -78,13 +72,9 @@ export default function Hello() {
             }}
             alt="Actual Budget"
           />
-          <Button
-            to="https://demo.actualbudget.org/"
-            className={classes.demoButton}
-          >
+          <Button to="https://demo.actualbudget.org/" className={classes.demoButton}>
             <div className={classes.demoButtonContent}>
-              <div style={{ width: 24, height: 24 }}>{icons.play}</div> Try the
-              demo
+              <div style={{width: 24, height: 24}}>{icons.play}</div> Try the demo
             </div>
           </Button>
         </div>
@@ -93,10 +83,9 @@ export default function Hello() {
           title="Be involved in your financial decisions"
           src="/img/homepage/superpowers.svg"
         >
-          Automated finance tools are great, except when they aren't. We provide
-          you with tools that are quick to use, but ultimately{' '}
-          <strong>you are in control</strong>. We help you learn, instead of
-          dictating.
+          Automated finance tools are great, except when they aren't. We provide you with tools that
+          are quick to use, but ultimately <strong>you are in control</strong>. We help you learn,
+          instead of dictating.
         </MediumFeature>
 
         <MediumFeature
@@ -109,25 +98,19 @@ export default function Hello() {
               autoPlay
               playsInline
               src="/img/homepage/design.mp4"
-              style={{ width: '100%' }}
+              style={{width: '100%'}}
             />
           }
         >
-          A <strong>beautifully designed interface</strong> is fine-tuned to get
-          out of your way and make it as fast as possible to explore your
-          finances.
+          A <strong>beautifully designed interface</strong> is fine-tuned to get out of your way and
+          make it as fast as possible to explore your finances.
         </MediumFeature>
 
-        <MediumFeature
-          title="Unabashedly local-first software"
-          src="/img/homepage/local-first.svg"
-        >
-          <strong>Actual is a local app, plain and simple.</strong> Your data is
-          synced in the background so all devices have access, but the app
-          totally works regardless of your network connection. This also allows{' '}
-          <Link to="/docs/getting-started/sync#end-to-end-encryption">
-            end-to-end encryption
-          </Link>{' '}
+        <MediumFeature title="Unabashedly local-first software" src="/img/homepage/local-first.svg">
+          <strong>Actual is a local app, plain and simple.</strong> Your data is synced in the
+          background so all devices have access, but the app totally works regardless of your
+          network connection. This also allows{' '}
+          <Link to="/docs/getting-started/sync#end-to-end-encryption">end-to-end encryption</Link>{' '}
           to keep your data private.
         </MediumFeature>
 
@@ -137,14 +120,10 @@ export default function Hello() {
           srcLight="/img/homepage/actual-main-budget.webp"
           srcDark="/img/homepage/actual-main-budget-dark.webp"
         >
-          <strong>
-            Save hundreds of dollars a year (at least!) by tracking your
-            spending.
-          </strong>{' '}
-          Based on tried and true methods, our budgeting system is based off of
-          your real income instead of made up numbers. This makes you face your
-          real spending, and clearly shows how much you are saving each month.
-          We make this process as simple as possible.{' '}
+          <strong>Save hundreds of dollars a year (at least!) by tracking your spending.</strong>{' '}
+          Based on tried and true methods, our budgeting system is based off of your real income
+          instead of made up numbers. This makes you face your real spending, and clearly shows how
+          much you are saving each month. We make this process as simple as possible.{' '}
           <Link to="/docs/budgeting/">Learn&nbsp;more</Link>
         </BigFeature>
 
@@ -153,10 +132,9 @@ export default function Hello() {
           srcLight="/img/homepage/actual-main-transaction.webp"
           srcDark="/img/homepage/actual-main-transaction-dark.webp"
         >
-          Breeze through your transactions and update them easily with a
-          streamlined, minimal interface. Categorizing your transactions
-          correctly is important and we've optimized this process. Manage split
-          transactions and transfers all in the same editor.
+          Breeze through your transactions and update them easily with a streamlined, minimal
+          interface. Categorizing your transactions correctly is important and we've optimized this
+          process. Manage split transactions and transfers all in the same editor.
         </BigFeature>
 
         <BigFeature
@@ -164,102 +142,85 @@ export default function Hello() {
           srcLight="/img/homepage/actual-report-dashboard-light.webp"
           srcDark="/img/homepage/actual-report-dashboard-dark.webp"
         >
-          Intuitive reports give you a quick way to learn about your finances.
-          By default, we include net worth and cash flow reports. Actual also
-          includes a powerful custom report engine to design your own reports to
-          fit your needs.
+          Intuitive reports give you a quick way to learn about your finances. By default, we
+          include net worth and cash flow reports. Actual also includes a powerful custom report
+          engine to design your own reports to fit your needs.
         </BigFeature>
       </div>
 
       <div className={classes.featuresSection}>
-        <img
-          alt=""
-          src="/img/homepage/features-bg.svg"
-          className={classes.featuresBg}
-        />
+        <img alt="" src="/img/homepage/features-bg.svg" className={classes.featuresBg} />
 
-        <h2 className={`${classes.featuresSectionHeader} serif-header`}>
-          So many features!
-        </h2>
+        <h2 className={`${classes.featuresSectionHeader} serif-header`}>So many features!</h2>
         <div className={`${classes.smallFeaturesGrid} ${classes.container}`}>
           <SmallFeature
             title="Everything in one place"
             icon={icons.smileyBlessedAlternate}
             learnMore="/docs/accounts/"
           >
-            Add all of your accounts and track everything in one place. Get
-            valuable information like net worth from all your accounts together.
+            Add all of your accounts and track everything in one place. Get valuable information
+            like net worth from all your accounts together.
           </SmallFeature>
           <SmallFeature
             title="Syncing across devices"
             icon={icons.synchronizeArrows1}
             learnMore="/docs/accounts/"
           >
-            Self-host our syncing service. It's easy to set up, but uses
-            sophisticated distributed systems technology to sync changes across
-            any number of devices.
+            Self-host our syncing service. It's easy to set up, but uses sophisticated distributed
+            systems technology to sync changes across any number of devices.
           </SmallFeature>
-          <SmallFeature
-            title="Bank Sync"
-            icon={icons.bank}
-            learnMore="/docs/advanced/bank-sync"
-          >
-            Actual has built in support for bank syncing using goCardless
-            (EU/UK) and SimpleFIN (US/Canada).
+          <SmallFeature title="Bank Sync" icon={icons.bank} learnMore="/docs/advanced/bank-sync">
+            Actual has built in support for bank syncing using goCardless (EU/UK) and SimpleFIN
+            (US/Canada).
           </SmallFeature>
           <SmallFeature
             title="Envelope Style Budgeting"
             icon={icons.wallet}
             learnMore="/docs/budgeting/"
           >
-            Use the power of envelope budgeting to get on top of your finances.
-            You can only budget cash you have on hand, which means your budget
-            stays realistic and you don't make numbers up.
+            Use the power of envelope budgeting to get on top of your finances. You can only budget
+            cash you have on hand, which means your budget stays realistic and you don't make
+            numbers up.
           </SmallFeature>
           <SmallFeature
             title="Transfers"
             icon={icons.dataTransferHorizontal}
             learnMore="/docs/transactions/transfers"
           >
-            Manage transfers easily by creating transfer transactions. Actual
-            will link the transactions on both sides and update them together.
+            Manage transfers easily by creating transfer transactions. Actual will link the
+            transactions on both sides and update them together.
           </SmallFeature>
           <SmallFeature
             title="Importing Transactions"
             icon={icons.commonFileDownload}
             learnMore="/docs/transactions/importing"
           >
-            Import transactions from the most popular financial files: QIF, OFX,
-            QFX, CAMT.053 and CSV.
+            Import transactions from the most popular financial files: QIF, OFX, QFX, CAMT.053 and
+            CSV.
           </SmallFeature>
           <SmallFeature
             title="Undo & redo"
             icon={icons.rotateBack}
             learnMore="/docs/getting-started/tips-tricks#undo-redo"
           >
-            A robust undo system allows you to rollback any changes you make,
-            and redo them if desired. Never worry about making mistakes.
+            A robust undo system allows you to rollback any changes you make, and redo them if
+            desired. Never worry about making mistakes.
           </SmallFeature>
           <SmallFeature
             title="Migrate your data"
             icon={icons.realEstateTruckHouse}
             learnMore="/docs/migration/"
           >
-            We provide builtin YNAB4 & nYNAB importers that keep all of your
-            history. There are many more available from the Actual Community.
+            We provide builtin YNAB4 & nYNAB importers that keep all of your history. There are many
+            more available from the Actual Community.
           </SmallFeature>
           <SmallFeature title="Dark Mode" icon={icons.moon}>
-            Choose your own style with a built in dark mode and dynamic theming
-            using your system default.
+            Choose your own style with a built in dark mode and dynamic theming using your system
+            default.
           </SmallFeature>
-          <SmallFeature
-            title="API"
-            icon={icons.hierarchy1}
-            learnMore="/docs/api/"
-          >
-            If you're a developer, we got you. Use our fully-featured API to
-            write custom importers or build your own features. This API simply
-            runs on your local data.
+          <SmallFeature title="API" icon={icons.hierarchy1} learnMore="/docs/api/">
+            If you're a developer, we got you. Use our fully-featured API to write custom importers
+            or build your own features. This API simply runs on your local data.
           </SmallFeature>
         </div>
         <div className={`${classes.ownYourDataSection} ${classes.container}`}>
@@ -267,29 +228,28 @@ export default function Hello() {
           <div className={classes.ownYourDataContent}>
             {icons.shieldLock}
             <div>
-              Actual allows you to effortlessly sync changes by running your own
-              server. Access updates from anywhere with peace of mind. For those
-              seeking next-level security, our optional end-to-end encryption
-              ensures your data remains unreadable, even to the server.
+              Actual allows you to effortlessly sync changes by running your own server. Access
+              updates from anywhere with peace of mind. For those seeking next-level security, our
+              optional end-to-end encryption ensures your data remains unreadable, even to the
+              server.
             </div>
           </div>
         </div>
 
         <p
           className={classes.container}
-          style={{ maxWidth: 500, marginTop: '12em', marginBottom: '-12em' }}
+          style={{maxWidth: 500, marginTop: '12em', marginBottom: '-12em'}}
         >
-          <small style={{ opacity: 0.6 }}>
-            * PikaPods donates 20% of fees people like you pay to run Actual on
-            their servers to{' '}
+          <small style={{opacity: 0.6}}>
+            * PikaPods donates 20% of fees people like you pay to run Actual on their servers to{' '}
             <a
-              style={{ color: 'inherit', textDecoration: 'underline' }}
+              style={{color: 'inherit', textDecoration: 'underline'}}
               href="https://opencollective.com/actual"
             >
               our Open Collective
             </a>
-            . Regardless of this relationship, we believe PikaPods is the
-            easiest way to get started with Actual.
+            . Regardless of this relationship, we believe PikaPods is the easiest way to get started
+            with Actual.
           </small>
         </p>
       </div>
@@ -297,28 +257,23 @@ export default function Hello() {
   );
 }
 
-function SmallFeature({ title, icon, learnMore, children }) {
+function SmallFeature({title, icon, learnMore, children}) {
   return (
     <div className={classes.smallFeature}>
       <div className={classes.smallFeatureIcon}>{icon}</div>
       <div className={classes.smallFeatureContent}>
         <h3 className={classes.smallFeatureTitle}>{title}</h3>
         <p className={classes.smallFeatureText}>
-          {children}{' '}
-          {learnMore ? <Link to={learnMore}>Learn&nbsp;more</Link> : null}
+          {children} {learnMore ? <Link to={learnMore}>Learn&nbsp;more</Link> : null}
         </p>
       </div>
     </div>
   );
 }
 
-function MediumFeature({ title, media, src, flip, children }) {
+function MediumFeature({title, media, src, flip, children}) {
   return (
-    <div
-      className={`${classes.mediumFeature} ${
-        flip ? classes.mediumFeature_flip : ''
-      }`}
-    >
+    <div className={`${classes.mediumFeature} ${flip ? classes.mediumFeature_flip : ''}`}>
       <div className={classes.mediumFeatureContent}>
         <h2 className="serif-header">{title}</h2>
         {children}
@@ -332,7 +287,7 @@ function MediumFeature({ title, media, src, flip, children }) {
   );
 }
 
-function BigFeature({ title, media, srcLight, srcDark = null, children }) {
+function BigFeature({title, media, srcLight, srcDark = null, children}) {
   const imgDark = srcDark ? srcDark : srcLight;
   return (
     <div className={classes.bigFeature}>

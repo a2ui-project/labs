@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgStrokeWidth = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -26,9 +26,6 @@ export const SvgStrokeWidth = (props: SVGProps<SVGSVGElement>) => (
       ...props.style,
     }}
   >
-    <path
-      d="M0 0h20v5H0zm0 7h20v4H0zm0 6h20v3H0zm0 5h20v2H0z"
-      fill="currentColor"
-    />
+    <path d="M0 0h20v5H0zm0 7h20v4H0zm0 6h20v3H0zm0 5h20v2H0z" fill="currentColor" />
   </svg>
 );

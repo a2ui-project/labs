@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import type { ReactNode } from 'react';
+import React, {useState} from 'react';
+import type {ReactNode} from 'react';
 
 type ChildrenProps = {
   refreshing: boolean;
@@ -25,7 +25,7 @@ type SyncRefreshProps = {
   onSync: () => Promise<void>;
   children: (props: ChildrenProps) => ReactNode;
 };
-export function SyncRefresh({ onSync, children }: SyncRefreshProps) {
+export function SyncRefresh({onSync, children}: SyncRefreshProps) {
   const [syncing, setSyncing] = useState(false);
 
   async function onSync_() {
@@ -34,5 +34,5 @@ export function SyncRefresh({ onSync, children }: SyncRefreshProps) {
     setSyncing(false);
   }
 
-  return <>{children({ refreshing: syncing, onRefresh: onSync_ })}</>;
+  return <>{children({refreshing: syncing, onRefresh: onSync_})}</>;
 }

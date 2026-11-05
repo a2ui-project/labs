@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { Text } from '@actual-app/components/text';
-import { View } from '@actual-app/components/view';
+import {Text} from '@actual-app/components/text';
+import {View} from '@actual-app/components/view';
 
-import { MonteCarloCashflowSwatch } from '#components/reports/graphs/MonteCarloCashflowSwatch';
-import type { MonteCarloCashflowSeries } from '#components/reports/graphs/util/monteCarloCashflowChart';
-import { GROUP_HEADING_STYLE } from '#components/reports/reports/monte-carlo/monteCarloStyles';
+import {MonteCarloCashflowSwatch} from '#components/reports/graphs/MonteCarloCashflowSwatch';
+import type {MonteCarloCashflowSeries} from '#components/reports/graphs/util/monteCarloCashflowChart';
+import {GROUP_HEADING_STYLE} from '#components/reports/reports/monte-carlo/monteCarloStyles';
 
 type MonteCarloCashflowLegendGroupProps = {
   heading: string;
@@ -32,7 +32,7 @@ export function MonteCarloCashflowLegendGroup({
   series,
 }: MonteCarloCashflowLegendGroupProps) {
   return (
-    <View style={{ gap: 6 }}>
+    <View style={{gap: 6}}>
       <Text style={GROUP_HEADING_STYLE}>{heading}</Text>
       <View
         style={{
@@ -43,10 +43,7 @@ export function MonteCarloCashflowLegendGroup({
         }}
       >
         {series.map(entry => (
-          <View
-            key={entry.key}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-          >
+          <View key={entry.key} style={{flexDirection: 'row', alignItems: 'center', gap: 6}}>
             <MonteCarloCashflowSwatch color={entry.color} size={12} />
             <Text>{entry.label}</Text>
           </View>

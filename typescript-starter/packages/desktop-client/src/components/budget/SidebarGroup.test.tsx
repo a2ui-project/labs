@@ -15,24 +15,17 @@
  */
 
 import React from 'react';
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
-import { generateCategoryGroup } from '@actual-app/core/mocks';
-import { initServer } from '@actual-app/core/platform/client/connection';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {generateCategoryGroup} from '@actual-app/core/mocks';
+import {initServer} from '@actual-app/core/platform/client/connection';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 
-import {
-  configureTestAppStore,
-  createTestQueryClient,
-  TestProviders,
-} from '#mocks';
+import {configureTestAppStore, createTestQueryClient, TestProviders} from '#mocks';
 
-import { SidebarGroup } from './SidebarGroup';
+import {SidebarGroup} from './SidebarGroup';
 
-vi.mock(
-  '@actual-app/core/platform/client/connection',
-  () => import('#mocks/connection'),
-);
+vi.mock('@actual-app/core/platform/client/connection', () => import('#mocks/connection'));
 
 describe('SidebarGroup context menu', () => {
   let store: ReturnType<typeof configureTestAppStore>;
@@ -41,17 +34,15 @@ describe('SidebarGroup context menu', () => {
 
   beforeEach(() => {
     initServer({
-      query: async () => ({ data: [], dependencies: [] }),
-      'get-cell': async () => ({ name: 'test-cell', value: 0 }),
+      query: async () => ({data: [], dependencies: []}),
+      'get-cell': async () => ({name: 'test-cell', value: 0}),
     });
 
-    store = configureTestAppStore({ queryClient: createTestQueryClient() });
+    store = configureTestAppStore({queryClient: createTestQueryClient()});
   });
 
   async function renderRow(children: ReactNode) {
-    const result = render(
-      <TestProviders store={store}>{children}</TestProviders>,
-    );
+    const result = render(<TestProviders store={store}>{children}</TestProviders>);
     // Flush the async notes query kicked off on mount
     await act(() => Promise.resolve());
     return result;
@@ -60,15 +51,13 @@ describe('SidebarGroup context menu', () => {
   function contextMenuItemNames() {
     return store
       .getState()
-      .contextMenu.items.map(item =>
-        typeof item === 'object' ? item.name : null,
-      );
+      .contextMenu.items.map(item => (typeof item === 'object' ? item.name : null));
   }
 
   it('opens after the group has been renamed', async () => {
     const onSave = vi.fn();
 
-    const { rerender } = await renderRow(
+    const {rerender} = await renderRow(
       <SidebarGroup
         group={group}
         editing={false}
@@ -83,13 +72,9 @@ describe('SidebarGroup context menu', () => {
     fireEvent.contextMenu(screen.getByText('Usual Expenses'));
 
     expect(store.getState().contextMenu.isOpen).toBe(true);
-    expect(contextMenuItemNames()).toEqual([
-      'rename',
-      'toggle-visibility',
-      'delete',
-    ]);
+    expect(contextMenuItemNames()).toEqual(['rename', 'toggle-visibility', 'delete']);
 
-    store.dispatch({ type: 'contextMenu/closeContextMenu' });
+    store.dispatch({type: 'contextMenu/closeContextMenu'});
 
     // Renaming exposes the cell's input, which unmounts the row's display
     // node, then puts a brand new one back when editing ends.
@@ -108,14 +93,12 @@ describe('SidebarGroup context menu', () => {
     );
 
     const input = screen.getByRole('textbox');
-    fireEvent.change(input, { target: { value: 'Renamed Group' } });
+    fireEvent.change(input, {target: {value: 'Renamed Group'}});
     fireEvent.blur(input);
 
-    expect(onSave).toHaveBeenCalledWith(
-      expect.objectContaining({ name: 'Renamed Group' }),
-    );
+    expect(onSave).toHaveBeenCalledWith(expect.objectContaining({name: 'Renamed Group'}));
 
-    const renamed = { ...group, name: 'Renamed Group' };
+    const renamed = {...group, name: 'Renamed Group'};
     rerender(
       <TestProviders store={store}>
         <SidebarGroup
@@ -134,10 +117,6 @@ describe('SidebarGroup context menu', () => {
     fireEvent.contextMenu(screen.getByText('Renamed Group'));
 
     expect(store.getState().contextMenu.isOpen).toBe(true);
-    expect(contextMenuItemNames()).toEqual([
-      'rename',
-      'toggle-visibility',
-      'delete',
-    ]);
+    expect(contextMenuItemNames()).toEqual(['rename', 'toggle-visibility', 'delete']);
   });
 });

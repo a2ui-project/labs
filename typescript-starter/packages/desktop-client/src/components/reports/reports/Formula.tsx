@@ -14,36 +14,36 @@
  * limitations under the License.
  */
 
-import { lazy, Suspense, useCallback, useMemo, useRef, useState } from 'react';
-import type { ChangeEvent } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import {lazy, Suspense, useCallback, useMemo, useRef, useState} from 'react';
+import type {ChangeEvent} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { Input } from '@actual-app/components/input';
-import { Select } from '@actual-app/components/select';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { Toggle } from '@actual-app/components/toggle';
-import { View } from '@actual-app/components/view';
-import type { FormulaWidget } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {Input} from '@actual-app/components/input';
+import {Select} from '@actual-app/components/select';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {Toggle} from '@actual-app/components/toggle';
+import {View} from '@actual-app/components/view';
+import type {FormulaWidget} from '@actual-app/core/types/models';
 
-import { EditablePageHeaderTitle } from '#components/EditablePageHeaderTitle';
-import { QueryManager } from '#components/formula/QueryManager';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page, PageHeader } from '#components/Page';
-import { FormulaResult } from '#components/reports/FormulaResult';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useDashboardWidget } from '#hooks/useDashboardWidget';
-import { useFormulaExecution } from '#hooks/useFormulaExecution';
-import { useNavigate } from '#hooks/useNavigate';
-import { useThemeColors } from '#hooks/useThemeColors';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { useUpdateDashboardWidgetMutation } from '#reports/mutations';
+import {EditablePageHeaderTitle} from '#components/EditablePageHeaderTitle';
+import {QueryManager} from '#components/formula/QueryManager';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page, PageHeader} from '#components/Page';
+import {FormulaResult} from '#components/reports/FormulaResult';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useDashboardWidget} from '#hooks/useDashboardWidget';
+import {useFormulaExecution} from '#hooks/useFormulaExecution';
+import {useNavigate} from '#hooks/useNavigate';
+import {useThemeColors} from '#hooks/useThemeColors';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {useUpdateDashboardWidgetMutation} from '#reports/mutations';
 
 const FormulaEditor = lazy(() =>
   import('#components/formula/FormulaEditor').then(module => ({
@@ -53,7 +53,7 @@ const FormulaEditor = lazy(() =>
 
 export function Formula() {
   const params = useParams();
-  const { data: widget, isPending } = useDashboardWidget<FormulaWidget>({
+  const {data: widget, isPending} = useDashboardWidget<FormulaWidget>({
     id: params.id,
     type: 'formula-card',
   });
@@ -69,37 +69,31 @@ type FormulaInnerProps = {
   widget?: FormulaWidget;
 };
 
-function FormulaInner({ widget }: FormulaInnerProps) {
-  const { t } = useTranslation();
+function FormulaInner({widget}: FormulaInnerProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const themeColors = useThemeColors();
 
   const queriesRef = useRef(widget?.meta?.queries || {});
   const [queriesVersion, setQueriesVersion] = useState(0);
   const {
-    data: { list: categories, grouped: categoryGroups } = {
+    data: {list: categories, grouped: categoryGroups} = {
       list: [],
       grouped: [],
     },
   } = useCategories();
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
 
-  const [formula, setFormula] = useState(
-    widget?.meta?.formula || '=SUM(1, 2, 3)',
-  );
+  const [formula, setFormula] = useState(widget?.meta?.formula || '=SUM(1, 2, 3)');
 
   const [fontSizeMode, setFontSizeMode] = useState<'dynamic' | 'static'>(
     widget?.meta?.fontSizeMode || 'dynamic',
   );
-  const [staticFontSize, setStaticFontSize] = useState<number>(
-    widget?.meta?.staticFontSize || 32,
-  );
+  const [staticFontSize, setStaticFontSize] = useState<number>(widget?.meta?.staticFontSize || 32);
   const [showTitle, setShowTitle] = useState(widget?.meta?.showTitle ?? true);
-  const [colorFormula, setColorFormula] = useState(
-    widget?.meta?.colorFormula || '',
-  );
+  const [colorFormula, setColorFormula] = useState(widget?.meta?.colorFormula || '');
 
   const title = widget?.meta?.name || t('Formula');
 
@@ -107,7 +101,7 @@ function FormulaInner({ widget }: FormulaInnerProps) {
     () =>
       accounts
         .filter(account => !account.tombstone)
-        .map(account => ({ id: account.id, name: account.name })),
+        .map(account => ({id: account.id, name: account.name})),
     [accounts],
   );
 
@@ -115,13 +109,7 @@ function FormulaInner({ widget }: FormulaInnerProps) {
     result,
     isLoading: isExecuting,
     error,
-  } = useFormulaExecution(
-    formula,
-    queriesRef.current,
-    queriesVersion,
-    undefined,
-    simpleAccounts,
-  );
+  } = useFormulaExecution(formula, queriesRef.current, queriesVersion, undefined, simpleAccounts);
 
   const colorVariables = useMemo(
     () => ({
@@ -146,14 +134,11 @@ function FormulaInner({ widget }: FormulaInnerProps) {
         .filter(category => !category.tombstone && !category.hidden)
         .map(category => {
           const groupName = categoryGroupNames[category.group];
-          return [
-            category.id,
-            groupName ? `${groupName} -> ${category.name}` : category.name,
-          ];
+          return [category.id, groupName ? `${groupName} -> ${category.name}` : category.name];
         }),
     );
   }, [categories, categoryGroups]);
-  const { result: colorResult, error: colorError } = useFormulaExecution(
+  const {result: colorResult, error: colorError} = useFormulaExecution(
     colorFormula,
     queriesRef.current,
     queriesVersion,
@@ -161,13 +146,10 @@ function FormulaInner({ widget }: FormulaInnerProps) {
     simpleAccounts,
   );
 
-  const handleQueriesChange = useCallback(
-    (newQueries: typeof queriesRef.current) => {
-      queriesRef.current = newQueries;
-      setQueriesVersion(v => v + 1);
-    },
-    [],
-  );
+  const handleQueriesChange = useCallback((newQueries: typeof queriesRef.current) => {
+    queriesRef.current = newQueries;
+    setQueriesVersion(v => v + 1);
+  }, []);
 
   const updateDashboardWidgetMutation = useUpdateDashboardWidgetMutation();
 
@@ -246,8 +228,7 @@ function FormulaInner({ widget }: FormulaInnerProps) {
   }
 
   // Determine the custom color from color formula result
-  const customColor =
-    colorFormula && !colorError && colorResult ? String(colorResult) : null;
+  const customColor = colorFormula && !colorError && colorResult ? String(colorResult) : null;
 
   return (
     <Page
@@ -255,21 +236,12 @@ function FormulaInner({ widget }: FormulaInnerProps) {
         isNarrowWidth ? (
           <MobilePageHeader
             title={title}
-            leftContent={
-              <MobileBackButton onPress={() => navigate('/reports')} />
-            }
+            leftContent={<MobileBackButton onPress={() => navigate('/reports')} />}
           />
         ) : (
           <PageHeader
             title={
-              widget ? (
-                <EditablePageHeaderTitle
-                  title={title}
-                  onSave={onSaveWidgetName}
-                />
-              ) : (
-                title
-              )
+              widget ? <EditablePageHeaderTitle title={title} onSave={onSaveWidgetName} /> : title
             }
           />
         )
@@ -286,11 +258,7 @@ function FormulaInner({ widget }: FormulaInnerProps) {
             background: theme.pageBackground,
           }}
         >
-          <Button
-            variant="primary"
-            onPress={onSaveWidget}
-            style={{ width: 100 }}
-          >
+          <Button variant="primary" onPress={onSaveWidget} style={{width: 100}}>
             <Trans>Save widget</Trans>
           </Button>
         </View>
@@ -311,7 +279,7 @@ function FormulaInner({ widget }: FormulaInnerProps) {
             flexDirection: 'column',
           }}
         >
-          <View style={{ padding: 20, paddingBottom: 0 }}>
+          <View style={{padding: 20, paddingBottom: 0}}>
             <div
               style={{
                 fontSize: 13,
@@ -323,11 +291,7 @@ function FormulaInner({ widget }: FormulaInnerProps) {
                 <Trans>Show title:</Trans>
               </label>
             </div>
-            <Toggle
-              id="formula-show-title"
-              isOn={showTitle}
-              onToggle={setShowTitle}
-            />
+            <Toggle id="formula-show-title" isOn={showTitle} onToggle={setShowTitle} />
           </View>
           <View
             style={{
@@ -386,7 +350,7 @@ function FormulaInner({ widget }: FormulaInnerProps) {
             >
               <Trans>Formula:</Trans>
             </div>
-            <Suspense fallback={<div style={{ padding: 10 }}>Loading...</div>}>
+            <Suspense fallback={<div style={{padding: 10}}>Loading...</div>}>
               <FormulaEditor
                 value={formula}
                 onChange={setFormula}
@@ -419,9 +383,7 @@ function FormulaInner({ widget }: FormulaInnerProps) {
               </div>
               <Select
                 value={fontSizeMode}
-                onChange={(value: 'dynamic' | 'static') =>
-                  setFontSizeMode(value)
-                }
+                onChange={(value: 'dynamic' | 'static') => setFontSizeMode(value)}
                 options={[
                   ['dynamic', t('Dynamic')],
                   ['static', t('Static')],
@@ -473,7 +435,7 @@ function FormulaInner({ widget }: FormulaInnerProps) {
                 backgroundColor: theme.tableBackground,
               }}
             >
-              <Suspense fallback={<div style={{ height: 32 }} />}>
+              <Suspense fallback={<div style={{height: 32}} />}>
                 <FormulaEditor
                   value={colorFormula}
                   variables={colorVariables}
@@ -494,9 +456,8 @@ function FormulaInner({ widget }: FormulaInnerProps) {
               }}
             >
               <Trans>
-                Formula that returns a color (e.g., &ldquo;red&rdquo;,
-                &ldquo;#ff0000&rdquo;). Leave blank for default. Use RESULT
-                variable to access the main formula result.
+                Formula that returns a color (e.g., &ldquo;red&rdquo;, &ldquo;#ff0000&rdquo;). Leave
+                blank for default. Use RESULT variable to access the main formula result.
               </Trans>
             </div>
           </View>
@@ -507,10 +468,7 @@ function FormulaInner({ widget }: FormulaInnerProps) {
             overflowY: 'auto',
           }}
         >
-          <QueryManager
-            queries={queriesRef.current}
-            onQueriesChange={handleQueriesChange}
-          />
+          <QueryManager queries={queriesRef.current} onQueriesChange={handleQueriesChange} />
         </View>
       </View>
     </Page>

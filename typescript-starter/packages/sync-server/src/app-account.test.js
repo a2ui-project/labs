@@ -15,11 +15,11 @@
  */
 
 import request from 'supertest';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { getAccountDb, getLoginMethod, getServerPrefs } from './account-db';
-import { bootstrapPassword } from './accounts/password';
-import { handlers as app, authRateLimiter } from './app-account';
+import {getAccountDb, getLoginMethod, getServerPrefs} from './account-db';
+import {bootstrapPassword} from './accounts/password';
+import {handlers as app, authRateLimiter} from './app-account';
 
 const ADMIN_ROLE = 'ADMIN';
 const BASIC_ROLE = 'BASIC';
@@ -68,10 +68,10 @@ beforeEach(() => {
 describe('auth rate limiting', () => {
   it('should return 429 after exceeding the rate limit on /login', async () => {
     for (let i = 0; i < 5; i++) {
-      await request(app).post('/login').send({ password: 'wrong' });
+      await request(app).post('/login').send({password: 'wrong'});
     }
 
-    const res = await request(app).post('/login').send({ password: 'wrong' });
+    const res = await request(app).post('/login').send({password: 'wrong'});
 
     expect(res.statusCode).toEqual(429);
     expect(res.body).toEqual({
@@ -82,12 +82,10 @@ describe('auth rate limiting', () => {
 
   it('should apply the same rate limit across /login and /bootstrap', async () => {
     for (let i = 0; i < 5; i++) {
-      await request(app).post('/login').send({ password: 'wrong' });
+      await request(app).post('/login').send({password: 'wrong'});
     }
 
-    const res = await request(app)
-      .post('/bootstrap')
-      .send({ password: 'test' });
+    const res = await request(app).post('/bootstrap').send({password: 'test'});
 
     expect(res.statusCode).toEqual(429);
     expect(res.body).toEqual({
@@ -98,7 +96,7 @@ describe('auth rate limiting', () => {
 
   it('should not rate limit non-auth endpoints', async () => {
     for (let i = 0; i < 6; i++) {
-      await request(app).post('/login').send({ password: 'wrong' });
+      await request(app).post('/login').send({password: 'wrong'});
     }
 
     const res = await request(app).get('/needs-bootstrap');
@@ -107,11 +105,7 @@ describe('auth rate limiting', () => {
 });
 
 describe('/change-password', () => {
-  let adminUserId,
-    basicUserId,
-    adminPasswordToken,
-    adminOpenidToken,
-    basicPasswordToken;
+  let adminUserId, basicUserId, adminPasswordToken, adminOpenidToken, basicPasswordToken;
 
   beforeEach(() => {
     adminUserId = uuidv4();
@@ -148,7 +142,7 @@ describe('/change-password', () => {
     const res = await request(app)
       .post('/change-password')
       .set('x-actual-token', basicPasswordToken)
-      .send({ password: 'newpassword' });
+      .send({password: 'newpassword'});
 
     expect(res.statusCode).toEqual(403);
     expect(res.body).toEqual({
@@ -164,7 +158,7 @@ describe('/change-password', () => {
     const res = await request(app)
       .post('/change-password')
       .set('x-actual-token', adminOpenidToken)
-      .send({ password: 'newpassword' });
+      .send({password: 'newpassword'});
 
     expect(res.statusCode).toEqual(403);
     expect(res.body).toEqual({
@@ -180,10 +174,10 @@ describe('/change-password', () => {
     const res = await request(app)
       .post('/change-password')
       .set('x-actual-token', adminPasswordToken)
-      .send({ password: '' });
+      .send({password: ''});
 
     expect(res.statusCode).toEqual(400);
-    expect(res.body).toEqual({ status: 'error', reason: 'invalid-password' });
+    expect(res.body).toEqual({status: 'error', reason: 'invalid-password'});
   });
 
   it('should return 200 when admin with password-auth session sends valid password', async () => {
@@ -192,10 +186,10 @@ describe('/change-password', () => {
     const res = await request(app)
       .post('/change-password')
       .set('x-actual-token', adminPasswordToken)
-      .send({ password: 'newpassword' });
+      .send({password: 'newpassword'});
 
     expect(res.statusCode).toEqual(200);
-    expect(res.body).toEqual({ status: 'ok', data: {} });
+    expect(res.body).toEqual({status: 'ok', data: {}});
   });
 });
 
@@ -211,20 +205,20 @@ describe('getLoginMethod()', () => {
 
   it('honors a client-requested method when it is active in DB', () => {
     insertAuthRow('openid', 1);
-    const req = { body: { loginMethod: 'openid' } };
+    const req = {body: {loginMethod: 'openid'}};
     expect(getLoginMethod(req)).toBe('openid');
   });
 
   it('honors a client-requested method that exists but is inactive in DB', () => {
     insertAuthRow('openid', 1);
     insertAuthRow('password', 0);
-    const req = { body: { loginMethod: 'password' } };
+    const req = {body: {loginMethod: 'password'}};
     expect(getLoginMethod(req)).toBe('password');
   });
 
   it('ignores a client-requested method that is not in DB', () => {
     insertAuthRow('openid', 1);
-    const req = { body: { loginMethod: 'password' } };
+    const req = {body: {loginMethod: 'password'}};
     expect(getLoginMethod(req)).toBe('openid');
   });
 
@@ -243,13 +237,11 @@ describe('/login', () => {
   it('should allow password login when OIDC is the active method', async () => {
     await bootstrapPassword('testpassword');
     insertAuthRow('openid', 1);
-    getAccountDb().mutate(
-      "UPDATE auth SET active = 0 WHERE method = 'password'",
-    );
+    getAccountDb().mutate("UPDATE auth SET active = 0 WHERE method = 'password'");
 
     const res = await request(app)
       .post('/login')
-      .send({ loginMethod: 'password', password: 'testpassword' });
+      .send({loginMethod: 'password', password: 'testpassword'});
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty('status', 'ok');
@@ -259,13 +251,11 @@ describe('/login', () => {
   it('should reject wrong password even when method is explicitly requested', async () => {
     await bootstrapPassword('testpassword');
     insertAuthRow('openid', 1);
-    getAccountDb().mutate(
-      "UPDATE auth SET active = 0 WHERE method = 'password'",
-    );
+    getAccountDb().mutate("UPDATE auth SET active = 0 WHERE method = 'password'");
 
     const res = await request(app)
       .post('/login')
-      .send({ loginMethod: 'password', password: 'wrongpassword' });
+      .send({loginMethod: 'password', password: 'wrongpassword'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.body).toHaveProperty('reason', 'invalid-password');
@@ -298,7 +288,7 @@ describe('/server-prefs', () => {
       const res = await request(app)
         .post('/server-prefs')
         .send({
-          prefs: { 'flags.plugins': 'true' },
+          prefs: {'flags.plugins': 'true'},
         });
 
       expect(res.statusCode).toEqual(401);
@@ -311,7 +301,7 @@ describe('/server-prefs', () => {
         .post('/server-prefs')
         .set('x-actual-token', basicSessionToken)
         .send({
-          prefs: { 'flags.plugins': 'true' },
+          prefs: {'flags.plugins': 'true'},
         });
 
       expect(res.statusCode).toEqual(403);
@@ -366,12 +356,12 @@ describe('/server-prefs', () => {
     });
 
     it('should return 200 and save server preferences for admin user', async () => {
-      const prefs = { 'flags.plugins': 'true' };
+      const prefs = {'flags.plugins': 'true'};
 
       const res = await request(app)
         .post('/server-prefs')
         .set('x-actual-token', adminSessionToken)
-        .send({ prefs });
+        .send({prefs});
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual({
@@ -386,17 +376,17 @@ describe('/server-prefs', () => {
 
     it('should update existing server preferences', async () => {
       // First, set initial preferences
-      getAccountDb().mutate(
-        'INSERT INTO server_prefs (key, value) VALUES (?, ?)',
-        ['flags.plugins', 'false'],
-      );
+      getAccountDb().mutate('INSERT INTO server_prefs (key, value) VALUES (?, ?)', [
+        'flags.plugins',
+        'false',
+      ]);
 
       // Update preferences
-      const updatedPrefs = { 'flags.plugins': 'true' };
+      const updatedPrefs = {'flags.plugins': 'true'};
       const res = await request(app)
         .post('/server-prefs')
         .set('x-actual-token', adminSessionToken)
-        .send({ prefs: updatedPrefs });
+        .send({prefs: updatedPrefs});
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual({
@@ -418,7 +408,7 @@ describe('/server-prefs', () => {
       const res = await request(app)
         .post('/server-prefs')
         .set('x-actual-token', adminSessionToken)
-        .send({ prefs });
+        .send({prefs});
 
       expect(res.statusCode).toEqual(200);
       expect(res.body).toEqual({

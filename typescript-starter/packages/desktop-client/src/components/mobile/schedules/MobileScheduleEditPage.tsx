@@ -16,37 +16,34 @@
 
 // @ts-strict-ignore
 import React from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send, sendCatch } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send, sendCatch} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type {
-  RecurConfig,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import type {RecurConfig, ScheduleEntity} from '@actual-app/core/types/models';
 
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page } from '#components/Page';
-import { updateScheduleConditions } from '#components/schedules/schedule-edit-utils';
-import { ScheduleEditForm } from '#components/schedules/ScheduleEditForm';
-import { useNavigate } from '#hooks/useNavigate';
-import { useScheduleEdit } from '#hooks/useScheduleEdit';
-import { useSelected } from '#hooks/useSelected';
-import { useUndo } from '#hooks/useUndo';
-import { aqlQuery } from '#queries/aqlQuery';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page} from '#components/Page';
+import {updateScheduleConditions} from '#components/schedules/schedule-edit-utils';
+import {ScheduleEditForm} from '#components/schedules/ScheduleEditForm';
+import {useNavigate} from '#hooks/useNavigate';
+import {useScheduleEdit} from '#hooks/useScheduleEdit';
+import {useSelected} from '#hooks/useSelected';
+import {useUndo} from '#hooks/useUndo';
+import {aqlQuery} from '#queries/aqlQuery';
 
 export function MobileScheduleEditPage() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
-  const { id } = useParams<{ id?: string }>();
-  const { showUndoNotification } = useUndo();
+  const {id} = useParams<{id?: string}>();
+  const {showUndoNotification} = useUndo();
 
   const adding = !id || id === 'new';
 
@@ -67,13 +64,13 @@ export function MobileScheduleEditPage() {
         return {
           posts_transaction: false,
           _date: date,
-          _conditions: [{ op: 'isapprox', field: 'date', value: date }],
+          _conditions: [{op: 'isapprox', field: 'date', value: date}],
           _actions: [],
         } satisfies Partial<ScheduleEntity>;
       })()
     : undefined;
 
-  const { state, dispatch, isLoading } = useScheduleEdit({
+  const {state, dispatch, isLoading} = useScheduleEdit({
     scheduleId: id,
     adding,
     initialSchedule,
@@ -83,14 +80,14 @@ export function MobileScheduleEditPage() {
   const selectedInst = useSelected('transactions', state.transactions, []);
 
   async function onSave() {
-    dispatch({ type: 'form-error', error: null });
+    dispatch({type: 'form-error', error: null});
     if (!state.schedule) {
       return;
     }
 
     if (state.fields.name) {
-      const { data: sameName } = await aqlQuery(
-        q('schedules').filter({ name: state.fields.name }).select('id'),
+      const {data: sameName} = await aqlQuery(
+        q('schedules').filter({name: state.fields.name}).select('id'),
       );
       if (sameName.length > 0 && sameName[0].id !== state.schedule.id) {
         dispatch({
@@ -101,28 +98,22 @@ export function MobileScheduleEditPage() {
       }
     }
 
-    const { error, conditions } = updateScheduleConditions(
-      state.schedule,
-      state.fields,
-    );
+    const {error, conditions} = updateScheduleConditions(state.schedule, state.fields);
 
     if (error) {
-      dispatch({ type: 'form-error', error });
+      dispatch({type: 'form-error', error});
       return;
     }
 
-    const res = await sendCatch(
-      adding ? 'schedule/create' : 'schedule/update',
-      {
-        schedule: {
-          id: state.schedule.id,
-          posts_transaction: state.fields.posts_transaction,
-          custom_upcoming_length: state.fields.custom_upcoming_length,
-          name: state.fields.name,
-        },
-        conditions,
+    const res = await sendCatch(adding ? 'schedule/create' : 'schedule/update', {
+      schedule: {
+        id: state.schedule.id,
+        posts_transaction: state.fields.posts_transaction,
+        custom_upcoming_length: state.fields.custom_upcoming_length,
+        name: state.fields.name,
       },
-    );
+      conditions,
+    });
 
     if (res.error) {
       dispatch({
@@ -139,9 +130,7 @@ export function MobileScheduleEditPage() {
     }
 
     showUndoNotification({
-      message: adding
-        ? t('Schedule created successfully')
-        : t('Schedule saved successfully'),
+      message: adding ? t('Schedule created successfully') : t('Schedule saved successfully'),
     });
 
     // Navigate back to schedules list
@@ -159,21 +148,21 @@ export function MobileScheduleEditPage() {
         schedule: scheduleId,
       })),
     });
-    selectedInst.dispatch({ type: 'select-none' });
+    selectedInst.dispatch({type: 'select-none'});
   }
 
   async function onUnlinkTransactions(ids: string[]) {
     await send('transactions-batch-update', {
-      updated: ids.map(id => ({ id, schedule: null })),
+      updated: ids.map(id => ({id, schedule: null})),
     });
-    selectedInst.dispatch({ type: 'select-none' });
+    selectedInst.dispatch({type: 'select-none'});
   }
 
-  const { schedule } = state;
+  const {schedule} = state;
 
   function onSwitchTransactions(mode: 'linked' | 'matched') {
-    dispatch({ type: 'switch-transactions', mode });
-    selectedInst.dispatch({ type: 'select-none' });
+    dispatch({type: 'switch-transactions', mode});
+    selectedInst.dispatch({type: 'select-none'});
   }
 
   // This is derived from the date
@@ -218,9 +207,7 @@ export function MobileScheduleEditPage() {
         header={
           <MobilePageHeader
             title={t('Schedule not found')}
-            leftContent={
-              <MobileBackButton onPress={() => navigate('/schedules')} />
-            }
+            leftContent={<MobileBackButton onPress={() => navigate('/schedules')} />}
           />
         }
         padding={0}
@@ -261,11 +248,7 @@ export function MobileScheduleEditPage() {
             borderColor: theme.tableBorder,
           }}
         >
-          <Button
-            variant="primary"
-            onPress={onSave}
-            style={{ height: styles.mobileMinHeight }}
-          >
+          <Button variant="primary" onPress={onSave} style={{height: styles.mobileMinHeight}}>
             <Trans>Save</Trans>
           </Button>
         </View>

@@ -15,13 +15,10 @@
  */
 
 import express from 'express';
-import type { Request } from 'express';
+import type {Request} from 'express';
 
-import { sha256String } from '#util/hash';
-import {
-  requestLoggerMiddleware,
-  validateSessionMiddleware,
-} from '#util/middlewares';
+import {sha256String} from '#util/hash';
+import {requestLoggerMiddleware, validateSessionMiddleware} from '#util/middlewares';
 
 import {
   AccountNotLinkedToRequisition,
@@ -36,8 +33,8 @@ import type {
   GoCardlessInstitutionId,
   GoCardlessRequisitionId,
 } from './gocardless-node.types';
-import { goCardlessService } from './services/gocardless-service';
-import { handleError } from './util/handle-error';
+import {goCardlessService} from './services/gocardless-service';
+import {handleError} from './util/handle-error';
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
@@ -59,7 +56,7 @@ function validateOrigin(origin: string | undefined) {
 }
 
 function resolveRedirectHost(req: Request) {
-  const { origin } = req.headers;
+  const {origin} = req.headers;
   const host = req.get('host');
   if (origin === ELECTRON_APP_ORIGIN && host) {
     return `${req.protocol}://${host}`;
@@ -101,7 +98,7 @@ app.get('/link', function (req, res) {
   res.send(LINK_PAGE_HTML);
 });
 
-export { app as handlers };
+export {app as handlers};
 app.use(express.json());
 app.use(validateSessionMiddleware);
 
@@ -117,11 +114,11 @@ app.post('/status', async (req, res) => {
 app.post(
   '/create-web-token',
   handleError(async (req, res) => {
-    const { institutionId: rawInstitutionId } = req.body || {};
+    const {institutionId: rawInstitutionId} = req.body || {};
     const institutionId = sanitizeId<GoCardlessInstitutionId>(rawInstitutionId);
     const host = resolveRedirectHost(req);
 
-    const { link, requisitionId } = await goCardlessService.createRequisition({
+    const {link, requisitionId} = await goCardlessService.createRequisition({
       institutionId,
       host,
     });
@@ -139,12 +136,10 @@ app.post(
 app.post(
   '/get-accounts',
   handleError(async (req, res) => {
-    const requisitionId = sanitizeId<GoCardlessRequisitionId>(
-      (req.body || {}).requisitionId,
-    );
+    const requisitionId = sanitizeId<GoCardlessRequisitionId>((req.body || {}).requisitionId);
 
     try {
-      const { requisition, accounts } =
+      const {requisition, accounts} =
         await goCardlessService.getRequisitionWithAccounts(requisitionId);
 
       res.send({
@@ -153,9 +148,7 @@ app.post(
           ...requisition,
           accounts: await Promise.all(
             accounts.map(async account =>
-              account?.iban
-                ? { ...account, iban: sha256String(account.iban) }
-                : account,
+              account?.iban ? {...account, iban: sha256String(account.iban)} : account,
             ),
           ),
         },
@@ -164,9 +157,7 @@ app.post(
       if (error instanceof RequisitionNotLinked) {
         res.send({
           status: 'ok',
-          requisitionStatus: isRecord(error.details)
-            ? error.details.requisitionStatus
-            : undefined,
+          requisitionStatus: isRecord(error.details) ? error.details.requisitionStatus : undefined,
         });
       } else {
         throw error;
@@ -178,7 +169,7 @@ app.post(
 app.post(
   '/get-banks',
   handleError(async (req, res) => {
-    const { country: rawCountry, showDemo = false } = req.body || {};
+    const {country: rawCountry, showDemo = false} = req.body || {};
     const country = sanitizeId(rawCountry);
 
     await goCardlessService.setToken();
@@ -202,9 +193,7 @@ app.post(
 app.post(
   '/remove-account',
   handleError(async (req, res) => {
-    const requisitionId = sanitizeId<GoCardlessRequisitionId>(
-      (req.body || {}).requisitionId,
-    );
+    const requisitionId = sanitizeId<GoCardlessRequisitionId>((req.body || {}).requisitionId);
 
     const data = await goCardlessService.deleteRequisition(requisitionId);
     if (data.summary === 'Requisition deleted') {
@@ -243,7 +232,7 @@ app.post(
           balances,
           institutionId,
           startingBalance,
-          transactions: { booked, pending, all },
+          transactions: {booked, pending, all},
         } = await goCardlessService.getTransactionsWithBalance(
           requisitionId,
           accountId,
@@ -267,7 +256,7 @@ app.post(
       } else {
         const {
           institutionId,
-          transactions: { booked, pending, all },
+          transactions: {booked, pending, all},
         } = await goCardlessService.getNormalizedTransactions(
           requisitionId,
           accountId,
@@ -303,19 +292,16 @@ app.post(
 
       const rateLimitHeaders = isRecord(responseHeaders)
         ? Object.fromEntries(
-            Object.entries(responseHeaders).filter(([key]) =>
-              key.startsWith('x-ratelimit-'),
-            ),
+            Object.entries(responseHeaders).filter(([key]) => key.startsWith('x-ratelimit-')),
           )
         : {};
 
-      const errorMessage =
-        error instanceof Error && error.message ? error.message : String(error);
+      const errorMessage = error instanceof Error && error.message ? error.message : String(error);
 
       const sendErrorResponse = (data: Record<string, unknown>) =>
         res.send({
           status: 'ok',
-          data: { ...data, details: errorDetails, rateLimitHeaders },
+          data: {...data, details: errorDetails, rateLimitHeaders},
         });
 
       switch (true) {
@@ -325,8 +311,7 @@ app.post(
             error_type: 'ITEM_ERROR',
             error_code: 'ITEM_LOGIN_REQUIRED',
             status: 'expired',
-            reason:
-              'Access to account has expired as set in End User Agreement',
+            reason: 'Access to account has expired as set in End User Agreement',
           });
           break;
         case error instanceof AccountNotLinkedToRequisition:

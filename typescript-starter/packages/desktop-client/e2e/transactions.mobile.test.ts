@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { MobileNavigation } from './page-models/mobile-navigation';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {MobileNavigation} from './page-models/mobile-navigation';
 
 test.describe('Mobile Transactions', () => {
   let page: Page;
   let navigation: MobileNavigation;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new MobileNavigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -51,18 +51,9 @@ test.describe('Mobile Transactions', () => {
     await transactionEntryPage.fillAmount('12.34');
     // Click anywhere to cancel active edit.
     await transactionEntryPage.header.click();
-    await transactionEntryPage.fillField(
-      page.getByTestId('payee-field'),
-      'Kroger',
-    );
-    await transactionEntryPage.fillField(
-      page.getByTestId('category-field'),
-      'Clothing',
-    );
-    await transactionEntryPage.fillField(
-      page.getByTestId('account-field'),
-      'Ally Savings',
-    );
+    await transactionEntryPage.fillField(page.getByTestId('payee-field'), 'Kroger');
+    await transactionEntryPage.fillField(page.getByTestId('category-field'), 'Clothing');
+    await transactionEntryPage.fillField(page.getByTestId('account-field'), 'Ally Savings');
     await expect(page).toMatchThemeScreenshots();
 
     await transactionEntryPage.createTransaction();
@@ -77,8 +68,7 @@ test.describe('Mobile Transactions', () => {
         '?category=Food&amount=23.42&account=HSBC&date=2025-10-31&cleared=true&payee=Kroger&notes=just+a+note',
     );
     // Note: no easy way to test cleared checkbox
-    await expect(page.getByTestId('transaction-form'))
-      .toMatchAriaSnapshot(`- text: Amount
+    await expect(page.getByTestId('transaction-form')).toMatchAriaSnapshot(`- text: Amount
 - textbox
 - text: 23.42 Payee
 - button "Kroger" [disabled]
@@ -106,20 +96,12 @@ test.describe('Mobile Transactions', () => {
     await transactionEntryPage.fillAmount('12.34');
     // Click anywhere to cancel active edit.
     await transactionEntryPage.header.click();
-    await transactionEntryPage.fillField(
-      page.getByTestId('payee-field'),
-      'Kroger',
-    );
-    await transactionEntryPage.fillField(
-      page.getByTestId('category-field'),
-      'Clothing',
-    );
+    await transactionEntryPage.fillField(page.getByTestId('payee-field'), 'Kroger');
+    await transactionEntryPage.fillField(page.getByTestId('category-field'), 'Clothing');
 
     await transactionEntryPage.createTransaction();
 
-    await expect(accountPage.transactions.nth(0)).toHaveText(
-      'KrogerClothing-12.34',
-    );
+    await expect(accountPage.transactions.nth(0)).toHaveText('KrogerClothing-12.34');
   });
 
   test('creates an uncategorized transaction from `/categories/uncategorized` page', async () => {
@@ -128,10 +110,7 @@ test.describe('Mobile Transactions', () => {
     await transactionEntryPage.fillAmount('12.35');
     // Click anywhere to cancel active edit.
     await transactionEntryPage.header.click();
-    await transactionEntryPage.fillField(
-      page.getByTestId('account-field'),
-      'Ally Savings',
-    );
+    await transactionEntryPage.fillField(page.getByTestId('account-field'), 'Ally Savings');
     await transactionEntryPage.createTransaction();
 
     const uncategorizedPage = await navigation.goToUncategorizedPage();
@@ -142,16 +121,11 @@ test.describe('Mobile Transactions', () => {
     await transactionEntryPage.fillAmount('12.34');
     // Click anywhere to cancel active edit.
     await transactionEntryPage.header.click();
-    await transactionEntryPage.fillField(
-      page.getByTestId('payee-field'),
-      'Kroger',
-    );
+    await transactionEntryPage.fillField(page.getByTestId('payee-field'), 'Kroger');
 
     await transactionEntryPage.createTransaction();
 
-    await expect(uncategorizedPage.transactions.nth(0)).toHaveText(
-      'KrogerUncategorized-12.34',
-    );
+    await expect(uncategorizedPage.transactions.nth(0)).toHaveText('KrogerUncategorized-12.34');
     await expect(page).toMatchThemeScreenshots();
   });
 
@@ -161,10 +135,7 @@ test.describe('Mobile Transactions', () => {
     await transactionEntryPage.fillAmount('12.35');
     // Click anywhere to cancel active edit.
     await transactionEntryPage.header.click();
-    await transactionEntryPage.fillField(
-      page.getByTestId('account-field'),
-      'Ally Savings',
-    );
+    await transactionEntryPage.fillField(page.getByTestId('account-field'), 'Ally Savings');
     await transactionEntryPage.createTransaction();
 
     const uncategorizedPage = await navigation.goToUncategorizedPage();
@@ -175,20 +146,12 @@ test.describe('Mobile Transactions', () => {
     await transactionEntryPage.fillAmount('12.34');
     // Click anywhere to cancel active edit.
     await transactionEntryPage.header.click();
-    await transactionEntryPage.fillField(
-      page.getByTestId('payee-field'),
-      'Kroger',
-    );
-    await transactionEntryPage.fillField(
-      page.getByTestId('category-field'),
-      'Clothing',
-    );
+    await transactionEntryPage.fillField(page.getByTestId('payee-field'), 'Kroger');
+    await transactionEntryPage.fillField(page.getByTestId('category-field'), 'Clothing');
 
     await transactionEntryPage.createTransaction();
 
-    await expect(uncategorizedPage.transactions.nth(0)).toHaveText(
-      '(No payee)Uncategorized-12.35',
-    );
+    await expect(uncategorizedPage.transactions.nth(0)).toHaveText('(No payee)Uncategorized-12.35');
     await expect(page).toMatchThemeScreenshots();
   });
 });

@@ -15,35 +15,35 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { ButtonWithLoading } from '@actual-app/components/button';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import { q } from '@actual-app/core/shared/query';
-import type { DiscoverScheduleEntity } from '@actual-app/core/types/models';
+import {ButtonWithLoading} from '@actual-app/components/button';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import {q} from '@actual-app/core/shared/query';
+import type {DiscoverScheduleEntity} from '@actual-app/core/types/models';
 
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { Field, Row, SelectCell, Table, TableHeader } from '#components/table';
-import { DisplayId } from '#components/util/DisplayId';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useLocale } from '#hooks/useLocale';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {Field, Row, SelectCell, Table, TableHeader} from '#components/table';
+import {DisplayId} from '#components/util/DisplayId';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useLocale} from '#hooks/useLocale';
 import {
   SelectedProvider,
   useSelected,
   useSelectedDispatch,
   useSelectedItems,
 } from '#hooks/useSelected';
-import { useSendPlatformRequest } from '#hooks/useSendPlatformRequest';
-import { aqlQuery } from '#queries/aqlQuery';
-import { getRecurringDescription } from '#util/schedule';
+import {useSendPlatformRequest} from '#hooks/useSendPlatformRequest';
+import {aqlQuery} from '#queries/aqlQuery';
+import {getRecurringDescription} from '#util/schedule';
 
-import { ScheduleAmountCell } from './SchedulesTable';
+import {ScheduleAmountCell} from './SchedulesTable';
 
 const ROW_HEIGHT = 43;
 
@@ -54,21 +54,17 @@ function DiscoverSchedulesTable({
   schedules: DiscoverScheduleEntity[];
   loading: boolean;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const selectedItems = useSelectedItems();
   const dispatchSelected = useSelectedDispatch();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
   const locale = useLocale();
 
-  function renderItem({ item }: { item: DiscoverScheduleEntity }) {
+  function renderItem({item}: {item: DiscoverScheduleEntity}) {
     const selected = selectedItems.has(item.id);
     const amountOp = item._conditions.find(c => c.field === 'amount').op;
-    const recurDescription = getRecurringDescription(
-      item.date,
-      dateFormat,
-      locale,
-    );
+    const recurDescription = getRecurringDescription(item.date, dateFormat, locale);
 
     return (
       <Row
@@ -84,12 +80,8 @@ function DiscoverSchedulesTable({
         style={{
           borderColor: selected ? theme.tableBorderSelected : theme.tableBorder,
           cursor: 'pointer',
-          color: selected
-            ? theme.tableRowBackgroundHighlightText
-            : theme.tableText,
-          backgroundColor: selected
-            ? theme.tableRowBackgroundHighlight
-            : theme.tableBackground,
+          color: selected ? theme.tableRowBackgroundHighlightText : theme.tableText,
+          backgroundColor: selected ? theme.tableRowBackgroundHighlight : theme.tableBackground,
           ':hover': {
             backgroundColor: theme.tableRowBackgroundHover,
             color: theme.tableText,
@@ -114,7 +106,7 @@ function DiscoverSchedulesTable({
         <Field width="flex">
           <DisplayId type="accounts" id={item.account} />
         </Field>
-        <Field width="auto" title={recurDescription} style={{ flex: 1.5 }}>
+        <Field width="auto" title={recurDescription} style={{flex: 1.5}}>
           {recurDescription}
         </Field>
         <ScheduleAmountCell amount={item.amount} op={amountOp} />
@@ -129,9 +121,7 @@ function DiscoverSchedulesTable({
           exposed={!loading}
           focused={false}
           selected={selectedItems.size > 0}
-          onSelect={e =>
-            dispatchSelected({ type: 'select-all', isRangeSelect: e.shiftKey })
-          }
+          onSelect={e => dispatchSelected({type: 'select-all', isRangeSelect: e.shiftKey})}
         />
         <Field width="flex">
           <Trans>Payee</Trans>
@@ -139,10 +129,10 @@ function DiscoverSchedulesTable({
         <Field width="flex">
           <Trans>Account</Trans>
         </Field>
-        <Field width="auto" style={{ flex: 1.5 }}>
+        <Field width="auto" style={{flex: 1.5}}>
           <Trans>When</Trans>
         </Field>
-        <Field width={100} style={{ textAlign: 'right' }}>
+        <Field width={100} style={{textAlign: 'right'}}>
           <Trans>Amount</Trans>
         </Field>
       </TableHeader>
@@ -163,19 +153,15 @@ function DiscoverSchedulesTable({
 }
 
 export function DiscoverSchedules() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
-  const { data, isLoading } = useSendPlatformRequest('schedule/discover');
+  const {data, isLoading} = useSendPlatformRequest('schedule/discover');
 
   const schedules = data || [];
 
   const [creating, setCreating] = useState(false);
 
-  const selectedInst = useSelected<DiscoverScheduleEntity>(
-    'discover-schedules',
-    schedules,
-    [],
-  );
+  const selectedInst = useSelected<DiscoverScheduleEntity>('discover-schedules', schedules, []);
 
   async function onCreate() {
     const selected = schedules.filter(s => selectedInst.items.has(s.id));
@@ -188,13 +174,13 @@ export function DiscoverSchedules() {
       });
 
       // Now query for matching transactions and link them automatically
-      const { filters } = await send('make-filters-from-conditions', {
+      const {filters} = await send('make-filters-from-conditions', {
         conditions: schedule._conditions,
       });
 
       if (filters.length > 0) {
-        const { data: transactions } = await aqlQuery(
-          q('transactions').filter({ $and: filters }).select('id'),
+        const {data: transactions} = await aqlQuery(
+          q('transactions').filter({$and: filters}).select('id'),
         );
 
         await send('transactions-batch-update', {
@@ -210,11 +196,8 @@ export function DiscoverSchedules() {
   }
 
   return (
-    <Modal
-      name="schedules-discover"
-      containerProps={{ style: { width: 850, height: 650 } }}
-    >
-      {({ state }) => (
+    <Modal name="schedules-discover" containerProps={{style: {width: 850, height: 650}}}>
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Found Schedules')}
@@ -222,16 +205,15 @@ export function DiscoverSchedules() {
           />
           <Paragraph>
             <Trans>
-              We found some possible schedules in your current transactions.
-              Select the ones you want to create.
+              We found some possible schedules in your current transactions. Select the ones you
+              want to create.
             </Trans>
           </Paragraph>
           <Paragraph>
             <Trans>
-              If you expected a schedule here and don't see it, it might be
-              because the payees of the transactions don't match. Make sure you
-              rename payees on all transactions for a schedule to be the same
-              payee.
+              If you expected a schedule here and don't see it, it might be because the payees of
+              the transactions don't match. Make sure you rename payees on all transactions for a
+              schedule to be the same payee.
             </Trans>
           </Paragraph>
 

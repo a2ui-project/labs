@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
+import {useState} from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { SvgAdd, SvgTrash } from './icons/v1';
-import { SvgPencil1 } from './icons/v2';
-import { Menu, type MenuItem } from './Menu';
-import { Text } from './Text';
-import { View } from './View';
+import {SvgAdd, SvgTrash} from './icons/v1';
+import {SvgPencil1} from './icons/v2';
+import {Menu, type MenuItem} from './Menu';
+import {Text} from './Text';
+import {View} from './View';
 
 const meta = {
   title: 'Components/Menu',
@@ -38,9 +38,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const basicItems: Array<MenuItem<string>> = [
-  { name: 'edit', text: 'Edit' },
-  { name: 'duplicate', text: 'Duplicate' },
-  { name: 'delete', text: 'Delete' },
+  {name: 'edit', text: 'Edit'},
+  {name: 'duplicate', text: 'Duplicate'},
+  {name: 'delete', text: 'Delete'},
 ];
 
 export const Default: Story = {
@@ -59,9 +59,9 @@ export const Default: Story = {
 export const WithIcons: Story = {
   args: {
     items: [
-      { name: 'add', text: 'Add New', icon: SvgAdd },
-      { name: 'edit', text: 'Edit', icon: SvgPencil1 },
-      { name: 'delete', text: 'Delete', icon: SvgTrash },
+      {name: 'add', text: 'Add New', icon: SvgAdd},
+      {name: 'edit', text: 'Edit', icon: SvgPencil1},
+      {name: 'delete', text: 'Delete', icon: SvgTrash},
     ],
   },
   parameters: {
@@ -76,11 +76,11 @@ export const WithIcons: Story = {
 export const WithSeparator: Story = {
   args: {
     items: [
-      { name: 'cut', text: 'Cut' },
-      { name: 'copy', text: 'Copy' },
-      { name: 'paste', text: 'Paste' },
+      {name: 'cut', text: 'Cut'},
+      {name: 'copy', text: 'Copy'},
+      {name: 'paste', text: 'Paste'},
       Menu.line,
-      { name: 'delete', text: 'Delete' },
+      {name: 'delete', text: 'Delete'},
     ],
   },
   parameters: {
@@ -95,12 +95,12 @@ export const WithSeparator: Story = {
 export const WithLabel: Story = {
   args: {
     items: [
-      { type: Menu.label, name: 'Actions', text: 'Actions' },
-      { name: 'edit', text: 'Edit' },
-      { name: 'duplicate', text: 'Duplicate' },
+      {type: Menu.label, name: 'Actions', text: 'Actions'},
+      {name: 'edit', text: 'Edit'},
+      {name: 'duplicate', text: 'Duplicate'},
       Menu.line,
-      { type: Menu.label, name: 'Danger Zone', text: 'Danger Zone' },
-      { name: 'delete', text: 'Delete' },
+      {type: Menu.label, name: 'Danger Zone', text: 'Danger Zone'},
+      {name: 'delete', text: 'Delete'},
     ],
   },
   parameters: {
@@ -115,9 +115,9 @@ export const WithLabel: Story = {
 export const WithDisabledItems: Story = {
   args: {
     items: [
-      { name: 'edit', text: 'Edit' },
-      { name: 'duplicate', text: 'Duplicate', disabled: true },
-      { name: 'delete', text: 'Delete' },
+      {name: 'edit', text: 'Edit'},
+      {name: 'duplicate', text: 'Duplicate', disabled: true},
+      {name: 'delete', text: 'Delete'},
     ],
   },
   parameters: {
@@ -132,9 +132,9 @@ export const WithDisabledItems: Story = {
 export const WithKeyboardShortcuts: Story = {
   args: {
     items: [
-      { name: 'cut', text: 'Cut', key: 'ctrl + X' },
-      { name: 'copy', text: 'Copy', key: 'ctrl + C' },
-      { name: 'paste', text: 'Paste', key: 'ctrl + V' },
+      {name: 'cut', text: 'Cut', key: 'ctrl + X'},
+      {name: 'copy', text: 'Copy', key: 'ctrl + C'},
+      {name: 'paste', text: 'Paste', key: 'ctrl + V'},
     ],
   },
   parameters: {
@@ -163,15 +163,15 @@ export const WithToggle: Story = {
         text: 'Notifications',
         toggle: settings.notifications,
       },
-      { name: 'darkMode', text: 'Dark Mode', toggle: settings.darkMode },
-      { name: 'autoSave', text: 'Auto Save', toggle: settings.autoSave },
+      {name: 'darkMode', text: 'Dark Mode', toggle: settings.darkMode},
+      {name: 'autoSave', text: 'Auto Save', toggle: settings.autoSave},
     ];
 
     return (
       <Menu
         items={items}
         onMenuSelect={name => {
-          setSettings(prev => ({ ...prev, [name]: !prev[name] }));
+          setSettings(prev => ({...prev, [name]: !prev[name]}));
         }}
       />
     );
@@ -188,13 +188,13 @@ export const WithToggle: Story = {
 export const WithHeaderAndFooter: Story = {
   args: {
     header: (
-      <View style={{ padding: 10, borderBottom: '1px solid #ccc' }}>
-        <Text style={{ fontWeight: 'bold' }}>Menu Title</Text>
+      <View style={{padding: 10, borderBottom: '1px solid #ccc'}}>
+        <Text style={{fontWeight: 'bold'}}>Menu Title</Text>
       </View>
     ),
     footer: (
-      <View style={{ padding: 10, borderTop: '1px solid #ccc' }}>
-        <Text style={{ fontSize: 11, color: '#666' }}>3 items</Text>
+      <View style={{padding: 10, borderTop: '1px solid #ccc'}}>
+        <Text style={{fontSize: 11, color: '#666'}}>3 items</Text>
       </View>
     ),
     items: basicItems,
@@ -211,7 +211,7 @@ export const WithHeaderAndFooter: Story = {
 export const WithTooltips: Story = {
   args: {
     items: [
-      { name: 'edit', text: 'Edit', tooltip: 'Modify this item' },
+      {name: 'edit', text: 'Edit', tooltip: 'Modify this item'},
       {
         name: 'duplicate',
         text: 'Duplicate',
@@ -241,11 +241,9 @@ export const InteractiveExample: Story = {
     const [selected, setSelected] = useState<string | null>(null);
 
     return (
-      <View style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <View style={{display: 'flex', flexDirection: 'column', gap: 10}}>
         <Menu {...args} onMenuSelect={name => setSelected(String(name))} />
-        {selected && (
-          <Text style={{ textAlign: 'center' }}>Selected: {selected}</Text>
-        )}
+        {selected && <Text style={{textAlign: 'center'}}>Selected: {selected}</Text>}
       </View>
     );
   },

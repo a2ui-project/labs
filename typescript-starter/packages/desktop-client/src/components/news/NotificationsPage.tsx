@@ -14,32 +14,31 @@
  * limitations under the License.
  */
 
-import { useEffect, useEffectEvent, useRef } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useEffect, useEffectEvent, useRef} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { Link } from '#components/common/Link';
-import { MOBILE_NAV_HEIGHT } from '#components/mobile/MobileNavTabs';
-import { Page } from '#components/Page';
-import { Setting } from '#components/settings/UI';
-import { useNewsFeed } from '#hooks/useNewsFeed';
-import { getUnseenEntries } from '#news/utils';
+import {Link} from '#components/common/Link';
+import {MOBILE_NAV_HEIGHT} from '#components/mobile/MobileNavTabs';
+import {Page} from '#components/Page';
+import {Setting} from '#components/settings/UI';
+import {useNewsFeed} from '#hooks/useNewsFeed';
+import {getUnseenEntries} from '#news/utils';
 
-import { NewsEntryCard } from './NewsEntryCard';
+import {NewsEntryCard} from './NewsEntryCard';
 
 const RELEASE_NOTES_URL = 'https://actualbudget.org/docs/releases';
 const BLOG_URL = 'https://actualbudget.org/blog';
 const DISCORD_URL = 'https://discord.gg/pRYNYr4W5A';
 
 export function NotificationsPage() {
-  const { t } = useTranslation();
-  const { entries, isLoading, error, lastSeenNewsDate, markAllSeen } =
-    useNewsFeed();
+  const {t} = useTranslation();
+  const {entries, isLoading, error, lastSeenNewsDate, markAllSeen} = useNewsFeed();
 
   // Everything is marked as seen once the page shows it, but the unread
   // markers should reflect what was new when the page opened, so remember the
@@ -87,7 +86,7 @@ export function NotificationsPage() {
         </View>
 
         {isLoading && (
-          <View style={{ alignItems: 'center', padding: 30 }}>
+          <View style={{alignItems: 'center', padding: 30}}>
             <AnimatedLoading
               style={{
                 width: 20,
@@ -104,10 +103,9 @@ export function NotificationsPage() {
           <Setting>
             <Text data-testid="notifications-offline">
               <Trans>
-                <strong>The latest news isn't available right now.</strong>{' '}
-                Actual couldn't reach actualbudget.org, which usually means
-                you're offline. That's fine - everything else in Actual keeps
-                working, and the news will load next time you're connected.
+                <strong>The latest news isn't available right now.</strong> Actual couldn't reach
+                actualbudget.org, which usually means you're offline. That's fine - everything else
+                in Actual keeps working, and the news will load next time you're connected.
               </Trans>
             </Text>
           </Setting>
@@ -122,11 +120,7 @@ export function NotificationsPage() {
         )}
 
         {entries.map(entry => (
-          <NewsEntryCard
-            key={entry.id}
-            entry={entry}
-            isUnread={unseenOnOpen.has(entry.id)}
-          />
+          <NewsEntryCard key={entry.id} entry={entry} isUnread={unseenOnOpen.has(entry.id)} />
         ))}
       </View>
     </Page>

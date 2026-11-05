@@ -26,20 +26,16 @@ import {
   SvgLockClosed,
   SvgValidationCheck,
 } from '@actual-app/components/icons/v2';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { ScheduleStatusType } from '@actual-app/core/shared/schedules';
-import { titleFirst } from '@actual-app/core/shared/util';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {ScheduleStatusType} from '@actual-app/core/shared/schedules';
+import {titleFirst} from '@actual-app/core/shared/util';
 
-import { getStatusLabel } from '#util/schedule';
+import {getStatusLabel} from '#util/schedule';
 
 // Consists of Schedule Statuses + Transaction statuses
-export type StatusTypes =
-  | ScheduleStatusType
-  | 'cleared'
-  | 'pending'
-  | 'reconciled';
+export type StatusTypes = ScheduleStatusType | 'cleared' | 'pending' | 'reconciled';
 
 export const defaultStatusProps = {
   color: theme.buttonNormalDisabledText,
@@ -108,8 +104,8 @@ export function getStatusProps(status: StatusTypes | null | undefined) {
   }
 }
 
-export function StatusBadge({ status }: { status: ScheduleStatusType }) {
-  const { color, backgroundColor, Icon } = getStatusProps(status);
+export function StatusBadge({status}: {status: ScheduleStatusType}) {
+  const {color, backgroundColor, Icon} = getStatusProps(status);
   return (
     <View
       style={{
@@ -129,9 +125,7 @@ export function StatusBadge({ status }: { status: ScheduleStatusType }) {
           marginRight: 7,
         }}
       />
-      <Text style={{ lineHeight: '1em' }}>
-        {titleFirst(getStatusLabel(status))}
-      </Text>
+      <Text style={{lineHeight: '1em'}}>{titleFirst(getStatusLabel(status))}</Text>
     </View>
   );
 }

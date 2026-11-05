@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-import type { HTMLProps } from 'react';
+import type {HTMLProps} from 'react';
 
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import type { CSSProperties } from './styles';
+import type {CSSProperties} from './styles';
 
 type ParagraphProps = Omit<HTMLProps<HTMLDivElement>, 'style'> & {
   style?: CSSProperties;
   isLast?: boolean;
 };
 
-export function Paragraph({
-  style,
-  isLast,
-  children,
-  ...props
-}: ParagraphProps) {
+export function Paragraph({style, isLast, children, ...props}: ParagraphProps) {
   return (
     <div
       {...props}
       className={css([
-        !isLast && { marginBottom: 15 },
+        !isLast && {marginBottom: 15},
         style,
         {
           lineHeight: '1.5em',

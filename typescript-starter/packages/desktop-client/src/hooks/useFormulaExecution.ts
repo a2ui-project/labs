@@ -14,37 +14,30 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import {useEffect, useRef, useState} from 'react';
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import {
   createBudgetQueryPrefetchKey,
   setCachedUserPreferences,
 } from '@actual-app/core/shared/formulas/customFunctions';
-import type { FormulaQueryContext } from '@actual-app/core/shared/formulas/customFunctions';
+import type {FormulaQueryContext} from '@actual-app/core/shared/formulas/customFunctions';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type { Query } from '@actual-app/core/shared/query';
-import { integerToAmount } from '@actual-app/core/shared/util';
-import type {
-  CategoryEntity,
-  RuleConditionEntity,
-  TimeFrame,
-} from '@actual-app/core/types/models';
-import { HyperFormula } from 'hyperformula';
+import {q} from '@actual-app/core/shared/query';
+import type {Query} from '@actual-app/core/shared/query';
+import {integerToAmount} from '@actual-app/core/shared/util';
+import type {CategoryEntity, RuleConditionEntity, TimeFrame} from '@actual-app/core/types/models';
+import {HyperFormula} from 'hyperformula';
 
 import {
   normalizeQueryTimeFrameEnd,
   normalizeQueryTimeFrameStart,
 } from '#components/formula/queryTimeFrame';
-import {
-  asMonthSlidingTimeFrame,
-  calculateTimeRange,
-} from '#components/reports/reportRanges';
-import { bootstrapHyperFormula } from '#util/bootstrapHyperFormula';
+import {asMonthSlidingTimeFrame, calculateTimeRange} from '#components/reports/reportRanges';
+import {bootstrapHyperFormula} from '#util/bootstrapHyperFormula';
 
-import { useGlobalPref } from './useGlobalPref';
-import { useLocale } from './useLocale';
+import {useGlobalPref} from './useGlobalPref';
+import {useLocale} from './useLocale';
 
 bootstrapHyperFormula();
 
@@ -58,7 +51,7 @@ type QueriesMap = Record<string, QueryConfig>;
 
 type FormulaCellValue = number | string | boolean | null;
 
-export type SimpleAccount = { id: string; name: string };
+export type SimpleAccount = {id: string; name: string};
 
 function createFormulaQueryContext(): Required<FormulaQueryContext> {
   return {
@@ -80,12 +73,8 @@ function createFormulaQueryContext(): Required<FormulaQueryContext> {
   };
 }
 
-function isHyperFormulaError(
-  cellValue: unknown,
-): cellValue is { type: string; message?: string } {
-  return Boolean(
-    cellValue && typeof cellValue === 'object' && 'type' in cellValue,
-  );
+function isHyperFormulaError(cellValue: unknown): cellValue is {type: string; message?: string} {
+  return Boolean(cellValue && typeof cellValue === 'object' && 'type' in cellValue);
 }
 
 function evaluateFormulaWithContext({
@@ -123,14 +112,11 @@ function evaluateFormulaWithContext({
 
     if (namedExpressions) {
       for (const [name, value] of Object.entries(namedExpressions)) {
-        hfInstance.addNamedExpression(
-          name,
-          typeof value === 'number' ? value : String(value),
-        );
+        hfInstance.addNamedExpression(name, typeof value === 'number' ? value : String(value));
       }
     }
 
-    hfInstance.setCellContents({ sheet: sheetId, col: 0, row: 0 }, [[formula]]);
+    hfInstance.setCellContents({sheet: sheetId, col: 0, row: 0}, [[formula]]);
 
     const cellValue = hfInstance.getCellValue({
       sheet: sheetId,
@@ -200,8 +186,7 @@ export function useFormulaExecution(
       setError(null);
 
       try {
-        const browserLocale =
-          typeof navigator === 'undefined' ? undefined : navigator.language;
+        const browserLocale = typeof navigator === 'undefined' ? undefined : navigator.language;
         const formulaLocale = language || browserLocale || locale || 'en-US';
 
         try {
@@ -226,10 +211,7 @@ export function useFormulaExecution(
         });
 
         await prefetchFormulaQueries(formulaQueryContext, currentQueries);
-        await prefetchAccountBalances(
-          formulaQueryContext,
-          currentAccounts ?? [],
-        );
+        await prefetchAccountBalances(formulaQueryContext, currentAccounts ?? []);
 
         formulaQueryContext.budgetQueryRequests.clear();
         evaluateFormulaWithContext({
@@ -270,17 +252,9 @@ export function useFormulaExecution(
     return () => {
       cancelled = true;
     };
-  }, [
-    formula,
-    queriesVersion,
-    locale,
-    language,
-    queriesKey,
-    namedExpressionsKey,
-    accountsKey,
-  ]);
+  }, [formula, queriesVersion, locale, language, queriesKey, namedExpressionsKey, accountsKey]);
 
-  return { result, isLoading, error };
+  return {result, isLoading, error};
 }
 
 async function prefetchFormulaQueries(
@@ -297,10 +271,7 @@ async function prefetchFormulaQueries(
     }
 
     const data = await fetchQuerySum(queryConfig);
-    formulaQueryContext.querySumPrefetch.set(
-      queryName,
-      integerToAmount(data, 2),
-    );
+    formulaQueryContext.querySumPrefetch.set(queryName, integerToAmount(data, 2));
   }
 
   for (const queryName of formulaQueryContext.queryCountNames) {
@@ -312,10 +283,7 @@ async function prefetchFormulaQueries(
       continue;
     }
 
-    formulaQueryContext.queryCountPrefetch.set(
-      queryName,
-      await fetchQueryCount(queryConfig),
-    );
+    formulaQueryContext.queryCountPrefetch.set(queryName, await fetchQueryCount(queryConfig));
   }
 
   for (const queryName of formulaQueryContext.queryExtractCategoryNames) {
@@ -354,19 +322,16 @@ async function prefetchAccountBalances(
       continue;
     }
 
-    formulaQueryContext.balanceOfPrefetch.set(
-      literal,
-      await fetchAccountBalance(account.id),
-    );
+    formulaQueryContext.balanceOfPrefetch.set(literal, await fetchAccountBalance(account.id));
   }
 }
 
 async function fetchAccountBalance(accountId: string): Promise<number> {
   try {
     const balanceQuery = q('transactions')
-      .filter({ account: accountId })
-      .calculate({ $sum: '$amount' });
-    const { data } = await send('query', balanceQuery.serialize());
+      .filter({account: accountId})
+      .calculate({$sum: '$amount'});
+    const {data} = await send('query', balanceQuery.serialize());
     return integerToAmount(data || 0, 2);
   } catch (err) {
     console.error('Error fetching account balance:', err);
@@ -374,9 +339,7 @@ async function fetchAccountBalance(accountId: string): Promise<number> {
   }
 }
 
-async function prefetchBudgetQueries(
-  formulaQueryContext: Required<FormulaQueryContext>,
-) {
+async function prefetchBudgetQueries(formulaQueryContext: Required<FormulaQueryContext>) {
   for (const request of formulaQueryContext.budgetQueryRequests.values()) {
     const key = createBudgetQueryPrefetchKey(request);
 
@@ -402,15 +365,13 @@ async function prefetchBudgetQueries(
   }
 }
 
-export async function buildFilteredTransactionsQuery(
-  config: QueryConfig,
-): Promise<Query> {
+export async function buildFilteredTransactionsQuery(config: QueryConfig): Promise<Query> {
   const conditions = config.conditions || [];
   const conditionsOp = config.conditionsOp || 'and';
   const timeFrame = config.timeFrame;
 
   // Convert conditions to query filters
-  const { filters: queryFilters } = await send('make-filters-from-conditions', {
+  const {filters: queryFilters} = await send('make-filters-from-conditions', {
     conditions,
   });
 
@@ -421,20 +382,18 @@ export async function buildFilteredTransactionsQuery(
 
   // Add date range filter if provided
   if (timeFrame && timeFrame.mode) {
-    const [calculatedStart, calculatedEnd] = calculateTimeRange(
-      asMonthSlidingTimeFrame(timeFrame),
-    );
+    const [calculatedStart, calculatedEnd] = calculateTimeRange(asMonthSlidingTimeFrame(timeFrame));
     const startDate = normalizeQueryTimeFrameStart(calculatedStart);
     const endDate = normalizeQueryTimeFrameEnd(calculatedEnd);
 
     transQuery = transQuery.filter({
-      $and: [{ date: { $gte: startDate } }, { date: { $lte: endDate } }],
+      $and: [{date: {$gte: startDate}}, {date: {$lte: endDate}}],
     });
   }
 
   // Add user-defined filters
   if (queryFilters.length > 0) {
-    transQuery = transQuery.filter({ [conditionsOpKey]: queryFilters });
+    transQuery = transQuery.filter({[conditionsOpKey]: queryFilters});
   }
 
   return transQuery;
@@ -443,8 +402,8 @@ export async function buildFilteredTransactionsQuery(
 async function fetchQuerySum(config: QueryConfig): Promise<number> {
   try {
     const transQuery = await buildFilteredTransactionsQuery(config);
-    const summedQuery = transQuery.calculate({ $sum: '$amount' });
-    const { data } = await send('query', summedQuery.serialize());
+    const summedQuery = transQuery.calculate({$sum: '$amount'});
+    const {data} = await send('query', summedQuery.serialize());
     return data || 0;
   } catch (err) {
     console.error('Error fetching query sum:', err);
@@ -455,8 +414,8 @@ async function fetchQuerySum(config: QueryConfig): Promise<number> {
 async function fetchQueryCount(config: QueryConfig): Promise<number> {
   try {
     const transQuery = await buildFilteredTransactionsQuery(config);
-    const countQuery = transQuery.calculate({ $count: '*' });
-    const { data } = await send('query', countQuery.serialize());
+    const countQuery = transQuery.calculate({$count: '*'});
+    const {data} = await send('query', countQuery.serialize());
     return data || 0;
   } catch (err) {
     console.error('Error fetching query count:', err);
@@ -465,13 +424,9 @@ async function fetchQueryCount(config: QueryConfig): Promise<number> {
 }
 
 // Helper: Extract category-based conditions (ignore transaction-specific filters)
-function extractCategoryConditions(
-  conditions: RuleConditionEntity[],
-): RuleConditionEntity[] {
+function extractCategoryConditions(conditions: RuleConditionEntity[]): RuleConditionEntity[] {
   return conditions.filter(
-    cond =>
-      !cond.customName &&
-      (cond.field === 'category' || cond.field === 'category_group'),
+    cond => !cond.customName && (cond.field === 'category' || cond.field === 'category_group'),
   );
 }
 
@@ -489,24 +444,21 @@ async function getCategoriesFromConditions(
   }
 
   // Get category groups for resolving group IDs to names
-  const { grouped: categoryGroups } = await send('get-categories');
+  const {grouped: categoryGroups} = await send('get-categories');
   const groupNameById = new Map(
-    categoryGroups.map((g: { id: string; name: string }) => [g.id, g.name]),
+    categoryGroups.map((g: {id: string; name: string}) => [g.id, g.name]),
   );
 
   // Evaluate each condition to get sets of matching categories
   const conditionResults = conditions.map(cond => {
     // For category_group conditions, we check cat.group; for category, we check cat.id
-    const getKey = (cat: CategoryEntity) =>
-      cond.field === 'category_group' ? cat.group : cat.id;
+    const getKey = (cat: CategoryEntity) => (cond.field === 'category_group' ? cat.group : cat.id);
 
     const matching = allCategories.filter((cat: CategoryEntity) => {
       const key = getKey(cat);
 
       const textValue =
-        cond.field === 'category_group'
-          ? (groupNameById.get(key) ?? key)
-          : cat.name;
+        cond.field === 'category_group' ? (groupNameById.get(key) ?? key) : cat.name;
 
       if (cond.op === 'is') {
         return cond.value === key;
@@ -517,13 +469,9 @@ async function getCategoriesFromConditions(
       } else if (cond.op === 'notOneOf') {
         return !cond.value.includes(key);
       } else if (cond.op === 'contains') {
-        return textValue
-          .toLowerCase()
-          .includes((cond.value as string).toLowerCase());
+        return textValue.toLowerCase().includes((cond.value as string).toLowerCase());
       } else if (cond.op === 'doesNotContain') {
-        return !textValue
-          .toLowerCase()
-          .includes((cond.value as string).toLowerCase());
+        return !textValue.toLowerCase().includes((cond.value as string).toLowerCase());
       } else if (cond.op === 'matches') {
         try {
           return new RegExp(cond.value as string, 'i').test(textValue);
@@ -567,14 +515,14 @@ async function getCategoriesFromConditions(
 // Helper: Get month data from envelope-budget-month RPC
 async function getMonthBudgetData(
   month: string,
-): Promise<Array<{ name: string; value: string | number | boolean }>> {
-  const monthData = await send('envelope-budget-month', { month });
+): Promise<Array<{name: string; value: string | number | boolean}>> {
+  const monthData = await send('envelope-budget-month', {month});
   return monthData || [];
 }
 
 // Helper: Extract value from month data by field pattern
 function getMonthDataValue(
-  monthData: Array<{ name: string; value: string | number | boolean }>,
+  monthData: Array<{name: string; value: string | number | boolean}>,
   pattern: string,
   catId: string,
 ): string | number | boolean {
@@ -584,20 +532,15 @@ function getMonthDataValue(
 }
 
 // Helper: Extract categories from a named query (for QUERY_EXTRACT_CATEGORIES)
-async function extractQueryCategories(
-  queryName: string,
-  queries: QueriesMap,
-): Promise<string[]> {
+async function extractQueryCategories(queryName: string, queries: QueriesMap): Promise<string[]> {
   const queryConfig = queries[queryName];
   if (!queryConfig) {
     console.warn(`Query "${queryName}" not found in queries config`);
     return [];
   }
 
-  const categoryConditions = extractCategoryConditions(
-    queryConfig.conditions || [],
-  );
-  const { list: allCategories } = await send('get-categories');
+  const categoryConditions = extractCategoryConditions(queryConfig.conditions || []);
+  const {list: allCategories} = await send('get-categories');
   return getCategoriesFromConditions(
     allCategories,
     categoryConditions,
@@ -606,40 +549,26 @@ async function extractQueryCategories(
 }
 
 // Helper: Extract timeframe start month from a named query (for QUERY_EXTRACT_TIMEFRAME_START)
-async function extractQueryTimeframeStart(
-  queryName: string,
-  queries: QueriesMap,
-): Promise<string> {
+async function extractQueryTimeframeStart(queryName: string, queries: QueriesMap): Promise<string> {
   const queryConfig = queries[queryName];
   if (!queryConfig || !queryConfig.timeFrame) {
-    console.warn(
-      `Query "${queryName}" not found or has no timeframe; cannot extract start`,
-    );
+    console.warn(`Query "${queryName}" not found or has no timeframe; cannot extract start`);
     return monthUtils.currentMonth();
   }
 
-  const [startMonth] = calculateTimeRange(
-    asMonthSlidingTimeFrame(queryConfig.timeFrame),
-  );
+  const [startMonth] = calculateTimeRange(asMonthSlidingTimeFrame(queryConfig.timeFrame));
   return startMonth;
 }
 
 // Helper: Extract timeframe end month from a named query (for QUERY_EXTRACT_TIMEFRAME_END)
-async function extractQueryTimeframeEnd(
-  queryName: string,
-  queries: QueriesMap,
-): Promise<string> {
+async function extractQueryTimeframeEnd(queryName: string, queries: QueriesMap): Promise<string> {
   const queryConfig = queries[queryName];
   if (!queryConfig || !queryConfig.timeFrame) {
-    console.warn(
-      `Query "${queryName}" not found or has no timeframe; cannot extract end`,
-    );
+    console.warn(`Query "${queryName}" not found or has no timeframe; cannot extract end`);
     return monthUtils.currentMonth();
   }
 
-  const [, endMonth] = calculateTimeRange(
-    asMonthSlidingTimeFrame(queryConfig.timeFrame),
-  );
+  const [, endMonth] = calculateTimeRange(asMonthSlidingTimeFrame(queryConfig.timeFrame));
   return endMonth;
 }
 
@@ -650,13 +579,7 @@ async function fetchBudgetDimensionValueDirect(
   startMonth: string,
   endMonth: string,
 ): Promise<number> {
-  const allowed = new Set([
-    'budgeted',
-    'spent',
-    'balance_start',
-    'balance_end',
-    'goal',
-  ]);
+  const allowed = new Set(['budgeted', 'spent', 'balance_start', 'balance_end', 'goal']);
   const dim = dimension.toLowerCase();
   if (!allowed.has(dim)) {
     throw new Error(`Invalid BUDGET_QUERY dimension: ${dimension}`);
@@ -695,20 +618,14 @@ async function fetchBudgetDimensionValueDirect(
     const prevMonthData = await getMonthBudgetData(monthBeforeStart);
 
     for (const catId of categoryIds) {
-      const catBalance = getMonthDataValue(
-        prevMonthData,
-        'leftover-{catId}',
-        catId,
-      ) as number;
-      const hasCarryover = Boolean(
-        getMonthDataValue(prevMonthData, 'carryover-{catId}', catId),
-      );
+      const catBalance = getMonthDataValue(prevMonthData, 'leftover-{catId}', catId) as number;
+      const hasCarryover = Boolean(getMonthDataValue(prevMonthData, 'carryover-{catId}', catId));
       if (catBalance > 0 || (catBalance < 0 && hasCarryover)) {
         runningBalance += catBalance;
       }
     }
 
-    const balances: Record<string, { start: number; end: number }> = {};
+    const balances: Record<string, {start: number; end: number}> = {};
 
     for (const month of intervals) {
       const monthData = await getMonthBudgetData(month);
@@ -717,16 +634,10 @@ async function fetchBudgetDimensionValueDirect(
       let carryoverToNextMonth = 0;
 
       for (const catId of categoryIds) {
-        const catBudgeted =
-          Number(getMonthDataValue(monthData, 'budget-{catId}', catId)) || 0;
-        const catSpent =
-          Number(getMonthDataValue(monthData, 'sum-amount-{catId}', catId)) ||
-          0;
-        const catBalance =
-          Number(getMonthDataValue(monthData, 'leftover-{catId}', catId)) || 0;
-        const hasCarryover = Boolean(
-          getMonthDataValue(monthData, 'carryover-{catId}', catId),
-        );
+        const catBudgeted = Number(getMonthDataValue(monthData, 'budget-{catId}', catId)) || 0;
+        const catSpent = Number(getMonthDataValue(monthData, 'sum-amount-{catId}', catId)) || 0;
+        const catBalance = Number(getMonthDataValue(monthData, 'leftover-{catId}', catId)) || 0;
+        const hasCarryover = Boolean(getMonthDataValue(monthData, 'carryover-{catId}', catId));
 
         budgeted += catBudgeted;
         spent += catSpent;
@@ -739,17 +650,14 @@ async function fetchBudgetDimensionValueDirect(
       const balanceStart = runningBalance;
       const balanceEnd = budgeted + spent + runningBalance;
 
-      balances[month] = { start: balanceStart, end: balanceEnd };
+      balances[month] = {start: balanceStart, end: balanceEnd};
       runningBalance = carryoverToNextMonth;
     }
 
     if (dim === 'balance_start') {
       return integerToAmount(balances[intervals[0]]?.start || 0, 2);
     }
-    return integerToAmount(
-      balances[intervals[intervals.length - 1]]?.end || 0,
-      2,
-    );
+    return integerToAmount(balances[intervals[intervals.length - 1]]?.end || 0, 2);
   }
 
   return 0;

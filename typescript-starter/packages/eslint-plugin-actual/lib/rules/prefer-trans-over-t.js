@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const { ensureImport } = require('../utils/import-helpers');
+const {ensureImport} = require('../utils/import-helpers');
 
 /** @type {import('eslint').Rule.RuleModule} */
 module.exports = {
@@ -112,8 +112,7 @@ module.exports = {
           return children.some(
             child =>
               child === node ||
-              (child.type === 'JSXExpressionContainer' &&
-                child.expression === node),
+              (child.type === 'JSXExpressionContainer' && child.expression === node),
           );
         }
 

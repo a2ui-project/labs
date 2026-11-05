@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { Menu } from '@actual-app/components/menu';
-import { describe, expect, it } from 'vitest';
+import {Menu} from '@actual-app/components/menu';
+import {describe, expect, it} from 'vitest';
 
-import { getDashboardWidgetItems } from './getDashboardWidgetItems';
+import {getDashboardWidgetItems} from './getDashboardWidgetItems';
 
 function getNames(items: ReturnType<typeof getDashboardWidgetItems>) {
   return items.filter(item => item !== Menu.line).map(item => item.name);
@@ -50,7 +50,7 @@ describe('getDashboardWidgetItems', () => {
   it('keeps custom report entries after a divider', () => {
     const items = getDashboardWidgetItems({
       t: value => value,
-      customReports: [{ id: 'abc', name: 'Custom Budget Review' }],
+      customReports: [{id: 'abc', name: 'Custom Budget Review'}],
       formulaMode: false,
       crossoverReportEnabled: false,
       budgetAnalysisReportEnabled: false,

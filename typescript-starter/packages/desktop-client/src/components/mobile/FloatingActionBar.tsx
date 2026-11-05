@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import type { CSSProperties, PropsWithChildren } from 'react';
+import type {CSSProperties, PropsWithChildren} from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
 type FloatingActionBarProps = PropsWithChildren & {
   style: CSSProperties;
 };
 
-export function FloatingActionBar({ style, children }: FloatingActionBarProps) {
+export function FloatingActionBar({style, children}: FloatingActionBarProps) {
   return (
     <View
       style={{

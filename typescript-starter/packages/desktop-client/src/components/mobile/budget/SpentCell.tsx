@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import {
-  SvgArrowsSynchronize,
-  SvgCalendar3,
-} from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { CategoryEntity } from '@actual-app/core/types/models';
-import { AutoTextSize } from 'auto-text-size';
+import {Button} from '@actual-app/components/button';
+import {SvgArrowsSynchronize, SvgCalendar3} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {CategoryEntity} from '@actual-app/core/types/models';
+import {AutoTextSize} from 'auto-text-size';
 
-import { makeAmountGrey } from '#components/budget/util';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { CellValue } from '#components/spreadsheet/CellValue';
-import { useCategoryScheduleGoalTemplateIndicator } from '#hooks/useCategoryScheduleGoalTemplateIndicator';
-import { useFormat } from '#hooks/useFormat';
-import type { Binding } from '#spreadsheet';
+import {makeAmountGrey} from '#components/budget/util';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {CellValue} from '#components/spreadsheet/CellValue';
+import {useCategoryScheduleGoalTemplateIndicator} from '#hooks/useCategoryScheduleGoalTemplateIndicator';
+import {useFormat} from '#hooks/useFormat';
+import type {Binding} from '#spreadsheet';
 
-import { getColumnWidth, PILL_STYLE } from './BudgetTable';
+import {getColumnWidth, PILL_STYLE} from './BudgetTable';
 
 type SpentCellProps = {
   binding: Binding<'envelope-budget' | 'tracking-budget', 'sum-amount'>;
@@ -45,24 +42,17 @@ type SpentCellProps = {
   onPress?: () => void;
 };
 
-export function SpentCell({
-  binding,
-  category,
-  month,
-  show3Columns,
-  onPress,
-}: SpentCellProps) {
-  const { t } = useTranslation();
+export function SpentCell({binding, category, month, show3Columns, onPress}: SpentCellProps) {
+  const {t} = useTranslation();
   const format = useFormat();
   const columnWidth = getColumnWidth({
     show3Columns,
   });
 
-  const { schedule, scheduleStatus, isScheduleRecurring } =
-    useCategoryScheduleGoalTemplateIndicator({
-      category,
-      month,
-    });
+  const {schedule, scheduleStatus, isScheduleRecurring} = useCategoryScheduleGoalTemplateIndicator({
+    category,
+    month,
+  });
 
   return (
     <CellValue<'envelope-budget' | 'tracking-budget', 'sum-amount'>
@@ -72,7 +62,7 @@ export function SpentCell({
         categoryName: category.name,
       })}
     >
-      {({ type, value }) => (
+      {({type, value}) => (
         <>
           <Button
             variant="bare"

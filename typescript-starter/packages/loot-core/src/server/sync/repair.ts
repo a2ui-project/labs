@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import { getClock, merkle, serializeClock, Timestamp } from '@actual-app/crdt';
+import {getClock, merkle, serializeClock, Timestamp} from '@actual-app/crdt';
 
 import * as db from '#server/db';
 
@@ -23,11 +23,7 @@ export function rebuildMerkleHash(): {
   numMessages: number;
   trie: merkle.TrieNode;
 } {
-  const rows: { timestamp: string }[] = db.runQuery(
-    'SELECT timestamp FROM messages_crdt',
-    [],
-    true,
-  );
+  const rows: {timestamp: string}[] = db.runQuery('SELECT timestamp FROM messages_crdt', [], true);
   let trie = merkle.emptyTrie();
 
   for (let i = 0; i < rows.length; i++) {
@@ -48,8 +44,7 @@ export async function repairSync(): Promise<void> {
   clock.merkle = rebuilt.trie;
 
   // Persist it in the db
-  db.runQuery(
-    db.cache('INSERT OR REPLACE INTO messages_clock (id, clock) VALUES (1, ?)'),
-    [serializeClock(clock)],
-  );
+  db.runQuery(db.cache('INSERT OR REPLACE INTO messages_clock (id, clock) VALUES (1, ?)'), [
+    serializeClock(clock),
+  ]);
 }

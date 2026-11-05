@@ -15,9 +15,9 @@
  */
 
 // @ts-strict-ignore
-import { getClock, merkle, Timestamp } from '@actual-app/crdt';
+import {getClock, merkle, Timestamp} from '@actual-app/crdt';
 import jsc from 'jsverify';
-import type { Arbitrary } from 'jsverify';
+import type {Arbitrary} from 'jsverify';
 
 import * as db from '#server/db';
 import * as prefs from '#server/prefs';
@@ -25,8 +25,8 @@ import * as sheet from '#server/sheet';
 import * as mockSyncServer from '#server/tests/mockSyncServer';
 
 import * as encoder from './encoder';
-import { serializeValue } from './serialization';
-import { isError } from './utils';
+import {serializeValue} from './serialization';
+import {isError} from './utils';
 
 import * as sync from './index';
 
@@ -97,14 +97,14 @@ const schema = {
     sort_order: 'real',
     tombstone: 'integer',
   },
-  category_mapping: { transferId: 'text' },
+  category_mapping: {transferId: 'text'},
   payees: {
     name: 'text',
     transfer_acct: 'text',
     category: 'text',
     tombstone: 'integer',
   },
-  payee_mapping: { targetId: 'text' },
+  payee_mapping: {targetId: 'text'},
 };
 
 // The base time is 2019-08-09T18:14:31.903Z
@@ -168,21 +168,19 @@ Object.keys(schema).forEach(table => {
     const type = schema[table][field];
     switch (type) {
       case 'text':
-        generators.push(makeGen({ table, field, value: jsc.asciinestring }));
+        generators.push(makeGen({table, field, value: jsc.asciinestring}));
         break;
 
       case 'integer':
         if (field === 'amount') {
-          generators.push(makeGen({ table, field, value: jsc.uint8 }));
+          generators.push(makeGen({table, field, value: jsc.uint8}));
         } else {
-          generators.push(
-            makeGen({ table, field, value: jsc.elements([0, 1]) }),
-          );
+          generators.push(makeGen({table, field, value: jsc.elements([0, 1])}));
         }
         break;
 
       case 'real':
-        generators.push(makeGen({ table, field, value: jsc.uint32 }));
+        generators.push(makeGen({table, field, value: jsc.uint32}));
         break;
 
       default:
@@ -239,17 +237,13 @@ async function run(msgs) {
 
       return acc;
     },
-    { firstMessages: [], secondMessages: [] },
+    {firstMessages: [], secondMessages: []},
   );
 
   void prefs.loadPrefs();
   void prefs.savePrefs({
     groupId: 'group',
-    lastSyncedTimestamp: new Timestamp(
-      Date.now(),
-      0,
-      '0000000000000000',
-    ).toString(),
+    lastSyncedTimestamp: new Timestamp(Date.now(), 0, '0000000000000000').toString(),
   });
 
   await global.emptyDatabase()();
@@ -262,9 +256,7 @@ async function run(msgs) {
   // merkle tree to see if there are any differences.
   const chunks = divide(res.firstMessages);
 
-  const client1Sync = Promise.all(
-    chunks.slice(0, -1).map(slice => sync.receiveMessages(slice)),
-  );
+  const client1Sync = Promise.all(chunks.slice(0, -1).map(slice => sync.receiveMessages(slice)));
   await client1Sync;
 
   await mockSyncServer.handlers['/sync/sync'](
@@ -358,7 +350,7 @@ describe('sync property test', () => {
           return true;
         },
       ),
-      { tests: 100, quiet: true },
+      {tests: 100, quiet: true},
     );
 
     if (test.counterexample) {

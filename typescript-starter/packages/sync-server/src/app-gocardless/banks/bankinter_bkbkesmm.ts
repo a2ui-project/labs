@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -23,7 +23,7 @@ export default {
   institutionIds: ['BANKINTER_BKBKESMM'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     editedTrans.remittanceInformationUnstructured = (
       transaction.remittanceInformationUnstructured ?? ''

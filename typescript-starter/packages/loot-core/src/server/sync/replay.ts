@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { captureException } from '#platform/exceptions';
-import { logger } from '#platform/server/log';
+import {captureException} from '#platform/exceptions';
+import {logger} from '#platform/server/log';
 import * as db from '#server/db';
-import { isMissingSchemaError } from '#shared/errors';
+import {isMissingSchemaError} from '#shared/errors';
 
-import { PENDING_MESSAGES_TABLE_SQL } from './messages-pending';
-import { deserializeValue } from './serialization';
+import {PENDING_MESSAGES_TABLE_SQL} from './messages-pending';
+import {deserializeValue} from './serialization';
 import {
   notifyDeferredMessages,
   notifyDroppedMessages,
@@ -35,9 +35,9 @@ const DETERMINISTIC_SQLITE_ERROR =
   /constraint failed|datatype mismatch|cannot store|generated column|string or blob too big|syntax error/i;
 
 type ReplayOutcome =
-  | { outcome: 'applied' }
-  | { outcome: 'newer-version' }
-  | { outcome: 'failed'; error: Error };
+  | {outcome: 'applied'}
+  | {outcome: 'newer-version'}
+  | {outcome: 'failed'; error: Error};
 
 // Deletes pending rows superseded by a newer acknowledged write in the
 // crdt log (last write wins per cell — possible because an
@@ -92,7 +92,7 @@ export function replayPendingMessages(): void {
       } catch {
         // A value format from an even newer version; decodes after the
         // user updates
-        return { outcome: 'newer-version' };
+        return {outcome: 'newer-version'};
       }
       try {
         // The same per-cell write as `apply` in ./index.ts. Not an
@@ -115,11 +115,11 @@ export function replayPendingMessages(): void {
             [msg.row, value],
           );
         }
-        return { outcome: 'applied' };
+        return {outcome: 'applied'};
       } catch (e) {
         if (isMissingSchemaError(e)) {
           // Still targets schema from an even newer version
-          return { outcome: 'newer-version' };
+          return {outcome: 'newer-version'};
         }
         const error = e instanceof Error ? e : new Error(String(e));
         if (!DETERMINISTIC_SQLITE_ERROR.test(error.message)) {
@@ -128,23 +128,21 @@ export function replayPendingMessages(): void {
           // run in autocommit. Abort; everything stays pending.
           throw error;
         }
-        return { outcome: 'failed', error };
+        return {outcome: 'failed', error};
       }
     }
 
     function deletePending(msg: db.DbPendingMessage) {
       db.runQuery(
-        db.cache(
-          'DELETE FROM messages_pending WHERE dataset = ? AND row = ? AND column = ?',
-        ),
+        db.cache('DELETE FROM messages_pending WHERE dataset = ? AND row = ? AND column = ?'),
         [msg.dataset, msg.row, msg.column],
       );
     }
 
     function processPass(
       msgs: db.DbPendingMessage[],
-    ): Array<{ msg: db.DbPendingMessage; error: Error }> {
-      const failed: Array<{ msg: db.DbPendingMessage; error: Error }> = [];
+    ): Array<{msg: db.DbPendingMessage; error: Error}> {
+      const failed: Array<{msg: db.DbPendingMessage; error: Error}> = [];
       for (const msg of msgs) {
         const result = applyOne(msg);
         if (result.outcome === 'applied') {
@@ -153,7 +151,7 @@ export function replayPendingMessages(): void {
         } else if (result.outcome === 'newer-version') {
           newerVersionCount++;
         } else {
-          failed.push({ msg, error: result.error });
+          failed.push({msg, error: result.error});
         }
       }
       return failed;
@@ -170,7 +168,7 @@ export function replayPendingMessages(): void {
         // No progress: these repeat identically on every load, so drop
         // them. The values stay in messages_crdt history, but this
         // device now diverges for those cells.
-        for (const { msg, error } of retried) {
+        for (const {msg, error} of retried) {
           captureException(error);
           failedCount++;
           deletePending(msg);
@@ -197,9 +195,7 @@ export function replayPendingMessages(): void {
   }
 
   if (appliedCount > 0) {
-    logger.info(
-      `Applied ${appliedCount} sync message(s) deferred from a newer version`,
-    );
+    logger.info(`Applied ${appliedCount} sync message(s) deferred from a newer version`);
   }
   if (failedCount > 0) {
     notifyDroppedMessages();

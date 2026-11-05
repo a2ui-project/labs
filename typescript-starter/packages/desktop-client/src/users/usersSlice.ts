@@ -14,62 +14,56 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { Handlers } from '@actual-app/core/types/handlers';
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {Handlers} from '@actual-app/core/types/handlers';
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
 
-import { resetApp } from '#app/appSlice';
-import { closeBudget, loadAllFiles } from '#budgetfiles/budgetfilesSlice';
-import { loadGlobalPrefs } from '#prefs/prefsSlice';
-import { createAppAsyncThunk } from '#redux';
+import {resetApp} from '#app/appSlice';
+import {closeBudget, loadAllFiles} from '#budgetfiles/budgetfilesSlice';
+import {loadGlobalPrefs} from '#prefs/prefsSlice';
+import {createAppAsyncThunk} from '#redux';
 
 const sliceName = 'user';
 
 export const getUserData = createAppAsyncThunk(
   `${sliceName}/getUserData`,
-  async (_, { dispatch }) => {
+  async (_, {dispatch}) => {
     const data = await send('subscribe-get-user');
-    dispatch(loadUserData({ data }));
+    dispatch(loadUserData({data}));
     return data;
   },
 );
 
-export const loggedIn = createAppAsyncThunk(
-  `${sliceName}/loggedIn`,
-  async (_, { dispatch }) => {
-    await dispatch(getUserData());
+export const loggedIn = createAppAsyncThunk(`${sliceName}/loggedIn`, async (_, {dispatch}) => {
+  await dispatch(getUserData());
 
-    // We want to be careful about how we call loadAllFiles. It will
-    // turn the files state from null into an array, indicating that
-    // we've loaded the files at least once. This first attempt at
-    // loading files is important - the manager uses files to decide
-    // if it should create a new file automatically (if there are no
-    // files). If we call it before we have a properly logged in
-    // user, later on it could trigger the codepath which
-    // automatically creates a file, but we really haven't loaded
-    // their files yet.
-    //
-    // Since the above comment was written, We let in users even if
-    // their account is invalid. So we should list all their files
-    // regardless. Previously, we kicked users out to a "need payment
-    // info" screen and we didn't want to call this.
-    void dispatch(loadAllFiles());
-  },
-);
+  // We want to be careful about how we call loadAllFiles. It will
+  // turn the files state from null into an array, indicating that
+  // we've loaded the files at least once. This first attempt at
+  // loading files is important - the manager uses files to decide
+  // if it should create a new file automatically (if there are no
+  // files). If we call it before we have a properly logged in
+  // user, later on it could trigger the codepath which
+  // automatically creates a file, but we really haven't loaded
+  // their files yet.
+  //
+  // Since the above comment was written, We let in users even if
+  // their account is invalid. So we should list all their files
+  // regardless. Previously, we kicked users out to a "need payment
+  // info" screen and we didn't want to call this.
+  void dispatch(loadAllFiles());
+});
 
-export const signOut = createAppAsyncThunk(
-  `${sliceName}/signOut`,
-  async (_, { dispatch }) => {
-    await send('subscribe-sign-out');
+export const signOut = createAppAsyncThunk(`${sliceName}/signOut`, async (_, {dispatch}) => {
+  await send('subscribe-sign-out');
 
-    void dispatch(getUserData());
-    void dispatch(loadGlobalPrefs());
-    void dispatch(closeBudget());
-    // Handled in budgetSlice
-    // dispatch({ type: constants.SIGN_OUT });
-  },
-);
+  void dispatch(getUserData());
+  void dispatch(loadGlobalPrefs());
+  void dispatch(closeBudget());
+  // Handled in budgetSlice
+  // dispatch({ type: constants.SIGN_OUT });
+});
 
 type UsersState = {
   data: Awaited<ReturnType<Handlers['subscribe-get-user']>> | null;
@@ -96,7 +90,7 @@ const usersSlice = createSlice({
   },
 });
 
-export const { name, reducer, getInitialState } = usersSlice;
+export const {name, reducer, getInitialState} = usersSlice;
 
 export const actions = {
   ...usersSlice.actions,
@@ -105,4 +99,4 @@ export const actions = {
   signOut,
 };
 
-export const { loadUserData } = actions;
+export const {loadUserData} = actions;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import {useEffect, useRef, useState} from 'react';
 import type {
   ComponentProps,
   ComponentType,
@@ -24,11 +24,11 @@ import type {
   SVGProps,
 } from 'react';
 
-import { Button } from './Button';
-import { Text } from './Text';
-import { theme } from './theme';
-import { Toggle } from './Toggle';
-import { View } from './View';
+import {Button} from './Button';
+import {Text} from './Text';
+import {theme} from './theme';
+import {Toggle} from './Toggle';
+import {View} from './View';
 
 const MenuLine: unique symbol = Symbol('menu-line');
 const MenuLabel: unique symbol = Symbol('menu-label');
@@ -39,12 +39,8 @@ type KeybindingProps = {
   keyName: ReactNode;
 };
 
-function Keybinding({ keyName }: KeybindingProps) {
-  return (
-    <Text style={{ fontSize: 10, color: theme.menuKeybindingText }}>
-      {keyName}
-    </Text>
-  );
+function Keybinding({keyName}: KeybindingProps) {
+  return <Text style={{fontSize: 10, color: theme.menuKeybindingText}}>{keyName}</Text>;
 }
 
 export type MenuItemObject<NameType, Type extends string | symbol = string> = {
@@ -107,9 +103,7 @@ export function Menu<const NameType = string>({
       return;
     }
     setHoveredIndex(
-      hoveredIndex === null
-        ? transformIndex(0)
-        : transformIndex(Math.max(currentIndex - 1, 0)),
+      hoveredIndex === null ? transformIndex(0) : transformIndex(Math.max(currentIndex - 1, 0)),
     );
   }
 
@@ -126,12 +120,7 @@ export function Menu<const NameType = string>({
 
   function selectItem() {
     const item = items[hoveredIndex || 0];
-    if (
-      hoveredIndex !== null &&
-      item !== Menu.line &&
-      !isLabel(item) &&
-      !item.disabled
-    ) {
+    if (hoveredIndex !== null && item !== Menu.line && !isLabel(item) && !item.disabled) {
       onMenuSelect?.(item.name);
     }
   }
@@ -159,9 +148,7 @@ export function Menu<const NameType = string>({
 
     if (
       activeElement &&
-      (['input', 'select', 'textarea'].includes(
-        activeElement.tagName.toLowerCase(),
-      ) ||
+      (['input', 'select', 'textarea'].includes(activeElement.tagName.toLowerCase()) ||
         activeElement.hasAttribute('contenteditable') ||
         activeElement.getAttribute('role') === 'textbox')
     ) {
@@ -176,7 +163,7 @@ export function Menu<const NameType = string>({
     <View
       role="menu"
       className={className}
-      style={{ outline: 'none', borderRadius: 4, overflow: 'hidden', ...style }}
+      style={{outline: 'none', borderRadius: 4, overflow: 'hidden', ...style}}
       tabIndex={0}
       onKeyDown={onKeyDown}
       innerRef={elRef}
@@ -185,8 +172,8 @@ export function Menu<const NameType = string>({
       {items.map((item, idx) => {
         if (item === Menu.line) {
           return (
-            <View key={idx} style={{ margin: '3px 0px' }}>
-              <View style={{ borderTop: '1px solid ' + theme.menuBorder }} />
+            <View key={idx} style={{margin: '3px 0px'}}>
+              <View style={{borderTop: '1px solid ' + theme.menuBorder}} />
             </View>
           );
         } else if (isLabel(item)) {
@@ -222,7 +209,7 @@ export function Menu<const NameType = string>({
               justifyContent: 'center',
               alignItems: 'center',
               color: theme.menuItemText,
-              ...(item.disabled && { color: theme.buttonBareDisabledText }),
+              ...(item.disabled && {color: theme.buttonBareDisabledText}),
               ...(!item.disabled &&
                 hoveredIndex === idx && {
                   backgroundColor: theme.menuItemBackgroundHover,
@@ -233,11 +220,7 @@ export function Menu<const NameType = string>({
             onHoverStart={() => setHoveredIndex(idx)}
             onHoverEnd={() => setHoveredIndex(null)}
             onPress={() => {
-              if (
-                !item.disabled &&
-                item.toggle === undefined &&
-                !isLabel(item)
-              ) {
+              if (!item.disabled && item.toggle === undefined && !isLabel(item)) {
                 onMenuSelect?.(item.name);
               }
             }}
@@ -249,11 +232,11 @@ export function Menu<const NameType = string>({
                   <Icon
                     width={item.iconSize || 10}
                     height={item.iconSize || 10}
-                    style={{ marginRight: 7, width: item.iconSize || 10 }}
+                    style={{marginRight: 7, width: item.iconSize || 10}}
                   />
                 )}
                 <Text title={item.tooltip}>{item.text}</Text>
-                <View style={{ flex: 1 }} />
+                <View style={{flex: 1}} />
               </>
             ) : (
               <View
@@ -270,7 +253,7 @@ export function Menu<const NameType = string>({
                 <Toggle
                   id={String(item.name)}
                   isOn={item.toggle}
-                  style={{ marginLeft: 5 }}
+                  style={{marginLeft: 5}}
                   onToggle={() =>
                     !item.disabled &&
                     !isLabel(item) &&

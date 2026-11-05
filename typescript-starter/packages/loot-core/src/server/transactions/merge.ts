@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { aqlQuery } from '#server/aql';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { validForMergeExplanation } from '#shared/merge';
-import { q } from '#shared/query';
+import {validForMergeExplanation} from '#shared/merge';
+import {q} from '#shared/query';
 import {
   deleteTransaction as sharedDeleteTransaction,
   ungroupTransactions,
 } from '#shared/transactions';
-import type { TransactionEntity } from '#types/models';
+import type {TransactionEntity} from '#types/models';
 
-import { batchUpdateTransactions } from '.';
+import {batchUpdateTransactions} from '.';
 
 export async function mergeTransactions(
   transactions: Pick<TransactionEntity, 'id'>[],
@@ -55,7 +55,7 @@ export async function mergeTransactions(
       transfer_id: transferId,
       payee: transferAccount,
     });
-    await db.updateTransaction({ id: transferId, transfer_id: keptTxId });
+    await db.updateTransaction({id: transferId, transfer_id: keptTxId});
   }
 
   // transfers to an off-budget account have a category. Transfers to on-budget do not, so
@@ -71,7 +71,7 @@ export async function mergeTransactions(
     const payee = await db.getPayee(transferAccount);
     const account = await db.getAccount(payee?.transfer_acct ?? '');
     if (account && !account.offbudget) {
-      await db.updateTransaction({ id: keptTxId, category: null });
+      await db.updateTransaction({id: keptTxId, category: null});
     }
   }
 
@@ -85,9 +85,7 @@ function setTransfers(
   return Promise.all(
     txIds
       .filter(Boolean)
-      .map(txId =>
-        db.updateTransaction({ id: txId, transfer_id: transfer_id ?? null }),
-      ),
+      .map(txId => db.updateTransaction({id: txId, transfer_id: transfer_id ?? null})),
   );
 }
 
@@ -100,10 +98,7 @@ async function mergeTransfers(
   if (!bTransferId) return aTransferId;
 
   // clear transfers and merge
-  const [aTransfer, bTransfer] = await mapAndValidateTransactions(
-    aTransferId,
-    bTransferId,
-  );
+  const [aTransfer, bTransfer] = await mapAndValidateTransactions(aTransferId, bTransferId);
   await setTransfers([aTransfer.id, bTransfer.id], null);
   return mergeTransactionsNoTransfer(aTransfer, bTransfer);
 }
@@ -127,7 +122,7 @@ export async function mergeTransactionsNoTransfer(
   a: TransactionEntity,
   b: TransactionEntity,
 ): Promise<TransactionEntity['id']> {
-  const { keep, drop } = determineKeepDrop(a, b);
+  const {keep, drop} = determineKeepDrop(a, b);
 
   // Load subtransactions with a single query, then split by parent_id in memory
   const keepSubtransactions: TransactionEntity[] = [];
@@ -195,15 +190,12 @@ export async function mergeTransactionsNoTransfer(
 
   // Delete the dropped transaction using shared deleteTransaction to
   // intelligently handle possible parent/child cascading logic
-  const { data: transactionsToDelete } = await aqlQuery(
-    q('transactions')
-      .filter({ id: drop.id })
-      .select('*')
-      .options({ splits: 'grouped' }),
+  const {data: transactionsToDelete} = await aqlQuery(
+    q('transactions').filter({id: drop.id}).select('*').options({splits: 'grouped'}),
   );
   const ungroupedTransactions = ungroupTransactions(transactionsToDelete);
   if (ungroupedTransactions.length > 0) {
-    const { diff } = sharedDeleteTransaction(ungroupedTransactions, drop.id);
+    const {diff} = sharedDeleteTransaction(ungroupedTransactions, drop.id);
     await batchUpdateTransactions(diff);
   }
 
@@ -213,26 +205,26 @@ export async function mergeTransactionsNoTransfer(
 function determineKeepDrop(
   a: TransactionEntity,
   b: TransactionEntity,
-): { keep: TransactionEntity; drop: TransactionEntity } {
+): {keep: TransactionEntity; drop: TransactionEntity} {
   // if one is imported through bank sync and the other is manual,
   // keep the imported transaction
   if (b.imported_id && !a.imported_id) {
-    return { keep: b, drop: a };
+    return {keep: b, drop: a};
   } else if (a.imported_id && !b.imported_id) {
-    return { keep: a, drop: b };
+    return {keep: a, drop: b};
   }
 
   // same logic but for imported transactions
   if (b.imported_payee && !a.imported_payee) {
-    return { keep: b, drop: a };
+    return {keep: b, drop: a};
   } else if (a.imported_payee && !b.imported_payee) {
-    return { keep: a, drop: b };
+    return {keep: a, drop: b};
   }
 
   // keep the earlier transaction
   if (a.date.localeCompare(b.date) < 0) {
-    return { keep: a, drop: b };
+    return {keep: a, drop: b};
   } else {
-    return { keep: b, drop: a };
+    return {keep: b, drop: a};
   }
 }

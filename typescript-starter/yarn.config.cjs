@@ -17,7 +17,7 @@
 // @ts-check
 
 /** @type {import('@yarnpkg/types')} */
-const { defineConfig } = require('@yarnpkg/types');
+const {defineConfig} = require('@yarnpkg/types');
 
 /**
  * Enforce that all workspaces use the same version of any shared dependency.
@@ -26,13 +26,13 @@ const { defineConfig } = require('@yarnpkg/types');
  *
  * @param {import('@yarnpkg/types').Yarn.Constraints.Context} context
  */
-function enforceConsistentDependencies({ Yarn }) {
+function enforceConsistentDependencies({Yarn}) {
   /** @type {Map<string, Map<string, Array<import('@yarnpkg/types').Yarn.Constraints.Workspace>>>} */
   const dependencyVersions = new Map();
 
   for (const workspace of Yarn.workspaces()) {
     for (const type of ['dependencies', 'devDependencies']) {
-      for (const dep of Yarn.dependencies({ workspace, type })) {
+      for (const dep of Yarn.dependencies({workspace, type})) {
         if (dep.range.startsWith('workspace:')) continue;
 
         if (!dependencyVersions.has(dep.ident)) {

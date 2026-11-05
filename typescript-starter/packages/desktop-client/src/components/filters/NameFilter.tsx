@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useRef } from 'react';
-import { Form } from 'react-aria-components';
-import { useTranslation } from 'react-i18next';
+import React, {useEffect, useRef} from 'react';
+import {Form} from 'react-aria-components';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Input } from '@actual-app/components/input';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
+import {Button} from '@actual-app/components/button';
+import {Input} from '@actual-app/components/input';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
 
-import { FormField, FormLabel } from '#components/forms';
+import {FormField, FormLabel} from '#components/forms';
 
 export function NameFilter({
   menuItem,
@@ -41,7 +41,7 @@ export function NameFilter({
   onAddUpdate: () => void;
   err: string | null;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -66,11 +66,11 @@ export function NameFilter({
               alignItems: 'center',
             }}
           >
-            <FormField style={{ flex: 1 }}>
+            <FormField style={{flex: 1}}>
               <FormLabel
                 title={t('Filter name')}
                 htmlFor="name-field"
-                style={{ userSelect: 'none' }}
+                style={{userSelect: 'none'}}
               />
               <Input
                 id="name-field"
@@ -79,15 +79,15 @@ export function NameFilter({
                 onChangeValue={setName}
               />
             </FormField>
-            <Button variant="primary" type="submit" style={{ marginTop: 18 }}>
+            <Button variant="primary" type="submit" style={{marginTop: 18}}>
               {adding ? t('Add') : t('Update')}
             </Button>
           </SpaceBetween>
         </Form>
       )}
       {err && (
-        <SpaceBetween style={{ padding: 10, alignItems: 'center' }}>
-          <Text style={{ color: theme.errorText }}>{err}</Text>
+        <SpaceBetween style={{padding: 10, alignItems: 'center'}}>
+          <Text style={{color: theme.errorText}}>{err}</Text>
         </SpaceBetween>
       )}
     </>

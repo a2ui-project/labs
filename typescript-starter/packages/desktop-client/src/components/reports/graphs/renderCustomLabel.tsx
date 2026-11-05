@@ -16,12 +16,12 @@
 
 // @ts-strict-ignore
 import React from 'react';
-import type { SVGAttributes } from 'react';
+import type {SVGAttributes} from 'react';
 
-import { theme } from '@actual-app/components/theme';
+import {theme} from '@actual-app/components/theme';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
 
 export const renderCustomLabel = (
   calcX: SVGAttributes<SVGTextElement>['x'],

@@ -15,12 +15,12 @@
  */
 
 import React from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {ComponentPropsWithoutRef} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
+import {Menu} from '@actual-app/components/menu';
 
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
 
 type CategoryGroupActionMenuProps = Omit<
   ComponentPropsWithoutRef<typeof Menu>,
@@ -32,7 +32,7 @@ export function CategoryGroupActionMenu({
   onApplyBudgetTemplatesInGroup,
   ...props
 }: CategoryGroupActionMenuProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const isGoalTemplatesEnabled = useFeatureFlag('goalTemplatesEnabled');
   return (

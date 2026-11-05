@@ -16,9 +16,9 @@
 
 import path from 'node:path';
 
-import { load } from 'migrate';
+import {load} from 'migrate';
 
-import { config } from './load-config';
+import {config} from './load-config';
 
 type MigrationCallback = (err?: Error) => void;
 type MigrationModule = {
@@ -30,9 +30,7 @@ type MigrationLoader = () => Promise<MigrationModule>;
 // Vite resolves this glob at build time and inlines a static map of
 // () => import('chunks/...js') calls. Each migration becomes its own chunk.
 // Runtime fs reads against a migrations/ directory disappear.
-const migrationsLoaders = import.meta.glob<MigrationModule>(
-  '../migrations/*.{ts,js}',
-);
+const migrationsLoaders = import.meta.glob<MigrationModule>('../migrations/*.{ts,js}');
 
 export async function loadMigrationModules(
   loaders: Record<string, MigrationLoader>,
@@ -42,9 +40,7 @@ export async function loadMigrationModules(
   for (const key of Object.keys(loaders).sort()) {
     // Migration titles are persisted in .migrate. Keep their original .js
     // titles when source files are converted to TypeScript.
-    const fileName = key
-      .slice(key.lastIndexOf('/') + 1)
-      .replace(/\.ts$/, '.js');
+    const fileName = key.slice(key.lastIndexOf('/') + 1).replace(/\.ts$/, '.js');
 
     if (Object.prototype.hasOwnProperty.call(migrationsModules, fileName)) {
       throw new Error(`Duplicate migration title: ${fileName}`);
@@ -57,9 +53,7 @@ export async function loadMigrationModules(
 }
 
 export async function run(direction: 'up' | 'down' = 'up'): Promise<void> {
-  console.log(
-    `Checking if there are any migrations to run for direction "${direction}"...`,
-  );
+  console.log(`Checking if there are any migrations to run for direction "${direction}"...`);
 
   try {
     const migrationsModules = await loadMigrationModules(migrationsLoaders);

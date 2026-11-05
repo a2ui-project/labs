@@ -23,8 +23,7 @@ module.exports = {
   meta: {
     type: 'suggestion',
     docs: {
-      description:
-        'Detects usage of curly quotes in potentially user-visible locations',
+      description: 'Detects usage of curly quotes in potentially user-visible locations',
     },
     fixable: 'code',
     schema: [],
@@ -40,7 +39,7 @@ module.exports = {
     // Helpers
     //----------------------------------------------------------------------
 
-    function check(node, { value = node.value, strip = false } = {}) {
+    function check(node, {value = node.value, strip = false} = {}) {
       if (
         !value.includes('\u2018') &&
         !value.includes('\u2019') &&
@@ -91,10 +90,7 @@ module.exports = {
               return '"';
             }
           });
-          return fixer.replaceTextRange(
-            [node.range[0], node.range[1]],
-            fixedText,
-          );
+          return fixer.replaceTextRange([node.range[0], node.range[1]], fixedText);
         };
       };
 
@@ -120,8 +116,7 @@ module.exports = {
         node.callee.property.type === 'Identifier' &&
         properties.includes(node.callee.property.name) &&
         (object
-          ? node.callee.object.type === 'Identifier' &&
-            node.callee.object.name === object
+          ? node.callee.object.type === 'Identifier' && node.callee.object.name === object
           : true)
       );
     }
@@ -187,7 +182,7 @@ module.exports = {
         if (isIgnored(node.parent)) return;
 
         if (typeof node.value === 'string') {
-          check(node, { strip: true });
+          check(node, {strip: true});
         }
       },
       JSXText(node) {
@@ -196,7 +191,7 @@ module.exports = {
       TemplateElement(node) {
         if (isIgnored(node.parent.parent)) return;
 
-        check(node, { value: node.value.cooked });
+        check(node, {value: node.value.cooked});
       },
     };
   },

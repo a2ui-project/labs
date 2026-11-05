@@ -15,18 +15,16 @@
  */
 
 import * as connection from '#platform/server/connection';
-import type { ServerEvents } from '#types/server-events';
+import type {ServerEvents} from '#types/server-events';
 
-import { runImportSteps } from './progress';
+import {runImportSteps} from './progress';
 
-vi.mock('#platform/server/connection', () => ({ send: vi.fn() }));
+vi.mock('#platform/server/connection', () => ({send: vi.fn()}));
 
 function sentProgress() {
   return vi
     .mocked(connection.send)
-    .mock.calls.map(
-      ([, payload]) => payload as ServerEvents['import-progress'],
-    );
+    .mock.calls.map(([, payload]) => payload as ServerEvents['import-progress']);
 }
 
 describe('runImportSteps', () => {
@@ -117,8 +115,8 @@ describe('runImportSteps', () => {
 
     expect(sentProgress().map(payload => payload.batch)).toEqual([
       undefined,
-      { amount: 10, account: 'Checking' },
-      { amount: 20, account: 'Savings' },
+      {amount: 10, account: 'Checking'},
+      {amount: 20, account: 'Savings'},
       undefined,
       undefined,
     ]);
@@ -127,9 +125,7 @@ describe('runImportSteps', () => {
   it('snaps a step to its total when the estimate was off', async () => {
     // The step only imports 1 of the 5 items it estimated, but progress still
     // has to end up complete.
-    await runImportSteps([
-      { step: 'payees', total: 5, run: async tick => tick() },
-    ]);
+    await runImportSteps([{step: 'payees', total: 5, run: async tick => tick()}]);
 
     expect(sentProgress().at(-2)).toEqual({
       step: 'payees',

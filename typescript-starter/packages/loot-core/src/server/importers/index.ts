@@ -15,10 +15,10 @@
  */
 
 // @ts-strict-ignore
-import { logger } from '#platform/server/log';
-import { handlers } from '#server/main';
+import {logger} from '#platform/server/log';
+import {handlers} from '#server/main';
 
-import { importActual } from './actual';
+import {importActual} from './actual';
 import * as YNAB4 from './ynab4';
 import * as YNAB5 from './ynab5';
 
@@ -54,20 +54,20 @@ export async function handleBudgetImport(
       logger.error('failed to parse file', e);
     }
     if (!budgetName) {
-      return { error: 'not-' + type };
+      return {error: 'not-' + type};
     }
 
     try {
-      await handlers['api/start-import']({ budgetName });
+      await handlers['api/start-import']({budgetName});
     } catch (e) {
       logger.error('failed to start import', e);
-      return { error: 'unknown' };
+      return {error: 'unknown'};
     }
     await importer.doImport(data);
   } catch (e) {
     await handlers['api/abort-import']();
     logger.error('failed to run import', e);
-    return { error: 'unknown' };
+    return {error: 'unknown'};
   }
 
   await handlers['api/finish-import']();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const { ensureImport } = require('../utils/import-helpers');
+const {ensureImport} = require('../utils/import-helpers');
 
 /** @type {import('eslint').Rule.RuleModule} */
 module.exports = {
@@ -69,16 +69,10 @@ module.exports = {
         if (parent.type === 'JSXElement') {
           const elementName = parent.openingElement.name;
           // Check for both JSXIdentifier and JSXMemberExpression (e.g., Trans.Provider)
-          if (
-            elementName.type === 'JSXIdentifier' &&
-            elementName.name === 'Trans'
-          ) {
+          if (elementName.type === 'JSXIdentifier' && elementName.name === 'Trans') {
             return true;
           }
-          if (
-            elementName.type === 'JSXMemberExpression' &&
-            elementName.object.name === 'Trans'
-          ) {
+          if (elementName.type === 'JSXMemberExpression' && elementName.object.name === 'Trans') {
             return true;
           }
         }
@@ -271,7 +265,7 @@ module.exports = {
             !isInsideTrans(node)
           ) {
             // Template literals are harder to auto-fix, so skip for now
-            context.report({ node: quasi, messageId: 'useT' });
+            context.report({node: quasi, messageId: 'useT'});
           }
         });
       },

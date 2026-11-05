@@ -16,16 +16,16 @@
 
 // @ts-strict-ignore
 import SQL from 'better-sqlite3';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { getDataDir, readFile, removeFile } from '#platform/server/fs';
-import { logger } from '#platform/server/log';
+import {getDataDir, readFile, removeFile} from '#platform/server/fs';
+import {logger} from '#platform/server/log';
 
-import { normalise } from './normalise';
-import type { SqlParam } from './types';
-import { unicodeLike } from './unicodeLike';
+import {normalise} from './normalise';
+import type {SqlParam} from './types';
+import {unicodeLike} from './unicodeLike';
 
-export type { SqlParam } from './types';
+export type {SqlParam} from './types';
 
 function verifyParamTypes(sql, arr) {
   arr.forEach(val => {
@@ -79,7 +79,7 @@ export function runQuery(
     }
   } else {
     const info = stmt.run(...params);
-    return { changes: info.changes, insertId: info.lastInsertRowid };
+    return {changes: info.changes, insertId: info.lastInsertRowid};
   }
 }
 
@@ -96,7 +96,7 @@ export type TransactionOptions = {
 export function transaction(
   db: SQL.Database,
   fn: () => void,
-  { immediate = false }: TransactionOptions = {},
+  {immediate = false}: TransactionOptions = {},
 ) {
   const run = db.transaction(fn);
   if (immediate) {
@@ -112,10 +112,7 @@ export function transaction(
 // it. This is rarely used, and only needed for specific cases (like
 // batch importing a bunch of data). Don't use this.
 let transactionDepth = 0;
-export async function asyncTransaction(
-  db: SQL.Database,
-  fn: () => Promise<void>,
-) {
+export async function asyncTransaction(db: SQL.Database, fn: () => Promise<void>) {
   // Support nested transactions by "coalescing" them into the parent
   // one if one is already started
   if (transactionDepth === 0) {
@@ -145,15 +142,11 @@ export function openDatabase(pathOrBuffer: string | Buffer): SQL.Database {
   const db = new SQL(pathOrBuffer);
   // Define Unicode-aware LOWER, UPPER, and LIKE implementation.
   // This is necessary because better-sqlite3 uses SQLite build without ICU support.
-  db.function('UNICODE_LOWER', { deterministic: true }, (arg: string | null) =>
-    arg?.toLowerCase(),
-  );
-  db.function('UNICODE_UPPER', { deterministic: true }, (arg: string | null) =>
-    arg?.toUpperCase(),
-  );
-  db.function('UNICODE_LIKE', { deterministic: true }, unicodeLike);
-  db.function('REGEXP', { deterministic: true }, regexp);
-  db.function('NORMALISE', { deterministic: true }, normalise);
+  db.function('UNICODE_LOWER', {deterministic: true}, (arg: string | null) => arg?.toLowerCase());
+  db.function('UNICODE_UPPER', {deterministic: true}, (arg: string | null) => arg?.toUpperCase());
+  db.function('UNICODE_LIKE', {deterministic: true}, unicodeLike);
+  db.function('REGEXP', {deterministic: true}, regexp);
+  db.function('NORMALISE', {deterministic: true}, normalise);
   return db;
 }
 

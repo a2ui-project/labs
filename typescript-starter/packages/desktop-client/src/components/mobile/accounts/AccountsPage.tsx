@@ -14,47 +14,42 @@
  * limitations under the License.
  */
 
-import { forwardRef, useCallback, useRef } from 'react';
-import type { ComponentPropsWithoutRef, CSSProperties } from 'react';
-import type { DragItem } from 'react-aria';
-import {
-  DropIndicator,
-  ListBox,
-  ListBoxItem,
-  useDragAndDrop,
-} from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
-import { Navigate, useLocation } from 'react-router';
+import {forwardRef, useCallback, useRef} from 'react';
+import type {ComponentPropsWithoutRef, CSSProperties} from 'react';
+import type {DragItem} from 'react-aria';
+import {DropIndicator, ListBox, ListBoxItem, useDragAndDrop} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
+import {Navigate, useLocation} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
+import {Button} from '@actual-app/components/button';
 import {
   SvgAdd,
   SvgCheveronDown,
   SvgCheveronRight,
   SvgPiggyBank,
 } from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { TextOneLine } from '@actual-app/components/text-one-line';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {TextOneLine} from '@actual-app/components/text-one-line';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import {css} from '@emotion/css';
 
-import { useMoveAccountMutation, useSyncAndDownloadMutation } from '#accounts';
-import { isAccountFailedSync } from '#accounts/syncStatus';
-import { makeAmountFullStyle } from '#components/budget/util';
-import { MOBILE_NAV_HEIGHT } from '#components/mobile/MobileNavTabs';
-import { PullToRefresh } from '#components/mobile/PullToRefresh';
-import { MobilePageHeader, Page } from '#components/Page';
-import { CellValue, CellValueText } from '#components/spreadsheet/CellValue';
-import { useAccounts } from '#hooks/useAccounts';
-import { useLocalPref } from '#hooks/useLocalPref';
-import { useNavigate } from '#hooks/useNavigate';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { replaceModal } from '#modals/modalsSlice';
-import { useDispatch, useSelector } from '#redux';
-import type { Binding, SheetFields } from '#spreadsheet';
+import {useMoveAccountMutation, useSyncAndDownloadMutation} from '#accounts';
+import {isAccountFailedSync} from '#accounts/syncStatus';
+import {makeAmountFullStyle} from '#components/budget/util';
+import {MOBILE_NAV_HEIGHT} from '#components/mobile/MobileNavTabs';
+import {PullToRefresh} from '#components/mobile/PullToRefresh';
+import {MobilePageHeader, Page} from '#components/Page';
+import {CellValue, CellValueText} from '#components/spreadsheet/CellValue';
+import {useAccounts} from '#hooks/useAccounts';
+import {useLocalPref} from '#hooks/useLocalPref';
+import {useNavigate} from '#hooks/useNavigate';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {replaceModal} from '#modals/modalsSlice';
+import {useDispatch, useSelector} from '#redux';
+import type {Binding, SheetFields} from '#spreadsheet';
 import * as bindings from '#spreadsheet/bindings';
 
 const ROW_HEIGHT = 60;
@@ -79,7 +74,7 @@ function AccountHeader<SheetFieldName extends SheetFields<'account'>>({
   showCheveronDown = false,
   onPress,
 }: AccountHeaderProps<SheetFieldName>) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
 
   const Cheveron = showCheveronDown ? SvgCheveronDown : SvgCheveronRight;
@@ -87,7 +82,7 @@ function AccountHeader<SheetFieldName extends SheetFields<'account'>>({
   return (
     <Button
       variant="bare"
-      aria-label={t('View {{name}} transactions', { name })}
+      aria-label={t('View {{name}} transactions', {name})}
       onPress={onPress ? onPress : () => navigate(`/accounts/${id}`)}
       style={{
         height: ROW_HEIGHT,
@@ -106,7 +101,7 @@ function AccountHeader<SheetFieldName extends SheetFields<'account'>>({
         },
       ])}
     >
-      <View style={{ flex: 1, alignItems: 'center', flexDirection: 'row' }}>
+      <View style={{flex: 1, alignItems: 'center', flexDirection: 'row'}}>
         <Text
           style={{
             ...styles.text,
@@ -127,27 +122,18 @@ function AccountHeader<SheetFieldName extends SheetFields<'account'>>({
         />
       </View>
       <CellValue binding={amount} type="financial">
-        {props => (
-          <CellValueText<'account', SheetFieldName>
-            {...props}
-            style={{ ...styles.text }}
-          />
-        )}
+        {props => <CellValueText<'account', SheetFieldName> {...props} style={{...styles.text}} />}
       </CellValue>
     </Button>
   );
 }
 
-type AccountListItemProps = ComponentPropsWithoutRef<
-  typeof ListBoxItem<AccountEntity>
-> & {
+type AccountListItemProps = ComponentPropsWithoutRef<typeof ListBoxItem<AccountEntity>> & {
   isUpdated: boolean;
   isConnected: boolean;
   isPending: boolean;
   isFailed: boolean;
-  getBalanceQuery: (
-    accountId: AccountEntity['id'],
-  ) => Binding<'account', 'balance'>;
+  getBalanceQuery: (accountId: AccountEntity['id']) => Binding<'account', 'balance'>;
   onSelect: (account: AccountEntity) => void;
 };
 
@@ -160,7 +146,7 @@ function AccountListItem({
   onSelect,
   ...props
 }: AccountListItemProps) {
-  const { value: account } = props;
+  const {value: account} = props;
 
   if (!account) {
     return null;
@@ -247,7 +233,7 @@ function AccountListItem({
   );
 }
 
-function EmptyMessage({ onAddAccount }: { onAddAccount: () => void }) {
+function EmptyMessage({onAddAccount}: {onAddAccount: () => void}) {
   return (
     <View
       style={{
@@ -258,11 +244,7 @@ function EmptyMessage({ onAddAccount }: { onAddAccount: () => void }) {
         gap: 15,
       }}
     >
-      <SvgPiggyBank
-        width={70}
-        height={70}
-        style={{ color: theme.pageTextSubdued }}
-      />
+      <SvgPiggyBank width={70} height={70} style={{color: theme.pageTextSubdued}} />
       <Text
         style={{
           ...styles.largeText,
@@ -282,8 +264,8 @@ function EmptyMessage({ onAddAccount }: { onAddAccount: () => void }) {
         }}
       >
         <Trans>
-          Accounts hold your transactions, like everyday spending, savings,
-          credit cards, or cash. Add one to start tracking your money.
+          Accounts hold your transactions, like everyday spending, savings, credit cards, or cash.
+          Add one to start tracking your money.
         </Trans>
       </Text>
       <Button
@@ -304,9 +286,7 @@ function EmptyMessage({ onAddAccount }: { onAddAccount: () => void }) {
 
 type AllAccountListProps = {
   accounts: AccountEntity[];
-  getAccountBalance: (
-    accountId: AccountEntity['id'],
-  ) => Binding<'account', 'balance'>;
+  getAccountBalance: (accountId: AccountEntity['id']) => Binding<'account', 'balance'>;
   getAllAccountsBalance: () => Binding<'account', 'accounts-balance'>;
   getOnBudgetBalance: () => Binding<'account', 'onbudget-accounts-balance'>;
   getOffBudgetBalance: () => Binding<'account', 'offbudget-accounts-balance'>;
@@ -327,7 +307,7 @@ function AllAccountList({
   onOpenAccount,
   onSync,
 }: AllAccountListProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const onBudgetAccounts = accounts.filter(
     account => account.offbudget === 0 && account.closed === 0,
   );
@@ -337,9 +317,7 @@ function AllAccountList({
   const closedAccounts = accounts.filter(account => account.closed === 1);
 
   const closedAccountsRef = useRef<HTMLDivElement | null>(null);
-  const [showClosedAccounts, setShowClosedAccountsPref] = useLocalPref(
-    'ui.showClosedAccounts',
-  );
+  const [showClosedAccounts, setShowClosedAccountsPref] = useLocalPref('ui.showClosedAccounts');
 
   const onToggleClosedAccounts = () => {
     const toggledState = !showClosedAccounts;
@@ -350,7 +328,7 @@ function AllAccountList({
       // Delay the scroll until the component is rendered, otherwise the scroll
       // won't work.
       setTimeout(() => {
-        closedAccountsRef.current?.scrollIntoView({ behavior: 'smooth' });
+        closedAccountsRef.current?.scrollIntoView({behavior: 'smooth'});
       });
     }
   };
@@ -364,7 +342,7 @@ function AllAccountList({
             <Button
               variant="bare"
               aria-label={t('Add account')}
-              style={{ margin: 10 }}
+              style={{margin: 10}}
               onPress={onAddAccount}
             >
               <SvgAdd width={20} height={20} />
@@ -378,21 +356,14 @@ function AllAccountList({
         <EmptyMessage onAddAccount={onAddAccount} />
       ) : (
         <PullToRefresh onRefresh={onSync}>
-          <View
-            aria-label={t('Account list')}
-            style={{ paddingBottom: MOBILE_NAV_HEIGHT }}
-          >
+          <View aria-label={t('Account list')} style={{paddingBottom: MOBILE_NAV_HEIGHT}}>
             <AccountHeader
               id={ALL_ACCOUNTS_ID}
               name={t('All accounts')}
               amount={getAllAccountsBalance()}
             />
             {onBudgetAccounts.length > 0 && (
-              <AccountHeader
-                id="onbudget"
-                name={t('On budget')}
-                amount={getOnBudgetBalance()}
-              />
+              <AccountHeader id="onbudget" name={t('On budget')} amount={getOnBudgetBalance()} />
             )}
             <AccountList
               aria-label={t('On budget accounts')}
@@ -401,11 +372,7 @@ function AllAccountList({
               onOpenAccount={onOpenAccount}
             />
             {offBudgetAccounts.length > 0 && (
-              <AccountHeader
-                id="offbudget"
-                name={t('Off budget')}
-                amount={getOffBudgetBalance()}
-              />
+              <AccountHeader id="offbudget" name={t('Off budget')} amount={getOffBudgetBalance()} />
             )}
             <AccountList
               aria-label={t('Off budget accounts')}
@@ -419,7 +386,7 @@ function AllAccountList({
                 name={t('Closed')}
                 onPress={onToggleClosedAccounts}
                 amount={getClosedAccountsBalance()}
-                style={{ marginTop: 30 }}
+                style={{marginTop: 30}}
                 showCheveronDown={showClosedAccounts}
               />
             )}
@@ -444,9 +411,7 @@ function AllAccountList({
 type AccountListProps = {
   'aria-label': string;
   accounts: AccountEntity[];
-  getAccountBalance: (
-    accountId: AccountEntity['id'],
-  ) => Binding<'account', 'balance'>;
+  getAccountBalance: (accountId: AccountEntity['id']) => Binding<'account', 'balance'>;
   onOpenAccount: (account: AccountEntity) => void;
 };
 
@@ -460,14 +425,12 @@ const AccountList = forwardRef<HTMLDivElement, AccountListProps>(
     }: AccountListProps,
     ref,
   ) => {
-    const syncingAccountIds = useSelector(
-      state => state.account.accountsSyncing,
-    );
+    const syncingAccountIds = useSelector(state => state.account.accountsSyncing);
     const updatedAccounts = useSelector(state => state.account.updatedAccounts);
 
     const moveAccount = useMoveAccountMutation();
 
-    const { dragAndDropHooks } = useDragAndDrop({
+    const {dragAndDropHooks} = useDragAndDrop({
       getItems: keys =>
         [...keys].map(
           key =>
@@ -501,13 +464,9 @@ const AccountList = forwardRef<HTMLDivElement, AccountListProps>(
             targetId: targetAccountId,
           });
         } else if (e.target.dropPosition === 'after') {
-          const targetAccountIndex = accounts.findIndex(
-            account => account.id === e.target.key,
-          );
+          const targetAccountIndex = accounts.findIndex(account => account.id === e.target.key);
           if (targetAccountIndex === -1) {
-            throw new Error(
-              `Internal error: account with ID ${targetAccountId} not found.`,
-            );
+            throw new Error(`Internal error: account with ID ${targetAccountId} not found.`);
           }
 
           const nextToTargetAccount = accounts[targetAccountIndex + 1];
@@ -563,7 +522,7 @@ AccountList.displayName = 'AccountList';
 export function AccountsPage() {
   const location = useLocation();
   const dispatch = useDispatch();
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const [_numberFormat] = useSyncedPref('numberFormat');
   const numberFormat = _numberFormat || 'comma-dot';
   const [hideFraction] = useSyncedPref('hideFraction');
@@ -578,7 +537,7 @@ export function AccountsPage() {
   );
 
   const onAddAccount = useCallback(() => {
-    dispatch(replaceModal({ modal: { name: 'add-account', options: {} } }));
+    dispatch(replaceModal({modal: {name: 'add-account', options: {}}}));
   }, [dispatch]);
 
   const syncAndDownload = useSyncAndDownloadMutation();
@@ -590,17 +549,11 @@ export function AccountsPage() {
   // conditions in the location state; show them as filtered transactions.
   const filterConditions = location?.state?.filterConditions || [];
   if (filterConditions.length > 0) {
-    return (
-      <Navigate
-        to={`/accounts/${ALL_ACCOUNTS_ID}`}
-        state={location.state}
-        replace
-      />
-    );
+    return <Navigate to={`/accounts/${ALL_ACCOUNTS_ID}`} state={location.state} replace />;
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{flex: 1}}>
       <AllAccountList
         // This key forces the whole table rerender when the number
         // format changes

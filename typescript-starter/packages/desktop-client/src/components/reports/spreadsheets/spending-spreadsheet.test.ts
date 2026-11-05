@@ -19,19 +19,19 @@ import type {
   CategoryGroupEntity,
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { getSpendingBudgetFilters } from './spending-spreadsheet';
+import {getSpendingBudgetFilters} from './spending-spreadsheet';
 
 const categoryGroups = [
-  { id: 'group-bills', name: 'Bills' },
-  { id: 'group-fun', name: 'Fun Money' },
+  {id: 'group-bills', name: 'Bills'},
+  {id: 'group-fun', name: 'Fun Money'},
 ] satisfies CategoryGroupEntity[];
 
 const categories = [
-  { id: 'cat-rent', name: 'Rent', group: 'group-bills' },
-  { id: 'cat-electric', name: 'Electric', group: 'group-bills' },
-  { id: 'cat-dining', name: 'Dining Out', group: 'group-fun' },
+  {id: 'cat-rent', name: 'Rent', group: 'group-bills'},
+  {id: 'cat-electric', name: 'Electric', group: 'group-bills'},
+  {id: 'cat-dining', name: 'Dining Out', group: 'group-fun'},
 ] satisfies CategoryEntity[];
 
 describe('getSpendingBudgetFilters', () => {
@@ -48,9 +48,7 @@ describe('getSpendingBudgetFilters', () => {
       ] satisfies RuleConditionEntity[],
     });
 
-    expect(result).toEqual([
-      { category: { $oneof: ['cat-rent', 'cat-electric'] } },
-    ]);
+    expect(result).toEqual([{category: {$oneof: ['cat-rent', 'cat-electric']}}]);
   });
 
   it('does not filter budgets when no category condition is present', () => {
@@ -82,8 +80,6 @@ describe('getSpendingBudgetFilters', () => {
       ] satisfies RuleConditionEntity[],
     });
 
-    expect(result).toEqual([
-      { category: { $oneof: ['cat-rent', 'cat-dining'] } },
-    ]);
+    expect(result).toEqual([{category: {$oneof: ['cat-rent', 'cat-dining']}}]);
   });
 });

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import { Button } from '#Button';
-import type { CSSProperties } from '#styles';
-import { theme } from '#theme';
+import {Button} from '#Button';
+import type {CSSProperties} from '#styles';
+import {theme} from '#theme';
 
 type ModeButtonProps = {
   selected: boolean;
@@ -29,12 +29,7 @@ type ModeButtonProps = {
   onSelect: () => void;
 };
 
-export function ModeButton({
-  selected,
-  children,
-  style,
-  onSelect,
-}: ModeButtonProps) {
+export function ModeButton({selected, children, style, onSelect}: ModeButtonProps) {
   return (
     <Button
       variant="bare"

@@ -15,13 +15,13 @@
  */
 
 import * as asyncStorage from '#platform/server/asyncStorage';
-import { aqlQuery } from '#server/aql';
-import { getCurrency } from '#shared/currencies';
-import type { Currency } from '#shared/currencies';
-import type { UserPreferences } from '#shared/formulas/customFunctions';
-import { q } from '#shared/query';
-import { getNumberFormat } from '#shared/util';
-import type { NumberFormats } from '#shared/util';
+import {aqlQuery} from '#server/aql';
+import {getCurrency} from '#shared/currencies';
+import type {Currency} from '#shared/currencies';
+import type {UserPreferences} from '#shared/formulas/customFunctions';
+import {q} from '#shared/query';
+import {getNumberFormat} from '#shared/util';
+import type {NumberFormats} from '#shared/util';
 
 type FormulaPreferencesOptions = {
   selectedLocale?: string;
@@ -58,9 +58,7 @@ function getLocaleDefaults(locale?: string): {
   thousandsSeparator: string;
   decimalSeparator: string;
 } {
-  const parts = new Intl.NumberFormat(locale || 'en-US').formatToParts(
-    LOCALE_NUMBER_FORMAT_SAMPLE,
-  );
+  const parts = new Intl.NumberFormat(locale || 'en-US').formatToParts(LOCALE_NUMBER_FORMAT_SAMPLE);
 
   return {
     thousandsSeparator: parts.find(part => part.type === 'group')?.value ?? ',',
@@ -69,7 +67,7 @@ function getLocaleDefaults(locale?: string): {
 }
 
 function getNumberFormatFromLocale(locale: string): NumberFormats {
-  const { thousandsSeparator, decimalSeparator } = getLocaleDefaults(locale);
+  const {thousandsSeparator, decimalSeparator} = getLocaleDefaults(locale);
 
   if (decimalSeparator === '.' && thousandsSeparator === ',') {
     return 'comma-dot';
@@ -83,19 +81,14 @@ function getNumberFormatFromLocale(locale: string): NumberFormats {
     return 'space-comma';
   }
 
-  if (
-    decimalSeparator === '.' &&
-    (thousandsSeparator === "'" || thousandsSeparator === '\u2019')
-  ) {
+  if (decimalSeparator === '.' && (thousandsSeparator === "'" || thousandsSeparator === '\u2019')) {
     return 'apostrophe-dot';
   }
 
   return 'comma-dot';
 }
 
-function getCurrencyFromPreference(
-  currencyCode: string | null,
-): Currency | null {
+function getCurrencyFromPreference(currencyCode: string | null): Currency | null {
   if (!currencyCode) {
     return null;
   }
@@ -126,7 +119,7 @@ export async function loadUserPreferencesForFormulas({
   try {
     const preferencesQuery = await aqlQuery(
       q('preferences')
-        .filter({ id: { $oneof: FORMULA_PREFERENCE_IDS } })
+        .filter({id: {$oneof: FORMULA_PREFERENCE_IDS}})
         .select('*'),
     );
 
@@ -141,8 +134,7 @@ export async function loadUserPreferencesForFormulas({
       ? getCurrencyFromPreference(currencyCode)
       : null;
 
-    const numberFormatValue =
-      (preferences.numberFormat as NumberFormats | undefined) ?? null;
+    const numberFormatValue = (preferences.numberFormat as NumberFormats | undefined) ?? null;
     const hideFraction = preferences.hideFraction === 'true';
 
     const locale =
@@ -153,14 +145,12 @@ export async function loadUserPreferencesForFormulas({
 
     const currency = currencyFromPreference ?? DEFAULT_CURRENCY;
     const symbolPositionValue = preferences.currencySymbolPosition ?? null;
-    const spaceEnabledValue =
-      preferences.currencySpaceBetweenAmountAndSymbol ?? null;
+    const spaceEnabledValue = preferences.currencySpaceBetweenAmountAndSymbol ?? null;
     const shouldUseCurrencyPreferences = currencyFromPreference !== null;
 
     const numberFormat = numberFormatValue
       ? numberFormatValue
-      : currencyFromPreference?.numberFormat ||
-        getNumberFormatFromLocale(locale);
+      : currencyFromPreference?.numberFormat || getNumberFormatFromLocale(locale);
 
     // Get number format settings
     const numberFormatSettings = getNumberFormat({
@@ -175,11 +165,8 @@ export async function loadUserPreferencesForFormulas({
       numberFormat,
       decimalPlaces: hideFraction ? 0 : currency.decimalPlaces,
       thousandsSeparator:
-        numberFormatSettings.thousandsSeparator ||
-        localeDefaults.thousandsSeparator,
-      decimalSeparator:
-        numberFormatSettings.decimalSeparator ||
-        localeDefaults.decimalSeparator,
+        numberFormatSettings.thousandsSeparator || localeDefaults.thousandsSeparator,
+      decimalSeparator: numberFormatSettings.decimalSeparator || localeDefaults.decimalSeparator,
       locale,
       currencySymbolPosition: shouldUseCurrencyPreferences
         ? getCurrencySymbolPosition(symbolPositionValue, currency)
@@ -189,10 +176,7 @@ export async function loadUserPreferencesForFormulas({
         : false,
     };
   } catch {
-    const locale =
-      normalizeLocale(selectedLocale) ??
-      normalizeLocale(browserLocale) ??
-      'en-US';
+    const locale = normalizeLocale(selectedLocale) ?? normalizeLocale(browserLocale) ?? 'en-US';
     const currency = DEFAULT_CURRENCY;
     const numberFormat = getNumberFormatFromLocale(locale);
     const numberFormatSettings = getNumberFormat({
@@ -205,11 +189,8 @@ export async function loadUserPreferencesForFormulas({
       numberFormat,
       decimalPlaces: 2,
       thousandsSeparator:
-        numberFormatSettings.thousandsSeparator ||
-        localeDefaults.thousandsSeparator,
-      decimalSeparator:
-        numberFormatSettings.decimalSeparator ||
-        localeDefaults.decimalSeparator,
+        numberFormatSettings.thousandsSeparator || localeDefaults.thousandsSeparator,
+      decimalSeparator: numberFormatSettings.decimalSeparator || localeDefaults.decimalSeparator,
       locale,
       currencySymbolPosition: DEFAULT_CURRENCY_SYMBOL_POSITION,
       currencySpaceBetweenAmountAndSymbol: false,

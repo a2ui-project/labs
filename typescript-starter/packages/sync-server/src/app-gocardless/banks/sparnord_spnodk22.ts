@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -30,10 +30,9 @@ export default {
    * Banks on the BEC backend only give information regarding the transaction in additionalInformation
    */
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
-    editedTrans.remittanceInformationUnstructured =
-      transaction.additionalInformation;
+    editedTrans.remittanceInformationUnstructured = transaction.additionalInformation;
 
     return Fallback.normalizeTransaction(transaction, booked, editedTrans);
   },

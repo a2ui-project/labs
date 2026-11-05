@@ -14,28 +14,25 @@
  * limitations under the License.
  */
 
-import type { Query } from '@actual-app/core/shared/query';
-import type { TransactionEntity } from '@actual-app/core/types/models';
-import { infiniteQueryOptions, keepPreviousData } from '@tanstack/react-query';
+import type {Query} from '@actual-app/core/shared/query';
+import type {TransactionEntity} from '@actual-app/core/types/models';
+import {infiniteQueryOptions, keepPreviousData} from '@tanstack/react-query';
 
-import { aqlQuery } from '#queries/aqlQuery';
+import {aqlQuery} from '#queries/aqlQuery';
 
 export const transactionQueries = {
   all: () => ['transactions'],
-  aql: ({ query, pageSize = 50 }: { query?: Query; pageSize?: number }) =>
+  aql: ({query, pageSize = 50}: {query?: Query; pageSize?: number}) =>
     infiniteQueryOptions<TransactionEntity[]>({
       queryKey: [...transactionQueries.all(), 'aql', query, pageSize],
-      queryFn: async ({ pageParam }) => {
+      queryFn: async ({pageParam}) => {
         if (!query) {
           // Shouldn't happen because of the enabled flag, but needed to satisfy TS
           throw new Error('No query provided.');
         }
-        const queryWithOffset = query
-          .offset((pageParam as number) * pageSize)
-          .limit(pageSize);
+        const queryWithOffset = query.offset((pageParam as number) * pageSize).limit(pageSize);
 
-        const { data }: { data: TransactionEntity[] } =
-          await aqlQuery(queryWithOffset);
+        const {data}: {data: TransactionEntity[]} = await aqlQuery(queryWithOffset);
         return data;
       },
       placeholderData: keepPreviousData,

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { RuleConditionEntity } from './rule';
+import type {RuleConditionEntity} from './rule';
 
 export type CustomReportEntity = {
   id: string;

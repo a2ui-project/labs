@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-import { DEFAULT_MAX_DISTANCE_METERS } from '@actual-app/core/shared/constants';
-import type { LocationCoordinates } from '@actual-app/core/shared/location-utils';
-import type {
-  NearbyPayeeEntity,
-  PayeeLocationEntity,
-} from '@actual-app/core/types/models';
+import {DEFAULT_MAX_DISTANCE_METERS} from '@actual-app/core/shared/constants';
+import type {LocationCoordinates} from '@actual-app/core/shared/location-utils';
+import type {NearbyPayeeEntity, PayeeLocationEntity} from '@actual-app/core/types/models';
 
-import type {
-  GeolocationAdapter,
-  LocationApiClient,
-} from './location-adapters';
+import type {GeolocationAdapter, LocationApiClient} from './location-adapters';
 
 export class LocationService {
   private currentPosition: LocationCoordinates | null = null;
@@ -38,10 +32,7 @@ export class LocationService {
 
   async getCurrentPosition(): Promise<LocationCoordinates> {
     // Return cached position if it's recent
-    if (
-      this.currentPosition &&
-      Date.now() - this.lastLocationTime < this.CACHE_DURATION
-    ) {
+    if (this.currentPosition && Date.now() - this.lastLocationTime < this.CACHE_DURATION) {
       return this.currentPosition;
     }
 
@@ -55,10 +46,7 @@ export class LocationService {
     }
   }
 
-  async savePayeeLocation(
-    payeeId: string,
-    coordinates: LocationCoordinates,
-  ): Promise<string> {
+  async savePayeeLocation(payeeId: string, coordinates: LocationCoordinates): Promise<string> {
     try {
       return await this.apiClient.saveLocation(payeeId, coordinates);
     } catch (error) {

@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-import type {
-  AccountEntity,
-  AccountGroupEntity,
-} from '@actual-app/core/types/models';
+import type {AccountEntity, AccountGroupEntity} from '@actual-app/core/types/models';
 
-import { getEffectiveGroupId } from './useSidebarAccountTree';
+import {getEffectiveGroupId} from './useSidebarAccountTree';
 
 export type AccountMove = {
   id: AccountEntity['id'];
@@ -33,8 +30,8 @@ export type GroupMove = {
 };
 
 export type AccountDropTarget =
-  | { kind: 'account'; accountId: string; position: 'before' | 'after' }
-  | { kind: 'group'; groupId: string; position: 'on' | 'before' | 'after' };
+  | {kind: 'account'; accountId: string; position: 'before' | 'after'}
+  | {kind: 'group'; groupId: string; position: 'on' | 'before' | 'after'};
 
 export function computeAccountMove({
   accounts,
@@ -66,8 +63,7 @@ export function computeAccountMove({
     return {
       id: draggedId,
       targetId: firstMember.id,
-      accountGroupId:
-        draggedGroupId === target.groupId ? undefined : target.groupId,
+      accountGroupId: draggedGroupId === target.groupId ? undefined : target.groupId,
     };
   }
 
@@ -75,25 +71,20 @@ export function computeAccountMove({
     if (draggedAccount.closed || draggedGroupId == null) {
       return null;
     }
-    return { id: draggedId, targetId: null, accountGroupId: null };
+    return {id: draggedId, targetId: null, accountGroupId: null};
   }
 
   let targetId: AccountEntity['id'] | null = target.accountId;
   if (target.position === 'after') {
     const siblings = accounts.filter(account =>
-      draggedAccount.closed
-        ? account.closed
-        : account.offbudget === draggedAccount.offbudget,
+      draggedAccount.closed ? account.closed : account.offbudget === draggedAccount.offbudget,
     );
     const idx = siblings.findIndex(account => account.id === target.accountId);
-    targetId =
-      idx >= 0 && idx + 1 < siblings.length ? siblings[idx + 1].id : null;
+    targetId = idx >= 0 && idx + 1 < siblings.length ? siblings[idx + 1].id : null;
   }
 
   let accountGroupId: AccountGroupEntity['id'] | null | undefined;
-  const targetAccount = accounts.find(
-    account => account.id === target.accountId,
-  );
+  const targetAccount = accounts.find(account => account.id === target.accountId);
   if (!draggedAccount.closed && targetAccount != null) {
     const targetGroupId = getEffectiveGroupId(targetAccount, liveGroupIds);
     if (targetGroupId !== draggedGroupId) {
@@ -101,7 +92,7 @@ export function computeAccountMove({
     }
   }
 
-  return { id: draggedId, targetId, accountGroupId };
+  return {id: draggedId, targetId, accountGroupId};
 }
 
 export function computeGroupMove({
@@ -119,12 +110,12 @@ export function computeGroupMove({
     return null;
   }
   if (position === 'before') {
-    return { id: draggedId, targetId };
+    return {id: draggedId, targetId};
   }
   const idx = groups.findIndex(group => group.id === targetId);
   const next = idx >= 0 ? groups[idx + 1] : undefined;
   if (next?.id === draggedId) {
     return null;
   }
-  return { id: draggedId, targetId: next?.id ?? null };
+  return {id: draggedId, targetId: next?.id ?? null};
 }

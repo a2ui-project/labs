@@ -15,8 +15,8 @@
  */
 
 import * as connection from '#platform/server/connection';
-import { logger } from '#platform/server/log';
-import type { ImportStep } from '#types/server-events';
+import {logger} from '#platform/server/log';
+import type {ImportStep} from '#types/server-events';
 
 /**
  * Reports that `count` more items of the current step have been imported.
@@ -44,15 +44,15 @@ const MIN_EVENT_INTERVAL_MS = 100;
  * show which stage the import is on and how far along it is.
  */
 export async function runImportSteps(steps: ImportStepDefinition[]) {
-  const overallTotal = steps.reduce((sum, { total }) => sum + total, 0);
+  const overallTotal = steps.reduce((sum, {total}) => sum + total, 0);
   let overallCurrent = 0;
   let lastSentAt = 0;
 
-  for (const { step, total, run } of steps) {
+  for (const {step, total, run} of steps) {
     logger.log(`Importing ${step}...`);
     let current = 0;
 
-    const emit = (batch?: { amount: number; account: string }) => {
+    const emit = (batch?: {amount: number; account: string}) => {
       lastSentAt = Date.now();
       connection.send('import-progress', {
         step,
@@ -72,7 +72,7 @@ export async function runImportSteps(steps: ImportStepDefinition[]) {
       // Always report a named batch: they are rare, and the account name is
       // the whole point of the message.
       if (account !== undefined) {
-        emit({ amount: count, account });
+        emit({amount: count, account});
       } else if (Date.now() - lastSentAt >= MIN_EVENT_INTERVAL_MS) {
         emit();
       }

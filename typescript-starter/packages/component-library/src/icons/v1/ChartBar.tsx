@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgChartBar = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -26,9 +26,6 @@ export const SvgChartBar = (props: SVGProps<SVGSVGElement>) => (
       ...props.style,
     }}
   >
-    <path
-      d="M1 10h3v10H1zM6 0h3v20H6zm5 8h3v12h-3zm5-4h3v16h-3z"
-      fill="currentColor"
-    />
+    <path d="M1 10h3v10H1zM6 0h3v20H6zm5 8h3v12h-3zm5-4h3v16h-3z" fill="currentColor" />
   </svg>
 );

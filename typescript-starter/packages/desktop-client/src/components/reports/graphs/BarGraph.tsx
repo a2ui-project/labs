@@ -15,12 +15,12 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { theme } from '@actual-app/components/theme';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {theme} from '@actual-app/components/theme';
 import type {
   balanceTypeOpType,
   DataEntity,
@@ -28,7 +28,7 @@ import type {
   IntervalEntity,
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 import {
   Bar,
   BarChart,
@@ -40,23 +40,23 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { BarShapeProps } from 'recharts';
+import type {BarShapeProps} from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { getCustomTick } from '#components/reports/getCustomTick';
-import { numberFormatterTooltip } from '#components/reports/numberFormatter';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {FinancialText} from '#components/FinancialText';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {getCustomTick} from '#components/reports/getCustomTick';
+import {numberFormatterTooltip} from '#components/reports/numberFormatter';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
-import { adjustTextSize } from './adjustTextSize';
-import { renderCustomLabel } from './renderCustomLabel';
-import { showActivity } from './showActivity';
+import {adjustTextSize} from './adjustTextSize';
+import {renderCustomLabel} from './renderCustomLabel';
+import {showActivity} from './showActivity';
 
 type PayloadChild = {
   props: {
@@ -88,14 +88,8 @@ type CustomTooltipProps = {
   format: (value: unknown, type: FormatType) => string;
 };
 
-const CustomTooltip = ({
-  active,
-  payload,
-  balanceTypeOp,
-  yAxis,
-  format,
-}: CustomTooltipProps) => {
-  const { t } = useTranslation();
+const CustomTooltip = ({active, payload, balanceTypeOp, yAxis, format}: CustomTooltipProps) => {
+  const {t} = useTranslation();
 
   if (active && payload && payload.length) {
     return (
@@ -111,13 +105,11 @@ const CustomTooltip = ({
         })}
       >
         <div>
-          <div style={{ marginBottom: 10 }}>
+          <div style={{marginBottom: 10}}>
             <strong>{payload[0].payload[yAxis]}</strong>
           </div>
-          <div style={{ lineHeight: 1.5 }}>
-            {['totalAssets', 'totalTotals', 'totalBudgeted'].includes(
-              balanceTypeOp,
-            ) && (
+          <div style={{lineHeight: 1.5}}>
+            {['totalAssets', 'totalTotals', 'totalBudgeted'].includes(balanceTypeOp) && (
               <AlignedText
                 left={t('Assets:')}
                 right={
@@ -127,9 +119,7 @@ const CustomTooltip = ({
                 }
               />
             )}
-            {['totalDebts', 'totalTotals', 'totalBudgeted'].includes(
-              balanceTypeOp,
-            ) && (
+            {['totalDebts', 'totalTotals', 'totalBudgeted'].includes(balanceTypeOp) && (
               <AlignedText
                 left={t('Debts:')}
                 right={
@@ -143,9 +133,7 @@ const CustomTooltip = ({
               <AlignedText
                 left={t('Net Assets:')}
                 right={
-                  <FinancialText>
-                    {format(payload[0].payload.netAssets, 'financial')}
-                  </FinancialText>
+                  <FinancialText>{format(payload[0].payload.netAssets, 'financial')}</FinancialText>
                 }
               />
             )}
@@ -153,17 +141,13 @@ const CustomTooltip = ({
               <AlignedText
                 left={t('Net Debts:')}
                 right={
-                  <FinancialText>
-                    {format(payload[0].payload.netDebts, 'financial')}
-                  </FinancialText>
+                  <FinancialText>{format(payload[0].payload.netDebts, 'financial')}</FinancialText>
                 }
               />
             )}
             {['totalTotals', 'totalBudgeted'].includes(balanceTypeOp) && (
               <AlignedText
-                left={
-                  balanceTypeOp === 'totalBudgeted' ? t('Budgeted:') : t('Net:')
-                }
+                left={balanceTypeOp === 'totalBudgeted' ? t('Budgeted:') : t('Net:')}
                 right={
                   <FinancialText as="strong">
                     {format(
@@ -187,14 +171,10 @@ const customLabel = (props, typeOp, format) => {
   const calcX = props.x + props.width / 2;
   const calcY = props.y - (props.value > 0 ? 15 : -15);
   const textAnchor = 'middle';
-  const display =
-    props.value !== 0 && `${format(props.value, 'financial-no-decimals')}`;
+  const display = props.value !== 0 && `${format(props.value, 'financial-no-decimals')}`;
   const textSize = adjustTextSize({
     sized: props.width,
-    type:
-      typeOp === 'totalTotals' || typeOp === 'totalBudgeted'
-        ? 'default'
-        : 'variable',
+    type: typeOp === 'totalTotals' || typeOp === 'totalBudgeted' ? 'default' : 'variable',
     values: props.value,
   });
 
@@ -204,9 +184,7 @@ const customLabel = (props, typeOp, format) => {
 type ReportDrilldownPayload = Pick<GroupedEntity, 'uncategorizedId'>;
 
 function hasUncategorizedId(value: unknown): value is ReportDrilldownPayload {
-  return (
-    value !== null && typeof value === 'object' && 'uncategorizedId' in value
-  );
+  return value !== null && typeof value === 'object' && 'uncategorizedId' in value;
 }
 
 type BarGraphProps = {
@@ -236,8 +214,8 @@ export function BarGraph({
 }: BarGraphProps) {
   const animationProps = useRechartsAnimation();
   const navigate = useNavigate();
-  const { data: categories = { grouped: [], list: [] } } = useCategories();
-  const { data: accounts = [] } = useAccounts();
+  const {data: categories = {grouped: [], list: []}} = useCategories();
+  const {data: accounts = []} = useAccounts();
   const privacyMode = usePrivacyMode();
   const format = useFormat();
 
@@ -269,20 +247,20 @@ export function BarGraph({
     <Container
       style={{
         ...style,
-        ...(compact && { height: 'auto' }),
+        ...(compact && {height: 'auto'}),
       }}
     >
       {(width, height) =>
         data[splitData] && (
           <div>
-            {!compact && <div style={{ marginTop: '15px' }} />}
+            {!compact && <div style={{marginTop: '15px'}} />}
             <BarChart<GroupedEntity | IntervalEntity>
               responsive
               width={width}
               height={height}
               stackOffset="sign"
               data={data[splitData]}
-              style={{ cursor: pointer }}
+              style={{cursor: pointer}}
               margin={{
                 top: labelsMargin,
                 right: 0,
@@ -292,13 +270,9 @@ export function BarGraph({
             >
               {showTooltip && (
                 <Tooltip
-                  cursor={{ fill: 'transparent' }}
+                  cursor={{fill: 'transparent'}}
                   content={
-                    <CustomTooltip
-                      balanceTypeOp={balanceTypeOp}
-                      yAxis={yAxis}
-                      format={format}
-                    />
+                    <CustomTooltip balanceTypeOp={balanceTypeOp} yAxis={yAxis} format={format} />
                   }
                   formatter={numberFormatterTooltip}
                   isAnimationActive={false}
@@ -310,20 +284,17 @@ export function BarGraph({
                   dataKey={yAxis}
                   angle={-35}
                   height={Math.sqrt(longestLabelLength) * 25}
-                  tick={{ fill: theme.pageText, textAnchor: 'end' }}
-                  tickLine={{ stroke: theme.pageText }}
+                  tick={{fill: theme.pageText, textAnchor: 'end'}}
+                  tickLine={{stroke: theme.pageText}}
                 />
               )}
               {!compact && (
                 <YAxis
                   tickFormatter={value =>
-                    getCustomTick(
-                      format(value, 'financial-no-decimals'),
-                      privacyMode,
-                    )
+                    getCustomTick(format(value, 'financial-no-decimals'), privacyMode)
                   }
-                  tick={{ fill: theme.pageText }}
-                  tickLine={{ stroke: theme.pageText }}
+                  tick={{fill: theme.pageText}}
+                  tickLine={{stroke: theme.pageText}}
                   tickSize={0}
                 />
               )}
@@ -333,13 +304,9 @@ export function BarGraph({
                 stackId="a"
                 {...animationProps}
                 onMouseLeave={() => setPointer('')}
-                onMouseEnter={() =>
-                  groupBy !== 'Interval' && setPointer('pointer')
-                }
+                onMouseEnter={() => groupBy !== 'Interval' && setPointer('pointer')}
                 onClick={item => {
-                  const itemPayload = hasUncategorizedId(item.payload)
-                    ? item.payload
-                    : undefined;
+                  const itemPayload = hasUncategorizedId(item.payload) ? item.payload : undefined;
 
                   return (
                     ((compact && showTooltip) || !compact) &&
@@ -364,9 +331,7 @@ export function BarGraph({
                 shape={(props: BarShapeProps) => (
                   <Rectangle
                     {...props}
-                    fill={
-                      data.legend[props.index]?.color ?? props.fill ?? undefined
-                    }
+                    fill={data.legend[props.index]?.color ?? props.fill ?? undefined}
                   />
                 )}
               >

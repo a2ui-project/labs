@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-import { listen } from '@actual-app/core/platform/client/connection';
+import {listen} from '@actual-app/core/platform/client/connection';
 import * as undo from '@actual-app/core/platform/client/undo';
 // @ts-strict-ignore
-import type { QueryClient } from '@tanstack/react-query';
-import { t } from 'i18next';
+import type {QueryClient} from '@tanstack/react-query';
+import {t} from 'i18next';
 
-import { accountQueries } from './accounts';
-import { setAppState } from './app/appSlice';
-import { categoryQueries } from './budget';
-import { closeBudgetUI } from './budgetfiles/budgetfilesSlice';
-import { closeModal, pushModal, replaceModal } from './modals/modalsSlice';
-import type { Modal } from './modals/modalsSlice';
-import {
-  addGenericErrorNotification,
-  addNotification,
-} from './notifications/notificationsSlice';
-import { payeeQueries } from './payees';
-import { loadPrefs } from './prefs/prefsSlice';
-import type { AppStore } from './redux/store';
+import {accountQueries} from './accounts';
+import {setAppState} from './app/appSlice';
+import {categoryQueries} from './budget';
+import {closeBudgetUI} from './budgetfiles/budgetfilesSlice';
+import {closeModal, pushModal, replaceModal} from './modals/modalsSlice';
+import type {Modal} from './modals/modalsSlice';
+import {addGenericErrorNotification, addNotification} from './notifications/notificationsSlice';
+import {payeeQueries} from './payees';
+import {loadPrefs} from './prefs/prefsSlice';
+import type {AppStore} from './redux/store';
 import * as syncEvents from './sync-events';
 
 export function handleGlobalEvents(store: AppStore, queryClient: QueryClient) {
@@ -40,34 +37,29 @@ export function handleGlobalEvents(store: AppStore, queryClient: QueryClient) {
     store.dispatch(addGenericErrorNotification());
   });
 
-  const unlistenOrphanedPayees = listen(
-    'orphaned-payees',
-    ({ orphanedIds, updatedPayeeIds }) => {
-      // Right now, it prompts to merge into the first payee
-      store.dispatch(
-        pushModal({
-          modal: {
-            name: 'merge-unused-payees',
-            options: {
-              payeeIds: orphanedIds,
-              targetPayeeId: updatedPayeeIds[0],
-            },
+  const unlistenOrphanedPayees = listen('orphaned-payees', ({orphanedIds, updatedPayeeIds}) => {
+    // Right now, it prompts to merge into the first payee
+    store.dispatch(
+      pushModal({
+        modal: {
+          name: 'merge-unused-payees',
+          options: {
+            payeeIds: orphanedIds,
+            targetPayeeId: updatedPayeeIds[0],
           },
-        }),
-      );
-    },
-  );
+        },
+      }),
+    );
+  });
 
   const unlistenSchedulesOffline = listen('schedules-offline', () => {
-    store.dispatch(
-      pushModal({ modal: { name: 'schedule-posts-offline-notification' } }),
-    );
+    store.dispatch(pushModal({modal: {name: 'schedule-posts-offline-notification'}}));
   });
 
   const unlistenSync = syncEvents.listenForSyncEvent(store, queryClient);
 
   const unlistenUndo = listen('undo-event', undoState => {
-    const { tables, undoTag } = undoState;
+    const {tables, undoTag} = undoState;
     const promises: Promise<unknown>[] = [];
 
     if (
@@ -114,21 +106,18 @@ export function handleGlobalEvents(store: AppStore, queryClient: QueryClient) {
           // loot-core and desktop-client can import (e.g. consolidated under
           // @actual-app/core types).
           const openModal = tagged.openModal as Modal;
-          const { modalStack } = store.getState().modals;
+          const {modalStack} = store.getState().modals;
 
           if (
             modalStack.length === 0 ||
             modalStack[modalStack.length - 1].name !== openModal.name
           ) {
-            store.dispatch(replaceModal({ modal: openModal }));
+            store.dispatch(replaceModal({modal: openModal}));
           }
         } else {
           store.dispatch(closeModal());
 
-          if (
-            window.location.href.replace(window.location.origin, '') !==
-            tagged.url
-          ) {
+          if (window.location.href.replace(window.location.origin, '') !== tagged.url) {
             void window.__navigate(tagged.url);
             // This stops propagation of the undo event, which is
             // important because if we are changing URLs any existing
@@ -166,12 +155,12 @@ export function handleGlobalEvents(store: AppStore, queryClient: QueryClient) {
 
   const unlistenStartLoad = listen('start-load', () => {
     void store.dispatch(closeBudgetUI());
-    store.dispatch(setAppState({ loadingText: '' }));
+    store.dispatch(setAppState({loadingText: ''}));
   });
 
   const unlistenFinishLoad = listen('finish-load', () => {
     store.dispatch(closeModal());
-    store.dispatch(setAppState({ loadingText: null }));
+    store.dispatch(setAppState({loadingText: null}));
     void store.dispatch(loadPrefs());
   });
 
@@ -181,13 +170,13 @@ export function handleGlobalEvents(store: AppStore, queryClient: QueryClient) {
 
   const unlistenFinishImport = listen('finish-import', () => {
     store.dispatch(closeModal());
-    store.dispatch(setAppState({ loadingText: null }));
+    store.dispatch(setAppState({loadingText: null}));
     void store.dispatch(loadPrefs());
   });
 
   const unlistenShowBudgets = listen('show-budgets', () => {
     void store.dispatch(closeBudgetUI());
-    store.dispatch(setAppState({ loadingText: null }));
+    store.dispatch(setAppState({loadingText: null}));
   });
 
   const unlistenApiFetchRedirected = listen('api-fetch-redirected', () => {

@@ -15,17 +15,17 @@
  */
 
 import React from 'react';
-import { GridListItem } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import {GridListItem} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgMenu } from '@actual-app/components/icons/v1';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Toggle } from '@actual-app/components/toggle';
-import { css } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {SvgMenu} from '@actual-app/components/icons/v1';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Toggle} from '@actual-app/components/toggle';
+import {css} from '@emotion/css';
 
-import { isTransactionTableColumnLocked } from '#components/transactions/table/columns';
+import {isTransactionTableColumnLocked} from '#components/transactions/table/columns';
 import type {
   TransactionTableColumn,
   TransactionTableColumnId,
@@ -42,7 +42,7 @@ export function TransactionTableColumnListItem({
   label,
   onToggle,
 }: TransactionTableColumnListItemProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const isLocked = isTransactionTableColumnLocked(column.id);
 
   return (

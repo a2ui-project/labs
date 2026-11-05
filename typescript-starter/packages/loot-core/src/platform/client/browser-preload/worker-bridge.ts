@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { initBackend as initSQLBackend } from 'absurd-sql/dist/indexeddb-main-thread';
+import {initBackend as initSQLBackend} from 'absurd-sql/dist/indexeddb-main-thread';
 
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 
-type BridgeMessage = { type?: string; [key: string]: unknown };
+type BridgeMessage = {type?: string; [key: string]: unknown};
 
 /** The Worker-like surface the connection layer interacts with. */
 export type WorkerLike = {
@@ -42,7 +42,7 @@ export type WorkerLike = {
 export class WorkerBridge {
   _sharedPort: MessagePort;
   _onmessage: ((e: MessageEvent) => void) | null;
-  _listeners: Array<{ type: string; handler: (e: MessageEvent) => void }>;
+  _listeners: Array<{type: string; handler: (e: MessageEvent) => void}>;
   _started: boolean;
   _isInitialized: boolean;
   _currentBudgetId: string | null;
@@ -97,7 +97,7 @@ export class WorkerBridge {
   }
 
   addEventListener(type: string, handler: (e: MessageEvent) => void) {
-    this._listeners.push({ type, handler });
+    this._listeners.push({type, handler});
   }
 
   start() {
@@ -116,7 +116,7 @@ export class WorkerBridge {
 
   _dispatch(event: MessageEvent) {
     if (this._onmessage) this._onmessage(event);
-    for (const { type, handler } of this._listeners) {
+    for (const {type, handler} of this._listeners) {
       if (type === 'message') handler(event);
     }
   }
@@ -154,7 +154,7 @@ export class WorkerBridge {
       // triggered externally (e.g. another tab deleted this budget).
       if (msg.requestId) {
         this._dispatch({
-          data: { type: 'reply', id: msg.requestId, data: {} },
+          data: {type: 'reply', id: msg.requestId, data: {}},
         } as MessageEvent);
       }
       return;
@@ -165,9 +165,7 @@ export class WorkerBridge {
       const role = msg.role as string;
       const budgetId = (msg.budgetId as string | null) ?? null;
       this._applyRole(role, budgetId);
-      logger.log(
-        `[WorkerBridge] Role: ${role}${budgetId ? ` (budget: ${budgetId})` : ''}`,
-      );
+      logger.log(`[WorkerBridge] Role: ${role}${budgetId ? ` (budget: ${budgetId})` : ''}`);
       return;
     }
 
@@ -176,10 +174,7 @@ export class WorkerBridge {
     // real console (not logger).
     if (msg && msg.type === '__shared-worker-console') {
       const level = msg.level as string;
-      const consoleByLevel = console as unknown as Record<
-        string,
-        (...args: unknown[]) => void
-      >;
+      const consoleByLevel = console as unknown as Record<string, (...args: unknown[]) => void>;
       // oxlint-disable-next-line actual/prefer-logger-over-console
       const method = consoleByLevel[level] || console.log;
       method(...(msg.args as unknown[]));
@@ -188,7 +183,7 @@ export class WorkerBridge {
 
     // Respond to heartbeat pings
     if (msg && msg.type === '__heartbeat-ping') {
-      this._sharedPort.postMessage({ type: '__heartbeat-pong' });
+      this._sharedPort.postMessage({type: '__heartbeat-pong'});
       return;
     }
 
@@ -204,11 +199,7 @@ export class WorkerBridge {
   }
 
   _normalizeBudgetId(budgetId: string | null): string | null {
-    if (
-      typeof budgetId === 'string' &&
-      budgetId.length > 0 &&
-      !budgetId.startsWith('__')
-    ) {
+    if (typeof budgetId === 'string' && budgetId.length > 0 && !budgetId.startsWith('__')) {
       return budgetId;
     }
     return null;
@@ -258,15 +249,13 @@ export class WorkerBridge {
       // continue working without being sent to the budget list.
       if (workerMsg.type === 'connect') {
         if (budgetToRestore) {
-          logger.log(
-            `[WorkerBridge] Backend connected, restoring budget "${budgetToRestore}"`,
-          );
+          logger.log(`[WorkerBridge] Backend connected, restoring budget "${budgetToRestore}"`);
           const id = budgetToRestore;
           budgetToRestore = null;
           localWorker.postMessage({
             id: '__restore-budget',
             name: 'load-budget',
-            args: { id },
+            args: {id},
             catchErrors: true,
           });
           // Tell SharedWorker to track the restore request so
@@ -282,7 +271,7 @@ export class WorkerBridge {
           localWorker.postMessage(toSend);
         }
       }
-      sharedPort.postMessage({ type: '__from-worker', msg: workerMsg });
+      sharedPort.postMessage({type: '__from-worker', msg: workerMsg});
     };
 
     localWorker.postMessage(initMsg);

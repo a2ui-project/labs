@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { getValidOps, isValidOp } from './rules';
+import {getValidOps, isValidOp} from './rules';
 
 describe('rules', () => {
   describe('isValidOp', () => {

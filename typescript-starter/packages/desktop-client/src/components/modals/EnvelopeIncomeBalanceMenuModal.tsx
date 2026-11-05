@@ -15,33 +15,25 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import type {CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Menu} from '@actual-app/components/menu';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import {
-  BalanceWithCarryover,
-  CarryoverIndicator,
-} from '#components/budget/BalanceWithCarryover';
-import { useEnvelopeSheetValue } from '#components/budget/envelope/EnvelopeBudgetComponents';
-import {
-  Modal,
-  ModalCloseButton,
-  ModalHeader,
-  ModalTitle,
-} from '#components/common/Modal';
-import { CellValueText } from '#components/spreadsheet/CellValue';
-import { useCategory } from '#hooks/useCategory';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {BalanceWithCarryover, CarryoverIndicator} from '#components/budget/BalanceWithCarryover';
+import {useEnvelopeSheetValue} from '#components/budget/envelope/EnvelopeBudgetComponents';
+import {Modal, ModalCloseButton, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {CellValueText} from '#components/spreadsheet/CellValue';
+import {useCategory} from '#hooks/useCategory';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
 type EnvelopeIncomeBalanceMenuModalProps = Omit<
-  Extract<ModalType, { name: 'envelope-income-balance-menu' }>['options'],
+  Extract<ModalType, {name: 'envelope-income-balance-menu'}>['options'],
   'month'
 >;
 
@@ -57,12 +49,10 @@ export function EnvelopeIncomeBalanceMenuModal({
     borderTop: `1px solid ${theme.pillBorder}`,
   };
 
-  const { t } = useTranslation();
-  const { data: category } = useCategory(categoryId);
+  const {t} = useTranslation();
+  const {data: category} = useCategory(categoryId);
 
-  const carryover = useEnvelopeSheetValue(
-    envelopeBudget.catCarryover(categoryId),
-  );
+  const carryover = useEnvelopeSheetValue(envelopeBudget.catCarryover(categoryId));
 
   if (!category) {
     return null;
@@ -70,7 +60,7 @@ export function EnvelopeIncomeBalanceMenuModal({
 
   return (
     <Modal name="envelope-income-balance-menu">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={<ModalTitle title={category.name} shrinkOnOverflow />}
@@ -99,7 +89,7 @@ export function EnvelopeIncomeBalanceMenuModal({
               goal={envelopeBudget.catGoal(categoryId)}
               budgeted={envelopeBudget.catBudgeted(categoryId)}
               longGoal={envelopeBudget.catLongGoal(categoryId)}
-              CarryoverIndicator={({ style }) => (
+              CarryoverIndicator={({style}) => (
                 <CarryoverIndicator
                   style={{
                     width: 15,
@@ -139,9 +129,7 @@ export function EnvelopeIncomeBalanceMenuModal({
             items={[
               {
                 name: 'carryover',
-                text: carryover
-                  ? t('Disable auto hold')
-                  : t('Enable auto hold'),
+                text: carryover ? t('Disable auto hold') : t('Enable auto hold'),
               },
               {
                 name: 'view',

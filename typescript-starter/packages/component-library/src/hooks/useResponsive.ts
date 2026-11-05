@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { useWindowSize } from 'usehooks-ts';
+import {useWindowSize} from 'usehooks-ts';
 
-import { breakpoints } from '#tokens';
+import {breakpoints} from '#tokens';
 
 export function useResponsive() {
-  const { height, width } = useWindowSize({
+  const {height, width} = useWindowSize({
     debounceDelay: 250,
   });
 

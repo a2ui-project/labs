@@ -15,34 +15,26 @@
  */
 
 import React from 'react';
-import { MemoryRouter } from 'react-router';
+import {MemoryRouter} from 'react-router';
 
-import { initServer } from '@actual-app/core/platform/client/connection';
-import type { TagEntity } from '@actual-app/core/types/models';
-import { act, render, screen, within } from '@testing-library/react';
+import {initServer} from '@actual-app/core/platform/client/connection';
+import type {TagEntity} from '@actual-app/core/types/models';
+import {act, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import {
-  configureTestAppStore,
-  createTestQueryClient,
-  TestProviders,
-} from '#mocks';
-import { tagQueries } from '#tags';
+import {configureTestAppStore, createTestQueryClient, TestProviders} from '#mocks';
+import {tagQueries} from '#tags';
 
-import { ManageTags } from './ManageTags';
+import {ManageTags} from './ManageTags';
 
-vi.mock(
-  '@actual-app/core/platform/client/connection',
-  () => import('#mocks/connection'),
-);
+vi.mock('@actual-app/core/platform/client/connection', () => import('#mocks/connection'));
 
 const tags: TagEntity[] = [
-  { id: 'tag-1', tag: 'Reimbursable', color: null, description: null },
-  { id: 'tag-2', tag: 'Work', color: null, description: null },
+  {id: 'tag-1', tag: 'Reimbursable', color: null, description: null},
+  {id: 'tag-2', tag: 'Work', color: null, description: null},
 ];
 
-const createRenameTagMock = () =>
-  vi.fn(async ({ id }: { id: string; tag: string }) => id);
+const createRenameTagMock = () => vi.fn(async ({id}: {id: string; tag: string}) => id);
 
 describe('ManageTags', () => {
   let store: ReturnType<typeof configureTestAppStore>;
@@ -50,11 +42,11 @@ describe('ManageTags', () => {
 
   beforeEach(async () => {
     renameTag = createRenameTagMock();
-    initServer({ 'tags-get': async () => tags, 'tags-rename': renameTag });
+    initServer({'tags-get': async () => tags, 'tags-rename': renameTag});
 
     const queryClient = createTestQueryClient();
     queryClient.setQueryData(tagQueries.list().queryKey, tags);
-    store = configureTestAppStore({ queryClient });
+    store = configureTestAppStore({queryClient});
 
     render(
       <TestProviders store={store} queryClient={queryClient}>
@@ -69,9 +61,7 @@ describe('ManageTags', () => {
   function contextMenuItem(name: string) {
     const item = store
       .getState()
-      .contextMenu.items.find(
-        item => typeof item === 'object' && item.name === name,
-      );
+      .contextMenu.items.find(item => typeof item === 'object' && item.name === name);
     return typeof item === 'object' ? item : undefined;
   }
 
@@ -89,9 +79,7 @@ describe('ManageTags', () => {
   }
 
   async function selectTag(tagName: string) {
-    const row = screen
-      .getByText(`#${tagName}`)
-      .closest<HTMLElement>('[data-testid="row"]');
+    const row = screen.getByText(`#${tagName}`).closest<HTMLElement>('[data-testid="row"]');
     if (!row) {
       throw new Error(`Row for #${tagName} not found`);
     }
@@ -112,9 +100,7 @@ describe('ManageTags', () => {
     expect(await screen.findByDisplayValue('Reimbursable')).toBeInTheDocument();
     // The selection is cleared so the closing menu cannot pull focus back
     // out of the input, which would leave the delete/hide hotkeys live
-    expect(
-      screen.queryByTestId('selected-tags-select-button'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('selected-tags-select-button')).not.toBeInTheDocument();
   });
 
   it('drops renaming from the row context menu for a multi-selection', async () => {

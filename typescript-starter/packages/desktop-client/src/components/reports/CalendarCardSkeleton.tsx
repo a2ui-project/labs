@@ -16,15 +16,15 @@
 
 import React from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css, keyframes } from '@emotion/css';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css, keyframes} from '@emotion/css';
 
-import { useReducedMotion } from '#hooks/useReducedMotion';
+import {useReducedMotion} from '#hooks/useReducedMotion';
 
 const pulse = keyframes({
-  '0%, 100%': { opacity: 0.4 },
-  '50%': { opacity: 1 },
+  '0%, 100%': {opacity: 0.4},
+  '50%': {opacity: 1},
 });
 
 const cellBase = {
@@ -32,7 +32,7 @@ const cellBase = {
   backgroundColor: theme.calendarCellBackground,
 };
 
-const staticCell = css({ ...cellBase, opacity: 0.7 });
+const staticCell = css({...cellBase, opacity: 0.7});
 const pulsingCell = css({
   ...cellBase,
   animationName: pulse,
@@ -45,7 +45,7 @@ export function CalendarCardSkeleton() {
   const reducedMotion = useReducedMotion();
   const cell = reducedMotion ? staticCell : pulsingCell;
   return (
-    <View style={{ flex: 1, gap: 4 }} aria-hidden="true">
+    <View style={{flex: 1, gap: 4}} aria-hidden="true">
       <View
         style={{
           display: 'grid',
@@ -53,8 +53,8 @@ export function CalendarCardSkeleton() {
           gap: 2,
         }}
       >
-        {Array.from({ length: 7 }, (_, i) => (
-          <View key={i} style={{ alignItems: 'center', padding: '3px 0' }}>
+        {Array.from({length: 7}, (_, i) => (
+          <View key={i} style={{alignItems: 'center', padding: '3px 0'}}>
             <div
               className={cell}
               style={{
@@ -75,7 +75,7 @@ export function CalendarCardSkeleton() {
           gap: 2,
         }}
       >
-        {Array.from({ length: 42 }, (_, i) => (
+        {Array.from({length: 42}, (_, i) => (
           <div
             key={i}
             className={cell}

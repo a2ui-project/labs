@@ -1,12 +1,9 @@
-import { appendFileSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {appendFileSync, readFileSync} from 'node:fs';
+import {dirname, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
-import type { CatalogTheme } from '../src/style/customThemes.ts';
-import {
-  embedThemeFonts,
-  validateThemeCss,
-} from '../src/style/customThemes.ts';
+import type {CatalogTheme} from '../src/style/customThemes.ts';
+import {embedThemeFonts, validateThemeCss} from '../src/style/customThemes.ts';
 
 const MAX_CSS_BYTES = 512 * 1024;
 const FETCH_TIMEOUT_MS = 15_000;
@@ -20,13 +17,7 @@ type ThemeResult = {
 };
 
 const here = dirname(fileURLToPath(import.meta.url));
-const catalogPath = resolve(
-  here,
-  '..',
-  'src',
-  'data',
-  'customThemeCatalog.json',
-);
+const catalogPath = resolve(here, '..', 'src', 'data', 'customThemeCatalog.json');
 
 function readCatalog(): CatalogTheme[] {
   const raw = readFileSync(catalogPath, 'utf8');
@@ -61,8 +52,7 @@ function validateCatalogEntry(value: unknown, index: number): CatalogTheme {
   }
   if (
     e.colors !== undefined &&
-    (!Array.isArray(e.colors) ||
-      !e.colors.every((c: unknown) => typeof c === 'string'))
+    (!Array.isArray(e.colors) || !e.colors.every((c: unknown) => typeof c === 'string'))
   ) {
     throw new Error(
       `Catalog entry "${String(e.name)}" has an invalid "colors" (expected string[]).`,
@@ -81,22 +71,18 @@ async function fetchCss(url: string): Promise<string> {
   const response = await fetch(url, {
     signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     redirect: 'error',
-    headers: { Accept: 'text/css, text/plain, */*' },
+    headers: {Accept: 'text/css, text/plain, */*'},
   });
 
   if (!response.ok) {
-    throw new Error(
-      `Failed to fetch ${url}: ${response.status} ${response.statusText}`,
-    );
+    throw new Error(`Failed to fetch ${url}: ${response.status} ${response.statusText}`);
   }
 
   const contentLength = response.headers.get('content-length');
   if (contentLength !== null) {
     const size = Number.parseInt(contentLength, 10);
     if (Number.isFinite(size) && size > MAX_CSS_BYTES) {
-      throw new Error(
-        `CSS at ${url} is ${size} bytes; max allowed is ${MAX_CSS_BYTES} bytes.`,
-      );
+      throw new Error(`CSS at ${url} is ${size} bytes; max allowed is ${MAX_CSS_BYTES} bytes.`);
     }
   }
 
@@ -109,16 +95,14 @@ async function fetchCss(url: string): Promise<string> {
   let received = 0;
   let text = '';
   for (;;) {
-    const { done, value } = await reader.read();
+    const {done, value} = await reader.read();
     if (done) break;
     received += value.byteLength;
     if (received > MAX_CSS_BYTES) {
       await reader.cancel();
-      throw new Error(
-        `CSS at ${url} exceeds max allowed size of ${MAX_CSS_BYTES} bytes.`,
-      );
+      throw new Error(`CSS at ${url} exceeds max allowed size of ${MAX_CSS_BYTES} bytes.`);
     }
-    text += decoder.decode(value, { stream: true });
+    text += decoder.decode(value, {stream: true});
   }
   text += decoder.decode();
   return text;
@@ -133,7 +117,7 @@ async function validateOne(entry: CatalogTheme): Promise<ThemeResult> {
     // data: URIs. Matches ThemeInstaller's install flow.
     const embedded = await embedThemeFonts(css, entry.repo);
     validateThemeCss(embedded);
-    return { name: entry.name, repo: entry.repo, status: 'ok' };
+    return {name: entry.name, repo: entry.repo, status: 'ok'};
   } catch (err) {
     return {
       name: entry.name,
@@ -186,9 +170,7 @@ async function main(): Promise<void> {
     if (result.status === 'ok') {
       console.log(`  ok    ${entry.repo.padEnd(55)} ${entry.name}`);
     } else {
-      console.log(
-        `  FAIL  ${entry.repo.padEnd(55)} ${entry.name}\n        → ${result.error}`,
-      );
+      console.log(`  FAIL  ${entry.repo.padEnd(55)} ${entry.name}\n        → ${result.error}`);
     }
     results.push(result);
   }

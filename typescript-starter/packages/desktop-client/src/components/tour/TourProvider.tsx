@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { createContext, useContext, useState } from 'react';
-import type { ReactNode } from 'react';
+import {createContext, useContext, useState} from 'react';
+import type {ReactNode} from 'react';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
 
 export type TourId = 'budget-tour';
 
@@ -35,8 +35,8 @@ type TourProviderProps = {
   children: ReactNode;
 };
 
-export function TourProvider({ children }: TourProviderProps) {
-  const { isNarrowWidth } = useResponsive();
+export function TourProvider({children}: TourProviderProps) {
+  const {isNarrowWidth} = useResponsive();
   const [activeTourId, setActiveTourId] = useState<TourId | null>(null);
 
   const startTour = (tourId: TourId = 'budget-tour') => {
@@ -51,7 +51,7 @@ export function TourProvider({ children }: TourProviderProps) {
   };
 
   return (
-    <TourContext.Provider value={{ activeTourId, startTour, stopTour }}>
+    <TourContext.Provider value={{activeTourId, startTour, stopTour}}>
       {children}
     </TourContext.Provider>
   );

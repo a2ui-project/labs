@@ -14,23 +14,19 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useEffect, useRef} from 'react';
+import {useTranslation} from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {css} from '@emotion/css';
 import rehypeExternalLinks from 'rehype-external-links';
 import remarkGfm from 'remark-gfm';
 
-import {
-  markdownBaseStyles,
-  remarkBreaks,
-  sequentialNewlinesPlugin,
-} from '#util/markdown';
+import {markdownBaseStyles, remarkBreaks, sequentialNewlinesPlugin} from '#util/markdown';
 
 const remarkPlugins = [sequentialNewlinesPlugin, remarkGfm, remarkBreaks];
 
@@ -49,16 +45,9 @@ type NotesProps = {
   getStyle?: (editable: boolean) => CSSProperties;
 };
 
-export function Notes({
-  notes,
-  editable,
-  focused,
-  onChange,
-  onBlur,
-  getStyle,
-}: NotesProps) {
-  const { isNarrowWidth } = useResponsive();
-  const { t } = useTranslation();
+export function Notes({notes, editable, focused, onChange, onBlur, getStyle}: NotesProps) {
+  const {isNarrowWidth} = useResponsive();
+  const {t} = useTranslation();
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -74,7 +63,7 @@ export function Notes({
       className={css({
         border: '1px solid ' + theme.buttonNormalBorder,
         padding: 7,
-        ...(!isNarrowWidth && { minWidth: 350, minHeight: 120 }),
+        ...(!isNarrowWidth && {minWidth: 350, minHeight: 120}),
         outline: 'none',
         backgroundColor: theme.tableBackground,
         color: theme.tableText,
@@ -89,12 +78,7 @@ export function Notes({
     <Text className={css([markdownStyles, getStyle?.(false)])}>
       <ReactMarkdown
         remarkPlugins={remarkPlugins}
-        rehypePlugins={[
-          [
-            rehypeExternalLinks,
-            { target: '_blank', rel: ['noopener', 'noreferrer'] },
-          ],
-        ]}
+        rehypePlugins={[[rehypeExternalLinks, {target: '_blank', rel: ['noopener', 'noreferrer']}]]}
       >
         {notes}
       </ReactMarkdown>

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
 import {
   SvgArrowDown,
   SvgCheveronRight,
@@ -27,58 +27,51 @@ import {
   SvgList,
   SvgRefresh,
 } from '@actual-app/components/icons/v1';
-import { Menu } from '@actual-app/components/menu';
-import { ModeButton } from '@actual-app/components/mode-button';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { Popover } from '@actual-app/components/popover';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Menu} from '@actual-app/components/menu';
+import {ModeButton} from '@actual-app/components/mode-button';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {Popover} from '@actual-app/components/popover';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  RuleConditionEntity,
-  SankeyWidget,
-  TimeFrame,
-} from '@actual-app/core/types/models';
-import { debounce } from 'es-toolkit/compat';
-import type { TFunction } from 'i18next';
-import type { SankeyData } from 'recharts/types/chart/Sankey';
+import type {RuleConditionEntity, SankeyWidget, TimeFrame} from '@actual-app/core/types/models';
+import {debounce} from 'es-toolkit/compat';
+import type {TFunction} from 'i18next';
+import type {SankeyData} from 'recharts/types/chart/Sankey';
 
-import { EditablePageHeaderTitle } from '#components/EditablePageHeaderTitle';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page, PageHeader } from '#components/Page';
-import { SankeyGraph } from '#components/reports/graphs/SankeyGraph';
-import { Header } from '#components/reports/Header';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import {
-  boundMonthRangeFromDates,
-  calculateTimeRange,
-} from '#components/reports/reportRanges';
+import {EditablePageHeaderTitle} from '#components/EditablePageHeaderTitle';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page, PageHeader} from '#components/Page';
+import {SankeyGraph} from '#components/reports/graphs/SankeyGraph';
+import {Header} from '#components/reports/Header';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {boundMonthRangeFromDates, calculateTimeRange} from '#components/reports/reportRanges';
 import {
   buildSankeyData,
   createBaseGraphSpreadsheet,
   GRAPH_LAYER_ORDER,
   GraphLayers,
 } from '#components/reports/spreadsheets/sankey-spreadsheet';
-import type { Graph } from '#components/reports/spreadsheets/sankey-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useCategories } from '#hooks/useCategories';
-import { useDashboardWidget } from '#hooks/useDashboardWidget';
-import { useFormatList } from '#hooks/useFormatList';
-import { useLocale } from '#hooks/useLocale';
-import { useNavigate } from '#hooks/useNavigate';
-import { useResizeObserver } from '#hooks/useResizeObserver';
-import { useRuleConditionFilters } from '#hooks/useRuleConditionFilters';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { useUpdateDashboardWidgetMutation } from '#reports/mutations';
-import { mapField } from '#util/rule';
+import type {Graph} from '#components/reports/spreadsheets/sankey-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useCategories} from '#hooks/useCategories';
+import {useDashboardWidget} from '#hooks/useDashboardWidget';
+import {useFormatList} from '#hooks/useFormatList';
+import {useLocale} from '#hooks/useLocale';
+import {useNavigate} from '#hooks/useNavigate';
+import {useResizeObserver} from '#hooks/useResizeObserver';
+import {useRuleConditionFilters} from '#hooks/useRuleConditionFilters';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {useUpdateDashboardWidgetMutation} from '#reports/mutations';
+import {mapField} from '#util/rule';
 
 export function Sankey() {
   const params = useParams();
-  const { data: widget, isLoading } = useDashboardWidget<SankeyWidget>({
+  const {data: widget, isLoading} = useDashboardWidget<SankeyWidget>({
     id: params.id ?? '',
     type: 'sankey-card',
   });
@@ -116,10 +109,7 @@ function getAvailableLayers(mode: GraphMode): GraphLayers[] {
 
 export function getDefaultLayerRange(mode: GraphMode): LayerRange {
   return {
-    from:
-      mode === 'budgeted'
-        ? GraphLayers.IncomeCategory
-        : GraphLayers.IncomePayee,
+    from: mode === 'budgeted' ? GraphLayers.IncomeCategory : GraphLayers.IncomePayee,
     to: GraphLayers.Category,
   };
 }
@@ -134,9 +124,7 @@ function normalizeLayerRange(
   const defaultFromIndex = availableLayers.indexOf(fallback.from);
   const defaultToIndex = availableLayers.indexOf(fallback.to);
 
-  let from = availableLayers.includes(candidate.from)
-    ? candidate.from
-    : fallback.from;
+  let from = availableLayers.includes(candidate.from) ? candidate.from : fallback.from;
   let to = availableLayers.includes(candidate.to) ? candidate.to : fallback.to;
 
   let fromIndex = availableLayers.indexOf(from);
@@ -150,10 +138,7 @@ function normalizeLayerRange(
       );
       to = availableLayers[adjustedToIndex] ?? fallback.to;
     } else if (changedDirection === 'to') {
-      const adjustedFromIndex = Math.max(
-        0,
-        Math.min(toIndex - 1, defaultFromIndex),
-      );
+      const adjustedFromIndex = Math.max(0, Math.min(toIndex - 1, defaultFromIndex));
       from = availableLayers[adjustedFromIndex] ?? fallback.from;
     } else {
       from = fallback.from;
@@ -168,7 +153,7 @@ function normalizeLayerRange(
     return fallback;
   }
 
-  return { from, to };
+  return {from, to};
 }
 
 function getLayerMenuItems(
@@ -202,8 +187,8 @@ function displayN(n: number, t: TFunction): string {
   return n === 1e5 ? t('All') : String(n);
 }
 
-function TopNSelector({ value, onChange }: TopNSelectorProps) {
-  const { t } = useTranslation();
+function TopNSelector({value, onChange}: TopNSelectorProps) {
+  const {t} = useTranslation();
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -215,10 +200,8 @@ function TopNSelector({ value, onChange }: TopNSelectorProps) {
         onPress={() => setIsOpen(true)}
         aria-label={t('Change category limit')}
       >
-        <SvgList style={{ width: 12, height: 12 }} />
-        <span style={{ marginLeft: 5 }}>
-          {t('Show up to {{n}}', { n: displayN(value, t) })}
-        </span>
+        <SvgList style={{width: 12, height: 12}} />
+        <span style={{marginLeft: 5}}>{t('Show up to {{n}}', {n: displayN(value, t)})}</span>
       </Button>
       <Popover
         triggerRef={triggerRef}
@@ -233,7 +216,7 @@ function TopNSelector({ value, onChange }: TopNSelectorProps) {
           }}
           items={TOP_N_OPTIONS.map(n => ({
             name: String(n),
-            text: t('Show up to {{n}}', { n: displayN(n, t) }),
+            text: t('Show up to {{n}}', {n: displayN(n, t)}),
           }))}
         />
       </Popover>
@@ -246,8 +229,8 @@ type CategorySortSelectorProps = {
   onChange: (value: 'per-group' | 'global' | 'budget-order') => void;
 };
 
-function CategorySortSelector({ value, onChange }: CategorySortSelectorProps) {
-  const { t } = useTranslation();
+function CategorySortSelector({value, onChange}: CategorySortSelectorProps) {
+  const {t} = useTranslation();
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -255,9 +238,9 @@ function CategorySortSelector({ value, onChange }: CategorySortSelectorProps) {
     key: 'per-group' | 'global' | 'budget-order';
     label: string;
   }> = [
-    { key: 'per-group', label: t('Sort per group') },
-    { key: 'global', label: t('Sort all') },
-    { key: 'budget-order', label: t('Sort as budget') },
+    {key: 'per-group', label: t('Sort per group')},
+    {key: 'global', label: t('Sort all')},
+    {key: 'budget-order', label: t('Sort as budget')},
   ];
 
   const currentLabel =
@@ -275,8 +258,8 @@ function CategorySortSelector({ value, onChange }: CategorySortSelectorProps) {
         onPress={() => setIsOpen(true)}
         aria-label={t('Change category sort order')}
       >
-        <SvgArrowDown style={{ width: 12, height: 12 }} />
-        <span style={{ marginLeft: 5 }}>{currentLabel}</span>
+        <SvgArrowDown style={{width: 12, height: 12}} />
+        <span style={{marginLeft: 5}}>{currentLabel}</span>
       </Button>
       <Popover
         triggerRef={triggerRef}
@@ -289,7 +272,7 @@ function CategorySortSelector({ value, onChange }: CategorySortSelectorProps) {
             onChange(item as 'per-group' | 'global' | 'budget-order');
             setIsOpen(false);
           }}
-          items={options.map(({ key, label }) => ({
+          items={options.map(({key, label}) => ({
             name: key,
             text: label,
           }))}
@@ -307,14 +290,8 @@ type LayerSelectorProps = {
   onChange: (layer: GraphLayers) => void;
 };
 
-function LayerSelector({
-  direction,
-  value,
-  layerLabels,
-  menuItems,
-  onChange,
-}: LayerSelectorProps) {
-  const { t } = useTranslation();
+function LayerSelector({direction, value, layerLabels, menuItems, onChange}: LayerSelectorProps) {
+  const {t} = useTranslation();
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -330,7 +307,7 @@ function LayerSelector({
           direction: translatedDirection,
         })}
       >
-        <span style={{ marginLeft: 5 }}>{layerLabels[value]}</span>
+        <span style={{marginLeft: 5}}>{layerLabels[value]}</span>
       </Button>
       <Popover
         triggerRef={triggerRef}
@@ -358,7 +335,7 @@ type GraphModeSelectorProps = {
   onChange: (mode: GraphMode) => void;
 };
 
-function GraphModeSelector({ mode, onChange }: GraphModeSelectorProps) {
+function GraphModeSelector({mode, onChange}: GraphModeSelectorProps) {
   return (
     <SpaceBetween gap={5}>
       <ModeButton
@@ -404,7 +381,7 @@ function OptionsButton({
   showTransfers,
   onToggleShowTransfers,
 }: OptionsButtonProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   return (
@@ -450,12 +427,12 @@ function OptionsButton({
 type SankeyInnerProps = {
   widget?: SankeyWidget;
 };
-function SankeyInner({ widget }: SankeyInnerProps) {
+function SankeyInner({widget}: SankeyInnerProps) {
   const locale = useLocale();
   const dispatch = useDispatch();
-  const { t, i18n } = useTranslation();
+  const {t, i18n} = useTranslation();
   const navigate = useNavigate();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   const {
     conditions,
@@ -487,13 +464,9 @@ function SankeyInner({ widget }: SankeyInnerProps) {
   const [earliestTransaction, setEarliestTransaction] = useState('');
   const [latestTransaction, setLatestTransaction] = useState('');
 
-  const [graphMode, setGraphMode] = useState<GraphMode>(
-    widget?.meta?.mode ?? 'spent',
-  );
+  const [graphMode, setGraphMode] = useState<GraphMode>(widget?.meta?.mode ?? 'spent');
 
-  const [topNcategories, settopNcategories] = useState<number>(
-    widget?.meta?.topNcategories ?? 15,
-  );
+  const [topNcategories, settopNcategories] = useState<number>(widget?.meta?.topNcategories ?? 15);
 
   const [cardHeight, setCardHeight] = useState(0);
   const throttledSetCardHeight = useMemo(
@@ -503,7 +476,7 @@ function SankeyInner({ widget }: SankeyInnerProps) {
           setCardHeight(prev => (prev === height ? prev : height));
         },
         200,
-        { leading: true, trailing: true, maxWait: 200 },
+        {leading: true, trailing: true, maxWait: 200},
       ),
     [],
   );
@@ -522,19 +495,13 @@ function SankeyInner({ widget }: SankeyInnerProps) {
 
   const topN = Math.min(topNcategories, heightBasedTopN);
 
-  const [categorySort, setCategorySort] = useState<
-    'per-group' | 'global' | 'budget-order'
-  >(widget?.meta?.categorySort ?? 'per-group');
+  const [categorySort, setCategorySort] = useState<'per-group' | 'global' | 'budget-order'>(
+    widget?.meta?.categorySort ?? 'per-group',
+  );
 
-  const [showPercentages, setShowPercentages] = useState(
-    widget?.meta?.showPercentages ?? false,
-  );
-  const [groupAccounts, setGroupAccounts] = useState(
-    widget?.meta?.groupAccounts ?? false,
-  );
-  const [showTransfers, setShowTransfers] = useState(
-    widget?.meta?.showTransfers ?? false,
-  );
+  const [showPercentages, setShowPercentages] = useState(widget?.meta?.showPercentages ?? false);
+  const [groupAccounts, setGroupAccounts] = useState(widget?.meta?.groupAccounts ?? false);
+  const [showTransfers, setShowTransfers] = useState(widget?.meta?.showTransfers ?? false);
 
   const [layerRange, setLayerRange] = useState<LayerRange>(() =>
     normalizeLayerRange(widget?.meta?.mode ?? 'spent', {
@@ -577,10 +544,7 @@ function SankeyInner({ widget }: SankeyInnerProps) {
 
   function onChangeLayer(direction: LayerDirection, layer: GraphLayers) {
     setLayerRange(prev => {
-      const next =
-        direction === 'from'
-          ? { ...prev, from: layer }
-          : { ...prev, to: layer };
+      const next = direction === 'from' ? {...prev, from: layer} : {...prev, to: layer};
 
       return normalizeLayerRange(graphMode, next, direction);
     });
@@ -590,8 +554,7 @@ function SankeyInner({ widget }: SankeyInnerProps) {
     setLayerRange(getDefaultLayerRange(graphMode));
   }
 
-  const { data: { grouped: groupedCategories = [] } = { grouped: [] } } =
-    useCategories();
+  const {data: {grouped: groupedCategories = []} = {grouped: []}} = useCategories();
 
   const baseGraphParams = useMemo(() => {
     if (!datesInitialized) {
@@ -629,10 +592,8 @@ function SankeyInner({ widget }: SankeyInnerProps) {
     showTransfers,
   ]);
 
-  const defaultGetBaseGraph = async (
-    _spreadsheet: unknown,
-    setData: (data: Graph) => void,
-  ) => setData(new Map());
+  const defaultGetBaseGraph = async (_spreadsheet: unknown, setData: (data: Graph) => void) =>
+    setData(new Map());
 
   const baseGraph = useReport('sankey', baseGraphParams ?? defaultGetBaseGraph);
   const baseGraphRef = useRef(baseGraph);
@@ -657,14 +618,7 @@ function SankeyInner({ widget }: SankeyInnerProps) {
       layerFrom,
       layerTo,
     );
-  }, [
-    displayBaseGraph,
-    topN,
-    groupedCategories,
-    categorySort,
-    layerFrom,
-    layerTo,
-  ]);
+  }, [displayBaseGraph, topN, groupedCategories, categorySort, layerFrom, layerTo]);
 
   useEffect(() => {
     async function run() {
@@ -695,9 +649,7 @@ function SankeyInner({ widget }: SankeyInnerProps) {
       const latestTransactionMonth = monthUtils.getMonth(latestTransactionDate);
 
       const latestMonth =
-        latestTransactionMonth > currentMonth
-          ? latestTransactionMonth
-          : currentMonth;
+        latestTransactionMonth > currentMonth ? latestTransactionMonth : currentMonth;
 
       const allMonths = monthUtils
         .rangeInclusive(earliestMonth, latestMonth)
@@ -786,18 +738,13 @@ function SankeyInner({ widget }: SankeyInnerProps) {
       ? [
           ...new Set(
             conditions
-              .filter(
-                c => c.field !== 'category' && c.field !== 'category_group',
-              )
+              .filter(c => c.field !== 'category' && c.field !== 'category_group')
               .map(c => mapField(c.field)),
           ),
         ]
       : [];
 
-  const ignoredFilterFieldsList = useFormatList(
-    ignoredFilterFields,
-    i18n.language,
-  );
+  const ignoredFilterFieldsList = useFormatList(ignoredFilterFields, i18n.language);
 
   if (!datesInitialized || !displayData) {
     return <LoadingIndicator />;
@@ -809,21 +756,12 @@ function SankeyInner({ widget }: SankeyInnerProps) {
         isNarrowWidth ? (
           <MobilePageHeader
             title={title}
-            leftContent={
-              <MobileBackButton onPress={() => navigate('/reports')} />
-            }
+            leftContent={<MobileBackButton onPress={() => navigate('/reports')} />}
           />
         ) : (
           <PageHeader
             title={
-              widget ? (
-                <EditablePageHeaderTitle
-                  title={title}
-                  onSave={onSaveWidgetName}
-                />
-              ) : (
-                title
-              )
+              widget ? <EditablePageHeaderTitle title={title} onSave={onSaveWidgetName} /> : title
             }
           />
         )
@@ -864,10 +802,7 @@ function SankeyInner({ widget }: SankeyInnerProps) {
               }}
             />
             <TopNSelector value={topNcategories} onChange={settopNcategories} />
-            <CategorySortSelector
-              value={categorySort}
-              onChange={setCategorySort}
-            />
+            <CategorySortSelector value={categorySort} onChange={setCategorySort} />
             <View
               style={{
                 width: 1,
@@ -877,7 +812,7 @@ function SankeyInner({ widget }: SankeyInnerProps) {
                 marginLeft: 10,
               }}
             />
-            <SvgLayers style={{ width: 12, height: 12 }} />
+            <SvgLayers style={{width: 12, height: 12}} />
             <LayerSelector
               direction="from"
               value={layerFrom}
@@ -885,7 +820,7 @@ function SankeyInner({ widget }: SankeyInnerProps) {
               menuItems={fromLayerMenuItems}
               onChange={layer => onChangeLayer('from', layer)}
             />
-            <SvgCheveronRight style={{ width: 12, height: 12 }} />
+            <SvgCheveronRight style={{width: 12, height: 12}} />
             <LayerSelector
               direction="to"
               value={layerTo}
@@ -893,17 +828,13 @@ function SankeyInner({ widget }: SankeyInnerProps) {
               menuItems={toLayerMenuItems}
               onChange={layer => onChangeLayer('to', layer)}
             />
-            <Button
-              variant="bare"
-              onPress={onResetLayers}
-              aria-label={t('Reset layers')}
-            >
-              <SvgRefresh style={{ width: 12, height: 12 }} />
+            <Button variant="bare" onPress={onResetLayers} aria-label={t('Reset layers')}>
+              <SvgRefresh style={{width: 12, height: 12}} />
             </Button>
           </>
         }
       >
-        <View style={{ marginRight: 4 }}>
+        <View style={{marginRight: 4}}>
           <OptionsButton
             showPercentages={showPercentages}
             onTogglePercentages={() => setShowPercentages(v => !v)}
@@ -958,9 +889,7 @@ function SankeyInner({ widget }: SankeyInnerProps) {
                   paddingTop: 10,
                 }}
               >
-                {displayData &&
-                displayData.links &&
-                displayData.links.length > 0 ? (
+                {displayData && displayData.links && displayData.links.length > 0 ? (
                   <View
                     ref={containerRef}
                     style={{
@@ -969,7 +898,7 @@ function SankeyInner({ widget }: SankeyInnerProps) {
                     }}
                   >
                     <SankeyGraph
-                      style={{ flexGrow: 1 }}
+                      style={{flexGrow: 1}}
                       data={displayData}
                       showPercentages={showPercentages}
                     />
@@ -983,17 +912,17 @@ function SankeyInner({ widget }: SankeyInnerProps) {
                       color: theme.pageTextSubdued,
                     }}
                   >
-                    <Text style={{ fontSize: 16, textAlign: 'center' }}>
+                    <Text style={{fontSize: 16, textAlign: 'center'}}>
                       {graphMode === 'budgeted' && (
                         <Trans>
-                          No data available for this period. Try budgeting
-                          categories or selecting a different period.
+                          No data available for this period. Try budgeting categories or selecting a
+                          different period.
                         </Trans>
                       )}
                       {graphMode === 'spent' && (
                         <Trans>
-                          No data available for this period. Try adding
-                          transactions or selecting a different period.
+                          No data available for this period. Try adding transactions or selecting a
+                          different period.
                         </Trans>
                       )}
                     </Text>
@@ -1010,48 +939,45 @@ function SankeyInner({ widget }: SankeyInnerProps) {
                       color: theme.warningText,
                     }}
                   >
-                    <Text style={{ fontSize: 13 }}>
+                    <Text style={{fontSize: 13}}>
                       <Trans>
-                        Filters on <strong>{ignoredFilterFieldsList}</strong>{' '}
-                        are ignored in <strong>Budgeted</strong> mode.
+                        Filters on <strong>{ignoredFilterFieldsList}</strong> are ignored in{' '}
+                        <strong>Budgeted</strong> mode.
                       </Trans>
                     </Text>
                   </View>
                 )}
 
                 {!isNarrowWidth && (
-                  <View style={{ marginTop: 30 }}>
+                  <View style={{marginTop: 30}}>
                     <Trans>
                       <Paragraph>
                         <strong>What is a Sankey plot?</strong>
                       </Paragraph>
                       <Paragraph>
-                        A Sankey plot visualizes the flow of quantities between
-                        multiple categories, emphasizing the distribution and
-                        proportional relationships of data streams.
+                        A Sankey plot visualizes the flow of quantities between multiple categories,
+                        emphasizing the distribution and proportional relationships of data streams.
                       </Paragraph>
                       <Paragraph>
                         <strong>View options:</strong>
                       </Paragraph>
                       <Paragraph>
-                        <ul style={{ marginTop: 0, paddingLeft: 20 }}>
-                          <li style={{ marginBottom: 5 }}>
-                            <strong>Spent:</strong> Displays actual spending by
-                            category from transactions.
+                        <ul style={{marginTop: 0, paddingLeft: 20}}>
+                          <li style={{marginBottom: 5}}>
+                            <strong>Spent:</strong> Displays actual spending by category from
+                            transactions.
                           </li>
-                          <li style={{ marginBottom: 5 }}>
-                            <strong>Budgeted:</strong> Shows how your budget is
-                            allocated across categories.
+                          <li style={{marginBottom: 5}}>
+                            <strong>Budgeted:</strong> Shows how your budget is allocated across
+                            categories.
                           </li>
                         </ul>
-                        <strong>Disclaimer:</strong> A Sankey chart cannot
-                        directly represent negative numbers. In some cases, such
-                        as when funds are reallocated from categories with
-                        negative budgeting (e.g. using savings to cover
-                        overspending), the chart structure may differ from the
-                        main budget overview. As a result, some category totals
-                        and flows in this diagram may not exactly match the
-                        summary figures elsewhere in the app.
+                        <strong>Disclaimer:</strong> A Sankey chart cannot directly represent
+                        negative numbers. In some cases, such as when funds are reallocated from
+                        categories with negative budgeting (e.g. using savings to cover
+                        overspending), the chart structure may differ from the main budget overview.
+                        As a result, some category totals and flows in this diagram may not exactly
+                        match the summary figures elsewhere in the app.
                       </Paragraph>
                     </Trans>
                   </View>

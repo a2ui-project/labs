@@ -15,8 +15,8 @@
  */
 
 // @ts-strict-ignore
-import React, { createContext } from 'react';
-import type { ReactNode } from 'react';
+import React, {createContext} from 'react';
+import type {ReactNode} from 'react';
 
 import * as monthUtils from '@actual-app/core/shared/months';
 
@@ -62,9 +62,5 @@ export function MonthsProvider({
   const bounds = getValidMonthBounds(monthBounds, startMonth, endMonth);
   const months = monthUtils.rangeInclusive(bounds.start, bounds.end);
 
-  return (
-    <MonthsContext.Provider value={{ months, type }}>
-      {children}
-    </MonthsContext.Provider>
-  );
+  return <MonthsContext.Provider value={{months, type}}>{children}</MonthsContext.Provider>;
 }

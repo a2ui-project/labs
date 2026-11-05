@@ -32,7 +32,7 @@ const SYNCED_PREF_KEYS = [
   /^flags\./,
 ];
 
-export default async function runMigration(db, { fs, fileId }) {
+export default async function runMigration(db, {fs, fileId}) {
   await db.execQuery(`
     CREATE TABLE preferences
        (id TEXT PRIMARY KEY,
@@ -54,19 +54,14 @@ export default async function runMigration(db, { fs, fileId }) {
         // Check if the current key is of synced-keys type
         if (
           !SYNCED_PREF_KEYS.find(keyMatcher =>
-            keyMatcher instanceof RegExp
-              ? keyMatcher.test(key)
-              : keyMatcher === key,
+            keyMatcher instanceof RegExp ? keyMatcher.test(key) : keyMatcher === key,
           )
         ) {
           return;
         }
 
         // insert the synced prefs in the new table
-        db.runQuery('INSERT INTO preferences (id, value) VALUES (?, ?)', [
-          key,
-          String(prefs[key]),
-        ]);
+        db.runQuery('INSERT INTO preferences (id, value) VALUES (?, ?)', [key, String(prefs[key])]);
       }),
     );
   } catch {

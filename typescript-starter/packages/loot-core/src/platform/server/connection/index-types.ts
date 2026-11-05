@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import type { Handlers } from '#types/handlers';
-import type { ServerEvents } from '#types/server-events';
+import type {Handlers} from '#types/handlers';
+import type {ServerEvents} from '#types/server-events';
 
 export declare function init(
   channel: Window | number, // in electron the port number, in web the worker
@@ -23,10 +23,7 @@ export declare function init(
 ): void;
 export type Init = typeof init;
 
-export declare function send<K extends keyof ServerEvents>(
-  type: K,
-  args?: ServerEvents[K],
-): void;
+export declare function send<K extends keyof ServerEvents>(type: K, args?: ServerEvents[K]): void;
 export type Send = typeof send;
 
 export declare function getNumClients(): number;

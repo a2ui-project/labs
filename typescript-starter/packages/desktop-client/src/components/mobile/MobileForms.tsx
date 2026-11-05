@@ -22,14 +22,14 @@ import type {
   ReactNode,
 } from 'react';
 
-import { Button } from '@actual-app/components/button';
-import { Input } from '@actual-app/components/input';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Toggle } from '@actual-app/components/toggle';
-import { View } from '@actual-app/components/view';
-import { css, cx } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {Input} from '@actual-app/components/input';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Toggle} from '@actual-app/components/toggle';
+import {View} from '@actual-app/components/view';
+import {css, cx} from '@emotion/css';
 
 type FieldLabelProps = {
   title: string;
@@ -37,7 +37,7 @@ type FieldLabelProps = {
   style?: CSSProperties;
 };
 
-export function FieldLabel({ title, flush, style }: FieldLabelProps) {
+export function FieldLabel({title, flush, style}: FieldLabelProps) {
   return (
     <Text
       style={{
@@ -72,13 +72,7 @@ export const hideNativeDateIconClassName = css({
   },
 });
 
-const nativePickerInputTypes = new Set([
-  'date',
-  'month',
-  'time',
-  'week',
-  'datetime-local',
-]);
+const nativePickerInputTypes = new Set(['date', 'month', 'time', 'week', 'datetime-local']);
 
 // browsers don't reliably open the native picker when the field itself is
 // tapped (chromium only opens it from the indicator, which can be hidden)
@@ -140,9 +134,7 @@ export function InputField({
       <View
         className={iconFieldWrapperClassName}
         nativeStyle={{
-          backgroundColor: disabled
-            ? theme.formInputTextReadOnlySelection
-            : theme.tableBackground,
+          backgroundColor: disabled ? theme.formInputTextReadOnlySelection : theme.tableBackground,
         }}
       >
         {iconStart && <View style={iconStyle}>{iconStart}</View>}
@@ -170,9 +162,7 @@ export function InputField({
           className={renderProps =>
             cx(
               hideNativeDateIconClassName,
-              typeof className === 'function'
-                ? className(renderProps)
-                : className,
+              typeof className === 'function' ? className(renderProps) : className,
             )
           }
         />
@@ -195,9 +185,7 @@ export function InputField({
         ...valueStyle,
         ...style,
         color: disabled ? theme.tableTextInactive : theme.tableText,
-        backgroundColor: disabled
-          ? theme.formInputTextReadOnlySelection
-          : theme.tableBackground,
+        backgroundColor: disabled ? theme.formInputTextReadOnlySelection : theme.tableBackground,
       }}
       {...props}
     />
@@ -277,9 +265,7 @@ export function TapField({
               flex: 1,
               userSelect: 'none',
               textAlign: 'left',
-              color: showPlaceholder
-                ? theme.formInputTextPlaceholder
-                : undefined,
+              color: showPlaceholder ? theme.formInputTextPlaceholder : undefined,
               ...textStyle,
             }}
           >

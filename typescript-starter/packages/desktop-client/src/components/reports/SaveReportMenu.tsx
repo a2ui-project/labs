@@ -15,10 +15,10 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
-import type { MenuItem } from '@actual-app/components/menu';
+import {Menu} from '@actual-app/components/menu';
+import type {MenuItem} from '@actual-app/components/menu';
 
 export type SavedStatus = 'saved' | 'new' | 'modified';
 
@@ -31,12 +31,12 @@ export function SaveReportMenu({
   savedStatus: SavedStatus;
   listReports: number;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const savedMenu: MenuItem[] =
     savedStatus === 'saved'
       ? [
-          { name: 'rename-report', text: t('Rename') },
-          { name: 'delete-report', text: t('Delete') },
+          {name: 'rename-report', text: t('Rename')},
+          {name: 'delete-report', text: t('Delete')},
           Menu.line,
         ]
       : [];
@@ -44,7 +44,7 @@ export function SaveReportMenu({
   const modifiedMenu: MenuItem[] =
     savedStatus === 'modified'
       ? [
-          { name: 'rename-report', text: t('Rename') },
+          {name: 'rename-report', text: t('Rename')},
           {
             name: 'update-report',
             text: t('Update report'),
@@ -53,7 +53,7 @@ export function SaveReportMenu({
             name: 'reload-report',
             text: t('Revert changes'),
           },
-          { name: 'delete-report', text: t('Delete') },
+          {name: 'delete-report', text: t('Delete')},
           Menu.line,
         ]
       : [];

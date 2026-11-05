@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import {
-  parseNumberFormat,
-  setNumberFormat,
-} from '@actual-app/core/shared/util';
+import {send} from '@actual-app/core/platform/client/connection';
+import {parseNumberFormat, setNumberFormat} from '@actual-app/core/shared/util';
 import type {
   GlobalPrefs,
   MetadataPrefs,
   ServerPrefs,
   SyncedPrefs,
 } from '@actual-app/core/types/prefs';
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
 
-import { resetApp } from '#app/appSlice';
-import { setI18NextLanguage } from '#i18n';
-import { closeModal } from '#modals/modalsSlice';
-import { createAppAsyncThunk } from '#redux';
-import { getUserData } from '#users/usersSlice';
+import {resetApp} from '#app/appSlice';
+import {setI18NextLanguage} from '#i18n';
+import {closeModal} from '#modals/modalsSlice';
+import {createAppAsyncThunk} from '#redux';
+import {getUserData} from '#users/usersSlice';
 
 const sliceName = 'prefs';
 
@@ -52,7 +49,7 @@ const initialState: PrefsState = {
 
 export const loadPrefs = createAppAsyncThunk(
   `${sliceName}/loadPrefs`,
-  async (_, { dispatch, getState }) => {
+  async (_, {dispatch, getState}) => {
     const prefs = await send('load-prefs');
 
     // Remove any modal state if switching between budgets
@@ -66,9 +63,7 @@ export const loadPrefs = createAppAsyncThunk(
       send('preferences/get'),
     ]);
 
-    dispatch(
-      setPrefs({ local: prefs, global: globalPrefs, synced: syncedPrefs }),
-    );
+    dispatch(setPrefs({local: prefs, global: globalPrefs, synced: syncedPrefs}));
 
     // Certain loot-core utils depend on state outside of the React tree, update them
     setNumberFormat(
@@ -91,7 +86,7 @@ type SavePrefsPayload = {
 
 export const savePrefs = createAppAsyncThunk(
   `${sliceName}/savePrefs`,
-  async ({ prefs }: SavePrefsPayload, { dispatch }) => {
+  async ({prefs}: SavePrefsPayload, {dispatch}) => {
     await send('save-prefs', prefs);
     dispatch(mergeLocalPrefs(prefs));
   },
@@ -99,7 +94,7 @@ export const savePrefs = createAppAsyncThunk(
 
 export const loadGlobalPrefs = createAppAsyncThunk(
   `${sliceName}/loadGlobalPrefs`,
-  async (_, { dispatch, getState }) => {
+  async (_, {dispatch, getState}) => {
     const globalPrefs = await send('load-global-prefs');
     dispatch(
       setPrefs({
@@ -119,10 +114,7 @@ type SaveGlobalPrefsPayload = {
 
 export const saveGlobalPrefs = createAppAsyncThunk(
   `${sliceName}/saveGlobalPrefs`,
-  async (
-    { prefs, onSaveGlobalPrefs }: SaveGlobalPrefsPayload,
-    { dispatch },
-  ) => {
+  async ({prefs, onSaveGlobalPrefs}: SaveGlobalPrefsPayload, {dispatch}) => {
     await send('save-global-prefs', prefs);
     dispatch(mergeGlobalPrefs(prefs));
     onSaveGlobalPrefs?.();
@@ -135,7 +127,7 @@ type SaveSyncedPrefsPayload = {
 
 export const saveSyncedPrefs = createAppAsyncThunk(
   `${sliceName}/saveSyncedPrefs`,
-  async ({ prefs }: SaveSyncedPrefsPayload, { dispatch }) => {
+  async ({prefs}: SaveSyncedPrefsPayload, {dispatch}) => {
     await Promise.all(
       Object.entries(prefs).map(([prefName, value]) =>
         send('preferences/save', {
@@ -154,10 +146,10 @@ type SaveServerPrefsPayload = {
 
 export const saveServerPrefs = createAppAsyncThunk(
   `${sliceName}/saveServerPrefs`,
-  async ({ prefs }: SaveServerPrefsPayload, { dispatch }) => {
-    const result = await send('save-server-prefs', { prefs });
+  async ({prefs}: SaveServerPrefsPayload, {dispatch}) => {
+    const result = await send('save-server-prefs', {prefs});
     if (result && 'error' in result) {
-      return { error: result.error };
+      return {error: result.error};
     }
 
     dispatch(mergeServerPrefs(prefs));
@@ -186,16 +178,16 @@ const prefsSlice = createSlice({
       state.synced = action.payload.synced;
     },
     mergeLocalPrefs(state, action: PayloadAction<MergeLocalPrefsPayload>) {
-      state.local = { ...state.local, ...action.payload };
+      state.local = {...state.local, ...action.payload};
     },
     mergeGlobalPrefs(state, action: PayloadAction<MergeGlobalPrefsPayload>) {
-      state.global = { ...state.global, ...action.payload };
+      state.global = {...state.global, ...action.payload};
     },
     mergeSyncedPrefs(state, action: PayloadAction<MergeSyncedPrefsPayload>) {
-      state.synced = { ...state.synced, ...action.payload };
+      state.synced = {...state.synced, ...action.payload};
     },
     mergeServerPrefs(state, action: PayloadAction<MergeServerPrefsPayload>) {
-      state.server = { ...state.server, ...action.payload };
+      state.server = {...state.server, ...action.payload};
     },
   },
   extraReducers: builder => {
@@ -209,7 +201,7 @@ const prefsSlice = createSlice({
         return state;
       }
 
-      const { serverPrefs } = action.payload as {
+      const {serverPrefs} = action.payload as {
         serverPrefs?: ServerPrefs | null;
       };
 
@@ -225,7 +217,7 @@ const prefsSlice = createSlice({
   },
 });
 
-export const { name, reducer, getInitialState } = prefsSlice;
+export const {name, reducer, getInitialState} = prefsSlice;
 
 export const actions = {
   ...prefsSlice.actions,
@@ -237,10 +229,5 @@ export const actions = {
   saveServerPrefs,
 };
 
-export const {
-  mergeGlobalPrefs,
-  mergeLocalPrefs,
-  mergeServerPrefs,
-  mergeSyncedPrefs,
-  setPrefs,
-} = actions;
+export const {mergeGlobalPrefs, mergeLocalPrefs, mergeServerPrefs, mergeSyncedPrefs, setPrefs} =
+  actions;

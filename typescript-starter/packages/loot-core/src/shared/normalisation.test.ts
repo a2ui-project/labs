@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { getNormalisedString } from './normalisation';
+import {getNormalisedString} from './normalisation';
 
 describe('getNormalisedString', () => {
   it('lowercases plain ASCII', () => {

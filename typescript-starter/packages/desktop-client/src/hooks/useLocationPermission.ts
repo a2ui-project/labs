@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
 
-import { locationService } from '#payees/location';
+import {locationService} from '#payees/location';
 
 export type LocationPermission = {
   isGranted: boolean;
@@ -35,7 +35,7 @@ export type LocationPermission = {
  * @returns a LocationPermissions object
  */
 export function useLocationPermission(): LocationPermission {
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const [state, setState] = useState<PermissionState | null>(null);
 
   useEffect(() => {
@@ -49,17 +49,14 @@ export function useLocationPermission(): LocationPermission {
     let isMounted = true;
 
     // Check if Permissions API is available
-    if (
-      !navigator.permissions ||
-      typeof navigator.permissions.query !== 'function'
-    ) {
+    if (!navigator.permissions || typeof navigator.permissions.query !== 'function') {
       setState(null);
       return;
     }
 
     try {
       navigator.permissions
-        .query({ name: 'geolocation' })
+        .query({name: 'geolocation'})
         .then(status => {
           if (!isMounted) {
             return;

@@ -44,9 +44,7 @@ module.exports = {
     function isLinkComponentFile() {
       const filename = context.filename;
       const normalizedFilename = filename.replace(/\\/g, '/');
-      return normalizedFilename.includes(
-        'packages/desktop-client/src/components/common/Link.tsx',
-      );
+      return normalizedFilename.includes('packages/desktop-client/src/components/common/Link.tsx');
     }
 
     //----------------------------------------------------------------------

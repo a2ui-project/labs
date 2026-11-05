@@ -15,8 +15,8 @@
  */
 
 import * as db from '#server/db';
-import { loadMappings } from '#server/db/mappings';
-import { app } from '#server/tags/app';
+import {loadMappings} from '#server/db/mappings';
+import {app} from '#server/tags/app';
 
 beforeEach(async () => {
   await global.emptyDatabase()();
@@ -33,7 +33,7 @@ async function insertTransaction(notes: string) {
 }
 
 async function getNotes(id: string) {
-  const transaction = await db.first<{ notes: string }>(
+  const transaction = await db.first<{notes: string}>(
     'SELECT notes FROM transactions WHERE id = ?',
     [id],
   );
@@ -43,7 +43,7 @@ async function getNotes(id: string) {
 describe('tags app', () => {
   describe('tags-rename', () => {
     beforeEach(async () => {
-      await db.insertAccount({ id: 'account-1', name: 'Account 1' });
+      await db.insertAccount({id: 'account-1', name: 'Account 1'});
     });
 
     it('renames the tag and rewrites it in transaction notes', async () => {
@@ -55,11 +55,9 @@ describe('tags app', () => {
       const matching = await insertTransaction('Lunch #Reimbursable');
       const partial = await insertTransaction('Dinner #ReimbursableLater');
 
-      await app.handlers['tags-rename']({ id, tag: '  ToBeReimbursed  ' });
+      await app.handlers['tags-rename']({id, tag: '  ToBeReimbursed  '});
 
-      expect(await db.getTags()).toEqual([
-        expect.objectContaining({ id, tag: 'ToBeReimbursed' }),
-      ]);
+      expect(await db.getTags()).toEqual([expect.objectContaining({id, tag: 'ToBeReimbursed'})]);
       expect(await getNotes(matching)).toBe('Lunch #ToBeReimbursed');
       expect(await getNotes(partial)).toBe('Dinner #ReimbursableLater');
     });
@@ -71,9 +69,9 @@ describe('tags app', () => {
         description: null,
       });
 
-      await expect(
-        app.handlers['tags-rename']({ id, tag: 'two words' }),
-      ).rejects.toThrow('Invalid tag name');
+      await expect(app.handlers['tags-rename']({id, tag: 'two words'})).rejects.toThrow(
+        'Invalid tag name',
+      );
     });
 
     it('rejects renaming onto an existing tag', async () => {
@@ -88,9 +86,9 @@ describe('tags app', () => {
         description: null,
       });
 
-      await expect(
-        app.handlers['tags-rename']({ id, tag: 'Groceries' }),
-      ).rejects.toThrow('A tag with that name already exists');
+      await expect(app.handlers['tags-rename']({id, tag: 'Groceries'})).rejects.toThrow(
+        'A tag with that name already exists',
+      );
     });
 
     it('rejects renaming onto a deleted tag', async () => {
@@ -104,17 +102,17 @@ describe('tags app', () => {
         color: null,
         description: null,
       });
-      await app.handlers['tags-delete']({ id: deletedId });
+      await app.handlers['tags-delete']({id: deletedId});
 
-      await expect(
-        app.handlers['tags-rename']({ id, tag: 'Groceries' }),
-      ).rejects.toThrow('A tag with that name already exists');
+      await expect(app.handlers['tags-rename']({id, tag: 'Groceries'})).rejects.toThrow(
+        'A tag with that name already exists',
+      );
     });
 
     it('rejects an unknown tag', async () => {
-      await expect(
-        app.handlers['tags-rename']({ id: 'missing', tag: 'Food' }),
-      ).rejects.toThrow('Tag not found');
+      await expect(app.handlers['tags-rename']({id: 'missing', tag: 'Food'})).rejects.toThrow(
+        'Tag not found',
+      );
     });
   });
 });

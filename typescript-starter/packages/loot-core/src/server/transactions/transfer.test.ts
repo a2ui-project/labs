@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import { expectSnapshotWithDiffer } from '#mocks/util';
+import {expectSnapshotWithDiffer} from '#mocks/util';
 import * as db from '#server/db';
 
 import * as transfer from './transfer';
@@ -23,7 +23,7 @@ import * as transfer from './transfer';
 beforeEach(global.emptyDatabase());
 
 function getAllTransactions() {
-  return db.all<db.DbViewTransaction & { payee_name: db.DbPayee['name'] }>(
+  return db.all<db.DbViewTransaction & {payee_name: db.DbPayee['name']}>(
     `SELECT t.*, p.name as payee_name
        FROM v_transactions t
        LEFT JOIN payees p ON p.id = t.payee
@@ -33,18 +33,18 @@ function getAllTransactions() {
 }
 
 async function prepareDatabase() {
-  await db.insertCategoryGroup({ id: 'group1', name: 'group1', is_income: 0 });
+  await db.insertCategoryGroup({id: 'group1', name: 'group1', is_income: 0});
   await db.insertCategory({
     id: '1',
     name: 'cat1',
     cat_group: 'group1',
     is_income: 0,
   });
-  await db.insertAccount({ id: 'one', name: 'one' });
-  await db.insertAccount({ id: 'two', name: 'two' });
-  await db.insertAccount({ id: 'three', name: 'three', offbudget: 1 });
-  await db.insertPayee({ name: '', transfer_acct: 'one' });
-  await db.insertPayee({ name: '', transfer_acct: 'two' });
+  await db.insertAccount({id: 'one', name: 'one'});
+  await db.insertAccount({id: 'two', name: 'two'});
+  await db.insertAccount({id: 'three', name: 'three', offbudget: 1});
+  await db.insertPayee({name: '', transfer_acct: 'one'});
+  await db.insertPayee({name: '', transfer_acct: 'two'});
   await db.insertPayee({
     name: '',
     transfer_acct: 'three',
@@ -72,7 +72,7 @@ describe('Transfer', () => {
     let transaction: Transaction = {
       account: 'one',
       amount: 5000,
-      payee: await db.insertPayee({ name: 'Non-transfer' }),
+      payee: await db.insertPayee({name: 'Non-transfer'}),
       date: '2017-01-01',
     };
     await db.insertTransaction(transaction);
@@ -120,7 +120,7 @@ describe('Transfer', () => {
 
     transaction = {
       ...transaction,
-      payee: await db.insertPayee({ name: 'Not transferred anymore' }),
+      payee: await db.insertPayee({name: 'Not transferred anymore'}),
     };
     await db.updateTransaction(transaction);
     await transfer.onUpdate(transaction);
@@ -160,7 +160,7 @@ describe('Transfer', () => {
     let transaction: Transaction = {
       account: 'one',
       amount: 5000,
-      payee: await db.insertPayee({ name: 'Non-transfer' }),
+      payee: await db.insertPayee({name: 'Non-transfer'}),
       date: '2017-01-01',
       category: '1',
     };
@@ -212,7 +212,7 @@ describe('Transfer', () => {
     const differ = expectSnapshotWithDiffer(await getAllTransactions());
 
     // mark the txn as parent
-    await db.updateTransaction({ id: parent.id, is_parent: true });
+    await db.updateTransaction({id: parent.id, is_parent: true});
     await transfer.onUpdate(parent);
     differ.expectToMatchDiff(await getAllTransactions());
 

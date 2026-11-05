@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-import { HyperFormula } from 'hyperformula';
+import {HyperFormula} from 'hyperformula';
 import enUS from 'hyperformula/i18n/languages/enUS';
-import { beforeEach, describe, expect, it } from 'vitest';
+import {beforeEach, describe, expect, it} from 'vitest';
 
-import { aqlQuery } from '#server/aql';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { loadMappings } from '#server/db/mappings';
-import { conditionsToAQL } from '#server/transactions/transaction-rules';
-import {
-  CustomFunctionsPlugin,
-  customFunctionsTranslations,
-} from '#shared/formulas/customFunctions';
-import { q } from '#shared/query';
+import {loadMappings} from '#server/db/mappings';
+import {conditionsToAQL} from '#server/transactions/transaction-rules';
+import {CustomFunctionsPlugin, customFunctionsTranslations} from '#shared/formulas/customFunctions';
+import {q} from '#shared/query';
 
 // Integration tests for formula cards with real database queries
 // These tests validate formulas with actual query results from the database
@@ -39,10 +36,7 @@ try {
 }
 
 try {
-  HyperFormula.registerFunctionPlugin(
-    CustomFunctionsPlugin,
-    customFunctionsTranslations,
-  );
+  HyperFormula.registerFunctionPlugin(CustomFunctionsPlugin, customFunctionsTranslations);
 } catch {
   // Already registered, ignore
 }
@@ -56,18 +50,14 @@ beforeEach(async () => {
 describe('Formula Card - Integration Tests with Queries', () => {
   // Helper functions using db helper methods
   async function createTestAccount(name: string) {
-    return await db.insertAccount({ name });
+    return await db.insertAccount({name});
   }
 
   async function createCategoryGroup(name: string) {
-    return await db.insertCategoryGroup({ name });
+    return await db.insertCategoryGroup({name});
   }
 
-  async function createTestCategory(
-    name: string,
-    groupId: string,
-    isIncome = false,
-  ) {
+  async function createTestCategory(name: string, groupId: string, isIncome = false) {
     return await db.insertCategory({
       name,
       cat_group: groupId,
@@ -91,37 +81,28 @@ describe('Formula Card - Integration Tests with Queries', () => {
     });
   }
 
-  async function executeQuery(
-    conditions: unknown[],
-    timeFrame?: { start?: string; end?: string },
-  ) {
+  async function executeQuery(conditions: unknown[], timeFrame?: {start?: string; end?: string}) {
     // Simulate query execution like the formula card does
-    const { filters } = conditionsToAQL(conditions);
+    const {filters} = conditionsToAQL(conditions);
 
     let transQuery = q('transactions');
 
     if (timeFrame?.start && timeFrame?.end) {
       transQuery = transQuery.filter({
-        $and: [
-          { date: { $gte: timeFrame.start } },
-          { date: { $lte: timeFrame.end } },
-        ],
+        $and: [{date: {$gte: timeFrame.start}}, {date: {$lte: timeFrame.end}}],
       });
     }
 
     if (filters.length > 0) {
-      transQuery = transQuery.filter({ $and: filters });
+      transQuery = transQuery.filter({$and: filters});
     }
 
-    const summedQuery = transQuery.calculate({ $sum: '$amount' });
-    const { data } = await aqlQuery(summedQuery);
+    const summedQuery = transQuery.calculate({$sum: '$amount'});
+    const {data} = await aqlQuery(summedQuery);
     return data || 0;
   }
 
-  async function executeFormulaWithQuery(
-    formula: string,
-    queryResults: Record<string, number>,
-  ) {
+  async function executeFormulaWithQuery(formula: string, queryResults: Record<string, number>) {
     let hfInstance: ReturnType<typeof HyperFormula.buildEmpty> | null = null;
 
     try {
@@ -141,18 +122,13 @@ describe('Formula Card - Integration Tests with Queries', () => {
       // Replace QUERY() calls with actual values
       let processedFormula = formula;
       for (const [queryName, value] of Object.entries(queryResults)) {
-        const regex = new RegExp(
-          `QUERY\\s*\\(\\s*["']${queryName}["']\\s*\\)`,
-          'gi',
-        );
+        const regex = new RegExp(`QUERY\\s*\\(\\s*["']${queryName}["']\\s*\\)`, 'gi');
         // Convert cents to dollars for display
         const dollarValue = value / 100;
         processedFormula = processedFormula.replace(regex, String(dollarValue));
       }
 
-      hfInstance.setCellContents({ sheet: sheetId, col: 0, row: 0 }, [
-        [processedFormula],
-      ]);
+      hfInstance.setCellContents({sheet: sheetId, col: 0, row: 0}, [[processedFormula]]);
 
       const cellValue = hfInstance.getCellValue({
         sheet: sheetId,
@@ -199,7 +175,7 @@ describe('Formula Card - Integration Tests with Queries', () => {
 
       // Execute query
       const queryResult = await executeQuery([
-        { field: 'category', op: 'is', value: categoryId, type: 'id' },
+        {field: 'category', op: 'is', value: categoryId, type: 'id'},
       ]);
 
       // Execute formula with query result
@@ -237,11 +213,11 @@ describe('Formula Card - Integration Tests with Queries', () => {
       });
 
       const incomeResult = await executeQuery([
-        { field: 'category', op: 'is', value: incomeCategory, type: 'id' },
+        {field: 'category', op: 'is', value: incomeCategory, type: 'id'},
       ]);
 
       const expenseResult = await executeQuery([
-        { field: 'category', op: 'is', value: expenseCategory, type: 'id' },
+        {field: 'category', op: 'is', value: expenseCategory, type: 'id'},
       ]);
 
       const formula =
@@ -269,7 +245,7 @@ describe('Formula Card - Integration Tests with Queries', () => {
       });
 
       const queryResult = await executeQuery([
-        { field: 'category', op: 'is', value: categoryId, type: 'id' },
+        {field: 'category', op: 'is', value: categoryId, type: 'id'},
       ]);
 
       const formula = '=FORMATNUMBER(QUERY("Dividends"), 2)';
@@ -306,19 +282,18 @@ describe('Formula Card - Integration Tests with Queries', () => {
       });
 
       const checkingResult = await executeQuery([
-        { field: 'account', op: 'is', value: checkingId, type: 'id' },
+        {field: 'account', op: 'is', value: checkingId, type: 'id'},
       ]);
 
       const savingsResult = await executeQuery([
-        { field: 'account', op: 'is', value: savingsId, type: 'id' },
+        {field: 'account', op: 'is', value: savingsId, type: 'id'},
       ]);
 
       const creditCardResult = await executeQuery([
-        { field: 'account', op: 'is', value: creditCardId, type: 'id' },
+        {field: 'account', op: 'is', value: creditCardId, type: 'id'},
       ]);
 
-      const formula =
-        '=FORMATCURRENCY(QUERY("Checking") + QUERY("Savings") + QUERY("CreditCard"))';
+      const formula = '=FORMATCURRENCY(QUERY("Checking") + QUERY("Savings") + QUERY("CreditCard"))';
       const result = await executeFormulaWithQuery(formula, {
         Checking: checkingResult,
         Savings: savingsResult,
@@ -333,11 +308,7 @@ describe('Formula Card - Integration Tests with Queries', () => {
       // Integration test: Calculate savings rate
       const accountId = await createTestAccount('Checking');
       const incomeGroup = await createCategoryGroup('Income');
-      const incomeCategory = await createTestCategory(
-        'Salary',
-        incomeGroup,
-        true,
-      );
+      const incomeCategory = await createTestCategory('Salary', incomeGroup, true);
       const savingsGroup = await createCategoryGroup('Savings');
       const savingsCategory = await createTestCategory('Savings', savingsGroup);
 
@@ -356,11 +327,11 @@ describe('Formula Card - Integration Tests with Queries', () => {
       });
 
       const incomeResult = await executeQuery([
-        { field: 'category', op: 'is', value: incomeCategory, type: 'id' },
+        {field: 'category', op: 'is', value: incomeCategory, type: 'id'},
       ]);
 
       const savingsResult = await executeQuery([
-        { field: 'category', op: 'is', value: savingsCategory, type: 'id' },
+        {field: 'category', op: 'is', value: savingsCategory, type: 'id'},
       ]);
 
       const formula =
@@ -379,18 +350,11 @@ describe('Formula Card - Integration Tests with Queries', () => {
       // Integration test: Complex budget analysis
       const accountId = await createTestAccount('Checking');
       const incomeGroup = await createCategoryGroup('Income');
-      const incomeCategory = await createTestCategory(
-        'Salary',
-        incomeGroup,
-        true,
-      );
+      const incomeCategory = await createTestCategory('Salary', incomeGroup, true);
       const needsGroup = await createCategoryGroup('Needs');
       const needsCategory = await createTestCategory('Housing', needsGroup);
       const wantsGroup = await createCategoryGroup('Wants');
-      const wantsCategory = await createTestCategory(
-        'Entertainment',
-        wantsGroup,
-      );
+      const wantsCategory = await createTestCategory('Entertainment', wantsGroup);
 
       await createTestTransaction({
         accountId,
@@ -414,15 +378,15 @@ describe('Formula Card - Integration Tests with Queries', () => {
       });
 
       const incomeResult = await executeQuery([
-        { field: 'category', op: 'is', value: incomeCategory, type: 'id' },
+        {field: 'category', op: 'is', value: incomeCategory, type: 'id'},
       ]);
 
       const needsResult = await executeQuery([
-        { field: 'category', op: 'is', value: needsCategory, type: 'id' },
+        {field: 'category', op: 'is', value: needsCategory, type: 'id'},
       ]);
 
       const wantsResult = await executeQuery([
-        { field: 'category', op: 'is', value: wantsCategory, type: 'id' },
+        {field: 'category', op: 'is', value: wantsCategory, type: 'id'},
       ]);
 
       const formula =
@@ -451,7 +415,7 @@ describe('Formula Card - Integration Tests with Queries', () => {
       });
 
       const queryResult = await executeQuery([
-        { field: 'category', op: 'is', value: categoryId, type: 'id' },
+        {field: 'category', op: 'is', value: categoryId, type: 'id'},
       ]);
 
       const formula =
@@ -467,11 +431,7 @@ describe('Formula Card - Integration Tests with Queries', () => {
       // Integration test: Multi-line summary with CHAR(10)
       const accountId = await createTestAccount('Checking');
       const incomeGroup = await createCategoryGroup('Income');
-      const incomeCategory = await createTestCategory(
-        'Salary',
-        incomeGroup,
-        true,
-      );
+      const incomeCategory = await createTestCategory('Salary', incomeGroup, true);
       const expenseGroup = await createCategoryGroup('Expenses');
       const expenseCategory = await createTestCategory('Total', expenseGroup);
 
@@ -490,11 +450,11 @@ describe('Formula Card - Integration Tests with Queries', () => {
       });
 
       const incomeResult = await executeQuery([
-        { field: 'category', op: 'is', value: incomeCategory, type: 'id' },
+        {field: 'category', op: 'is', value: incomeCategory, type: 'id'},
       ]);
 
       const expenseResult = await executeQuery([
-        { field: 'category', op: 'is', value: expenseCategory, type: 'id' },
+        {field: 'category', op: 'is', value: expenseCategory, type: 'id'},
       ]);
 
       const formula =
@@ -541,8 +501,8 @@ describe('Formula Card - Integration Tests with Queries', () => {
 
       // Query only January
       const queryResult = await executeQuery(
-        [{ field: 'category', op: 'is', value: categoryId, type: 'id' }],
-        { start: '2024-01-01', end: '2024-01-31' },
+        [{field: 'category', op: 'is', value: categoryId, type: 'id'}],
+        {start: '2024-01-01', end: '2024-01-31'},
       );
 
       const formula = '=FORMATCURRENCY(QUERY("Shopping"))';
@@ -574,13 +534,13 @@ describe('Formula Card - Integration Tests with Queries', () => {
       });
 
       const jan = await executeQuery(
-        [{ field: 'category', op: 'is', value: categoryId, type: 'id' }],
-        { start: '2024-01-01', end: '2024-01-31' },
+        [{field: 'category', op: 'is', value: categoryId, type: 'id'}],
+        {start: '2024-01-01', end: '2024-01-31'},
       );
 
       const feb = await executeQuery(
-        [{ field: 'category', op: 'is', value: categoryId, type: 'id' }],
-        { start: '2024-02-01', end: '2024-02-29' },
+        [{field: 'category', op: 'is', value: categoryId, type: 'id'}],
+        {start: '2024-02-01', end: '2024-02-29'},
       );
 
       const formula =
@@ -603,7 +563,7 @@ describe('Formula Card - Integration Tests with Queries', () => {
       // No transactions created for this category
 
       const queryResult = await executeQuery([
-        { field: 'category', op: 'is', value: categoryId, type: 'id' },
+        {field: 'category', op: 'is', value: categoryId, type: 'id'},
       ]);
 
       const formula = '=FORMATCURRENCY(QUERY("Empty"))';
@@ -631,11 +591,11 @@ describe('Formula Card - Integration Tests with Queries', () => {
       });
 
       const incomeResult = await executeQuery([
-        { field: 'category', op: 'is', value: incomeCategory, type: 'id' },
+        {field: 'category', op: 'is', value: incomeCategory, type: 'id'},
       ]);
 
       const expenseResult = await executeQuery([
-        { field: 'category', op: 'is', value: expenseCategory, type: 'id' },
+        {field: 'category', op: 'is', value: expenseCategory, type: 'id'},
       ]);
 
       const formula =
@@ -679,16 +639,16 @@ describe('Formula Card - Integration Tests with Queries', () => {
       });
 
       const checkingResult = await executeQuery([
-        { field: 'account', op: 'is', value: checking, type: 'id' },
+        {field: 'account', op: 'is', value: checking, type: 'id'},
       ]);
       const savingsResult = await executeQuery([
-        { field: 'account', op: 'is', value: savings, type: 'id' },
+        {field: 'account', op: 'is', value: savings, type: 'id'},
       ]);
       const investmentResult = await executeQuery([
-        { field: 'account', op: 'is', value: investment, type: 'id' },
+        {field: 'account', op: 'is', value: investment, type: 'id'},
       ]);
       const creditCardResult = await executeQuery([
-        { field: 'account', op: 'is', value: creditCard, type: 'id' },
+        {field: 'account', op: 'is', value: creditCard, type: 'id'},
       ]);
 
       const formula =
@@ -730,15 +690,9 @@ describe('Formula Card - Integration Tests with Queries', () => {
         categoryId: cat3,
       });
 
-      const result1 = await executeQuery([
-        { field: 'category', op: 'is', value: cat1, type: 'id' },
-      ]);
-      const result2 = await executeQuery([
-        { field: 'category', op: 'is', value: cat2, type: 'id' },
-      ]);
-      const result3 = await executeQuery([
-        { field: 'category', op: 'is', value: cat3, type: 'id' },
-      ]);
+      const result1 = await executeQuery([{field: 'category', op: 'is', value: cat1, type: 'id'}]);
+      const result2 = await executeQuery([{field: 'category', op: 'is', value: cat2, type: 'id'}]);
+      const result3 = await executeQuery([{field: 'category', op: 'is', value: cat3, type: 'id'}]);
 
       const formula =
         '=CONCATENATE("Highest: ", FORMATCURRENCY(MIN(QUERY("Cat1"), QUERY("Cat2"), QUERY("Cat3"))))';

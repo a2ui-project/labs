@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { ComponentType, ReactNode, SVGProps } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import type {ComponentType, ReactNode, SVGProps} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
 import {
   SvgCog,
@@ -28,24 +28,20 @@ import {
   SvgTuning,
   SvgWallet,
 } from '@actual-app/components/icons/v1';
-import {
-  SvgCalendar3,
-  SvgHelp,
-  SvgNotesPaperText,
-} from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
-import { Command } from 'cmdk';
+import {SvgCalendar3, SvgHelp, SvgNotesPaperText} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
+import {Command} from 'cmdk';
 
-import { useAccounts } from '#hooks/useAccounts';
-import { useDashboardPages } from '#hooks/useDashboardPages';
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { useModalState } from '#hooks/useModalState';
-import { useNavigate } from '#hooks/useNavigate';
-import { useReports } from '#hooks/useReports';
-import type { Binding, SheetFields, SheetNames } from '#spreadsheet';
+import {useAccounts} from '#hooks/useAccounts';
+import {useDashboardPages} from '#hooks/useDashboardPages';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {useModalState} from '#hooks/useModalState';
+import {useNavigate} from '#hooks/useNavigate';
+import {useReports} from '#hooks/useReports';
+import type {Binding, SheetFields, SheetNames} from '#spreadsheet';
 import {
   accountBalance,
   allAccountBalance,
@@ -53,8 +49,8 @@ import {
   onBudgetAccountBalance,
 } from '#spreadsheet/bindings';
 
-import { CellValue, CellValueText } from './spreadsheet/CellValue';
-import { useTour } from './tour/TourProvider';
+import {CellValue, CellValueText} from './spreadsheet/CellValue';
+import {useTour} from './tour/TourProvider';
 
 type SearchableItem = {
   id: string;
@@ -76,10 +72,7 @@ type SearchSection = {
   onSelect: (item: Pick<SearchableItem, 'id'>) => void;
 };
 
-function BalanceRow<
-  SheetName extends SheetNames,
-  FieldName extends SheetFields<SheetName>,
->({
+function BalanceRow<SheetName extends SheetNames, FieldName extends SheetFields<SheetName>>({
   label,
   binding,
 }: {
@@ -98,10 +91,7 @@ function BalanceRow<
       <Text>{label}</Text>
       <CellValue binding={binding} type="financial">
         {props => (
-          <CellValueText
-            {...props}
-            style={{ ...styles.tnum, whiteSpace: 'nowrap', opacity: 0.9 }}
-          />
+          <CellValueText {...props} style={{...styles.tnum, whiteSpace: 'nowrap', opacity: 0.9}} />
         )}
       </CellValue>
     </View>
@@ -109,17 +99,17 @@ function BalanceRow<
 }
 
 export function CommandBar() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const [budgetName] = useMetadataPref('budgetName');
-  const { modalStack } = useModalState();
-  const { startTour } = useTour();
+  const {modalStack} = useModalState();
+  const {startTour} = useTour();
 
   const navigationItems = useMemo(
     () => [
-      { id: 'budget', name: t('Budget'), path: '/budget', Icon: SvgWallet },
+      {id: 'budget', name: t('Budget'), path: '/budget', Icon: SvgWallet},
       {
         id: 'reports-nav',
         name: t('Reports'),
@@ -132,10 +122,10 @@ export function CommandBar() {
         path: '/schedules',
         Icon: SvgCalendar3,
       },
-      { id: 'payees', name: t('Payees'), path: '/payees', Icon: SvgStoreFront },
-      { id: 'rules', name: t('Rules'), path: '/rules', Icon: SvgTuning },
-      { id: 'tags', name: t('Tags'), path: '/tags', Icon: SvgTag },
-      { id: 'settings', name: t('Settings'), path: '/settings', Icon: SvgCog },
+      {id: 'payees', name: t('Payees'), path: '/payees', Icon: SvgStoreFront},
+      {id: 'rules', name: t('Rules'), path: '/rules', Icon: SvgTuning},
+      {id: 'tags', name: t('Tags'), path: '/tags', Icon: SvgTag},
+      {id: 'settings', name: t('Settings'), path: '/settings', Icon: SvgCog},
       {
         id: 'accounts',
         name: t('All Accounts'),
@@ -157,9 +147,9 @@ export function CommandBar() {
     if (!open) setSearch('');
   }, [open]);
 
-  const { data: allAccounts = [] } = useAccounts();
-  const { data: customReports = [] } = useReports();
-  const { data: dashboardPages = [] } = useDashboardPages();
+  const {data: allAccounts = []} = useAccounts();
+  const {data: customReports = []} = useReports();
+  const {data: dashboardPages = []} = useDashboardPages();
 
   const accounts = allAccounts.filter(acc => !acc.closed);
 
@@ -193,7 +183,7 @@ export function CommandBar() {
       key: 'navigation',
       heading: t('Navigation'),
       items: navigationItems,
-      onSelect: ({ id }) => {
+      onSelect: ({id}) => {
         const item = navigationItems.find(item => item.id === id);
         if (item) handleNavigate(item.path);
       },
@@ -235,7 +225,7 @@ export function CommandBar() {
           Icon: SvgPiggyBank,
         })),
       ],
-      onSelect: ({ id }) => handleNavigate(`/accounts/${id}`),
+      onSelect: ({id}) => handleNavigate(`/accounts/${id}`),
     },
     {
       key: 'reports',
@@ -244,7 +234,7 @@ export function CommandBar() {
         ...dashboardPage,
         Icon: SvgReports,
       })),
-      onSelect: ({ id }) => handleNavigate(`/reports/${id}`),
+      onSelect: ({id}) => handleNavigate(`/reports/${id}`),
     },
     {
       key: 'reports-custom',
@@ -253,7 +243,7 @@ export function CommandBar() {
         ...report,
         Icon: SvgNotesPaperText,
       })),
-      onSelect: ({ id }) => handleNavigate(`/reports/custom/${id}`),
+      onSelect: ({id}) => handleNavigate(`/reports/custom/${id}`),
     },
     {
       key: 'help',
@@ -261,7 +251,7 @@ export function CommandBar() {
       items: [
         {
           id: 'start-tour',
-          name: t('Take a tour of {{appName}}', { appName: 'Actual' }),
+          name: t('Take a tour of {{appName}}', {appName: 'Actual'}),
           Icon: SvgHelp,
         },
       ],
@@ -275,9 +265,7 @@ export function CommandBar() {
   const searchLower = search.toLowerCase();
   const filteredSections = sections.map(section => ({
     ...section,
-    items: section.items.filter(item =>
-      item.name.toLowerCase().includes(searchLower),
-    ),
+    items: section.items.filter(item => item.name.toLowerCase().includes(searchLower)),
   }));
   const hasResults = filteredSections.some(section => !!section.items.length);
 
@@ -307,7 +295,7 @@ export function CommandBar() {
     >
       <Command.Input
         autoFocus
-        placeholder={t('Search {{budgetName}}...', { budgetName })}
+        placeholder={t('Search {{budgetName}}...', {budgetName})}
         value={search}
         onValueChange={setSearch}
         className={css({
@@ -355,10 +343,10 @@ export function CommandBar() {
                   },
                 })}
               >
-                {section.items.map(({ id, name, Icon, content }) => (
+                {section.items.map(({id, name, Icon, content}) => (
                   <Command.Item
                     key={id}
-                    onSelect={() => section.onSelect({ id })}
+                    onSelect={() => section.onSelect({id})}
                     value={name}
                     className={css({
                       padding: '8px 16px',
@@ -370,12 +358,10 @@ export function CommandBar() {
                       alignItems: 'center',
                       gap: '8px',
                       // Avoid showing mouse hover styles when using keyboard navigation
-                      '[data-cmdk-list]:not([data-cmdk-list-nav-active]) &:hover':
-                        {
-                          backgroundColor:
-                            'var(--color-menuItemBackgroundHover)',
-                          color: 'var(--color-menuItemTextHover)',
-                        },
+                      '[data-cmdk-list]:not([data-cmdk-list-nav-active]) &:hover': {
+                        backgroundColor: 'var(--color-menuItemBackgroundHover)',
+                        color: 'var(--color-menuItemTextHover)',
+                      },
 
                       "&[data-selected='true']": {
                         backgroundColor: 'var(--color-menuItemBackgroundHover)',

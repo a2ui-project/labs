@@ -16,14 +16,11 @@
 
 import * as childProcess from 'node:child_process';
 import * as fs from 'node:fs';
-import { promisify } from 'node:util';
+import {promisify} from 'node:util';
 
 import matter from 'gray-matter';
 
-import {
-  categoryAutocorrections,
-  categoryOrder,
-} from '../src/release-notes/util.mjs';
+import {categoryAutocorrections, categoryOrder} from '../src/release-notes/util.mjs';
 
 const execFile = promisify(childProcess.execFile);
 
@@ -51,7 +48,7 @@ function reportError(message) {
 }
 
 function validateFile(path) {
-  const { data, content } = matter(fs.readFileSync(path, 'utf-8'));
+  const {data, content} = matter(fs.readFileSync(path, 'utf-8'));
 
   if (!data.category) {
     reportError(`Release note ${path} is missing a category.`);
@@ -87,7 +84,7 @@ function validateFile(path) {
 
 void (async () => {
   await execFile('git', ['fetch', 'origin', baseRef]);
-  const { stdout } = await execFile('git', [
+  const {stdout} = await execFile('git', [
     'diff',
     '--name-only',
     '--diff-filter=A',

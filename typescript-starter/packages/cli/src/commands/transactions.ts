@@ -15,16 +15,14 @@
  */
 
 import * as api from '@actual-app/api';
-import type { Command } from 'commander';
+import type {Command} from 'commander';
 
-import { withConnection } from '#connection';
-import { readJsonInput } from '#input';
-import { printOutput } from '#output';
+import {withConnection} from '#connection';
+import {readJsonInput} from '#input';
+import {printOutput} from '#output';
 
 export function registerTransactionsCommand(program: Command) {
-  const transactions = program
-    .command('transactions')
-    .description('Manage transactions');
+  const transactions = program.command('transactions').description('Manage transactions');
 
   transactions
     .command('list')
@@ -37,14 +35,10 @@ export function registerTransactionsCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const result = await api.getTransactions(
-            cmdOpts.account,
-            cmdOpts.start,
-            cmdOpts.end,
-          );
+          const result = await api.getTransactions(cmdOpts.account, cmdOpts.start, cmdOpts.end);
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -53,10 +47,7 @@ export function registerTransactionsCommand(program: Command) {
     .description('Add transactions to an account')
     .requiredOption('--account <id>', 'Account ID')
     .option('--data <json>', 'Transaction data as JSON array')
-    .option(
-      '--file <path>',
-      'Read transaction data from JSON file (use - for stdin)',
-    )
+    .option('--file <path>', 'Read transaction data from JSON file (use - for stdin)')
     .option('--learn-categories', 'Learn category assignments', false)
     .option('--run-transfers', 'Process transfers', false)
     .action(async cmdOpts => {
@@ -64,20 +55,14 @@ export function registerTransactionsCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const transactions = readJsonInput(cmdOpts) as Parameters<
-            typeof api.addTransactions
-          >[1];
-          const result = await api.addTransactions(
-            cmdOpts.account,
-            transactions,
-            {
-              learnCategories: cmdOpts.learnCategories,
-              runTransfers: cmdOpts.runTransfers,
-            },
-          );
+          const transactions = readJsonInput(cmdOpts) as Parameters<typeof api.addTransactions>[1];
+          const result = await api.addTransactions(cmdOpts.account, transactions, {
+            learnCategories: cmdOpts.learnCategories,
+            runTransfers: cmdOpts.runTransfers,
+          });
           printOutput(result, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -86,10 +71,7 @@ export function registerTransactionsCommand(program: Command) {
     .description('Import transactions to an account')
     .requiredOption('--account <id>', 'Account ID')
     .option('--data <json>', 'Transaction data as JSON array')
-    .option(
-      '--file <path>',
-      'Read transaction data from JSON file (use - for stdin)',
-    )
+    .option('--file <path>', 'Read transaction data from JSON file (use - for stdin)')
     .option('--dry-run', 'Preview without importing', false)
     .action(async cmdOpts => {
       const opts = program.opts();
@@ -99,17 +81,13 @@ export function registerTransactionsCommand(program: Command) {
           const transactions = readJsonInput(cmdOpts) as Parameters<
             typeof api.importTransactions
           >[1];
-          const result = await api.importTransactions(
-            cmdOpts.account,
-            transactions,
-            {
-              defaultCleared: true,
-              dryRun: cmdOpts.dryRun,
-            },
-          );
+          const result = await api.importTransactions(cmdOpts.account, transactions, {
+            defaultCleared: true,
+            dryRun: cmdOpts.dryRun,
+          });
           printOutput(result, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -123,13 +101,11 @@ export function registerTransactionsCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const fields = readJsonInput(cmdOpts) as Parameters<
-            typeof api.updateTransaction
-          >[1];
+          const fields = readJsonInput(cmdOpts) as Parameters<typeof api.updateTransaction>[1];
           await api.updateTransaction(id, fields);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -142,9 +118,9 @@ export function registerTransactionsCommand(program: Command) {
         opts,
         async () => {
           await api.deleteTransaction(id);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 }

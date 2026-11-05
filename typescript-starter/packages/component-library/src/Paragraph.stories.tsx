@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Paragraph } from './Paragraph';
-import { View } from './View';
+import {Paragraph} from './Paragraph';
+import {View} from './View';
 
 const meta = {
   title: 'Components/Paragraph',
@@ -39,7 +39,7 @@ export const Default: Story = {
   },
   decorators: [
     Story => (
-      <View style={{ width: 400 }}>
+      <View style={{width: 400}}>
         <Story />
       </View>
     ),
@@ -55,18 +55,18 @@ export const Default: Story = {
 
 export const MultipleParagraphs: Story = {
   render: () => (
-    <View style={{ width: 400 }}>
+    <View style={{width: 400}}>
       <Paragraph>
-        This is the first paragraph. It has a bottom margin to create spacing
-        between itself and the next paragraph.
+        This is the first paragraph. It has a bottom margin to create spacing between itself and the
+        next paragraph.
       </Paragraph>
       <Paragraph>
-        This is the second paragraph. Notice the consistent spacing between
-        paragraphs which improves readability.
+        This is the second paragraph. Notice the consistent spacing between paragraphs which
+        improves readability.
       </Paragraph>
       <Paragraph isLast>
-        This is the last paragraph. It uses the isLast prop to remove the bottom
-        margin since there is no following content.
+        This is the last paragraph. It uses the isLast prop to remove the bottom margin since there
+        is no following content.
       </Paragraph>
     </View>
   ),
@@ -87,7 +87,7 @@ export const IsLast: Story = {
   },
   decorators: [
     Story => (
-      <View style={{ width: 400, border: '1px dashed #ccc', padding: 10 }}>
+      <View style={{width: 400, border: '1px dashed #ccc', padding: 10}}>
         <Story />
       </View>
     ),
@@ -113,7 +113,7 @@ export const WithCustomStyle: Story = {
   },
   decorators: [
     Story => (
-      <View style={{ width: 400 }}>
+      <View style={{width: 400}}>
         <Story />
       </View>
     ),
@@ -134,7 +134,7 @@ export const LongContent: Story = {
   },
   decorators: [
     Story => (
-      <View style={{ width: 400 }}>
+      <View style={{width: 400}}>
         <Story />
       </View>
     ),

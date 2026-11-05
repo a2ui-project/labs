@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { getPermissionWarning } from './useBuiltInBankSyncProviders';
+import {getPermissionWarning} from './useBuiltInBankSyncProviders';
 
 test.each([
   ['offline', true, true, null],

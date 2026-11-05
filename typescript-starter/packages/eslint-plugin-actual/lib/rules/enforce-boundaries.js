@@ -51,7 +51,7 @@ module.exports = {
       context.report({
         node: source,
         messageId: 'noBacktrackedImport',
-        data: { source: source.value },
+        data: {source: source.value},
       });
     }
 
@@ -69,11 +69,11 @@ module.exports = {
         const grandparentName = getPropertyName(grandparent);
 
         if (name === 'paths' && grandparentName === 'compilerOptions') {
-          context.report({ node, messageId: 'noTsconfigPaths' });
+          context.report({node, messageId: 'noTsconfigPaths'});
         }
 
         if (name === 'alias' && grandparentName === 'resolve') {
-          context.report({ node, messageId: 'noResolveAlias' });
+          context.report({node, messageId: 'noResolveAlias'});
         }
       },
 
@@ -100,20 +100,17 @@ module.exports = {
           context.report({
             node: node.arguments[0],
             messageId: 'noBacktrackedImport',
-            data: { source: node.arguments[0].value },
+            data: {source: node.arguments[0].value},
           });
         }
       },
 
       ImportExpression(node) {
-        if (
-          node.source.type === 'Literal' &&
-          isBacktrackedImport(node.source.value)
-        ) {
+        if (node.source.type === 'Literal' && isBacktrackedImport(node.source.value)) {
           context.report({
             node: node.source,
             messageId: 'noBacktrackedImport',
-            data: { source: node.source.value },
+            data: {source: node.source.value},
           });
         }
       },

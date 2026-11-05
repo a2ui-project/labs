@@ -15,15 +15,15 @@
  */
 
 import React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 
-import { css, keyframes } from '@emotion/css';
+import {css, keyframes} from '@emotion/css';
 
-import { SvgLoading } from './Loading';
+import {SvgLoading} from './Loading';
 
 const rotation = keyframes({
-  '0%': { transform: 'rotate(-90deg)' },
-  '100%': { transform: 'rotate(666deg)' },
+  '0%': {transform: 'rotate(-90deg)'},
+  '100%': {transform: 'rotate(666deg)'},
 });
 
 export function AnimatedLoading(props: SVGProps<SVGSVGElement>) {

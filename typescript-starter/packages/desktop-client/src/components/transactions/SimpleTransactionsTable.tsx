@@ -14,35 +14,31 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useMemo } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useMemo} from 'react';
+import type {CSSProperties, ReactNode} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { SvgArrowsSynchronize } from '@actual-app/components/icons/v2';
-import { theme } from '@actual-app/components/theme';
+import {SvgArrowsSynchronize} from '@actual-app/components/icons/v2';
+import {theme} from '@actual-app/components/theme';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { TransactionEntity } from '@actual-app/core/types/models';
-import {
-  format as formatDate,
-  isValid as isDateValid,
-  parseISO,
-} from 'date-fns';
+import type {TransactionEntity} from '@actual-app/core/types/models';
+import {format as formatDate, isValid as isDateValid, parseISO} from 'date-fns';
 
-import { FinancialText } from '#components/FinancialText';
-import { Cell, Field, Row, SelectCell, Table } from '#components/table';
-import { DisplayId } from '#components/util/DisplayId';
-import { useAccount } from '#hooks/useAccount';
-import { useCategory } from '#hooks/useCategory';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { useSelectedDispatch, useSelectedItems } from '#hooks/useSelected';
+import {FinancialText} from '#components/FinancialText';
+import {Cell, Field, Row, SelectCell, Table} from '#components/table';
+import {DisplayId} from '#components/util/DisplayId';
+import {useAccount} from '#hooks/useAccount';
+import {useCategory} from '#hooks/useCategory';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {useSelectedDispatch, useSelectedItems} from '#hooks/useSelected';
 
 function serializeTransaction(
   transaction: TransactionEntity,
   dateFormat: string,
 ): TransactionEntity {
-  let { date } = transaction;
+  let {date} = transaction;
 
   if (!isDateValid(parseISO(date))) {
     date = monthUtils.currentDay();
@@ -62,16 +58,10 @@ type TransactionRowProps = {
   index: number;
 };
 
-function TransactionRow({
-  transaction,
-  fields,
-  selected,
-  format,
-  index,
-}: TransactionRowProps) {
-  const { t } = useTranslation();
+function TransactionRow({transaction, fields, selected, format, index}: TransactionRowProps) {
+  const {t} = useTranslation();
 
-  const { data: category } = useCategory(transaction.category);
+  const {data: category} = useCategory(transaction.category);
   const account = useAccount(transaction.account);
 
   const dispatchSelected = useSelectedDispatch();
@@ -136,9 +126,7 @@ function TransactionRow({
                         }}
                       />
                     )}
-                    {transaction.payee && (
-                      <DisplayId type="payees" id={transaction.payee} />
-                    )}
+                    {transaction.payee && <DisplayId type="payees" id={transaction.payee} />}
                   </>
                 )}
               </Cell>
@@ -151,11 +139,7 @@ function TransactionRow({
             );
           case 'account':
             return (
-              <Field
-                key={i}
-                width="flex"
-                title={account?.name || t('No account')}
-              >
+              <Field key={i} width="flex" title={account?.name || t('No account')}>
                 {account?.name || t('No account')}
               </Field>
             );
@@ -167,10 +151,8 @@ function TransactionRow({
             );
           case 'amount':
             return (
-              <Field key={i} width={75} style={{ textAlign: 'right' }}>
-                <FinancialText>
-                  {format(transaction.amount, 'financial')}
-                </FinancialText>
+              <Field key={i} width={75} style={{textAlign: 'right'}}>
+                <FinancialText>{format(transaction.amount, 'financial')}</FinancialText>
               </Field>
             );
           default:
@@ -205,7 +187,7 @@ export function SimpleTransactionsTable({
   }, [transactions, dateFormat]);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: TransactionEntity; index: number }) => {
+    ({item, index}: {item: TransactionEntity; index: number}) => {
       return (
         <TransactionRow
           transaction={item}
@@ -279,7 +261,7 @@ export function SimpleTransactionsTable({
                 );
               case 'amount':
                 return (
-                  <Field key={i} width={75} style={{ textAlign: 'right' }}>
+                  <Field key={i} width={75} style={{textAlign: 'right'}}>
                     <Trans>Amount</Trans>
                   </Field>
                 );

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Template } from '@actual-app/core/types/models/templates';
+import type {Template} from '@actual-app/core/types/models/templates';
 
-import type { DisplayTemplateType } from './constants';
+import type {DisplayTemplateType} from './constants';
 
 type SET_TYPE = {
   type: 'set-type';

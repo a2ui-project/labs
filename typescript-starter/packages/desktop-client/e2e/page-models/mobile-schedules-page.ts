@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class MobileSchedulesPage {
   readonly page: Page;
@@ -27,8 +27,8 @@ export class MobileSchedulesPage {
   constructor(page: Page) {
     this.page = page;
     this.searchBox = page.getByPlaceholder('Filter schedules…');
-    this.addButton = page.getByRole('button', { name: 'Add new schedule' });
-    this.schedulesList = page.getByRole('grid', { name: 'Schedules' });
+    this.addButton = page.getByRole('button', {name: 'Add new schedule'});
+    this.schedulesList = page.getByRole('grid', {name: 'Schedules'});
     this.emptyMessage = page.getByText(
       'No schedules found. Create your first schedule to get started!',
     );
@@ -97,6 +97,6 @@ export class MobileSchedulesPage {
    * Wait for loading to complete
    */
   async waitForLoadingToComplete(timeout: number = 10000) {
-    await this.loadingIndicator.waitFor({ state: 'hidden', timeout });
+    await this.loadingIndicator.waitFor({state: 'hidden', timeout});
   }
 }

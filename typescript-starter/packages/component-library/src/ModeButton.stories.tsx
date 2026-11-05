@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
+import {useState} from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
+import type {Meta, StoryObj} from '@storybook/react-vite';
+import {fn} from 'storybook/test';
 
-import { ModeButton } from './ModeButton';
-import { View } from './View';
+import {ModeButton} from './ModeButton';
+import {View} from './View';
 
 const meta = {
   title: 'Components/ModeButton',
@@ -59,13 +59,9 @@ export const ModeGroup: Story = {
     const [mode, setMode] = useState('Monthly');
 
     return (
-      <View style={{ flexDirection: 'row', gap: 4 }}>
+      <View style={{flexDirection: 'row', gap: 4}}>
         {['Monthly', 'Yearly', 'All time'].map(label => (
-          <ModeButton
-            key={label}
-            selected={mode === label}
-            onSelect={() => setMode(label)}
-          >
+          <ModeButton key={label} selected={mode === label} onSelect={() => setMode(label)}>
             {label}
           </ModeButton>
         ))}

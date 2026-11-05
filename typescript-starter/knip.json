@@ -16,12 +16,7 @@
     "packages/api": {
       "entry": ["index.browser.ts", "browser-worker.ts", "e2e/**/*.{ts,mjs}"],
       "ignore": ["typings.ts"],
-      "ignoreDependencies": [
-        "@actual-app/crdt",
-        "better-sqlite3",
-        "uuid",
-        "@jlongster/sql.js"
-      ]
+      "ignoreDependencies": ["@actual-app/crdt", "better-sqlite3", "uuid", "@jlongster/sql.js"]
     },
     "packages/ci-actions": {
       "entry": ["bin/*.ts"],
@@ -38,22 +33,12 @@
       "ignoreDependencies": ["@bufbuild/protoc-gen-es"]
     },
     "packages/desktop-client": {
-      "entry": [
-        "bin/*.mjs",
-        "globals.ts",
-        "src/globals.ts",
-        "src/build-shims.js"
-      ],
+      "entry": ["bin/*.mjs", "globals.ts", "src/globals.ts", "src/build-shims.js"],
       "ignore": ["playwright.config.d.ts"],
       "ignoreDependencies": ["plugins-service"]
     },
     "packages/desktop-electron": {
-      "entry": [
-        "preload.ts",
-        "server.ts",
-        "afterSignHook.ts",
-        "beforePackHook.ts"
-      ],
+      "entry": ["preload.ts", "server.ts", "afterSignHook.ts", "beforePackHook.ts"],
       "ignoreBinaries": ["bin/update-client"],
       "ignoreDependencies": ["better-sqlite3"]
     },
@@ -80,11 +65,7 @@
     },
     "packages/mobile-client": {
       "entry": ["bin/*"],
-      "ignore": [
-        "android/app/src/main/assets/**",
-        "ios/App/App/public/**",
-        "ios/DerivedData/**"
-      ],
+      "ignore": ["android/app/src/main/assets/**", "ios/App/App/public/**", "ios/DerivedData/**"],
       "ignoreDependencies": ["@capacitor/splash-screen"]
     },
     "packages/plugins-service": {

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { integerToAmount } from '@actual-app/core/shared/util';
+import {integerToAmount} from '@actual-app/core/shared/util';
 // Use the browser ESM build: the default `csv-stringify/sync` entry pulls in
 // the Node build (which imports `stream`), breaking the lazy-loaded reports
 // chunk in the browser bundle. The browser ESM build is self-contained.
-import { stringify as csvStringify } from 'csv-stringify/browser/esm/sync';
-import { t } from 'i18next';
+import {stringify as csvStringify} from 'csv-stringify/browser/esm/sync';
+import {t} from 'i18next';
 
 type IntervalRow = {
   date: string;
@@ -52,8 +52,7 @@ export function buildBudgetAnalysisCsv(rows: IntervalRow[]): string {
       header: true,
       columns,
       cast: {
-        string: (value: string) =>
-          FORMULA_TRIGGERS.test(value) ? "'" + value : value,
+        string: (value: string) => (FORMULA_TRIGGERS.test(value) ? "'" + value : value),
       },
     },
   );

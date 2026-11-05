@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { Trans } from 'react-i18next';
-import type { Step } from 'react-joyride';
+import {Trans} from 'react-i18next';
+import type {Step} from 'react-joyride';
 
 import * as monthUtils from '@actual-app/core/shared/months';
 
-import { Link } from '#components/common/Link';
+import {Link} from '#components/common/Link';
 
-import type { TourId } from './TourProvider';
+import type {TourId} from './TourProvider';
 
 export const ADD_ACCOUNT_STEP_ID = 'add-account';
 
@@ -53,19 +53,18 @@ function waitForElement(selector: string, timeoutMs = 4000): Promise<void> {
   });
 }
 
-function getBudgetTourSteps({ navigate, budgetType }: TourStepDeps): Step[] {
+function getBudgetTourSteps({navigate, budgetType}: TourStepDeps): Step[] {
   return [
     {
       id: 'welcome',
       target: 'body',
       placement: 'center',
-      title: <Trans>Welcome to {{ appName: 'Actual' }}!</Trans>,
+      title: <Trans>Welcome to {{appName: 'Actual'}}!</Trans>,
       content: (
         <Trans>
-          {{ appName: 'Actual' }} is a budgeting app that helps you understand
-          exactly where your money goes. This short tour walks you through the
-          basics. It only takes a couple of minutes, and you can leave at any
-          time and replay it later from the Help menu.
+          {{appName: 'Actual'}} is a budgeting app that helps you understand exactly where your
+          money goes. This short tour walks you through the basics. It only takes a couple of
+          minutes, and you can leave at any time and replay it later from the Help menu.
         </Trans>
       ),
     },
@@ -84,9 +83,8 @@ function getBudgetTourSteps({ navigate, budgetType }: TourStepDeps): Step[] {
       content:
         budgetType === 'tracking' ? (
           <Trans>
-            In a tracking budget, the amounts you budget are targets for your
-            income and spending rather than envelopes of money. This approach is
-            called{' '}
+            In a tracking budget, the amounts you budget are targets for your income and spending
+            rather than envelopes of money. This approach is called{' '}
             <Link
               variant="external"
               to="https://actualbudget.org/docs/getting-started/tracking-budget"
@@ -104,9 +102,8 @@ function getBudgetTourSteps({ navigate, budgetType }: TourStepDeps): Step[] {
           </Trans>
         ) : (
           <Trans>
-            Categories in {{ appName: 'Actual' }} work like virtual envelopes:
-            you assign the money you already have to them, then spend from each
-            envelope. This approach is called{' '}
+            Categories in {{appName: 'Actual'}} work like virtual envelopes: you assign the money
+            you already have to them, then spend from each envelope. This approach is called{' '}
             <Link
               variant="external"
               to="https://actualbudget.org/docs/getting-started/envelope-budgeting"
@@ -130,9 +127,9 @@ function getBudgetTourSteps({ navigate, budgetType }: TourStepDeps): Step[] {
             title: <Trans>Saved This Month</Trans>,
             content: (
               <Trans>
-                This summary compares your income and expenses to show how much
-                you saved this month. Rather than rolling funds over, a tracking
-                budget plans each month on its own.
+                This summary compares your income and expenses to show how much you saved this
+                month. Rather than rolling funds over, a tracking budget plans each month on its
+                own.
               </Trans>
             ),
           }
@@ -140,9 +137,8 @@ function getBudgetTourSteps({ navigate, budgetType }: TourStepDeps): Step[] {
             title: <Trans>To Budget</Trans>,
             content: (
               <Trans>
-                The <strong>To Budget</strong> amount shows the money you have
-                not assigned to a category yet. Aim to bring it to zero, so that
-                all of your money has a job.
+                The <strong>To Budget</strong> amount shows the money you have not assigned to a
+                category yet. Aim to bring it to zero, so that all of your money has a job.
               </Trans>
             ),
           }),
@@ -157,10 +153,9 @@ function getBudgetTourSteps({ navigate, budgetType }: TourStepDeps): Step[] {
       title: <Trans>Categories</Trans>,
       content: (
         <Trans>
-          Each row in the budget is a category. Click the{' '}
-          <strong>Budgeted</strong> amount to assign money to a category, and
-          keep an eye on the <strong>Balance</strong> column to see how much is
-          left to spend.
+          Each row in the budget is a category. Click the <strong>Budgeted</strong> amount to assign
+          money to a category, and keep an eye on the <strong>Balance</strong> column to see how
+          much is left to spend.
         </Trans>
       ),
     },
@@ -171,9 +166,8 @@ function getBudgetTourSteps({ navigate, budgetType }: TourStepDeps): Step[] {
       title: <Trans>Month by Month</Trans>,
       content: (
         <Trans>
-          Every month gets its own budget. Use the month picker to move between
-          months, and the calendar icons on the left to choose how many months
-          are shown side by side.
+          Every month gets its own budget. Use the month picker to move between months, and the
+          calendar icons on the left to choose how many months are shown side by side.
         </Trans>
       ),
     },
@@ -184,9 +178,8 @@ function getBudgetTourSteps({ navigate, budgetType }: TourStepDeps): Step[] {
       title: <Trans>Getting Around</Trans>,
       content: (
         <Trans>
-          The sidebar takes you to your budget, reports, and scheduled
-          transactions. You can find payees, rules, and the settings under{' '}
-          <strong>More</strong>.
+          The sidebar takes you to your budget, reports, and scheduled transactions. You can find
+          payees, rules, and the settings under <strong>More</strong>.
         </Trans>
       ),
     },
@@ -197,13 +190,9 @@ function getBudgetTourSteps({ navigate, budgetType }: TourStepDeps): Step[] {
       title: <Trans>Add Your Accounts</Trans>,
       content: (
         <Trans>
-          Transactions live in accounts, so adding your first account is the
-          best way to get started with {{ appName: 'Actual' }}. Click here to
-          add one. You can enter transactions yourself, or{' '}
-          <Link
-            variant="external"
-            to="https://actualbudget.org/docs/advanced/bank-sync"
-          >
+          Transactions live in accounts, so adding your first account is the best way to get started
+          with {{appName: 'Actual'}}. Click here to add one. You can enter transactions yourself, or{' '}
+          <Link variant="external" to="https://actualbudget.org/docs/advanced/bank-sync">
             link the account to your bank
           </Link>{' '}
           to import them automatically.
@@ -217,8 +206,8 @@ function getBudgetTourSteps({ navigate, budgetType }: TourStepDeps): Step[] {
       title: <Trans>Getting Help</Trans>,
       content: (
         <Trans>
-          The Help menu is always here when you need it. Use it to replay this
-          tour, browse the documentation, or ask the community on Discord.
+          The Help menu is always here when you need it. Use it to replay this tour, browse the
+          documentation, or ask the community on Discord.
         </Trans>
       ),
     },

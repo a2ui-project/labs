@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-import React, { useRef, useState } from 'react';
-import type { Ref } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useRef, useState} from 'react';
+import type {Ref} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { debounce } from 'es-toolkit/compat';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {debounce} from 'es-toolkit/compat';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { useFormat } from '#hooks/useFormat';
-import { useMergedRefs } from '#hooks/useMergedRefs';
-import { useResizeObserver } from '#hooks/useResizeObserver';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {useFormat} from '#hooks/useFormat';
+import {useMergedRefs} from '#hooks/useMergedRefs';
+import {useResizeObserver} from '#hooks/useResizeObserver';
 
-import { ReportCardValueSkeleton } from './ReportCardValueSkeleton';
+import {ReportCardValueSkeleton} from './ReportCardValueSkeleton';
 
 const FONT_SIZE_SCALE_FACTOR = 1.6;
 const CONTAINER_MARGIN = 8;
@@ -52,7 +52,7 @@ export function SummaryNumber({
   initialFontSize = 14,
   fontSizeChanged,
 }: SummaryNumberProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [fontSize, setFontSize] = useState<number>(initialFontSize);
   const [hasSized, setHasSized] = useState(false);
   const refDiv = useRef<HTMLDivElement>(null);
@@ -69,7 +69,7 @@ export function SummaryNumber({
   const handleResize = debounce(() => {
     if (!refDiv.current) return;
 
-    const { clientWidth, clientHeight } = refDiv.current;
+    const {clientWidth, clientHeight} = refDiv.current;
     const width = clientWidth; // no margin required on left and right
     const height = clientHeight - CONTAINER_MARGIN * 2; // account for margin top and bottom
 
@@ -103,8 +103,8 @@ export function SummaryNumber({
               : value === 0
                 ? t('Zero amount')
                 : value < 0
-                  ? t('Negative amount: {{amount}}', { amount: displayAmount })
-                  : t('Positive amount: {{amount}}', { amount: displayAmount })
+                  ? t('Negative amount: {{amount}}', {amount: displayAmount})
+                  : t('Positive amount: {{amount}}', {amount: displayAmount})
           }
           style={{
             alignItems: 'center',

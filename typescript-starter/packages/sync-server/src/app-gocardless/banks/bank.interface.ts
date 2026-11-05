@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import type {
-  Balance,
-  Transaction,
-} from '#app-gocardless/gocardless-node.types';
+import type {Balance, Transaction} from '#app-gocardless/gocardless-node.types';
 import type {
   DetailedAccountWithInstitution,
   NormalizedAccountDetails,
@@ -45,9 +42,7 @@ export type IBank = {
   /**
    * Returns normalized object with required data for the frontend
    */
-  normalizeAccount: (
-    account: DetailedAccountWithInstitution,
-  ) => NormalizedAccountDetails;
+  normalizeAccount: (account: DetailedAccountWithInstitution) => NormalizedAccountDetails;
 
   /**
    * Returns a normalized transaction object
@@ -71,8 +66,5 @@ export type IBank = {
   /**
    * Calculates account balance before which was before transactions provided in sortedTransactions param
    */
-  calculateStartingBalance: (
-    sortedTransactions: Transaction[],
-    balances: Balance[],
-  ) => number;
+  calculateStartingBalance: (sortedTransactions: Transaction[], balances: Balance[]) => number;
 };

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 
-import { buildDateRangePresets } from './dateRangePresets';
+import {buildDateRangePresets} from './dateRangePresets';
 
 // In test mode, monthUtils.currentDay() returns '2017-01-01'
 // and monthUtils.currentMonth() returns '2017-01'
@@ -347,12 +347,8 @@ describe('buildDateRangePresets', () => {
         includeAllTime: true,
       });
 
-      const currentQuarterPreset = presets.find(
-        p => p.key === 'current-quarter',
-      );
-      const previousQuarterPreset = presets.find(
-        p => p.key === 'previous-quarter',
-      );
+      const currentQuarterPreset = presets.find(p => p.key === 'current-quarter');
+      const previousQuarterPreset = presets.find(p => p.key === 'previous-quarter');
 
       // The current quarter is unfinished in test mode (2017-01), so it is
       // clamped to the latest available transaction month.
@@ -377,19 +373,13 @@ describe('buildDateRangePresets', () => {
         includeAllTime: true,
       });
 
-      const currentQuarterPreset = presets.find(
-        p => p.key === 'current-quarter',
-      );
+      const currentQuarterPreset = presets.find(p => p.key === 'current-quarter');
 
       expect(currentQuarterPreset?.getRange()).toEqual(['2017-01', '2017-02']);
 
       currentQuarterPreset!.onSelect();
 
-      expect(onSelect).toHaveBeenCalledWith([
-        '2017-01',
-        '2017-02',
-        'currentQuarter',
-      ]);
+      expect(onSelect).toHaveBeenCalledWith(['2017-01', '2017-02', 'currentQuarter']);
     });
 
     it('returns latestMonth for both endpoints when the current quarter lies entirely beyond the latest transaction', () => {
@@ -402,9 +392,7 @@ describe('buildDateRangePresets', () => {
         includeAllTime: true,
       });
 
-      const currentQuarterPreset = presets.find(
-        p => p.key === 'current-quarter',
-      );
+      const currentQuarterPreset = presets.find(p => p.key === 'current-quarter');
 
       expect(currentQuarterPreset?.getRange()).toEqual(['2016-12', '2016-12']);
     });

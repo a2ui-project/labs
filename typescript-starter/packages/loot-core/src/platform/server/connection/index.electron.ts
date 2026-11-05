@@ -15,38 +15,37 @@
  */
 
 // @ts-strict-ignore
-import { captureException } from '#platform/exceptions';
-import { logger } from '#platform/server/log';
-import { APIError } from '#server/errors';
-import { isMutating, runHandler } from '#server/mutators';
+import {captureException} from '#platform/exceptions';
+import {logger} from '#platform/server/log';
+import {APIError} from '#server/errors';
+import {isMutating, runHandler} from '#server/mutators';
 
-import { postErrorReply } from './errors';
+import {postErrorReply} from './errors';
 import type * as T from './index-types';
 
 export const init: T.Init = function (_socketName, handlers) {
-  process.parentPort.on('message', ({ data }) => {
-    const { id, name, args, undoTag, catchErrors } = data;
+  process.parentPort.on('message', ({data}) => {
+    const {id, name, args, undoTag, catchErrors} = data;
 
     if (handlers[name]) {
-      runHandler(handlers[name], args, { undoTag, name }).then(
+      runHandler(handlers[name], args, {undoTag, name}).then(
         result => {
           if (catchErrors) {
-            result = { data: result, error: null };
+            result = {data: result, error: null};
           }
 
           process.parentPort.postMessage({
             type: 'reply',
             id,
             result,
-            mutated:
-              isMutating(handlers[name]) && name !== 'undo' && name !== 'redo',
+            mutated: isMutating(handlers[name]) && name !== 'undo' && name !== 'redo',
             undoTag,
           });
         },
         nativeError => {
           const error = postErrorReply(
             message => process.parentPort.postMessage(message),
-            { id, name, catchErrors },
+            {id, name, catchErrors},
             nativeError,
           );
 
@@ -69,7 +68,7 @@ export const init: T.Init = function (_socketName, handlers) {
         process.parentPort.postMessage({
           type: 'reply',
           id,
-          result: { error: unknownMethodError, data: null },
+          result: {error: unknownMethodError, data: null},
         });
       } else {
         process.parentPort.postMessage({
@@ -87,7 +86,7 @@ export const getNumClients: T.GetNumClients = function () {
 };
 
 export const send: T.Send = function (name, args) {
-  process.parentPort.postMessage({ type: 'push', name, args });
+  process.parentPort.postMessage({type: 'push', name, args});
 };
 
 export const resetEvents: T.ResetEvents = function () {

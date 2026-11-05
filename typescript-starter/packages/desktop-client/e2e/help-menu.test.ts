@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
 
 test.describe('Help menu', () => {
   let page: Page;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     configurationPage = new ConfigurationPage(page);
 
@@ -41,7 +41,7 @@ test.describe('Help menu', () => {
   });
 
   test('Check the help menu visuals', async () => {
-    await page.getByRole('button', { name: 'Help' }).click();
+    await page.getByRole('button', {name: 'Help'}).click();
     await expect(page.locator('[data-popover]')).toBeVisible();
     await expect(page.getByText('Keyboard shortcuts')).toBeVisible();
     await expect(page).toMatchThemeScreenshots();
@@ -49,7 +49,7 @@ test.describe('Help menu', () => {
   });
 
   test('Check the keyboard shortcuts modal visuals', async () => {
-    await page.getByRole('button', { name: 'Help' }).click();
+    await page.getByRole('button', {name: 'Help'}).click();
     await page.getByText('Keyboard shortcuts').click();
 
     const keyboardShortcutsModal = page.getByRole('dialog', {
@@ -58,14 +58,11 @@ test.describe('Help menu', () => {
     await expect(keyboardShortcutsModal).toBeVisible();
     await expect(page).toMatchThemeScreenshots();
 
-    const searchBox =
-      keyboardShortcutsModal.getByPlaceholder('Search shortcuts');
+    const searchBox = keyboardShortcutsModal.getByPlaceholder('Search shortcuts');
     await expect(searchBox).toHaveValue('');
 
     await searchBox.fill('command');
-    await expect(
-      keyboardShortcutsModal.getByText('Open the Command Palette'),
-    ).toBeVisible();
+    await expect(keyboardShortcutsModal.getByText('Open the Command Palette')).toBeVisible();
     await expect(page).toMatchThemeScreenshots();
 
     const backButton = keyboardShortcutsModal.getByRole('button', {
@@ -75,9 +72,7 @@ test.describe('Help menu', () => {
     await expect(searchBox).toHaveValue('');
 
     await keyboardShortcutsModal.getByText('Global').click();
-    await expect(
-      keyboardShortcutsModal.getByText('Open the help menu'),
-    ).toBeVisible();
+    await expect(keyboardShortcutsModal.getByText('Open the help menu')).toBeVisible();
     await expect(page).toMatchThemeScreenshots();
   });
 });

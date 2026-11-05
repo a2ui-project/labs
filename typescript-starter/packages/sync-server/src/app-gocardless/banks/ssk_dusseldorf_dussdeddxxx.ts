@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -23,17 +23,14 @@ export default {
   institutionIds: ['SSK_DUSSELDORF_DUSSDEDDXXX'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     // If the transaction is not booked yet by the bank, don't import it.
     // Reason being that the transaction doesn't have the information yet
     // to make the payee and notes field be of any use. It's filled with
     // a placeholder text and wouldn't be corrected on the next sync.
     if (!booked) {
-      console.debug(
-        'Skipping unbooked transaction:',
-        transaction.transactionId,
-      );
+      console.debug('Skipping unbooked transaction:', transaction.transactionId);
       return null;
     }
 
@@ -53,13 +50,10 @@ export default {
     }
 
     const usefulCreditorName =
-      transaction.ultimateCreditor ||
-      transaction.creditorName ||
-      transaction.debtorName;
+      transaction.ultimateCreditor || transaction.creditorName || transaction.debtorName;
 
     editedTrans.creditorName = usefulCreditorName;
-    editedTrans.remittanceInformationUnstructured =
-      remittanceInformationUnstructured;
+    editedTrans.remittanceInformationUnstructured = remittanceInformationUnstructured;
 
     return Fallback.normalizeTransaction(transaction, booked, editedTrans);
   },

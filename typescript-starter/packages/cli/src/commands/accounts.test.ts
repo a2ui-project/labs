@@ -15,11 +15,11 @@
  */
 
 import * as api from '@actual-app/api';
-import { Command } from 'commander';
+import {Command} from 'commander';
 
-import { printOutput } from '#output';
+import {printOutput} from '#output';
 
-import { registerAccountsCommand } from './accounts';
+import {registerAccountsCommand} from './accounts';
 
 vi.mock('@actual-app/api', () => ({
   getAccounts: vi.fn().mockResolvedValue([]),
@@ -64,12 +64,8 @@ describe('accounts commands', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    stderrSpy = vi
-      .spyOn(process.stderr, 'write')
-      .mockImplementation(() => true);
-    stdoutSpy = vi
-      .spyOn(process.stdout, 'write')
-      .mockImplementation(() => true);
+    stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -79,9 +75,7 @@ describe('accounts commands', () => {
 
   describe('list', () => {
     it('calls api.getAccounts and prints result with computed balance', async () => {
-      const accounts = [
-        { id: '1', name: 'Checking', offbudget: false, closed: false },
-      ];
+      const accounts = [{id: '1', name: 'Checking', offbudget: false, closed: false}];
       vi.mocked(api.getAccounts).mockResolvedValue(accounts);
 
       await run(['accounts', 'list']);
@@ -112,8 +106,8 @@ describe('accounts commands', () => {
 
     it('filters out closed accounts by default', async () => {
       vi.mocked(api.getAccounts).mockResolvedValue([
-        { id: '1', name: 'Open', offbudget: false, closed: false },
-        { id: '2', name: 'Closed', offbudget: false, closed: true },
+        {id: '1', name: 'Open', offbudget: false, closed: false},
+        {id: '2', name: 'Closed', offbudget: false, closed: true},
       ]);
 
       await run(['accounts', 'list']);
@@ -134,24 +128,22 @@ describe('accounts commands', () => {
 
     it('includes closed accounts when --include-closed is passed', async () => {
       vi.mocked(api.getAccounts).mockResolvedValue([
-        { id: '1', name: 'Open', offbudget: false, closed: false },
-        { id: '2', name: 'Closed', offbudget: false, closed: true },
+        {id: '1', name: 'Open', offbudget: false, closed: false},
+        {id: '2', name: 'Closed', offbudget: false, closed: true},
       ]);
 
       await run(['accounts', 'list', '--include-closed']);
 
       expect(printOutput).toHaveBeenCalledWith(
-        expect.arrayContaining([
-          expect.objectContaining({ id: '2', closed: true }),
-        ]),
+        expect.arrayContaining([expect.objectContaining({id: '2', closed: true})]),
         undefined,
       );
     });
 
     it('sorts on-budget accounts before off-budget', async () => {
       vi.mocked(api.getAccounts).mockResolvedValue([
-        { id: '1', name: 'OffBudget', offbudget: true, closed: false },
-        { id: '2', name: 'OnBudget', offbudget: false, closed: false },
+        {id: '1', name: 'OffBudget', offbudget: true, closed: false},
+        {id: '2', name: 'OnBudget', offbudget: false, closed: false},
       ]);
 
       await run(['accounts', 'list']);
@@ -168,11 +160,8 @@ describe('accounts commands', () => {
     it('passes name and defaults to api.createAccount', async () => {
       await run(['accounts', 'create', '--name', 'Savings']);
 
-      expect(api.createAccount).toHaveBeenCalledWith(
-        { name: 'Savings', offbudget: false },
-        0,
-      );
-      expect(printOutput).toHaveBeenCalledWith({ id: 'new-id' }, undefined);
+      expect(api.createAccount).toHaveBeenCalledWith({name: 'Savings', offbudget: false}, 0);
+      expect(printOutput).toHaveBeenCalledWith({id: 'new-id'}, undefined);
     });
 
     it('passes offbudget and balance options', async () => {
@@ -186,10 +175,7 @@ describe('accounts commands', () => {
         '50000',
       ]);
 
-      expect(api.createAccount).toHaveBeenCalledWith(
-        { name: 'Investments', offbudget: true },
-        50000,
-      );
+      expect(api.createAccount).toHaveBeenCalledWith({name: 'Investments', offbudget: true}, 50000);
     });
   });
 
@@ -200,22 +186,11 @@ describe('accounts commands', () => {
       expect(api.updateAccount).toHaveBeenCalledWith('acct-1', {
         name: 'NewName',
       });
-      expect(printOutput).toHaveBeenCalledWith(
-        { success: true, id: 'acct-1' },
-        undefined,
-      );
+      expect(printOutput).toHaveBeenCalledWith({success: true, id: 'acct-1'}, undefined);
     });
 
     it('passes offbudget true', async () => {
-      await run([
-        'accounts',
-        'update',
-        'acct-1',
-        '--name',
-        'X',
-        '--offbudget',
-        'true',
-      ]);
+      await run(['accounts', 'update', 'acct-1', '--name', 'X', '--offbudget', 'true']);
 
       expect(api.updateAccount).toHaveBeenCalledWith('acct-1', {
         name: 'X',
@@ -224,15 +199,7 @@ describe('accounts commands', () => {
     });
 
     it('passes offbudget false', async () => {
-      await run([
-        'accounts',
-        'update',
-        'acct-1',
-        '--name',
-        'X',
-        '--offbudget',
-        'false',
-      ]);
+      await run(['accounts', 'update', 'acct-1', '--name', 'X', '--offbudget', 'false']);
 
       expect(api.updateAccount).toHaveBeenCalledWith('acct-1', {
         name: 'X',
@@ -241,17 +208,15 @@ describe('accounts commands', () => {
     });
 
     it('rejects invalid offbudget value', async () => {
-      await expect(
-        run(['accounts', 'update', 'acct-1', '--offbudget', 'yes']),
-      ).rejects.toThrow(
+      await expect(run(['accounts', 'update', 'acct-1', '--offbudget', 'yes'])).rejects.toThrow(
         'Invalid --offbudget: "yes". Expected "true" or "false".',
       );
     });
 
     it('rejects empty name', async () => {
-      await expect(
-        run(['accounts', 'update', 'acct-1', '--name', '  ']),
-      ).rejects.toThrow('Invalid --name: must be a non-empty string.');
+      await expect(run(['accounts', 'update', 'acct-1', '--name', '  '])).rejects.toThrow(
+        'Invalid --name: must be a non-empty string.',
+      );
     });
 
     it('rejects update with no fields', async () => {
@@ -263,35 +228,15 @@ describe('accounts commands', () => {
 
   describe('close', () => {
     it('passes transfer options to api.closeAccount', async () => {
-      await run([
-        'accounts',
-        'close',
-        'acct-1',
-        '--transfer-account',
-        'acct-2',
-      ]);
+      await run(['accounts', 'close', 'acct-1', '--transfer-account', 'acct-2']);
 
-      expect(api.closeAccount).toHaveBeenCalledWith(
-        'acct-1',
-        'acct-2',
-        undefined,
-      );
+      expect(api.closeAccount).toHaveBeenCalledWith('acct-1', 'acct-2', undefined);
     });
 
     it('passes transfer category', async () => {
-      await run([
-        'accounts',
-        'close',
-        'acct-1',
-        '--transfer-category',
-        'cat-1',
-      ]);
+      await run(['accounts', 'close', 'acct-1', '--transfer-category', 'cat-1']);
 
-      expect(api.closeAccount).toHaveBeenCalledWith(
-        'acct-1',
-        undefined,
-        'cat-1',
-      );
+      expect(api.closeAccount).toHaveBeenCalledWith('acct-1', undefined, 'cat-1');
     });
   });
 
@@ -300,10 +245,7 @@ describe('accounts commands', () => {
       await run(['accounts', 'reopen', 'acct-1']);
 
       expect(api.reopenAccount).toHaveBeenCalledWith('acct-1');
-      expect(printOutput).toHaveBeenCalledWith(
-        { success: true, id: 'acct-1' },
-        undefined,
-      );
+      expect(printOutput).toHaveBeenCalledWith({success: true, id: 'acct-1'}, undefined);
     });
   });
 
@@ -312,10 +254,7 @@ describe('accounts commands', () => {
       await run(['accounts', 'delete', 'acct-1']);
 
       expect(api.deleteAccount).toHaveBeenCalledWith('acct-1');
-      expect(printOutput).toHaveBeenCalledWith(
-        { success: true, id: 'acct-1' },
-        undefined,
-      );
+      expect(printOutput).toHaveBeenCalledWith({success: true, id: 'acct-1'}, undefined);
     });
   });
 
@@ -324,19 +263,13 @@ describe('accounts commands', () => {
       await run(['accounts', 'balance', 'acct-1']);
 
       expect(api.getAccountBalance).toHaveBeenCalledWith('acct-1', undefined);
-      expect(printOutput).toHaveBeenCalledWith(
-        { id: 'acct-1', balance: 10000 },
-        undefined,
-      );
+      expect(printOutput).toHaveBeenCalledWith({id: 'acct-1', balance: 10000}, undefined);
     });
 
     it('calls api.getAccountBalance with cutoff date', async () => {
       await run(['accounts', 'balance', 'acct-1', '--cutoff', '2025-01-15']);
 
-      expect(api.getAccountBalance).toHaveBeenCalledWith(
-        'acct-1',
-        new Date('2025-01-15'),
-      );
+      expect(api.getAccountBalance).toHaveBeenCalledWith('acct-1', new Date('2025-01-15'));
     });
   });
 });

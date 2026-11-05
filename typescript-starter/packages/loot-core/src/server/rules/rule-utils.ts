@@ -17,13 +17,13 @@
 // @ts-strict-ignore
 import * as dateFns from 'date-fns';
 
-import { logger } from '#platform/server/log';
-import { RuleError } from '#server/errors';
-import { RSchedule } from '#server/util/rschedule';
-import { recurConfigToRSchedule } from '#shared/schedules';
-import type { RuleConditionEntity } from '#types/models';
+import {logger} from '#platform/server/log';
+import {RuleError} from '#server/errors';
+import {RSchedule} from '#server/util/rschedule';
+import {recurConfigToRSchedule} from '#shared/schedules';
+import type {RuleConditionEntity} from '#types/models';
 
-import type { Rule } from './rule';
+import type {Rule} from './rule';
 
 export function assert(test: unknown, type: string, msg: string): asserts test {
   if (!test) {
@@ -261,30 +261,30 @@ export function parseDateString(str) {
       return null;
     }
 
-    return { type: 'date', date: str };
+    return {type: 'date', date: str};
   } else if (str.length === 7) {
     // YYYY-MM
     if (!dateFns.isValid(dateFns.parseISO(str + '-01'))) {
       return null;
     }
 
-    return { type: 'month', date: str };
+    return {type: 'month', date: str};
   } else if (str.length === 4) {
     // YYYY
     if (!dateFns.isValid(dateFns.parseISO(str + '-01-01'))) {
       return null;
     }
 
-    return { type: 'year', date: str };
+    return {type: 'year', date: str};
   }
 
   return null;
 }
 
 export function parseBetweenAmount(between) {
-  const { num1, num2 } = between;
+  const {num1, num2} = between;
   if (typeof num1 !== 'number' || typeof num2 !== 'number') {
     return null;
   }
-  return { type: 'between', num1, num2 };
+  return {type: 'between', num1, num2};
 }

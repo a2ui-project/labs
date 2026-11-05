@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useCallback, useRef } from 'react';
+import {useCallback, useRef} from 'react';
 
 export function useResizeObserver<T extends Element>(
   func: (contentRect: DOMRectReadOnly) => void,
@@ -29,7 +29,7 @@ export function useResizeObserver<T extends Element>(
   const elementRef = useCallback((el: T) => {
     observer.current?.disconnect();
     if (el) {
-      observer.current?.observe(el, { box: 'border-box' });
+      observer.current?.observe(el, {box: 'border-box'});
     }
   }, []);
 

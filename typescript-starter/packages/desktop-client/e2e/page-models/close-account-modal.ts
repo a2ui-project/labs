@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class CloseAccountModal {
   readonly locator: Locator;
@@ -31,6 +31,6 @@ export class CloseAccountModal {
   }
 
   async closeAccount() {
-    await this.locator.getByRole('button', { name: 'Close account' }).click();
+    await this.locator.getByRole('button', {name: 'Close account'}).click();
   }
 }

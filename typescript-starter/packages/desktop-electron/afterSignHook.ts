@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
+import {execFile} from 'node:child_process';
+import {promisify} from 'node:util';
 
-import type { AfterPackContext } from 'electron-builder';
+import type {AfterPackContext} from 'electron-builder';
 
 const execFileAsync = promisify(execFile);
 

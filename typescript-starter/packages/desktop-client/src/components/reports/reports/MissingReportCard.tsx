@@ -15,11 +15,11 @@
  */
 
 import React from 'react';
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
-import { View } from '@actual-app/components/view';
+import {View} from '@actual-app/components/view';
 
-import { ReportCard } from '#components/reports/ReportCard';
+import {ReportCard} from '#components/reports/ReportCard';
 
 type MissingReportCardProps = {
   widgetId: string;
@@ -27,11 +27,7 @@ type MissingReportCardProps = {
   children: ReactNode;
 };
 
-export function MissingReportCard({
-  widgetId,
-  isEditing,
-  children,
-}: MissingReportCardProps) {
+export function MissingReportCard({widgetId, isEditing, children}: MissingReportCardProps) {
   return (
     <ReportCard widgetId={widgetId} isEditing={isEditing}>
       <View

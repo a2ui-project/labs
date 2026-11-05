@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import type { Query } from '@actual-app/core/shared/query';
+import type {Query} from '@actual-app/core/shared/query';
 import type {
   AccountEntity,
   CategoryEntity,
@@ -23,32 +23,29 @@ import type {
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
 
-import { aqlQuery } from '#queries/aqlQuery';
+import {aqlQuery} from '#queries/aqlQuery';
 
 export function fromDateRepr(date: string): string {
   return date.slice(0, 7);
 }
 
-export async function runAll(
-  queries: Query[],
-  cb: (data) => void,
-): Promise<void> {
+export async function runAll(queries: Query[], cb: (data) => void): Promise<void> {
   const data = await Promise.all(
     queries.map(q => {
-      return aqlQuery(q).then(({ data }) => data);
+      return aqlQuery(q).then(({data}) => data);
     }),
   );
   cb(data);
 }
 
-export function indexCashFlow<
-  T extends { date: string; isTransfer: boolean; amount: number },
->(data: T[]): Record<string, Record<'true' | 'false', number>> {
+export function indexCashFlow<T extends {date: string; isTransfer: boolean; amount: number}>(
+  data: T[],
+): Record<string, Record<'true' | 'false', number>> {
   const results: Record<string, Record<'true' | 'false', number>> = {};
   data.forEach(item => {
     const findExisting = results?.[item.date]?.[String(item.isTransfer)] ?? 0;
-    const result = { [String(item.isTransfer)]: item.amount + findExisting };
-    results[item.date] = { ...results[item.date], ...result };
+    const result = {[String(item.isTransfer)]: item.amount + findExisting};
+    results[item.date] = {...results[item.date], ...result};
   });
   return results;
 }
@@ -70,16 +67,16 @@ export function calculateHasWarning(
     payees: PayeeEntity[];
   },
 ) {
-  const categoryIds = new Set(categories.map(({ id }) => id));
-  const payeeIds = new Set(payees.map(({ id }) => id));
-  const accountIds = new Set(accounts.map(({ id }) => id));
+  const categoryIds = new Set(categories.map(({id}) => id));
+  const payeeIds = new Set(payees.map(({id}) => id));
+  const accountIds = new Set(accounts.map(({id}) => id));
 
   if (!conditions) {
     return false;
   }
 
   for (const cond of conditions) {
-    const { field, value, op } = cond;
+    const {field, value, op} = cond;
     const isMultiCondition = Array.isArray(value);
     const isSupportedSingleCondition = ['is', 'isNot'].includes(op);
 

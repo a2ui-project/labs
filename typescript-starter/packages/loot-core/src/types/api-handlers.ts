@@ -15,8 +15,8 @@
  */
 
 // @ts-strict-ignore
-import type { ImportTransactionsResult } from '#server/accounts/app';
-import type { PayeeNameNormalization } from '#server/accounts/sync';
+import type {ImportTransactionsResult} from '#server/accounts/app';
+import type {PayeeNameNormalization} from '#server/accounts/sync';
 import type {
   APIAccountEntity,
   APIAccountGroupEntity,
@@ -28,9 +28,9 @@ import type {
   APIScheduleEntity,
   APITagEntity,
 } from '#server/api-models';
-import type { BudgetFileHandlers } from '#server/budgetfiles/app';
-import type { batchUpdateTransactions } from '#server/transactions';
-import type { QueryState } from '#shared/query';
+import type {BudgetFileHandlers} from '#server/budgetfiles/app';
+import type {batchUpdateTransactions} from '#server/transactions';
+import type {QueryState} from '#shared/query';
 
 import type {
   AccountEntity,
@@ -57,28 +57,23 @@ export type ApiHandlers = {
 
   'api/batch-budget-end': () => Promise<void>;
 
-  'api/load-budget': (
-    ...args: Parameters<BudgetFileHandlers['load-budget']>
-  ) => Promise<void>;
+  'api/load-budget': (...args: Parameters<BudgetFileHandlers['load-budget']>) => Promise<void>;
 
-  'api/download-budget': (arg: {
-    syncId: string;
-    password?: string;
-  }) => Promise<void>;
+  'api/download-budget': (arg: {syncId: string; password?: string}) => Promise<void>;
 
   'api/get-budgets': () => Promise<APIFileEntity[]>;
 
-  'api/start-import': (arg: { budgetName: string }) => Promise<void>;
+  'api/start-import': (arg: {budgetName: string}) => Promise<void>;
 
   'api/finish-import': () => Promise<void>;
 
   'api/abort-import': () => Promise<void>;
 
-  'api/query': (arg: { query: QueryState }) => Promise<unknown>;
+  'api/query': (arg: {query: QueryState}) => Promise<unknown>;
 
   'api/budget-months': () => Promise<string[]>;
 
-  'api/budget-month': (arg: { month: string }) => Promise<{
+  'api/budget-month': (arg: {month: string}) => Promise<{
     month: string;
     incomeAvailable: number;
     lastMonthOverspent: number;
@@ -90,9 +85,7 @@ export type ApiHandlers = {
     totalIncome: number;
     totalSpent: number;
     totalBalance: number;
-    categoryGroups: Array<
-      Record<string, unknown> & { categories?: Record<string, unknown>[] }
-    >;
+    categoryGroups: Array<Record<string, unknown> & {categories?: Record<string, unknown>[]}>;
   }>;
 
   'api/budget-set-amount': (arg: {
@@ -107,12 +100,9 @@ export type ApiHandlers = {
     flag: boolean;
   }) => Promise<void>;
 
-  'api/budget-hold-for-next-month': (arg: {
-    month: string;
-    amount: number;
-  }) => Promise<boolean>;
+  'api/budget-hold-for-next-month': (arg: {month: string; amount: number}) => Promise<boolean>;
 
-  'api/budget-reset-hold': (arg: { month: string }) => Promise<void>;
+  'api/budget-reset-hold': (arg: {month: string}) => Promise<void>;
 
   'api/transactions-export': (arg: {
     transactions: TransactionEntity[];
@@ -156,9 +146,7 @@ export type ApiHandlers = {
 
   'api/sync': () => Promise<void>;
 
-  'api/bank-sync': (arg?: {
-    accountId: APIAccountEntity['id'];
-  }) => Promise<void>;
+  'api/bank-sync': (arg?: {accountId: APIAccountEntity['id']}) => Promise<void>;
 
   'api/accounts-get': () => Promise<APIAccountEntity[]>;
 
@@ -178,14 +166,11 @@ export type ApiHandlers = {
     transferCategoryId?: APICategoryEntity['id'];
   }) => Promise<void>;
 
-  'api/account-reopen': (arg: { id: APIAccountEntity['id'] }) => Promise<void>;
+  'api/account-reopen': (arg: {id: APIAccountEntity['id']}) => Promise<void>;
 
-  'api/account-delete': (arg: { id: APIAccountEntity['id'] }) => Promise<void>;
+  'api/account-delete': (arg: {id: APIAccountEntity['id']}) => Promise<void>;
 
-  'api/account-balance': (arg: {
-    id: APIAccountEntity['id'];
-    cutoff?: Date;
-  }) => Promise<number>;
+  'api/account-balance': (arg: {id: APIAccountEntity['id']; cutoff?: Date}) => Promise<number>;
 
   'api/account-groups-get': () => Promise<APIAccountGroupEntity[]>;
 
@@ -198,17 +183,11 @@ export type ApiHandlers = {
     fields: Partial<Omit<APIAccountGroupEntity, 'id'>>;
   }) => Promise<void>;
 
-  'api/account-group-delete': (arg: {
-    id: APIAccountGroupEntity['id'];
-  }) => Promise<void>;
+  'api/account-group-delete': (arg: {id: APIAccountGroupEntity['id']}) => Promise<void>;
 
-  'api/categories-get': (arg: {
-    hidden?: boolean;
-  }) => Promise<APICategoryEntity[]>;
+  'api/categories-get': (arg: {hidden?: boolean}) => Promise<APICategoryEntity[]>;
 
-  'api/category-groups-get': (arg?: {
-    hidden?: boolean;
-  }) => Promise<APICategoryGroupEntity[]>;
+  'api/category-groups-get': (arg?: {hidden?: boolean}) => Promise<APICategoryGroupEntity[]>;
 
   'api/category-group-create': (arg: {
     group: Omit<APICategoryGroupEntity, 'id'>;
@@ -246,34 +225,27 @@ export type ApiHandlers = {
 
   'api/common-payees-get': () => Promise<APIPayeeEntity[]>;
 
-  'api/payee-create': (arg: {
-    payee: Omit<APIPayeeEntity, 'id'>;
-  }) => Promise<APIPayeeEntity['id']>;
+  'api/payee-create': (arg: {payee: Omit<APIPayeeEntity, 'id'>}) => Promise<APIPayeeEntity['id']>;
 
   'api/payee-update': (arg: {
     id: APIPayeeEntity['id'];
     fields: Partial<APIPayeeEntity>;
   }) => Promise<void>;
 
-  'api/payee-delete': (arg: { id: APIPayeeEntity['id'] }) => Promise<void>;
+  'api/payee-delete': (arg: {id: APIPayeeEntity['id']}) => Promise<void>;
 
-  'api/payees-merge': (arg: {
-    targetId: APIPayeeEntity['id'];
-    mergeIds: string[];
-  }) => Promise<void>;
+  'api/payees-merge': (arg: {targetId: APIPayeeEntity['id']; mergeIds: string[]}) => Promise<void>;
 
   'api/tags-get': () => Promise<APITagEntity[]>;
 
-  'api/tag-create': (arg: {
-    tag: Omit<APITagEntity, 'id'>;
-  }) => Promise<APITagEntity['id']>;
+  'api/tag-create': (arg: {tag: Omit<APITagEntity, 'id'>}) => Promise<APITagEntity['id']>;
 
   'api/tag-update': (arg: {
     id: APITagEntity['id'];
     fields: Partial<Omit<APITagEntity, 'id'>>;
   }) => Promise<void>;
 
-  'api/tag-delete': (arg: { id: APITagEntity['id'] }) => Promise<void>;
+  'api/tag-delete': (arg: {id: APITagEntity['id']}) => Promise<void>;
 
   'api/payee-location-create': (arg: {
     payeeId: string;
@@ -281,11 +253,9 @@ export type ApiHandlers = {
     longitude: number;
   }) => Promise<string>;
 
-  'api/payee-locations-get': (arg: {
-    payeeId: string;
-  }) => Promise<PayeeLocationEntity[]>;
+  'api/payee-locations-get': (arg: {payeeId: string}) => Promise<PayeeLocationEntity[]>;
 
-  'api/payee-location-delete': (arg: { id: string }) => Promise<void>;
+  'api/payee-location-delete': (arg: {id: string}) => Promise<void>;
 
   'api/payees-get-nearby': (arg: {
     latitude: number;
@@ -295,21 +265,15 @@ export type ApiHandlers = {
 
   'api/rules-get': () => Promise<RuleEntity[]>;
 
-  'api/payee-rules-get': (arg: {
-    id: APIPayeeEntity['id'];
-  }) => Promise<RuleEntity[]>;
+  'api/payee-rules-get': (arg: {id: APIPayeeEntity['id']}) => Promise<RuleEntity[]>;
 
-  'api/rule-create': (arg: {
-    rule: Omit<APIRuleEntity, 'id'>;
-  }) => Promise<RuleEntity>;
+  'api/rule-create': (arg: {rule: Omit<APIRuleEntity, 'id'>}) => Promise<RuleEntity>;
 
-  'api/rule-update': (arg: { rule: APIRuleEntity }) => Promise<RuleEntity>;
+  'api/rule-update': (arg: {rule: APIRuleEntity}) => Promise<RuleEntity>;
 
   'api/rule-delete': (id: RuleEntity['id']) => Promise<boolean>;
 
-  'api/schedule-create': (
-    schedule: Omit<APIScheduleEntity, 'id'>,
-  ) => Promise<ScheduleEntity['id']>;
+  'api/schedule-create': (schedule: Omit<APIScheduleEntity, 'id'>) => Promise<ScheduleEntity['id']>;
 
   'api/schedule-update': (arg: {
     id: ScheduleEntity['id'];
@@ -320,11 +284,8 @@ export type ApiHandlers = {
   'api/schedule-delete': (id: string) => Promise<void>;
 
   'api/schedules-get': () => Promise<APIScheduleEntity[]>;
-  'api/get-id-by-name': (arg: {
-    type: string;
-    name: string;
-  }) => Promise<string>;
+  'api/get-id-by-name': (arg: {type: string; name: string}) => Promise<string>;
   'api/get-server-version': () => Promise<
-    { error: 'no-server' } | { error: 'network-failure' } | { version: string }
+    {error: 'no-server'} | {error: 'network-failure'} | {version: string}
   >;
 };

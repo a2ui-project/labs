@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { vi } from 'vitest';
+import {vi} from 'vitest';
 
 import * as db from '#server/db';
-import type { CleanupTemplate } from '#types/models/cleanup-templates';
+import type {CleanupTemplate} from '#types/models/cleanup-templates';
 
 import * as actions from './actions';
-import { cleanupTemplate } from './cleanup-template';
+import {cleanupTemplate} from './cleanup-template';
 
 vi.mock('./actions', () => ({
   getSheetValue: vi.fn(),
@@ -55,7 +55,7 @@ function setup({
 }) {
   vi.mocked(db.all).mockImplementation(async (sql: string) => {
     if (sql.includes('cleanup_groups')) {
-      return [{ id: GROUP_ID, name: 'Something' }];
+      return [{id: GROUP_ID, name: 'Something'}];
     }
     return categories.map(c => ({
       id: c.id,
@@ -89,12 +89,12 @@ describe('cleanupTemplate - named pool sources', () => {
         {
           id: 'cat-1',
           name: 'Category 1',
-          cleanup_def: [{ role: 'sink', groupId: GROUP_ID, weight: 1 }],
+          cleanup_def: [{role: 'sink', groupId: GROUP_ID, weight: 1}],
         },
         {
           id: 'cat-2',
           name: 'Category 2',
-          cleanup_def: [{ role: 'source', groupId: GROUP_ID }],
+          cleanup_def: [{role: 'source', groupId: GROUP_ID}],
         },
       ],
       sheetValues: {
@@ -107,13 +107,11 @@ describe('cleanupTemplate - named pool sources', () => {
       },
     });
 
-    await cleanupTemplate({ month: MONTH });
+    await cleanupTemplate({month: MONTH});
 
     // Draining the source budgets `budgeted - balance`, which for a negative
     // balance credits the category instead of taking from it (5000 - -1000).
-    expect(budgetedFor('cat-2')).not.toContainEqual(
-      expect.objectContaining({ amount: 6000 }),
-    );
+    expect(budgetedFor('cat-2')).not.toContainEqual(expect.objectContaining({amount: 6000}));
   });
 
   test('warns that the overspent source has no available funds', async () => {
@@ -122,12 +120,12 @@ describe('cleanupTemplate - named pool sources', () => {
         {
           id: 'cat-1',
           name: 'Category 1',
-          cleanup_def: [{ role: 'sink', groupId: GROUP_ID, weight: 1 }],
+          cleanup_def: [{role: 'sink', groupId: GROUP_ID, weight: 1}],
         },
         {
           id: 'cat-2',
           name: 'Category 2',
-          cleanup_def: [{ role: 'source', groupId: GROUP_ID }],
+          cleanup_def: [{role: 'source', groupId: GROUP_ID}],
         },
       ],
       sheetValues: {
@@ -139,12 +137,10 @@ describe('cleanupTemplate - named pool sources', () => {
       },
     });
 
-    const result = await cleanupTemplate({ month: MONTH });
+    const result = await cleanupTemplate({month: MONTH});
 
     expect(result.message).toBe('cleanup-no-funds');
-    expect(result.pre ?? '').toContain(
-      'Category 2 does not have available funds.',
-    );
+    expect(result.pre ?? '').toContain('Category 2 does not have available funds.');
   });
 
   test('still drains a source that has positive leftover funds', async () => {
@@ -153,12 +149,12 @@ describe('cleanupTemplate - named pool sources', () => {
         {
           id: 'cat-1',
           name: 'Category 1',
-          cleanup_def: [{ role: 'sink', groupId: GROUP_ID, weight: 1 }],
+          cleanup_def: [{role: 'sink', groupId: GROUP_ID, weight: 1}],
         },
         {
           id: 'cat-2',
           name: 'Category 2',
-          cleanup_def: [{ role: 'source', groupId: GROUP_ID }],
+          cleanup_def: [{role: 'source', groupId: GROUP_ID}],
         },
       ],
       sheetValues: {
@@ -170,14 +166,10 @@ describe('cleanupTemplate - named pool sources', () => {
       },
     });
 
-    const result = await cleanupTemplate({ month: MONTH });
+    const result = await cleanupTemplate({month: MONTH});
 
     // The source gives up its leftover: 5000 - 1000.
-    expect(budgetedFor('cat-2')).toContainEqual(
-      expect.objectContaining({ amount: 4000 }),
-    );
-    expect(result.pre ?? '').not.toContain(
-      'Category 2 does not have available funds.',
-    );
+    expect(budgetedFor('cat-2')).toContainEqual(expect.objectContaining({amount: 4000}));
+    expect(result.pre ?? '').not.toContain('Category 2 does not have available funds.');
   });
 });

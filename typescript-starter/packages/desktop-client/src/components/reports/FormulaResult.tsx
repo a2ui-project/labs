@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import type { Ref, RefObject } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {Ref, RefObject} from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { amountToInteger } from '@actual-app/core/shared/util';
-import { debounce } from 'es-toolkit/compat';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {amountToInteger} from '@actual-app/core/shared/util';
+import {debounce} from 'es-toolkit/compat';
 
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { useFormat } from '#hooks/useFormat';
-import { useMergedRefs } from '#hooks/useMergedRefs';
-import { useResizeObserver } from '#hooks/useResizeObserver';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {useFormat} from '#hooks/useFormat';
+import {useMergedRefs} from '#hooks/useMergedRefs';
+import {useResizeObserver} from '#hooks/useResizeObserver';
 
-import { ReportCardValueSkeleton } from './ReportCardValueSkeleton';
+import {ReportCardValueSkeleton} from './ReportCardValueSkeleton';
 
 const FONT_SIZE_SCALE_FACTOR = 1.6;
 const CONTAINER_MARGIN = 8;
@@ -76,10 +70,7 @@ export function FormulaResult({
     } else if (value === null || value === undefined) {
       return '';
     } else if (typeof value === 'number') {
-      return format(
-        amountToInteger(value, format.currency.decimalPlaces),
-        'financial',
-      );
+      return format(amountToInteger(value, format.currency.decimalPlaces), 'financial');
     } else {
       return String(value);
     }
@@ -90,7 +81,7 @@ export function FormulaResult({
 
     const elementToMeasure =
       containerRef?.current || refDiv.current.parentElement || refDiv.current;
-    const { clientWidth, clientHeight } = elementToMeasure;
+    const {clientWidth, clientHeight} = elementToMeasure;
 
     const width = clientWidth;
     const height = clientHeight - CONTAINER_MARGIN * 2;
@@ -114,10 +105,7 @@ export function FormulaResult({
     }
 
     // Only call fontSizeChanged if the font size actually changed
-    if (
-      fontSizeChanged &&
-      Math.abs(calculatedFontSize - previousFontSizeRef.current) > 0.5
-    ) {
+    if (fontSizeChanged && Math.abs(calculatedFontSize - previousFontSizeRef.current) > 0.5) {
       previousFontSizeRef.current = calculatedFontSize;
       fontSizeChanged(calculatedFontSize);
     }
@@ -170,16 +158,12 @@ export function FormulaResult({
   }, [fontSizeMode, staticFontSize]);
 
   // Determine color
-  const color = customColor
-    ? customColor
-    : error
-      ? theme.errorText
-      : theme.pageText;
+  const color = customColor ? customColor : error ? theme.errorText : theme.pageText;
 
   const showContent = hasSized || fontSizeMode === 'static';
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{flex: 1}}>
       {loading && <ReportCardValueSkeleton />}
       {!loading && (
         <View

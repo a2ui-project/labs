@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { lib } from '#server/main';
-import type { Handlers } from '#types/handlers';
+import {lib} from '#server/main';
+import type {Handlers} from '#types/handlers';
 
 import type * as T from './index-types';
 
@@ -23,13 +23,13 @@ import type * as T from './index-types';
 export const send = (async <K extends keyof Handlers>(
   name: K,
   args?: Parameters<Handlers[K]>[0],
-  options?: { catchErrors?: boolean },
+  options?: {catchErrors?: boolean},
 ) => {
   if (options?.catchErrors) {
     try {
-      return { data: await lib.send(name, args), error: undefined };
+      return {data: await lib.send(name, args), error: undefined};
     } catch (error) {
-      return { data: undefined, error };
+      return {data: undefined, error};
     }
   }
   return lib.send(name, args);

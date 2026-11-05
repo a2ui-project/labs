@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { beforeEach, describe, expect, it } from 'vitest';
+import {beforeEach, describe, expect, it} from 'vitest';
 
-import type { TransactionForRules } from '#server/transactions/transaction-rules';
-import { getCurrency } from '#shared/currencies';
-import { setCachedUserPreferences } from '#shared/formulas/customFunctions';
+import type {TransactionForRules} from '#server/transactions/transaction-rules';
+import {getCurrency} from '#shared/currencies';
+import {setCachedUserPreferences} from '#shared/formulas/customFunctions';
 
-import { Action } from './action';
+import {Action} from './action';
 
 describe('Formula-based rule actions', () => {
   beforeEach(() => {
@@ -38,7 +38,7 @@ describe('Formula-based rule actions', () => {
 
   it('should execute a simple math formula', () => {
     const action = new Action('set', 'amount', null, {});
-    const transaction: Partial<TransactionForRules> = { amount: 500 };
+    const transaction: Partial<TransactionForRules> = {amount: 500};
     const result = action.executeFormulaSync('=100 + 200', transaction);
 
     expect(result).toBe(30000);
@@ -46,7 +46,7 @@ describe('Formula-based rule actions', () => {
 
   it('should use transaction field variables', () => {
     const action = new Action('set', 'notes', null, {});
-    const transaction = { amount: 5000 };
+    const transaction = {amount: 5000};
     const result = action.executeFormulaSync('=amount / 100', transaction);
 
     expect(result).toBe(5000);
@@ -55,24 +55,18 @@ describe('Formula-based rule actions', () => {
   it('should support IF function with transaction fields', () => {
     const action = new Action('set', 'notes', null, {});
 
-    const transaction1 = { amount: 1000 };
-    const result1 = action.executeFormulaSync(
-      '=IF(amount > 0, "Income", "Expense")',
-      transaction1,
-    );
+    const transaction1 = {amount: 1000};
+    const result1 = action.executeFormulaSync('=IF(amount > 0, "Income", "Expense")', transaction1);
     expect(result1).toBe('Income');
 
-    const transaction2 = { amount: -1000 };
-    const result2 = action.executeFormulaSync(
-      '=IF(amount > 0, "Income", "Expense")',
-      transaction2,
-    );
+    const transaction2 = {amount: -1000};
+    const result2 = action.executeFormulaSync('=IF(amount > 0, "Income", "Expense")', transaction2);
     expect(result2).toBe('Expense');
   });
 
   it('should support UPPER string function', () => {
     const action = new Action('set', 'notes', null, {});
-    const transaction = { notes: 'hello world' };
+    const transaction = {notes: 'hello world'};
     const result = action.executeFormulaSync('=UPPER(notes)', transaction);
 
     expect(result).toBe('HELLO WORLD');
@@ -94,22 +88,16 @@ describe('Formula-based rule actions', () => {
 
   it('should support LEFT function', () => {
     const action = new Action('set', 'notes', null, {});
-    const transaction = { imported_payee: 'Store Name' };
-    const result = action.executeFormulaSync(
-      '=LEFT(imported_payee, 5)',
-      transaction,
-    );
+    const transaction = {imported_payee: 'Store Name'};
+    const result = action.executeFormulaSync('=LEFT(imported_payee, 5)', transaction);
 
     expect(result).toBe('Store');
   });
 
   it('should provide today variable', () => {
     const action = new Action('set', 'date', null, {});
-    const transaction = { date: '2024-01-01' };
-    const result = action.executeFormulaSync(
-      '=TEXT(today,"YYYY-MM-DD")',
-      transaction,
-    );
+    const transaction = {date: '2024-01-01'};
+    const result = action.executeFormulaSync('=TEXT(today,"YYYY-MM-DD")', transaction);
 
     // Should be a date string in YYYY-MM-DD format
     expect(typeof result).toBe('string');
@@ -118,7 +106,7 @@ describe('Formula-based rule actions', () => {
 
   it('should throw error for invalid formula', () => {
     const action = new Action('set', 'notes', null, {});
-    const transaction = { amount: 100 };
+    const transaction = {amount: 100};
 
     expect(() => {
       action.executeFormulaSync('=INVALID_FUNCTION()', transaction);
@@ -127,7 +115,7 @@ describe('Formula-based rule actions', () => {
 
   it('should throw error for formula without = prefix', () => {
     const action = new Action('set', 'notes', null, {});
-    const transaction = { amount: 100 };
+    const transaction = {amount: 100};
 
     expect(() => {
       action.executeFormulaSync('amount + 100', transaction);
@@ -154,10 +142,7 @@ describe('Formula-based rule actions', () => {
         ['550e8400-e29b-41d4-a716-446655440000', 1200],
       ]),
     };
-    const byName = action.executeFormulaSync(
-      '=BALANCE_OF("Savings") + 100',
-      transaction,
-    );
+    const byName = action.executeFormulaSync('=BALANCE_OF("Savings") + 100', transaction);
     expect(byName).toBe(5010000);
 
     const byId = action.executeFormulaSync(
@@ -173,10 +158,7 @@ describe('Formula-based rule actions', () => {
       amount: 100,
       _balanceOfPrefetched: new Map(),
     };
-    const result = action.executeFormulaSync(
-      '=BALANCE_OF("Unknown")',
-      transaction,
-    );
+    const result = action.executeFormulaSync('=BALANCE_OF("Unknown")', transaction);
     expect(result).toBe(0);
   });
 
@@ -185,7 +167,7 @@ describe('Formula-based rule actions', () => {
       formula: '=500 + 250',
     });
 
-    const transaction = { amount: 100 };
+    const transaction = {amount: 100};
     action.exec(transaction);
 
     expect(transaction.amount).toBe(75000);
@@ -196,7 +178,7 @@ describe('Formula-based rule actions', () => {
       formula: '=UPPER("hello")',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('HELLO');
@@ -207,7 +189,7 @@ describe('Formula-based rule actions', () => {
       formula: '=1/0', // Division by zero
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
 
     // Should not throw, but keep original value on error
     expect(() => {
@@ -223,7 +205,7 @@ describe('Formula-based rule actions', () => {
       formula: '=UPPER("test")', // Returns string for numeric field
     });
 
-    const transaction = { amount: 100 };
+    const transaction = {amount: 100};
     action.exec(transaction);
 
     // Should keep original value when formula produces non-numeric result
@@ -235,7 +217,7 @@ describe('Formula-based rule actions', () => {
       formula: '=500 + 250', // Returns number
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     // Should convert number to string
@@ -247,7 +229,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATNUMBER(1234567.89, 2)',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('1,234,567.89');
@@ -269,7 +251,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATNUMBER(1234567.89, 2)',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('1.234.567,89');
@@ -291,7 +273,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATNUMBER(1234567.89)',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('1,234,568');
@@ -313,7 +295,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATNUMBER(1234567.89, 2)',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('1,234,567.89');
@@ -324,7 +306,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATNUMBER(1234567.89, 2, ".", ",")',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('1.234.567,89');
@@ -335,7 +317,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATNUMBER(1234567, 0)',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('1,234,567');
@@ -346,7 +328,7 @@ describe('Formula-based rule actions', () => {
       formula: '=IFERROR(FORMATNUMBER("not a number"), "fallback")',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('fallback');
@@ -357,7 +339,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATCURRENCY(1234567.89)',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('$1,234,567.89');
@@ -379,7 +361,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATCURRENCY(SUM(1, 2, 3))',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('R$6,00');
@@ -401,7 +383,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATCURRENCY(SUM(1, 2, 3))',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('6,00\u202FR$');
@@ -412,7 +394,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATCURRENCY(1234567.89, "€")',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('€1,234,567.89');
@@ -434,7 +416,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATCURRENCY(1234567.89, "€")',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('1.234.567,89\u202F€');
@@ -453,11 +435,10 @@ describe('Formula-based rule actions', () => {
     });
 
     const action = new Action('set', 'notes', null, {
-      formula:
-        '=FORMATCURRENCY(1234567.89, "€", 2, ".", ",", "before", FALSE())',
+      formula: '=FORMATCURRENCY(1234567.89, "€", 2, ".", ",", "before", FALSE())',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('€1.234.567,89');
@@ -468,7 +449,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATCURRENCY(-1234567.89)',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('-$1,234,567.89');
@@ -479,7 +460,7 @@ describe('Formula-based rule actions', () => {
       formula: '=FORMATCURRENCY(1234567.89, "€", 2, ".", ",")',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('€1.234.567,89');
@@ -490,7 +471,7 @@ describe('Formula-based rule actions', () => {
       formula: '=IFERROR(FORMATCURRENCY("not a number"), "fallback")',
     });
 
-    const transaction = { notes: 'original' };
+    const transaction = {notes: 'original'};
     action.exec(transaction);
 
     expect(transaction.notes).toBe('fallback');

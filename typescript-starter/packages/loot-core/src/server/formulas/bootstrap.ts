@@ -19,7 +19,7 @@ import {
   setCachedUserPreferences,
 } from '#shared/formulas/customFunctions';
 
-import { loadUserPreferencesForFormulas } from './customFunctionsPreferences';
+import {loadUserPreferencesForFormulas} from './customFunctionsPreferences';
 
 let formulaPreferencesPromise: Promise<void> | null = null;
 let formulaPreferencesCacheVersion = 0;

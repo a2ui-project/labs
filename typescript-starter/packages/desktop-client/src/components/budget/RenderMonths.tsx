@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-import React, { useContext } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import React, {useContext} from 'react';
+import type {CSSProperties, ReactNode} from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
 
-import { SheetNameProvider } from '#hooks/useSheetName';
+import {SheetNameProvider} from '#hooks/useSheetName';
 
-import { MonthsContext } from './MonthsContext';
+import {MonthsContext} from './MonthsContext';
 
 type RenderMonthsProps = {
-  children: ReactNode | (({ month }: { month: string }) => ReactNode);
+  children: ReactNode | (({month}: {month: string}) => ReactNode);
   style?: CSSProperties;
 };
 
-export function RenderMonths({ children, style }: RenderMonthsProps) {
-  const { months } = useContext(MonthsContext);
+export function RenderMonths({children, style}: RenderMonthsProps) {
+  const {months} = useContext(MonthsContext);
 
   return months.map((month, index) => (
     <SheetNameProvider key={index} name={monthUtils.sheetForMonth(month)}>
@@ -42,7 +42,7 @@ export function RenderMonths({ children, style }: RenderMonthsProps) {
           ...style,
         }}
       >
-        {typeof children === 'function' ? children({ month }) : children}
+        {typeof children === 'function' ? children({month}) : children}
       </View>
     </SheetNameProvider>
   ));

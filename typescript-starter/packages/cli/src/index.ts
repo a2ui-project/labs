@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-import { Command, Option } from 'commander';
+import {Command, Option} from 'commander';
 
-import { registerAccountsCommand } from './commands/accounts';
-import { registerBudgetsCommand } from './commands/budgets';
-import { registerCategoriesCommand } from './commands/categories';
-import { registerCategoryGroupsCommand } from './commands/category-groups';
-import { registerPayeesCommand } from './commands/payees';
-import { registerQueryCommand } from './commands/query';
-import { registerRulesCommand } from './commands/rules';
-import { registerSchedulesCommand } from './commands/schedules';
-import { registerServerCommand } from './commands/server';
-import { registerSyncCommand } from './commands/sync';
-import { registerTagsCommand } from './commands/tags';
-import { registerTransactionsCommand } from './commands/transactions';
-import { parseNonNegativeIntFlag } from './utils';
+import {registerAccountsCommand} from './commands/accounts';
+import {registerBudgetsCommand} from './commands/budgets';
+import {registerCategoriesCommand} from './commands/categories';
+import {registerCategoryGroupsCommand} from './commands/category-groups';
+import {registerPayeesCommand} from './commands/payees';
+import {registerQueryCommand} from './commands/query';
+import {registerRulesCommand} from './commands/rules';
+import {registerSchedulesCommand} from './commands/schedules';
+import {registerServerCommand} from './commands/server';
+import {registerSyncCommand} from './commands/sync';
+import {registerTagsCommand} from './commands/tags';
+import {registerTransactionsCommand} from './commands/transactions';
+import {parseNonNegativeIntFlag} from './utils';
 
 declare const __CLI_VERSION__: string;
 
@@ -40,10 +40,7 @@ program
   .version(__CLI_VERSION__)
   .option('--server-url <url>', 'Actual server URL (env: ACTUAL_SERVER_URL)')
   .option('--password <password>', 'Server password (env: ACTUAL_PASSWORD)')
-  .option(
-    '--session-token <token>',
-    'Session token (env: ACTUAL_SESSION_TOKEN)',
-  )
+  .option('--session-token <token>', 'Session token (env: ACTUAL_SESSION_TOKEN)')
   .option('--sync-id <id>', 'Budget sync ID (env: ACTUAL_SYNC_ID)')
   .option('--data-dir <path>', 'Data directory (env: ACTUAL_DATA_DIR)')
   .option(
@@ -62,10 +59,7 @@ program
     'How long to wait for another CLI process to release the lock (env: ACTUAL_LOCK_TIMEOUT; default: 10)',
     value => parseNonNegativeIntFlag(value, '--lock-timeout'),
   )
-  .option(
-    '--no-lock',
-    'Disable the budget directory lock (use with care, env: ACTUAL_NO_LOCK)',
-  )
+  .option('--no-lock', 'Disable the budget directory lock (use with care, env: ACTUAL_NO_LOCK)')
   .addOption(
     new Option('--format <format>', 'Output format: json, table, csv')
       .choices(['json', 'table', 'csv'] as const)

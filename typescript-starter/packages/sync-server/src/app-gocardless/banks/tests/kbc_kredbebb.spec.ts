@@ -22,16 +22,11 @@ describe('kbc_kredbebb', () => {
       const transaction = {
         remittanceInformationUnstructured:
           'CARREFOUR ST GIL BE1060 BRUXELLES Betaling met Google Pay via Debit Mastercard 28-08-2024 om 19.15 uur 5127 04XX XXXX 1637 5853 98XX XXXX 2266 JOHN SMITH',
-        transactionAmount: { amount: '-10.99', currency: 'EUR' },
+        transactionAmount: {amount: '-10.99', currency: 'EUR'},
         date: new Date().toISOString(),
       };
-      const normalizedTransaction = KBCkredbebb.normalizeTransaction(
-        transaction,
-        true,
-      );
-      expect(normalizedTransaction?.payeeName).toEqual(
-        'CARREFOUR ST GIL BE1060 BRUXELLES',
-      );
+      const normalizedTransaction = KBCkredbebb.normalizeTransaction(transaction, true);
+      expect(normalizedTransaction?.payeeName).toEqual('CARREFOUR ST GIL BE1060 BRUXELLES');
     });
 
     it('returns the debtorName as payeeName when the amount is positive', () => {
@@ -39,16 +34,11 @@ describe('kbc_kredbebb', () => {
         debtorName: 'CARREFOUR ST GIL BE1060 BRUXELLES',
         remittanceInformationUnstructured:
           'CARREFOUR ST GIL BE1060 BRUXELLES Betaling met Google Pay via Debit Mastercard 28-08-2024 om 19.15 uur 5127 04XX XXXX 1637 5853 98XX XXXX 2266 JOHN SMITH',
-        transactionAmount: { amount: '10.99', currency: 'EUR' },
+        transactionAmount: {amount: '10.99', currency: 'EUR'},
         date: new Date().toISOString(),
       };
-      const normalizedTransaction = KBCkredbebb.normalizeTransaction(
-        transaction,
-        true,
-      );
-      expect(normalizedTransaction?.payeeName).toEqual(
-        'CARREFOUR ST GIL BE1060 BRUXELLES',
-      );
+      const normalizedTransaction = KBCkredbebb.normalizeTransaction(transaction, true);
+      expect(normalizedTransaction?.payeeName).toEqual('CARREFOUR ST GIL BE1060 BRUXELLES');
     });
   });
 });

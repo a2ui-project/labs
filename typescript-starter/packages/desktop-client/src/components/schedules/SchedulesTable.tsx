@@ -15,34 +15,34 @@
  */
 
 // @ts-strict-ignore
-import React, { useMemo, useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useMemo, useRef, useState} from 'react';
+import type {CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgDotsHorizontalTriple } from '@actual-app/components/icons/v1';
-import { SvgCheck } from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { format as monthUtilFormat } from '@actual-app/core/shared/months';
-import { getNormalisedString } from '@actual-app/core/shared/normalisation';
-import { getScheduledAmount } from '@actual-app/core/shared/schedules';
-import type { ScheduleStatuses } from '@actual-app/core/shared/schedules';
-import type { ScheduleEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgDotsHorizontalTriple} from '@actual-app/components/icons/v1';
+import {SvgCheck} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {format as monthUtilFormat} from '@actual-app/core/shared/months';
+import {getNormalisedString} from '@actual-app/core/shared/normalisation';
+import {getScheduledAmount} from '@actual-app/core/shared/schedules';
+import type {ScheduleStatuses} from '@actual-app/core/shared/schedules';
+import type {ScheduleEntity} from '@actual-app/core/types/models';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { Cell, Field, Row, Table, TableHeader } from '#components/table';
-import { DisplayId } from '#components/util/DisplayId';
-import { useAccounts } from '#hooks/useAccounts';
-import { useContextMenu } from '#hooks/useContextMenu';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
-import { usePayees } from '#hooks/usePayees';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {Cell, Field, Row, Table, TableHeader} from '#components/table';
+import {DisplayId} from '#components/util/DisplayId';
+import {useAccounts} from '#hooks/useAccounts';
+import {useContextMenu} from '#hooks/useContextMenu';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
+import {usePayees} from '#hooks/usePayees';
 
-import { StatusBadge } from './StatusBadge';
+import {StatusBadge} from './StatusBadge';
 type SchedulesTableProps = {
   isLoading?: boolean;
   schedules: readonly ScheduleEntity[];
@@ -59,14 +59,11 @@ type SchedulesTableProps = {
     }
   | {
       minimal?: false;
-      onAction: (
-        actionName: ScheduleItemAction,
-        id: ScheduleEntity['id'],
-      ) => void;
+      onAction: (actionName: ScheduleItemAction, id: ScheduleEntity['id']) => void;
     }
 );
 
-type CompletedScheduleItem = { id: 'show-completed' };
+type CompletedScheduleItem = {id: 'show-completed'};
 type SchedulesTableItem = ScheduleEntity | CompletedScheduleItem;
 
 export type ScheduleItemAction =
@@ -86,7 +83,7 @@ export function ScheduleAmountCell({
   amount: ScheduleEntity['_amount'];
   op: ScheduleEntity['_amountOp'];
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
   const num = getScheduledAmount(amount);
@@ -154,9 +151,7 @@ export function ScheduleAmountCell({
         }}
         title={cellText}
       >
-        <PrivacyFilter>
-          {num > 0 ? `+${currencyAmount}` : `${currencyAmount}`}
-        </PrivacyFilter>
+        <PrivacyFilter>{num > 0 ? `+${currencyAmount}` : `${currencyAmount}`}</PrivacyFilter>
       </FinancialText>
     </Cell>
   );
@@ -172,11 +167,8 @@ function ScheduleRow({
 }: {
   schedule: ScheduleEntity;
   dateFormat: string;
-} & Pick<
-  SchedulesTableProps,
-  'onSelect' | 'onAction' | 'minimal' | 'statuses'
->) {
-  const { t } = useTranslation();
+} & Pick<SchedulesTableProps, 'onSelect' | 'onAction' | 'minimal' | 'statuses'>) {
+  const {t} = useTranslation();
 
   const rowRef = useRef(null);
   const buttonRef = useRef(null);
@@ -233,16 +225,12 @@ function ScheduleRow({
         cursor: 'pointer',
         backgroundColor: theme.tableBackground,
         color: theme.tableText,
-        ':hover': { backgroundColor: theme.tableRowBackgroundHover },
+        ':hover': {backgroundColor: theme.tableRowBackgroundHover},
       }}
     >
       <Field width="flex" name="name">
         <Text
-          style={
-            schedule.name == null
-              ? { color: theme.buttonNormalDisabledText }
-              : null
-          }
+          style={schedule.name == null ? {color: theme.buttonNormalDisabledText} : null}
           title={schedule.name ? schedule.name : ''}
         >
           {schedule.name ? schedule.name : t('None')}
@@ -255,21 +243,17 @@ function ScheduleRow({
         <DisplayId type="accounts" id={schedule._account} />
       </Field>
       <Field width={110} name="date">
-        {schedule.next_date
-          ? monthUtilFormat(schedule.next_date, dateFormat)
-          : null}
+        {schedule.next_date ? monthUtilFormat(schedule.next_date, dateFormat) : null}
       </Field>
-      <Field width={120} name="status" style={{ alignItems: 'flex-start' }}>
+      <Field width={120} name="status" style={{alignItems: 'flex-start'}}>
         <StatusBadge status={statuses.get(schedule.id)} />
       </Field>
       <ScheduleAmountCell amount={schedule._amount} op={schedule._amountOp} />
       {!minimal && (
-        <Field width={80} style={{ textAlign: 'center' }}>
-          {schedule._date &&
-            typeof schedule._date === 'object' &&
-            schedule._date.frequency && (
-              <SvgCheck style={{ width: 13, height: 13 }} />
-            )}
+        <Field width={80} style={{textAlign: 'center'}}>
+          {schedule._date && typeof schedule._date === 'object' && schedule._date.frequency && (
+            <SvgCheck style={{width: 13, height: 13}} />
+          )}
         </Field>
       )}
       {!minimal && (
@@ -297,7 +281,7 @@ function ScheduleRow({
               <SvgDotsHorizontalTriple
                 width={15}
                 height={15}
-                style={{ transform: 'rotateZ(90deg)' }}
+                style={{transform: 'rotateZ(90deg)'}}
               />
             </Button>
           </View>
@@ -319,14 +303,14 @@ export function SchedulesTable({
   onAction,
   tableStyle,
 }: SchedulesTableProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
   const [showCompleted, setShowCompleted] = useState(false);
 
-  const { data: payees } = usePayees();
-  const { data: accounts = [] } = useAccounts();
+  const {data: payees} = usePayees();
+  const {data: accounts = []} = useAccounts();
 
   const filteredSchedules = useMemo(() => {
     if (!filter) {
@@ -348,11 +332,8 @@ export function SchedulesTable({
       } else if (schedule._amountOp === 'isapprox') {
         amountStr = '~';
       }
-      amountStr +=
-        (amount > 0 ? '+' : '') + format(Math.abs(amount || 0), 'financial');
-      const dateStr = schedule.next_date
-        ? monthUtilFormat(schedule.next_date, dateFormat)
-        : null;
+      amountStr += (amount > 0 ? '+' : '') + format(Math.abs(amount || 0), 'financial');
+      const dateStr = schedule.next_date ? monthUtilFormat(schedule.next_date, dateFormat) : null;
 
       return (
         filterIncludes(schedule.name) ||
@@ -379,10 +360,10 @@ export function SchedulesTable({
 
     if (!hasCompletedSchedule) return unCompletedSchedules;
 
-    return [...unCompletedSchedules, { id: 'show-completed' }];
+    return [...unCompletedSchedules, {id: 'show-completed'}];
   }, [filteredSchedules, showCompleted, allowCompleted]);
 
-  function renderItem({ item }: { item: SchedulesTableItem }) {
+  function renderItem({item}: {item: SchedulesTableItem}) {
     if (item.id === 'show-completed') {
       return (
         <Row
@@ -391,7 +372,7 @@ export function SchedulesTable({
           style={{
             cursor: 'pointer',
             backgroundColor: 'transparent',
-            ':hover': { backgroundColor: theme.tableRowBackgroundHover },
+            ':hover': {backgroundColor: theme.tableRowBackgroundHover},
           }}
           onClick={() => setShowCompleted(true)}
         >
@@ -411,13 +392,13 @@ export function SchedulesTable({
     return (
       <ScheduleRow
         schedule={item as ScheduleEntity}
-        {...{ statuses, dateFormat, onSelect, onAction, minimal }}
+        {...{statuses, dateFormat, onSelect, onAction, minimal}}
       />
     );
   }
 
   return (
-    <View style={{ ...styles.tableContainer, ...tableStyle }}>
+    <View style={{...styles.tableContainer, ...tableStyle}}>
       <TableHeader height={ROW_HEIGHT} inset={15}>
         <Field width="flex">
           <Trans>Name</Trans>
@@ -434,11 +415,11 @@ export function SchedulesTable({
         <Field width={120}>
           <Trans>Status</Trans>
         </Field>
-        <Field width={100} style={{ textAlign: 'right' }}>
+        <Field width={100} style={{textAlign: 'right'}}>
           <Trans>Amount</Trans>
         </Field>
         {!minimal && (
-          <Field width={80} style={{ textAlign: 'center' }}>
+          <Field width={80} style={{textAlign: 'center'}}>
             <Trans>Recurring</Trans>
           </Field>
         )}
@@ -448,7 +429,7 @@ export function SchedulesTable({
         loading={isLoading}
         rowHeight={ROW_HEIGHT}
         backgroundColor="transparent"
-        style={{ flex: 1, backgroundColor: 'transparent', ...style }}
+        style={{flex: 1, backgroundColor: 'transparent', ...style}}
         items={items as ScheduleEntity[]}
         renderItem={renderItem}
         renderEmpty={filter ? t('No matching schedules') : t('No schedules')}

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { addons } from 'storybook/manager-api';
-import { create } from 'storybook/theming/create';
+import {addons} from 'storybook/manager-api';
+import {create} from 'storybook/theming/create';
 
 // Colors from the Actual Budget light theme palette
 const purple500 = '#8719e0';

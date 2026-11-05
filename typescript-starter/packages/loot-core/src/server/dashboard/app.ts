@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-import { isMatch } from 'es-toolkit/compat';
-import { v4 as uuidv4 } from 'uuid';
+import {isMatch} from 'es-toolkit/compat';
+import {v4 as uuidv4} from 'uuid';
 
-import { captureException } from '#platform/exceptions';
+import {captureException} from '#platform/exceptions';
 import * as fs from '#platform/server/fs';
-import { createApp } from '#server/app';
-import { aqlQuery } from '#server/aql';
+import {createApp} from '#server/app';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { ValidationError } from '#server/errors';
-import { requiredFields } from '#server/models';
-import { mutator } from '#server/mutators';
-import { reportModel } from '#server/reports/app';
-import { batchMessages } from '#server/sync';
-import { undoable } from '#server/undo';
-import { DEFAULT_DASHBOARD_STATE } from '#shared/dashboard';
-import { q } from '#shared/query';
+import {ValidationError} from '#server/errors';
+import {requiredFields} from '#server/models';
+import {mutator} from '#server/mutators';
+import {reportModel} from '#server/reports/app';
+import {batchMessages} from '#server/sync';
+import {undoable} from '#server/undo';
+import {DEFAULT_DASHBOARD_STATE} from '#shared/dashboard';
+import {q} from '#shared/query';
 import type {
   DashboardWidgetEntity,
   ExportImportCustomReportWidget,
   ExportImportDashboard,
   ExportImportDashboardWidget,
 } from '#types/models';
-import type { EverythingButIdOptional, WithOptional } from '#types/util';
+import type {EverythingButIdOptional, WithOptional} from '#types/util';
 
 function isExportedCustomReportWidget(
   widget: ExportImportDashboardWidget,
@@ -44,9 +44,7 @@ function isExportedCustomReportWidget(
   return widget.type === 'custom-report';
 }
 
-export function isWidgetType(
-  type: string,
-): type is DashboardWidgetEntity['type'] {
+export function isWidgetType(type: string): type is DashboardWidgetEntity['type'] {
   return [
     'net-worth-card',
     'cash-flow-card',
@@ -86,15 +84,11 @@ const exportModel = {
       ]);
 
       if (!Number.isInteger(widget.x)) {
-        throw new ValidationError(
-          `Invalid widget.${idx}.x data-type for value ${widget.x}.`,
-        );
+        throw new ValidationError(`Invalid widget.${idx}.x data-type for value ${widget.x}.`);
       }
 
       if (!Number.isInteger(widget.y)) {
-        throw new ValidationError(
-          `Invalid widget.${idx}.y data-type for value ${widget.y}.`,
-        );
+        throw new ValidationError(`Invalid widget.${idx}.y data-type for value ${widget.y}.`);
       }
 
       if (!Number.isInteger(widget.width)) {
@@ -110,9 +104,7 @@ const exportModel = {
       }
 
       if (!isWidgetType(widget.type)) {
-        throw new ValidationError(
-          `Invalid widget.${idx}.type value ${String(widget.type)}.`,
-        );
+        throw new ValidationError(`Invalid widget.${idx}.type value ${String(widget.type)}.`);
       }
 
       if (isExportedCustomReportWidget(widget)) {
@@ -122,15 +114,15 @@ const exportModel = {
   },
 };
 
-async function createDashboardPage({ name }: { name: string }) {
+async function createDashboardPage({name}: {name: string}) {
   const id = uuidv4();
-  await db.insertWithSchema('dashboard_pages', { id, name });
+  await db.insertWithSchema('dashboard_pages', {id, name});
 
   return id;
 }
 
 async function deleteDashboardPage(id: string) {
-  const res = await db.first<{ c: number }>(
+  const res = await db.first<{c: number}>(
     'SELECT count(*) as c FROM dashboard_pages WHERE tombstone = 0',
   );
 
@@ -146,22 +138,20 @@ async function deleteDashboardPage(id: string) {
   await batchMessages(async () => {
     await db.delete_('dashboard_pages', id);
     // Tombstone all widgets for this dashboard
-    await Promise.all(
-      deleting_widgets.map(({ id }) => db.delete_('dashboard', id)),
-    );
+    await Promise.all(deleting_widgets.map(({id}) => db.delete_('dashboard', id)));
   });
 }
 
-async function renameDashboardPage({ id, name }: { id: string; name: string }) {
-  await db.updateWithSchema('dashboard_pages', { id, name });
+async function renameDashboardPage({id, name}: {id: string; name: string}) {
+  await db.updateWithSchema('dashboard_pages', {id, name});
 }
 
 async function updateDashboard(
   widgets: EverythingButIdOptional<Omit<DashboardWidgetEntity, 'tombstone'>>[],
 ) {
-  const { data: dbWidgets } = await aqlQuery(
+  const {data: dbWidgets} = await aqlQuery(
     q('dashboard')
-      .filter({ id: { $oneof: widgets.map(({ id }) => id) } })
+      .filter({id: {$oneof: widgets.map(({id}) => id)}})
       .select('*'),
   );
   const dbWidgetMap = new Map(
@@ -192,28 +182,23 @@ async function resetDashboard(id: string) {
 
     await Promise.all([
       // Delete all widgets for this dashboard
-      ...widgets.map(({ id }) => db.delete_('dashboard', id)),
+      ...widgets.map(({id}) => db.delete_('dashboard', id)),
 
       // Insert the default state
       ...DEFAULT_DASHBOARD_STATE.map(widget =>
-        db.insertWithSchema('dashboard', { ...widget, dashboard_page_id: id }),
+        db.insertWithSchema('dashboard', {...widget, dashboard_page_id: id}),
       ),
     ]);
   });
 }
 
 async function addDashboardWidget(
-  widget: WithOptional<
-    Omit<DashboardWidgetEntity, 'id' | 'tombstone'>,
-    'x' | 'y'
-  >,
+  widget: WithOptional<Omit<DashboardWidgetEntity, 'id' | 'tombstone'>, 'x' | 'y'>,
 ) {
   // If no x & y was provided - calculate it dynamically
   // The new widget should be the very last one in the list of all widgets
   if (!('x' in widget) && !('y' in widget)) {
-    const data = await db.first<
-      Pick<db.DbDashboard, 'x' | 'y' | 'width' | 'height'>
-    >(
+    const data = await db.first<Pick<db.DbDashboard, 'x' | 'y' | 'width' | 'height'>>(
       'SELECT x, y, width, height FROM dashboard WHERE dashboard_page_id = ? AND tombstone = 0 ORDER BY y DESC, x DESC',
       [widget.dashboard_page_id],
     );
@@ -228,7 +213,7 @@ async function addDashboardWidget(
     }
   }
 
-  const { dashboard_page_id, ...widgetWithoutDashboardPageId } = widget;
+  const {dashboard_page_id, ...widgetWithoutDashboardPageId} = widget;
 
   await db.insertWithSchema('dashboard', {
     ...widgetWithoutDashboardPageId,
@@ -294,7 +279,7 @@ async function importDashboard({
     const customReportIds = await db.all<Pick<db.DbCustomReport, 'id'>>(
       'SELECT id from custom_reports',
     );
-    const customReportIdSet = new Set(customReportIds.map(({ id }) => id));
+    const customReportIdSet = new Set(customReportIds.map(({id}) => id));
 
     const existingWidgets = await db.selectWithSchema(
       'dashboard',
@@ -305,7 +290,7 @@ async function importDashboard({
     await batchMessages(async () => {
       await Promise.all([
         // Delete all widgets
-        ...existingWidgets.map(({ id }) => db.delete_('dashboard', id)),
+        ...existingWidgets.map(({id}) => db.delete_('dashboard', id)),
 
         // Insert new widgets
         ...parsedContent.widgets.map(widget =>
@@ -316,25 +301,21 @@ async function importDashboard({
             x: widget.x,
             y: widget.y,
             dashboard_page_id: dashboardPageId,
-            meta: isExportedCustomReportWidget(widget)
-              ? { id: widget.meta.id }
-              : widget.meta,
+            meta: isExportedCustomReportWidget(widget) ? {id: widget.meta.id} : widget.meta,
           }),
         ),
 
         // Insert new custom reports
         ...parsedContent.widgets
           .filter(isExportedCustomReportWidget)
-          .filter(({ meta }) => !customReportIdSet.has(meta.id))
-          .map(({ meta }) =>
-            db.insertWithSchema('custom_reports', reportModel.fromJS(meta)),
-          ),
+          .filter(({meta}) => !customReportIdSet.has(meta.id))
+          .map(({meta}) => db.insertWithSchema('custom_reports', reportModel.fromJS(meta))),
 
         // Update existing reports
         ...parsedContent.widgets
           .filter(isExportedCustomReportWidget)
-          .filter(({ meta }) => customReportIdSet.has(meta.id))
-          .map(({ meta }) =>
+          .filter(({meta}) => customReportIdSet.has(meta.id))
+          .map(({meta}) =>
             db.updateWithSchema('custom_reports', {
               // Replace `undefined` values with `null`
               // (null clears the value in DB; undefined breaks the operation)
@@ -350,17 +331,17 @@ async function importDashboard({
       ]);
     });
 
-    return { status: 'ok' as const };
+    return {status: 'ok' as const};
   } catch (err: unknown) {
     if (err instanceof Error) {
       err.message = 'Error importing file: ' + err.message;
       captureException(err);
     }
     if (err instanceof SyntaxError) {
-      throw new Error('Invalid JSON file.', { cause: 'json-parse-error' });
+      throw new Error('Invalid JSON file.', {cause: 'json-parse-error'});
     }
     if (err instanceof ValidationError) {
-      throw new Error(err.message, { cause: 'validation-error' });
+      throw new Error(err.message, {cause: 'validation-error'});
     }
     throw new Error('Internal error occurred during import.', {
       cause: 'internal-error',

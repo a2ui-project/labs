@@ -77,7 +77,7 @@ export type DbCategory = {
   hidden: 1 | 0;
   goal_def?: JsonString | null;
   cleanup_def?: JsonString | null;
-  template_settings?: { source: 'notes' | 'ui' };
+  template_settings?: {source: 'notes' | 'ui'};
   tombstone: 1 | 0;
 };
 

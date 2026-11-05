@@ -15,10 +15,10 @@
  */
 
 // @ts-strict-ignore
-import type { SchemaConfig } from '#server/aql/compiler';
+import type {SchemaConfig} from '#server/aql/compiler';
 
 function f(type: string, opts?: Record<string, unknown>) {
-  return { type, ...opts };
+  return {type, ...opts};
 }
 
 // This is the table schema!
@@ -53,37 +53,37 @@ export const schema = {
     is_parent: f('boolean'),
     is_child: f('boolean'),
     parent_id: f('id'),
-    account: f('id', { ref: 'accounts', required: true }),
-    category: f('id', { ref: 'categories' }),
-    amount: f('integer', { default: 0, required: true }),
-    payee: f('id', { ref: 'payees' }),
+    account: f('id', {ref: 'accounts', required: true}),
+    category: f('id', {ref: 'categories'}),
+    amount: f('integer', {default: 0, required: true}),
+    payee: f('id', {ref: 'payees'}),
     notes: f('string'),
-    date: f('date', { required: true }),
+    date: f('date', {required: true}),
     imported_id: f('string'),
     error: f('json'),
     imported_payee: f('string'),
     starting_balance_flag: f('boolean'),
     transfer_id: f('id'),
-    sort_order: f('float', { default: () => Date.now() }),
-    cleared: f('boolean', { default: true }),
-    reconciled: f('boolean', { default: false }),
+    sort_order: f('float', {default: () => Date.now()}),
+    cleared: f('boolean', {default: true}),
+    reconciled: f('boolean', {default: false}),
     tombstone: f('boolean'),
-    schedule: f('id', { ref: 'schedules' }),
+    schedule: f('id', {ref: 'schedules'}),
     raw_synced_data: f('string'),
     // subtransactions is a special field added if the table has the
     // `splits: grouped` option
   },
   payees: {
     id: f('id'),
-    name: f('string', { required: true }),
-    transfer_acct: f('id', { ref: 'accounts' }),
+    name: f('string', {required: true}),
+    transfer_acct: f('id', {ref: 'accounts'}),
     tombstone: f('boolean'),
     favorite: f('boolean'),
     learn_categories: f('boolean'),
   },
   accounts: {
     id: f('id'),
-    name: f('string', { required: true }),
+    name: f('string', {required: true}),
     offbudget: f('boolean'),
     closed: f('boolean'),
     sort_order: f('float'),
@@ -94,7 +94,7 @@ export const schema = {
     last_reconciled: f('string'),
     last_sync: f('string'),
     bank_sync_status: f('string'),
-    account_group_id: f('id', { ref: 'account_groups' }),
+    account_group_id: f('id', {ref: 'account_groups'}),
   },
   account_groups: {
     id: f('id'),
@@ -107,10 +107,10 @@ export const schema = {
     name: f('string'),
     is_income: f('boolean'),
     hidden: f('boolean'),
-    group: f('id', { ref: 'category_groups' }),
+    group: f('id', {ref: 'category_groups'}),
     goal_def: f('string'),
     cleanup_def: f('string'),
-    template_settings: f('json', { default: { source: 'notes' } }),
+    template_settings: f('json', {default: {source: 'notes'}}),
     sort_order: f('float'),
     tombstone: f('boolean'),
   },
@@ -130,7 +130,7 @@ export const schema = {
   schedules: {
     id: f('id'),
     name: f('string'),
-    rule: f('id', { ref: 'rules', required: true }),
+    rule: f('id', {ref: 'rules', required: true}),
     next_date: f('date'),
     completed: f('boolean'),
     posts_transaction: f('boolean'),
@@ -140,8 +140,8 @@ export const schema = {
 
     // These are special fields that are actually pulled from the
     // underlying rule
-    _payee: f('id', { ref: 'payees' }),
-    _account: f('id', { ref: 'accounts' }),
+    _payee: f('id', {ref: 'payees'}),
+    _account: f('id', {ref: 'accounts'}),
     _amount: f('json/fallback'),
     _amountOp: f('string'),
     _date: f('json/fallback'),
@@ -175,26 +175,26 @@ export const schema = {
   custom_reports: {
     id: f('id'),
     name: f('string'),
-    start_date: f('string', { default: '2023-06' }),
-    end_date: f('string', { default: '2023-09' }),
-    date_static: f('integer', { default: 0 }),
+    start_date: f('string', {default: '2023-06'}),
+    end_date: f('string', {default: '2023-09'}),
+    date_static: f('integer', {default: 0}),
     date_range: f('string'),
-    mode: f('string', { default: 'total' }),
-    group_by: f('string', { default: 'Category' }),
-    sort_by: f('string', { default: 'desc' }),
-    balance_type: f('string', { default: 'Expense' }),
-    show_empty: f('integer', { default: 0 }),
-    show_offbudget: f('integer', { default: 0 }),
-    show_hidden: f('integer', { default: 0 }),
-    show_uncategorized: f('integer', { default: 0 }),
-    trim_intervals: f('integer', { default: 0 }),
-    show_trend_lines: f('integer', { default: 0 }),
-    include_current: f('integer', { default: 0 }),
-    graph_type: f('string', { default: 'BarGraph' }),
+    mode: f('string', {default: 'total'}),
+    group_by: f('string', {default: 'Category'}),
+    sort_by: f('string', {default: 'desc'}),
+    balance_type: f('string', {default: 'Expense'}),
+    show_empty: f('integer', {default: 0}),
+    show_offbudget: f('integer', {default: 0}),
+    show_hidden: f('integer', {default: 0}),
+    show_uncategorized: f('integer', {default: 0}),
+    trim_intervals: f('integer', {default: 0}),
+    show_trend_lines: f('integer', {default: 0}),
+    include_current: f('integer', {default: 0}),
+    graph_type: f('string', {default: 'BarGraph'}),
     conditions: f('json'),
     conditions_op: f('string'),
     metadata: f('json'),
-    interval: f('string', { default: 'Monthly' }),
+    interval: f('string', {default: 'Monthly'}),
     color_scheme: f('json'),
     tombstone: f('boolean'),
   },
@@ -210,7 +210,7 @@ export const schema = {
   zero_budgets: {
     id: f('id'),
     month: f('integer'),
-    category: f('string', { ref: 'categories' }),
+    category: f('string', {ref: 'categories'}),
     amount: f('integer'),
     carryover: f('integer'),
     goal: f('integer'),
@@ -223,21 +223,21 @@ export const schema = {
   },
   dashboard: {
     id: f('id'),
-    dashboard_page_id: f('id', { ref: 'dashboard_pages' }),
-    type: f('string', { required: true }),
-    width: f('integer', { required: true }),
-    height: f('integer', { required: true }),
-    x: f('integer', { required: true }),
-    y: f('integer', { required: true }),
+    dashboard_page_id: f('id', {ref: 'dashboard_pages'}),
+    type: f('string', {required: true}),
+    width: f('integer', {required: true}),
+    height: f('integer', {required: true}),
+    x: f('integer', {required: true}),
+    y: f('integer', {required: true}),
     meta: f('json'),
     tombstone: f('boolean'),
   },
   payee_locations: {
     id: f('id'),
-    payee_id: f('id', { ref: 'payees', required: true }),
-    latitude: f('float', { required: true }),
-    longitude: f('float', { required: true }),
-    created_at: f('integer', { required: true }),
+    payee_id: f('id', {ref: 'payees', required: true}),
+    latitude: f('float', {required: true}),
+    longitude: f('float', {required: true}),
+    created_at: f('integer', {required: true}),
     tombstone: f('boolean'),
   },
 };
@@ -246,7 +246,7 @@ export const schemaConfig: SchemaConfig = {
   // Note: these views *must* represent the underlying table that we
   // are mapping here. The compiler makes optimizations with this
   // assumption
-  tableViews(name, { isJoin, withDead, tableOptions = { splits: undefined } }) {
+  tableViews(name, {isJoin, withDead, tableOptions = {splits: undefined}}) {
     switch (name) {
       case 'transactions': {
         // If joining, we always only show alive transactions. There's
@@ -281,7 +281,7 @@ export const schemaConfig: SchemaConfig = {
   },
 
   customizeQuery(queryState) {
-    const { table: tableName } = queryState;
+    const {table: tableName} = queryState;
 
     function orderBy(orders) {
       // If order was specified, always add id as the last sort to make
@@ -293,27 +293,19 @@ export const schemaConfig: SchemaConfig = {
       // Otherwise, these are the default orders for each table
       switch (tableName) {
         case 'transactions':
-          return [
-            { date: 'desc' },
-            'starting_balance_flag',
-            { sort_order: 'desc' },
-            'id',
-          ];
+          return [{date: 'desc'}, 'starting_balance_flag', {sort_order: 'desc'}, 'id'];
         case 'category_groups':
           return ['is_income', 'sort_order', 'id'];
         case 'categories':
           return ['sort_order', 'id'];
         case 'payees':
-          return [
-            { $condition: { transfer_acct: null }, $dir: 'desc' },
-            { $nocase: '$name' },
-          ];
+          return [{$condition: {transfer_acct: null}, $dir: 'desc'}, {$nocase: '$name'}];
         case 'accounts':
           return ['sort_order', 'name'];
         case 'account_groups':
           return ['sort_order', 'id'];
         case 'schedules':
-          return [{ $condition: { completed: true } }, 'next_date'];
+          return [{$condition: {completed: true}}, 'next_date'];
         default:
       }
 
@@ -349,7 +341,7 @@ export const schemaConfig: SchemaConfig = {
       },
 
       v_categories: internalFields => {
-        const fields = internalFields({ group: 'cat_group' });
+        const fields = internalFields({group: 'cat_group'});
         return `SELECT ${fields} FROM categories _`;
       },
     },

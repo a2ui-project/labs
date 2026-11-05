@@ -14,25 +14,22 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 
-import { theme as themeStyle } from '@actual-app/components/theme';
-import type { Theme } from '@actual-app/core/types/prefs';
-import { css } from '@emotion/css';
+import {theme as themeStyle} from '@actual-app/components/theme';
+import type {Theme} from '@actual-app/core/types/prefs';
+import {css} from '@emotion/css';
 
-import { useTheme } from '#style';
+import {useTheme} from '#style';
 
-import { useTags } from './useTags';
+import {useTags} from './useTags';
 
-export function useTagCSS(opts?: { ellipsis?: boolean }) {
-  const { data: tags = [] } = useTags();
+export function useTagCSS(opts?: {ellipsis?: boolean}) {
+  const {data: tags = []} = useTags();
   const [theme] = useTheme();
 
   return useCallback(
-    (
-      tag: string,
-      options: { color?: string | null; compact?: boolean } = {},
-    ) => {
+    (tag: string, options: {color?: string | null; compact?: boolean} = {}) => {
       const tagObj = tags.find(t => t.tag === tag);
       const [color, backgroundColor, backgroundColorHovered] = getTagCSSColors(
         theme,
@@ -49,7 +46,7 @@ export function useTagCSS(opts?: { ellipsis?: boolean }) {
               display: 'inline-block',
               whiteSpace: 'nowrap',
             }
-          : { display: 'inline-flex' }),
+          : {display: 'inline-flex'}),
         opacity: tagObj?.hidden ? 0.5 : undefined,
         padding: options.compact ? '0px 7px' : '3px 7px',
         borderRadius: 16,
@@ -86,11 +83,7 @@ function getTagCSSColors(theme: Theme, color?: string | null) {
 
   if (brightnessDiff >= 125) {
     // !important is used to override the hover text color in button.tsx used to style the tag button
-    return [
-      'black !important',
-      color,
-      `color-mix(in srgb, ${color} 80%, black)`,
-    ];
+    return ['black !important', color, `color-mix(in srgb, ${color} 80%, black)`];
   }
 
   return ['white !important', color, `color-mix(in srgb, ${color} 70%, white)`];

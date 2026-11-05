@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useLayoutEffect } from 'react';
+import {useLayoutEffect} from 'react';
 
-import { useNavigate } from '#hooks/useNavigate';
+import {useNavigate} from '#hooks/useNavigate';
 
 export function ExposeNavigate() {
   const navigate = useNavigate();

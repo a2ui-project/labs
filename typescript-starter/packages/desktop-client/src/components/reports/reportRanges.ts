@@ -15,8 +15,8 @@
  */
 
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { TimeFrame } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import type {TimeFrame} from '@actual-app/core/types/models';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 
 export function validateStart(
   earliest: string,
@@ -102,11 +102,7 @@ export function validateEnd(
   );
 }
 
-export function validateRange(
-  earliest: string,
-  start: string,
-  end: string,
-): [string, string] {
+export function validateRange(earliest: string, start: string, end: string): [string, string] {
   if (start < earliest) {
     start = earliest;
   }
@@ -203,8 +199,7 @@ export function getSpecificRange(
 
   let dateStart = monthUtils.subMonths(currentDay, offset) + '-01';
   let dateEnd = monthUtils.getMonthEnd(
-    monthUtils.addMonths(dateStart, addNumber === null ? offset : addNumber) +
-      '-01',
+    monthUtils.addMonths(dateStart, addNumber === null ? offset : addNumber) + '-01',
   );
 
   if (type === 'Week') {
@@ -239,20 +234,15 @@ export function getNextRange(offset: number) {
 export function getFullFutureRange(latestMonth?: string) {
   const start = monthUtils.currentMonth();
   const defaultEnd = monthUtils.addMonths(start, 24);
-  const end =
-    latestMonth && monthUtils.isAfter(latestMonth, start)
-      ? latestMonth
-      : defaultEnd;
+  const end = latestMonth && monthUtils.isAfter(latestMonth, start) ? latestMonth : defaultEnd;
 
   return [start, end, 'static'] as const;
 }
 
 // For month-granular consumers (e.g. formula queries): collapse day-shaped
 // bounds so a live range keeps sliding by whole months rather than days.
-export function asMonthSlidingTimeFrame(
-  timeFrame: Partial<TimeFrame>,
-): Partial<TimeFrame> {
-  const { start, end, mode } = timeFrame;
+export function asMonthSlidingTimeFrame(timeFrame: Partial<TimeFrame>): Partial<TimeFrame> {
+  const {start, end, mode} = timeFrame;
   if (mode !== 'sliding-window' || !start || !end) {
     return timeFrame;
   }
@@ -272,8 +262,7 @@ export function calculateTimeRange(
     timeFrame?.start ??
     defaultTimeFrame?.start ??
     monthUtils.subMonths(monthUtils.currentMonth(), 5);
-  const end =
-    timeFrame?.end ?? defaultTimeFrame?.end ?? monthUtils.currentMonth();
+  const end = timeFrame?.end ?? defaultTimeFrame?.end ?? monthUtils.currentMonth();
   const mode = timeFrame?.mode ?? defaultTimeFrame?.mode ?? 'sliding-window';
 
   if (mode === 'full') {
@@ -282,25 +271,17 @@ export function calculateTimeRange(
       : null;
     const currentMonth = monthUtils.currentMonth();
     const fullEnd =
-      latestTransactionMonth &&
-      monthUtils.isAfter(latestTransactionMonth, currentMonth)
+      latestTransactionMonth && monthUtils.isAfter(latestTransactionMonth, currentMonth)
         ? latestTransactionMonth
         : currentMonth;
     return getFullRange(start, fullEnd);
   }
   if (mode === 'sliding-window') {
     // Day-shaped ranges slide by days: same width, ending today.
-    if (
-      monthUtils.isValidYearMonthDay(start) &&
-      monthUtils.isValidYearMonthDay(end)
-    ) {
+    if (monthUtils.isValidYearMonthDay(start) && monthUtils.isValidYearMonthDay(end)) {
       const dayOffset = monthUtils.differenceInCalendarDays(end, start);
       const today = monthUtils.currentDay();
-      return [
-        monthUtils.subDays(today, Math.max(dayOffset, 0)),
-        today,
-        'sliding-window',
-      ] as const;
+      return [monthUtils.subDays(today, Math.max(dayOffset, 0)), today, 'sliding-window'] as const;
     }
 
     const offset = monthUtils.differenceInCalendarMonths(end, start);
@@ -327,11 +308,7 @@ export function calculateTimeRange(
     ] as const;
   }
   if (mode === 'yearToDate') {
-    return [
-      monthUtils.currentYear() + '-01',
-      monthUtils.currentMonth(),
-      'yearToDate',
-    ] as const;
+    return [monthUtils.currentYear() + '-01', monthUtils.currentMonth(), 'yearToDate'] as const;
   }
   if (mode === 'priorYearToDate') {
     return [

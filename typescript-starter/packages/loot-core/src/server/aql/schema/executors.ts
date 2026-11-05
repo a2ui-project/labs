@@ -16,21 +16,17 @@
 
 // @ts-strict-ignore
 
-import { appendWhere, isAggregateQuery } from '#server/aql/compiler';
-import type {
-  CompilerState,
-  OutputTypes,
-  SqlPieces,
-} from '#server/aql/compiler';
-import { execQuery } from '#server/aql/exec';
-import type { AqlQueryExecutor } from '#server/aql/exec';
-import { convertOutputType } from '#server/aql/schema-helpers';
+import {appendWhere, isAggregateQuery} from '#server/aql/compiler';
+import type {CompilerState, OutputTypes, SqlPieces} from '#server/aql/compiler';
+import {execQuery} from '#server/aql/exec';
+import type {AqlQueryExecutor} from '#server/aql/exec';
+import {convertOutputType} from '#server/aql/schema-helpers';
 import * as db from '#server/db';
-import { whereIn } from '#server/db/util';
-import { q } from '#shared/query';
-import type { QueryState } from '#shared/query';
-import type { CategoryEntity } from '#types/models';
-import { aqlQuery } from '..';
+import {whereIn} from '#server/db/util';
+import {q} from '#shared/query';
+import type {QueryState} from '#shared/query';
+import type {CategoryEntity} from '#types/models';
+import {aqlQuery} from '..';
 
 // Transactions executor
 
@@ -64,9 +60,7 @@ function execTransactions(
   outputTypes: OutputTypes,
 ) {
   const tableOptions = queryState.tableOptions || {};
-  const splitType = tableOptions.splits
-    ? (tableOptions.splits as string)
-    : 'inline';
+  const splitType = tableOptions.splits ? (tableOptions.splits as string) : 'inline';
   if (!isValidSplitsOption(splitType)) {
     throw new Error(`Invalid "splits" option for transactions: "${splitType}"`);
   }
@@ -81,13 +75,7 @@ function execTransactions(
       outputTypes,
     );
   } else if (splitType === 'grouped') {
-    return execTransactionsGrouped(
-      compilerState,
-      queryState,
-      sqlPieces,
-      params,
-      outputTypes,
-    );
+    return execTransactionsGrouped(compilerState, queryState, sqlPieces, params, outputTypes);
   }
 }
 
@@ -117,7 +105,7 @@ async function execTransactionsGrouped(
   params: (string | number)[],
   outputTypes: OutputTypes,
 ) {
-  const { withDead } = queryState;
+  const {withDead} = queryState;
   const whereDead = withDead ? '' : `AND ${sqlPieces.from}.tombstone = 0`;
 
   // Aggregate queries don't make sense for a grouped transactions
@@ -126,7 +114,7 @@ async function execTransactionsGrouped(
   // would never make sense. In this case, switch back to the "inline"
   // type where only non-parent transactions are considered
   if (isAggregateQuery(queryState)) {
-    const s = { ...sqlPieces };
+    const s = {...sqlPieces};
 
     // Modify the where to only include non-parents
     s.where = appendWhere(s.where, `${s.from}.is_parent = 0`);
@@ -210,7 +198,7 @@ async function execTransactionsGrouped(
   >(finalSql);
 
   // Group the parents and children up
-  const { parents, children } = allRows.reduce(
+  const {parents, children} = allRows.reduce(
     (acc, trans) => {
       const pid = trans._parent_id;
       delete trans._parent_id;
@@ -224,7 +212,7 @@ async function execTransactionsGrouped(
       }
       return acc;
     },
-    { parents: [], children: new Map() },
+    {parents: [], children: new Map()},
   );
 
   const mapper = trans => {
@@ -249,7 +237,7 @@ async function execTransactionsBasic(
   splitType: SplitsOption,
   outputTypes: OutputTypes,
 ) {
-  const s = { ...sqlPieces };
+  const s = {...sqlPieces};
 
   if (splitType !== 'all') {
     if (splitType === 'none') {
@@ -278,13 +266,9 @@ async function execCategoryGroups(
   outputTypes: OutputTypes,
 ) {
   const tableOptions = queryState.tableOptions || {};
-  const categoriesOption = tableOptions.categories
-    ? (tableOptions.categories as string)
-    : 'all';
+  const categoriesOption = tableOptions.categories ? (tableOptions.categories as string) : 'all';
   if (!isValidCategoriesOption(categoriesOption)) {
-    throw new Error(
-      `Invalid "categories" option for category_groups: "${categoriesOption}"`,
-    );
+    throw new Error(`Invalid "categories" option for category_groups: "${categoriesOption}"`);
   }
 
   if (categoriesOption !== 'none') {
@@ -297,13 +281,7 @@ async function execCategoryGroups(
       outputTypes,
     );
   }
-  return execCategoryGroupsBasic(
-    compilerState,
-    queryState,
-    sqlPieces,
-    params,
-    outputTypes,
-  );
+  return execCategoryGroupsBasic(compilerState, queryState, sqlPieces, params, outputTypes);
 }
 
 async function execCategoryGroupsWithCategories(
@@ -326,10 +304,10 @@ async function execCategoryGroupsWithCategories(
     return categoryGroups;
   }
 
-  const { data: categories }: { data: CategoryEntity[] } = await aqlQuery(
+  const {data: categories}: {data: CategoryEntity[]} = await aqlQuery(
     q('categories')
       .filter({
-        group: { $oneof: categoryGroups.map(cg => cg.id) },
+        group: {$oneof: categoryGroups.map(cg => cg.id)},
       })
       .select('*'),
   );
@@ -353,9 +331,7 @@ async function execCategoryGroupsBasic(
   return execQuery(queryState, compilerState, sqlPieces, params, outputTypes);
 }
 
-function isValidCategoriesOption(
-  categories: string,
-): categories is CategoriesOption {
+function isValidCategoriesOption(categories: string): categories is CategoriesOption {
   return ['all', 'none'].includes(categories);
 }
 

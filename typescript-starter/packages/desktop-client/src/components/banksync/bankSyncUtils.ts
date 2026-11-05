@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-import type {
-  AccountEntity,
-  BankSyncProviders,
-} from '@actual-app/core/types/models';
+import type {AccountEntity, BankSyncProviders} from '@actual-app/core/types/models';
 
 export type SyncProviders = BankSyncProviders | 'unlinked';
-export type GroupedBankSyncAccounts = Partial<
-  Record<SyncProviders, AccountEntity[]>
->;
+export type GroupedBankSyncAccounts = Partial<Record<SyncProviders, AccountEntity[]>>;
 
 export const BUILT_IN_BANK_SYNC_PROVIDERS = [
   'goCardless',
@@ -56,9 +51,7 @@ export function getSyncSourceReadable(
   };
 }
 
-export function groupBankSyncAccounts(
-  accounts: AccountEntity[],
-): GroupedBankSyncAccounts {
+export function groupBankSyncAccounts(accounts: AccountEntity[]): GroupedBankSyncAccounts {
   const groupedAccounts: GroupedBankSyncAccounts = {};
 
   for (const account of accounts) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { defineConfig } from '@playwright/test';
+import {defineConfig} from '@playwright/test';
 
 export default defineConfig({
   timeout: 60000, // 60 seconds
@@ -22,11 +22,10 @@ export default defineConfig({
   testDir: 'e2e/',
   globalSetup: './e2e/global-setup.ts',
   reporter: process.env.CI
-    ? [['list'], ['junit', { outputFile: 'e2e/test-results/junit.xml' }]]
+    ? [['list'], ['junit', {outputFile: 'e2e/test-results/junit.xml'}]]
     : undefined,
   outputDir: 'e2e/test-results/',
-  snapshotPathTemplate:
-    '{testDir}/__screenshots__/{testFilePath}/{arg}-{platform}{ext}',
+  snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{arg}-{platform}{ext}',
   use: {
     userAgent: 'playwright',
     screenshot: 'on',
@@ -36,7 +35,7 @@ export default defineConfig({
   },
   expect: {
     // See desktop-client playwright.config.ts for the threshold rationale.
-    toHaveScreenshot: { maxDiffPixels: 5, threshold: 0.05 },
+    toHaveScreenshot: {maxDiffPixels: 5, threshold: 0.05},
     timeout: 60000, // 60 seconds
   },
 });

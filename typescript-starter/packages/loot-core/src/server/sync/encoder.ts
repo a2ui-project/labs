@@ -27,12 +27,12 @@ import {
   toBinary,
 } from '@actual-app/crdt';
 
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 import * as encryption from '#server/encryption';
-import { SyncError } from '#server/errors';
+import {SyncError} from '#server/errors';
 import * as prefs from '#server/prefs';
 
-import type { Message } from './index';
+import type {Message} from './index';
 
 function coerceBuffer(value) {
   // The web encryption APIs give us back raw Uint8Array... but our
@@ -51,7 +51,7 @@ export async function encode(
   since: Timestamp | string,
   messages: Message[],
 ): Promise<Uint8Array> {
-  const { encryptKeyId } = prefs.getPrefs();
+  const {encryptKeyId} = prefs.getPrefs();
   const requestPb = create(SyncRequestSchema, {
     groupId,
     fileId,
@@ -110,8 +110,8 @@ export async function encode(
 
 export async function decode(
   data: Uint8Array,
-): Promise<{ messages: Message[]; merkle: { hash: number } }> {
-  const { encryptKeyId } = prefs.getPrefs();
+): Promise<{messages: Message[]; merkle: {hash: number}}> {
+  const {encryptKeyId} = prefs.getPrefs();
 
   const responsePb = fromBinary(SyncResponseSchema, data);
   const merkle = JSON.parse(responsePb.merkle);
@@ -152,5 +152,5 @@ export async function decode(
     });
   }
 
-  return { messages, merkle };
+  return {messages, merkle};
 }

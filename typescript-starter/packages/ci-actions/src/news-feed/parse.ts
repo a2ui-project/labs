@@ -149,10 +149,7 @@ function splitReleaseBody(body: string) {
   const end = boundaries.length > 0 ? Math.min(...boundaries) : undefined;
   return {
     highlights: tidyMarkdown(body.slice(0, end)),
-    details:
-      end === undefined
-        ? ''
-        : tidyMarkdown(body.slice(end).replace(DOCKER_TAG_PATTERN, '')),
+    details: end === undefined ? '' : tidyMarkdown(body.slice(end).replace(DOCKER_TAG_PATTERN, '')),
   };
 }
 
@@ -171,8 +168,7 @@ function normalizeDate(value: unknown): string | undefined {
   if (value === undefined || value === null) {
     return undefined;
   }
-  const asString =
-    value instanceof Date ? value.toISOString() : String(value).trim();
+  const asString = value instanceof Date ? value.toISOString() : String(value).trim();
   const match = asString.match(/^(\d{4}-\d{2}-\d{2})/);
   return match ? match[1] : undefined;
 }
@@ -203,10 +199,8 @@ function cleanPostBody(
  * filename without the date prefix (Docusaurus' default).
  */
 export function getPostSlug(filename: string, contents: string): string {
-  const { data } = matter(contents);
-  return typeof data.slug === 'string'
-    ? data.slug
-    : postSlugFromFilename(filename);
+  const {data} = matter(contents);
+  return typeof data.slug === 'string' ? data.slug : postSlugFromFilename(filename);
 }
 
 type ParsePostOptions = {
@@ -229,18 +223,14 @@ type ParsePostOptions = {
 export function parsePost(
   filename: string,
   contents: string,
-  { siteUrl, postSlugs, warn = ignoreWarning }: ParsePostOptions,
+  {siteUrl, postSlugs, warn = ignoreWarning}: ParsePostOptions,
 ): NewsEntry | undefined {
-  const { data, content } = matter(contents);
+  const {data, content} = matter(contents);
   const tags: string[] = Array.isArray(data.tags) ? data.tags.map(String) : [];
 
   // Posts are opt-in. The release tooling sets the flag on release posts;
   // authors set it on other posts worth announcing in the app.
-  if (
-    data.in_app_notification !== true ||
-    data.draft === true ||
-    data.unlisted === true
-  ) {
+  if (data.in_app_notification !== true || data.draft === true || data.unlisted === true) {
     return undefined;
   }
 
@@ -255,13 +245,8 @@ export function parsePost(
   const slugsByFilename = postSlugs ?? new Map([[filename, slug]]);
   const title = typeof data.title === 'string' ? data.title : slug;
   const url = `${trimTrailingSlash(siteUrl)}/blog/${slug}`;
-  const body = cleanPostBody(
-    content.replace(LEADING_H1_PATTERN, ''),
-    siteUrl,
-    slugsByFilename,
-  );
-  const toAbsolute = (markdown: string) =>
-    absolutizeLinks(markdown, siteUrl, '/blog/', warn);
+  const body = cleanPostBody(content.replace(LEADING_H1_PATTERN, ''), siteUrl, slugsByFilename);
+  const toAbsolute = (markdown: string) => absolutizeLinks(markdown, siteUrl, '/blog/', warn);
 
   if (tags.includes('release')) {
     const versionMatch = slug.match(RELEASE_SLUG_PATTERN);
@@ -270,7 +255,7 @@ export function parsePost(
         `Release post "${filename}" has an unexpected slug "${slug}" (expected release-X.Y.Z)`,
       );
     }
-    const { highlights, details } = splitReleaseBody(body);
+    const {highlights, details} = splitReleaseBody(body);
     return {
       id: `release-${versionMatch[1]}`,
       type: 'release',
@@ -316,12 +301,8 @@ export function buildNewsFeed({
   postLimit = 10,
 }: BuildNewsFeedOptions): NewsFeed {
   const sorted = [...entries].sort(compareEntries);
-  const releases = sorted
-    .filter(entry => entry.type === 'release')
-    .slice(0, releaseLimit);
-  const posts = sorted
-    .filter(entry => entry.type === 'post')
-    .slice(0, postLimit);
+  const releases = sorted.filter(entry => entry.type === 'release').slice(0, releaseLimit);
+  const posts = sorted.filter(entry => entry.type === 'post').slice(0, postLimit);
 
   return {
     schemaVersion: NEWS_FEED_SCHEMA_VERSION,

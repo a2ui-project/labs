@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import type { CSSProperties } from './styles';
+import type {CSSProperties} from './styles';
 
 type InlineFieldProps = {
   label: ReactNode;
@@ -28,13 +28,7 @@ type InlineFieldProps = {
   style?: CSSProperties;
 };
 
-export function InlineField({
-  label,
-  labelWidth,
-  children,
-  width,
-  style,
-}: InlineFieldProps) {
+export function InlineField({label, labelWidth, children, width, style}: InlineFieldProps) {
   return (
     <label
       className={css([

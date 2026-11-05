@@ -14,8 +14,8 @@
 
 name: Bug Report
 description: File a bug report also known as an issue or problem.
-title: '[Bug]: '
-labels: ['needs triage']
+title: "[Bug]: "
+labels: ["needs triage"]
 type: Bug
 body:
   - type: markdown
@@ -86,7 +86,7 @@ body:
       required: true
   - type: markdown
     attributes:
-      value: '## Environment Details'
+      value: "## Environment Details"
   - type: dropdown
     id: hosting
     attributes:

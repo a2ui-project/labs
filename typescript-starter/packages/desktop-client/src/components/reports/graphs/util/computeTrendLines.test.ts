@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { DataEntity, LegendEntity } from '@actual-app/core/types/models';
+import type {DataEntity, LegendEntity} from '@actual-app/core/types/models';
 
-import { computeTrendLines } from './computeTrendLines';
+import {computeTrendLines} from './computeTrendLines';
 
 function point(date: string, values: Record<string, number>) {
   return {
@@ -42,17 +42,12 @@ const series = (overrides: Partial<LegendEntity> = {}): LegendEntity => ({
 describe('computeTrendLines', () => {
   it('returns an empty list when there are fewer than two intervals', () => {
     expect(computeTrendLines([], [series()])).toEqual([]);
-    expect(computeTrendLines([point('Jan', { a: 1 })], [series()])).toEqual([]);
+    expect(computeTrendLines([point('Jan', {a: 1})], [series()])).toEqual([]);
   });
 
   it('fits a perfect line for a perfectly linear series', () => {
     const result = computeTrendLines(
-      [
-        point('Jan', { a: 0 }),
-        point('Feb', { a: 10 }),
-        point('Mar', { a: 20 }),
-        point('Apr', { a: 30 }),
-      ],
+      [point('Jan', {a: 0}), point('Feb', {a: 10}), point('Mar', {a: 20}), point('Apr', {a: 30})],
       [series()],
     );
 
@@ -60,15 +55,15 @@ describe('computeTrendLines', () => {
       {
         id: 'a',
         color: '#000',
-        start: { x: 'Jan', y: 0 },
-        end: { x: 'Apr', y: 30 },
+        start: {x: 'Jan', y: 0},
+        end: {x: 'Apr', y: 30},
       },
     ]);
   });
 
   it('produces a flat line at the mean for a constant series', () => {
     const result = computeTrendLines(
-      [point('Jan', { a: 5 }), point('Feb', { a: 5 }), point('Mar', { a: 5 })],
+      [point('Jan', {a: 5}), point('Feb', {a: 5}), point('Mar', {a: 5})],
       [series()],
     );
 
@@ -88,8 +83,8 @@ describe('computeTrendLines', () => {
 
   it('falls back to the dataKey when a series has no id', () => {
     const [line] = computeTrendLines(
-      [point('Jan', { a: 1 }), point('Feb', { a: 2 })],
-      [series({ id: null })],
+      [point('Jan', {a: 1}), point('Feb', {a: 2})],
+      [series({id: null})],
     );
 
     expect(line.id).toBe('a');
@@ -97,15 +92,8 @@ describe('computeTrendLines', () => {
 
   it('computes a separate trend for each series', () => {
     const result = computeTrendLines(
-      [
-        point('Jan', { a: 0, b: 100 }),
-        point('Feb', { a: 10, b: 80 }),
-        point('Mar', { a: 20, b: 60 }),
-      ],
-      [
-        series({ id: 'a', dataKey: 'a', color: '#a' }),
-        series({ id: 'b', dataKey: 'b', color: '#b' }),
-      ],
+      [point('Jan', {a: 0, b: 100}), point('Feb', {a: 10, b: 80}), point('Mar', {a: 20, b: 60})],
+      [series({id: 'a', dataKey: 'a', color: '#a'}), series({id: 'b', dataKey: 'b', color: '#b'})],
     );
 
     expect(result).toHaveLength(2);

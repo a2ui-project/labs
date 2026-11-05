@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { Block } from '@actual-app/components/block';
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgDownload } from '@actual-app/components/icons/v1';
-import { Menu } from '@actual-app/components/menu';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { Popover } from '@actual-app/components/popover';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {Block} from '@actual-app/components/block';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgDownload} from '@actual-app/components/icons/v1';
+import {Menu} from '@actual-app/components/menu';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {Popover} from '@actual-app/components/popover';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
 import type {
   BudgetAnalysisWidget,
@@ -38,32 +38,32 @@ import type {
 } from '@actual-app/core/types/models';
 import * as d from 'date-fns';
 
-import { EditablePageHeaderTitle } from '#components/EditablePageHeaderTitle';
-import { FinancialText } from '#components/FinancialText';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page, PageHeader } from '#components/Page';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { Change } from '#components/reports/Change';
-import { BudgetAnalysisGraph } from '#components/reports/graphs/BudgetAnalysisGraph';
-import { Header } from '#components/reports/Header';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { buildBudgetAnalysisCsv } from '#components/reports/spreadsheets/budget-analysis-export';
+import {EditablePageHeaderTitle} from '#components/EditablePageHeaderTitle';
+import {FinancialText} from '#components/FinancialText';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page, PageHeader} from '#components/Page';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {Change} from '#components/reports/Change';
+import {BudgetAnalysisGraph} from '#components/reports/graphs/BudgetAnalysisGraph';
+import {Header} from '#components/reports/Header';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {buildBudgetAnalysisCsv} from '#components/reports/spreadsheets/budget-analysis-export';
 import {
   createBudgetAnalysisSpreadsheet,
   getLastSelectableMonth,
 } from '#components/reports/spreadsheets/budget-analysis-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { fromDateRepr } from '#components/reports/util';
-import { useDashboardWidget } from '#hooks/useDashboardWidget';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { useNavigate } from '#hooks/useNavigate';
-import { useRuleConditionFilters } from '#hooks/useRuleConditionFilters';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { useUpdateDashboardWidgetMutation } from '#reports/mutations';
+import {useReport} from '#components/reports/useReport';
+import {fromDateRepr} from '#components/reports/util';
+import {useDashboardWidget} from '#hooks/useDashboardWidget';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {useNavigate} from '#hooks/useNavigate';
+import {useRuleConditionFilters} from '#hooks/useRuleConditionFilters';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {useUpdateDashboardWidgetMutation} from '#reports/mutations';
 
 type OptionsButtonProps = {
   graphType: 'Line' | 'Bar';
@@ -86,7 +86,7 @@ function OptionsButton({
   showHiddenCategories,
   onToggleShowHiddenCategories,
 }: OptionsButtonProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -142,7 +142,7 @@ function OptionsButton({
 
 export function BudgetAnalysis() {
   const params = useParams();
-  const { data: widget, isPending } = useDashboardWidget<BudgetAnalysisWidget>({
+  const {data: widget, isPending} = useDashboardWidget<BudgetAnalysisWidget>({
     id: params.id,
     type: 'budget-analysis-card',
   });
@@ -158,10 +158,10 @@ type BudgetAnalysisInternalProps = {
   widget?: BudgetAnalysisWidget;
 };
 
-function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
+function BudgetAnalysisInternal({widget}: BudgetAnalysisInternalProps) {
   const locale = useLocale();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
   const {
@@ -184,15 +184,9 @@ function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
   const [start, setStart] = useState(monthUtils.currentMonth());
   const [end, setEnd] = useState(monthUtils.currentMonth());
   const [mode, setMode] = useState<TimeFrame['mode']>('sliding-window');
-  const [graphType, setGraphType] = useState<'Line' | 'Bar'>(
-    widget?.meta?.graphType || 'Bar',
-  );
-  const [showBalance, setShowBalance] = useState(
-    widget?.meta?.showBalance ?? true,
-  );
-  const [showCategories, setShowCategories] = useState(
-    !(widget?.meta?.balanceOnly ?? false),
-  );
+  const [graphType, setGraphType] = useState<'Line' | 'Bar'>(widget?.meta?.graphType || 'Bar');
+  const [showBalance, setShowBalance] = useState(widget?.meta?.showBalance ?? true);
+  const [showCategories, setShowCategories] = useState(!(widget?.meta?.balanceOnly ?? false));
   const [showHiddenCategories, setShowHiddenCategories] = useState(
     widget?.meta?.showHiddenCategories ?? false,
   );
@@ -233,9 +227,7 @@ function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
         : currentMonth;
 
       const latestMonth =
-        latestTransactionMonth > currentMonth
-          ? latestTransactionMonth
-          : currentMonth;
+        latestTransactionMonth > currentMonth ? latestTransactionMonth : currentMonth;
 
       const yearAgo = monthUtils.subMonths(latestMonth, 12);
       if (earliestMonth > yearAgo) {
@@ -301,13 +293,9 @@ function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
 
   const data = useReport('default', getGraphData);
   const navigate = useNavigate();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
-  const onChangeDates = (
-    newStart: string,
-    newEnd: string,
-    newMode: TimeFrame['mode'],
-  ) => {
+  const onChangeDates = (newStart: string, newEnd: string, newMode: TimeFrame['mode']) => {
     setStart(newStart);
     setEnd(newEnd);
     setMode(newMode);
@@ -402,21 +390,12 @@ function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
         isNarrowWidth ? (
           <MobilePageHeader
             title={title}
-            leftContent={
-              <MobileBackButton onPress={() => navigate('/reports')} />
-            }
+            leftContent={<MobileBackButton onPress={() => navigate('/reports')} />}
           />
         ) : (
           <PageHeader
             title={
-              widget ? (
-                <EditablePageHeaderTitle
-                  title={title}
-                  onSave={onSaveWidgetName}
-                />
-              ) : (
-                title
-              )
+              widget ? <EditablePageHeaderTitle title={title} onSave={onSaveWidgetName} /> : title
             }
           />
         )
@@ -443,9 +422,7 @@ function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
       >
         <OptionsButton
           graphType={graphType}
-          onToggleGraphType={() =>
-            setGraphType(graphType === 'Line' ? 'Bar' : 'Line')
-          }
+          onToggleGraphType={() => setGraphType(graphType === 'Line' ? 'Bar' : 'Line')}
           showBalance={showBalance}
           onToggleShowBalance={() => setShowBalance(v => !v)}
           showCategories={showCategories}
@@ -455,12 +432,8 @@ function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
         />
 
         <Tooltip content={t('Export as CSV')}>
-          <Button
-            variant="bare"
-            onPress={onExportCsv}
-            aria-label={t('Export as CSV')}
-          >
-            <SvgDownload style={{ width: 16, height: 16 }} />
+          <Button variant="bare" onPress={onExportCsv} aria-label={t('Export as CSV')}>
+            <SvgDownload style={{width: 16, height: 16}} />
           </Button>
         </Tooltip>
 
@@ -506,7 +479,7 @@ function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
                   flexDirection: 'row',
                 }}
               >
-                <View style={{ flex: 1 }} />
+                <View style={{flex: 1}} />
                 <View
                   style={{
                     alignItems: 'flex-end',
@@ -517,14 +490,14 @@ function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
                     {data && (
                       <>
                         <AlignedText
-                          style={{ marginBottom: 5, minWidth: 210 }}
+                          style={{marginBottom: 5, minWidth: 210}}
                           left={
                             <Block>
                               <Trans>Budgeted:</Trans>
                             </Block>
                           }
                           right={
-                            <FinancialText style={{ fontWeight: 600 }}>
+                            <FinancialText style={{fontWeight: 600}}>
                               <PrivacyFilter>
                                 {format(data.totalBudgeted, 'financial')}
                               </PrivacyFilter>
@@ -532,47 +505,42 @@ function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
                           }
                         />
                         <AlignedText
-                          style={{ marginBottom: 5, minWidth: 210 }}
+                          style={{marginBottom: 5, minWidth: 210}}
                           left={
                             <Block>
                               <Trans>Spent:</Trans>
                             </Block>
                           }
                           right={
-                            <FinancialText style={{ fontWeight: 600 }}>
-                              <PrivacyFilter>
-                                {format(data.totalSpent, 'financial')}
-                              </PrivacyFilter>
+                            <FinancialText style={{fontWeight: 600}}>
+                              <PrivacyFilter>{format(data.totalSpent, 'financial')}</PrivacyFilter>
                             </FinancialText>
                           }
                         />
                         <AlignedText
-                          style={{ marginBottom: 5, minWidth: 210 }}
+                          style={{marginBottom: 5, minWidth: 210}}
                           left={
                             <Block>
                               <Trans>Overspending adj:</Trans>
                             </Block>
                           }
                           right={
-                            <FinancialText style={{ fontWeight: 600 }}>
+                            <FinancialText style={{fontWeight: 600}}>
                               <PrivacyFilter>
-                                {format(
-                                  data.totalOverspendingAdjustment,
-                                  'financial',
-                                )}
+                                {format(data.totalOverspendingAdjustment, 'financial')}
                               </PrivacyFilter>
                             </FinancialText>
                           }
                         />
                         <AlignedText
-                          style={{ marginBottom: 5, minWidth: 210 }}
+                          style={{marginBottom: 5, minWidth: 210}}
                           left={
                             <Block>
                               <Trans>Ending balance:</Trans>
                             </Block>
                           }
                           right={
-                            <FinancialText style={{ fontWeight: 600 }}>
+                            <FinancialText style={{fontWeight: 600}}>
                               <PrivacyFilter>
                                 <Change amount={endingBalance} />
                               </PrivacyFilter>
@@ -585,39 +553,36 @@ function BudgetAnalysisInternal({ widget }: BudgetAnalysisInternalProps) {
                 </View>
               </View>
               <BudgetAnalysisGraph
-                style={{ flexGrow: 1 }}
+                style={{flexGrow: 1}}
                 data={data}
                 graphType={graphType}
                 showBalance={showBalance}
                 balanceOnly={!showCategories}
                 isConcise={isConcise}
               />
-              <View style={{ marginTop: 30 }}>
+              <View style={{marginTop: 30}}>
                 <Trans>
                   <Paragraph>
                     <strong>Understanding the Chart</strong>
-                    <br />• <strong>Budgeted:</strong> The amount you allocated
-                    each month
+                    <br />• <strong>Budgeted:</strong> The amount you allocated each month
                     <br />• <strong>Spent:</strong> Your actual spending
-                    <br />• <strong>Overspending Adjustment:</strong> Amounts
-                    from categories without rollover that were reset
-                    <br />• <strong>Balance:</strong> Your cumulative budget
-                    performance, starting with any prior balance. Respects
-                    category rollover settings from your budget.
+                    <br />• <strong>Overspending Adjustment:</strong> Amounts from categories
+                    without rollover that were reset
+                    <br />• <strong>Balance:</strong> Your cumulative budget performance, starting
+                    with any prior balance. Respects category rollover settings from your budget.
                   </Paragraph>
                   <Paragraph>
                     <strong>Understanding the Budget Summary</strong>
                     <br />
-                    The balance starts from the month before your selected
-                    period. Budgeted, spent, and overspending adjustments show
-                    totals over the period. Ending balance shows the final
-                    balance at period end. You can filter by categories to track
-                    changes in a specific area.
+                    The balance starts from the month before your selected period. Budgeted, spent,
+                    and overspending adjustments show totals over the period. Ending balance shows
+                    the final balance at period end. You can filter by categories to track changes
+                    in a specific area.
                   </Paragraph>
                   <Paragraph>
-                    Use the <strong>Options</strong> button to switch between
-                    line and bar chart, toggle balance and category series
-                    visibility, and include hidden budget categories.
+                    Use the <strong>Options</strong> button to switch between line and bar chart,
+                    toggle balance and category series visibility, and include hidden budget
+                    categories.
                   </Paragraph>
                 </Trans>
               </View>

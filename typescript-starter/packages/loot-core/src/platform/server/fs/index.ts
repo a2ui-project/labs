@@ -15,17 +15,17 @@
  */
 
 // @ts-strict-ignore
-import { SQLiteFS } from 'absurd-sql';
+import {SQLiteFS} from 'absurd-sql';
 import IndexedDBBackend from 'absurd-sql/dist/indexeddb-backend';
 
 import * as connection from '#platform/server/connection';
-import { join } from '#platform/server/fs/path-join';
+import {join} from '#platform/server/fs/path-join';
 import * as idb from '#platform/server/indexeddb';
-import { logger } from '#platform/server/log';
-import { _getModule } from '#platform/server/sqlite';
-import type { SqlJsModule } from '#platform/server/sqlite';
+import {logger} from '#platform/server/log';
+import {_getModule} from '#platform/server/sqlite';
+import type {SqlJsModule} from '#platform/server/sqlite';
 
-import { _setDocumentDir as _setDocumentDirShared } from './shared';
+import {_setDocumentDir as _setDocumentDirShared} from './shared';
 
 let FS: SqlJsModule['FS'] = null;
 let BFS = null;
@@ -34,8 +34,8 @@ const NO_PERSIST = false;
 export const bundledDatabasePath: string = '/default-db.sqlite';
 export const migrationsPath: string = '/migrations';
 export const demoBudgetPath: string = '/demo-budget';
-export { join };
-export { getDocumentDir, getBudgetDir } from './shared';
+export {join};
+export {getDocumentDir, getBudgetDir} from './shared';
 export const getDataDir = () => process.env.ACTUAL_DATA_DIR;
 
 // The active document dir is persisted alongside the built-in /documents
@@ -125,32 +125,22 @@ function _createFile(filepath: string) {
   return filepath;
 }
 
+async function _readFile(filepath: string, opts: {encoding: 'utf8'}): Promise<string>;
+async function _readFile(filepath: string, opts?: {encoding: 'binary'}): Promise<Uint8Array>;
 async function _readFile(
   filepath: string,
-  opts: { encoding: 'utf8' },
-): Promise<string>;
-async function _readFile(
-  filepath: string,
-  opts?: { encoding: 'binary' },
-): Promise<Uint8Array>;
-async function _readFile(
-  filepath: string,
-  opts?: { encoding: 'utf8' } | { encoding: 'binary' },
+  opts?: {encoding: 'utf8'} | {encoding: 'binary'},
 ): Promise<string | Uint8Array> {
   // We persist stuff in /documents, but don't need to handle sqlite
   // file specifically because those are symlinked to a separate
   // filesystem and will be handled in the BlockedFS
-  if (
-    !NO_PERSIST &&
-    isPersistedPath(filepath) &&
-    !filepath.endsWith('.sqlite')
-  ) {
+  if (!NO_PERSIST && isPersistedPath(filepath) && !filepath.endsWith('.sqlite')) {
     if (!_exists(filepath)) {
       throw new Error('File does not exist: ' + filepath);
     }
 
     // Grab contents from IDB
-    const { store } = idb.getStore(await idb.getDatabase(), 'files');
+    const {store} = idb.getStore(await idb.getDatabase(), 'files');
     const item = await idb.get(store, filepath);
 
     if (item == null) {
@@ -158,18 +148,15 @@ async function _readFile(
     }
 
     if (opts?.encoding === 'utf8' && ArrayBuffer.isView(item.contents)) {
-      return String.fromCharCode.apply(
-        null,
-        new Uint16Array(item.contents.buffer),
-      );
+      return String.fromCharCode.apply(null, new Uint16Array(item.contents.buffer));
     }
 
     return item.contents;
   } else {
     if (opts?.encoding === 'utf8') {
-      return FS.readFile(resolveLink(filepath), { encoding: 'utf8' });
+      return FS.readFile(resolveLink(filepath), {encoding: 'utf8'});
     } else if (opts?.encoding === 'binary') {
-      return FS.readFile(resolveLink(filepath), { encoding: 'binary' });
+      return FS.readFile(resolveLink(filepath), {encoding: 'binary'});
     } else {
       return FS.readFile(resolveLink(filepath));
     }
@@ -178,7 +165,7 @@ async function _readFile(
 
 function resolveLink(path: string): string {
   try {
-    const { node } = FS.lookupPath(path, { follow: false });
+    const {node} = FS.lookupPath(path, {follow: false});
     return node.link ? FS.readlink(path) : path;
   } catch {
     return path;
@@ -200,7 +187,7 @@ async function _writeFile(filepath: string, contents): Promise<boolean> {
     const isDb = filepath.endsWith('.sqlite');
 
     // Write to IDB
-    const { store } = idb.getStore(await idb.getDatabase(), 'files');
+    const {store} = idb.getStore(await idb.getDatabase(), 'files');
 
     if (isDb) {
       // We never write the contents of the database to idb ourselves.
@@ -208,7 +195,7 @@ async function _writeFile(filepath: string, contents): Promise<boolean> {
       // `_createFile` above). However, we still need to record an
       // entry for the db file so the fs gets properly constructed on
       // startup
-      await idb.set(store, { filepath, contents: '' });
+      await idb.set(store, {filepath, contents: ''});
 
       // Actually persist the data by going the FS, which will pass
       // the data through the symlink to the blocked fs. For some
@@ -216,7 +203,7 @@ async function _writeFile(filepath: string, contents): Promise<boolean> {
       await Promise.resolve();
       FS.writeFile(resolveLink(filepath), contents);
     } else {
-      await idb.set(store, { filepath, contents });
+      await idb.set(store, {filepath, contents});
     }
   } else {
     FS.writeFile(resolveLink(filepath), contents);
@@ -224,14 +211,11 @@ async function _writeFile(filepath: string, contents): Promise<boolean> {
   return true;
 }
 
-async function _copySqlFile(
-  frompath: string,
-  topath: string,
-): Promise<boolean> {
+async function _copySqlFile(frompath: string, topath: string): Promise<boolean> {
   _createFile(topath);
 
-  const { store } = idb.getStore(await idb.getDatabase(), 'files');
-  await idb.set(store, { filepath: topath, contents: '' });
+  const {store} = idb.getStore(await idb.getDatabase(), 'files');
+  await idb.set(store, {filepath: topath, contents: ''});
   const fromitem = await idb.get(store, frompath);
   const fromDbPath = pathToId(fromitem.filepath);
   const toDbPath = pathToId(topath);
@@ -272,7 +256,7 @@ async function _removeFile(filepath: string) {
     const isDb = filepath.endsWith('.sqlite');
 
     // Remove from IDB
-    const { store } = idb.getStore(await idb.getDatabase(), 'files');
+    const {store} = idb.getStore(await idb.getDatabase(), 'files');
     await idb.del(store, filepath);
 
     // If this is the database, is has been symlinked and we want to
@@ -294,9 +278,7 @@ async function _removeFile(filepath: string) {
 
 // Load files from the server that should exist by default
 async function populateDefaultFilesystem() {
-  const index = await (
-    await fetch(process.env.PUBLIC_URL + 'data-file-index.txt')
-  ).text();
+  const index = await (await fetch(process.env.PUBLIC_URL + 'data-file-index.txt')).text();
   const files = index
     .split('\n')
     .map(name => name.trim())
@@ -319,7 +301,7 @@ async function populateDefaultFilesystem() {
 }
 
 const populateFileHierarchy = async function () {
-  const { store } = idb.getStore(await idb.getDatabase(), 'files');
+  const {store} = idb.getStore(await idb.getDatabase(), 'files');
   const req = store.getAllKeys();
   const paths: string[] = await new Promise((resolve, reject) => {
     // @ts-expect-error fix me
@@ -393,10 +375,7 @@ export const size = async function (filepath) {
   return attrs.size;
 };
 
-export const copyFile = async function (
-  frompath: string,
-  topath: string,
-): Promise<boolean> {
+export const copyFile = async function (frompath: string, topath: string): Promise<boolean> {
   let result = false;
   try {
     const contents = await _readFile(frompath);
@@ -417,23 +396,14 @@ export const copyFile = async function (
   return result;
 };
 
-export async function readFile(
-  filepath: string,
-  encoding?: 'utf8',
-): Promise<string>;
-export async function readFile(
-  filepath: string,
-  encoding: 'binary',
-): Promise<Uint8Array>;
-export async function readFile(
-  filepath: string,
-  encoding: 'binary' | 'utf8' = 'utf8',
-) {
+export async function readFile(filepath: string, encoding?: 'utf8'): Promise<string>;
+export async function readFile(filepath: string, encoding: 'binary'): Promise<Uint8Array>;
+export async function readFile(filepath: string, encoding: 'binary' | 'utf8' = 'utf8') {
   if (encoding === 'utf8') {
-    return _readFile(filepath, { encoding });
+    return _readFile(filepath, {encoding});
   }
 
-  return _readFile(filepath, { encoding });
+  return _readFile(filepath, {encoding});
 }
 
 export const writeFile = async function (filepath: string, contents) {
@@ -467,7 +437,5 @@ export const removeDirRecursively = async function (dirpath) {
 };
 
 export const getModifiedTime = async (_filepath: string): Promise<Date> => {
-  throw new Error(
-    'getModifiedTime not supported on the web (only used for backups)',
-  );
+  throw new Error('getModifiedTime not supported on the web (only used for backups)');
 };

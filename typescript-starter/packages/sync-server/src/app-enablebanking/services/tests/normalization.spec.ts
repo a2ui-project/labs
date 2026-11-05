@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 import {
   isImportableTransaction,
@@ -77,9 +77,7 @@ describe('normalizeTransaction', () => {
 
   it('should join remittance_information with space', () => {
     const result = normalizeTransaction(mockCreditTransaction);
-    expect(result.remittanceInformationUnstructured).toBe(
-      'Monthly salary March 2026',
-    );
+    expect(result.remittanceInformationUnstructured).toBe('Monthly salary March 2026');
   });
 
   it('should handle minimal transaction with empty payee', () => {
@@ -108,23 +106,17 @@ describe('normalizeTransaction', () => {
       value_date: undefined,
       transaction_date: '2026-02-28',
     };
-    expect(normalizeTransaction(noBookingOrValueDate).bookingDate).toBe(
-      '2026-02-28',
-    );
+    expect(normalizeTransaction(noBookingOrValueDate).bookingDate).toBe('2026-02-28');
   });
 });
 
 describe('isImportableTransaction', () => {
   it('accepts a normal booked transaction (ISO date + numeric amount)', () => {
-    expect(
-      isImportableTransaction(normalizeTransaction(mockCreditTransaction)),
-    ).toBe(true);
+    expect(isImportableTransaction(normalizeTransaction(mockCreditTransaction))).toBe(true);
   });
 
   it('accepts a pending transaction that carries a date (no regression)', () => {
-    expect(
-      isImportableTransaction(normalizeTransaction(mockPendingTransaction)),
-    ).toBe(true);
+    expect(isImportableTransaction(normalizeTransaction(mockPendingTransaction))).toBe(true);
   });
 
   it('rejects a pending transaction with no date (the case that aborts the sync)', () => {
@@ -147,7 +139,7 @@ describe('isImportableTransaction', () => {
   it('rejects a non-numeric amount', () => {
     const normalized = normalizeTransaction({
       ...mockCreditTransaction,
-      transaction_amount: { currency: 'EUR', amount: 'n/a' },
+      transaction_amount: {currency: 'EUR', amount: 'n/a'},
     });
     expect(isImportableTransaction(normalized)).toBe(false);
   });
@@ -155,7 +147,7 @@ describe('isImportableTransaction', () => {
   it('rejects an empty amount (Number("") would coerce to 0)', () => {
     const normalized = normalizeTransaction({
       ...mockCreditTransaction,
-      transaction_amount: { currency: 'EUR', amount: '' },
+      transaction_amount: {currency: 'EUR', amount: ''},
     });
     expect(normalized.transactionAmount.amount).toBe('');
     expect(isImportableTransaction(normalized)).toBe(false);
@@ -166,7 +158,7 @@ describe('SEPA prefix stripping', () => {
   it('strips EREF+ from a single line', () => {
     const tx = {
       transaction_id: 'tx-prefix-1',
-      transaction_amount: { currency: 'EUR', amount: '10.00' },
+      transaction_amount: {currency: 'EUR', amount: '10.00'},
       credit_debit_indicator: 'CRDT' as const,
       status: 'BOOK' as const,
       booking_date: '2026-04-01',
@@ -180,7 +172,7 @@ describe('SEPA prefix stripping', () => {
   it('drops empty entries after stripping', () => {
     const tx = {
       transaction_id: 'tx-prefix-2',
-      transaction_amount: { currency: 'EUR', amount: '5.00' },
+      transaction_amount: {currency: 'EUR', amount: '5.00'},
       credit_debit_indicator: 'CRDT' as const,
       status: 'BOOK' as const,
       booking_date: '2026-04-02',
@@ -193,7 +185,7 @@ describe('SEPA prefix stripping', () => {
   it('returns undefined when stripping leaves nothing', () => {
     const tx = {
       transaction_id: 'tx-prefix-3',
-      transaction_amount: { currency: 'EUR', amount: '5.00' },
+      transaction_amount: {currency: 'EUR', amount: '5.00'},
       credit_debit_indicator: 'CRDT' as const,
       status: 'BOOK' as const,
       booking_date: '2026-04-02',
@@ -206,15 +198,11 @@ describe('SEPA prefix stripping', () => {
   it('preserves merchant tokens that look like prefixes but are not on the allowlist', () => {
     const tx = {
       transaction_id: 'tx-prefix-4',
-      transaction_amount: { currency: 'EUR', amount: '99.00' },
+      transaction_amount: {currency: 'EUR', amount: '99.00'},
       credit_debit_indicator: 'DBIT' as const,
       status: 'BOOK' as const,
       booking_date: '2026-04-04',
-      remittance_information: [
-        'BMW+ Service Vertrag',
-        'USB+HDMI Kabel',
-        'COVID+ Test Apotheke',
-      ],
+      remittance_information: ['BMW+ Service Vertrag', 'USB+HDMI Kabel', 'COVID+ Test Apotheke'],
     };
     const out = normalizeTransaction(tx);
     expect(out.remittanceInformationUnstructured).toBe(
@@ -228,7 +216,7 @@ describe('normalizeTransaction shape for bank-sync mapping', () => {
   it('exposes notes equal to remittanceInformationUnstructured', () => {
     const tx = {
       transaction_id: 'tx-notes-1',
-      transaction_amount: { currency: 'EUR', amount: '12.34' },
+      transaction_amount: {currency: 'EUR', amount: '12.34'},
       credit_debit_indicator: 'CRDT' as const,
       status: 'BOOK' as const,
       booking_date: '2026-04-03',
@@ -243,15 +231,15 @@ describe('normalizeTransaction shape for bank-sync mapping', () => {
     const tx = {
       entry_reference: 'ref-raw-1',
       transaction_id: 'tx-raw-1',
-      transaction_amount: { currency: 'EUR', amount: '12.34' },
-      creditor: { name: 'Acme' },
+      transaction_amount: {currency: 'EUR', amount: '12.34'},
+      creditor: {name: 'Acme'},
       credit_debit_indicator: 'DBIT' as const,
       status: 'BOOK' as const,
       booking_date: '2026-04-03',
     };
     const out = normalizeTransaction(tx);
     expect(out.entry_reference).toBe('ref-raw-1');
-    expect(out.creditor).toEqual({ name: 'Acme' });
+    expect(out.creditor).toEqual({name: 'Acme'});
     expect(out.credit_debit_indicator).toBe('DBIT');
   });
 });
@@ -273,7 +261,7 @@ describe('normalizeBalance', () => {
 
   it('should handle whole numbers', () => {
     const result = normalizeBalance({
-      balance_amount: { currency: 'EUR', amount: '100' },
+      balance_amount: {currency: 'EUR', amount: '100'},
       balance_type: 'CLAV',
     });
     expect(result.balanceAmount.amount).toBe(10000);
@@ -287,7 +275,7 @@ describe('normalizeAccount', () => {
   });
 
   it('should use name when available and aspsp name for institution', () => {
-    const result = normalizeAccount(mockSessionAccount, { name: 'Nordea' });
+    const result = normalizeAccount(mockSessionAccount, {name: 'Nordea'});
     expect(result.name).toBe('Current Account');
     expect(result.institution).toBe('Nordea');
   });

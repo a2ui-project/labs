@@ -15,39 +15,35 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import type { CSSProperties, FormEvent } from 'react';
-import { Form } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import type {CSSProperties, FormEvent} from 'react';
+import {Form} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { FormError } from '@actual-app/components/form-error';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { integerToCurrency } from '@actual-app/core/shared/util';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import type { TransObjectLiteral } from '@actual-app/core/types/util';
+import {Button} from '@actual-app/components/button';
+import {FormError} from '@actual-app/components/form-error';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {integerToCurrency} from '@actual-app/core/shared/util';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import type {TransObjectLiteral} from '@actual-app/core/types/util';
 
-import { useCloseAccountMutation } from '#accounts';
-import { AccountAutocomplete } from '#components/autocomplete/AccountAutocomplete';
-import { CategoryAutocomplete } from '#components/autocomplete/CategoryAutocomplete';
-import { Link } from '#components/common/Link';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { pushModal } from '#modals/modalsSlice';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {useCloseAccountMutation} from '#accounts';
+import {AccountAutocomplete} from '#components/autocomplete/AccountAutocomplete';
+import {CategoryAutocomplete} from '#components/autocomplete/CategoryAutocomplete';
+import {Link} from '#components/common/Link';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {pushModal} from '#modals/modalsSlice';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
-function needsCategory(
-  account: AccountEntity,
-  currentTransfer: string,
-  accounts: AccountEntity[],
-) {
+function needsCategory(account: AccountEntity, currentTransfer: string, accounts: AccountEntity[]) {
   const acct = accounts.find(a => a.id === currentTransfer);
   const isOffBudget = acct && acct.offbudget === 1;
 
@@ -56,21 +52,14 @@ function needsCategory(
   return account.offbudget === 0 && isOffBudget;
 }
 
-type CloseAccountModalProps = Extract<
-  ModalType,
-  { name: 'close-account' }
->['options'];
+type CloseAccountModalProps = Extract<ModalType, {name: 'close-account'}>['options'];
 
-export function CloseAccountModal({
-  account,
-  balance,
-  canDelete,
-}: CloseAccountModalProps) {
-  const { t } = useTranslation(); // Initialize translation hook
-  const { data: allAccounts = [] } = useAccounts();
+export function CloseAccountModal({account, balance, canDelete}: CloseAccountModalProps) {
+  const {t} = useTranslation(); // Initialize translation hook
+  const {data: allAccounts = []} = useAccounts();
   const accounts = allAccounts.filter(a => a.closed === 0);
   const {
-    data: { grouped: categoryGroups, list: categories } = {
+    data: {grouped: categoryGroups, list: categories} = {
       grouped: [],
       list: [],
     },
@@ -84,7 +73,7 @@ export function CloseAccountModal({
   const [transferError, setTransferError] = useState(false);
   const [categoryError, setCategoryError] = useState(false);
   const dispatch = useDispatch();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   const onSelectAccount = accId => {
     setTransferAccountId(accId);
@@ -116,8 +105,7 @@ export function CloseAccountModal({
     const transferError = balance !== 0 && !transferAccountId;
     setTransferError(transferError);
 
-    const categoryError =
-      needsCategory(account, transferAccountId, accounts) && !categoryId;
+    const categoryError = needsCategory(account, transferAccountId, accounts) && !categoryId;
     setCategoryError(categoryError);
 
     if (transferError || categoryError) {
@@ -136,12 +124,8 @@ export function CloseAccountModal({
   };
 
   return (
-    <Modal
-      name="close-account"
-      isLoading={loading}
-      containerProps={{ style: { width: '30vw' } }}
-    >
-      {({ state }) => (
+    <Modal name="close-account" isLoading={loading} containerProps={{style: {width: '30vw'}}}>
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Close Account')}
@@ -151,24 +135,15 @@ export function CloseAccountModal({
             <Paragraph>
               <Trans>
                 Are you sure you want to close{' '}
-                <strong>
-                  {{ accountName: account.name } as TransObjectLiteral}
-                </strong>
-                ?{' '}
+                <strong>{{accountName: account.name} as TransObjectLiteral}</strong>?{' '}
               </Trans>
               {canDelete ? (
                 <span>
-                  <Trans>
-                    This account has no transactions so it will be permanently
-                    deleted.
-                  </Trans>
+                  <Trans>This account has no transactions so it will be permanently deleted.</Trans>
                 </span>
               ) : (
                 <span>
-                  <Trans>
-                    This account has transactions so we can't permanently delete
-                    it.
-                  </Trans>
+                  <Trans>This account has transactions so we can't permanently delete it.</Trans>
                 </span>
               )}
             </Paragraph>
@@ -191,12 +166,12 @@ export function CloseAccountModal({
                           } as TransObjectLiteral
                         }
                       </strong>
-                      . To close this account, select a different account to
-                      transfer this balance to:
+                      . To close this account, select a different account to transfer this balance
+                      to:
                     </Trans>
                   </Paragraph>
 
-                  <View style={{ marginBottom: 15 }}>
+                  <View style={{marginBottom: 15}}>
                     <AccountAutocomplete
                       includeClosedAccounts={false}
                       hiddenAccounts={[account.id]}
@@ -230,18 +205,17 @@ export function CloseAccountModal({
                   </View>
 
                   {transferError && (
-                    <FormError style={{ marginBottom: 15 }}>
+                    <FormError style={{marginBottom: 15}}>
                       <Trans>Transfer is required</Trans>
                     </FormError>
                   )}
 
                   {needsCategory(account, transferAccountId, accounts) && (
-                    <View style={{ marginBottom: 15 }}>
+                    <View style={{marginBottom: 15}}>
                       <Paragraph>
                         <Trans>
-                          Since you are transferring the balance from an on
-                          budget account to an off budget account, this
-                          transaction must be categorized. Select a category:
+                          Since you are transferring the balance from an on budget account to an off
+                          budget account, this transaction must be categorized. Select a category:
                         </Trans>
                       </Paragraph>
 
@@ -285,8 +259,8 @@ export function CloseAccountModal({
               )}
 
               {!canDelete && (
-                <View style={{ marginBottom: 15 }}>
-                  <Text style={{ fontSize: 12 }}>
+                <View style={{marginBottom: 15}}>
+                  <Text style={{fontSize: 12}}>
                     <Trans>
                       You can also{' '}
                       <Link
@@ -299,13 +273,12 @@ export function CloseAccountModal({
                           });
                           state.close();
                         }}
-                        style={{ color: theme.errorText }}
+                        style={{color: theme.errorText}}
                       >
                         force close
                       </Link>{' '}
-                      the account which will delete it and all its transactions
-                      permanently. Doing so may change your budget unexpectedly
-                      since money in it may vanish.
+                      the account which will delete it and all its transactions permanently. Doing
+                      so may change your budget unexpectedly since money in it may vanish.
                     </Trans>
                   </Text>
                 </View>

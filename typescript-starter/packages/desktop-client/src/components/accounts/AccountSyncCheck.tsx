@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import React, {useCallback, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { SvgExclamationOutline } from '@actual-app/components/icons/v1';
-import { Popover } from '@actual-app/components/popover';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { AccountEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgExclamationOutline} from '@actual-app/components/icons/v1';
+import {Popover} from '@actual-app/components/popover';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity} from '@actual-app/core/types/models';
 
-import { useUnlinkAccountMutation } from '#accounts';
-import { getFailedSyncError, isAccountFailedSync } from '#accounts/syncStatus';
-import { Link } from '#components/common/Link';
-import { authorizeBank as authorizeEnableBanking } from '#enablebanking';
-import { authorizeBank as authorizeGoCardless } from '#gocardless';
-import { useAccounts } from '#hooks/useAccounts';
-import { useFailedAccounts } from '#hooks/useFailedAccounts';
-import { useDispatch } from '#redux';
+import {useUnlinkAccountMutation} from '#accounts';
+import {getFailedSyncError, isAccountFailedSync} from '#accounts/syncStatus';
+import {Link} from '#components/common/Link';
+import {authorizeBank as authorizeEnableBanking} from '#enablebanking';
+import {authorizeBank as authorizeGoCardless} from '#gocardless';
+import {useAccounts} from '#hooks/useAccounts';
+import {useFailedAccounts} from '#hooks/useFailedAccounts';
+import {useDispatch} from '#redux';
 
 function useErrorMessage() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   function getErrorMessage(type: string, code: string) {
     switch (type.toUpperCase()) {
       case 'ITEM_ERROR':
@@ -75,10 +75,7 @@ function useErrorMessage() {
         return (
           <Trans>
             The account needs your attention at{' '}
-            <Link
-              variant="external"
-              to="https://bridge.simplefin.org/auth/login"
-            >
+            <Link variant="external" to="https://bridge.simplefin.org/auth/login">
               SimpleFIN
             </Link>
             .
@@ -104,17 +101,17 @@ function useErrorMessage() {
     );
   }
 
-  return { getErrorMessage };
+  return {getErrorMessage};
 }
 
 export function AccountSyncCheck() {
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const failedAccounts = useFailedAccounts();
   const dispatch = useDispatch();
-  const { id } = useParams();
+  const {id} = useParams();
   const [open, setOpen] = useState(false);
   const triggerRef = useRef(null);
-  const { getErrorMessage } = useErrorMessage();
+  const {getErrorMessage} = useErrorMessage();
 
   const reauth = useCallback(
     (acc: AccountEntity) => {
@@ -135,7 +132,7 @@ export function AccountSyncCheck() {
   const unlink = useCallback(
     (acc: AccountEntity) => {
       if (acc.id) {
-        unlinkAccount.mutate({ id: acc.id });
+        unlinkAccount.mutate({id: acc.id});
       }
 
       setOpen(false);
@@ -156,7 +153,7 @@ export function AccountSyncCheck() {
   // to the persisted status for failures that happened on another client
   const error = failedAccounts.get(id) ?? getFailedSyncError(account);
 
-  const { type, code } = error;
+  const {type, code} = error;
   const showAuth =
     (type === 'ITEM_ERROR' && code === 'ITEM_LOGIN_REQUIRED') ||
     (type === 'INVALID_INPUT' && code === 'INVALID_ACCESS_TOKEN');
@@ -176,12 +173,8 @@ export function AccountSyncCheck() {
         }}
         onPress={() => setOpen(true)}
       >
-        <SvgExclamationOutline
-          style={{ width: 14, height: 14, marginRight: 5 }}
-        />{' '}
-        <Trans>
-          This account is experiencing connection problems. Let's fix it.
-        </Trans>
+        <SvgExclamationOutline style={{width: 14, height: 14, marginRight: 5}} />{' '}
+        <Trans>This account is experiencing connection problems. Let's fix it.</Trans>
       </Button>
 
       <Popover
@@ -189,17 +182,17 @@ export function AccountSyncCheck() {
         placement="bottom start"
         isOpen={open}
         onOpenChange={() => setOpen(false)}
-        style={{ fontSize: 14, padding: 15, maxWidth: 400 }}
+        style={{fontSize: 14, padding: 15, maxWidth: 400}}
       >
-        <div style={{ marginBottom: '1.15em' }}>
+        <div style={{marginBottom: '1.15em'}}>
           <Trans>The server returned the following error:</Trans>
         </div>
 
-        <div style={{ marginBottom: '1.25em', color: theme.errorText }}>
+        <div style={{marginBottom: '1.25em', color: theme.errorText}}>
           {getErrorMessage(error.type, error.code)}
         </div>
 
-        <View style={{ justifyContent: 'flex-end', flexDirection: 'row' }}>
+        <View style={{justifyContent: 'flex-end', flexDirection: 'row'}}>
           {showAuth ? (
             <>
               <Button onPress={() => unlink(account)}>
@@ -209,7 +202,7 @@ export function AccountSyncCheck() {
                 variant="primary"
                 autoFocus
                 onPress={() => reauth(account)}
-                style={{ marginLeft: 5 }}
+                style={{marginLeft: 5}}
               >
                 <Trans>Reauthorize</Trans>
               </Button>

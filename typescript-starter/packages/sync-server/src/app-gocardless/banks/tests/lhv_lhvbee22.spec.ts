@@ -15,7 +15,7 @@
  */
 
 import LhvLhvbee22 from '#app-gocardless/banks/lhv_lhvbee22';
-import type { Transaction } from '#app-gocardless/gocardless-node.types';
+import type {Transaction} from '#app-gocardless/gocardless-node.types';
 
 describe('#normalizeTransaction', () => {
   const bookedCardTransaction = {
@@ -34,15 +34,15 @@ describe('#normalizeTransaction', () => {
   } as unknown as Transaction;
 
   it('extracts booked card transaction creditor name', () => {
-    expect(
-      LhvLhvbee22.normalizeTransaction(bookedCardTransaction, true)?.payeeName,
-    ).toEqual('CrustumOU');
+    expect(LhvLhvbee22.normalizeTransaction(bookedCardTransaction, true)?.payeeName).toEqual(
+      'CrustumOU',
+    );
   });
 
   it('extracts booked card transaction date', () => {
-    expect(
-      LhvLhvbee22.normalizeTransaction(bookedCardTransaction, true)?.date,
-    ).toEqual('2025-01-02');
+    expect(LhvLhvbee22.normalizeTransaction(bookedCardTransaction, true)?.date).toEqual(
+      '2025-01-02',
+    );
   });
 
   it.each([
@@ -72,15 +72,14 @@ describe('#normalizeTransaction', () => {
   };
 
   it('extracts pending card transaction creditor name', () => {
-    expect(
-      LhvLhvbee22.normalizeTransaction(pendingCardTransaction, false)
-        ?.payeeName,
-    ).toEqual('CrustumOU');
+    expect(LhvLhvbee22.normalizeTransaction(pendingCardTransaction, false)?.payeeName).toEqual(
+      'CrustumOU',
+    );
   });
 
   it('extracts pending card transaction date', () => {
-    expect(
-      LhvLhvbee22.normalizeTransaction(pendingCardTransaction, false)?.date,
-    ).toEqual('2025-01-03');
+    expect(LhvLhvbee22.normalizeTransaction(pendingCardTransaction, false)?.date).toEqual(
+      '2025-01-03',
+    );
   });
 });

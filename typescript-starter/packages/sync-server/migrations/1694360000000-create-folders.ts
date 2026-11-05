@@ -16,7 +16,7 @@
 
 import fs from 'node:fs/promises';
 
-import { config } from '../src/load-config';
+import {config} from '../src/load-config';
 
 async function ensureExists(path: string): Promise<void | null> {
   try {
@@ -36,6 +36,6 @@ export const up = async function (): Promise<void> {
 };
 
 export const down = async function (): Promise<void> {
-  await fs.rm(config.get('serverFiles'), { recursive: true, force: true });
-  await fs.rm(config.get('userFiles'), { recursive: true, force: true });
+  await fs.rm(config.get('serverFiles'), {recursive: true, force: true});
+  await fs.rm(config.get('userFiles'), {recursive: true, force: true});
 };

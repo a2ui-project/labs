@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { DEFAULT_DASHBOARD_STATE } from '#shared/dashboard';
+import {DEFAULT_DASHBOARD_STATE} from '#shared/dashboard';
 
 export default async function runMigration(db) {
   db.transaction(() => {
@@ -49,9 +49,7 @@ export default async function runMigration(db) {
             widget.height,
             widget.x,
             widget.y,
-            widget.meta !== undefined && widget.meta !== null
-              ? JSON.stringify(widget.meta)
-              : null,
+            widget.meta !== undefined && widget.meta !== null ? JSON.stringify(widget.meta) : null,
           ],
         );
       });
@@ -77,7 +75,7 @@ export default async function runMigration(db) {
           2,
           (id * 4) % 12,
           2 + Math.floor(id / 3) * 2,
-          JSON.stringify({ id: report.id }),
+          JSON.stringify({id: report.id}),
         ],
       );
     });

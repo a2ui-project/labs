@@ -17,15 +17,15 @@
 // @ts-strict-ignore
 import * as db from '#server/db';
 
-import { makeViews } from './views';
+import {makeViews} from './views';
 
 beforeEach(global.emptyDatabase());
 
 const schema = {
   transactions: {
-    id: { type: 'id' },
-    amount: { type: 'integer' },
-    transfer_id: { type: 'integer' },
+    id: {type: 'id'},
+    amount: {type: 'integer'},
+    transfer_id: {type: 'integer'},
   },
 };
 

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { addMonths, format } from 'date-fns';
+import {addMonths, format} from 'date-fns';
 
 import * as monthUtils from '#shared/months';
-import type { TransactionEntity } from '#types/models';
-import type { ForecastDataPoint, ForecastResult } from '#types/models/forecast';
+import type {TransactionEntity} from '#types/models';
+import type {ForecastDataPoint, ForecastResult} from '#types/models/forecast';
 
-import type { AccountWithComputedBalance } from './forecast-accounts';
-import { matchesForecastFilters } from './forecast-filters';
-import type { ForecastFilterInfo } from './forecast-filters';
-import type { ForecastScheduleOccurrence } from './forecast-schedules';
+import type {AccountWithComputedBalance} from './forecast-accounts';
+import {matchesForecastFilters} from './forecast-filters';
+import type {ForecastFilterInfo} from './forecast-filters';
+import type {ForecastScheduleOccurrence} from './forecast-schedules';
 
 type ScheduleOccurrenceSummary = {
   amount: number;
@@ -32,10 +32,7 @@ type ScheduleOccurrenceSummary = {
   scheduleName: string;
 };
 
-type ScheduleOccurrencesByAccount = Record<
-  string,
-  Record<string, ScheduleOccurrenceSummary[]>
->;
+type ScheduleOccurrencesByAccount = Record<string, Record<string, ScheduleOccurrenceSummary[]>>;
 
 type PostedTransactionSummary = {
   startingBalance: number;
@@ -59,9 +56,7 @@ type ProjectForecastDataParams = {
 };
 
 function maxDate(...dates: string[]) {
-  return dates.reduce((latest, current) =>
-    current > latest ? current : latest,
-  );
+  return dates.reduce((latest, current) => (current > latest ? current : latest));
 }
 
 export function buildForecastDateContext(
@@ -76,14 +71,9 @@ export function buildForecastDateContext(
   return {
     forecastStartDate,
     forecastEndDate,
-    forecastDays: monthUtils.dayRangeInclusive(
-      forecastStartDate,
-      forecastEndDate,
-    ),
+    forecastDays: monthUtils.dayRangeInclusive(forecastStartDate, forecastEndDate),
     firstForecastDate:
-      forecastEndDate < todayString
-        ? forecastStartDate
-        : maxDate(forecastStartDate, todayString),
+      forecastEndDate < todayString ? forecastStartDate : maxDate(forecastStartDate, todayString),
     endDateObj: endDate ? monthUtils.parseDate(endDate) : addMonths(today, 12),
   };
 }
@@ -158,18 +148,15 @@ export function indexScheduleOccurrences(
 }
 
 function groupTransactionsByAccount(transactions: TransactionEntity[]) {
-  return transactions.reduce<Map<string, TransactionEntity[]>>(
-    (grouped, tx) => {
-      const accountTransactions = grouped.get(tx.account);
-      if (accountTransactions) {
-        accountTransactions.push(tx);
-      } else {
-        grouped.set(tx.account, [tx]);
-      }
-      return grouped;
-    },
-    new Map(),
-  );
+  return transactions.reduce<Map<string, TransactionEntity[]>>((grouped, tx) => {
+    const accountTransactions = grouped.get(tx.account);
+    if (accountTransactions) {
+      accountTransactions.push(tx);
+    } else {
+      grouped.set(tx.account, [tx]);
+    }
+    return grouped;
+  }, new Map());
 }
 
 function summarizePostedTransactions(
@@ -234,8 +221,7 @@ function calculateLowestBalance(
 ) {
   const combinedByDate: Record<string, number> = {};
   for (const dataPoint of dataPoints) {
-    combinedByDate[dataPoint.date] =
-      (combinedByDate[dataPoint.date] || 0) + dataPoint.balance;
+    combinedByDate[dataPoint.date] = (combinedByDate[dataPoint.date] || 0) + dataPoint.balance;
   }
 
   let lowestBalance = {
@@ -259,10 +245,7 @@ function calculateLowestBalance(
   if (lowestBalance.balance === Infinity) {
     return {
       date: forecastStartDate,
-      balance: accounts.reduce(
-        (sum, account) => sum + account.balance_current,
-        0,
-      ),
+      balance: accounts.reduce((sum, account) => sum + account.balance_current, 0),
       accountId: '',
       accountName: '',
     };
@@ -277,10 +260,7 @@ export function projectForecastData({
   futureOccurrences,
   filterInfo,
   dateContext,
-}: ProjectForecastDataParams): Pick<
-  ForecastResult,
-  'dataPoints' | 'lowestBalance'
-> {
+}: ProjectForecastDataParams): Pick<ForecastResult, 'dataPoints' | 'lowestBalance'> {
   const accountIdsToQuery = accounts.map(account => account.id);
   const accountIdSet = new Set(accountIdsToQuery);
   const scheduleOccurrencesByAccount = indexScheduleOccurrences(
@@ -308,10 +288,6 @@ export function projectForecastData({
 
   return {
     dataPoints,
-    lowestBalance: calculateLowestBalance(
-      dataPoints,
-      accounts,
-      dateContext.forecastStartDate,
-    ),
+    lowestBalance: calculateLowestBalance(dataPoints, accounts, dateContext.forecastStartDate),
   };
 }

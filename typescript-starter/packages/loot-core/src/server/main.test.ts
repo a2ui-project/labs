@@ -15,10 +15,10 @@
  */
 
 // @ts-strict-ignore
-import { deserializeClock, getClock } from '@actual-app/crdt';
-import { v4 as uuidv4 } from 'uuid';
+import {deserializeClock, getClock} from '@actual-app/crdt';
+import {v4 as uuidv4} from 'uuid';
 
-import { expectSnapshotWithDiffer } from '#mocks/util';
+import {expectSnapshotWithDiffer} from '#mocks/util';
 import * as connection from '#platform/server/connection';
 import * as fs from '#platform/server/fs';
 import * as monthUtils from '#shared/months';
@@ -26,13 +26,8 @@ import * as monthUtils from '#shared/months';
 import * as budgetActions from './budget/actions';
 import * as budget from './budget/base';
 import * as db from './db';
-import { handlers } from './main';
-import {
-  disableGlobalMutations,
-  enableGlobalMutations,
-  runHandler,
-  runMutator,
-} from './mutators';
+import {handlers} from './main';
+import {disableGlobalMutations, enableGlobalMutations, runHandler, runMutator} from './mutators';
 import * as prefs from './prefs';
 import * as sheet from './sheet';
 
@@ -56,23 +51,14 @@ async function createTestBudget(name) {
   fs._setDocumentDir(fs.join(budgetPath, '..'));
 
   await fs.mkdir(budgetPath);
-  await fs.copyFile(
-    fs.join(templatePath, 'metadata.json'),
-    fs.join(budgetPath, 'metadata.json'),
-  );
-  await fs.copyFile(
-    fs.join(templatePath, 'db.sqlite'),
-    fs.join(budgetPath, 'db.sqlite'),
-  );
+  await fs.copyFile(fs.join(templatePath, 'metadata.json'), fs.join(budgetPath, 'metadata.json'));
+  await fs.copyFile(fs.join(templatePath, 'db.sqlite'), fs.join(budgetPath, 'db.sqlite'));
 }
 
 describe('Budgets', () => {
   afterEach(async () => {
     fs._setDocumentDir(null);
-    const budgetPath = fs.join(
-      __dirname,
-      '/../mocks/files/budgets/test-budget',
-    );
+    const budgetPath = fs.join(__dirname, '/../mocks/files/budgets/test-budget');
 
     if (await fs.exists(budgetPath)) {
       await fs.removeDirRecursively(budgetPath);
@@ -84,11 +70,9 @@ describe('Budgets', () => {
 
     // Grab the clock to compare later
     await db.openDatabase('test-budget');
-    const row = await db.first<db.DbClockMessage>(
-      'SELECT * FROM messages_clock',
-    );
+    const row = await db.first<db.DbClockMessage>('SELECT * FROM messages_clock');
 
-    const { error } = await runHandler(handlers['load-budget'], {
+    const {error} = await runHandler(handlers['load-budget'], {
       id: 'test-budget',
     });
     expect(error).toBe(undefined);
@@ -108,7 +92,7 @@ describe('Budgets', () => {
 
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => null);
 
-    const { error } = await runHandler(handlers['load-budget'], {
+    const {error} = await runHandler(handlers['load-budget'], {
       id: 'test-budget',
     });
     // There should be an error and the budget should be unloaded
@@ -123,9 +107,9 @@ describe('Budgets', () => {
 describe('Accounts', () => {
   test('Transfers are properly updated', async () => {
     await runMutator(async () => {
-      await db.insertAccount({ id: 'one', name: 'one' });
-      await db.insertAccount({ id: 'two', name: 'two' });
-      await db.insertAccount({ id: 'three', name: 'three' });
+      await db.insertAccount({id: 'one', name: 'one'});
+      await db.insertAccount({id: 'two', name: 'two'});
+      await db.insertAccount({id: 'three', name: 'three'});
       await db.insertPayee({
         id: 'transfer-one',
         name: '',
@@ -160,15 +144,11 @@ describe('Accounts', () => {
       payee: 'transfer-three',
       date: '2017-01-03',
     });
-    differ.expectToMatchDiff(
-      await db.all<db.DbTransaction>('SELECT * FROM transactions'),
-    );
+    differ.expectToMatchDiff(await db.all<db.DbTransaction>('SELECT * FROM transactions'));
 
     const transaction = await db.getTransaction(id);
     await runHandler(handlers['transaction-delete'], transaction);
-    differ.expectToMatchDiff(
-      await db.all<db.DbTransaction>('SELECT * FROM transactions'),
-    );
+    differ.expectToMatchDiff(await db.all<db.DbTransaction>('SELECT * FROM transactions'));
   });
 });
 
@@ -182,9 +162,9 @@ describe('Budget', () => {
         name: 'incomeGroup',
         is_income: 1,
       });
-      await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
-      await db.insertCategory({ name: 'foo', cat_group: 'group1' });
-      await db.insertCategory({ name: 'bar', cat_group: 'group1' });
+      await db.insertCategoryGroup({id: 'group1', name: 'group1'});
+      await db.insertCategory({name: 'foo', cat_group: 'group1'});
+      await db.insertCategory({name: 'bar', cat_group: 'group1'});
     });
 
     let bounds = await runHandler(handlers['get-budget-bounds']);
@@ -220,7 +200,7 @@ describe('Budget', () => {
     function captureChangedCells(func) {
       return new Promise<unknown[]>(resolve => {
         let changed = [];
-        const remove = spreadsheet.addEventListener('change', ({ names }) => {
+        const remove = spreadsheet.addEventListener('change', ({names}) => {
           changed = changed.concat(names);
         });
         func().then(() => {
@@ -241,9 +221,7 @@ describe('Budget', () => {
 
     let categories;
     await captureChangedCells(async () => {
-      await runMutator(() =>
-        db.insertCategoryGroup({ id: 'group1', name: 'group1' }),
-      );
+      await runMutator(() => db.insertCategoryGroup({id: 'group1', name: 'group1'}));
       categories = [
         await runHandler(handlers['category-create'], {
           name: 'foo',
@@ -273,12 +251,8 @@ describe('Budget', () => {
       category: categories[0],
     };
     // Test insertions
-    let changed = await captureChangedCells(() =>
-      runHandler(handlers['transaction-add'], trans),
-    );
-    expect(
-      changed.sort((a, b) => (a > b ? 1 : a < b ? -1 : 0)),
-    ).toMatchSnapshot();
+    let changed = await captureChangedCells(() => runHandler(handlers['transaction-add'], trans));
+    expect(changed.sort((a, b) => (a > b ? 1 : a < b ? -1 : 0))).toMatchSnapshot();
     // Test updates
     changed = await captureChangedCells(async () => {
       await runHandler(handlers['transaction-update'], {
@@ -286,16 +260,12 @@ describe('Budget', () => {
         amount: 7000,
       });
     });
-    expect(
-      changed.sort((a, b) => (a > b ? 1 : a < b ? -1 : 0)),
-    ).toMatchSnapshot();
+    expect(changed.sort((a, b) => (a > b ? 1 : a < b ? -1 : 0))).toMatchSnapshot();
     // Test deletions
     changed = await captureChangedCells(async () => {
-      await runHandler(handlers['transaction-delete'], { id: trans.id });
+      await runHandler(handlers['transaction-delete'], {id: trans.id});
     });
-    expect(
-      changed.sort((a, b) => (a > b ? 1 : a < b ? -1 : 0)),
-    ).toMatchSnapshot();
+    expect(changed.sort((a, b) => (a > b ? 1 : a < b ? -1 : 0))).toMatchSnapshot();
   });
 });
 
@@ -304,16 +274,16 @@ describe('Categories', () => {
     await sheet.loadSpreadsheet(db);
 
     await runMutator(async () => {
-      await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
-      await db.insertCategory({ id: 'foo', name: 'foo', cat_group: 'group1' });
-      await db.insertCategory({ id: 'bar', name: 'bar', cat_group: 'group1' });
+      await db.insertCategoryGroup({id: 'group1', name: 'group1'});
+      await db.insertCategory({id: 'foo', name: 'foo', cat_group: 'group1'});
+      await db.insertCategory({id: 'bar', name: 'bar', cat_group: 'group1'});
     });
 
     let categories = await db.getCategories();
     expect(categories.length).toBe(2);
     expect(categories.find(cat => cat.name === 'foo')).not.toBeNull();
     expect(categories.find(cat => cat.name === 'bar')).not.toBeNull();
-    await runHandler(handlers['category-delete'], { id: 'foo' });
+    await runHandler(handlers['category-delete'], {id: 'foo'});
 
     categories = await db.getCategories();
     expect(categories.length).toBe(1);
@@ -324,15 +294,15 @@ describe('Categories', () => {
     await sheet.loadSpreadsheet(db);
 
     const transId = await runMutator(async () => {
-      await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
-      await db.insertCategoryGroup({ id: 'group1b', name: 'group1b' });
+      await db.insertCategoryGroup({id: 'group1', name: 'group1'});
+      await db.insertCategoryGroup({id: 'group1b', name: 'group1b'});
       await db.insertCategoryGroup({
         id: 'group2',
         name: 'group2',
         is_income: 1,
       });
-      await db.insertCategory({ id: 'foo', name: 'foo', cat_group: 'group1' });
-      await db.insertCategory({ id: 'bar', name: 'bar', cat_group: 'group1b' });
+      await db.insertCategory({id: 'foo', name: 'foo', cat_group: 'group1'});
+      await db.insertCategory({id: 'bar', name: 'bar', cat_group: 'group1b'});
       await db.insertCategory({
         id: 'income1',
         name: 'income1',
@@ -409,15 +379,15 @@ describe('Categories', () => {
     await sheet.loadSpreadsheet(db);
 
     await runMutator(async () => {
-      await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
+      await db.insertCategoryGroup({id: 'group1', name: 'group1'});
       await db.insertCategoryGroup({
         id: 'group2',
         name: 'income',
         is_income: 1,
       });
-      await db.insertCategory({ id: 'foo', name: 'foo', cat_group: 'group1' });
-      await db.insertCategory({ id: 'bar', name: 'bar', cat_group: 'group1' });
-      await db.insertAccount({ id: 'acct', name: 'acct' });
+      await db.insertCategory({id: 'foo', name: 'foo', cat_group: 'group1'});
+      await db.insertCategory({id: 'bar', name: 'bar', cat_group: 'group1'});
+      await db.insertAccount({id: 'acct', name: 'acct'});
 
       // A deposit straight into the category, like a refund
       await db.insertTransaction({

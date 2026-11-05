@@ -33,7 +33,7 @@ export function Graph() {
   const incomingEdges = new Map();
 
   function getEdges() {
-    return { edges, incomingEdges };
+    return {edges, incomingEdges};
   }
 
   function addNode(node) {

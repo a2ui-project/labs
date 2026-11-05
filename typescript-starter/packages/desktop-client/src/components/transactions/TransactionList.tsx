@@ -16,12 +16,12 @@
 
 // @ts-strict-ignore
 // TODO: remove strict
-import { useCallback, useLayoutEffect, useRef } from 'react';
-import type { RefObject } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import {useCallback, useLayoutEffect, useRef} from 'react';
+import type {RefObject} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
 
-import { theme } from '@actual-app/components/theme';
-import { send } from '@actual-app/core/platform/client/connection';
+import {theme} from '@actual-app/components/theme';
+import {send} from '@actual-app/core/platform/client/connection';
 import {
   addSplitTransaction,
   applyTransactionDiff,
@@ -31,7 +31,7 @@ import {
   splitTransaction,
   updateTransaction,
 } from '@actual-app/core/shared/transactions';
-import { applyChanges, getChangedValues } from '@actual-app/core/shared/util';
+import {applyChanges, getChangedValues} from '@actual-app/core/shared/util';
 import type {
   AccountEntity,
   CategoryEntity,
@@ -42,19 +42,19 @@ import type {
   TransactionFilterEntity,
 } from '@actual-app/core/types/models';
 
-import { FeatureErrorFallback } from '#components/FeatureErrorFallback';
-import type { TableHandleRef } from '#components/table';
-import { isValidBoundaryDrop } from '#hooks/useDragDrop';
-import type { DropPosition } from '#hooks/useDragDrop';
-import { useNavigate } from '#hooks/useNavigate';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { pushModal } from '#modals/modalsSlice';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {FeatureErrorFallback} from '#components/FeatureErrorFallback';
+import type {TableHandleRef} from '#components/table';
+import {isValidBoundaryDrop} from '#hooks/useDragDrop';
+import type {DropPosition} from '#hooks/useDragDrop';
+import {useNavigate} from '#hooks/useNavigate';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {pushModal} from '#modals/modalsSlice';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
-import { shouldApplyRuleChange } from './table/utils';
-import { TransactionTable } from './TransactionsTable';
-import type { TransactionTableProps } from './TransactionsTable';
+import {shouldApplyRuleChange} from './table/utils';
+import {TransactionTable} from './TransactionsTable';
+import type {TransactionTableProps} from './TransactionsTable';
 // When data changes, there are two ways to update the UI:
 //
 // * Optimistic updates: we apply the needed updates to local data
@@ -82,7 +82,7 @@ async function saveDiff(diff, learnCategories) {
   });
 
   if (remoteUpdates && remoteUpdates.updated.length > 0) {
-    return { updates: remoteUpdates };
+    return {updates: remoteUpdates};
   }
   return {};
 }
@@ -139,13 +139,8 @@ type TransactionListProps = Pick<
   category: CategoryEntity | undefined;
   isFiltered?: boolean;
   allowReorder?: boolean;
-  onChange: (
-    transaction: TransactionEntity,
-    transactions: TransactionEntity[],
-  ) => void;
-  onApplyFilter: (
-    f: Partial<RuleConditionEntity> | TransactionFilterEntity,
-  ) => void;
+  onChange: (transaction: TransactionEntity, transactions: TransactionEntity[]) => void;
+  onApplyFilter: (f: Partial<RuleConditionEntity> | TransactionFilterEntity) => void;
   onRefetch: () => void;
 };
 
@@ -205,7 +200,7 @@ export function TransactionList({
   const onAdd = useCallback(
     async (newTransactions: TransactionEntity[]) => {
       newTransactions = realizeTempTransactions(newTransactions);
-      await saveDiff({ added: newTransactions }, isLearnCategoriesEnabled);
+      await saveDiff({added: newTransactions}, isLearnCategoriesEnabled);
       onRefetch();
     },
     [isLearnCategoriesEnabled, onRefetch],
@@ -214,10 +209,7 @@ export function TransactionList({
   const onSave = useCallback(
     async (transaction: TransactionEntity) => {
       const saveTransaction = async () => {
-        const changes = updateTransaction(
-          transactionsLatest.current,
-          transaction,
-        );
+        const changes = updateTransaction(transactionsLatest.current, transaction);
         transactionsLatest.current = changes.data;
 
         if (changes.diff.updated.length > 0) {
@@ -228,12 +220,7 @@ export function TransactionList({
             onRefetch();
           } else {
             onChange(changes.newTransaction, changes.data);
-            void saveDiffAndApply(
-              changes.diff,
-              changes,
-              onChange,
-              isLearnCategoriesEnabled,
-            );
+            void saveDiffAndApply(changes.diff, changes, onChange, isLearnCategoriesEnabled);
           }
         }
       };
@@ -247,12 +234,7 @@ export function TransactionList({
     (id: TransactionEntity['id']) => {
       const changes = addSplitTransaction(transactionsLatest.current, id);
       onChange(changes.newTransaction, changes.data);
-      void saveDiffAndApply(
-        changes.diff,
-        changes,
-        onChange,
-        isLearnCategoriesEnabled,
-      );
+      void saveDiffAndApply(changes.diff, changes, onChange, isLearnCategoriesEnabled);
       return changes.diff.added[0].id;
     },
     [isLearnCategoriesEnabled, onChange],
@@ -266,23 +248,15 @@ export function TransactionList({
         makeEmptySplitSubtransactions,
       );
       onChange(changes.newTransaction, changes.data);
-      void saveDiffAndApply(
-        changes.diff,
-        changes,
-        onChange,
-        isLearnCategoriesEnabled,
-      );
+      void saveDiffAndApply(changes.diff, changes, onChange, isLearnCategoriesEnabled);
       return changes.diff.added[0].id;
     },
     [isLearnCategoriesEnabled, onChange],
   );
 
   const onApplyRules = useCallback(
-    async (
-      transaction: TransactionEntity,
-      updatedFieldName: string | null = null,
-    ) => {
-      const afterRules = await send('rules-run', { transaction });
+    async (transaction: TransactionEntity, updatedFieldName: string | null = null) => {
+      const afterRules = await send('rules-run', {transaction});
 
       // Show formula errors if any
       if (afterRules._ruleErrors && afterRules._ruleErrors.length > 0) {
@@ -299,12 +273,10 @@ export function TransactionList({
 
       const diff = getChangedValues(transaction, afterRules);
 
-      const newTransaction: TransactionEntity = { ...transaction };
+      const newTransaction: TransactionEntity = {...transaction};
       if (diff) {
         Object.keys(diff).forEach(field => {
-          if (
-            shouldApplyRuleChange(field, newTransaction[field], diff[field])
-          ) {
+          if (shouldApplyRuleChange(field, newTransaction[field], diff[field])) {
             newTransaction[field] = diff[field];
           }
         });
@@ -315,14 +287,12 @@ export function TransactionList({
           diff.subtransactions !== undefined &&
           updatedFieldName !== null
         ) {
-          newTransaction.subtransactions = diff.subtransactions.map(
-            (st, idx) => ({
-              ...(newTransaction.subtransactions?.[idx] || st),
-              ...(st[updatedFieldName] != null && {
-                [updatedFieldName]: st[updatedFieldName],
-              }),
+          newTransaction.subtransactions = diff.subtransactions.map((st, idx) => ({
+            ...(newTransaction.subtransactions?.[idx] || st),
+            ...(st[updatedFieldName] != null && {
+              [updatedFieldName]: st[updatedFieldName],
             }),
-          );
+          }));
         }
       }
       return newTransaction;
@@ -332,10 +302,7 @@ export function TransactionList({
 
   const onManagePayees = useCallback(
     (id: PayeeEntity['id']) => {
-      void navigate(
-        '/payees',
-        id ? { state: { selectedPayee: id } } : undefined,
-      );
+      void navigate('/payees', id ? {state: {selectedPayee: id}} : undefined);
     },
     [navigate],
   );
@@ -351,7 +318,7 @@ export function TransactionList({
     (scheduleId: ScheduleEntity['id']) => {
       dispatch(
         pushModal({
-          modal: { name: 'schedule-edit', options: { id: scheduleId } },
+          modal: {name: 'schedule-edit', options: {id: scheduleId}},
         }),
       );
     },
@@ -411,8 +378,7 @@ export function TransactionList({
           apiTargetId = targetTrans.schedule ?? null;
         } else {
           const aboveIdx = targetIdx - 1;
-          apiTargetId =
-            aboveIdx >= 0 ? (previews[aboveIdx].schedule ?? null) : null;
+          apiTargetId = aboveIdx >= 0 ? (previews[aboveIdx].schedule ?? null) : null;
         }
 
         if (!draggedTrans.schedule) {
@@ -458,9 +424,7 @@ export function TransactionList({
       }
 
       // Build a reorderable list that excludes child and preview/scheduled transactions
-      const reorderable = allTransactions.filter(
-        t => !t.is_child && !isPreviewId(t.id),
-      );
+      const reorderable = allTransactions.filter(t => !t.is_child && !isPreviewId(t.id));
 
       const transIdx = reorderable.findIndex(t => t.id === id);
       const targetTransIdx = reorderable.findIndex(t => t.id === targetId);
@@ -476,12 +440,9 @@ export function TransactionList({
       // Validate drop position: same date or at a date boundary
       let isValidDrop = targetTrans.date === trans.date;
       if (!isValidDrop) {
-        const neighborIdx =
-          dropPos === 'before' ? targetTransIdx - 1 : targetTransIdx + 1;
+        const neighborIdx = dropPos === 'before' ? targetTransIdx - 1 : targetTransIdx + 1;
         const neighborTrans =
-          neighborIdx >= 0 && neighborIdx < reorderable.length
-            ? reorderable[neighborIdx]
-            : null;
+          neighborIdx >= 0 && neighborIdx < reorderable.length ? reorderable[neighborIdx] : null;
         isValidDrop = isValidBoundaryDrop(
           dropPos,
           targetTrans.date,
@@ -512,8 +473,7 @@ export function TransactionList({
         if (aboveTrans?.is_parent) {
           apiTargetId = aboveTrans.date === trans.date ? aboveTrans.id : null;
         } else {
-          apiTargetId =
-            aboveTrans && aboveTrans.date === trans.date ? aboveTrans.id : null;
+          apiTargetId = aboveTrans && aboveTrans.date === trans.date ? aboveTrans.id : null;
         }
       }
 
@@ -560,7 +520,7 @@ export function TransactionList({
         onAddSplit={onAddSplit}
         onManagePayees={onManagePayees}
         onCreatePayee={onCreatePayee}
-        style={{ backgroundColor: theme.tableBackground }}
+        style={{backgroundColor: theme.tableBackground}}
         onNavigateToTransferAccount={onNavigateToTransferAccount}
         onNavigateToSchedule={onNavigateToSchedule}
         onNotesTagClick={onNotesTagClick}

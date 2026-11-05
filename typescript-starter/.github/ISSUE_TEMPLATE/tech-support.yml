@@ -14,8 +14,8 @@
 
 name: Tech Support
 description: Need help with something? Having troubles setting up? Or perhaps issues using the API?
-title: '[Support]: '
-labels: ['tech-support']
+title: "[Support]: "
+labels: ["tech-support"]
 body:
   - type: markdown
     attributes:

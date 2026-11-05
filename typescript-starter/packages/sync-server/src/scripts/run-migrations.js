@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { run } from '#migrations';
+import {run} from '#migrations';
 
 const direction = process.argv[2] || 'up';
 

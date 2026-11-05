@@ -16,18 +16,18 @@
 
 import path from 'path';
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { Navigation } from './page-models/navigation';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {Navigation} from './page-models/navigation';
 
 test.describe('Onboarding', () => {
   let page: Page;
   let navigation: Navigation;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new Navigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -54,11 +54,9 @@ test.describe('Onboarding', () => {
       path.resolve(__dirname, 'data/ynab4-demo-budget.zip'),
     );
 
-    await expect(budgetPage.budgetTable).toBeVisible({ timeout: 30000 });
+    await expect(budgetPage.budgetTable).toBeVisible({timeout: 30000});
 
-    const accountPage = await navigation.goToAccountPage(
-      'Account1 with Starting Balance',
-    );
+    const accountPage = await navigation.goToAccountPage('Account1 with Starting Balance');
     await expect(accountPage.accountBalance).toHaveText('-400.00');
 
     await navigation.goToAccountPage('Account2 no Starting Balance');
@@ -71,7 +69,7 @@ test.describe('Onboarding', () => {
       path.resolve(__dirname, 'data/ynab5-demo-budget.json'),
     );
 
-    await expect(budgetPage.budgetTable).toBeVisible({ timeout: 30000 });
+    await expect(budgetPage.budgetTable).toBeVisible({timeout: 30000});
 
     const accountPage = await navigation.goToAccountPage('Checking');
     await expect(accountPage.accountBalance).toHaveText('2,600.00');
@@ -100,9 +98,7 @@ test.describe('Onboarding', () => {
     ];
 
     for (const scheduleName of scheduleNames) {
-      await expect(scheduleRows.filter({ hasText: scheduleName })).toHaveCount(
-        1,
-      );
+      await expect(scheduleRows.filter({hasText: scheduleName})).toHaveCount(1);
     }
   });
 
@@ -112,7 +108,7 @@ test.describe('Onboarding', () => {
       path.resolve(__dirname, 'data/actual-demo-budget.zip'),
     );
 
-    await expect(budgetPage.budgetTable).toBeVisible({ timeout: 20_000 });
+    await expect(budgetPage.budgetTable).toBeVisible({timeout: 20_000});
 
     const accountPage = await navigation.goToAccountPage('Ally Savings');
     await expect(accountPage.accountBalance).toHaveText('1,772.80');
@@ -138,7 +134,7 @@ test.describe('Onboarding', () => {
     await expect(budgetPage.budgetTable).toBeVisible();
 
     await navigation.clickOnNoServer();
-    await page.getByRole('button', { name: 'Start using a server' }).click();
+    await page.getByRole('button', {name: 'Start using a server'}).click();
 
     await expect(configurationPage.heading).toHaveText('Connect to a server');
   });

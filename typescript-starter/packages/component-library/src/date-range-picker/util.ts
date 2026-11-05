@@ -14,14 +14,9 @@
  * limitations under the License.
  */
 
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
-import {
-  endOfMonth,
-  getLocalTimeZone,
-  parseDate,
-  today,
-} from '@internationalized/date';
+import {endOfMonth, getLocalTimeZone, parseDate, today} from '@internationalized/date';
 
 /**
  * Granularity the picker operates at: `month` values are `yyyy-MM`, `day`
@@ -60,14 +55,7 @@ export type DateRangePickerLabels = {
   dateRange: string;
 };
 
-export type FirstDayOfWeek =
-  | 'sun'
-  | 'mon'
-  | 'tue'
-  | 'wed'
-  | 'thu'
-  | 'fri'
-  | 'sat';
+export type FirstDayOfWeek = 'sun' | 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat';
 
 // Whether a value is day-shaped (`yyyy-MM-dd`) rather than month-shaped
 // (`yyyy-MM`).
@@ -89,11 +77,7 @@ export function clamp(value: string, min: string, max: string): string {
 // Where a cell falls relative to a (start, end) range, for the band highlight.
 export type RangePosition = 'start' | 'end' | 'middle' | null;
 
-export function rangePosition(
-  cell: string,
-  start: string,
-  end: string,
-): RangePosition {
+export function rangePosition(cell: string, start: string, end: string): RangePosition {
   if (cell < start || cell > end) return null;
   if (cell === start) return 'start';
   if (cell === end) return 'end';

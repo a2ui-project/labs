@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-import { useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgCheveronDown } from '@actual-app/components/icons/v1';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { Input } from '@actual-app/components/input';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { spacing } from '@actual-app/components/tokens';
-import { isElectron } from '@actual-app/core/shared/environment';
+import {Button} from '@actual-app/components/button';
+import {SvgCheveronDown} from '@actual-app/components/icons/v1';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {Input} from '@actual-app/components/input';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {spacing} from '@actual-app/components/tokens';
+import {isElectron} from '@actual-app/core/shared/environment';
 
-import { closeBudget } from '#budgetfiles/budgetfilesSlice';
-import { useContextMenu } from '#hooks/useContextMenu';
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { useNavigate } from '#hooks/useNavigate';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {closeBudget} from '#budgetfiles/budgetfilesSlice';
+import {useContextMenu} from '#hooks/useContextMenu';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {useNavigate} from '#hooks/useNavigate';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
 export function SidebarBudgetName() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [budgetName, setBudgetNamePref] = useMetadataPref('budgetName');
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const { handleContextMenu } = useContextMenu({
+  const {handleContextMenu} = useContextMenu({
     triggerRef,
     items: [
       {
@@ -57,8 +57,7 @@ export function SidebarBudgetName() {
       isElectron() && {
         name: 'loadBackup',
         text: t('Load Backup…'),
-        onClick: () =>
-          dispatch(pushModal({ modal: { name: 'load-backup', options: {} } })),
+        onClick: () => dispatch(pushModal({modal: {name: 'load-backup', options: {}}})),
       },
       {
         name: 'close',
@@ -72,7 +71,7 @@ export function SidebarBudgetName() {
     return (
       <InitialFocus>
         <Input
-          style={{ fontSize: 13, fontWeight: 600 }}
+          style={{fontSize: 13, fontWeight: 600}}
           defaultValue={budgetName}
           onEnter={newBudgetName => {
             if (newBudgetName.trim() !== '') {
@@ -107,7 +106,7 @@ export function SidebarBudgetName() {
       <SvgCheveronDown
         width={11}
         height={11}
-        style={{ flexShrink: 0, color: theme.sidebarTextSubdued }}
+        style={{flexShrink: 0, color: theme.sidebarTextSubdued}}
       />
     </Button>
   );

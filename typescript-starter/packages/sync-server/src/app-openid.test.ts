@@ -16,11 +16,11 @@
 
 import request from 'supertest';
 
-import type { ConfigParameter } from '#accounts/openid';
+import type {ConfigParameter} from '#accounts/openid';
 
-import { getAccountDb } from './account-db';
-import { bootstrapPassword } from './accounts/password';
-import { handlers as app, openIdConfigRateLimiter } from './app-openid';
+import {getAccountDb} from './account-db';
+import {bootstrapPassword} from './accounts/password';
+import {handlers as app, openIdConfigRateLimiter} from './app-openid';
 
 function insertOpenIdAuth(extraData: ConfigParameter) {
   getAccountDb().mutate(
@@ -46,9 +46,7 @@ describe('/config', () => {
       issuer: 'https://issuer.example.com',
     });
 
-    const res = await request(app)
-      .post('/config')
-      .send({ password: 'bootstrap-password' });
+    const res = await request(app).post('/config').send({password: 'bootstrap-password'});
 
     expect(res.statusCode).toEqual(400);
     expect(res.body).toEqual({

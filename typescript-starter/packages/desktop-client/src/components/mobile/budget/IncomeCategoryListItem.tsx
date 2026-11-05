@@ -14,36 +14,36 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { GridListItem } from 'react-aria-components';
-import { useTranslation } from 'react-i18next';
+import {useCallback} from 'react';
+import type {ComponentPropsWithoutRef} from 'react';
+import {GridListItem} from 'react-aria-components';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgCheveronRight } from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgCheveronRight} from '@actual-app/components/icons/v1';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { CategoryEntity } from '@actual-app/core/types/models';
+import type {CategoryEntity} from '@actual-app/core/types/models';
 
-import { useNavigate } from '#hooks/useNavigate';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { collapseModals, pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
-import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
+import {useNavigate} from '#hooks/useNavigate';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {collapseModals, pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
+import {envelopeBudget, trackingBudget} from '#spreadsheet/bindings';
 
-import { BalanceCell } from './BalanceCell';
-import { BudgetCell } from './BudgetCell';
-import { getColumnWidth, ROW_HEIGHT } from './BudgetTable';
+import {BalanceCell} from './BalanceCell';
+import {BudgetCell} from './BudgetCell';
+import {getColumnWidth, ROW_HEIGHT} from './BudgetTable';
 
 type IncomeCategoryNameProps = {
   category: CategoryEntity;
   onEdit: (id: CategoryEntity['id']) => void;
 };
 
-function IncomeCategoryName({ category, onEdit }: IncomeCategoryNameProps) {
+function IncomeCategoryName({category, onEdit}: IncomeCategoryNameProps) {
   const sidebarColumnWidth = getColumnWidth({
     isSidebar: true,
     offset: -10,
@@ -94,7 +94,7 @@ function IncomeCategoryName({ category, onEdit }: IncomeCategoryNameProps) {
             {category.name}
           </Text>
           <SvgCheveronRight
-            style={{ flexShrink: 0, color: theme.tableTextSubdued }}
+            style={{flexShrink: 0, color: theme.tableTextSubdued}}
             width={14}
             height={14}
           />
@@ -111,13 +111,8 @@ type IncomeCategoryCellsProps = {
   onPress: () => void;
 };
 
-function IncomeCategoryCells({
-  category,
-  month,
-  onBudgetAction,
-  onPress,
-}: IncomeCategoryCellsProps) {
-  const { t } = useTranslation();
+function IncomeCategoryCells({category, month, onBudgetAction, onPress}: IncomeCategoryCellsProps) {
+  const {t} = useTranslation();
   const columnWidth = getColumnWidth();
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
 
@@ -183,9 +178,7 @@ function IncomeCategoryCells({
   );
 }
 
-type IncomeCategoryListItemProps = ComponentPropsWithoutRef<
-  typeof GridListItem<CategoryEntity>
-> & {
+type IncomeCategoryListItemProps = ComponentPropsWithoutRef<typeof GridListItem<CategoryEntity>> & {
   month: string;
   onEdit: (id: CategoryEntity['id']) => void;
   onBudgetAction: (month: string, action: string, args: unknown) => void;
@@ -197,7 +190,7 @@ export function IncomeCategoryListItem({
   onBudgetAction,
   ...props
 }: IncomeCategoryListItemProps) {
-  const { value: category } = props;
+  const {value: category} = props;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
@@ -220,7 +213,7 @@ export function IncomeCategoryListItem({
         category: category.id,
         flag: carryover,
       });
-      dispatch(collapseModals({ rootModalName: balanceMenuModalName }));
+      dispatch(collapseModals({rootModalName: balanceMenuModalName}));
     },
     [category, onBudgetAction, month, dispatch, balanceMenuModalName],
   );
@@ -242,25 +235,14 @@ export function IncomeCategoryListItem({
         },
       }),
     );
-  }, [
-    category,
-    balanceMenuModalName,
-    dispatch,
-    month,
-    onShowActivity,
-    onCarryover,
-  ]);
+  }, [category, balanceMenuModalName, dispatch, month, onShowActivity, onCarryover]);
 
   if (!category) {
     return null;
   }
 
   return (
-    <GridListItem
-      textValue={category.name}
-      data-testid="category-row"
-      {...props}
-    >
+    <GridListItem textValue={category.name} data-testid="category-row" {...props}>
       <View
         style={{
           height: ROW_HEIGHT,
@@ -283,9 +265,7 @@ export function IncomeCategoryListItem({
           category={category}
           month={month}
           onBudgetAction={onBudgetAction}
-          onPress={
-            budgetType === 'envelope' ? onOpenBalanceMenu : onShowActivity
-          }
+          onPress={budgetType === 'envelope' ? onOpenBalanceMenu : onShowActivity}
         />
       </View>
     </GridListItem>

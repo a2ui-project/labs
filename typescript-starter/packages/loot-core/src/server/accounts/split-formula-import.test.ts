@@ -15,11 +15,11 @@
  */
 
 import * as db from '#server/db';
-import { loadMappings } from '#server/db/mappings';
-import { createSchedule } from '#server/schedules/app';
-import { insertRule, loadRules } from '#server/transactions/transaction-rules';
+import {loadMappings} from '#server/db/mappings';
+import {createSchedule} from '#server/schedules/app';
+import {insertRule, loadRules} from '#server/transactions/transaction-rules';
 
-import { reconcileTransactions } from './sync';
+import {reconcileTransactions} from './sync';
 
 beforeEach(async () => {
   await global.emptyDatabase()();
@@ -28,7 +28,7 @@ beforeEach(async () => {
 });
 
 test('import keeps one parent, matches its schedule and transfers only the formula split', async () => {
-  await db.insertAccount({ id: 'source', name: 'Source', offbudget: 0 });
+  await db.insertAccount({id: 'source', name: 'Source', offbudget: 0});
   await db.insertAccount({
     id: 'destination',
     name: 'Destination',
@@ -44,8 +44,8 @@ test('import keeps one parent, matches its schedule and transfers only the formu
     name: '',
     transfer_acct: 'destination',
   });
-  await db.insertPayee({ id: 'bank', name: 'Bank' });
-  await db.insertCategoryGroup({ id: 'group', name: 'Expenses', is_income: 0 });
+  await db.insertPayee({id: 'bank', name: 'Bank'});
+  await db.insertCategoryGroup({id: 'group', name: 'Expenses', is_income: 0});
   await db.insertCategory({
     id: 'category',
     name: 'Payment',
@@ -54,24 +54,24 @@ test('import keeps one parent, matches its schedule and transfers only the formu
   });
 
   const schedule = await createSchedule({
-    schedule: { name: 'Payment', posts_transaction: false },
+    schedule: {name: 'Payment', posts_transaction: false},
     conditions: [
-      { field: 'account', op: 'is', value: 'source' },
-      { field: 'amount', op: 'isapprox', value: -3000 },
+      {field: 'account', op: 'is', value: 'source'},
+      {field: 'amount', op: 'isapprox', value: -3000},
       {
         field: 'date',
         op: 'isapprox',
-        value: { start: '2024-01-15', frequency: 'monthly', patterns: [] },
+        value: {start: '2024-01-15', frequency: 'monthly', patterns: []},
       },
-      { field: 'notes', op: 'contains', value: 'ITEM:' },
+      {field: 'notes', op: 'contains', value: 'ITEM:'},
     ],
   });
   await insertRule({
     stage: 'pre',
     conditionsOp: 'and',
     conditions: [
-      { field: 'account', op: 'is', value: 'source' },
-      { field: 'notes', op: 'contains', value: 'ITEM:' },
+      {field: 'account', op: 'is', value: 'source'},
+      {field: 'notes', op: 'contains', value: 'ITEM:'},
     ],
     actions: [
       {
@@ -88,25 +88,25 @@ test('import keeps one parent, matches its schedule and transfers only the formu
         op: 'set',
         field: 'payee',
         value: 'transfer-destination',
-        options: { splitIndex: 1 },
+        options: {splitIndex: 1},
       },
       {
         op: 'set',
         field: 'category',
         value: 'category',
-        options: { splitIndex: 1 },
+        options: {splitIndex: 1},
       },
       {
         op: 'set-split-amount',
         value: null,
-        options: { splitIndex: 2, method: 'remainder' },
+        options: {splitIndex: 2, method: 'remainder'},
       },
-      { op: 'set', field: 'payee', value: 'bank', options: { splitIndex: 2 } },
+      {op: 'set', field: 'payee', value: 'bank', options: {splitIndex: 2}},
       {
         op: 'set',
         field: 'category',
         value: 'category',
-        options: { splitIndex: 2 },
+        options: {splitIndex: 2},
       },
     ],
   });
@@ -120,10 +120,7 @@ test('import keeps one parent, matches its schedule and transfers only the formu
     cleared: true,
   };
   await reconcileTransactions('source', [imported]);
-  const read = () =>
-    db.all<db.DbViewTransactionInternal>(
-      'SELECT * FROM v_transactions_internal',
-    );
+  const read = () => db.all<db.DbViewTransactionInternal>('SELECT * FROM v_transactions_internal');
   const rows = await read();
   const parent = rows.find(row => row.is_parent);
   if (!parent) throw new Error('Missing split parent');
@@ -154,9 +151,7 @@ test('import keeps one parent, matches its schedule and transfers only the formu
       }),
     ]),
   );
-  expect(children.reduce((sum, row) => sum + row.amount, 0)).toBe(
-    parent.amount,
-  );
+  expect(children.reduce((sum, row) => sum + row.amount, 0)).toBe(parent.amount);
   const destination = rows.filter(row => row.account === 'destination');
   expect(destination).toHaveLength(1);
   expect(destination[0]).toMatchObject({
@@ -168,9 +163,7 @@ test('import keeps one parent, matches its schedule and transfers only the formu
   // A repeated bank import must preserve identity and not create another transfer.
   await reconcileTransactions('source', [imported]);
   const reimported = await read();
-  expect(reimported.map(row => row.id).sort()).toEqual(
-    rows.map(row => row.id).sort(),
-  );
+  expect(reimported.map(row => row.id).sort()).toEqual(rows.map(row => row.id).sort());
   expect(reimported.find(row => row.id === parent.id)).toMatchObject({
     imported_id: imported.imported_id,
     notes: imported.notes,

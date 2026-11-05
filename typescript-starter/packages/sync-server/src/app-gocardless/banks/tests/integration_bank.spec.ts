@@ -15,11 +15,8 @@
  */
 
 import IntegrationBank from '#app-gocardless/banks/integration-bank';
-import type {
-  Balance,
-  Transaction,
-} from '#app-gocardless/gocardless-node.types';
-import type { DetailedAccountWithInstitution } from '#app-gocardless/gocardless.types';
+import type {Balance, Transaction} from '#app-gocardless/gocardless-node.types';
+import type {DetailedAccountWithInstitution} from '#app-gocardless/gocardless.types';
 import {
   mockExtendAccountsAboutInstitutions,
   mockInstitution,
@@ -64,17 +61,17 @@ describe('IntegrationBank', () => {
       {
         date: '2022-01-01',
         bookingDate: '2022-01-01',
-        transactionAmount: { amount: '100', currency: 'EUR' },
+        transactionAmount: {amount: '100', currency: 'EUR'},
       },
       {
         date: '2022-01-03',
         bookingDate: '2022-01-03',
-        transactionAmount: { amount: '100', currency: 'EUR' },
+        transactionAmount: {amount: '100', currency: 'EUR'},
       },
       {
         date: '2022-01-02',
         bookingDate: '2022-01-02',
-        transactionAmount: { amount: '100', currency: 'EUR' },
+        transactionAmount: {amount: '100', currency: 'EUR'},
       },
     ];
 
@@ -84,17 +81,17 @@ describe('IntegrationBank', () => {
         {
           date: '2022-01-03',
           bookingDate: '2022-01-03',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
         {
           date: '2022-01-02',
           bookingDate: '2022-01-02',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
         {
           date: '2022-01-01',
           bookingDate: '2022-01-01',
-          transactionAmount: { amount: '100', currency: 'EUR' },
+          transactionAmount: {amount: '100', currency: 'EUR'},
         },
       ]);
     });
@@ -104,21 +101,21 @@ describe('IntegrationBank', () => {
     const transactions: Transaction[] = [
       {
         bookingDate: '2022-01-01',
-        transactionAmount: { amount: '100', currency: 'EUR' },
+        transactionAmount: {amount: '100', currency: 'EUR'},
       },
       {
         bookingDate: '2022-02-01',
-        transactionAmount: { amount: '100', currency: 'EUR' },
+        transactionAmount: {amount: '100', currency: 'EUR'},
       },
       {
         bookingDate: '2022-03-01',
-        transactionAmount: { amount: '100', currency: 'EUR' },
+        transactionAmount: {amount: '100', currency: 'EUR'},
       },
     ];
 
     const balances: Balance[] = [
       {
-        balanceAmount: { amount: '1000.00', currency: 'EUR' },
+        balanceAmount: {amount: '1000.00', currency: 'EUR'},
         balanceType: 'interimBooked',
       },
     ];
@@ -129,10 +126,7 @@ describe('IntegrationBank', () => {
     });
 
     it('should return 70000 when transactions and balances are provided', () => {
-      const startingBalance = IntegrationBank.calculateStartingBalance(
-        transactions,
-        balances,
-      );
+      const startingBalance = IntegrationBank.calculateStartingBalance(transactions, balances);
       expect(startingBalance).toEqual(70000);
     });
   });

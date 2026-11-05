@@ -15,13 +15,13 @@
  */
 
 import * as asyncStorage from '#platform/server/asyncStorage';
-import { logger } from '#platform/server/log';
-import { createApp } from '#server/app';
+import {logger} from '#platform/server/log';
+import {createApp} from '#server/app';
 import * as encryption from '#server/encryption';
-import { PostError } from '#server/errors';
-import { get, post } from '#server/post';
-import { getServer, isValidBaseURL } from '#server/server-config';
-import type { OpenIdConfig } from '#types/models';
+import {PostError} from '#server/errors';
+import {get, post} from '#server/post';
+import {getServer, isValidBaseURL} from '#server/server-config';
+import type {OpenIdConfig} from '#types/models';
 
 export type AuthHandlers = {
   'get-did-bootstrap': typeof didBootstrap;
@@ -56,9 +56,9 @@ async function didBootstrap() {
   return Boolean(await asyncStorage.getItem('did-bootstrap'));
 }
 
-async function needsBootstrap({ url }: { url?: string } = {}) {
+async function needsBootstrap({url}: {url?: string} = {}) {
   if (url && !isValidBaseURL(url)) {
-    return { error: 'get-server-failure' };
+    return {error: 'get-server-failure'};
   }
 
   let serverConfig: ReturnType<typeof getServer>;
@@ -66,17 +66,17 @@ async function needsBootstrap({ url }: { url?: string } = {}) {
   try {
     serverConfig = getServer(url);
     if (!serverConfig) {
-      return { bootstrapped: true, hasServer: false };
+      return {bootstrapped: true, hasServer: false};
     }
   } catch {
-    return { error: 'get-server-failure' };
+    return {error: 'get-server-failure'};
   }
 
   let resText: string;
   try {
     resText = await get(serverConfig.SIGNUP_SERVER + '/needs-bootstrap');
   } catch {
-    return { error: 'network-failure' };
+    return {error: 'network-failure'};
   }
 
   let res: {
@@ -96,23 +96,20 @@ async function needsBootstrap({ url }: { url?: string } = {}) {
   try {
     res = JSON.parse(resText);
   } catch {
-    return { error: 'parse-failure' };
+    return {error: 'parse-failure'};
   }
 
   return {
     bootstrapped: res.data.bootstrapped,
     availableLoginMethods: res.data.availableLoginMethods || [
-      { method: 'password', active: true, displayName: 'Password' },
+      {method: 'password', active: true, displayName: 'Password'},
     ],
     multiuser: res.data.multiuser || false,
     hasServer: true,
   };
 }
 
-async function bootstrap(loginConfig: {
-  password?: string;
-  openId?: OpenIdConfig;
-}) {
+async function bootstrap(loginConfig: {password?: string; openId?: OpenIdConfig}) {
   try {
     const serverConfig = getServer();
     if (!serverConfig) {
@@ -133,16 +130,14 @@ async function bootstrap(loginConfig: {
 
 async function getLoginMethods() {
   let res: {
-    methods?: Array<{ method: string; displayName: string; active: boolean }>;
+    methods?: Array<{method: string; displayName: string; active: boolean}>;
   };
   try {
     const serverConfig = getServer();
     if (!serverConfig) {
       throw new Error('No sync server configured.');
     }
-    res = await fetch(serverConfig.SIGNUP_SERVER + '/login-methods').then(res =>
-      res.json(),
-    );
+    res = await fetch(serverConfig.SIGNUP_SERVER + '/login-methods').then(res => res.json());
   } catch (err) {
     if (err instanceof PostError) {
       return {
@@ -154,9 +149,9 @@ async function getLoginMethods() {
   }
 
   if (res.methods) {
-    return { methods: res.methods };
+    return {methods: res.methods};
   }
-  return { error: 'internal' };
+  return {error: 'internal'};
 }
 
 async function getUser() {
@@ -165,7 +160,7 @@ async function getUser() {
     if (!(await asyncStorage.getItem('did-bootstrap'))) {
       return null;
     }
-    return { offline: false };
+    return {offline: false};
   }
 
   const userToken = await asyncStorage.getItem('user-token');
@@ -200,7 +195,7 @@ async function getUser() {
       } else if (reason === 'token-expired') {
         tokenExpired = true;
       } else {
-        return { offline: true };
+        return {offline: true};
       }
     }
 
@@ -216,14 +211,14 @@ async function getUser() {
     };
   } catch (e) {
     logger.log(e);
-    return { offline: true };
+    return {offline: true};
   }
 }
 
-async function changePassword({ password }: { password: string }) {
+async function changePassword({password}: {password: string}) {
   const userToken = await asyncStorage.getItem('user-token');
   if (!userToken) {
-    return { error: 'not-logged-in' };
+    return {error: 'not-logged-in'};
   }
 
   try {
@@ -259,10 +254,7 @@ async function signIn(
         loginMethod?: 'openid';
       },
 ) {
-  if (
-    typeof loginInfo.loginMethod !== 'string' ||
-    loginInfo.loginMethod == null
-  ) {
+  if (typeof loginInfo.loginMethod !== 'string' || loginInfo.loginMethod == null) {
     loginInfo.loginMethod = 'password';
   }
   let res: {
@@ -287,7 +279,7 @@ async function signIn(
   }
 
   if (res.returnUrl) {
-    return { redirectUrl: res.returnUrl };
+    return {redirectUrl: res.returnUrl};
   }
 
   if (!res.token) {
@@ -300,25 +292,20 @@ async function signIn(
 
 async function signOut() {
   encryption.unloadAllKeys();
-  await asyncStorage.multiRemove([
-    'user-token',
-    'encrypt-keys',
-    'lastBudget',
-    'readOnly',
-  ]);
+  await asyncStorage.multiRemove(['user-token', 'encrypt-keys', 'lastBudget', 'readOnly']);
   return 'ok';
 }
 
-async function setToken({ token }: { token: string }) {
+async function setToken({token}: {token: string}) {
   await asyncStorage.setItem('user-token', token);
 }
 
-async function enableOpenId(openIdConfig: { openId: OpenIdConfig }) {
+async function enableOpenId(openIdConfig: {openId: OpenIdConfig}) {
   try {
     const userToken = await asyncStorage.getItem('user-token');
 
     if (!userToken) {
-      return { error: 'unauthorized' };
+      return {error: 'unauthorized'};
     }
 
     const serverConfig = getServer();
@@ -341,7 +328,7 @@ async function enableOpenId(openIdConfig: { openId: OpenIdConfig }) {
   return {};
 }
 
-async function getOpenIdConfig({ password }: { password: string }) {
+async function getOpenIdConfig({password}: {password: string}) {
   try {
     const userToken = await asyncStorage.getItem('user-token');
 
@@ -352,14 +339,14 @@ async function getOpenIdConfig({ password }: { password: string }) {
 
     const res = await post(
       serverConfig.BASE_SERVER + '/openid/config',
-      { password },
+      {password},
       {
         'X-ACTUAL-TOKEN': userToken,
       },
     );
 
     if (res) {
-      return res as { openId: OpenIdConfig };
+      return res as {openId: OpenIdConfig};
     }
 
     return null;
@@ -374,12 +361,12 @@ async function getOpenIdConfig({ password }: { password: string }) {
   }
 }
 
-async function enablePassword(passwordConfig: { password: string }) {
+async function enablePassword(passwordConfig: {password: string}) {
   try {
     const userToken = await asyncStorage.getItem('user-token');
 
     if (!userToken) {
-      return { error: 'unauthorized' };
+      return {error: 'unauthorized'};
     }
 
     const serverConfig = getServer();

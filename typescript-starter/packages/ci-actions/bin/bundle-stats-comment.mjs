@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-
 /**
  * Generates a combined bundle stats comment for GitHub Actions.
  * Heavily inspired by https://github.com/twk3/rollup-size-compare-action (MIT).
  */
 
-import { readFile } from 'node:fs/promises';
+import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 
@@ -37,9 +36,7 @@ function parseRawArgs(argv) {
     const key = argv[index];
 
     if (!key?.startsWith('--')) {
-      throw new Error(
-        `Unexpected argument "${key ?? ''}". Use --key value pairs.`,
-      );
+      throw new Error(`Unexpected argument "${key ?? ''}". Use --key value pairs.`);
     }
 
     const values = [];
@@ -96,19 +93,14 @@ function parseMapping(values, key, description) {
         return new Map(
           Object.entries(parsed).map(([name, pathValue]) => {
             if (typeof pathValue !== 'string') {
-              throw new Error(
-                `Value for "${name}" in "--${key}" must be a string path.`,
-              );
+              throw new Error(`Value for "${name}" in "--${key}" must be a string path.`);
             }
             return [name, pathValue];
           }),
         );
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'Unknown parsing error';
-        throw new Error(
-          `Failed to parse "--${key}" value as JSON object: ${message}`,
-        );
+        const message = error instanceof Error ? error.message : 'Unknown parsing error';
+        throw new Error(`Failed to parse "--${key}" value as JSON object: ${message}`);
       }
     }
   }
@@ -119,9 +111,7 @@ function parseMapping(values, key, description) {
     const [rawName, ...rawPathParts] = value.split('=');
 
     if (!rawName || rawPathParts.length === 0) {
-      throw new Error(
-        `Argument "--${key}" must be provided as name=path pairs or a JSON object.`,
-      );
+      throw new Error(`Argument "--${key}" must be provided as name=path pairs or a JSON object.`);
     }
 
     const name = rawName.trim();
@@ -132,9 +122,7 @@ function parseMapping(values, key, description) {
     }
 
     if (!pathValue) {
-      throw new Error(
-        `Argument "--${key}" for bundle "${name}" must include a non-empty path.`,
-      );
+      throw new Error(`Argument "--${key}" for bundle "${name}" must include a non-empty path.`);
     }
 
     entries.set(name, pathValue);
@@ -150,16 +138,8 @@ function parseMapping(values, key, description) {
 function parseArgs(argv) {
   const args = parseRawArgs(argv);
 
-  const baseMap = parseMapping(
-    args.get('base'),
-    'base',
-    REQUIRED_ARGS.get('base'),
-  );
-  const headMap = parseMapping(
-    args.get('head'),
-    'head',
-    REQUIRED_ARGS.get('head'),
-  );
+  const baseMap = parseMapping(args.get('base'), 'base', REQUIRED_ARGS.get('base'));
+  const headMap = parseMapping(args.get('head'), 'head', REQUIRED_ARGS.get('head'));
 
   const sections = [];
 
@@ -167,9 +147,7 @@ function parseArgs(argv) {
     const headPath = headMap.get(name);
 
     if (!headPath) {
-      throw new Error(
-        `Bundle "${name}" is missing a corresponding "--head" entry.`,
-      );
+      throw new Error(`Bundle "${name}" is missing a corresponding "--head" entry.`);
     }
 
     sections.push({
@@ -181,9 +159,7 @@ function parseArgs(argv) {
 
   for (const name of headMap.keys()) {
     if (!baseMap.has(name)) {
-      throw new Error(
-        `Bundle "${name}" is missing a corresponding "--base" entry.`,
-      );
+      throw new Error(`Bundle "${name}" is missing a corresponding "--base" entry.`);
     }
   }
 
@@ -208,9 +184,7 @@ async function loadStats(filePath) {
     return parsed;
   } catch (error) {
     const message =
-      error instanceof Error
-        ? error.message
-        : 'Unknown error while parsing stats file';
+      error instanceof Error ? error.message : 'Unknown error while parsing stats file';
     console.error(`[bundle-stats] Failed to parse "${filePath}": ${message}`);
     throw new Error(`Failed to load stats file "${filePath}": ${message}`);
   }
@@ -257,7 +231,7 @@ function assetNameToSizeMap(statAssets = {}) {
         }
       }
 
-      return [trimPath(asset.name), { size, gzipSize }];
+      return [trimPath(asset.name), {size, gzipSize}];
     }),
   );
 }
@@ -277,9 +251,7 @@ function chunkModuleNameToSizeMap(statChunks = {}) {
         id,
         {
           size: modInfo.renderedLength ?? 0,
-          gzipSize: statChunks?.options?.gzip
-            ? (modInfo.gzipLength ?? 0)
-            : null,
+          gzipSize: statChunks?.options?.gzip ? (modInfo.gzipLength ?? 0) : null,
         },
       ];
     }),
@@ -341,7 +313,7 @@ function webpackStatsDiff(oldAssets, newAssets) {
     const newAsset = newAssets.get(name);
 
     if (!newAsset) {
-      removed.push(getAssetDiff(name, oldAssetSizes, { size: 0, gzipSize: 0 }));
+      removed.push(getAssetDiff(name, oldAssetSizes, {size: 0, gzipSize: 0}));
       continue;
     }
 
@@ -361,7 +333,7 @@ function webpackStatsDiff(oldAssets, newAssets) {
     newGzipSizeTotal += newAssetSizes.gzipSize ?? NaN;
 
     if (!oldAssets.has(name)) {
-      added.push(getAssetDiff(name, { size: 0, gzipSize: 0 }, newAssetSizes));
+      added.push(getAssetDiff(name, {size: 0, gzipSize: 0}, newAssetSizes));
     }
   }
 
@@ -375,20 +347,15 @@ function webpackStatsDiff(oldAssets, newAssets) {
     smaller: sortDiffDescending(smaller),
     unchanged,
     total: getAssetDiff(
-      oldFilesCount === newFilesCount
-        ? `${newFilesCount}`
-        : `${oldFilesCount} → ${newFilesCount}`,
-      { size: oldSizeTotal, gzipSize: oldGzipSizeTotal },
-      { size: newSizeTotal, gzipSize: newGzipSizeTotal },
+      oldFilesCount === newFilesCount ? `${newFilesCount}` : `${oldFilesCount} → ${newFilesCount}`,
+      {size: oldSizeTotal, gzipSize: oldGzipSizeTotal},
+      {size: newSizeTotal, gzipSize: newGzipSizeTotal},
     ),
   };
 }
 
 function getStatsDiff(oldStats, newStats) {
-  return webpackStatsDiff(
-    assetNameToSizeMap(oldStats),
-    assetNameToSizeMap(newStats),
-  );
+  return webpackStatsDiff(assetNameToSizeMap(oldStats), assetNameToSizeMap(newStats));
 }
 
 function getChunkModuleDiff(oldStats, newStats) {
@@ -410,18 +377,7 @@ function getChunkModuleDiff(oldStats, newStats) {
 }
 
 const BYTES_PER_KILOBYTE = 1024;
-const FILE_SIZE_DENOMINATIONS = [
-  'B',
-  'kB',
-  'MB',
-  'GB',
-  'TB',
-  'PB',
-  'EB',
-  'ZB',
-  'YB',
-  'BB',
-];
+const FILE_SIZE_DENOMINATIONS = ['B', 'kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB', 'BB'];
 
 function formatFileSizeIEC(bytes, precision = 2) {
   if (bytes == null || Number.isNaN(bytes)) {
@@ -433,9 +389,7 @@ function formatFileSizeIEC(bytes, precision = 2) {
   }
 
   const absBytes = Math.abs(bytes);
-  const denominationIndex = Math.floor(
-    Math.log(absBytes) / Math.log(BYTES_PER_KILOBYTE),
-  );
+  const denominationIndex = Math.floor(Math.log(absBytes) / Math.log(BYTES_PER_KILOBYTE));
   const value = absBytes / Math.pow(BYTES_PER_KILOBYTE, denominationIndex);
   const stripped = parseFloat(value.toFixed(precision));
 
@@ -466,7 +420,7 @@ function makeHeader(columns) {
   const header = columns.join(' | ');
   const separator = columns
     .map(column =>
-      Array.from({ length: column.length })
+      Array.from({length: column.length})
         .map(() => '-')
         .join(''),
     )
@@ -475,17 +429,8 @@ function makeHeader(columns) {
   return `${header}\n${separator}`;
 }
 
-const TOTAL_HEADERS = makeHeader([
-  'Files count',
-  'Total bundle size',
-  '% Changed',
-]);
-const SUMMARY_HEADERS = makeHeader([
-  'Bundle',
-  'Files count',
-  'Total bundle size',
-  '% Changed',
-]);
+const TOTAL_HEADERS = makeHeader(['Files count', 'Total bundle size', '% Changed']);
+const SUMMARY_HEADERS = makeHeader(['Bundle', 'Files count', 'Total bundle size', '% Changed']);
 const TABLE_HEADERS = makeHeader(['Asset', 'File Size', '% Changed']);
 const CHUNK_TABLE_HEADERS = makeHeader(['File', 'Δ', 'Size']);
 
@@ -495,9 +440,7 @@ function signFor(num) {
 }
 
 function toFileSizeDiff(oldSize, newSize, diff) {
-  const diffLine = [
-    `${formatFileSizeIEC(oldSize)} → ${formatFileSizeIEC(newSize)}`,
-  ];
+  const diffLine = [`${formatFileSizeIEC(oldSize)} → ${formatFileSizeIEC(newSize)}`];
 
   if (typeof diff !== 'undefined') {
     diffLine.push(`(${signFor(diff)}${formatFileSizeIEC(diff)})`);
@@ -519,9 +462,7 @@ function toFileSizeDiffCell(asset) {
     lines.push(toFileSizeDiff(asset.old.size, asset.new.size, asset.diff));
 
     if (asset.old.gzipSize || asset.new.gzipSize) {
-      lines.push(
-        `${toFileSizeDiff(asset.old.gzipSize, asset.new.gzipSize)} (gzip)`,
-      );
+      lines.push(`${toFileSizeDiff(asset.old.gzipSize, asset.new.gzipSize)} (gzip)`);
     }
   }
 
@@ -529,11 +470,9 @@ function toFileSizeDiffCell(asset) {
 }
 
 function printAssetTableRow(asset) {
-  return [
-    asset.name,
-    toFileSizeDiffCell(asset),
-    conditionalPercentage(asset.diffPercentage),
-  ].join(' | ');
+  return [asset.name, toFileSizeDiffCell(asset), conditionalPercentage(asset.diffPercentage)].join(
+    ' | ',
+  );
 }
 
 function printAssetTablesByGroup(statsDiff) {
@@ -609,8 +548,7 @@ function printChunkModulesTable(statsDiff) {
     .map(chunkModule => printChunkModuleRow(chunkModule))
     .join('\n');
 
-  const summarySuffix =
-    changedModules.length > 100 ? ' (largest 100 files by percent change)' : '';
+  const summarySuffix = changedModules.length > 100 ? ' (largest 100 files by percent change)' : '';
 
   return `<details>\n<summary>Changeset${summarySuffix}</summary>\n\n${CHUNK_TABLE_HEADERS}\n${rows}\n</details>`;
 }
@@ -638,8 +576,8 @@ function printSummaryTable(sections) {
 }
 
 function renderSection(title, statsDiff, chunkModuleDiff) {
-  const { total, ...groups } = statsDiff;
-  const parts = [`#### ${title}`, '', printTotalAssetTable({ total })];
+  const {total, ...groups} = statsDiff;
+  const parts = [`#### ${title}`, '', printTotalAssetTable({total})];
 
   const chunkTable = printChunkModulesTable(chunkModuleDiff);
   if (chunkTable) {
@@ -658,9 +596,7 @@ function renderSection(title, statsDiff, chunkModuleDiff) {
 
 function renderSections(sections) {
   return sections
-    .map(section =>
-      renderSection(section.name, section.statsDiff, section.chunkDiff),
-    )
+    .map(section => renderSection(section.name, section.statsDiff, section.chunkDiff))
     .join('\n\n---\n\n');
 }
 
@@ -676,14 +612,10 @@ async function main() {
   const args = parseArgs(process.argv);
   const allowedFormats = new Set(['comment', 'pr-body']);
   if (!allowedFormats.has(args.format)) {
-    throw new Error(
-      `Invalid format "${args.format}". Use "comment" or "pr-body".`,
-    );
+    throw new Error(`Invalid format "${args.format}". Use "comment" or "pr-body".`);
   }
 
-  console.error(
-    `[bundle-stats] Found ${args.sections.length} sections to process`,
-  );
+  console.error(`[bundle-stats] Found ${args.sections.length} sections to process`);
   args.sections.forEach((section, index) => {
     console.error(
       `[bundle-stats] Section ${index + 1}: ${section.name} (base: ${section.basePath}, head: ${section.headPath})`,
@@ -694,13 +626,9 @@ async function main() {
 
   for (const section of args.sections) {
     console.error(`[bundle-stats] Processing section: ${section.name}`);
-    console.error(
-      `[bundle-stats] Loading base stats from: ${section.basePath}`,
-    );
+    console.error(`[bundle-stats] Loading base stats from: ${section.basePath}`);
     const baseStats = await loadStats(section.basePath);
-    console.error(
-      `[bundle-stats] Loading head stats from: ${section.headPath}`,
-    );
+    console.error(`[bundle-stats] Loading head stats from: ${section.headPath}`);
     const headStats = await loadStats(section.headPath);
 
     const statsDiff = getStatsDiff(baseStats, headStats);
@@ -723,9 +651,7 @@ async function main() {
 
   const detailedBody = ['### Bundle Stats', '', sectionsContent].join('\n');
 
-  const commentBody = [markers.start, detailedBody, '', markers.end, ''].join(
-    '\n',
-  );
+  const commentBody = [markers.start, detailedBody, '', markers.end, ''].join('\n');
 
   const prBody = [
     markers.start,

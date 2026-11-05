@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { createRequire } from 'module';
+import {createRequire} from 'module';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {fileURLToPath} from 'node:url';
 
 import convict from 'convict';
 import createDebug from 'debug';
 
-import { applyFileEnv } from './config-file-env';
+import {applyFileEnv} from './config-file-env';
 
 const require = createRequire(import.meta.url);
 const debug = createDebug('actual:config');
@@ -58,9 +58,7 @@ convict.addFormat({
       if (Number.isFinite(numVal) && numVal >= 0) return;
     }
 
-    throw new Error(
-      `Invalid token_expiration value: ${val}: value was "${val}"`,
-    );
+    throw new Error(`Invalid token_expiration value: ${val}: value was "${val}"`);
   },
   coerce(val) {
     if (val === 'never' || val === 'openid-provider') return val;
@@ -151,13 +149,7 @@ const configSchema = convict({
   trustedProxies: {
     doc: 'List of trusted proxies.',
     format: Array,
-    default: [
-      '10.0.0.0/8',
-      '172.16.0.0/12',
-      '192.168.0.0/16',
-      'fc00::/7',
-      '::1/128',
-    ],
+    default: ['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7', '::1/128'],
     env: 'ACTUAL_TRUSTED_PROXIES',
   },
   trustedAuthProxies: {
@@ -319,9 +311,7 @@ const configSchema = convict({
 let configPath = null;
 
 if (process.env.ACTUAL_CONFIG_PATH) {
-  debug(
-    `loading config from ACTUAL_CONFIG_PATH: '${process.env.ACTUAL_CONFIG_PATH}'`,
-  );
+  debug(`loading config from ACTUAL_CONFIG_PATH: '${process.env.ACTUAL_CONFIG_PATH}'`);
   configPath = process.env.ACTUAL_CONFIG_PATH;
 } else {
   configPath = path.join(projectRoot, 'config.json');
@@ -350,7 +340,7 @@ for (const [fileEnvVar, settingPath] of [
 }
 
 debug(`Validating config`);
-configSchema.validate({ allowed: 'strict' });
+configSchema.validate({allowed: 'strict'});
 
 debug(`Project root: ${configSchema.get('projectRoot')}`);
 debug(`Port: ${configSchema.get('port')}`);
@@ -382,4 +372,4 @@ if (githubToken) {
   debugSensitive(`GitHub Token: ${githubToken}`);
 }
 
-export { configSchema as config };
+export {configSchema as config};

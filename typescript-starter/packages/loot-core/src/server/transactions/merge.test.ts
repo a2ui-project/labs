@@ -16,9 +16,9 @@
 
 import * as db from '#server/db';
 // @ts-strict-ignore
-import type { TransactionEntity } from '#types/models';
+import type {TransactionEntity} from '#types/models';
 
-import { mergeTransactions } from './merge';
+import {mergeTransactions} from './merge';
 
 describe('Merging fails for invalid quantity', () => {
   beforeEach(global.emptyDatabase());
@@ -29,10 +29,7 @@ describe('Merging fails for invalid quantity', () => {
     [[], 'no transactions'],
     [undefined as unknown as TransactionEntity[], 'undefined'],
     [[{}, {}, {}] as TransactionEntity[], 'three transactions'],
-    [
-      [{}, undefined] as TransactionEntity[],
-      'two transactions but one is undefined',
-    ],
+    [[{}, undefined] as TransactionEntity[], 'two transactions but one is undefined'],
   ];
   tests.forEach(([arr, message]) =>
     it(message, () => expect(() => mergeTransactions(arr)).rejects.toThrow()),
@@ -50,9 +47,9 @@ describe('Merging fails for invalid quantity', () => {
       date: '2025-01-01',
       amount: 12,
     });
-    await expect(() =>
-      mergeTransactions([{ id: t1 }, { id: t2 }]),
-    ).rejects.toThrow('Cannot merge transactions with different amounts');
+    await expect(() => mergeTransactions([{id: t1}, {id: t2}])).rejects.toThrow(
+      'Cannot merge transactions with different amounts',
+    );
   });
 
   it('fails when the same transaction is passed twice', async () => {
@@ -62,9 +59,9 @@ describe('Merging fails for invalid quantity', () => {
       date: '2025-01-01',
       amount: 10,
     });
-    await expect(() =>
-      mergeTransactions([{ id: t1 }, { id: t1 }]),
-    ).rejects.toThrow('Merging is only possible with 2 distinct transactions');
+    await expect(() => mergeTransactions([{id: t1}, {id: t1}])).rejects.toThrow(
+      'Merging is only possible with 2 distinct transactions',
+    );
     expect(await db.getTransaction(t1)).toBeTruthy();
   });
 
@@ -75,14 +72,14 @@ describe('Merging fails for invalid quantity', () => {
       date: '2025-01-01',
       amount: 10,
     });
-    await expect(() =>
-      mergeTransactions([{ id: t1 }, { id: 'missing' }]),
-    ).rejects.toThrow('One of the provided transactions does not exist');
+    await expect(() => mergeTransactions([{id: t1}, {id: 'missing'}])).rejects.toThrow(
+      'One of the provided transactions does not exist',
+    );
   });
 });
 
 async function prepareDatabase() {
-  await db.insertCategoryGroup({ id: 'group1', name: 'group1', is_income: 0 });
+  await db.insertCategoryGroup({id: 'group1', name: 'group1', is_income: 0});
   await db.insertCategory({
     id: '1',
     name: 'cat1',
@@ -95,16 +92,16 @@ async function prepareDatabase() {
     cat_group: 'group1',
     is_income: 0,
   });
-  await db.insertAccount({ id: 'one', name: 'one' });
-  await db.insertAccount({ id: 'two', name: 'two' });
-  await db.insertAccount({ id: 'three', name: 'three', offbudget: 1 });
-  await db.insertPayee({ id: 'payee1', name: 'one' });
-  await db.insertPayee({ id: 'payee2', name: 'two' });
-  await db.insertPayee({ id: 'payee3', name: 'three' });
+  await db.insertAccount({id: 'one', name: 'one'});
+  await db.insertAccount({id: 'two', name: 'two'});
+  await db.insertAccount({id: 'three', name: 'three', offbudget: 1});
+  await db.insertPayee({id: 'payee1', name: 'one'});
+  await db.insertPayee({id: 'payee2', name: 'two'});
+  await db.insertPayee({id: 'payee3', name: 'three'});
 }
 
 function getAllTransactions() {
-  return db.all<db.DbViewTransaction & { payee_name: db.DbPayee['name'] }>(
+  return db.all<db.DbViewTransaction & {payee_name: db.DbPayee['name']}>(
     `SELECT t.*, p.name as payee_name
        FROM v_transactions t
        LEFT JOIN payees p ON p.id = t.payee
@@ -171,7 +168,7 @@ describe('Merging success', () => {
       imported_id: 'imported_2',
     });
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t1);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t1);
 
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
@@ -188,7 +185,7 @@ describe('Merging success', () => {
     });
     const t2 = await db.insertTransaction(transaction2);
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t1);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t1);
 
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
@@ -208,7 +205,7 @@ describe('Merging success', () => {
       imported_id: 'imported_2',
     });
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t2);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t2);
 
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
@@ -228,7 +225,7 @@ describe('Merging success', () => {
       imported_payee: 'payee',
     });
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t1);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t1);
 
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
@@ -245,7 +242,7 @@ describe('Merging success', () => {
       imported_payee: 'payee',
     });
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t2);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t2);
 
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
@@ -262,7 +259,7 @@ describe('Merging success', () => {
     });
     const t2 = await db.insertTransaction(transaction2);
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t1);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t1);
 
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
@@ -279,7 +276,7 @@ describe('Merging success', () => {
       imported_id: 'imported_2',
     });
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t2);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t2);
 
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
@@ -299,7 +296,7 @@ describe('Merging success', () => {
     });
     const t2 = await db.insertTransaction(transaction2);
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t1);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t1);
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
     expect(transactions[0]).toMatchObject({
@@ -325,7 +322,7 @@ describe('Merging success', () => {
       schedule: 'schedule-1',
     });
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t1);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t1);
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
     expect(transactions[0].schedule).toBe('schedule-1');
@@ -342,7 +339,7 @@ describe('Merging success', () => {
       schedule: 'schedule-drop',
     });
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t1);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t1);
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
     expect(transactions[0].schedule).toBe('schedule-keep');
@@ -360,7 +357,7 @@ describe('Merging success', () => {
       imported_id: 'imported_2',
     });
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t2);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t2);
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(1);
     expect(transactions[0].schedule).toBe('schedule-1');
@@ -406,10 +403,7 @@ describe('Merging success', () => {
     });
 
     // Merge: imported transaction should be kept (because it has imported_id)
-    const keptId = await mergeTransactions([
-      { id: manualParent },
-      { id: imported },
-    ]);
+    const keptId = await mergeTransactions([{id: manualParent}, {id: imported}]);
     expect(keptId).toBe(imported);
 
     // Check that the kept transaction is now a parent
@@ -420,9 +414,7 @@ describe('Merging success', () => {
 
     // Check that subtransactions were transferred and still exist
     const allTransactions = await getAllTransactions();
-    const childTransactions = allTransactions.filter(
-      t => t.parent_id === imported,
-    );
+    const childTransactions = allTransactions.filter(t => t.parent_id === imported);
     expect(childTransactions.length).toBe(2);
 
     // Verify the subtransactions have the correct parent_id and preserved their categories
@@ -444,9 +436,7 @@ describe('Merging success', () => {
     });
 
     // Verify no orphaned subtransactions remain
-    const orphanedChildren = allTransactions.filter(
-      t => t.parent_id === manualParent,
-    );
+    const orphanedChildren = allTransactions.filter(t => t.parent_id === manualParent);
     expect(orphanedChildren.length).toBe(0);
   });
 
@@ -467,9 +457,9 @@ describe('Merging success', () => {
       amount: -transaction2.amount,
       transfer_id: t2,
     });
-    await db.updateTransaction({ id: t2, transfer_id: t2Transfer });
+    await db.updateTransaction({id: t2, transfer_id: t2Transfer});
 
-    expect(await mergeTransactions([{ id: t1 }, { id: t2 }])).toBe(t1);
+    expect(await mergeTransactions([{id: t1}, {id: t2}])).toBe(t1);
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(2);
     const t1R = transactions.find(tx => tx.id === t1);
@@ -495,7 +485,7 @@ describe('Merging success', () => {
       date: '2025-01-05', // B is later than D
       transfer_id: a,
     });
-    await db.updateTransaction({ id: a, transfer_id: b });
+    await db.updateTransaction({id: a, transfer_id: b});
 
     // C -> D
     const c = await db.insertTransaction({
@@ -509,10 +499,10 @@ describe('Merging success', () => {
       date: '2025-01-02', // D is earlier than B
       transfer_id: c,
     });
-    await db.updateTransaction({ id: c, transfer_id: d });
+    await db.updateTransaction({id: c, transfer_id: d});
 
     // Merge A and C
-    expect(await mergeTransactions([{ id: a }, { id: c }])).toBe(a);
+    expect(await mergeTransactions([{id: a}, {id: c}])).toBe(a);
 
     const transactions = await getAllTransactions();
     expect(transactions.length).toBe(2);

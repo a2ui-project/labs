@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { fetch } from '#platform/server/fetch';
+import {fetch} from '#platform/server/fetch';
 
 describe('electron fetch', () => {
   const globalFetch = vi.fn();
@@ -32,7 +32,7 @@ describe('electron fetch', () => {
   it('sends the app://actual origin', async () => {
     await fetch('https://sync.example.com/gocardless/create-web-token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {'Content-Type': 'application/json'},
     });
 
     expect(globalFetch).toHaveBeenCalledWith(

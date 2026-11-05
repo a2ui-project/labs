@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-import type { DragItem } from 'react-aria';
-import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
-import { useTranslation } from 'react-i18next';
+import type {DragItem} from 'react-aria';
+import {DropIndicator, GridList, useDragAndDrop} from 'react-aria-components';
+import {useTranslation} from 'react-i18next';
 
-import { theme } from '@actual-app/components/theme';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
+import {theme} from '@actual-app/components/theme';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
+import {css} from '@emotion/css';
 
-import { useMoveCategoryGroupMutation } from '#budget';
+import {useMoveCategoryGroupMutation} from '#budget';
 
-import {
-  ExpenseGroupHeader,
-  ExpenseGroupListItem,
-} from './ExpenseGroupListItem';
+import {ExpenseGroupHeader, ExpenseGroupListItem} from './ExpenseGroupListItem';
 
 type ExpenseGroupListProps = {
   categoryGroups: CategoryGroupEntity[];
@@ -57,10 +51,10 @@ export function ExpenseGroupList({
   isCollapsed,
   onToggleCollapse,
 }: ExpenseGroupListProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const moveCategoryGroup = useMoveCategoryGroupMutation();
 
-  const { dragAndDropHooks } = useDragAndDrop({
+  const {dragAndDropHooks} = useDragAndDrop({
     getItems: keys =>
       [...keys].map(
         key =>
@@ -87,9 +81,7 @@ export function ExpenseGroupList({
       const draggedGroupId = items[0]['text/plain'];
       const group = categoryGroups.find(c => c.id === draggedGroupId);
       if (!group) {
-        throw new Error(
-          `Internal error: category group with ID ${draggedGroupId} not found.`,
-        );
+        throw new Error(`Internal error: category group with ID ${draggedGroupId} not found.`);
       }
       return (
         <ExpenseGroupHeader
@@ -110,9 +102,7 @@ export function ExpenseGroupList({
       const groupToMove = categoryGroups.find(c => c.id === groupIdToMove);
 
       if (!groupToMove) {
-        throw new Error(
-          `Internal error: category group with ID ${groupIdToMove} not found.`,
-        );
+        throw new Error(`Internal error: category group with ID ${groupIdToMove} not found.`);
       }
 
       const targetGroupId = e.target.key as CategoryEntity['id'];
@@ -123,14 +113,10 @@ export function ExpenseGroupList({
           targetId: targetGroupId,
         });
       } else if (e.target.dropPosition === 'after') {
-        const targetGroupIndex = categoryGroups.findIndex(
-          c => c.id === targetGroupId,
-        );
+        const targetGroupIndex = categoryGroups.findIndex(c => c.id === targetGroupId);
 
         if (targetGroupIndex === -1) {
-          throw new Error(
-            `Internal error: category group with ID ${targetGroupId} not found.`,
-          );
+          throw new Error(`Internal error: category group with ID ${targetGroupId} not found.`);
         }
 
         const nextToTargetCategory = categoryGroups[targetGroupIndex + 1];

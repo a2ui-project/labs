@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { Fragment, useMemo } from 'react';
+import React, {Fragment, useMemo} from 'react';
 import type {
   ComponentProps,
   ComponentPropsWithoutRef,
@@ -24,33 +24,30 @@ import type {
   ReactNode,
   SVGProps,
 } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgSplit } from '@actual-app/components/icons/v0';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { TextOneLine } from '@actual-app/components/text-one-line';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { integerToCurrency } from '@actual-app/core/shared/util';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgSplit} from '@actual-app/components/icons/v0';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {TextOneLine} from '@actual-app/components/text-one-line';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {integerToCurrency} from '@actual-app/core/shared/util';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
+import {css, cx} from '@emotion/css';
 
-import { useEnvelopeSheetValue } from '#components/budget/envelope/EnvelopeBudgetComponents';
-import { makeAmountFullStyle } from '#components/budget/util';
-import { FinancialText } from '#components/FinancialText';
-import { useCategories } from '#hooks/useCategories';
-import { useSheetValue } from '#hooks/useSheetValue';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
+import {useEnvelopeSheetValue} from '#components/budget/envelope/EnvelopeBudgetComponents';
+import {makeAmountFullStyle} from '#components/budget/util';
+import {FinancialText} from '#components/FinancialText';
+import {useCategories} from '#hooks/useCategories';
+import {useSheetValue} from '#hooks/useSheetValue';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {envelopeBudget, trackingBudget} from '#spreadsheet/bindings';
 
-import { Autocomplete } from './Autocomplete';
-import { filterCategorySuggestions } from './filterCategorySuggestions';
-import { ItemHeader } from './ItemHeader';
+import {Autocomplete} from './Autocomplete';
+import {filterCategorySuggestions} from './filterCategorySuggestions';
+import {ItemHeader} from './ItemHeader';
 
 type CategoryAutocompleteItem = Omit<CategoryEntity, 'group'> & {
   group?: CategoryGroupEntity;
@@ -58,9 +55,7 @@ type CategoryAutocompleteItem = Omit<CategoryEntity, 'group'> & {
 
 type CategoryListProps = {
   items: CategoryAutocompleteItem[];
-  getItemProps?: (arg: {
-    item: CategoryAutocompleteItem;
-  }) => Partial<ComponentProps<typeof View>>;
+  getItemProps?: (arg: {item: CategoryAutocompleteItem}) => Partial<ComponentProps<typeof View>>;
   highlightedIndex: number;
   embedded?: boolean;
   footer?: ReactNode;
@@ -88,7 +83,7 @@ function CategoryList({
   showHiddenItems,
   showBalances,
 }: CategoryListProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const splitTransactionIndex = items.findIndex(item => item.id === 'split');
   const splitTransaction =
     splitTransactionIndex === -1
@@ -98,7 +93,7 @@ function CategoryList({
           highlightedIndex: splitTransactionIndex,
         };
   const categoryItems = items
-    .map((item, index) => ({ ...item, highlightedIndex: index }))
+    .map((item, index) => ({...item, highlightedIndex: index}))
     .filter(item => item.id !== 'split');
 
   return (
@@ -108,21 +103,18 @@ function CategoryList({
           overflowY: 'auto',
           willChange: 'transform',
           padding: '5px 0',
-          ...(!embedded && { maxHeight: 175 }),
+          ...(!embedded && {maxHeight: 175}),
         }}
       >
         {splitTransaction &&
           (() => {
-            const splitButtonProps = getItemProps
-              ? getItemProps({ item: splitTransaction })
-              : {};
-            const { onClick, ...restSplitButtonProps } = splitButtonProps;
+            const splitButtonProps = getItemProps ? getItemProps({item: splitTransaction}) : {};
+            const {onClick, ...restSplitButtonProps} = splitButtonProps;
             return renderSplitTransactionButton({
               key: 'split',
               ...restSplitButtonProps,
               onClick,
-              highlighted:
-                splitTransaction.highlightedIndex === highlightedIndex,
+              highlighted: splitTransaction.highlightedIndex === highlightedIndex,
               embedded,
             });
           })()}
@@ -142,12 +134,11 @@ function CategoryList({
                 renderCategoryItemGroupHeader({
                   title: `${group.name}${group.hidden ? ` ${t('(hidden)')}` : ''}`,
                   style: {
-                    ...(showHiddenItems &&
-                      group.hidden && { color: theme.pageTextSubdued }),
+                    ...(showHiddenItems && group.hidden && {color: theme.pageTextSubdued}),
                   },
                 })}
               {renderCategoryItem({
-                ...(getItemProps ? getItemProps({ item }) : {}),
+                ...(getItemProps ? getItemProps({item}) : {}),
                 item,
                 highlighted: highlightedIndex === item.highlightedIndex,
                 embedded,
@@ -168,9 +159,7 @@ function CategoryList({
   );
 }
 
-type CategoryAutocompleteProps = ComponentProps<
-  typeof Autocomplete<CategoryAutocompleteItem>
-> & {
+type CategoryAutocompleteProps = ComponentProps<typeof Autocomplete<CategoryAutocompleteItem>> & {
   categoryGroups?: Array<CategoryGroupEntity>;
   showBalances?: boolean;
   showSplitOption?: boolean;
@@ -198,8 +187,7 @@ export function CategoryAutocomplete({
   showHiddenCategories,
   ...props
 }: CategoryAutocompleteProps) {
-  const { data: { grouped: defaultCategoryGroups } = { grouped: [] } } =
-    useCategories();
+  const {data: {grouped: defaultCategoryGroups} = {grouped: []}} = useCategories();
   const categorySuggestions: CategoryAutocompleteItem[] = useMemo(() => {
     const allSuggestions = (categoryGroups || defaultCategoryGroups).reduce(
       (list, group) =>
@@ -211,26 +199,18 @@ export function CategoryAutocomplete({
               group,
             })),
         ),
-      showSplitOption
-        ? [{ id: 'split', name: '' } as CategoryAutocompleteItem]
-        : [],
+      showSplitOption ? [{id: 'split', name: ''} as CategoryAutocompleteItem] : [],
     );
 
     if (!showHiddenCategories) {
       return allSuggestions.filter(
         suggestion =>
-          suggestion.id === 'split' ||
-          (!suggestion.hidden && !suggestion.group?.hidden),
+          suggestion.id === 'split' || (!suggestion.hidden && !suggestion.group?.hidden),
       );
     }
 
     return allSuggestions;
-  }, [
-    categoryGroups,
-    defaultCategoryGroups,
-    showSplitOption,
-    showHiddenCategories,
-  ]);
+  }, [categoryGroups, defaultCategoryGroups, showSplitOption, showHiddenCategories]);
 
   return (
     <Autocomplete
@@ -313,9 +293,7 @@ function SplitTransactionButton({
       // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role
       role="button"
       style={{
-        backgroundColor: highlighted
-          ? theme.menuAutoCompleteBackgroundHover
-          : 'transparent',
+        backgroundColor: highlighted ? theme.menuAutoCompleteBackgroundHover : 'transparent',
         borderRadius: embedded ? 4 : 0,
         flexShrink: 0,
         flexDirection: 'row',
@@ -332,11 +310,11 @@ function SplitTransactionButton({
       data-testid="split-transaction-button"
       {...props}
     >
-      <Text style={{ lineHeight: 0 }}>
+      <Text style={{lineHeight: 0}}>
         {Icon ? (
-          <Icon style={{ marginRight: 5 }} />
+          <Icon style={{marginRight: 5}} />
         ) : (
-          <SvgSplit width={10} height={10} style={{ marginRight: 5 }} />
+          <SvgSplit width={10} height={10} style={{marginRight: 5}} />
         )}
       </Text>
       <Trans>Split Transaction</Trans>
@@ -368,8 +346,8 @@ function CategoryItem({
   showBalances,
   ...props
 }: CategoryItemProps) {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
   const narrowStyle = isNarrowWidth
     ? {
         ...styles.mobileMenuItem,
@@ -383,10 +361,9 @@ function CategoryItem({
     budgetType === 'envelope'
       ? envelopeBudget.catBalance(item.id)
       : trackingBudget.catBalance(item.id);
-  const balance = useSheetValue<
-    'envelope-budget' | 'tracking-budget',
-    typeof balanceBinding
-  >(balanceBinding);
+  const balance = useSheetValue<'envelope-budget' | 'tracking-budget', typeof balanceBinding>(
+    balanceBinding,
+  );
 
   const isToBudgetItem = item.id === 'to-budget';
   const toBudget = useEnvelopeSheetValue(envelopeBudget.toBudget);
@@ -399,12 +376,8 @@ function CategoryItem({
       className={cx(
         className,
         css({
-          backgroundColor: highlighted
-            ? theme.menuAutoCompleteBackgroundHover
-            : 'transparent',
-          color: highlighted
-            ? theme.menuAutoCompleteItemTextHover
-            : theme.menuAutoCompleteItemText,
+          backgroundColor: highlighted ? theme.menuAutoCompleteBackgroundHover : 'transparent',
+          color: highlighted ? theme.menuAutoCompleteItemTextHover : theme.menuAutoCompleteItemText,
           padding: 4,
           paddingLeft: 20,
           borderRadius: embedded ? 4 : 0,
@@ -417,7 +390,7 @@ function CategoryItem({
       data-highlighted={highlighted || undefined}
       {...props}
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
         <TextOneLine>
           {item.name}
           {item.hidden || item.group?.hidden ? ' ' + t('(hidden)') : ''}
@@ -437,17 +410,13 @@ function CategoryItem({
             ? toBudget != null && (
                 <>
                   {' '}
-                  <FinancialText>
-                    {integerToCurrency(toBudget || 0)}
-                  </FinancialText>
+                  <FinancialText>{integerToCurrency(toBudget || 0)}</FinancialText>
                 </>
               )
             : balance != null && (
                 <>
                   {' '}
-                  <FinancialText>
-                    {integerToCurrency(balance || 0)}
-                  </FinancialText>
+                  <FinancialText>{integerToCurrency(balance || 0)}</FinancialText>
                 </>
               )}
         </TextOneLine>

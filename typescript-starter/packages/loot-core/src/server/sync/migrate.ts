@@ -15,10 +15,10 @@
  */
 
 // @ts-strict-ignore
-import { Timestamp } from '@actual-app/crdt';
+import {Timestamp} from '@actual-app/crdt';
 
-import { addSyncListener, applyMessages } from './index';
-import type { Message } from './index';
+import {addSyncListener, applyMessages} from './index';
+import type {Message} from './index';
 
 function migrateParentIds(_oldValues, newValues) {
   newValues.forEach((items, table) => {
@@ -26,11 +26,7 @@ function migrateParentIds(_oldValues, newValues) {
       const toApply: Message[] = [];
 
       items.forEach(newValue => {
-        if (
-          newValue.isChild === 1 &&
-          newValue.parent_id == null &&
-          newValue.id.includes('/')
-        ) {
+        if (newValue.isChild === 1 && newValue.parent_id == null && newValue.id.includes('/')) {
           const parentId = newValue.id.split('/')[0];
 
           toApply.push({

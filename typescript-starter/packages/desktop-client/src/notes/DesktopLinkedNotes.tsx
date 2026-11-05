@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import type { MouseEvent } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {MouseEvent} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { theme } from '@actual-app/components/theme';
-import { isElectron } from '@actual-app/core/shared/environment';
+import {theme} from '@actual-app/components/theme';
+import {isElectron} from '@actual-app/core/shared/environment';
 
-import { Link } from '#components/common/Link';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {Link} from '#components/common/Link';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
-import { normalizeUrl } from './linkParser';
+import {normalizeUrl} from './linkParser';
 
 type DesktopLinkedNotesProps = {
   displayText: string;
@@ -40,7 +40,7 @@ export function DesktopLinkedNotes({
   isFilePath,
 }: DesktopLinkedNotesProps) {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const handleClick = async (e: MouseEvent) => {
     e.stopPropagation();

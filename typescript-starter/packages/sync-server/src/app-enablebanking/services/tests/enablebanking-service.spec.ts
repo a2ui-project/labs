@@ -14,19 +14,11 @@
  * limitations under the License.
  */
 
-import {
-  afterAll,
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest';
+import {afterAll, afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { enableBankingService } from '#app-enablebanking/services/enablebanking-service';
-import { EnableBankingError } from '#app-enablebanking/utils/errors';
-import { secretsService } from '#services/secrets-service';
+import {enableBankingService} from '#app-enablebanking/services/enablebanking-service';
+import {EnableBankingError} from '#app-enablebanking/utils/errors';
+import {secretsService} from '#services/secrets-service';
 
 import {
   mockAspspList,
@@ -113,7 +105,7 @@ describe('enableBankingService', () => {
 
   describe('#getApplication', () => {
     it('calls GET /application with auth header', async () => {
-      mockFetchResponse({ name: 'Test App', status: 'active' });
+      mockFetchResponse({name: 'Test App', status: 'active'});
 
       const result = await enableBankingService.getApplication();
 
@@ -126,15 +118,13 @@ describe('enableBankingService', () => {
           }),
         }),
       );
-      expect(result).toEqual({ name: 'Test App', status: 'active' });
+      expect(result).toEqual({name: 'Test App', status: 'active'});
     });
 
     it('throws EnableBankingError on non-ok response', async () => {
-      mockFetchResponse({ message: 'Unauthorized' }, false, 401);
+      mockFetchResponse({message: 'Unauthorized'}, false, 401);
 
-      await expect(enableBankingService.getApplication()).rejects.toThrow(
-        EnableBankingError,
-      );
+      await expect(enableBankingService.getApplication()).rejects.toThrow(EnableBankingError);
     });
 
     it('throws when credentials are not configured', async () => {
@@ -154,7 +144,7 @@ describe('enableBankingService', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.enablebanking.com/aspsps?country=FI',
-        expect.objectContaining({ method: 'GET' }),
+        expect.objectContaining({method: 'GET'}),
       );
       expect(result).toEqual(mockAspspList);
     });
@@ -166,7 +156,7 @@ describe('enableBankingService', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.enablebanking.com/aspsps',
-        expect.objectContaining({ method: 'GET' }),
+        expect.objectContaining({method: 'GET'}),
       );
     });
 
@@ -187,7 +177,7 @@ describe('enableBankingService', () => {
       mockFetchResponse(mockAuthResponse);
 
       const result = await enableBankingService.startAuth(
-        { name: 'Nordea', country: 'FI' },
+        {name: 'Nordea', country: 'FI'},
         'https://app.example.com/callback',
         'test-state-uuid',
       );
@@ -201,12 +191,10 @@ describe('enableBankingService', () => {
       );
 
       const body = JSON.parse(String(mockFetch.mock.calls[0][1].body));
-      expect(body.aspsp).toEqual({ name: 'Nordea', country: 'FI' });
+      expect(body.aspsp).toEqual({name: 'Nordea', country: 'FI'});
       expect(body.redirect_url).toBe('https://app.example.com/callback');
       expect(body.state).toBe('test-state-uuid');
-      expect(body.access.valid_until).toMatch(
-        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/,
-      );
+      expect(body.access.valid_until).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/);
 
       expect(result).toEqual(mockAuthResponse);
     });
@@ -215,7 +203,7 @@ describe('enableBankingService', () => {
       mockFetchResponse(mockAuthResponse);
 
       await enableBankingService.startAuth(
-        { name: 'Nordea', country: 'FI' },
+        {name: 'Nordea', country: 'FI'},
         'https://app.example.com/callback',
         'state',
       );
@@ -223,9 +211,7 @@ describe('enableBankingService', () => {
       const body = JSON.parse(String(mockFetch.mock.calls[0][1].body));
       const validUntil = new Date(body.access.valid_until);
       const now = new Date();
-      const diffDays = Math.round(
-        (validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const diffDays = Math.round((validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       expect(diffDays).toBeGreaterThanOrEqual(89);
       expect(diffDays).toBeLessThanOrEqual(91);
     });
@@ -235,7 +221,7 @@ describe('enableBankingService', () => {
 
       const thirtyDaysInSeconds = 30 * 24 * 60 * 60;
       await enableBankingService.startAuth(
-        { name: 'Nordea', country: 'FI' },
+        {name: 'Nordea', country: 'FI'},
         'https://app.example.com/callback',
         'state',
         thirtyDaysInSeconds,
@@ -243,9 +229,7 @@ describe('enableBankingService', () => {
 
       const body = JSON.parse(String(mockFetch.mock.calls[0][1].body));
       const validUntil = new Date(body.access.valid_until);
-      const diffDays = Math.round(
-        (validUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-      );
+      const diffDays = Math.round((validUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       expect(diffDays).toBeGreaterThanOrEqual(29);
       expect(diffDays).toBeLessThanOrEqual(31);
     });
@@ -255,7 +239,7 @@ describe('enableBankingService', () => {
 
       const oneYearInSeconds = 365 * 24 * 60 * 60;
       await enableBankingService.startAuth(
-        { name: 'Nordea', country: 'FI' },
+        {name: 'Nordea', country: 'FI'},
         'https://app.example.com/callback',
         'state',
         oneYearInSeconds,
@@ -263,9 +247,7 @@ describe('enableBankingService', () => {
 
       const body = JSON.parse(String(mockFetch.mock.calls[0][1].body));
       const validUntil = new Date(body.access.valid_until);
-      const diffDays = Math.round(
-        (validUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-      );
+      const diffDays = Math.round((validUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       expect(diffDays).toBeGreaterThanOrEqual(89);
       expect(diffDays).toBeLessThanOrEqual(91);
     });
@@ -274,7 +256,7 @@ describe('enableBankingService', () => {
       mockFetchResponse(mockAuthResponse);
 
       await enableBankingService.startAuth(
-        { name: 'Nordea', country: 'FI' },
+        {name: 'Nordea', country: 'FI'},
         'https://app.example.com/callback',
         'state',
         0,
@@ -282,9 +264,7 @@ describe('enableBankingService', () => {
 
       const body = JSON.parse(String(mockFetch.mock.calls[0][1].body));
       const validUntil = new Date(body.access.valid_until);
-      const diffDays = Math.round(
-        (validUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
-      );
+      const diffDays = Math.round((validUntil.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
       expect(diffDays).toBeGreaterThanOrEqual(89);
       expect(diffDays).toBeLessThanOrEqual(91);
     });
@@ -300,7 +280,7 @@ describe('enableBankingService', () => {
         'https://api.enablebanking.com/sessions',
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify({ code: 'auth-code-123' }),
+          body: JSON.stringify({code: 'auth-code-123'}),
         }),
       );
       expect(result.session_id).toBe('test-session-id');
@@ -317,7 +297,7 @@ describe('enableBankingService', () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.enablebanking.com/sessions/test-session-id',
-        expect.objectContaining({ method: 'GET' }),
+        expect.objectContaining({method: 'GET'}),
       );
       expect(result.session_id).toBe('test-session-id');
     });
@@ -336,22 +316,20 @@ describe('enableBankingService', () => {
 
   describe('#getBalances', () => {
     it('sends GET /accounts/{uid}/balances', async () => {
-      mockFetchResponse({ balances: [mockBalance] });
+      mockFetchResponse({balances: [mockBalance]});
 
-      const result = await enableBankingService.getBalances(
-        mockSessionAccount.uid,
-      );
+      const result = await enableBankingService.getBalances(mockSessionAccount.uid);
 
       expect(mockFetch).toHaveBeenCalledWith(
         `https://api.enablebanking.com/accounts/${mockSessionAccount.uid}/balances`,
-        expect.objectContaining({ method: 'GET' }),
+        expect.objectContaining({method: 'GET'}),
       );
       expect(result.balances).toHaveLength(1);
       expect(result.balances[0].balance_amount.amount).toBe('1234.56');
     });
 
     it('forwards PSU headers when provided', async () => {
-      mockFetchResponse({ balances: [mockBalance] });
+      mockFetchResponse({balances: [mockBalance]});
 
       await enableBankingService.getBalances(mockSessionAccount.uid, {
         'Psu-Ip-Address': '192.168.1.1',
@@ -370,7 +348,7 @@ describe('enableBankingService', () => {
     });
 
     it('omits PSU headers when not provided', async () => {
-      mockFetchResponse({ balances: [] });
+      mockFetchResponse({balances: []});
 
       await enableBankingService.getBalances(mockSessionAccount.uid);
 
@@ -396,20 +374,15 @@ describe('enableBankingService', () => {
         expect.stringContaining(
           `/accounts/${mockSessionAccount.uid}/transactions?date_from=2026-01-01&date_to=2026-03-25`,
         ),
-        expect.objectContaining({ method: 'GET' }),
+        expect.objectContaining({method: 'GET'}),
       );
       expect(result.transactions).toHaveLength(1);
     });
 
     it('includes continuation_key when provided', async () => {
-      mockFetchResponse({ transactions: [] });
+      mockFetchResponse({transactions: []});
 
-      await enableBankingService.getTransactions(
-        'uid',
-        '2026-01-01',
-        '2026-03-25',
-        'page2-key',
-      );
+      await enableBankingService.getTransactions('uid', '2026-01-01', '2026-03-25', 'page2-key');
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('continuation_key=page2-key'),
@@ -423,25 +396,17 @@ describe('enableBankingService', () => {
         continuation_key: 'next-page',
       });
 
-      const result = await enableBankingService.getTransactions(
-        'uid',
-        '2026-01-01',
-        '2026-03-25',
-      );
+      const result = await enableBankingService.getTransactions('uid', '2026-01-01', '2026-03-25');
 
       expect(result.continuation_key).toBe('next-page');
     });
 
     it('forwards PSU headers when provided', async () => {
-      mockFetchResponse({ transactions: [] });
+      mockFetchResponse({transactions: []});
 
-      await enableBankingService.getTransactions(
-        'uid',
-        '2026-01-01',
-        '2026-03-25',
-        undefined,
-        { 'Psu-Ip-Address': '10.0.0.1' },
-      );
+      await enableBankingService.getTransactions('uid', '2026-01-01', '2026-03-25', undefined, {
+        'Psu-Ip-Address': '10.0.0.1',
+      });
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.any(String),
@@ -495,7 +460,7 @@ describe('enableBankingService', () => {
     });
 
     it('handles empty transaction list', async () => {
-      mockFetchResponse({ transactions: [] });
+      mockFetchResponse({transactions: []});
 
       const result = await enableBankingService.getAllTransactions(
         'uid',
@@ -529,27 +494,21 @@ describe('enableBankingService', () => {
 
   describe('error handling', () => {
     it('throws EnableBankingError on 401', async () => {
-      mockFetchResponse({ message: 'Unauthorized' }, false, 401);
+      mockFetchResponse({message: 'Unauthorized'}, false, 401);
 
-      await expect(enableBankingService.getAspsps('FI')).rejects.toThrow(
-        EnableBankingError,
-      );
+      await expect(enableBankingService.getAspsps('FI')).rejects.toThrow(EnableBankingError);
     });
 
     it('throws EnableBankingError on 429 rate limit', async () => {
-      mockFetchResponse({ message: 'Rate limit exceeded' }, false, 429);
+      mockFetchResponse({message: 'Rate limit exceeded'}, false, 429);
 
-      await expect(enableBankingService.getAspsps('FI')).rejects.toThrow(
-        EnableBankingError,
-      );
+      await expect(enableBankingService.getAspsps('FI')).rejects.toThrow(EnableBankingError);
     });
 
     it('throws EnableBankingError on 500 server error', async () => {
-      mockFetchResponse({ message: 'Internal error' }, false, 500);
+      mockFetchResponse({message: 'Internal error'}, false, 500);
 
-      await expect(enableBankingService.getApplication()).rejects.toThrow(
-        EnableBankingError,
-      );
+      await expect(enableBankingService.getApplication()).rejects.toThrow(EnableBankingError);
     });
 
     it('handles non-JSON error response gracefully', async () => {
@@ -560,9 +519,7 @@ describe('enableBankingService', () => {
         text: () => Promise.resolve('Bad Gateway'),
       });
 
-      await expect(enableBankingService.getApplication()).rejects.toThrow(
-        EnableBankingError,
-      );
+      await expect(enableBankingService.getApplication()).rejects.toThrow(EnableBankingError);
     });
 
     it('throws TIMED_OUT EnableBankingError on AbortError', async () => {

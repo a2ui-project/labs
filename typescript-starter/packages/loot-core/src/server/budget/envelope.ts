@@ -16,13 +16,13 @@
 
 import * as db from '#server/db';
 import * as sheet from '#server/sheet';
-import { resolveName } from '#server/spreadsheet/util';
+import {resolveName} from '#server/spreadsheet/util';
 // @ts-strict-ignore
 import * as monthUtils from '#shared/months';
-import { safeNumber } from '#shared/util';
+import {safeNumber} from '#shared/util';
 
-import { createCategory as createCategoryFromBase } from './base';
-import { flatten2, number, sumAmounts, unflatten2 } from './util';
+import {createCategory as createCategoryFromBase} from './base';
+import {flatten2, number, sumAmounts, unflatten2} from './util';
 
 function getBlankSheet(months) {
   const blankMonth = monthUtils.prevMonth(months[0]);
@@ -120,12 +120,8 @@ export function createSummary(groups, categories, prevSheetName, sheetName) {
 
   sheet.get().createDynamic(sheetName, 'from-last-month', {
     initialValue: 0,
-    dependencies: [
-      `${prevSheetName}!to-budget`,
-      `${prevSheetName}!buffered-selected`,
-    ],
-    run: (toBudget, buffered) =>
-      safeNumber(number(toBudget) + number(buffered)),
+    dependencies: [`${prevSheetName}!to-budget`, `${prevSheetName}!buffered-selected`],
+    run: (toBudget, buffered) => safeNumber(number(toBudget) + number(buffered)),
   });
 
   // Alias the group income total to `total-income`
@@ -138,8 +134,7 @@ export function createSummary(groups, categories, prevSheetName, sheetName) {
   sheet.get().createDynamic(sheetName, 'available-funds', {
     initialValue: 0,
     dependencies: ['total-income', 'from-last-month'],
-    run: (income, fromLastMonth) =>
-      safeNumber(number(income) + number(fromLastMonth)),
+    run: (income, fromLastMonth) => safeNumber(number(income) + number(fromLastMonth)),
   });
 
   sheet.get().createDynamic(sheetName, 'last-month-overspent', {
@@ -165,16 +160,14 @@ export function createSummary(groups, categories, prevSheetName, sheetName) {
 
   sheet.get().createDynamic(sheetName, 'total-budgeted', {
     initialValue: 0,
-    dependencies: groups
-      .filter(group => !group.is_income)
-      .map(group => `group-budget-${group.id}`),
+    dependencies: groups.filter(group => !group.is_income).map(group => `group-budget-${group.id}`),
     run: (...amounts) => {
       // Negate budgeted amount
       return -sumAmounts(...amounts);
     },
   });
 
-  sheet.get().createDynamic(sheetName, 'buffered', { initialValue: 0 });
+  sheet.get().createDynamic(sheetName, 'buffered', {initialValue: 0});
   sheet.get().createDynamic(sheetName, 'buffered-auto', {
     initialValue: 0,
     dependencies: flatten2(
@@ -216,10 +209,7 @@ export function createSummary(groups, categories, prevSheetName, sheetName) {
     ],
     run: (available, lastOverspent, totalBudgeted, buffered) => {
       return safeNumber(
-        number(available) +
-          number(lastOverspent) +
-          number(totalBudgeted) -
-          number(buffered),
+        number(available) + number(lastOverspent) + number(totalBudgeted) - number(buffered),
       );
     },
   });
@@ -265,18 +255,12 @@ export function handleCategoryChange(months, oldValue, newValue) {
     if (cat.is_income) {
       deps.push([
         'buffered-auto',
-        [
-          `${sheetName}!sum-amount-${cat.id}`,
-          `${sheetName}!carryover-${cat.id}`,
-        ],
+        [`${sheetName}!sum-amount-${cat.id}`, `${sheetName}!carryover-${cat.id}`],
       ]);
     } else {
       deps.push([
         'last-month-overspent',
-        [
-          `${prevSheetName}!leftover-${cat.id}`,
-          `${prevSheetName}!carryover-${cat.id}`,
-        ],
+        [`${prevSheetName}!leftover-${cat.id}`, `${prevSheetName}!carryover-${cat.id}`],
       ]);
     }
 
@@ -284,41 +268,32 @@ export function handleCategoryChange(months, oldValue, newValue) {
   }
 
   function addDeps(sheetName, prevSheetName, groupId, cat) {
-    getDeps(sheetName, prevSheetName, groupId, cat).forEach(
-      ([cellName, deps]) => {
-        sheet.get().addDependencies(sheetName, cellName, deps);
-      },
-    );
+    getDeps(sheetName, prevSheetName, groupId, cat).forEach(([cellName, deps]) => {
+      sheet.get().addDependencies(sheetName, cellName, deps);
+    });
   }
 
   function removeDeps(sheetName, prevSheetName, groupId, cat) {
-    getDeps(sheetName, prevSheetName, groupId, cat).forEach(
-      ([cellName, deps]) => {
-        sheet.get().removeDependencies(sheetName, cellName, deps);
-      },
-    );
+    getDeps(sheetName, prevSheetName, groupId, cat).forEach(([cellName, deps]) => {
+      sheet.get().removeDependencies(sheetName, cellName, deps);
+    });
   }
 
   if (oldValue && oldValue.tombstone === 0 && newValue.tombstone === 1) {
     months.forEach(month => {
-      const prevSheetName = monthUtils.sheetForMonth(
-        monthUtils.prevMonth(month),
-      );
+      const prevSheetName = monthUtils.sheetForMonth(monthUtils.prevMonth(month));
       const sheetName = monthUtils.sheetForMonth(month);
 
       removeDeps(sheetName, prevSheetName, newValue.cat_group, newValue);
     });
-  } else if (
-    newValue.tombstone === 0 &&
-    (!oldValue || oldValue.tombstone === 1)
-  ) {
+  } else if (newValue.tombstone === 0 && (!oldValue || oldValue.tombstone === 1)) {
     createBlankCategory(newValue, months);
 
     months.forEach(month => {
       const prevMonth = monthUtils.prevMonth(month);
       const prevSheetName = monthUtils.sheetForMonth(prevMonth);
       const sheetName = monthUtils.sheetForMonth(month);
-      const { start, end } = monthUtils.bounds(month);
+      const {start, end} = monthUtils.bounds(month);
 
       createCategoryFromBase(newValue, sheetName, prevSheetName, start, end);
 
@@ -327,9 +302,7 @@ export function handleCategoryChange(months, oldValue, newValue) {
   } else if (oldValue && oldValue.cat_group !== newValue.cat_group) {
     // The category moved so we need to update the dependencies
     months.forEach(month => {
-      const prevSheetName = monthUtils.sheetForMonth(
-        monthUtils.prevMonth(month),
-      );
+      const prevSheetName = monthUtils.sheetForMonth(monthUtils.prevMonth(month));
       const sheetName = monthUtils.sheetForMonth(month);
 
       removeDeps(sheetName, prevSheetName, oldValue.cat_group, newValue);
@@ -340,39 +313,15 @@ export function handleCategoryChange(months, oldValue, newValue) {
 
 export function handleCategoryGroupChange(months, oldValue, newValue) {
   function addDeps(sheetName, groupId) {
-    sheet
-      .get()
-      .addDependencies(sheetName, 'total-budgeted', [
-        `group-budget-${groupId}`,
-      ]);
-    sheet
-      .get()
-      .addDependencies(sheetName, 'total-spent', [
-        `group-sum-amount-${groupId}`,
-      ]);
-    sheet
-      .get()
-      .addDependencies(sheetName, 'total-leftover', [
-        `group-leftover-${groupId}`,
-      ]);
+    sheet.get().addDependencies(sheetName, 'total-budgeted', [`group-budget-${groupId}`]);
+    sheet.get().addDependencies(sheetName, 'total-spent', [`group-sum-amount-${groupId}`]);
+    sheet.get().addDependencies(sheetName, 'total-leftover', [`group-leftover-${groupId}`]);
   }
 
   function removeDeps(sheetName, groupId) {
-    sheet
-      .get()
-      .removeDependencies(sheetName, 'total-budgeted', [
-        `group-budget-${groupId}`,
-      ]);
-    sheet
-      .get()
-      .removeDependencies(sheetName, 'total-spent', [
-        `group-sum-amount-${groupId}`,
-      ]);
-    sheet
-      .get()
-      .removeDependencies(sheetName, 'total-leftover', [
-        `group-leftover-${groupId}`,
-      ]);
+    sheet.get().removeDependencies(sheetName, 'total-budgeted', [`group-budget-${groupId}`]);
+    sheet.get().removeDependencies(sheetName, 'total-spent', [`group-sum-amount-${groupId}`]);
+    sheet.get().removeDependencies(sheetName, 'total-leftover', [`group-leftover-${groupId}`]);
   }
 
   if (newValue.tombstone === 1 && oldValue && oldValue.tombstone === 0) {
@@ -381,10 +330,7 @@ export function handleCategoryGroupChange(months, oldValue, newValue) {
       const sheetName = monthUtils.sheetForMonth(month);
       removeDeps(sheetName, id);
     });
-  } else if (
-    newValue.tombstone === 0 &&
-    (!oldValue || oldValue.tombstone === 1)
-  ) {
+  } else if (newValue.tombstone === 0 && (!oldValue || oldValue.tombstone === 1)) {
     const group = newValue;
 
     if (!group.is_income) {
@@ -400,7 +346,7 @@ export function handleCategoryGroupChange(months, oldValue, newValue) {
           [group.id],
           true,
         );
-        createCategoryGroup({ ...group, categories }, sheetName);
+        createCategoryGroup({...group, categories}, sheetName);
 
         addDeps(sheetName, group.id);
       });

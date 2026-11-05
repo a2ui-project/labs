@@ -16,45 +16,41 @@
 
 // @ts-strict-ignore
 import React from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { Input } from '@actual-app/components/input';
-import type { Menu } from '@actual-app/components/menu';
-import { Select } from '@actual-app/components/select';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {Input} from '@actual-app/components/input';
+import type {Menu} from '@actual-app/components/menu';
+import {Select} from '@actual-app/components/select';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { UPCOMING_LENGTH_PRESET_OPTIONS } from '@actual-app/core/shared/schedules';
-import type {
-  RecurConfig,
-  ScheduleEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import {UPCOMING_LENGTH_PRESET_OPTIONS} from '@actual-app/core/shared/schedules';
+import type {RecurConfig, ScheduleEntity, TransactionEntity} from '@actual-app/core/types/models';
 
-import { Checkbox, FormField, FormLabel } from '#components/forms';
-import { OpSelect } from '#components/rules/RuleEditor';
-import { CustomUpcomingLength } from '#components/schedules/CustomUpcomingLength';
-import { DateSelect } from '#components/select/DateSelect';
-import { RecurringSchedulePicker } from '#components/select/RecurringSchedulePicker';
-import { SelectedItemsButton } from '#components/table';
-import { SimpleTransactionsTable } from '#components/transactions/SimpleTransactionsTable';
-import { AmountInput, BetweenAmountInput } from '#components/util/AmountInput';
-import { GenericInput } from '#components/util/GenericInput';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useLocale } from '#hooks/useLocale';
-import { SelectedProvider } from '#hooks/useSelected';
-import type { Actions } from '#hooks/useSelected';
+import {Checkbox, FormField, FormLabel} from '#components/forms';
+import {OpSelect} from '#components/rules/RuleEditor';
+import {CustomUpcomingLength} from '#components/schedules/CustomUpcomingLength';
+import {DateSelect} from '#components/select/DateSelect';
+import {RecurringSchedulePicker} from '#components/select/RecurringSchedulePicker';
+import {SelectedItemsButton} from '#components/table';
+import {SimpleTransactionsTable} from '#components/transactions/SimpleTransactionsTable';
+import {AmountInput, BetweenAmountInput} from '#components/util/AmountInput';
+import {GenericInput} from '#components/util/GenericInput';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useLocale} from '#hooks/useLocale';
+import {SelectedProvider} from '#hooks/useSelected';
+import type {Actions} from '#hooks/useSelected';
 
 export type ScheduleFormFields = {
   payee: null | string;
   account: null | string;
-  amount: null | number | { num1: number; num2: number };
+  amount: null | number | {num1: number; num2: number};
   amountOp: null | string;
   date: null | string | RecurConfig;
   posts_transaction: boolean;
@@ -76,7 +72,7 @@ export type ScheduleEditFormDispatch =
   | {
       type: 'set-field';
       field: 'amount';
-      value: number | { num1: number; num2: number };
+      value: number | {num1: number; num2: number};
     }
   | {
       type: 'set-field';
@@ -110,7 +106,7 @@ type ScheduleEditFormProps = {
   transactions: TransactionEntity[];
   transactionsMode: 'matched' | 'linked';
   error: null | string;
-  selectedInst: { items: Set<string>; dispatch: (action: Actions) => void };
+  selectedInst: {items: Set<string>; dispatch: (action: Actions) => void};
   onSwitchTransactions: (mode: 'linked' | 'matched') => void;
   onLinkTransactions: (ids: string[], scheduleId?: string) => Promise<void>;
   onUnlinkTransactions: (ids: string[]) => Promise<void>;
@@ -134,15 +130,15 @@ export function ScheduleEditForm({
   onUnlinkTransactions,
 }: ScheduleEditFormProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   return (
     <>
-      <View style={{ display: 'block', overflow: 'auto', padding: 10 }}>
-        <SpaceBetween style={{ marginTop: 10 }}>
-          <FormField style={{ flex: 1 }}>
+      <View style={{display: 'block', overflow: 'auto', padding: 10}}>
+        <SpaceBetween style={{marginTop: 10}}>
+          <FormField style={{flex: 1}}>
             <FormLabel title={t('Schedule Name')} htmlFor="name-field" />
             <InitialFocus>
               <Input
@@ -150,7 +146,7 @@ export function ScheduleEditForm({
                 value={fields.name}
                 placeholder={t('nothing')}
                 onChangeValue={e => {
-                  dispatch({ type: 'set-field', field: 'name', value: e });
+                  dispatch({type: 'set-field', field: 'name', value: e});
                 }}
               />
             </InitialFocus>
@@ -163,45 +159,29 @@ export function ScheduleEditForm({
             gridTemplateColumns: '1fr 1fr',
           }}
         >
-          <FormField style={{ flex: 1 }}>
-            <FormLabel
-              title={t('Payee')}
-              id="payee-label"
-              htmlFor="payee-field"
-            />
+          <FormField style={{flex: 1}}>
+            <FormLabel title={t('Payee')} id="payee-label" htmlFor="payee-field" />
             <GenericInput
               type="id"
               field="payee"
               value={fields.payee || ''}
-              onChange={id =>
-                dispatch({ type: 'set-field', field: 'payee', value: id })
-              }
+              onChange={id => dispatch({type: 'set-field', field: 'payee', value: id})}
             />
           </FormField>
 
-          <FormField style={{ flex: 1 }}>
-            <FormLabel
-              title={t('Account')}
-              id="account-label"
-              htmlFor="account-field"
-            />
+          <FormField style={{flex: 1}}>
+            <FormLabel title={t('Account')} id="account-label" htmlFor="account-field" />
             <GenericInput
               type="id"
               field="account"
               value={fields.account || ''}
-              onChange={id =>
-                dispatch({ type: 'set-field', field: 'account', value: id })
-              }
+              onChange={id => dispatch({type: 'set-field', field: 'account', value: id})}
             />
           </FormField>
 
-          <FormField style={{ flex: 1, gridColumn: '1 / -1' }}>
-            <SpaceBetween style={{ marginBottom: 3, alignItems: 'center' }}>
-              <FormLabel
-                title={t('Amount')}
-                htmlFor="amount-field"
-                style={{ margin: 0, flex: 1 }}
-              />
+          <FormField style={{flex: 1, gridColumn: '1 / -1'}}>
+            <SpaceBetween style={{marginBottom: 3, alignItems: 'center'}}>
+              <FormLabel title={t('Amount')} htmlFor="amount-field" style={{margin: 0, flex: 1}} />
               <OpSelect
                 ops={['isapprox', 'is', 'isbetween']}
                 value={fields.amountOp as 'isapprox' | 'is' | 'isbetween'}
@@ -260,7 +240,7 @@ export function ScheduleEditForm({
           </FormField>
         </SpaceBetween>
 
-        <View style={{ marginTop: 20 }}>
+        <View style={{marginTop: 20}}>
           <FormLabel title={t('Date')} />
         </View>
 
@@ -270,29 +250,25 @@ export function ScheduleEditForm({
             justifyContent: 'space-between',
           }}
         >
-          <View style={{ width: '13.44rem' }}>
+          <View style={{width: '13.44rem'}}>
             {repeats ? (
               <RecurringSchedulePicker
                 // @ts-expect-error fix me
                 value={fields.date}
-                onChange={value =>
-                  dispatch({ type: 'set-field', field: 'date', value })
-                }
+                onChange={value => dispatch({type: 'set-field', field: 'date', value})}
               />
             ) : (
               <DateSelect
                 // @ts-expect-error fix me
                 value={fields.date}
-                onSelect={date =>
-                  dispatch({ type: 'set-field', field: 'date', value: date })
-                }
+                onSelect={date => dispatch({type: 'set-field', field: 'date', value: date})}
                 dateFormat={dateFormat}
               />
             )}
 
             {upcomingDates && (
-              <View style={{ fontSize: 13, marginTop: 20 }}>
-                <Text style={{ color: theme.pageTextLight, fontWeight: 600 }}>
+              <View style={{fontSize: 13, marginTop: 20}}>
+                <Text style={{color: theme.pageTextLight, fontWeight: 600}}>
                   <Trans>Upcoming dates</Trans>
                 </Text>
                 <SpaceBetween
@@ -305,9 +281,7 @@ export function ScheduleEditForm({
                   }}
                 >
                   {upcomingDates.map(date => (
-                    <View key={date}>
-                      {monthUtils.format(date, `${dateFormat} EEEE`, locale)}
-                    </View>
+                    <View key={date}>{monthUtils.format(date, `${dateFormat} EEEE`, locale)}</View>
                   ))}
                 </SpaceBetween>
               </View>
@@ -326,10 +300,10 @@ export function ScheduleEditForm({
               id="form_repeats"
               checked={repeats}
               onChange={e => {
-                dispatch({ type: 'set-repeats', repeats: e.target.checked });
+                dispatch({type: 'set-repeats', repeats: e.target.checked});
               }}
             />
-            <label htmlFor="form_repeats" style={{ userSelect: 'none' }}>
+            <label htmlFor="form_repeats" style={{userSelect: 'none'}}>
               <Trans>Repeats</Trans>
             </label>
           </View>
@@ -342,32 +316,20 @@ export function ScheduleEditForm({
             gridTemplateColumns: '1fr 1fr',
           }}
         >
-          <FormField style={{ flex: 1 }}>
-            <FormLabel
-              title={t('Upcoming length')}
-              htmlFor="upcoming-length-field"
-            />
+          <FormField style={{flex: 1}}>
+            <FormLabel title={t('Upcoming length')} htmlFor="upcoming-length-field" />
             {(() => {
               const isPreset =
                 fields.custom_upcoming_length != null &&
-                UPCOMING_LENGTH_PRESET_OPTIONS.some(
-                  o => o.value === fields.custom_upcoming_length,
-                );
-              const isCustomValue =
-                fields.custom_upcoming_length != null && !isPreset;
+                UPCOMING_LENGTH_PRESET_OPTIONS.some(o => o.value === fields.custom_upcoming_length);
+              const isCustomValue = fields.custom_upcoming_length != null && !isPreset;
               const isValidCustomFormat =
                 fields.custom_upcoming_length != null &&
-                /^[1-9]\d*-(day|week|month|year)$/.test(
-                  fields.custom_upcoming_length,
-                );
+                /^[1-9]\d*-(day|week|month|year)$/.test(fields.custom_upcoming_length);
               const safeCustomValue =
-                isCustomValue && isValidCustomFormat
-                  ? fields.custom_upcoming_length
-                  : '1-day';
+                isCustomValue && isValidCustomFormat ? fields.custom_upcoming_length : '1-day';
 
-              const options: Array<
-                readonly [string, string] | typeof Menu.line
-              > = [
+              const options: Array<readonly [string, string] | typeof Menu.line> = [
                 ['', t('Use global default')] as [string, string],
                 ...UPCOMING_LENGTH_PRESET_OPTIONS.map(
                   o => [o.value, t(o.labelKey)] as [string, string],
@@ -391,12 +353,7 @@ export function ScheduleEditForm({
                       dispatch({
                         type: 'set-field',
                         field: 'custom_upcoming_length',
-                        value:
-                          value === ''
-                            ? null
-                            : value === 'custom'
-                              ? '1-day'
-                              : value,
+                        value: value === '' ? null : value === 'custom' ? '1-day' : value,
                       });
                     }}
                   />
@@ -422,13 +379,11 @@ export function ScheduleEditForm({
                 marginTop: 3,
               }}
             >
-              <Trans>
-                How far in advance this schedule appears as upcoming
-              </Trans>
+              <Trans>How far in advance this schedule appears as upcoming</Trans>
             </Text>
           </FormField>
 
-          <FormField style={{ flex: 1 }}>
+          <FormField style={{flex: 1}}>
             <FormLabel title=" " />
             <View
               style={{
@@ -449,10 +404,7 @@ export function ScheduleEditForm({
                   });
                 }}
               />
-              <label
-                htmlFor="form_posts_transaction"
-                style={{ userSelect: 'none' }}
-              >
+              <label htmlFor="form_posts_transaction" style={{userSelect: 'none'}}>
                 <Trans>Automatically add transaction</Trans>
               </label>
             </View>
@@ -463,21 +415,14 @@ export function ScheduleEditForm({
                 marginTop: 3,
               }}
             >
-              <Trans>
-                Automatically create transactions in the specified account
-              </Trans>
+              <Trans>Automatically create transactions in the specified account</Trans>
             </Text>
           </FormField>
         </SpaceBetween>
 
-        <SpaceBetween
-          gap={5}
-          direction="vertical"
-          align="end"
-          style={{ marginTop: 10 }}
-        >
+        <SpaceBetween gap={5} direction="vertical" align="end" style={{marginTop: 10}}>
           {!adding && schedule.rule && (
-            <SpaceBetween style={{ marginTop: 10, alignItems: 'center' }}>
+            <SpaceBetween style={{marginTop: 10, alignItems: 'center'}}>
               {isCustom && (
                 <Text
                   style={{
@@ -507,24 +452,21 @@ export function ScheduleEditForm({
       >
         <SelectedProvider instance={selectedInst}>
           {adding ? (
-            <View style={{ flexDirection: 'row', padding: '5px 0' }}>
-              <Text style={{ color: theme.pageTextLight }}>
+            <View style={{flexDirection: 'row', padding: '5px 0'}}>
+              <Text style={{color: theme.pageTextLight}}>
                 <Trans>These transactions match this schedule:</Trans>
               </Text>
-              <View style={{ flex: 1 }} />
-              <Text style={{ color: theme.pageTextLight }}>
+              <View style={{flex: 1}} />
+              <Text style={{color: theme.pageTextLight}}>
                 <Trans>Select transactions to link on save</Trans>
               </Text>
             </View>
           ) : (
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{flexDirection: 'row', alignItems: 'center'}}>
               <Button
                 variant="bare"
                 style={{
-                  color:
-                    transactionsMode === 'linked'
-                      ? theme.pageTextLink
-                      : theme.pageTextSubdued,
+                  color: transactionsMode === 'linked' ? theme.pageTextLink : theme.pageTextSubdued,
                   marginRight: 10,
                   fontSize: 14,
                 }}
@@ -536,23 +478,21 @@ export function ScheduleEditForm({
                 variant="bare"
                 style={{
                   color:
-                    transactionsMode === 'matched'
-                      ? theme.pageTextLink
-                      : theme.pageTextSubdued,
+                    transactionsMode === 'matched' ? theme.pageTextLink : theme.pageTextSubdued,
                   fontSize: 14,
                 }}
                 onPress={() => onSwitchTransactions('matched')}
               >
                 <Trans>Find matching transactions</Trans>
               </Button>
-              <View style={{ flex: 1 }} />
+              <View style={{flex: 1}} />
               <SelectedItemsButton
                 id="transactions"
-                name={count => t('{{count}} transactions', { count })}
+                name={count => t('{{count}} transactions', {count})}
                 items={
                   transactionsMode === 'linked'
-                    ? [{ name: 'unlink', text: t('Unlink from schedule') }]
-                    : [{ name: 'link', text: t('Link to schedule') }]
+                    ? [{name: 'unlink', text: t('Unlink from schedule')}]
+                    : [{name: 'link', text: t('Link to schedule')}]
                 }
                 onSelect={(name, ids) => {
                   switch (name) {
@@ -571,10 +511,7 @@ export function ScheduleEditForm({
 
           <SimpleTransactionsTable
             renderEmpty={
-              <NoTransactionsMessage
-                error={error}
-                transactionsMode={transactionsMode}
-              />
+              <NoTransactionsMessage error={error} transactionsMode={transactionsMode} />
             }
             transactions={transactions}
             fields={['date', 'payee', 'notes', 'amount']}
@@ -587,9 +524,7 @@ export function ScheduleEditForm({
         </SelectedProvider>
       </View>
 
-      {error && (
-        <Text style={{ color: theme.errorText, marginTop: 10 }}>{error}</Text>
-      )}
+      {error && <Text style={{color: theme.errorText, marginTop: 10}}>{error}</Text>}
     </>
   );
 }
@@ -600,7 +535,7 @@ type NoTransactionsMessageProps = {
 };
 
 function NoTransactionsMessage(props: NoTransactionsMessageProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <View
@@ -611,8 +546,8 @@ function NoTransactionsMessage(props: NoTransactionsMessageProps) {
       }}
     >
       {props.error ? (
-        <Text style={{ color: theme.errorText }}>
-          <Trans>Could not search: {{ errorReason: props.error }}</Trans>
+        <Text style={{color: theme.errorText}}>
+          <Trans>Could not search: {{errorReason: props.error}}</Trans>
         </Text>
       ) : props.transactionsMode === 'matched' ? (
         t('No matching transactions')

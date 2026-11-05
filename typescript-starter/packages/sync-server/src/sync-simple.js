@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-import { existsSync } from 'node:fs';
+import {existsSync} from 'node:fs';
 
-import {
-  create,
-  merkle,
-  MessageEnvelopeSchema,
-  Timestamp,
-} from '@actual-app/crdt';
+import {create, merkle, MessageEnvelopeSchema, Timestamp} from '@actual-app/crdt';
 
-import { openDatabase } from './db';
+import {openDatabase} from './db';
 import messagesSql from './sql/messages.sql?raw';
-import { getPathForGroupFile } from './util/paths';
+import {getPathForGroupFile} from './util/paths';
 
 function getGroupDb(groupId) {
   const path = getPathForGroupFile(groupId);

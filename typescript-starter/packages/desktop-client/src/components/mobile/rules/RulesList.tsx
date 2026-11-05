@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import { GridList, ListLayout, Virtualizer } from 'react-aria-components';
-import { useTranslation } from 'react-i18next';
+import {GridList, ListLayout, Virtualizer} from 'react-aria-components';
+import {useTranslation} from 'react-i18next';
 
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { RuleEntity } from '@actual-app/core/types/models';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {RuleEntity} from '@actual-app/core/types/models';
 
-import { MOBILE_NAV_HEIGHT } from '#components/mobile/MobileNavTabs';
+import {MOBILE_NAV_HEIGHT} from '#components/mobile/MobileNavTabs';
 
-import { RulesListItem } from './RulesListItem';
+import {RulesListItem} from './RulesListItem';
 
 type RulesListProps = {
   rules: RuleEntity[];
@@ -34,13 +34,8 @@ type RulesListProps = {
   onRuleDelete: (rule: RuleEntity) => void;
 };
 
-export function RulesList({
-  rules,
-  isLoading,
-  onRulePress,
-  onRuleDelete,
-}: RulesListProps) {
-  const { t } = useTranslation();
+export function RulesList({rules, isLoading, onRulePress, onRuleDelete}: RulesListProps) {
+  const {t} = useTranslation();
 
   if (isLoading && rules.length === 0) {
     return (
@@ -52,7 +47,7 @@ export function RulesList({
           paddingTop: 100,
         }}
       >
-        <AnimatedLoading style={{ width: 25, height: 25 }} />
+        <AnimatedLoading style={{width: 25, height: 25}} />
       </View>
     );
   }
@@ -81,7 +76,7 @@ export function RulesList({
   }
 
   return (
-    <View style={{ flex: 1, overflow: 'auto' }}>
+    <View style={{flex: 1, overflow: 'auto'}}>
       <Virtualizer
         layout={ListLayout}
         layoutOptions={{
@@ -113,7 +108,7 @@ export function RulesList({
             paddingTop: 20,
           }}
         >
-          <AnimatedLoading style={{ width: 20, height: 20 }} />
+          <AnimatedLoading style={{width: 20, height: 20}} />
         </View>
       )}
     </View>

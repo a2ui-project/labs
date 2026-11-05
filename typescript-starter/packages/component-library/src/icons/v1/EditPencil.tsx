@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgEditPencil = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -26,9 +26,6 @@ export const SvgEditPencil = (props: SVGProps<SVGSVGElement>) => (
       ...props.style,
     }}
   >
-    <path
-      d="m12.3 3.7 4 4L4 20H0v-4zm1.4-1.4L16 0l4 4-2.3 2.3z"
-      fill="currentColor"
-    />
+    <path d="m12.3 3.7 4 4L4 20H0v-4zm1.4-1.4L16 0l4 4-2.3 2.3z" fill="currentColor" />
   </svg>
 );

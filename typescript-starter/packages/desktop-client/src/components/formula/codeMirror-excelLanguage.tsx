@@ -15,27 +15,19 @@
  */
 
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { Trans } from 'react-i18next';
+import {createRoot} from 'react-dom/client';
+import {Trans} from 'react-i18next';
 
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import {
-  autocompletion,
-  insertCompletionText,
-  pickedCompletion,
-} from '@codemirror/autocomplete';
-import type { Completion, CompletionContext } from '@codemirror/autocomplete';
-import {
-  HighlightStyle,
-  StreamLanguage,
-  syntaxHighlighting,
-} from '@codemirror/language';
-import type { StreamParser } from '@codemirror/language';
-import { RangeSetBuilder } from '@codemirror/state';
-import type { Extension } from '@codemirror/state';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {autocompletion, insertCompletionText, pickedCompletion} from '@codemirror/autocomplete';
+import type {Completion, CompletionContext} from '@codemirror/autocomplete';
+import {HighlightStyle, StreamLanguage, syntaxHighlighting} from '@codemirror/language';
+import type {StreamParser} from '@codemirror/language';
+import {RangeSetBuilder} from '@codemirror/state';
+import type {Extension} from '@codemirror/state';
 import {
   Decoration,
   EditorView,
@@ -44,9 +36,9 @@ import {
   ViewPlugin,
   WidgetType,
 } from '@codemirror/view';
-import type { DecorationSet, Tooltip, ViewUpdate } from '@codemirror/view';
-import { tags } from '@lezer/highlight';
-import { t } from 'i18next';
+import type {DecorationSet, Tooltip, ViewUpdate} from '@codemirror/view';
+import {tags} from '@lezer/highlight';
+import {t} from 'i18next';
 
 import {
   cacheFormulaBadgeRanges,
@@ -73,7 +65,7 @@ import {
   getRuleFieldCompletions,
   sortFormulaCompletions,
 } from './formulaCatalog';
-import type { FormulaFunctionDef, FormulaMode } from './formulaCatalog';
+import type {FormulaFunctionDef, FormulaMode} from './formulaCatalog';
 
 // Tooltip components using the same styles as Tooltip.tsx
 function FunctionTooltip({
@@ -83,28 +75,23 @@ function FunctionTooltip({
 }: {
   name: string;
   description: string;
-  parameters: Array<{ name: string; description: string }>;
+  parameters: Array<{name: string; description: string}>;
 }) {
   return (
-    <SpaceBetween
-      direction="vertical"
-      gap={8}
-      align="stretch"
-      style={{ maxWidth: '400px' }}
-    >
-      <View style={{ display: 'block', ...styles.mediumText }}>{name}</View>
-      <View style={{ display: 'block' }}>{description}</View>
+    <SpaceBetween direction="vertical" gap={8} align="stretch" style={{maxWidth: '400px'}}>
+      <View style={{display: 'block', ...styles.mediumText}}>{name}</View>
+      <View style={{display: 'block'}}>{description}</View>
       <SpaceBetween
         direction="vertical"
         gap={4}
         align="stretch"
-        style={{ ...styles.smallText, color: theme.pageTextSubdued }}
+        style={{...styles.smallText, color: theme.pageTextSubdued}}
       >
-        <View style={{ display: 'block' }}>
+        <View style={{display: 'block'}}>
           <Trans>Parameters:</Trans>
         </View>
         {parameters.map((p, i) => (
-          <View key={i} style={{ display: 'block' }}>
+          <View key={i} style={{display: 'block'}}>
             •{' '}
             <code
               style={{
@@ -122,16 +109,11 @@ function FunctionTooltip({
   );
 }
 
-function FieldTooltip({ label, info }: { label: string; info: string }) {
+function FieldTooltip({label, info}: {label: string; info: string}) {
   return (
-    <SpaceBetween
-      direction="vertical"
-      gap={4}
-      align="stretch"
-      style={{ maxWidth: '400px' }}
-    >
-      <View style={{ display: 'block', ...styles.mediumText }}>{label}</View>
-      <View style={{ display: 'block' }}>{info}</View>
+    <SpaceBetween direction="vertical" gap={4} align="stretch" style={{maxWidth: '400px'}}>
+      <View style={{display: 'block', ...styles.mediumText}}>{label}</View>
+      <View style={{display: 'block'}}>{info}</View>
     </SpaceBetween>
   );
 }
@@ -148,9 +130,7 @@ export type FormulaBadgeClick = {
 
 export type MonthYearFormat = 'year-month' | 'month-year';
 
-export function parseMonthYear(
-  value: string,
-): { month: string; format: MonthYearFormat } | null {
+export function parseMonthYear(value: string): {month: string; format: MonthYearFormat} | null {
   const yearMonth = value.match(/^(\d{4})-(\d{1,2})$/);
   if (yearMonth) {
     const month = Number(yearMonth[2]);
@@ -191,7 +171,7 @@ class FormulaBadgeWidget extends WidgetType {
   constructor(
     readonly label: string,
     readonly variant: FormulaBadgeVariant,
-    readonly range: { from: number; to: number },
+    readonly range: {from: number; to: number},
     readonly onBadgeClick?: (details: FormulaBadgeClick) => void,
     readonly categories?: BudgetCategoryBadge[],
   ) {
@@ -300,12 +280,9 @@ class FormulaBadgeWidget extends WidgetType {
 
     if (
       this.onBadgeClick &&
-      [
-        'query-name',
-        'budget-dimension',
-        'budget-timeframe',
-        'budget-category-list',
-      ].includes(this.variant)
+      ['query-name', 'budget-dimension', 'budget-timeframe', 'budget-category-list'].includes(
+        this.variant,
+      )
     ) {
       element.style.cursor = 'pointer';
       element.addEventListener('mousedown', event => {
@@ -337,29 +314,18 @@ function formulaBadgeExtension(
   onBadgeClick?: (details: FormulaBadgeClick) => void,
   categoryBadges?: Record<string, string>,
 ): Extension {
-  const buildDecorations = (
-    view: EditorView,
-    badgeRanges: FormulaBadgeRange[],
-  ): DecorationSet => {
+  const buildDecorations = (view: EditorView, badgeRanges: FormulaBadgeRange[]): DecorationSet => {
     const builder = new RangeSetBuilder<Decoration>();
 
     badgeRanges
-      .filter(({ from, to }) =>
-        view.visibleRanges.some(range => from < range.to && to > range.from),
-      )
+      .filter(({from, to}) => view.visibleRanges.some(range => from < range.to && to > range.from))
       .sort((a, b) => a.from - b.from || a.to - b.to)
-      .forEach(({ from, to, label, variant, categories }) => {
+      .forEach(({from, to, label, variant, categories}) => {
         builder.add(
           from,
           to,
           Decoration.replace({
-            widget: new FormulaBadgeWidget(
-              label,
-              variant,
-              { from, to },
-              onBadgeClick,
-              categories,
-            ),
+            widget: new FormulaBadgeWidget(label, variant, {from, to}, onBadgeClick, categories),
             inclusive: false,
           }),
         );
@@ -395,10 +361,7 @@ function formulaBadgeExtension(
         let badgeRanges = result.ranges;
 
         if (result.status === 'ok') {
-          this.lastValidBadgeRanges = cacheFormulaBadgeRanges(
-            formula,
-            badgeRanges,
-          );
+          this.lastValidBadgeRanges = cacheFormulaBadgeRanges(formula, badgeRanges);
         } else if (result.status === 'inactive') {
           this.lastValidBadgeRanges = [];
         } else {
@@ -417,17 +380,12 @@ function formulaBadgeExtension(
     {
       decorations: plugin => plugin.decorations,
       provide: plugin =>
-        EditorView.atomicRanges.of(
-          view => view.plugin(plugin)?.decorations ?? Decoration.none,
-        ),
+        EditorView.atomicRanges.of(view => view.plugin(plugin)?.decorations ?? Decoration.none),
     },
   );
 }
 
-function createContextFunctionCompletion(
-  name: string,
-  func: FormulaFunctionDef,
-): Completion {
+function createContextFunctionCompletion(name: string, func: FormulaFunctionDef): Completion {
   return {
     label: name,
     type: 'function',
@@ -441,7 +399,7 @@ function createContextFunctionCompletion(
       func.parameters.map(p => `- ${p.name}: ${p.description}`).join('\n'),
     ].join('\n'),
     apply: view => {
-      view.dispatch({ selection: view.state.selection });
+      view.dispatch({selection: view.state.selection});
     },
     boost: 99,
   };
@@ -464,7 +422,7 @@ export function getFormulaStringCompletionEdit({
 
 function applyFormulaStringCompletion(value: string): Completion['apply'] {
   return (view, completion, from, to) => {
-    const { text, offsetClosingQuote } = getFormulaStringCompletionEdit({
+    const {text, offsetClosingQuote} = getFormulaStringCompletionEdit({
       value,
       hasOpeningQuote: from > 0 && view.state.sliceDoc(from - 1, from) === '"',
       hasClosingQuote: view.state.sliceDoc(to, to + 1) === '"',
@@ -497,9 +455,7 @@ function getActiveFunctionArgumentContext(text: string) {
     }
 
     if (char === '(') {
-      const functionMatch = text
-        .slice(0, index)
-        .match(/([A-Za-z_][A-Za-z0-9_]*)\s*$/);
+      const functionMatch = text.slice(0, index).match(/([A-Za-z_][A-Za-z0-9_]*)\s*$/);
       stack.push({
         kind: functionMatch ? 'function' : 'group',
         name: functionMatch?.[1].toUpperCase(),
@@ -509,7 +465,7 @@ function getActiveFunctionArgumentContext(text: string) {
     }
 
     if (char === '{') {
-      stack.push({ kind: 'array', argumentIndex: 0 });
+      stack.push({kind: 'array', argumentIndex: 0});
       continue;
     }
 
@@ -547,9 +503,9 @@ function getActiveFunctionArgumentContext(text: string) {
 }
 
 // Excel formula syntax parser for CodeMirror
-const excelFormulaParser: StreamParser<{ inString: boolean }> = {
+const excelFormulaParser: StreamParser<{inString: boolean}> = {
   startState() {
-    return { inString: false };
+    return {inString: false};
   },
 
   token(stream, state) {
@@ -588,9 +544,8 @@ const excelFormulaParser: StreamParser<{ inString: boolean }> = {
       if (stream.peek() === '(') {
         stream.pos = pos; // Reset position
 
-        return getFormulaFunctionCategoryConfig()[
-          getFormulaCategoryForName(word) ?? 'other'
-        ].tokenClass;
+        return getFormulaFunctionCategoryConfig()[getFormulaCategoryForName(word) ?? 'other']
+          .tokenClass;
       }
       stream.pos = pos; // Reset position
       return 'variableName';
@@ -619,8 +574,7 @@ export function excelFormulaAutocomplete(
   categoryBadges?: Record<string, string>,
 ): Extension {
   const functionCompletions = getFunctionCompletions(mode);
-  const queryCompletions =
-    mode === 'query' ? getDynamicReportQueryCompletions(queries) : [];
+  const queryCompletions = mode === 'query' ? getDynamicReportQueryCompletions(queries) : [];
   const variableCompletions = getNamedVariableCompletions(variables);
   const budgetDimensionCompletions: Completion[] =
     mode === 'query'
@@ -662,10 +616,7 @@ export function excelFormulaAutocomplete(
           : undefined;
         const activeFunctionSignatureCompletion =
           activeFunctionContext && activeFunctionDefinition
-            ? createContextFunctionCompletion(
-                activeFunctionContext.name,
-                activeFunctionDefinition,
-              )
+            ? createContextFunctionCompletion(activeFunctionContext.name, activeFunctionDefinition)
             : null;
         const isBudgetQueryContext =
           mode === 'query' && activeFunctionContext?.name === 'BUDGET_QUERY';
@@ -681,15 +632,11 @@ export function excelFormulaAutocomplete(
 
         const contextualSuggestions: Completion[] = activeFunctionContext
           ? [
-              ...(activeFunctionSignatureCompletion
-                ? [activeFunctionSignatureCompletion]
-                : []),
-              ...(isBudgetQueryContext &&
-              activeFunctionContext.argumentIndex === 0
+              ...(activeFunctionSignatureCompletion ? [activeFunctionSignatureCompletion] : []),
+              ...(isBudgetQueryContext && activeFunctionContext.argumentIndex === 0
                 ? budgetDimensionCompletions
                 : []),
-              ...(isBudgetQueryContext &&
-              activeFunctionContext.argumentIndex === 1
+              ...(isBudgetQueryContext && activeFunctionContext.argumentIndex === 1
                 ? budgetCategoryCompletions
                 : []),
               ...(isBudgetQueryContext &&
@@ -704,9 +651,7 @@ export function excelFormulaAutocomplete(
           ? [
               ...contextualSuggestions,
               ...sortFormulaCompletions(
-                baseSuggestions.filter(
-                  suggestion => !contextualSuggestions.includes(suggestion),
-                ),
+                baseSuggestions.filter(suggestion => !contextualSuggestions.includes(suggestion)),
               ),
             ]
           : sortFormulaCompletions(baseSuggestions);
@@ -736,7 +681,7 @@ export function excelFormulaHover(mode: FormulaMode): Extension {
         create() {
           const dom = document.createElement('div');
           dom.className = 'cm-tooltip-hover';
-          Object.assign(dom.style, styles.tooltip, { padding: '8px' });
+          Object.assign(dom.style, styles.tooltip, {padding: '8px'});
           const root = createRoot(dom);
           root.render(
             <FunctionTooltip
@@ -766,7 +711,7 @@ export function excelFormulaHover(mode: FormulaMode): Extension {
           create() {
             const dom = document.createElement('div');
             dom.className = 'cm-tooltip-hover';
-            Object.assign(dom.style, styles.tooltip, { padding: '8px' });
+            Object.assign(dom.style, styles.tooltip, {padding: '8px'});
             const root = createRoot(dom);
             const infoText = typeof field.info === 'string' ? field.info : '';
             root.render(<FieldTooltip label={field.label} info={infoText} />);
@@ -799,8 +744,8 @@ const tooltipZIndexTheme = EditorView.baseTheme({
 
 const tooltipPortalConfig =
   typeof document === 'undefined'
-    ? tooltips({ position: 'fixed' })
-    : tooltips({ position: 'fixed', parent: document.body });
+    ? tooltips({position: 'fixed'})
+    : tooltips({position: 'fixed', parent: document.body});
 
 const autocompletePopoverTheme = EditorView.baseTheme({
   // Wrapper: keep transparent; the list and info panel are the actual "cards".
@@ -923,10 +868,9 @@ const autocompletePopoverTheme = EditorView.baseTheme({
     marginLeft: 'auto',
     whiteSpace: 'nowrap',
   },
-  '.cm-tooltip.cm-tooltip-autocomplete li.cm-completionItem[aria-selected] .cm-completionDetail':
-    {
-      color: theme.menuAutoCompleteItemTextHover,
-    },
+  '.cm-tooltip.cm-tooltip-autocomplete li.cm-completionItem[aria-selected] .cm-completionDetail': {
+    color: theme.menuAutoCompleteItemTextHover,
+  },
 
   // Docs panel for selected completion
   '.cm-tooltip.cm-tooltip-autocomplete .cm-completionInfo': {
@@ -998,10 +942,8 @@ const autocompletePopoverPointerHandler = ViewPlugin.define(view => {
       return;
     }
 
-    const canScrollY =
-      scrollContainer.scrollHeight > scrollContainer.clientHeight;
-    const canScrollX =
-      scrollContainer.scrollWidth > scrollContainer.clientWidth;
+    const canScrollY = scrollContainer.scrollHeight > scrollContainer.clientHeight;
+    const canScrollX = scrollContainer.scrollWidth > scrollContainer.clientWidth;
     if (!canScrollY && !canScrollX) {
       return;
     }
@@ -1142,45 +1084,45 @@ const autocompletePopoverPointerHandler = ViewPlugin.define(view => {
 
 // Custom theme for categorized function highlighting (light)
 const functionCategoryTheme = EditorView.baseTheme({
-  '&light .cm-keyword': { color: '#0066CC' }, // Math functions in blue
-  '&light .cm-className': { color: '#267F99' }, // Logical functions in teal
-  '&light .cm-namespace': { color: '#AF00DB' }, // Text functions in purple
-  '&light .cm-typeName': { color: '#098658' }, // Date functions in green
-  '&light .cm-propertyName': { color: '#D73A49' }, // Query functions in red
+  '&light .cm-keyword': {color: '#0066CC'}, // Math functions in blue
+  '&light .cm-className': {color: '#267F99'}, // Logical functions in teal
+  '&light .cm-namespace': {color: '#AF00DB'}, // Text functions in purple
+  '&light .cm-typeName': {color: '#098658'}, // Date functions in green
+  '&light .cm-propertyName': {color: '#D73A49'}, // Query functions in red
 });
 
 // Syntax highlighting for Excel formulas
 export const excelFormulaHighlighting = syntaxHighlighting(
   HighlightStyle.define([
-    { tag: tags.function(tags.variableName), color: '#795E26' }, // Generic functions in brown/gold
+    {tag: tags.function(tags.variableName), color: '#795E26'}, // Generic functions in brown/gold
     // Other syntax elements
-    { tag: tags.string, color: '#A31515' }, // Strings in red
-    { tag: tags.number, color: '#098658' }, // Numbers in green
-    { tag: tags.operator, color: '#000000' }, // Operators in black
-    { tag: tags.variableName, color: '#001080' }, // Variables in dark blue
-    { tag: tags.special(tags.variableName), color: '#0070C1' }, // Special variables (transaction fields) in bright blue
+    {tag: tags.string, color: '#A31515'}, // Strings in red
+    {tag: tags.number, color: '#098658'}, // Numbers in green
+    {tag: tags.operator, color: '#000000'}, // Operators in black
+    {tag: tags.variableName, color: '#001080'}, // Variables in dark blue
+    {tag: tags.special(tags.variableName), color: '#0070C1'}, // Special variables (transaction fields) in bright blue
   ]),
 );
 
 // Custom theme for categorized function highlighting (dark)
 const functionCategoryThemeDark = EditorView.baseTheme({
-  '&dark .cm-keyword': { color: '#4FC1FF' }, // Math functions in bright cyan
-  '&dark .cm-className': { color: '#4EC9B0' }, // Logical functions in teal
-  '&dark .cm-namespace': { color: '#C586C0' }, // Text functions in light purple
-  '&dark .cm-typeName': { color: '#B5CEA8' }, // Date functions in light green
-  '&dark .cm-propertyName': { color: '#F97583' }, // Query functions in light red
+  '&dark .cm-keyword': {color: '#4FC1FF'}, // Math functions in bright cyan
+  '&dark .cm-className': {color: '#4EC9B0'}, // Logical functions in teal
+  '&dark .cm-namespace': {color: '#C586C0'}, // Text functions in light purple
+  '&dark .cm-typeName': {color: '#B5CEA8'}, // Date functions in light green
+  '&dark .cm-propertyName': {color: '#F97583'}, // Query functions in light red
 });
 
 // Dark theme syntax highlighting
 export const excelFormulaDarkHighlighting = syntaxHighlighting(
   HighlightStyle.define([
-    { tag: tags.function(tags.variableName), color: '#DCDCAA' }, // Generic functions in light yellow
+    {tag: tags.function(tags.variableName), color: '#DCDCAA'}, // Generic functions in light yellow
     // Other syntax elements
-    { tag: tags.string, color: '#CE9178' }, // Strings in orange
-    { tag: tags.number, color: '#B5CEA8' }, // Numbers in light green
-    { tag: tags.operator, color: '#D4D4D4' }, // Operators in light gray
-    { tag: tags.variableName, color: '#9CDCFE' }, // Variables in light blue
-    { tag: tags.special(tags.variableName), color: '#4FC1FF' }, // Special variables in bright cyan
+    {tag: tags.string, color: '#CE9178'}, // Strings in orange
+    {tag: tags.number, color: '#B5CEA8'}, // Numbers in light green
+    {tag: tags.operator, color: '#D4D4D4'}, // Operators in light gray
+    {tag: tags.variableName, color: '#9CDCFE'}, // Variables in light blue
+    {tag: tags.special(tags.variableName), color: '#4FC1FF'}, // Special variables in bright cyan
   ]),
 );
 
@@ -1197,13 +1139,7 @@ export function excelFormulaExtension(
     excelFormulaLanguage,
     excelFormulaAutocomplete(mode, queries, variables, categoryBadges),
     excelFormulaHover(mode),
-    formulaBadgeExtension(
-      mode,
-      queries,
-      variables,
-      onBadgeClick,
-      categoryBadges,
-    ),
+    formulaBadgeExtension(mode, queries, variables, onBadgeClick, categoryBadges),
     isDark ? excelFormulaDarkHighlighting : excelFormulaHighlighting,
     isDark ? functionCategoryThemeDark : functionCategoryTheme,
     tooltipZIndexTheme,

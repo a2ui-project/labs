@@ -16,28 +16,21 @@
 
 // @ts-strict-ignore
 import React from 'react';
-import type {
-  ComponentProps,
-  ComponentType,
-  CSSProperties,
-  SVGProps,
-} from 'react';
+import type {ComponentProps, ComponentType, CSSProperties, SVGProps} from 'react';
 
-import { Block } from '@actual-app/components/block';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Block} from '@actual-app/components/block';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { accountNameStyle } from './Account';
-import { ItemContent } from './ItemContent';
+import {accountNameStyle} from './Account';
+import {ItemContent} from './ItemContent';
 
 const fontWeight = 600;
 
 type SecondaryItemProps = {
   title: string;
   to?: string;
-  Icon?:
-    | ComponentType<SVGProps<SVGElement>>
-    | ComponentType<SVGProps<SVGSVGElement>>;
+  Icon?: ComponentType<SVGProps<SVGElement>> | ComponentType<SVGProps<SVGSVGElement>>;
   style?: CSSProperties;
   onClick?: ComponentProps<typeof ItemContent>['onClick'];
   bold?: boolean;
@@ -64,21 +57,19 @@ export function SecondaryItem({
       }}
     >
       {Icon && <Icon width={12} height={12} />}
-      <Block style={{ marginLeft: Icon ? 8 : 0, color: 'inherit' }}>
-        {title}
-      </Block>
+      <Block style={{marginLeft: Icon ? 8 : 0, color: 'inherit'}}>{title}</Block>
     </View>
   );
 
   return (
-    <View data-testid={dataTestId} style={{ flexShrink: 0, ...style }}>
+    <View data-testid={dataTestId} style={{flexShrink: 0, ...style}}>
       <ItemContent
         style={{
           ...accountNameStyle,
           color: theme.sidebarItemText,
           paddingLeft: 14 + indent,
           fontWeight: bold ? fontWeight : null,
-          ':hover': { backgroundColor: theme.sidebarItemBackgroundHover },
+          ':hover': {backgroundColor: theme.sidebarItemBackgroundHover},
         }}
         to={to}
         onClick={onClick}

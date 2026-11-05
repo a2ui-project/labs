@@ -15,34 +15,24 @@
  */
 
 // @ts-strict-ignore
-import type { IRuleOptions } from '@rschedule/core';
+import type {IRuleOptions} from '@rschedule/core';
 import * as d from 'date-fns';
 
-import { Condition } from '#server/rules';
-import type { RuleConditionEntity, ScheduleEntity } from '#types/models';
+import {Condition} from '#server/rules';
+import type {RuleConditionEntity, ScheduleEntity} from '#types/models';
 
 import * as monthUtils from './months';
-import { q } from './query';
+import {q} from './query';
 
 export const DEFAULT_UPCOMING_SCHEDULE_DAYS = '7';
 
 // Preset token values used by UI selects. Keep labels in the UI (i18n) but
 // centralize the canonical preset tokens so all components share the same set.
-export const UPCOMING_LENGTH_PRESET_VALUES = [
-  '1',
-  '7',
-  '14',
-  'oneMonth',
-  'currentMonth',
-] as const;
+export const UPCOMING_LENGTH_PRESET_VALUES = ['1', '7', '14', 'oneMonth', 'currentMonth'] as const;
 
-export type UpcomingLengthPresetValue =
-  (typeof UPCOMING_LENGTH_PRESET_VALUES)[number];
+export type UpcomingLengthPresetValue = (typeof UPCOMING_LENGTH_PRESET_VALUES)[number];
 
-export const UPCOMING_LENGTH_PRESET_LABELS: Record<
-  UpcomingLengthPresetValue,
-  string
-> = {
+export const UPCOMING_LENGTH_PRESET_LABELS: Record<UpcomingLengthPresetValue, string> = {
   '1': '1 day',
   '7': '1 week',
   '14': '2 weeks',
@@ -60,9 +50,7 @@ export const UPCOMING_LENGTH_PRESET_OPTIONS: {
 
 export function isCustomUpcomingLength(value: string | null | undefined) {
   if (value == null) return false;
-  return (
-    (UPCOMING_LENGTH_PRESET_VALUES as readonly string[]).indexOf(value) === -1
-  );
+  return (UPCOMING_LENGTH_PRESET_VALUES as readonly string[]).indexOf(value) === -1;
 }
 
 export function getStatus(
@@ -79,10 +67,7 @@ export function getStatus(
     return 'paid';
   } else if (nextDate === today) {
     return 'due';
-  } else if (
-    nextDate > today &&
-    nextDate <= monthUtils.addDays(today, upcomingDays)
-  ) {
+  } else if (nextDate > today && nextDate <= monthUtils.addDays(today, upcomingDays)) {
     return 'upcoming';
   } else if (nextDate < today) {
     return 'missed';
@@ -154,16 +139,10 @@ export function isScheduleOccurrencePosted({
   occurrenceDate: string;
   postedTransactions: PostedScheduleTransaction[];
 }): boolean {
-  const matchStartDate = getScheduleOccurrenceMatchStartDate(
-    schedule,
-    occurrenceDate,
-  );
+  const matchStartDate = getScheduleOccurrenceMatchStartDate(schedule, occurrenceDate);
 
   return postedTransactions.some(
-    tx =>
-      tx.schedule === scheduleId &&
-      tx.date >= matchStartDate &&
-      tx.date <= occurrenceDate,
+    tx => tx.schedule === scheduleId && tx.date >= matchStartDate && tx.date <= occurrenceDate,
   );
 }
 
@@ -184,28 +163,25 @@ export function getHasTransactionsQuery(schedules) {
       $and: {
         schedule: schedule.id,
         date: {
-          $gte: getScheduleOccurrenceMatchStartDate(
-            schedule,
-            schedule.next_date,
-          ),
+          $gte: getScheduleOccurrenceMatchStartDate(schedule, schedule.next_date),
         },
       },
     };
   });
 
   const query = q('transactions')
-    .options({ splits: 'all' })
-    .orderBy({ date: 'desc' })
+    .options({splits: 'all'})
+    .orderBy({date: 'desc'})
     .select(['schedule', 'date']);
 
   // An empty `$or` compiles away to no constraint at all (`WHERE 1`), which
   // would scan every transaction in the budget to answer a question about zero
   // schedules. Match nothing instead — `id` is a primary key and never null.
   if (filters.length === 0) {
-    return query.filter({ id: null });
+    return query.filter({id: null});
   }
 
-  return query.filter({ $or: filters });
+  return query.filter({$or: filters});
 }
 
 type ScheduleRuleOptions = IRuleOptions & {
@@ -251,7 +227,7 @@ export function recurConfigToRSchedule(config) {
         const dayNames = config.patterns.filter(p => p.type !== 'day');
 
         return [
-          days.length > 0 && { ...base, byDayOfMonth: days.map(p => p.value) },
+          days.length > 0 && {...base, byDayOfMonth: days.map(p => p.value)},
           dayNames.length > 0 && {
             ...base,
             byDayOfWeek: dayNames.map(p => [abbrevDay(p.type), p.value]),
@@ -272,9 +248,7 @@ export function extractScheduleConds(conditions) {
   return {
     payee:
       conditions.find(cond => cond.op === 'is' && cond.field === 'payee') ||
-      conditions.find(
-        cond => cond.op === 'is' && cond.field === 'description',
-      ) ||
+      conditions.find(cond => cond.op === 'is' && cond.field === 'description') ||
       null,
     account:
       conditions.find(cond => cond.op === 'is' && cond.field === 'account') ||
@@ -283,15 +257,12 @@ export function extractScheduleConds(conditions) {
     amount:
       conditions.find(
         cond =>
-          (cond.op === 'is' ||
-            cond.op === 'isapprox' ||
-            cond.op === 'isbetween') &&
+          (cond.op === 'is' || cond.op === 'isapprox' || cond.op === 'isbetween') &&
           cond.field === 'amount',
       ) || null,
     date:
       conditions.find(
-        cond =>
-          (cond.op === 'is' || cond.op === 'isapprox') && cond.field === 'date',
+        cond => (cond.op === 'is' || cond.op === 'isapprox') && cond.field === 'date',
       ) || null,
   };
 }
@@ -309,21 +280,18 @@ export function getNextDate(
   if (value.type === 'date') {
     return value.date;
   } else if (value.type === 'recur') {
-    let dates = value.schedule.occurrences({ start, take: 1 }).toArray();
+    let dates = value.schedule.occurrences({start, take: 1}).toArray();
 
     if (dates.length === 0) {
       // Could be a schedule with limited occurrences, so we try to
       // find the last occurrence
-      dates = value.schedule.occurrences({ reverse: true, take: 1 }).toArray();
+      dates = value.schedule.occurrences({reverse: true, take: 1}).toArray();
     }
 
     if (dates.length > 0) {
       let date = dates[0].date;
       if (value.schedule.data.skipWeekend && !noSkipWeekend) {
-        date = getDateWithSkippedWeekend(
-          date,
-          value.schedule.data.weekendSolve,
-        );
+        date = getDateWithSkippedWeekend(date, value.schedule.data.weekendSolve);
       }
       return monthUtils.dayFromDate(date);
     }
@@ -353,10 +321,7 @@ export function getNextDateAfter(dateCond, afterDate: string): string | null {
   return null;
 }
 
-export function getDateWithSkippedWeekend(
-  date: Date,
-  solveMode: 'after' | 'before',
-) {
+export function getDateWithSkippedWeekend(date: Date, solveMode: 'after' | 'before') {
   if (d.isWeekend(date)) {
     if (solveMode === 'after') {
       return d.nextMonday(date);
@@ -370,7 +335,7 @@ export function getDateWithSkippedWeekend(
 }
 
 export function getScheduledAmount(
-  amount: number | { num1: number; num2: number },
+  amount: number | {num1: number; num2: number},
   inverse: boolean = false,
 ): number {
   // this check is temporary, and required at the moment as a schedule rule
@@ -397,10 +362,7 @@ export function getUpcomingDays(
       return end - day;
     }
     case 'oneMonth': {
-      return monthUtils.differenceInCalendarDays(
-        monthUtils.nextMonth(month),
-        month,
-      );
+      return monthUtils.differenceInCalendarDays(monthUtils.nextMonth(month), month);
     }
     default:
       if (upcomingLength.includes('-')) {
@@ -438,15 +400,9 @@ export function scheduleIsRecurring(dateCond: Condition | null) {
 export type ScheduleStatusType = ReturnType<typeof getStatus>;
 export type ScheduleStatuses = Map<ScheduleEntity['id'], ScheduleStatusType>;
 
-export function isForPreview(
-  schedule: ScheduleEntity,
-  statuses: ScheduleStatuses,
-) {
+export function isForPreview(schedule: ScheduleEntity, statuses: ScheduleStatuses) {
   const status = statuses.get(schedule.id);
-  return (
-    !schedule.completed &&
-    ['due', 'upcoming', 'missed', 'paid'].includes(status!)
-  );
+  return !schedule.completed && ['due', 'upcoming', 'missed', 'paid'].includes(status!);
 }
 
 export function computeSchedulePreviewTransactions(
@@ -463,17 +419,12 @@ export function computeSchedulePreviewTransactions(
 
   return schedulesForPreview
     .flatMap(schedule => {
-      const effectiveUpcomingLength =
-        schedule.custom_upcoming_length ?? upcomingLength;
+      const effectiveUpcomingLength = schedule.custom_upcoming_length ?? upcomingLength;
       const upcomingPeriodEnd = d.startOfDay(
-        monthUtils.parseDate(
-          monthUtils.addDays(today, getUpcomingDays(effectiveUpcomingLength)),
-        ),
+        monthUtils.parseDate(monthUtils.addDays(today, getUpcomingDays(effectiveUpcomingLength))),
       );
 
-      const { date: dateConditions } = extractScheduleConds(
-        schedule._conditions,
-      );
+      const {date: dateConditions} = extractScheduleConds(schedule._conditions);
 
       const status = statuses.get(schedule.id);
       const isRecurring = scheduleIsRecurring(dateConditions);
@@ -488,23 +439,17 @@ export function computeSchedulePreviewTransactions(
             break;
           }
 
-          if (
-            d.startOfDay(monthUtils.parseDate(nextDate)) > upcomingPeriodEnd
-          ) {
+          if (d.startOfDay(monthUtils.parseDate(nextDate)) > upcomingPeriodEnd) {
             break;
           }
 
           if (dates.includes(nextDate)) {
-            day = d.startOfDay(
-              monthUtils.parseDate(monthUtils.addDays(day, 1)),
-            );
+            day = d.startOfDay(monthUtils.parseDate(monthUtils.addDays(day, 1)));
             continue;
           }
 
           dates.push(nextDate);
-          day = d.startOfDay(
-            monthUtils.parseDate(monthUtils.addDays(nextDate, 1)),
-          );
+          day = d.startOfDay(monthUtils.parseDate(monthUtils.addDays(nextDate, 1)));
         }
       }
 
@@ -520,13 +465,12 @@ export function computeSchedulePreviewTransactions(
         date,
         schedule: schedule.id,
         forceUpcoming:
-          (date !== schedule.next_date || status === 'paid') &&
-          date >= monthUtils.currentDay(),
+          (date !== schedule.next_date || status === 'paid') && date >= monthUtils.currentDay(),
       }));
     })
     .sort(
       (a, b) =>
-        monthUtils.parseDate(b.date).getTime() -
-          monthUtils.parseDate(a.date).getTime() || a.amount - b.amount,
+        monthUtils.parseDate(b.date).getTime() - monthUtils.parseDate(a.date).getTime() ||
+        a.amount - b.amount,
     );
 }

@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
+import {useState} from 'react';
 
-import { View } from '#View';
+import {View} from '#View';
 
-import { MonthGrid } from './MonthGrid';
-import { NavRow } from './NavRow';
-import { getYear } from './util';
-import type { DateRangePickerLabels } from './util';
+import {MonthGrid} from './MonthGrid';
+import {NavRow} from './NavRow';
+import {getYear} from './util';
+import type {DateRangePickerLabels} from './util';
 
 type RangeSelectorProps = {
   /** Inclusive month-shaped (`yyyy-MM`) range and bounds. */
@@ -64,8 +64,7 @@ export function RangeSelector({
       setAnchor(cell);
       onChange(cell, cell);
     } else {
-      const [newStart, newEnd] =
-        cell < anchor ? [cell, anchor] : [anchor, cell];
+      const [newStart, newEnd] = cell < anchor ? [cell, anchor] : [anchor, cell];
       onChange(newStart, newEnd);
       setAnchor(null);
       setHoverValue(null);
@@ -82,7 +81,7 @@ export function RangeSelector({
       : [start, end];
 
   return (
-    <View onMouseLeave={() => setHoverValue(null)} style={{ minWidth: 180 }}>
+    <View onMouseLeave={() => setHoverValue(null)} style={{minWidth: 180}}>
       <NavRow
         label={viewYear}
         previousLabel={labels.previous}

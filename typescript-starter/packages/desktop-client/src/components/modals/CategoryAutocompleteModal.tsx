@@ -15,28 +15,23 @@
  */
 
 import React from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
 
-import { CategoryAutocomplete } from '#components/autocomplete/CategoryAutocomplete';
-import {
-  Modal,
-  ModalCloseButton,
-  ModalHeader,
-  ModalTitle,
-} from '#components/common/Modal';
-import { SectionLabel } from '#components/forms';
-import { SheetNameProvider } from '#hooks/useSheetName';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {CategoryAutocomplete} from '#components/autocomplete/CategoryAutocomplete';
+import {Modal, ModalCloseButton, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {SectionLabel} from '#components/forms';
+import {SheetNameProvider} from '#hooks/useSheetName';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
 type CategoryAutocompleteModalProps = Extract<
   ModalType,
-  { name: 'category-autocomplete' }
+  {name: 'category-autocomplete'}
 >['options'];
 
 export function CategoryAutocompleteModal({
@@ -50,11 +45,11 @@ export function CategoryAutocompleteModal({
   clearOnSelect,
   onClose,
 }: CategoryAutocompleteModalProps) {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
 
   const defaultAutocompleteProps = {
-    containerProps: { style: { height: isNarrowWidth ? '90vh' : 275 } },
+    containerProps: {style: {height: isNarrowWidth ? '90vh' : 275}},
   };
 
   return (
@@ -64,27 +59,25 @@ export function CategoryAutocompleteModal({
       onClose={onClose}
       containerProps={{
         style: {
-          height: isNarrowWidth
-            ? 'calc(var(--visual-viewport-height) * 0.85)'
-            : 275,
+          height: isNarrowWidth ? 'calc(var(--visual-viewport-height) * 0.85)' : 275,
           backgroundColor: theme.menuAutoCompleteBackground,
         },
       }}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           {isNarrowWidth && (
             <ModalHeader
               title={
                 <ModalTitle
                   title={title || t('Category')}
-                  getStyle={() => ({ color: theme.menuAutoCompleteText })}
+                  getStyle={() => ({color: theme.menuAutoCompleteText})}
                 />
               }
               rightContent={
                 <ModalCloseButton
                   onPress={() => state.close()}
-                  style={{ color: theme.menuAutoCompleteText }}
+                  style={{color: theme.menuAutoCompleteText}}
                 />
               }
             />
@@ -100,10 +93,8 @@ export function CategoryAutocompleteModal({
                 }}
               />
             )}
-            <View style={{ flex: 1 }}>
-              <SheetNameProvider
-                name={month ? monthUtils.sheetForMonth(month) : ''}
-              >
+            <View style={{flex: 1}}>
+              <SheetNameProvider name={month ? monthUtils.sheetForMonth(month) : ''}>
                 <CategoryAutocomplete
                   focused
                   embedded
@@ -121,7 +112,7 @@ export function CategoryAutocompleteModal({
               </SheetNameProvider>
             </View>
             {showNoneOption && (
-              <View style={{ flexShrink: 0, padding: 5 }}>
+              <View style={{flexShrink: 0, padding: 5}}>
                 <Button
                   variant="menu"
                   onPress={() => {

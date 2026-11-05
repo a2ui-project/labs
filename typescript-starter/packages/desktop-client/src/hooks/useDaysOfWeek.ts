@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
 // 0 = Sunday, 1 = Monday, ... 6 = Saturday
 export function useDaysOfWeek() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const daysOfWeek = {
     0: t('Sunday'),

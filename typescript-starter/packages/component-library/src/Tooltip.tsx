@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import type { ComponentProps, ReactNode } from 'react';
-import { Tooltip as AriaTooltip, TooltipTrigger } from 'react-aria-components';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {ComponentProps, ReactNode} from 'react';
+import {Tooltip as AriaTooltip, TooltipTrigger} from 'react-aria-components';
 
-import { styles } from './styles';
-import { View } from './View';
+import {styles} from './styles';
+import {View} from './View';
 
 type TooltipProps = Partial<ComponentProps<typeof AriaTooltip>> & {
   children: ReactNode;
@@ -70,22 +70,19 @@ export const Tooltip = ({
 
   return (
     <View
-      style={{ minHeight: 'auto', flexShrink: 0, maxWidth: '100%' }}
+      style={{minHeight: 'auto', flexShrink: 0, maxWidth: '100%'}}
       ref={triggerRef}
       onMouseEnter={handlePointerEnter}
       onMouseLeave={handlePointerLeave}
     >
-      <TooltipTrigger
-        isOpen={isHovered && !triggerProps.isDisabled}
-        {...triggerProps}
-      >
+      <TooltipTrigger isOpen={isHovered && !triggerProps.isDisabled} {...triggerProps}>
         {children}
 
         <AriaTooltip
           triggerRef={triggerRef}
           style={{
             ...styles.tooltip,
-            ...(disablePointerEvents && { pointerEvents: 'none' }),
+            ...(disablePointerEvents && {pointerEvents: 'none'}),
           }}
           {...props}
         >

@@ -15,12 +15,12 @@
  */
 
 // @ts-strict-ignore
-import { useMemo } from 'react';
+import {useMemo} from 'react';
 
-import { q } from '@actual-app/core/shared/query';
-import type { TransactionFilterEntity } from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import type {TransactionFilterEntity} from '@actual-app/core/types/models';
 
-import { useQuery } from './useQuery';
+import {useQuery} from './useQuery';
 
 function toJS(rows): TransactionFilterEntity[] {
   const filters = rows.map(row => {
@@ -37,17 +37,12 @@ function toJS(rows): TransactionFilterEntity[] {
 }
 
 export function useTransactionFilters(): TransactionFilterEntity[] {
-  const { data } = useQuery<TransactionFilterEntity>(
-    () => q('transaction_filters').select('*'),
-    [],
-  );
+  const {data} = useQuery<TransactionFilterEntity>(() => q('transaction_filters').select('*'), []);
 
   return useMemo(
     () =>
       toJS(data ? [...data] : []).sort((a, b) =>
-        a.name
-          .trim()
-          .localeCompare(b.name.trim(), undefined, { ignorePunctuation: true }),
+        a.name.trim().localeCompare(b.name.trim(), undefined, {ignorePunctuation: true}),
       ),
     [data],
   );

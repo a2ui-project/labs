@@ -22,11 +22,9 @@
 // this version doesn't know. Carried opaquely through the sync pipeline
 // so the message can still be acknowledged into the crdt log and
 // deferred with its original encoding intact (see `apply` in ./index.ts).
-export type UnknownFormatValue = { kind: 'unknown-format'; raw: string };
+export type UnknownFormatValue = {kind: 'unknown-format'; raw: string};
 
-export function isUnknownFormatValue(
-  value: unknown,
-): value is UnknownFormatValue {
+export function isUnknownFormatValue(value: unknown): value is UnknownFormatValue {
   return (
     typeof value === 'object' &&
     value !== null &&
@@ -35,9 +33,7 @@ export function isUnknownFormatValue(
   );
 }
 
-export function serializeValue(
-  value: string | number | null | UnknownFormatValue,
-): string {
+export function serializeValue(value: string | number | null | UnknownFormatValue): string {
   if (isUnknownFormatValue(value)) {
     return value.raw;
   } else if (value === null) {
@@ -73,12 +69,10 @@ export function deserializeValue(value: string): string | number | null {
 // For inbound messages, which may come from a newer version of the app:
 // an unknown value format must not abort the sync — `apply` defers the
 // message instead, exactly like a missing table/column
-export function deserializeValueSafe(
-  value: string,
-): string | number | null | UnknownFormatValue {
+export function deserializeValueSafe(value: string): string | number | null | UnknownFormatValue {
   try {
     return deserializeValue(value);
   } catch {
-    return { kind: 'unknown-format', raw: value };
+    return {kind: 'unknown-format', raw: value};
   }
 }

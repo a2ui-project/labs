@@ -15,9 +15,9 @@
  */
 
 // @ts-strict-ignore
-import { q } from '#shared/query';
+import {q} from '#shared/query';
 
-import { generateSQLWithState } from './compiler';
+import {generateSQLWithState} from './compiler';
 
 function sqlLines(str) {
   return str
@@ -28,60 +28,57 @@ function sqlLines(str) {
 
 const basicSchema = {
   transactions: {
-    id: { type: 'id' },
-    date: { type: 'date' },
-    amount: { type: 'integer' },
-    amount2: { type: 'integer' },
-    amount3: { type: 'float' },
-    is_parent: { type: 'boolean' },
+    id: {type: 'id'},
+    date: {type: 'date'},
+    amount: {type: 'integer'},
+    amount2: {type: 'integer'},
+    amount3: {type: 'float'},
+    is_parent: {type: 'boolean'},
   },
 };
 
 const schemaWithRefs = {
   transactions: {
-    id: { type: 'id' },
-    payee: { type: 'id', ref: 'payees' },
-    date: { type: 'date' },
-    amount: { type: 'integer' },
+    id: {type: 'id'},
+    payee: {type: 'id', ref: 'payees'},
+    date: {type: 'date'},
+    amount: {type: 'integer'},
   },
   payees: {
-    name: { type: 'string' },
-    id: { type: 'id' },
-    account: { type: 'id', ref: 'accounts' },
+    name: {type: 'string'},
+    id: {type: 'id'},
+    account: {type: 'id', ref: 'accounts'},
   },
   accounts: {
-    id: { type: 'id' },
-    trans1: { type: 'id', ref: 'transactions' },
-    trans2: { type: 'id', ref: 'transactions' },
-    trans3: { type: 'id', ref: 'transactions' },
+    id: {type: 'id'},
+    trans1: {type: 'id', ref: 'transactions'},
+    trans2: {type: 'id', ref: 'transactions'},
+    trans3: {type: 'id', ref: 'transactions'},
   },
 };
 
 const schemaWithTombstone = {
   transactions: {
-    id: { type: 'id' },
-    payee: { type: 'id', ref: 'payees' },
-    amount: { type: 'integer' },
-    tombstone: { type: 'boolean' },
+    id: {type: 'id'},
+    payee: {type: 'id', ref: 'payees'},
+    amount: {type: 'integer'},
+    tombstone: {type: 'boolean'},
   },
   payees: {
-    name: { type: 'string' },
-    id: { type: 'id' },
-    tombstone: { type: 'boolean' },
+    name: {type: 'string'},
+    id: {type: 'id'},
+    tombstone: {type: 'boolean'},
   },
   accounts: {
-    id: { type: 'id' },
-    trans: { type: 'id', ref: 'transactions' },
+    id: {type: 'id'},
+    trans: {type: 'id', ref: 'transactions'},
   },
 };
 
 describe('sheet language', () => {
   it('`select` should select fields', () => {
     let result = generateSQLWithState(
-      q('accounts')
-        .select(['trans1', 'trans2'])
-        .withoutValidatedRefs()
-        .serialize(),
+      q('accounts').select(['trans1', 'trans2']).withoutValidatedRefs().serialize(),
       schemaWithRefs,
     );
     expect(result.sql).toMatch(
@@ -91,7 +88,7 @@ describe('sheet language', () => {
     // Allows renaming
     result = generateSQLWithState(
       q('accounts')
-        .select(['trans1', 'trans1.id', { transId: 'trans1.id' }])
+        .select(['trans1', 'trans1.id', {transId: 'trans1.id'}])
         .withoutValidatedRefs()
         .serialize(),
       schemaWithRefs,
@@ -102,10 +99,7 @@ describe('sheet language', () => {
 
     // Joined fields should be named by path
     result = generateSQLWithState(
-      q('accounts')
-        .select(['trans1.payee.name'])
-        .withoutValidatedRefs()
-        .serialize(),
+      q('accounts').select(['trans1.payee.name']).withoutValidatedRefs().serialize(),
       schemaWithRefs,
     );
     expect(result.sql).toMatch(
@@ -115,14 +109,12 @@ describe('sheet language', () => {
     // Renaming works with joined fields
     result = generateSQLWithState(
       q('accounts')
-        .select([{ payeeName: 'trans1.payee.name' }])
+        .select([{payeeName: 'trans1.payee.name'}])
         .withoutValidatedRefs()
         .serialize(),
       schemaWithRefs,
     );
-    expect(result.sql).toMatch(
-      'SELECT payees2.name AS payeeName, accounts.id AS id FROM accounts',
-    );
+    expect(result.sql).toMatch('SELECT payees2.name AS payeeName, accounts.id AS id FROM accounts');
 
     // By default, it should do id ref validation
     result = generateSQLWithState(
@@ -142,32 +134,28 @@ describe('sheet language', () => {
     const result = generateSQLWithState(
       q('transactions')
         .select('payee')
-        .filter({ 'payee.name': { $like: `%TEST%` } })
+        .filter({'payee.name': {$like: `%TEST%`}})
         .serialize(),
       schemaWithRefs,
     );
-    expect(result.sql).toMatch(
-      `UNICODE_LIKE('%test%', NORMALISE(payees1.name))`,
-    );
+    expect(result.sql).toMatch(`UNICODE_LIKE('%test%', NORMALISE(payees1.name))`);
   });
 
   it('`notlike` should use unicode and normalise function', () => {
     const result = generateSQLWithState(
       q('transactions')
         .select('payee')
-        .filter({ 'payee.name': { $notlike: `%TEST%` } })
+        .filter({'payee.name': {$notlike: `%TEST%`}})
         .serialize(),
       schemaWithRefs,
     );
-    expect(result.sql).toMatch(
-      `NOT UNICODE_LIKE('%test%', NORMALISE(payees1.name))`,
-    );
+    expect(result.sql).toMatch(`NOT UNICODE_LIKE('%test%', NORMALISE(payees1.name))`);
   });
 
   it('`select` allows nested functions', () => {
     const result = generateSQLWithState(
       q('transactions')
-        .select([{ num: { $idiv: [{ $neg: '$amount' }, 2] } }])
+        .select([{num: {$idiv: [{$neg: '$amount'}, 2]}}])
         .serialize(),
       schemaWithRefs,
     );
@@ -177,10 +165,7 @@ describe('sheet language', () => {
   });
 
   it('`select` allows selecting all fields with *', () => {
-    let result = generateSQLWithState(
-      q('accounts').select(['*']).serialize(),
-      schemaWithRefs,
-    );
+    let result = generateSQLWithState(q('accounts').select(['*']).serialize(), schemaWithRefs);
     expect(sqlLines(result.sql)).toEqual(
       sqlLines(`
         SELECT accounts.id AS id, transactions1.id AS trans1, transactions2.id AS trans2, transactions3.id AS trans3 FROM accounts
@@ -256,20 +241,12 @@ describe('sheet language', () => {
   });
 
   it('`select` always includes the id', () => {
-    let result = generateSQLWithState(
-      q('payees').select('name').serialize(),
-      schemaWithRefs,
-    );
+    let result = generateSQLWithState(q('payees').select('name').serialize(), schemaWithRefs);
     expect(result.sql).toMatch('payees.id AS id');
 
-    result = generateSQLWithState(
-      q('payees').select(['name', 'id']).serialize(),
-      schemaWithRefs,
-    );
+    result = generateSQLWithState(q('payees').select(['name', 'id']).serialize(), schemaWithRefs);
     // id is only included once, we manually selected it
-    expect(result.sql).toMatch(
-      'SELECT payees.name AS name, payees.id AS id FROM',
-    );
+    expect(result.sql).toMatch('SELECT payees.name AS name, payees.id AS id FROM');
 
     result = generateSQLWithState(
       q('payees').select('name').groupBy('account').serialize(),
@@ -282,10 +259,7 @@ describe('sheet language', () => {
   it('automatically joins tables if referenced by path', () => {
     // Join a simple table
     let result = generateSQLWithState(
-      q('transactions')
-        .filter({ 'payee.name': 'kroger' })
-        .select(['amount'])
-        .serialize(),
+      q('transactions').filter({'payee.name': 'kroger'}).select(['amount']).serialize(),
       schemaWithRefs,
     );
     expect([...result.state.paths.keys()]).toEqual(['transactions.payee']);
@@ -298,10 +272,7 @@ describe('sheet language', () => {
 
     // Make sure it works in a `get`
     result = generateSQLWithState(
-      q('transactions')
-        .filter({ amount: 123 })
-        .select(['payee.name'])
-        .serialize(),
+      q('transactions').filter({amount: 123}).select(['payee.name']).serialize(),
       schemaWithRefs,
     );
     expect([...result.state.paths.keys()]).toEqual(['transactions.payee']);
@@ -316,7 +287,7 @@ describe('sheet language', () => {
     // Join tables deeply
     result = generateSQLWithState(
       q('transactions')
-        .filter({ 'payee.account.trans1.amount': 234 })
+        .filter({'payee.account.trans1.amount': 234})
         .select(['amount', 'payee.name'])
         .serialize(),
       schemaWithRefs,
@@ -338,7 +309,7 @@ describe('sheet language', () => {
   });
 
   it('avoids unnecessary joins when deeply joining', () => {
-    const { state, sql } = generateSQLWithState(
+    const {state, sql} = generateSQLWithState(
       q('transactions')
         .filter({
           'payee.account.trans1.amount': 1,
@@ -391,7 +362,7 @@ describe('sheet language', () => {
     // Allows functions
     result = generateSQLWithState(
       q('transactions')
-        .groupBy({ $substr: ['$payee.name', 0, 4] })
+        .groupBy({$substr: ['$payee.name', 0, 4]})
         .select('id')
         .serialize(),
       schemaWithRefs,
@@ -417,9 +388,9 @@ describe('sheet language', () => {
       q('transactions')
         .orderBy([
           'payee.id',
-          { 'payee.name': 'desc' },
-          { $substr: ['$payee.name', 0, 4] },
-          { $substr: ['$payee.name', 0, 4], $dir: 'desc' },
+          {'payee.name': 'desc'},
+          {$substr: ['$payee.name', 0, 4]},
+          {$substr: ['$payee.name', 0, 4], $dir: 'desc'},
         ])
         .select('id')
         .serialize(),
@@ -433,7 +404,7 @@ describe('sheet language', () => {
   it('allows functions in `select`', () => {
     let result = generateSQLWithState(
       q('transactions')
-        .select(['id', { payeeName: { $substr: ['$payee.name', 0, 4] } }])
+        .select(['id', {payeeName: {$substr: ['$payee.name', 0, 4]}}])
         .serialize(),
       schemaWithRefs,
     );
@@ -443,10 +414,7 @@ describe('sheet language', () => {
 
     result = generateSQLWithState(
       q('transactions')
-        .select([
-          'id',
-          { name: { $substr: [{ $substr: ['$payee.name', 1, 5] }, 3, 4] } },
-        ])
+        .select(['id', {name: {$substr: [{$substr: ['$payee.name', 1, 5]}, 3, 4]}}])
         .serialize(),
       schemaWithRefs,
     );
@@ -459,8 +427,8 @@ describe('sheet language', () => {
     let result = generateSQLWithState(
       q('transactions')
         .filter({
-          date: [{ $lt: '2020-01-01' }],
-          $or: [{ 'payee.name': 'foo' }, { 'payee.name': 'bar' }],
+          date: [{$lt: '2020-01-01'}],
+          $or: [{'payee.name': 'foo'}, {'payee.name': 'bar'}],
         })
         .select(['id'])
         .serialize(),
@@ -481,13 +449,10 @@ describe('sheet language', () => {
       q('transactions')
         .filter({
           $or: [
-            { 'payee.name': 'foo' },
-            { 'payee.name': 'bar' },
+            {'payee.name': 'foo'},
+            {'payee.name': 'bar'},
             {
-              $and: [
-                { date: [{ $gt: '2019-12-31' }] },
-                { date: [{ $lt: '2020-01-01' }] },
-              ],
+              $and: [{date: [{$gt: '2019-12-31'}]}, {date: [{$lt: '2020-01-01'}]}],
             },
           ],
         })
@@ -509,7 +474,7 @@ describe('sheet language', () => {
     // Giving a field an array implicitly ANDs the filters
     result = generateSQLWithState(
       q('transactions')
-        .filter({ date: [{ $lt: '2020-01-01' }, { $gt: '2019-12-01' }] })
+        .filter({date: [{$lt: '2020-01-01'}, {$gt: '2019-12-01'}]})
         .select(['id'])
         .serialize(),
       schemaWithRefs,
@@ -524,7 +489,7 @@ describe('sheet language', () => {
     // Allows referencing fields
     result = generateSQLWithState(
       q('transactions')
-        .filter({ amount: { $lt: '$amount2' } })
+        .filter({amount: {$lt: '$amount2'}})
         .select(['id'])
         .serialize(),
       basicSchema,
@@ -541,7 +506,7 @@ describe('sheet language', () => {
     let result = generateSQLWithState(
       q('transactions')
         .filter({
-          $and: { payee: 'payee1', amount: 12 },
+          $and: {payee: 'payee1', amount: 12},
         })
         .select(['id'])
         .withoutValidatedRefs()
@@ -555,7 +520,7 @@ describe('sheet language', () => {
     result = generateSQLWithState(
       q('transactions')
         .filter({
-          $or: { payee: 'payee1', amount: 12 },
+          $or: {payee: 'payee1', amount: 12},
         })
         .select(['id'])
         .withoutValidatedRefs()
@@ -569,7 +534,7 @@ describe('sheet language', () => {
 
   it('ignores an empty $or filter', () => {
     const result = generateSQLWithState(
-      q('transactions').filter({ $or: [] }).select(['id']).serialize(),
+      q('transactions').filter({$or: []}).select(['id']).serialize(),
       basicSchema,
     );
     expect(sqlLines(result.sql)).toEqual(
@@ -581,7 +546,7 @@ describe('sheet language', () => {
 
   it('ignores a null $or filter', () => {
     const result = generateSQLWithState(
-      q('transactions').filter({ $or: null }).select(['id']).serialize(),
+      q('transactions').filter({$or: null}).select(['id']).serialize(),
       basicSchema,
     );
     expect(sqlLines(result.sql)).toEqual(
@@ -596,7 +561,7 @@ describe('sheet language', () => {
     let result = generateSQLWithState(
       q('transactions')
         .filter({
-          'payee.name': { $transform: { $substr: ['$', 0, 4] }, $lt: 'foo' },
+          'payee.name': {$transform: {$substr: ['$', 0, 4]}, $lt: 'foo'},
         })
         .select(['id'])
         .serialize(),
@@ -615,7 +580,7 @@ describe('sheet language', () => {
     result = generateSQLWithState(
       q('transactions')
         .filter({
-          date: { $transform: '$month', $lt: { $month: '$date' } },
+          date: {$transform: '$month', $lt: {$month: '$date'}},
         })
         .select(['id'])
         .serialize(),
@@ -630,16 +595,14 @@ describe('sheet language', () => {
       q('transactions')
         .filter({
           'payee.name': {
-            $lt: { $substr: [{ $substr: ['$payee.name', 1, 5] }, 3, 4] },
+            $lt: {$substr: [{$substr: ['$payee.name', 1, 5]}, 3, 4]},
           },
         })
         .select(['id'])
         .serialize(),
       schemaWithRefs,
     );
-    expect(result.sql).toMatch(
-      'WHERE (payees1.name < SUBSTR(SUBSTR(payees1.name, 1, 5), 3, 4))',
-    );
+    expect(result.sql).toMatch('WHERE (payees1.name < SUBSTR(SUBSTR(payees1.name, 1, 5), 3, 4))');
   });
 
   it('allows limit and offset', () => {
@@ -664,17 +627,14 @@ describe('sheet language', () => {
 
   it('allows named parameters', () => {
     let result = generateSQLWithState(
-      q('transactions')
-        .filter({ amount: ':amount' })
-        .select(['id'])
-        .serialize(),
+      q('transactions').filter({amount: ':amount'}).select(['id']).serialize(),
       schemaWithRefs,
     );
     expect(result.sql).toMatch('transactions.amount = ?');
 
     result = generateSQLWithState(
       q('transactions')
-        .filter({ amount: { $lt: { $neg: ':amount' } } })
+        .filter({amount: {$lt: {$neg: ':amount'}}})
         .select(['id'])
         .serialize(),
       schemaWithRefs,
@@ -684,14 +644,12 @@ describe('sheet language', () => {
     // Infers the right type
     result = generateSQLWithState(
       q('transactions')
-        .filter({ date: { $transform: '$month', $eq: { $month: ':month' } } })
+        .filter({date: {$transform: '$month', $eq: {$month: ':month'}}})
         .select()
         .serialize(),
       schemaWithRefs,
     );
-    const monthParam = result.state.namedParameters.find(
-      p => p.paramName === 'month',
-    );
+    const monthParam = result.state.namedParameters.find(p => p.paramName === 'month');
     expect(monthParam.paramType).toBe('date-month');
   });
 
@@ -700,9 +658,8 @@ describe('sheet language', () => {
       q('transactions').select(['amount']).serialize(),
       schemaWithRefs,
       {
-        tableViews: { transactions: 'v_transactions' },
-        tableFilters: name =>
-          name === 'transactions' ? [{ amount: { $gt: 0 } }] : [],
+        tableViews: {transactions: 'v_transactions'},
+        tableFilters: name => (name === 'transactions' ? [{amount: {$gt: 0}}] : []),
       },
     );
     expect(sqlLines(result.sql)).toEqual(
@@ -717,9 +674,8 @@ describe('sheet language', () => {
       q('accounts').select(['trans1.amount']).serialize(),
       schemaWithRefs,
       {
-        tableViews: { transactions: 'v_transactions' },
-        tableFilters: name =>
-          name === 'transactions' ? [{ amount: { $gt: 0 } }] : [],
+        tableViews: {transactions: 'v_transactions'},
+        tableFilters: name => (name === 'transactions' ? [{amount: {$gt: 0}}] : []),
       },
     );
     // The joined table should be customized
@@ -737,15 +693,10 @@ describe('sheet language', () => {
 
     // Internal table filters can't use paths
     expect(() =>
-      generateSQLWithState(
-        q('accounts').select(['trans1.amount']).serialize(),
-        schemaWithRefs,
-        {
-          tableViews: { transactions: 'v_transactions' },
-          tableFilters: name =>
-            name === 'transactions' ? [{ 'payee.name': 'foo' }] : [],
-        },
-      ),
+      generateSQLWithState(q('accounts').select(['trans1.amount']).serialize(), schemaWithRefs, {
+        tableViews: {transactions: 'v_transactions'},
+        tableFilters: name => (name === 'transactions' ? [{'payee.name': 'foo'}] : []),
+      }),
     ).toThrow(/cannot contain paths/);
   });
 
@@ -754,9 +705,8 @@ describe('sheet language', () => {
       q('transactions').select(['amount']).raw().serialize(),
       schemaWithRefs,
       {
-        tableViews: { transactions: 'v_transactions' },
-        tableFilters: name =>
-          name === 'transactions' ? [{ amount: { $gt: 0 } }] : [],
+        tableViews: {transactions: 'v_transactions'},
+        tableFilters: name => (name === 'transactions' ? [{amount: {$gt: 0}}] : []),
       },
     );
     expect(sqlLines(result.sql)).toEqual(
@@ -771,7 +721,7 @@ describe('sheet language', () => {
     try {
       generateSQLWithState(
         q('transactions')
-          .select({ month: { $month: '$payee.name2' } })
+          .select({month: {$month: '$payee.name2'}})
           .serialize(),
         schemaWithRefs,
       );
@@ -787,7 +737,7 @@ describe('sheet language', () => {
     try {
       generateSQLWithState(
         q('transactions')
-          .filter({ date: { $transform: '$month', $eq: 10 } })
+          .filter({date: {$transform: '$month', $eq: 10}})
           .select(['id'])
           .serialize(),
         schemaWithRefs,
@@ -796,17 +746,15 @@ describe('sheet language', () => {
     } catch (e) {
       expect(e.message).toMatch('Expression stack:');
       expect(e.message).toMatch('{"date":{"$transform":"$month","$eq":10}}');
-      expect(e.message).toMatch(
-        'filter({"date":{"$transform":"$month","$eq":10}})',
-      );
+      expect(e.message).toMatch('filter({"date":{"$transform":"$month","$eq":10}})');
     }
 
     // group by
     try {
       generateSQLWithState(
         q('transactions')
-          .groupBy({ $month: '$date2' })
-          .select({ amount: { $sum: '$amount' } })
+          .groupBy({$month: '$date2'})
+          .select({amount: {$sum: '$amount'}})
           .serialize(),
         schemaWithRefs,
       );
@@ -822,8 +770,8 @@ describe('sheet language', () => {
     try {
       generateSQLWithState(
         q('transactions')
-          .orderBy({ $month: '$date2' })
-          .select({ amount: { $sum: '$amount' } })
+          .orderBy({$month: '$date2'})
+          .select({amount: {$sum: '$amount'}})
           .serialize(),
         schemaWithRefs,
       );
@@ -839,7 +787,7 @@ describe('sheet language', () => {
   it('$oneof creates template for executor to run', () => {
     const result = generateSQLWithState(
       q('transactions')
-        .filter({ id: { $oneof: ['one', 'two', 'three'] } })
+        .filter({id: {$oneof: ['one', 'two', 'three']}})
         .select(['amount'])
         .serialize(),
       schemaWithRefs,
@@ -851,55 +799,46 @@ describe('sheet language', () => {
 describe('Type conversions', () => {
   it('date literals are converted to ints on input', () => {
     let result = generateSQLWithState(
-      q('transactions')
-        .filter({ date: '2020-01-01' })
-        .select(['id'])
-        .serialize(),
+      q('transactions').filter({date: '2020-01-01'}).select(['id']).serialize(),
       basicSchema,
     );
     expect(result.sql).toMatch('WHERE (transactions.date = 20200101)');
 
     result = generateSQLWithState(
       q('transactions')
-        .filter({ date: { $transform: '$month', $eq: '2020-01' } })
+        .filter({date: {$transform: '$month', $eq: '2020-01'}})
         .select(['id'])
         .serialize(),
       basicSchema,
     );
-    expect(result.sql).toMatch(
-      'WHERE (CAST(SUBSTR(transactions.date, 1, 6) AS integer) = 202001)',
-    );
+    expect(result.sql).toMatch('WHERE (CAST(SUBSTR(transactions.date, 1, 6) AS integer) = 202001)');
 
     // You can also specify a full date that is auto-converted to month
     result = generateSQLWithState(
       q('transactions')
-        .filter({ date: { $transform: '$month', $eq: '2020-01-01' } })
+        .filter({date: {$transform: '$month', $eq: '2020-01-01'}})
         .select(['id'])
         .serialize(),
       basicSchema,
     );
-    expect(result.sql).toMatch(
-      'WHERE (CAST(SUBSTR(transactions.date, 1, 6) AS integer) = 202001)',
-    );
+    expect(result.sql).toMatch('WHERE (CAST(SUBSTR(transactions.date, 1, 6) AS integer) = 202001)');
 
     // You can also specify a full date that is auto-converted to month
     result = generateSQLWithState(
       q('transactions')
-        .filter({ date: { $transform: '$year', $eq: '2020-01-01' } })
+        .filter({date: {$transform: '$year', $eq: '2020-01-01'}})
         .select(['id'])
         .serialize(),
       basicSchema,
     );
-    expect(result.sql).toMatch(
-      'WHERE (CAST(SUBSTR(transactions.date, 1, 4) AS integer) = 2020)',
-    );
+    expect(result.sql).toMatch('WHERE (CAST(SUBSTR(transactions.date, 1, 4) AS integer) = 2020)');
   });
 
   it('date fields are converted to months and years', () => {
     let result = generateSQLWithState(
       q('accounts')
         .filter({
-          'trans1.date': { $transform: '$month', $eq: '$trans2.date' },
+          'trans1.date': {$transform: '$month', $eq: '$trans2.date'},
         })
         .select(['id'])
         .serialize(),
@@ -912,7 +851,7 @@ describe('Type conversions', () => {
     // You can also specify a full date that is auto-converted to month
     result = generateSQLWithState(
       q('accounts')
-        .filter({ 'trans1.date': { $transform: '$year', $eq: '$trans2.date' } })
+        .filter({'trans1.date': {$transform: '$year', $eq: '$trans2.date'}})
         .select(['id'])
         .serialize(),
       schemaWithRefs,
@@ -925,14 +864,14 @@ describe('Type conversions', () => {
   it('allows conversions from string to id', () => {
     expect(() => {
       generateSQLWithState(
-        q('transactions').filter({ id: 'foo' }).select(['id']).serialize(),
+        q('transactions').filter({id: 'foo'}).select(['id']).serialize(),
         schemaWithRefs,
       );
     }).not.toThrow();
 
     expect(() => {
       generateSQLWithState(
-        q('accounts').filter({ id: '$trans1.id' }).select(['id']).serialize(),
+        q('accounts').filter({id: '$trans1.id'}).select(['id']).serialize(),
         schemaWithRefs,
       );
     }).not.toThrow();
@@ -940,7 +879,7 @@ describe('Type conversions', () => {
     // Numbers cannot be converted to ids
     expect(() => {
       generateSQLWithState(
-        q('transactions').filter({ id: 5 }).select(['id']).serialize(),
+        q('transactions').filter({id: 5}).select(['id']).serialize(),
         schemaWithRefs,
       );
     }).toThrow(/Can't convert/);
@@ -949,7 +888,7 @@ describe('Type conversions', () => {
   it('allows conversions from integers to floats', () => {
     expect(() => {
       generateSQLWithState(
-        q('transactions').filter({ amount3: 45 }).select(['id']).serialize(),
+        q('transactions').filter({amount3: 45}).select(['id']).serialize(),
         basicSchema,
       );
     }).not.toThrow();
@@ -957,7 +896,7 @@ describe('Type conversions', () => {
     // Floats cannot be converted to ints
     expect(() => {
       generateSQLWithState(
-        q('transactions').filter({ amount: 45.5 }).select(['id']).serialize(),
+        q('transactions').filter({amount: 45.5}).select(['id']).serialize(),
         basicSchema,
       );
     }).toThrow(/Can't convert/);
@@ -966,18 +905,14 @@ describe('Type conversions', () => {
   it('allows fields to be nullable', () => {
     // With validated refs
     let result = generateSQLWithState(
-      q('transactions').filter({ payee: null }).select().serialize(),
+      q('transactions').filter({payee: null}).select().serialize(),
       schemaWithRefs,
     );
     expect(result.sql).toMatch('WHERE (payees1.id IS NULL)');
 
     // Without validated refs
     result = generateSQLWithState(
-      q('transactions')
-        .filter({ payee: null })
-        .select()
-        .withoutValidatedRefs()
-        .serialize(),
+      q('transactions').filter({payee: null}).select().withoutValidatedRefs().serialize(),
       schemaWithRefs,
     );
     expect(result.sql).toMatch('WHERE (transactions.payee IS NULL)');
@@ -987,7 +922,7 @@ describe('Type conversions', () => {
     // With validated refs
     const result = generateSQLWithState(
       q('transactions')
-        .filter({ payee: { $ne: null } })
+        .filter({payee: {$ne: null}})
         .select()
         .serialize(),
       schemaWithRefs,

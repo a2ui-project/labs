@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { memoizeOne } from '@actual-app/core/shared/memoize';
-import { groupById } from '@actual-app/core/shared/util';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import {memoizeOne} from '@actual-app/core/shared/memoize';
+import {groupById} from '@actual-app/core/shared/util';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
 
-import { resetApp } from '#app/appSlice';
+import {resetApp} from '#app/appSlice';
 
 const sliceName = 'account';
 
 type AccountState = {
   failedAccounts: {
-    [key: AccountEntity['id']]: { type: string; code: string };
+    [key: AccountEntity['id']]: {type: string; code: string};
   };
   accountsSyncing: Array<AccountEntity['id']>;
   updatedAccounts: Array<AccountEntity['id']>;
@@ -64,10 +64,7 @@ const accountsSlice = createSlice({
   name: sliceName,
   initialState,
   reducers: {
-    setAccountsSyncing(
-      state,
-      action: PayloadAction<SetAccountsSyncingPayload>,
-    ) {
+    setAccountsSyncing(state, action: PayloadAction<SetAccountsSyncingPayload>) {
       state.accountsSyncing = action.payload.ids;
     },
     markAccountFailed(state, action: PayloadAction<MarkAccountFailedPayload>) {
@@ -76,24 +73,16 @@ const accountsSlice = createSlice({
         code: action.payload.errorCode,
       };
     },
-    markAccountSuccess(
-      state,
-      action: PayloadAction<MarkAccountSuccessPayload>,
-    ) {
+    markAccountSuccess(state, action: PayloadAction<MarkAccountSuccessPayload>) {
       delete state.failedAccounts[action.payload.id];
     },
-    markUpdatedAccounts(
-      state,
-      action: PayloadAction<MarkUpdatedAccountsPayload>,
-    ) {
+    markUpdatedAccounts(state, action: PayloadAction<MarkUpdatedAccountsPayload>) {
       state.updatedAccounts = action.payload.ids
         ? [...state.updatedAccounts, ...action.payload.ids]
         : state.updatedAccounts;
     },
     markAccountRead(state, action: PayloadAction<MarkAccountReadPayload>) {
-      state.updatedAccounts = state.updatedAccounts.filter(
-        id => id !== action.payload.id,
-      );
+      state.updatedAccounts = state.updatedAccounts.filter(id => id !== action.payload.id);
     },
   },
   extraReducers: builder => {
@@ -101,11 +90,11 @@ const accountsSlice = createSlice({
   },
 });
 
-export const getAccountsById = memoizeOne(
-  (accounts: AccountEntity[] | null | undefined) => groupById(accounts),
+export const getAccountsById = memoizeOne((accounts: AccountEntity[] | null | undefined) =>
+  groupById(accounts),
 );
 
-export const { name, reducer, getInitialState } = accountsSlice;
+export const {name, reducer, getInitialState} = accountsSlice;
 export const actions = {
   ...accountsSlice.actions,
 };

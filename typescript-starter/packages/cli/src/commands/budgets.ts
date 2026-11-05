@@ -15,11 +15,11 @@
  */
 
 import * as api from '@actual-app/api';
-import type { Command } from 'commander';
+import type {Command} from 'commander';
 
-import { withConnection } from '#connection';
-import { printOutput } from '#output';
-import { parseBoolFlag, parseIntFlag } from '#utils';
+import {withConnection} from '#connection';
+import {printOutput} from '#output';
+import {parseBoolFlag, parseIntFlag} from '#utils';
 
 export function registerBudgetsCommand(program: Command) {
   const budgets = program.command('budgets').description('Manage budgets');
@@ -35,7 +35,7 @@ export function registerBudgetsCommand(program: Command) {
           const result = await api.getBudgets();
           printOutput(result, opts.format);
         },
-        { mutates: false, skipBudget: true },
+        {mutates: false, skipBudget: true},
       );
     });
 
@@ -48,14 +48,13 @@ export function registerBudgetsCommand(program: Command) {
       await withConnection(
         opts,
         async config => {
-          const password =
-            cmdOpts.encryptionPassword ?? config.encryptionPassword;
+          const password = cmdOpts.encryptionPassword ?? config.encryptionPassword;
           await api.downloadBudget(syncId, {
             password,
           });
-          printOutput({ success: true, syncId }, opts.format);
+          printOutput({success: true, syncId}, opts.format);
         },
-        { mutates: false, skipBudget: true },
+        {mutates: false, skipBudget: true},
       );
     });
 
@@ -70,7 +69,7 @@ export function registerBudgetsCommand(program: Command) {
           const result = await api.getBudgetMonths();
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -85,7 +84,7 @@ export function registerBudgetsCommand(program: Command) {
           const result = await api.getBudgetMonth(month);
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -94,10 +93,7 @@ export function registerBudgetsCommand(program: Command) {
     .description('Set budget amount for a category in a month')
     .requiredOption('--month <month>', 'Budget month (YYYY-MM)')
     .requiredOption('--category <id>', 'Category ID')
-    .requiredOption(
-      '--amount <amount>',
-      'Amount in cents (e.g. 50000 = 500.00)',
-    )
+    .requiredOption('--amount <amount>', 'Amount in cents (e.g. 50000 = 500.00)')
     .action(async cmdOpts => {
       const amount = parseIntFlag(cmdOpts.amount, '--amount');
       const opts = program.opts();
@@ -105,9 +101,9 @@ export function registerBudgetsCommand(program: Command) {
         opts,
         async () => {
           await api.setBudgetAmount(cmdOpts.month, cmdOpts.category, amount);
-          printOutput({ success: true }, opts.format);
+          printOutput({success: true}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -124,9 +120,9 @@ export function registerBudgetsCommand(program: Command) {
         opts,
         async () => {
           await api.setBudgetCarryover(cmdOpts.month, cmdOpts.category, flag);
-          printOutput({ success: true }, opts.format);
+          printOutput({success: true}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -134,10 +130,7 @@ export function registerBudgetsCommand(program: Command) {
     .command('hold-next-month')
     .description('Hold budget amount for next month')
     .requiredOption('--month <month>', 'Budget month (YYYY-MM)')
-    .requiredOption(
-      '--amount <amount>',
-      'Amount in cents (e.g. 50000 = 500.00)',
-    )
+    .requiredOption('--amount <amount>', 'Amount in cents (e.g. 50000 = 500.00)')
     .action(async cmdOpts => {
       const parsedAmount = parseIntFlag(cmdOpts.amount, '--amount');
       const opts = program.opts();
@@ -145,9 +138,9 @@ export function registerBudgetsCommand(program: Command) {
         opts,
         async () => {
           await api.holdBudgetForNextMonth(cmdOpts.month, parsedAmount);
-          printOutput({ success: true }, opts.format);
+          printOutput({success: true}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -161,9 +154,9 @@ export function registerBudgetsCommand(program: Command) {
         opts,
         async () => {
           await api.resetBudgetHold(cmdOpts.month);
-          printOutput({ success: true }, opts.format);
+          printOutput({success: true}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 }

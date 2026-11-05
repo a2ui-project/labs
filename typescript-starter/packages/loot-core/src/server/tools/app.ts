@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { createApp } from '#server/app';
-import { aqlQuery } from '#server/aql';
+import {createApp} from '#server/app';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { runMutator } from '#server/mutators';
-import { batchUpdateTransactions } from '#server/transactions';
+import {runMutator} from '#server/mutators';
+import {batchUpdateTransactions} from '#server/transactions';
 // @ts-strict-ignore
-import { q } from '#shared/query';
-import type { TransactionEntity } from '#types/models';
+import {q} from '#shared/query';
+import type {TransactionEntity} from '#types/models';
 
 export type ToolsHandlers = {
   'tools/fix-split-transactions': typeof fixSplitTransactions;
@@ -57,14 +57,13 @@ async function fixSplitTransactions(): Promise<{
       id: row.id,
       payee: row.parentPayee,
     }));
-    await batchUpdateTransactions({ updated });
+    await batchUpdateTransactions({updated});
   });
 
   // 2. Make sure the "cleared" flag is synced up with the parent
   // transactions
   const clearedRows = await db.all<
-    Pick<db.DbViewTransactionInternal, 'id'> &
-      Pick<db.DbViewTransactionInternal, 'cleared'>
+    Pick<db.DbViewTransactionInternal, 'id'> & Pick<db.DbViewTransactionInternal, 'cleared'>
   >(`
     SELECT t.id, p.cleared FROM v_transactions_internal t
     LEFT JOIN v_transactions_internal p ON t.parent_id = p.id
@@ -76,7 +75,7 @@ async function fixSplitTransactions(): Promise<{
       id: row.id,
       cleared: row.cleared === 1,
     }));
-    await batchUpdateTransactions({ updated });
+    await batchUpdateTransactions({updated});
   });
 
   // 3. Mark the `tombstone` field as true on any child transactions
@@ -88,14 +87,14 @@ async function fixSplitTransactions(): Promise<{
   `);
 
   await runMutator(async () => {
-    const updated = deletedRows.map(row => ({ id: row.id, tombstone: true }));
-    await batchUpdateTransactions({ updated });
+    const updated = deletedRows.map(row => ({id: row.id, tombstone: true}));
+    await batchUpdateTransactions({updated});
   });
 
   const splitTransactions = (
     await aqlQuery(
       q('transactions')
-        .options({ splits: 'grouped' })
+        .options({splits: 'grouped'})
         .filter({
           is_parent: true,
         })
@@ -110,9 +109,7 @@ async function fixSplitTransactions(): Promise<{
   });
 
   // 5. Fix transfers that should not have categories
-  const brokenTransfers = await db.all<
-    Pick<db.DbViewTransactionInternal, 'id'>
-  >(`
+  const brokenTransfers = await db.all<Pick<db.DbViewTransactionInternal, 'id'>>(`
     SELECT t1.id
     FROM v_transactions_internal t1
            JOIN accounts a1 ON t1.account = a1.id
@@ -127,7 +124,7 @@ async function fixSplitTransactions(): Promise<{
       id: row.id,
       category: null,
     }));
-    await batchUpdateTransactions({ updated });
+    await batchUpdateTransactions({updated});
   });
 
   // 6. Remove transaction errors from non-parent transactions
@@ -136,23 +133,21 @@ async function fixSplitTransactions(): Promise<{
   `);
 
   await runMutator(async () => {
-    const updated = errorRows.map(({ id }) => ({ id, error: null }));
-    await batchUpdateTransactions({ updated });
+    const updated = errorRows.map(({id}) => ({id, error: null}));
+    await batchUpdateTransactions({updated});
   });
 
   // 7. Clear categories of parent transactions
-  const parentTransactionsWithCategory = await db.all<
-    Pick<db.DbViewTransactionInternal, 'id'>
-  >(`
+  const parentTransactionsWithCategory = await db.all<Pick<db.DbViewTransactionInternal, 'id'>>(`
     SELECT id FROM transactions WHERE isParent = 1 AND category IS NOT NULL
   `);
 
   await runMutator(async () => {
-    const updated = parentTransactionsWithCategory.map(({ id }) => ({
+    const updated = parentTransactionsWithCategory.map(({id}) => ({
       id,
       category: null,
     }));
-    await batchUpdateTransactions({ updated });
+    await batchUpdateTransactions({updated});
   });
 
   return {
@@ -161,8 +156,7 @@ async function fixSplitTransactions(): Promise<{
     numDeleted: deletedRows.length,
     numTransfersFixed: brokenTransfers.length,
     numNonParentErrorsFixed: errorRows.length,
-    numParentTransactionsWithCategoryFixed:
-      parentTransactionsWithCategory.length,
+    numParentTransactionsWithCategoryFixed: parentTransactionsWithCategory.length,
     mismatchedSplits,
   };
 }

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { createApp } from '#server/app';
+import {createApp} from '#server/app';
 import * as db from '#server/db';
-import { mutator } from '#server/mutators';
-import { undoable } from '#server/undo';
-import type { AccountGroupEntity } from '#types/models';
+import {mutator} from '#server/mutators';
+import {undoable} from '#server/undo';
+import type {AccountGroupEntity} from '#types/models';
 
 export type AccountGroupsHandlers = {
   'account-groups-get': typeof getAccountGroups;
@@ -47,19 +47,17 @@ async function getAccountGroups(): Promise<AccountGroupEntity[]> {
 async function createAccountGroup({
   name,
 }: Pick<AccountGroupEntity, 'name'>): Promise<AccountGroupEntity['id']> {
-  return db.insertAccountGroup({ name });
+  return db.insertAccountGroup({name});
 }
 
-async function updateAccountGroup(
-  group: Pick<AccountGroupEntity, 'id' | 'name'>,
-): Promise<void> {
+async function updateAccountGroup(group: Pick<AccountGroupEntity, 'id' | 'name'>): Promise<void> {
   await db.updateAccountGroup(group);
 }
 
 async function deleteAccountGroup({
   id,
 }: Pick<AccountGroupEntity, 'id'>): Promise<AccountGroupEntity['id']> {
-  await db.deleteAccountGroup({ id });
+  await db.deleteAccountGroup({id});
   return id;
 }
 

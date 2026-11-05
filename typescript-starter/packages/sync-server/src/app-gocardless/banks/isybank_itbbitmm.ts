@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -25,7 +25,7 @@ export default {
   // It has been reported that valueDate is more accurate than booking date
   // when it is provided
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     editedTrans.date = transaction.valueDate ?? transaction.bookingDate;
 

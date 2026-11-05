@@ -16,13 +16,9 @@
 
 import crypto from 'node:crypto';
 
-import { getAccountDb } from '#account-db';
-import { FileNotFound } from '#app-sync/errors';
-import {
-  File,
-  FilesService,
-  FileUpdate,
-} from '#app-sync/services/files-service'; // Adjust the path as necessary
+import {getAccountDb} from '#account-db';
+import {FileNotFound} from '#app-sync/errors';
+import {File, FilesService, FileUpdate} from '#app-sync/services/files-service'; // Adjust the path as necessary
 describe('FilesService', () => {
   let filesService;
   let accountDb;
@@ -30,17 +26,7 @@ describe('FilesService', () => {
   const insertToyExampleData = () => {
     accountDb.mutate(
       'INSERT INTO files (id, group_id, sync_version, name, encrypt_meta, encrypt_salt, encrypt_test, encrypt_keyid, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        '1',
-        'group1',
-        1,
-        'file1',
-        '{"key":"value"}',
-        'salt',
-        'test',
-        'keyid',
-        0,
-      ],
+      ['1', 'group1', 1, 'file1', '{"key":"value"}', 'salt', 'test', 'keyid', 0],
     );
   };
 
@@ -83,17 +69,7 @@ describe('FilesService', () => {
     const fileId = crypto.randomBytes(16).toString('hex');
     accountDb.mutate(
       'INSERT INTO files (id, group_id, sync_version, name, encrypt_meta, encrypt_salt, encrypt_test, encrypt_keyid, deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        fileId,
-        'group1',
-        1,
-        'file1',
-        '{"key":"value"}',
-        'salt',
-        'test',
-        'keyid',
-        1,
-      ],
+      [fileId, 'group1', 1, 'file1', '{"key":"value"}', 'salt', 'test', 'keyid', 1],
     );
 
     expect(() => {
@@ -105,40 +81,37 @@ describe('FilesService', () => {
     }).toThrow(FileNotFound);
   });
 
-  test.each([true, false])(
-    'set should insert a new file with deleted: %p',
-    deleted => {
-      const fileId = crypto.randomBytes(16).toString('hex');
-      const newFile = new File({
-        id: fileId,
-        groupId: 'group2',
-        syncVersion: 1,
-        name: 'file2',
-        encryptMeta: '{"key":"value2"}',
-        deleted,
-      });
+  test.each([true, false])('set should insert a new file with deleted: %p', deleted => {
+    const fileId = crypto.randomBytes(16).toString('hex');
+    const newFile = new File({
+      id: fileId,
+      groupId: 'group2',
+      syncVersion: 1,
+      name: 'file2',
+      encryptMeta: '{"key":"value2"}',
+      deleted,
+    });
 
-      filesService.set(newFile);
+    filesService.set(newFile);
 
-      const file = filesService.validate(filesService.getRaw(fileId));
-      const expectedFile = new File({
-        id: fileId,
-        groupId: 'group2',
-        syncVersion: 1,
-        name: 'file2',
-        encryptMeta: '{"key":"value2"}',
-        encryptSalt: null, // default value
-        encryptTest: null, // default value
-        encryptKeyId: null, // default value
-        deleted,
-      });
+    const file = filesService.validate(filesService.getRaw(fileId));
+    const expectedFile = new File({
+      id: fileId,
+      groupId: 'group2',
+      syncVersion: 1,
+      name: 'file2',
+      encryptMeta: '{"key":"value2"}',
+      encryptSalt: null, // default value
+      encryptTest: null, // default value
+      encryptKeyId: null, // default value
+      deleted,
+    });
 
-      expect(file).toEqual(expectedFile);
-    },
-  );
+    expect(file).toEqual(expectedFile);
+  });
 
   test('find should return a list of files', () => {
-    const files = filesService.find({ userId: 'genericAdmin' });
+    const files = filesService.find({userId: 'genericAdmin'});
     expect(files.length).toBe(1);
     expect(files[0]).toEqual(
       new File({
@@ -167,7 +140,7 @@ describe('FilesService', () => {
       }),
     );
     // Make sure that the file was inserted
-    const allFiles = filesService.find({ userId: 'genericAdmin' });
+    const allFiles = filesService.find({userId: 'genericAdmin'});
     expect(allFiles.length).toBe(2);
 
     // Limit the number of files returned
@@ -231,10 +204,8 @@ describe('FilesService', () => {
       }),
     );
 
-    expect(filesService.find({ userId: 'genericUser' })).toHaveLength(1);
-    expect(
-      filesService.find({ userId: 'genericAdmin' }).length,
-    ).toBeGreaterThan(1);
+    expect(filesService.find({userId: 'genericUser'})).toHaveLength(1);
+    expect(filesService.find({userId: 'genericAdmin'}).length).toBeGreaterThan(1);
   });
 
   test.each([['update-group', null]])(

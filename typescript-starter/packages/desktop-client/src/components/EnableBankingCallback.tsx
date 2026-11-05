@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useEffect, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Paragraph } from '@actual-app/components/paragraph';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { Error as ErrorAlert } from '#components/alerts';
-import { useUrlParam } from '#hooks/useUrlParam';
+import {Error as ErrorAlert} from '#components/alerts';
+import {useUrlParam} from '#hooks/useUrlParam';
 
 export function EnableBankingCallback() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [code] = useUrlParam('code');
   const [stateParam] = useUrlParam('state');
   const [errorParam] = useUrlParam('error');
   const storedState = localStorage.getItem('enablebanking_auth_state');
   const stateValid =
-    typeof stateParam === 'string' &&
-    typeof storedState === 'string' &&
-    stateParam === storedState;
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>(
-    'loading',
-  );
+    typeof stateParam === 'string' && typeof storedState === 'string' && stateParam === storedState;
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const calledRef = useRef(false);
 
@@ -76,9 +72,7 @@ export function EnableBankingCallback() {
 
         if (result.error) {
           setStatus('error');
-          setErrorMessage(
-            result.error.message || t('Failed to complete authorization.'),
-          );
+          setErrorMessage(result.error.message || t('Failed to complete authorization.'));
           return;
         }
 
@@ -115,16 +109,14 @@ export function EnableBankingCallback() {
 
       {status === 'success' && (
         <Paragraph>
-          <Trans>
-            Authorization successful! This window will close automatically.
-          </Trans>
+          <Trans>Authorization successful! This window will close automatically.</Trans>
         </Paragraph>
       )}
 
       {status === 'error' && (
         <>
           <ErrorAlert>{errorMessage}</ErrorAlert>
-          <Paragraph style={{ marginTop: 10 }}>
+          <Paragraph style={{marginTop: 10}}>
             <Trans>You can close this window and try again.</Trans>
           </Paragraph>
         </>

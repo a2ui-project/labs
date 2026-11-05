@@ -15,11 +15,11 @@
  */
 
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { TimeFrame } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import type {TimeFrame} from '@actual-app/core/types/models';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 
-import { ReportOptions } from './ReportOptions';
-import { getSpecificRange, validateRange } from './reportRanges';
+import {ReportOptions} from './ReportOptions';
+import {getSpecificRange, validateRange} from './reportRanges';
 
 export function getLiveRange(
   cond: string,
@@ -52,28 +52,21 @@ export function getLiveRange(
     case 'lastYear': {
       [dateStart, dateEnd] = validateRange(
         earliestTransaction,
-        monthUtils.getYearStart(
-          monthUtils.prevYear(monthUtils.currentMonth()),
-        ) + '-01',
-        monthUtils.getYearEnd(monthUtils.prevYear(monthUtils.currentDate())) +
-          '-31',
+        monthUtils.getYearStart(monthUtils.prevYear(monthUtils.currentMonth())) + '-01',
+        monthUtils.getYearEnd(monthUtils.prevYear(monthUtils.currentDate())) + '-31',
       );
       break;
     }
     case 'priorYearToDate': {
       [dateStart, dateEnd] = validateRange(
         earliestTransaction,
-        monthUtils.getYearStart(
-          monthUtils.prevYear(monthUtils.currentMonth()),
-        ) + '-01',
+        monthUtils.getYearStart(monthUtils.prevYear(monthUtils.currentMonth())) + '-01',
         monthUtils.prevYear(monthUtils.currentDate(), 'yyyy-MM-dd'),
       );
       break;
     }
     case 'currentQuarter': {
-      const quarterStart = monthUtils.getQuarterStart(
-        monthUtils.currentMonth(),
-      );
+      const quarterStart = monthUtils.getQuarterStart(monthUtils.currentMonth());
       const quarterEnd = monthUtils.getQuarterEnd(monthUtils.currentMonth());
       [dateStart, dateEnd] = validateRange(
         earliestTransaction,
@@ -83,9 +76,7 @@ export function getLiveRange(
       break;
     }
     case 'previousQuarter': {
-      const prevQuarterMonth = monthUtils.prevQuarter(
-        monthUtils.currentMonth(),
-      );
+      const prevQuarterMonth = monthUtils.prevQuarter(monthUtils.currentMonth());
       const quarterStart = monthUtils.getQuarterStart(prevQuarterMonth);
       const quarterEnd = monthUtils.getQuarterEnd(prevQuarterMonth);
       [dateStart, dateEnd] = validateRange(

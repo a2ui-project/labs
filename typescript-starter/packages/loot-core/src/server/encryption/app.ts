@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 import * as asyncStorage from '#platform/server/asyncStorage';
-import { logger } from '#platform/server/log';
-import { createApp } from '#server/app';
-import { post } from '#server/post';
+import {logger} from '#platform/server/log';
+import {createApp} from '#server/app';
+import {post} from '#server/post';
 import * as prefs from '#server/prefs';
-import { getServer } from '#server/server-config';
-import { makeTestMessage, resetSync } from '#server/sync';
-import type { Budget } from '#types/budget';
+import {getServer} from '#server/server-config';
+import {makeTestMessage, resetSync} from '#server/sync';
+import type {Budget} from '#types/budget';
 
 import * as encryption from '.';
 
@@ -40,14 +40,14 @@ app.method('key-test', keyTest);
 // will change in the future: during onboarding the user should be
 // able to enable encryption. (Imagine if they are importing data from
 // another source, they should be able to encrypt first)
-async function keyMake({ password }: { password: string }) {
+async function keyMake({password}: {password: string}) {
   if (!prefs.getPrefs()) {
     throw new Error('key-make must be called with file loaded');
   }
 
   const salt = encryption.randomBytes(32).toString('base64');
   const id = uuidv4();
-  const key = await encryption.createKey({ id, password, salt });
+  const key = await encryption.createKey({id, password, salt});
 
   // Load the key
   await encryption.loadKey(key);
@@ -101,13 +101,13 @@ async function keyTest({
     validCloudFileId = cloudFileId!;
   } catch (e) {
     logger.log(e);
-    return { error: { reason: 'network' } };
+    return {error: {reason: 'network'}};
   }
 
-  const { id, salt, test: originalTest } = res;
+  const {id, salt, test: originalTest} = res;
 
   if (!originalTest) {
-    return { error: { reason: 'old-key-style' } };
+    return {error: {reason: 'old-key-style'}};
   }
 
   const test: {
@@ -120,7 +120,7 @@ async function keyTest({
     };
   } = JSON.parse(originalTest);
 
-  const key = await encryption.createKey({ id, password, salt });
+  const key = await encryption.createKey({id, password, salt});
   await encryption.loadKey(key);
 
   try {
@@ -130,7 +130,7 @@ async function keyTest({
 
     // Unload the key, it's invalid
     encryption.unloadKey(key);
-    return { error: { reason: 'decrypt-failure' } };
+    return {error: {reason: 'decrypt-failure'}};
   }
 
   // Persist key in async storage
@@ -142,7 +142,7 @@ async function keyTest({
   // are testing a key to download a file and when the file is
   // actually downloaded it will update the prefs with the latest key id
   if (prefs.getPrefs()) {
-    await prefs.savePrefs({ encryptKeyId: key.getId() });
+    await prefs.savePrefs({encryptKeyId: key.getId()});
   }
 
   return {};

@@ -15,29 +15,29 @@
  */
 
 import React from 'react';
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgLogo } from '@actual-app/components/icons/logo';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css, keyframes } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgLogo} from '@actual-app/components/icons/logo';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css, keyframes} from '@emotion/css';
 
-import { createBudget } from '#budgetfiles/budgetfilesSlice';
-import { Link } from '#components/common/Link';
-import { useServerURL } from '#components/ServerContext';
-import { useNavigate } from '#hooks/useNavigate';
-import { useReducedMotion } from '#hooks/useReducedMotion';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {createBudget} from '#budgetfiles/budgetfilesSlice';
+import {Link} from '#components/common/Link';
+import {useServerURL} from '#components/ServerContext';
+import {useNavigate} from '#hooks/useNavigate';
+import {useReducedMotion} from '#hooks/useReducedMotion';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
 const fadeInUp = keyframes({
-  from: { opacity: 0, transform: 'translateY(12px)' },
-  to: { opacity: 1, transform: 'translateY(0)' },
+  from: {opacity: 0, transform: 'translateY(12px)'},
+  to: {opacity: 1, transform: 'translateY(0)'},
 });
 
 function entrance(delay: number) {
@@ -54,17 +54,16 @@ export function WelcomeScreen() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const serverURL = useServerURL();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const isReducedMotion = useReducedMotion();
 
-  const entranceClass = (delay: number) =>
-    isReducedMotion ? undefined : entrance(delay);
+  const entranceClass = (delay: number) => (isReducedMotion ? undefined : entrance(delay));
 
   const buttonStyle = {
     fontSize: 15,
     padding: '12px 15px',
     flexShrink: 0,
-    ...(isNarrowWidth && { minHeight: styles.mobileMinHeight }),
+    ...(isNarrowWidth && {minHeight: styles.mobileMinHeight}),
   };
 
   return (
@@ -83,16 +82,9 @@ export function WelcomeScreen() {
         paddingBottom: 'calc(45px + env(safe-area-inset-bottom))',
       }}
     >
-      <View
-        className={entranceClass(0)}
-        style={{ alignItems: 'center', gap: 10, flexShrink: 0 }}
-      >
-        <SvgLogo
-          width={45}
-          height={45}
-          style={{ color: theme.pageTextPositive }}
-        />
-        <Text style={{ ...styles.veryLargeText, textAlign: 'center' }}>
+      <View className={entranceClass(0)} style={{alignItems: 'center', gap: 10, flexShrink: 0}}>
+        <SvgLogo width={45} height={45} style={{color: theme.pageTextPositive}} />
+        <Text style={{...styles.veryLargeText, textAlign: 'center'}}>
           <Trans>Welcome to Actual</Trans>
         </Text>
         <Text
@@ -106,17 +98,12 @@ export function WelcomeScreen() {
         </Text>
       </View>
 
-      <View
-        className={entranceClass(150)}
-        style={{ alignItems: 'center', flexShrink: 0 }}
-      >
-        <Paragraph
-          style={{ textAlign: 'center', maxWidth: 400, marginBottom: 0 }}
-        >
+      <View className={entranceClass(150)} style={{alignItems: 'center', flexShrink: 0}}>
+        <Paragraph style={{textAlign: 'center', maxWidth: 400, marginBottom: 0}}>
           <Trans>
-            Actual is a super fast, privacy-focused app for managing your
-            finances. It is 100% free and open source: everything stays on your
-            device, no data is collected, and there is nothing to sign up for.
+            Actual is a super fast, privacy-focused app for managing your finances. It is 100% free
+            and open source: everything stays on your device, no data is collected, and there is
+            nothing to sign up for.
           </Trans>
         </Paragraph>
       </View>
@@ -139,17 +126,11 @@ export function WelcomeScreen() {
         >
           <Trans>Start budgeting</Trans>
         </Button>
-        <Button
-          style={buttonStyle}
-          onPress={() => dispatch(createBudget({ testMode: true }))}
-        >
+        <Button style={buttonStyle} onPress={() => dispatch(createBudget({testMode: true}))}>
           <Trans>Try the demo</Trans>
         </Button>
         {!serverURL && (
-          <Button
-            style={buttonStyle}
-            onPress={() => navigate('/config-server')}
-          >
+          <Button style={buttonStyle} onPress={() => navigate('/config-server')}>
             <Trans>Connect to a sync server</Trans>
           </Button>
         )}
@@ -164,13 +145,13 @@ export function WelcomeScreen() {
           marginTop: 10,
         }}
       >
-        <Text style={{ color: theme.pageTextLight }}>
+        <Text style={{color: theme.pageTextLight}}>
           <Trans>Coming from another budgeting app?</Trans>
         </Text>
         <Button
           variant="bare"
-          style={{ color: theme.pageTextLink }}
-          onPress={() => dispatch(pushModal({ modal: { name: 'import' } }))}
+          style={{color: theme.pageTextLink}}
+          onPress={() => dispatch(pushModal({modal: {name: 'import'}}))}
         >
           <Trans>Import my budget</Trans>
         </Button>
@@ -186,11 +167,7 @@ export function WelcomeScreen() {
         >
           <Trans>
             New to budgeting? Take the{' '}
-            <Link
-              variant="external"
-              to="https://actualbudget.org/docs/tour/"
-              linkColor="purple"
-            >
+            <Link variant="external" to="https://actualbudget.org/docs/tour/" linkColor="purple">
               guided tour
             </Link>{' '}
             to learn how Actual works.

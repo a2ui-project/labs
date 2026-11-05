@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import type { UndoState as ServerUndoState } from '#server/undo';
+import type {UndoState as ServerUndoState} from '#server/undo';
 
 // Minimal structural shape of desktop-client's Modal union. loot-core can't
 // import the full type from @actual-app/web; the undo system only stores the
 // modal and reads `name`. `options` is kept loose so the real Modal assigns.
-type Modal = { name: string; options?: unknown };
+type Modal = {name: string; options?: unknown};
 
 type UndoState = {
   url: string | null;
@@ -66,7 +66,7 @@ export const getTaggedState = (id: string) => {
 };
 
 export const snapshot = () => {
-  const tagged = { ...currentUndoState, id: uuidv4() };
+  const tagged = {...currentUndoState, id: uuidv4()};
   UNDO_STATE_MRU.unshift(tagged);
   UNDO_STATE_MRU = UNDO_STATE_MRU.slice(0, HISTORY_SIZE);
   return tagged.id;

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { aqlQuery } from '#server/aql';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { loadMappings } from '#server/db/mappings';
+import {loadMappings} from '#server/db/mappings';
 // @ts-strict-ignore
-import { q } from '#shared/query';
+import {q} from '#shared/query';
 
 import {
   actionsReferenceBalance,
@@ -45,10 +45,8 @@ beforeEach(async () => {
 });
 
 async function getMatchingTransactions(conds) {
-  const { filters } = conditionsToAQL(conds);
-  const { data } = await aqlQuery(
-    q('transactions').filter({ $and: filters }).select('*'),
-  );
+  const {filters} = conditionsToAQL(conds);
+  const {data} = await aqlQuery(q('transactions').filter({$and: filters}).select('*'));
   return data;
 }
 
@@ -57,22 +55,20 @@ describe('Transaction rules', () => {
     const spy = vi.spyOn(console, 'warn').mockImplementation(() => null);
 
     // Parse errors
-    expect(makeRule({ conditions: '{', actions: '[]' })).toBe(null);
-    expect(makeRule({ conditions: '[]', actions: '{' })).toBe(null);
-    expect(makeRule({ conditions: '{}', actions: '{}' })).toBe(null);
+    expect(makeRule({conditions: '{', actions: '[]'})).toBe(null);
+    expect(makeRule({conditions: '[]', actions: '{'})).toBe(null);
+    expect(makeRule({conditions: '{}', actions: '{}'})).toBe(null);
 
     // This is valid
-    expect(makeRule({ conditions: '[]', actions: '[]' })).not.toBe(null);
+    expect(makeRule({conditions: '[]', actions: '[]'})).not.toBe(null);
 
     // condition has invalid operator
     expect(
       makeRule({
-        conditions: JSON.stringify([
-          { op: 'noop', field: 'date', value: '2019-05' },
-        ]),
+        conditions: JSON.stringify([{op: 'noop', field: 'date', value: '2019-05'}]),
         actions: JSON.stringify([
-          { op: 'set', field: 'name', value: 'Sarah' },
-          { op: 'set', field: 'category', value: 'Sarah' },
+          {op: 'set', field: 'name', value: 'Sarah'},
+          {op: 'set', field: 'category', value: 'Sarah'},
         ]),
       }),
     ).toBe(null);
@@ -80,12 +76,10 @@ describe('Transaction rules', () => {
     // setting an invalid field
     expect(
       makeRule({
-        conditions: JSON.stringify([
-          { op: 'is', field: 'date', value: '2019-05' },
-        ]),
+        conditions: JSON.stringify([{op: 'is', field: 'date', value: '2019-05'}]),
         actions: JSON.stringify([
-          { op: 'set', field: 'notes', value: 'Sarah' },
-          { op: 'set', field: 'invalid', value: 'Sarah' },
+          {op: 'set', field: 'notes', value: 'Sarah'},
+          {op: 'set', field: 'invalid', value: 'Sarah'},
         ]),
       }),
     ).toBe(null);
@@ -93,12 +87,10 @@ describe('Transaction rules', () => {
     // condition has valid operator & setting valid fields
     expect(
       makeRule({
-        conditions: JSON.stringify([
-          { op: 'is', field: 'date', value: '2019-05' },
-        ]),
+        conditions: JSON.stringify([{op: 'is', field: 'date', value: '2019-05'}]),
         actions: JSON.stringify([
-          { op: 'set', field: 'notes', value: 'Sarah' },
-          { op: 'set', field: 'category', value: 'Sarah' },
+          {op: 'set', field: 'notes', value: 'Sarah'},
+          {op: 'set', field: 'category', value: 'Sarah'},
         ]),
       }),
     ).not.toBe(null);
@@ -121,10 +113,10 @@ describe('Transaction rules', () => {
     await insertRule({
       stage: 'pre',
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'date', value: '2019-05' }],
+      conditions: [{op: 'is', field: 'date', value: '2019-05'}],
       actions: [
-        { op: 'set', field: 'notes', value: 'Sarah' },
-        { op: 'set', field: 'category', value: 'food' },
+        {op: 'set', field: 'notes', value: 'Sarah'},
+        {op: 'set', field: 'category', value: 'food'},
       ],
     });
     expect((await db.all<db.DbRule>('SELECT * FROM rules')).length).toBe(2);
@@ -134,7 +126,7 @@ describe('Transaction rules', () => {
 
     // Try to insert an invalid rule (don't use `insertRule` because
     // that will validate the input)
-    await db.insertWithUUID('rules', { conditions: '{', actions: '}' });
+    await db.insertWithUUID('rules', {conditions: '{', actions: '}'});
     // It will be in the database
     expect((await db.all<db.DbRule>('SELECT * FROM rules')).length).toBe(3);
     // But it will be ignored
@@ -158,10 +150,10 @@ describe('Transaction rules', () => {
     const id = await insertRule({
       stage: 'pre',
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'imported_payee', value: 'kroger' }],
+      conditions: [{op: 'is', field: 'imported_payee', value: 'kroger'}],
       actions: [
-        { op: 'set', field: 'notes', value: 'Sarah' },
-        { op: 'set', field: 'category', value: 'food' },
+        {op: 'set', field: 'notes', value: 'Sarah'},
+        {op: 'set', field: 'category', value: 'food'},
       ],
     });
     expect(getRules().length).toBe(1);
@@ -178,7 +170,7 @@ describe('Transaction rules', () => {
     // Change the action
     await updateRule({
       id,
-      actions: [{ op: 'set', field: 'category', value: 'bars' }],
+      actions: [{op: 'set', field: 'category', value: 'bars'}],
     });
     expect(getRules().length).toBe(1);
 
@@ -194,7 +186,7 @@ describe('Transaction rules', () => {
     // If changing the condition, make sure the rule is re-indexed
     await updateRule({
       id,
-      conditions: [{ op: 'is', field: 'imported_payee', value: 'ABC' }],
+      conditions: [{op: 'is', field: 'imported_payee', value: 'ABC'}],
     });
     transaction = await runRules({
       imported_payee: 'ABC',
@@ -210,10 +202,10 @@ describe('Transaction rules', () => {
     const id = await insertRule({
       stage: 'pre',
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: 'kroger' }],
+      conditions: [{op: 'is', field: 'payee', value: 'kroger'}],
       actions: [
-        { op: 'set', field: 'notes', value: 'Sarah' },
-        { op: 'set', field: 'category', value: 'food' },
+        {op: 'set', field: 'notes', value: 'Sarah'},
+        {op: 'set', field: 'category', value: 'food'},
       ],
     });
     expect(getRules().length).toBe(1);
@@ -240,18 +232,18 @@ describe('Transaction rules', () => {
   test('payee rules match after a staged formula sets payee name', async () => {
     await loadRules();
 
-    await db.insertPayee({ id: 'amazon_id', name: 'Amazon' });
+    await db.insertPayee({id: 'amazon_id', name: 'Amazon'});
 
     await insertRule({
       stage: 'pre',
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'imported_payee', value: 'AMZN MKTP' }],
+      conditions: [{op: 'is', field: 'imported_payee', value: 'AMZN MKTP'}],
       actions: [
         {
           op: 'set',
           field: 'payee_name',
           value: null,
-          options: { formula: '="Amazon"' },
+          options: {formula: '="Amazon"'},
         },
       ],
     });
@@ -259,8 +251,8 @@ describe('Transaction rules', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: 'amazon_id' }],
-      actions: [{ op: 'set', field: 'category', value: 'shopping' }],
+      conditions: [{op: 'is', field: 'payee', value: 'amazon_id'}],
+      actions: [{op: 'set', field: 'category', value: 'shopping'}],
     });
 
     const transaction = await runRules({
@@ -278,15 +270,15 @@ describe('Transaction rules', () => {
     await insertRule({
       stage: 'pre',
       conditionsOp: 'and',
-      conditions: [{ op: 'contains', field: 'imported_payee', value: 'lowes' }],
-      actions: [{ op: 'set', field: 'payee', value: 'lowes' }],
+      conditions: [{op: 'contains', field: 'imported_payee', value: 'lowes'}],
+      actions: [{op: 'set', field: 'payee', value: 'lowes'}],
     });
 
     await insertRule({
       stage: 'post',
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'imported_payee', value: 'kroger' }],
-      actions: [{ op: 'set', field: 'notes', value: 'Sarah' }],
+      conditions: [{op: 'is', field: 'imported_payee', value: 'kroger'}],
+      actions: [{op: 'set', field: 'notes', value: 'Sarah'}],
     });
 
     resetState();
@@ -312,9 +304,9 @@ describe('Transaction rules', () => {
   test('ids in rules are migrated as mapping changes', async () => {
     await loadRules();
 
-    await db.insertPayee({ id: 'home_id', name: 'home' });
-    await db.insertPayee({ id: 'lowes_id', name: 'lowes' });
-    await db.insertCategoryGroup({ name: 'group' });
+    await db.insertPayee({id: 'home_id', name: 'home'});
+    await db.insertPayee({id: 'lowes_id', name: 'lowes'});
+    await db.insertCategoryGroup({name: 'group'});
     await db.insertCategory({
       id: 'food_id',
       name: 'food',
@@ -330,8 +322,8 @@ describe('Transaction rules', () => {
       id: 'one',
       stage: 'pre',
       conditionsOp: 'and',
-      conditions: [{ op: 'contains', field: 'imported_payee', value: 'lowes' }],
-      actions: [{ op: 'set', field: 'payee', value: 'lowes_id' }],
+      conditions: [{op: 'contains', field: 'imported_payee', value: 'lowes'}],
+      actions: [{op: 'set', field: 'payee', value: 'lowes_id'}],
     });
 
     await insertRule({
@@ -339,10 +331,10 @@ describe('Transaction rules', () => {
       stage: 'pre',
       conditionsOp: 'and',
       conditions: [
-        { op: 'is', field: 'payee', value: 'lowes_id' },
-        { op: 'is', field: 'category', value: 'food_id' },
+        {op: 'is', field: 'payee', value: 'lowes_id'},
+        {op: 'is', field: 'category', value: 'food_id'},
       ],
-      actions: [{ op: 'set', field: 'notes', value: 'Sarah' }],
+      actions: [{op: 'set', field: 'notes', value: 'Sarah'}],
     });
 
     let rule1 = getRules().find(r => r.id === 'one');
@@ -355,7 +347,7 @@ describe('Transaction rules', () => {
     expect(rule2.conditions[0].value).toBe('home_id');
 
     expect(rule2.conditions[1].value).toBe('food_id');
-    await db.deleteCategory({ id: 'food_id' }, 'beer_id');
+    await db.deleteCategory({id: 'food_id'}, 'beer_id');
     expect(rule2.conditions[1].value).toBe('beer_id');
 
     await loadRules();
@@ -380,30 +372,28 @@ describe('Transaction rules', () => {
           value: ['kroger', 'kroger1', 'kroger2', 'kroger3', 'kroger4'],
         },
       ],
-      actions: [{ op: 'set', field: 'notes', value: 'got it2' }],
+      actions: [{op: 'set', field: 'notes', value: 'got it2'}],
     });
 
     await insertRule({
       stage: 'pre',
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'imported_payee', value: '123 kroger' }],
-      actions: [{ op: 'set', field: 'payee', value: 'kroger3' }],
+      conditions: [{op: 'is', field: 'imported_payee', value: '123 kroger'}],
+      actions: [{op: 'set', field: 'payee', value: 'kroger3'}],
     });
 
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [
-        { op: 'contains', field: 'imported_payee', value: 'kroger' },
-      ],
-      actions: [{ op: 'set', field: 'payee', value: 'kroger4' }],
+      conditions: [{op: 'contains', field: 'imported_payee', value: 'kroger'}],
+      actions: [{op: 'set', field: 'payee', value: 'kroger4'}],
     });
 
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: 'kroger4' }],
-      actions: [{ op: 'set', field: 'notes', value: 'got it' }],
+      conditions: [{op: 'is', field: 'payee', value: 'kroger4'}],
+      actions: [{op: 'set', field: 'notes', value: 'got it'}],
     });
 
     expect(
@@ -423,7 +413,7 @@ describe('Transaction rules', () => {
 
   test('category_group condition matches categories in that group (live)', async () => {
     await loadRules();
-    const billsGroupId = await db.insertCategoryGroup({ name: 'Bills' });
+    const billsGroupId = await db.insertCategoryGroup({name: 'Bills'});
     const electricId = await db.insertCategory({
       name: 'Electric',
       cat_group: billsGroupId,
@@ -432,8 +422,8 @@ describe('Transaction rules', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'category_group', value: billsGroupId }],
-      actions: [{ op: 'set', field: 'notes', value: 'bills-matched' }],
+      conditions: [{op: 'is', field: 'category_group', value: billsGroupId}],
+      actions: [{op: 'set', field: 'notes', value: 'bills-matched'}],
     });
 
     const transaction = await runRules({
@@ -448,8 +438,8 @@ describe('Transaction rules', () => {
 
   test('category_group condition does not match an unrelated group (live)', async () => {
     await loadRules();
-    const billsGroupId = await db.insertCategoryGroup({ name: 'Bills' });
-    const funGroupId = await db.insertCategoryGroup({ name: 'Fun' });
+    const billsGroupId = await db.insertCategoryGroup({name: 'Bills'});
+    const funGroupId = await db.insertCategoryGroup({name: 'Fun'});
     const moviesId = await db.insertCategory({
       name: 'Movies',
       cat_group: funGroupId,
@@ -458,8 +448,8 @@ describe('Transaction rules', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'category_group', value: billsGroupId }],
-      actions: [{ op: 'set', field: 'notes', value: 'bills-matched' }],
+      conditions: [{op: 'is', field: 'category_group', value: billsGroupId}],
+      actions: [{op: 'set', field: 'notes', value: 'bills-matched'}],
     });
 
     const transaction = await runRules({
@@ -474,20 +464,20 @@ describe('Transaction rules', () => {
 
   test('category_group condition observes a category set earlier in the same rule chain (live)', async () => {
     await loadRules();
-    const billsGroupId = await db.insertCategoryGroup({ name: 'Bills' });
+    const billsGroupId = await db.insertCategoryGroup({name: 'Bills'});
     const electricId = await db.insertCategory({
       name: 'Electric',
       cat_group: billsGroupId,
     });
-    await db.insertPayee({ id: 'power_co_id', name: 'Power Co' });
+    await db.insertPayee({id: 'power_co_id', name: 'Power Co'});
 
     // Runs first (pre stage): sets category based on payee. Nothing
     // about category_group is checked here.
     await insertRule({
       stage: 'pre',
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: 'power_co_id' }],
-      actions: [{ op: 'set', field: 'category', value: electricId }],
+      conditions: [{op: 'is', field: 'payee', value: 'power_co_id'}],
+      actions: [{op: 'set', field: 'category', value: electricId}],
     });
 
     // Runs after (post stage): checks category_group. This should see
@@ -496,8 +486,8 @@ describe('Transaction rules', () => {
     await insertRule({
       stage: 'post',
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'category_group', value: billsGroupId }],
-      actions: [{ op: 'set', field: 'notes', value: 'bills-matched' }],
+      conditions: [{op: 'is', field: 'category_group', value: billsGroupId}],
+      actions: [{op: 'set', field: 'notes', value: 'bills-matched'}],
     });
 
     const transaction = await runRules({
@@ -513,13 +503,13 @@ describe('Transaction rules', () => {
 
   test('transactions can be queried by rule', async () => {
     await loadRules();
-    const account = await db.insertAccount({ name: 'bank' });
-    const categoryGroupId = await db.insertCategoryGroup({ name: 'general' });
+    const account = await db.insertAccount({name: 'bank'});
+    const categoryGroupId = await db.insertCategoryGroup({name: 'general'});
     const foodCategoryId = await db.insertCategory({
       name: 'food',
       cat_group: categoryGroupId,
     });
-    const krogerId = await db.insertPayee({ name: 'kroger' });
+    const krogerId = await db.insertPayee({name: 'kroger'});
     const lowesId = await db.insertPayee({
       name: 'lowes',
       category: foodCategoryId,
@@ -569,85 +559,65 @@ describe('Transaction rules', () => {
     });
 
     let transactions = await getMatchingTransactions([
-      { field: 'date', op: 'is', value: '2020-10-15' },
+      {field: 'date', op: 'is', value: '2020-10-15'},
     ]);
     expect(transactions.map(t => t.id)).toEqual(['2', '3']);
 
-    transactions = await getMatchingTransactions([
-      { field: 'payee', op: 'is', value: lowesId },
-    ]);
+    transactions = await getMatchingTransactions([{field: 'payee', op: 'is', value: lowesId}]);
     expect(transactions.map(t => t.id)).toEqual(['4', '5', '3']);
 
-    transactions = await getMatchingTransactions([
-      { field: 'amount', op: 'is', value: 353 },
-    ]);
+    transactions = await getMatchingTransactions([{field: 'amount', op: 'is', value: 353}]);
     expect(transactions.map(t => t.id)).toEqual(['1']);
 
-    transactions = await getMatchingTransactions([
-      { field: 'notes', op: 'is', value: 'FooO' },
-    ]);
+    transactions = await getMatchingTransactions([{field: 'notes', op: 'is', value: 'FooO'}]);
     expect(transactions.map(t => t.id)).toEqual(['2', '3']);
 
-    transactions = await getMatchingTransactions([
-      { field: 'notes', op: 'contains', value: 'oo' },
-    ]);
+    transactions = await getMatchingTransactions([{field: 'notes', op: 'contains', value: 'oo'}]);
     expect(transactions.map(t => t.id)).toEqual(['2', '3']);
 
-    transactions = await getMatchingTransactions([
-      { field: 'notes', op: 'is', value: 'barr' },
-    ]);
+    transactions = await getMatchingTransactions([{field: 'notes', op: 'is', value: 'barr'}]);
     expect(transactions.map(t => t.id)).toEqual(['1']);
 
-    transactions = await getMatchingTransactions([
-      { field: 'notes', op: 'is', value: '' },
-    ]);
+    transactions = await getMatchingTransactions([{field: 'notes', op: 'is', value: ''}]);
     expect(transactions.map(t => t.id)).toEqual(['4', '5']);
 
-    transactions = await getMatchingTransactions([
-      { field: 'amount', op: 'gt', value: 300 },
-    ]);
+    transactions = await getMatchingTransactions([{field: 'amount', op: 'gt', value: 300}]);
     expect(transactions.map(t => t.id)).toEqual(['2', '1']);
 
     transactions = await getMatchingTransactions([
-      { field: 'amount', op: 'gt', value: 400 },
-      { field: 'amount', op: 'lt', value: 500 },
+      {field: 'amount', op: 'gt', value: 400},
+      {field: 'amount', op: 'lt', value: 500},
     ]);
     expect(transactions.map(t => t.id)).toEqual(['2']);
 
     transactions = await getMatchingTransactions([
-      { field: 'amount', op: 'gt', value: 300, options: { inflow: true } },
-      { field: 'amount', op: 'lt', value: 400, options: { inflow: true } },
+      {field: 'amount', op: 'gt', value: 300, options: {inflow: true}},
+      {field: 'amount', op: 'lt', value: 400, options: {inflow: true}},
     ]);
     expect(transactions.map(t => t.id)).toEqual(['1']);
 
     // If `inflow` is true, it should never return outflow transactions
     transactions = await getMatchingTransactions([
-      { field: 'amount', op: 'gt', value: -1000, options: { inflow: true } },
+      {field: 'amount', op: 'gt', value: -1000, options: {inflow: true}},
     ]);
     expect(transactions.map(t => t.id)).toEqual(['4', '5', '2', '1']);
 
     // Same thing for `outflow`: never return `inflow` transactions
     transactions = await getMatchingTransactions([
-      { field: 'amount', op: 'gt', value: 300, options: { outflow: true } },
+      {field: 'amount', op: 'gt', value: 300, options: {outflow: true}},
     ]);
     expect(transactions.map(t => t.id)).toEqual(['3']);
 
-    transactions = await getMatchingTransactions([
-      { field: 'date', op: 'gt', value: '2020-10-10' },
-    ]);
+    transactions = await getMatchingTransactions([{field: 'date', op: 'gt', value: '2020-10-10'}]);
     expect(transactions.map(t => t.id)).toEqual(['4', '5', '2', '3']);
 
     //Condition special cases
     //is category null
-    transactions = await getMatchingTransactions([
-      { field: 'category', op: 'is', value: null },
-    ]);
+    transactions = await getMatchingTransactions([{field: 'category', op: 'is', value: null}]);
     expect(transactions.map(t => t.id)).toEqual(['4', '2', '3']);
 
     //category is not X
-    transactions = await getMatchingTransactions([
-      { field: 'category', op: 'isNot', value: null },
-    ]);
+    transactions = await getMatchingTransactions([{field: 'category', op: 'isNot', value: null}]);
     expect(transactions.map(t => t.id)).toEqual(['5', '1']);
 
     // todo: isapprox
@@ -655,8 +625,8 @@ describe('Transaction rules', () => {
 
   test('transactions can be queried by hasTags', async () => {
     await loadRules();
-    const account = await db.insertAccount({ name: 'bank' });
-    const payeeId = await db.insertPayee({ name: 'payee' });
+    const account = await db.insertAccount({name: 'bank'});
+    const payeeId = await db.insertPayee({name: 'payee'});
 
     await db.insertTransaction({
       id: '1',
@@ -677,7 +647,7 @@ describe('Transaction rules', () => {
     });
 
     const transactions = await getMatchingTransactions([
-      { field: 'notes', op: 'hasTags', value: '#Tag_1' },
+      {field: 'notes', op: 'hasTags', value: '#Tag_1'},
     ]);
 
     expect(transactions.map(t => t.id)).toEqual(['2']);
@@ -685,8 +655,8 @@ describe('Transaction rules', () => {
 
   test('transactions can be queried by hasTags if no "#" is included', async () => {
     await loadRules();
-    const account = await db.insertAccount({ name: 'bank' });
-    const payeeId = await db.insertPayee({ name: 'payee' });
+    const account = await db.insertAccount({name: 'bank'});
+    const payeeId = await db.insertPayee({name: 'payee'});
 
     await db.insertTransaction({
       id: '1',
@@ -707,7 +677,7 @@ describe('Transaction rules', () => {
     });
 
     const transactions = await getMatchingTransactions([
-      { field: 'notes', op: 'hasTags', value: 'Tag_1' },
+      {field: 'notes', op: 'hasTags', value: 'Tag_1'},
     ]);
 
     expect(transactions.map(t => t.id)).toEqual(['2']);
@@ -715,8 +685,8 @@ describe('Transaction rules', () => {
 
   test('transactions can be queried by hasTags with multiple tags present', async () => {
     await loadRules();
-    const account = await db.insertAccount({ name: 'bank' });
-    const payeeId = await db.insertPayee({ name: 'payee' });
+    const account = await db.insertAccount({name: 'bank'});
+    const payeeId = await db.insertPayee({name: 'payee'});
 
     await db.insertTransaction({
       id: '1',
@@ -737,7 +707,7 @@ describe('Transaction rules', () => {
     });
 
     const transactions = await getMatchingTransactions([
-      { field: 'notes', op: 'hasTags', value: '#Tag_1 #Tag_2' },
+      {field: 'notes', op: 'hasTags', value: '#Tag_1 #Tag_2'},
     ]);
 
     expect(transactions.map(t => t.id)).toEqual(['2']);
@@ -745,8 +715,8 @@ describe('Transaction rules', () => {
 
   test('transactions can be queried by hasTags when tag starts with dollar', async () => {
     await loadRules();
-    const account = await db.insertAccount({ name: 'bank' });
-    const payeeId = await db.insertPayee({ name: 'payee' });
+    const account = await db.insertAccount({name: 'bank'});
+    const payeeId = await db.insertPayee({name: 'payee'});
 
     await db.insertTransaction({
       id: '1',
@@ -767,7 +737,7 @@ describe('Transaction rules', () => {
     });
 
     const transactions = await getMatchingTransactions([
-      { field: 'notes', op: 'hasTags', value: '#$Bug_Test' },
+      {field: 'notes', op: 'hasTags', value: '#$Bug_Test'},
     ]);
 
     expect(transactions.map(t => t.id)).toEqual(['1']);
@@ -775,8 +745,8 @@ describe('Transaction rules', () => {
 
   test('transactions can be queried by hasAnyTag with two tags returns everything', async () => {
     await loadRules();
-    const account = await db.insertAccount({ name: 'bank' });
-    const payeeId = await db.insertPayee({ name: 'payee' });
+    const account = await db.insertAccount({name: 'bank'});
+    const payeeId = await db.insertPayee({name: 'payee'});
 
     await db.insertTransaction({
       id: '1',
@@ -806,7 +776,7 @@ describe('Transaction rules', () => {
     });
 
     const transactions = await getMatchingTransactions([
-      { field: 'notes', op: 'hasAnyTag', value: '#Tag_1 Tag_2' },
+      {field: 'notes', op: 'hasAnyTag', value: '#Tag_1 Tag_2'},
     ]);
 
     expect(transactions.map(t => t.id)).toEqual(['1', '2']);
@@ -814,8 +784,8 @@ describe('Transaction rules', () => {
 
   test('transactions can be queried by hasAnyTag with one tag', async () => {
     await loadRules();
-    const account = await db.insertAccount({ name: 'bank' });
-    const payeeId = await db.insertPayee({ name: 'payee' });
+    const account = await db.insertAccount({name: 'bank'});
+    const payeeId = await db.insertPayee({name: 'payee'});
 
     await db.insertTransaction({
       id: '1',
@@ -836,22 +806,18 @@ describe('Transaction rules', () => {
     });
 
     const transactions = await getMatchingTransactions([
-      { field: 'notes', op: 'hasAnyTag', value: '##Tag_1' },
+      {field: 'notes', op: 'hasAnyTag', value: '##Tag_1'},
     ]);
 
     expect(transactions.map(t => t.id)).toEqual(['2']);
   });
 
   test('and sub expression builds $and condition', async () => {
-    const conds = [{ field: 'category', op: 'is', value: null }];
-    const { filters } = conditionsToAQL(conds);
+    const conds = [{field: 'category', op: 'is', value: null}];
+    const {filters} = conditionsToAQL(conds);
     expect(filters).toStrictEqual([
       {
-        $and: [
-          { category: { $eq: null } },
-          { transfer_id: { $eq: null } },
-          { is_parent: { $eq: false } },
-        ],
+        $and: [{category: {$eq: null}}, {transfer_id: {$eq: null}}, {is_parent: {$eq: false}}],
       },
     ]);
   });
@@ -880,52 +846,44 @@ describe('Learning categories', () => {
     expect(getRules().length).toBe(expectedRuleCount);
 
     if (expectedRuleCount > 0) {
-      expectCategoryRule(
-        getRules()[expectedRuleCount - 1],
-        expectedCategory,
-        expectedPayee,
-      );
+      expectCategoryRule(getRules()[expectedRuleCount - 1], expectedCategory, expectedPayee);
     }
   }
 
   async function loadData() {
     await loadRules();
-    await db.insertAccount({ id: 'acct', name: 'acct' });
-    await db.insertCategoryGroup({ id: 'catg', name: 'catg' });
-    await db.insertCategory({ id: 'food', name: 'food', cat_group: 'catg' });
-    await db.insertCategory({ id: 'beer', name: 'beer', cat_group: 'catg' });
-    await db.insertCategory({ id: 'fun', name: 'fun', cat_group: 'catg' });
-    await db.insertPayee({ id: 'foo', name: 'foo' });
-    await db.insertPayee({ id: 'bar', name: 'bar' });
+    await db.insertAccount({id: 'acct', name: 'acct'});
+    await db.insertCategoryGroup({id: 'catg', name: 'catg'});
+    await db.insertCategory({id: 'food', name: 'food', cat_group: 'catg'});
+    await db.insertCategory({id: 'beer', name: 'beer', cat_group: 'catg'});
+    await db.insertCategory({id: 'fun', name: 'fun', cat_group: 'catg'});
+    await db.insertPayee({id: 'foo', name: 'foo'});
+    await db.insertPayee({id: 'bar', name: 'bar'});
   }
 
   test('getProbableCategory estimates a category winner', () => {
-    let winner = getProbableCategory([{ category: 'foo' }]);
+    let winner = getProbableCategory([{category: 'foo'}]);
     // It needs at least 3 transactions
     expect(winner).toBe(null);
 
+    winner = getProbableCategory([{category: 'foo'}, {category: 'foo'}, {category: 'foo'}]);
+    expect(winner).toBe('foo');
+
     winner = getProbableCategory([
-      { category: 'foo' },
-      { category: 'foo' },
-      { category: 'foo' },
+      {category: 'bar'},
+      {category: 'foo'},
+      {category: 'foo'},
+      {category: 'foo'},
     ]);
     expect(winner).toBe('foo');
 
     winner = getProbableCategory([
-      { category: 'bar' },
-      { category: 'foo' },
-      { category: 'foo' },
-      { category: 'foo' },
-    ]);
-    expect(winner).toBe('foo');
-
-    winner = getProbableCategory([
-      { category: 'bar' },
-      { category: 'bar' },
-      { category: 'bar' },
-      { category: 'foo' },
-      { category: 'foo' },
-      { category: 'foo' },
+      {category: 'bar'},
+      {category: 'bar'},
+      {category: 'bar'},
+      {category: 'foo'},
+      {category: 'foo'},
+      {category: 'foo'},
     ]);
     expect(winner).toBe('bar');
   });
@@ -1011,8 +969,8 @@ describe('Learning categories', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: 'foo' }],
-      actions: [{ op: 'set', field: 'category', value: 'fun' }],
+      conditions: [{op: 'is', field: 'payee', value: 'foo'}],
+      actions: [{op: 'set', field: 'category', value: 'fun'}],
     });
 
     // Even though the system couldn't figure out the category to set,
@@ -1036,8 +994,8 @@ describe('Learning categories', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: 'foo' }],
-      actions: [{ op: 'set', field: 'category', value: 'beer' }],
+      conditions: [{op: 'is', field: 'payee', value: 'foo'}],
+      actions: [{op: 'set', field: 'category', value: 'beer'}],
     });
 
     await insertTransaction(
@@ -1081,8 +1039,8 @@ describe('Learning categories', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: 'foo' }],
-      actions: [{ op: 'set', field: 'category', value: 'beer' }],
+      conditions: [{op: 'is', field: 'payee', value: 'foo'}],
+      actions: [{op: 'set', field: 'category', value: 'beer'}],
     });
 
     // Use a new payee, so the category should be remembered
@@ -1128,20 +1086,20 @@ describe('Learning categories', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: 'foo' }],
-      actions: [{ op: 'set', field: 'category', value: 'unknown1' }],
+      conditions: [{op: 'is', field: 'payee', value: 'foo'}],
+      actions: [{op: 'set', field: 'category', value: 'unknown1'}],
     });
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: 'foo' }],
-      actions: [{ op: 'set', field: 'category', value: 'unknown2' }],
+      conditions: [{op: 'is', field: 'payee', value: 'foo'}],
+      actions: [{op: 'set', field: 'category', value: 'unknown2'}],
     });
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: null }],
-      actions: [{ op: 'set', field: 'category', value: 'beer' }],
+      conditions: [{op: 'is', field: 'payee', value: null}],
+      actions: [{op: 'set', field: 'category', value: 'beer'}],
     });
 
     let trans = {
@@ -1150,10 +1108,10 @@ describe('Learning categories', () => {
       payee: 'foo',
       category: 'food',
     };
-    await db.insertTransaction({ ...trans, id: 'one' });
-    await db.insertTransaction({ ...trans, id: 'two' });
-    await db.insertTransaction({ ...trans, id: 'three' });
-    await updateCategoryRules([{ ...trans, id: 'three' }]);
+    await db.insertTransaction({...trans, id: 'one'});
+    await db.insertTransaction({...trans, id: 'two'});
+    await db.insertTransaction({...trans, id: 'three'});
+    await updateCategoryRules([{...trans, id: 'three'}]);
     expect(getRules()).toMatchSnapshot();
 
     trans = {
@@ -1162,10 +1120,10 @@ describe('Learning categories', () => {
       payee: 'foo',
       category: 'beer',
     };
-    await db.insertTransaction({ ...trans, id: 'four' });
-    await db.insertTransaction({ ...trans, id: 'five' });
-    await db.insertTransaction({ ...trans, id: 'six' });
-    await updateCategoryRules([{ ...trans, id: 'three' }]);
+    await db.insertTransaction({...trans, id: 'four'});
+    await db.insertTransaction({...trans, id: 'five'});
+    await db.insertTransaction({...trans, id: 'six'});
+    await updateCategoryRules([{...trans, id: 'three'}]);
     expect(getRules()).toMatchSnapshot();
 
     const rules = getRules();
@@ -1194,10 +1152,10 @@ describe('Learning categories', () => {
       payee: null,
       category: 'food',
     };
-    await db.insertTransaction({ ...trans, id: 'one' });
-    await db.insertTransaction({ ...trans, id: 'two' });
-    await db.insertTransaction({ ...trans, id: 'three' });
-    await updateCategoryRules([{ ...trans, id: 'three' }]);
+    await db.insertTransaction({...trans, id: 'one'});
+    await db.insertTransaction({...trans, id: 'two'});
+    await db.insertTransaction({...trans, id: 'three'});
+    await updateCategoryRules([{...trans, id: 'three'}]);
     expect(getRules().length).toBe(0);
   });
 
@@ -1217,10 +1175,10 @@ describe('Learning categories', () => {
       payee: 'supermarket_id',
       category: 'food',
     };
-    await db.insertTransaction({ ...trans, id: 'one' });
-    await db.insertTransaction({ ...trans, id: 'two' });
-    await db.insertTransaction({ ...trans, id: 'three' });
-    await updateCategoryRules([{ ...trans, id: 'three' }]);
+    await db.insertTransaction({...trans, id: 'one'});
+    await db.insertTransaction({...trans, id: 'two'});
+    await db.insertTransaction({...trans, id: 'three'});
+    await updateCategoryRules([{...trans, id: 'three'}]);
     expect(getRules().length).toBe(0);
   });
 
@@ -1230,14 +1188,14 @@ describe('Learning categories', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'payee', value: 'foo' }],
-      actions: [{ op: 'set', field: 'category', value: 'unknown1' }],
+      conditions: [{op: 'is', field: 'payee', value: 'foo'}],
+      actions: [{op: 'set', field: 'category', value: 'unknown1'}],
     });
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'oneOf', field: 'payee', value: ['foo', 'bar'] }],
-      actions: [{ op: 'set', field: 'category', value: 'unknown1' }],
+      conditions: [{op: 'oneOf', field: 'payee', value: ['foo', 'bar']}],
+      actions: [{op: 'set', field: 'category', value: 'unknown1'}],
     });
 
     expect(getRules().length).toBe(2);
@@ -1247,10 +1205,10 @@ describe('Learning categories', () => {
       payee: null,
       category: 'food',
     };
-    await db.insertTransaction({ ...trans, id: 'one' });
-    await db.insertTransaction({ ...trans, id: 'two' });
-    await db.insertTransaction({ ...trans, id: 'three' });
-    await updateCategoryRules([{ ...trans, id: 'three' }]);
+    await db.insertTransaction({...trans, id: 'one'});
+    await db.insertTransaction({...trans, id: 'two'});
+    await db.insertTransaction({...trans, id: 'three'});
+    await updateCategoryRules([{...trans, id: 'three'}]);
 
     // This should not have changed the category! This is tested
     // because this was a bug when rules were released
@@ -1264,8 +1222,8 @@ describe('Learning categories', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [{ op: 'is', field: 'imported_payee', value: 'foo' }],
-      actions: [{ op: 'set', field: 'payee', value: 'unknown1' }],
+      conditions: [{op: 'is', field: 'imported_payee', value: 'foo'}],
+      actions: [{op: 'set', field: 'payee', value: 'unknown1'}],
     });
 
     // The rule that the system sees should use the new public names
@@ -1297,10 +1255,8 @@ describe('Learning categories', () => {
     await db.insertWithUUID('rules', {
       stage: null,
       conditions_op: 'and',
-      conditions: JSON.stringify([
-        { op: 'is', field: 'imported_payee', value: 'foo' },
-      ]),
-      actions: JSON.stringify([{ op: 'set', field: 'payee', value: 'payee1' }]),
+      conditions: JSON.stringify([{op: 'is', field: 'imported_payee', value: 'foo'}]),
+      actions: JSON.stringify([{op: 'set', field: 'payee', value: 'payee1'}]),
     });
 
     await loadRules();
@@ -1344,35 +1300,21 @@ function countRunningBalanceQueries() {
 
 describe('Running balance for rules', () => {
   test('actionsReferenceBalance only flags templates and formulas that use it', () => {
-    expect(
-      actionsReferenceBalance([
-        { options: { template: 'Balance: {{balance}}' } },
-      ]),
-    ).toBe(true);
-    expect(
-      actionsReferenceBalance([
-        { options: { template: '{{add balance amount}}' } },
-      ]),
-    ).toBe(true);
-    expect(
-      actionsReferenceBalance([{ options: { formula: '=balance * 2' } }]),
-    ).toBe(true);
+    expect(actionsReferenceBalance([{options: {template: 'Balance: {{balance}}'}}])).toBe(true);
+    expect(actionsReferenceBalance([{options: {template: '{{add balance amount}}'}}])).toBe(true);
+    expect(actionsReferenceBalance([{options: {formula: '=balance * 2'}}])).toBe(true);
 
     expect(actionsReferenceBalance([])).toBe(false);
     expect(actionsReferenceBalance([{}])).toBe(false);
-    expect(
-      actionsReferenceBalance([{ options: { template: 'well balanced' } }]),
-    ).toBe(false);
-    expect(
-      actionsReferenceBalance([
-        { options: { formula: '=BALANCE_OF("Savings") * 2' } },
-      ]),
-    ).toBe(false);
+    expect(actionsReferenceBalance([{options: {template: 'well balanced'}}])).toBe(false);
+    expect(actionsReferenceBalance([{options: {formula: '=BALANCE_OF("Savings") * 2'}}])).toBe(
+      false,
+    );
   });
 
   test('a template that uses the balance still sees the running balance', async () => {
     await loadRules();
-    const account = await db.insertAccount({ name: 'bank' });
+    const account = await db.insertAccount({name: 'bank'});
     await db.insertTransaction({
       account,
       date: '2020-01-01',
@@ -1387,15 +1329,13 @@ describe('Running balance for rules', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [
-        { op: 'contains', field: 'imported_payee', value: 'kroger' },
-      ],
+      conditions: [{op: 'contains', field: 'imported_payee', value: 'kroger'}],
       actions: [
         {
           op: 'set',
           field: 'notes',
           value: '',
-          options: { template: 'Balance: {{balance}}' },
+          options: {template: 'Balance: {{balance}}'},
         },
       ],
     });
@@ -1415,7 +1355,7 @@ describe('Running balance for rules', () => {
 
   test('a rule that uses the balance but does not match runs no query', async () => {
     await loadRules();
-    const account = await db.insertAccount({ name: 'bank' });
+    const account = await db.insertAccount({name: 'bank'});
     await db.insertTransaction({
       account,
       date: '2020-01-01',
@@ -1425,15 +1365,13 @@ describe('Running balance for rules', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [
-        { op: 'contains', field: 'imported_payee', value: 'walmart' },
-      ],
+      conditions: [{op: 'contains', field: 'imported_payee', value: 'walmart'}],
       actions: [
         {
           op: 'set',
           field: 'notes',
           value: '',
-          options: { template: 'Balance: {{balance}}' },
+          options: {template: 'Balance: {{balance}}'},
         },
       ],
     });
@@ -1452,7 +1390,7 @@ describe('Running balance for rules', () => {
 
   test('rules that do not use the balance still apply normally', async () => {
     await loadRules();
-    const account = await db.insertAccount({ name: 'bank' });
+    const account = await db.insertAccount({name: 'bank'});
     await db.insertTransaction({
       account,
       date: '2020-01-01',
@@ -1462,10 +1400,8 @@ describe('Running balance for rules', () => {
     await insertRule({
       stage: null,
       conditionsOp: 'and',
-      conditions: [
-        { op: 'contains', field: 'imported_payee', value: 'kroger' },
-      ],
-      actions: [{ op: 'set', field: 'notes', value: 'plain' }],
+      conditions: [{op: 'contains', field: 'imported_payee', value: 'kroger'}],
+      actions: [{op: 'set', field: 'notes', value: 'plain'}],
     });
 
     const queries = countRunningBalanceQueries();

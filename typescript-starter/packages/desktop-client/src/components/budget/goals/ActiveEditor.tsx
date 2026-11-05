@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-import type {
-  CategoryGroupEntity,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
+import type {CategoryGroupEntity, ScheduleEntity} from '@actual-app/core/types/models';
 
-import type { Action } from './actions';
-import type { ReducerState } from './constants';
-import { BySaveAutomation } from './editor/BySaveAutomation';
-import { FixedAutomation } from './editor/FixedAutomation';
-import { HistoricalAutomation } from './editor/HistoricalAutomation';
-import { LimitAutomation } from './editor/LimitAutomation';
-import { LongTermGoalAutomation } from './editor/LongTermGoalAutomation';
-import { PercentageAutomation } from './editor/PercentageAutomation';
-import { RefillAutomation } from './editor/RefillAutomation';
-import { RemainderAutomation } from './editor/RemainderAutomation';
-import { ScheduleAutomation } from './editor/ScheduleAutomation';
+import type {Action} from './actions';
+import type {ReducerState} from './constants';
+import {BySaveAutomation} from './editor/BySaveAutomation';
+import {FixedAutomation} from './editor/FixedAutomation';
+import {HistoricalAutomation} from './editor/HistoricalAutomation';
+import {LimitAutomation} from './editor/LimitAutomation';
+import {LongTermGoalAutomation} from './editor/LongTermGoalAutomation';
+import {PercentageAutomation} from './editor/PercentageAutomation';
+import {RefillAutomation} from './editor/RefillAutomation';
+import {RemainderAutomation} from './editor/RemainderAutomation';
+import {ScheduleAutomation} from './editor/ScheduleAutomation';
 
 type ActiveEditorProps = {
   state: ReducerState;
@@ -70,11 +67,7 @@ export function ActiveEditor({
       return <FixedAutomation template={state.template} dispatch={dispatch} />;
     case 'schedule':
       return (
-        <ScheduleAutomation
-          schedules={schedules}
-          template={state.template}
-          dispatch={dispatch}
-        />
+        <ScheduleAutomation schedules={schedules} template={state.template} dispatch={dispatch} />
       );
     case 'percentage':
       return (
@@ -85,19 +78,13 @@ export function ActiveEditor({
         />
       );
     case 'historical':
-      return (
-        <HistoricalAutomation template={state.template} dispatch={dispatch} />
-      );
+      return <HistoricalAutomation template={state.template} dispatch={dispatch} />;
     case 'by':
       return <BySaveAutomation template={state.template} dispatch={dispatch} />;
     case 'remainder':
-      return (
-        <RemainderAutomation template={state.template} dispatch={dispatch} />
-      );
+      return <RemainderAutomation template={state.template} dispatch={dispatch} />;
     case 'goal':
-      return (
-        <LongTermGoalAutomation template={state.template} dispatch={dispatch} />
-      );
+      return <LongTermGoalAutomation template={state.template} dispatch={dispatch} />;
     default:
       state satisfies never;
       return null;

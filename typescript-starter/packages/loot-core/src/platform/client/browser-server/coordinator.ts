@@ -20,7 +20,7 @@
 // The SharedWorker entry point (shared-browser-server.js) calls
 // createCoordinator() and wires the result to self.onconnect.
 
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -30,7 +30,7 @@ type ConsoleLevel = 'log' | 'warn' | 'error' | 'info';
 export type CoordinatorPort = {
   postMessage(msg: unknown): void;
   start(): void;
-  onmessage: ((event: { data: Record<string, unknown> }) => void) | null;
+  onmessage: ((event: {data: Record<string, unknown>}) => void) | null;
 };
 
 type BudgetGroup = {
@@ -50,9 +50,7 @@ type CoordinatorOptions = {
 
 // ── Factory ──────────────────────────────────────────────────────────────
 
-export function createCoordinator({
-  enableConsoleForwarding = false,
-}: CoordinatorOptions = {}) {
+export function createCoordinator({enableConsoleForwarding = false}: CoordinatorOptions = {}) {
   // ── State ──────────────────────────────────────────────────────────────
 
   const connectedPorts: CoordinatorPort[] = [];
@@ -125,7 +123,7 @@ export function createCoordinator({
 
   function broadcastConnect(budgetId: string) {
     lastAppInitFailure = null;
-    const connectMsg = { type: 'connect' };
+    const connectMsg = {type: 'connect'};
     broadcastToAllInGroup(budgetId, connectMsg);
     for (const port of unassignedPorts) {
       port.postMessage(connectMsg);
@@ -177,10 +175,10 @@ export function createCoordinator({
 
   function restoreUnassignedPort(port: CoordinatorPort) {
     movePortToUnassigned(port);
-    port.postMessage({ type: '__role-change', role: 'UNASSIGNED' });
+    port.postMessage({type: '__role-change', role: 'UNASSIGNED'});
 
     if (hasConnectedBackend()) {
-      port.postMessage({ type: 'connect' });
+      port.postMessage({type: 'connect'});
     }
   }
 
@@ -195,10 +193,7 @@ export function createCoordinator({
       !!currentGroup &&
       isGroupMember(currentGroup, port);
     const alreadyUnassigned =
-      !normalizedBudgetId &&
-      !currentBudget &&
-      wasTracked &&
-      unassignedPorts.has(port);
+      !normalizedBudgetId && !currentBudget && wasTracked && unassignedPorts.has(port);
     const alreadyOnTemporaryGroup =
       !normalizedBudgetId &&
       !!currentBudget &&
@@ -246,11 +241,7 @@ export function createCoordinator({
     logState(`Tab resumed on budget "${normalizedBudgetId}" as leader`);
   }
 
-  function broadcastToGroup(
-    budgetId: string,
-    msg: unknown,
-    excludePort: CoordinatorPort | null,
-  ) {
+  function broadcastToGroup(budgetId: string, msg: unknown, excludePort: CoordinatorPort | null) {
     const group = budgetGroups.get(budgetId);
     if (!group) return;
     if (group.leaderPort !== excludePort) {
@@ -276,7 +267,7 @@ export function createCoordinator({
     }
     for (const port of connectedPorts) {
       pendingPongs.add(port);
-      port.postMessage({ type: '__heartbeat-ping' });
+      port.postMessage({type: '__heartbeat-ping'});
     }
   }, 10_000);
 
@@ -296,17 +287,12 @@ export function createCoordinator({
 
     if (port === group.leaderPort) {
       if (group.followers.size > 0) {
-        const candidate = group.followers.values().next()
-          .value as CoordinatorPort;
+        const candidate = group.followers.values().next().value as CoordinatorPort;
         group.followers.delete(candidate);
-        logger.log(
-          `[SharedWorker] Leader left budget "${budgetId}" — promoting follower`,
-        );
+        logger.log(`[SharedWorker] Leader left budget "${budgetId}" — promoting follower`);
         electLeader(budgetId, candidate, budgetId);
       } else {
-        logger.log(
-          `[SharedWorker] Last tab left budget "${budgetId}" — removing group`,
-        );
+        logger.log(`[SharedWorker] Last tab left budget "${budgetId}" — removing group`);
         budgetGroups.delete(budgetId);
       }
     } else {
@@ -388,7 +374,7 @@ export function createCoordinator({
       budgetId,
     });
     if (group.backendConnected) {
-      port.postMessage({ type: 'connect' });
+      port.postMessage({type: 'connect'});
     }
   }
 
@@ -411,7 +397,7 @@ export function createCoordinator({
     const evicted: CoordinatorPort[] = [];
     for (const p of group.followers) {
       if (p !== excludePort) {
-        p.postMessage({ type: 'push', name: 'show-budgets' });
+        p.postMessage({type: 'push', name: 'show-budgets'});
         portToBudget.delete(p);
         unassignedPorts.add(p);
         evicted.push(p);
@@ -424,7 +410,7 @@ export function createCoordinator({
         type: '__close-and-transfer',
         requestId: null,
       });
-      group.leaderPort.postMessage({ type: 'push', name: 'show-budgets' });
+      group.leaderPort.postMessage({type: 'push', name: 'show-budgets'});
       portToBudget.delete(group.leaderPort);
       unassignedPorts.add(group.leaderPort);
       evicted.push(group.leaderPort);
@@ -432,9 +418,7 @@ export function createCoordinator({
 
     budgetGroups.delete(budgetId);
     if (evicted.length > 0) {
-      logger.log(
-        `[SharedWorker] Evicted ${evicted.length} tab(s) from budget "${budgetId}"`,
-      );
+      logger.log(`[SharedWorker] Evicted ${evicted.length} tab(s) from budget "${budgetId}"`);
     }
   }
 
@@ -515,10 +499,7 @@ export function createCoordinator({
       budgetGroups.set(budgetId, lobbyGroup);
       portToBudget.set(port, budgetId);
       lobbyGroup.requestToPort.set(pendingMsg.id as string, port);
-      lobbyGroup.requestNames.set(
-        pendingMsg.id as string,
-        pendingMsg.name as string,
-      );
+      lobbyGroup.requestNames.set(pendingMsg.id as string, pendingMsg.name as string);
       lobbyGroup.requestBudgetIds.set(pendingMsg.id as string, budgetId);
       lobbyGroup.leaderPort.postMessage({
         type: '__to-worker',
@@ -535,13 +516,13 @@ export function createCoordinator({
 
   // ── Connection handler ────────────────────────────────────────────────
 
-  function onconnect(e: { ports: CoordinatorPort[] }) {
+  function onconnect(e: {ports: CoordinatorPort[]}) {
     const port = e.ports[0];
     connectedPorts.push(port);
     unassignedPorts.add(port);
     logState('Tab connected');
 
-    port.onmessage = function (event: { data: Record<string, unknown> }) {
+    port.onmessage = function (event: {data: Record<string, unknown>}) {
       try {
         const msg = event.data;
         const portBudget = portToBudget.get(port);
@@ -557,10 +538,7 @@ export function createCoordinator({
         }
 
         if (msg.type === '__resume-tab') {
-          resumePort(
-            port,
-            typeof msg.budgetId === 'string' ? msg.budgetId : null,
-          );
+          resumePort(port, typeof msg.budgetId === 'string' ? msg.budgetId : null);
           return;
         }
 
@@ -589,10 +567,10 @@ export function createCoordinator({
             port.postMessage(lastAppInitFailure);
           } else {
             if (hasConnectedBackend()) {
-              port.postMessage({ type: '__role-change', role: 'UNASSIGNED' });
-              port.postMessage({ type: 'connect' });
+              port.postMessage({type: '__role-change', role: 'UNASSIGNED'});
+              port.postMessage({type: 'connect'});
             } else if (budgetGroups.size > 0) {
-              port.postMessage({ type: '__role-change', role: 'UNASSIGNED' });
+              port.postMessage({type: '__role-change', role: 'UNASSIGNED'});
             } else {
               electLeader('__lobby', port);
             }
@@ -613,9 +591,7 @@ export function createCoordinator({
 
               const name = group.requestNames.get(workerMsg.id as string);
               if (workerMsg.type === 'reply' && name === 'load-budget') {
-                const budgetId = group.requestBudgetIds.get(
-                  workerMsg.id as string,
-                );
+                const budgetId = group.requestBudgetIds.get(workerMsg.id as string);
                 if (budgetId) {
                   group.requestBudgetIds.delete(workerMsg.id as string);
                   handleBudgetLoaded(port, portBudget!, budgetId);
@@ -665,31 +641,21 @@ export function createCoordinator({
             group.restoreBudgetId = msg.budgetId as string;
             group.requestToPort.set(msg.requestId as string, port);
             group.requestNames.set(msg.requestId as string, 'load-budget');
-            group.requestBudgetIds.set(
-              msg.requestId as string,
-              msg.budgetId as string,
-            );
+            group.requestBudgetIds.set(msg.requestId as string, msg.budgetId as string);
           }
           return;
         }
 
         // ── Request interception & routing ─────────────────────────
 
-        if (
-          msg.name === 'load-budget' &&
-          msg.args &&
-          (msg.args as Record<string, unknown>).id
-        ) {
+        if (msg.name === 'load-budget' && msg.args && (msg.args as Record<string, unknown>).id) {
           const budgetId = (msg.args as Record<string, unknown>).id as string;
           const existingGroup = budgetGroups.get(budgetId);
 
           if (existingGroup && existingGroup.backendConnected) {
             addFollower(budgetId, port);
             existingGroup.requestToPort.set(msg.id as string, port);
-            existingGroup.requestNames.set(
-              msg.id as string,
-              msg.name as string,
-            );
+            existingGroup.requestNames.set(msg.id as string, msg.name as string);
             existingGroup.requestBudgetIds.set(msg.id as string, budgetId);
             existingGroup.leaderPort.postMessage({
               type: '__to-worker',
@@ -702,18 +668,13 @@ export function createCoordinator({
           if (existingGroup && !existingGroup.backendConnected) {
             addFollower(budgetId, port);
             existingGroup.requestToPort.set(msg.id as string, port);
-            existingGroup.requestNames.set(
-              msg.id as string,
-              msg.name as string,
-            );
+            existingGroup.requestNames.set(msg.id as string, msg.name as string);
             existingGroup.requestBudgetIds.set(msg.id as string, budgetId);
             existingGroup.leaderPort.postMessage({
               type: '__to-worker',
               msg,
             });
-            logState(
-              `Tab joined budget "${budgetId}" as follower (backend booting)`,
-            );
+            logState(`Tab joined budget "${budgetId}" as follower (backend booting)`);
             return;
           }
 
@@ -721,7 +682,7 @@ export function createCoordinator({
             migrateLobbyLeader(port, budgetId, msg);
           } else if (group && port === group.leaderPort) {
             for (const p of group.followers) {
-              p.postMessage({ type: 'push', name: 'show-budgets' });
+              p.postMessage({type: 'push', name: 'show-budgets'});
               portToBudget.delete(p);
               unassignedPorts.add(p);
             }
@@ -734,7 +695,7 @@ export function createCoordinator({
             group.requestToPort.set(msg.id as string, port);
             group.requestNames.set(msg.id as string, msg.name as string);
             group.requestBudgetIds.set(msg.id as string, budgetId);
-            group.leaderPort.postMessage({ type: '__to-worker', msg });
+            group.leaderPort.postMessage({type: '__to-worker', msg});
           } else {
             electLeader(budgetId, port, null, msg);
             const newGroup = budgetGroups.get(budgetId);
@@ -752,8 +713,7 @@ export function createCoordinator({
         if (msg.name === 'close-budget' && group) {
           if (port === group.leaderPort) {
             if (group.followers.size > 0) {
-              const newLeader = group.followers.values().next()
-                .value as CoordinatorPort;
+              const newLeader = group.followers.values().next().value as CoordinatorPort;
               group.followers.delete(newLeader);
               logger.log(
                 `[SharedWorker] Leader closing budget "${portBudget}" but ${group.followers.size + 1} tab(s) remain — transferring`,
@@ -770,13 +730,13 @@ export function createCoordinator({
             }
             group.requestToPort.set(msg.id as string, port);
             group.requestNames.set(msg.id as string, msg.name as string);
-            group.leaderPort.postMessage({ type: '__to-worker', msg });
+            group.leaderPort.postMessage({type: '__to-worker', msg});
             return;
           } else {
             group.followers.delete(port);
             portToBudget.delete(port);
             unassignedPorts.add(port);
-            port.postMessage({ type: 'reply', id: msg.id, data: {} });
+            port.postMessage({type: 'reply', id: msg.id, data: {}});
             logState(`Follower left budget "${portBudget}"`);
             return;
           }
@@ -828,7 +788,7 @@ export function createCoordinator({
           }
           if (group && port === group.leaderPort) {
             for (const p of group.followers) {
-              p.postMessage({ type: 'push', name: 'show-budgets' });
+              p.postMessage({type: 'push', name: 'show-budgets'});
               portToBudget.delete(p);
               unassignedPorts.add(p);
             }
@@ -872,10 +832,7 @@ export function createCoordinator({
           if (msg.id) {
             targetGroup.requestToPort.set(msg.id as string, port);
             if (msg.name) {
-              targetGroup.requestNames.set(
-                msg.id as string,
-                msg.name as string,
-              );
+              targetGroup.requestNames.set(msg.id as string, msg.name as string);
             }
             if (
               msg.name === 'load-budget' &&
@@ -888,7 +845,7 @@ export function createCoordinator({
               );
             }
           }
-          targetGroup.leaderPort.postMessage({ type: '__to-worker', msg });
+          targetGroup.leaderPort.postMessage({type: '__to-worker', msg});
         }
       } catch (error) {
         logger.error('[SharedWorker] Error in message handler:', error);
@@ -915,5 +872,5 @@ export function createCoordinator({
     };
   }
 
-  return { onconnect, destroy, getState };
+  return {onconnect, destroy, getState};
 }

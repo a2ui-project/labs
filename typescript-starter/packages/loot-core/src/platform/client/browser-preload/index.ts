@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-export { WorkerBridge, type WorkerLike } from './worker-bridge';
+export {WorkerBridge, type WorkerLike} from './worker-bridge';
 export {
   startBrowserBackend,
   type StartBackendOptions,

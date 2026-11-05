@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { MobileNavigation } from './page-models/mobile-navigation';
-import type { MobileSchedulesPage } from './page-models/mobile-schedules-page';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {MobileNavigation} from './page-models/mobile-navigation';
+import type {MobileSchedulesPage} from './page-models/mobile-schedules-page';
 
 test.describe('Mobile Schedules', () => {
   let page: Page;
@@ -27,7 +27,7 @@ test.describe('Mobile Schedules', () => {
   let schedulesPage: MobileSchedulesPage;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new MobileNavigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -53,19 +53,14 @@ test.describe('Mobile Schedules', () => {
     await schedulesPage.waitForLoadingToComplete();
 
     // Check that the header is present
-    await expect(
-      page.getByRole('heading', { name: 'Schedules' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', {name: 'Schedules'})).toBeVisible();
 
     // Check that the add button is present
     await expect(schedulesPage.addButton).toBeVisible();
 
     // Check that the search box is present with proper placeholder
     await expect(schedulesPage.searchBox).toBeVisible();
-    await expect(schedulesPage.searchBox).toHaveAttribute(
-      'placeholder',
-      'Filter schedules…',
-    );
+    await expect(schedulesPage.searchBox).toHaveAttribute('placeholder', 'Filter schedules…');
 
     await expect(page).toMatchThemeScreenshots();
   });
@@ -93,12 +88,10 @@ test.describe('Mobile Schedules', () => {
     await schedulesPage.clickSchedule(0);
 
     // Wait for the edit page to load
-    await expect(
-      page.getByRole('heading', { name: 'Edit Schedule' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', {name: 'Edit Schedule'})).toBeVisible();
 
     // Check that the save button is present
-    await expect(page.getByRole('button', { name: 'Save' })).toBeVisible();
+    await expect(page.getByRole('button', {name: 'Save'})).toBeVisible();
 
     await expect(page).toMatchThemeScreenshots();
   });
@@ -125,9 +118,7 @@ test.describe('Mobile Schedules', () => {
     await schedulesPage.clearSearch();
 
     // Verify all schedules are visible again
-    await expect
-      .poll(() => schedulesPage.getScheduleCount())
-      .toBeGreaterThan(1);
+    await expect.poll(() => schedulesPage.getScheduleCount()).toBeGreaterThan(1);
 
     await expect(page).toMatchThemeScreenshots();
   });

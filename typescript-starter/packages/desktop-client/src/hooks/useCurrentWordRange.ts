@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
+import {useMemo} from 'react';
 
-export function useCurrentWordRange(
-  inputValue: string,
-  cursorPosition: number | null,
-) {
+export function useCurrentWordRange(inputValue: string, cursorPosition: number | null) {
   return useMemo(
     () => getCurrentWordRange(inputValue, cursorPosition),
     [inputValue, cursorPosition],
   );
 }
 
-function getCurrentWordRange(
-  inputValue: string,
-  cursorPosition: number | null,
-): [number, number] {
+function getCurrentWordRange(inputValue: string, cursorPosition: number | null): [number, number] {
   if (!cursorPosition || cursorPosition < 0) return [0, 0];
   if (cursorPosition > inputValue.length) {
     return [inputValue.length, inputValue.length];

@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import type { AccountWithComputedBalance } from './forecast-accounts';
-import type { ForecastDateContext } from './forecast-projection';
-import { projectTrackingBudgetForecast } from './forecast-tracking-budget';
+import type {AccountWithComputedBalance} from './forecast-accounts';
+import type {ForecastDateContext} from './forecast-projection';
+import {projectTrackingBudgetForecast} from './forecast-tracking-budget';
 
 const dateContext: ForecastDateContext = {
   forecastStartDate: '2024-03-01',
@@ -53,7 +53,7 @@ describe('tracking budget forecast projection', () => {
         ...dateContext,
         forecastEndDate: '2024-03-31',
       },
-      months: [{ month: '2024-03', budgetedIncome: 5000, budgetedExpenses: 0 }],
+      months: [{month: '2024-03', budgetedIncome: 5000, budgetedExpenses: 0}],
     });
 
     expect(result.dataPoints).toMatchObject([
@@ -74,7 +74,7 @@ describe('tracking budget forecast projection', () => {
         ...dateContext,
         forecastEndDate: '2024-03-31',
       },
-      months: [{ month: '2024-03', budgetedIncome: 0, budgetedExpenses: 3000 }],
+      months: [{month: '2024-03', budgetedIncome: 0, budgetedExpenses: 3000}],
     });
 
     expect(result.dataPoints[0]?.balance).toBe(7000);
@@ -91,14 +91,12 @@ describe('tracking budget forecast projection', () => {
       accounts,
       dateContext,
       months: [
-        { month: '2024-03', budgetedIncome: 5000, budgetedExpenses: 3000 },
-        { month: '2024-04', budgetedIncome: 4000, budgetedExpenses: 4500 },
-        { month: '2024-05', budgetedIncome: 3000, budgetedExpenses: 2500 },
+        {month: '2024-03', budgetedIncome: 5000, budgetedExpenses: 3000},
+        {month: '2024-04', budgetedIncome: 4000, budgetedExpenses: 4500},
+        {month: '2024-05', budgetedIncome: 3000, budgetedExpenses: 2500},
       ],
     });
 
-    expect(result.dataPoints.map(point => point.balance)).toEqual([
-      12000, 11500, 12000,
-    ]);
+    expect(result.dataPoints.map(point => point.balance)).toEqual([12000, 11500, 12000]);
   });
 });

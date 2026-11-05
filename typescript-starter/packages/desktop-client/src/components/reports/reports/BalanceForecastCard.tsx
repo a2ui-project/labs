@@ -15,36 +15,27 @@
  */
 
 // oxlint-disable typescript-paths/absolute-parent-import
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Block} from '@actual-app/components/block';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  AccountEntity,
-  BalanceForecastWidget,
-} from '@actual-app/core/types/models';
-import {
-  Line,
-  LineChart,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-} from 'recharts';
+import type {AccountEntity, BalanceForecastWidget} from '@actual-app/core/types/models';
+import {Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip} from 'recharts';
 
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { Container } from '#components/reports/Container';
-import { DateRange } from '#components/reports/DateRange';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { useBalanceForecast } from '#hooks/useBalanceForecast';
-import { useFormat } from '#hooks/useFormat';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {Container} from '#components/reports/Container';
+import {DateRange} from '#components/reports/DateRange';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {useBalanceForecast} from '#hooks/useBalanceForecast';
+import {useFormat} from '#hooks/useFormat';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
 import {
   buildBalanceForecastChartData,
@@ -68,7 +59,7 @@ export function BalanceForecastCard({
   meta,
   onMetaChange,
 }: BalanceForecastCardProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const [budgetTypePref] = useSyncedPref('budgetType');
   const budgetType = budgetTypePref === 'tracking' ? 'tracking' : 'envelope';
@@ -117,23 +108,17 @@ export function BalanceForecastCard({
     source,
   });
   const errorMessage =
-    error instanceof Error
-      ? error.message
-      : error
-        ? t('Failed to load forecast')
-        : null;
+    error instanceof Error ? error.message : error ? t('Failed to load forecast') : null;
   const normalizedForecastData = forecastData ?? null;
-  const committedChartRange = useRef({ start, end });
+  const committedChartRange = useRef({start, end});
 
   const onCardHover = () => setIsCardHovered(true);
   const onCardHoverEnd = () => setIsCardHovered(false);
 
-  const chartRange = isPlaceholderData
-    ? committedChartRange.current
-    : { start, end };
+  const chartRange = isPlaceholderData ? committedChartRange.current : {start, end};
   useEffect(() => {
     if (normalizedForecastData && !isPlaceholderData) {
-      committedChartRange.current = { start, end };
+      committedChartRange.current = {start, end};
     }
   }, [end, isPlaceholderData, normalizedForecastData, start]);
 
@@ -161,8 +146,7 @@ export function BalanceForecastCard({
     end: chartRange.end,
     granularity,
   });
-  const hasFilters =
-    !isTrackingBudgetForecast && (meta?.conditions?.length ?? 0) > 0;
+  const hasFilters = !isTrackingBudgetForecast && (meta?.conditions?.length ?? 0) > 0;
 
   return (
     <ReportCard
@@ -172,13 +156,9 @@ export function BalanceForecastCard({
       to={`/reports/forecast/${widgetId}`}
       onRename={() => setNameMenuOpen(true)}
     >
-      <View
-        style={{ flex: 1 }}
-        onPointerEnter={onCardHover}
-        onPointerLeave={onCardHoverEnd}
-      >
-        <View style={{ flexDirection: 'row', padding: 20 }}>
-          <View style={{ flex: 1 }}>
+      <View style={{flex: 1}} onPointerEnter={onCardHover} onPointerLeave={onCardHoverEnd}>
+        <View style={{flexDirection: 'row', padding: 20}}>
+          <View style={{flex: 1}}>
             <ReportCardName
               name={meta?.name || t('Balance Forecast')}
               isEditing={nameMenuOpen}
@@ -194,26 +174,21 @@ export function BalanceForecastCard({
             <DateRange start={start} end={end} />
           </View>
           {endingPoint && (
-            <View style={{ textAlign: 'right' }}>
+            <View style={{textAlign: 'right'}}>
               <Block
                 style={{
                   ...styles.mediumText,
                   fontWeight: 500,
                   marginBottom: 5,
-                  color: hasNegativeEndingBalance
-                    ? theme.errorText
-                    : theme.pageText,
+                  color: hasNegativeEndingBalance ? theme.errorText : theme.pageText,
                 }}
               >
                 <PrivacyFilter activationFilters={[!isCardHovered]}>
-                  <Trans>Ending</Trans>:{' '}
-                  {format(endingPoint.balance, 'financial')}
+                  <Trans>Ending</Trans>: {format(endingPoint.balance, 'financial')}
                 </PrivacyFilter>
               </Block>
               <PrivacyFilter activationFilters={[!isCardHovered]}>
-                <Block style={{ fontSize: 12, color: theme.pageTextLight }}>
-                  {endingPoint.date}
-                </Block>
+                <Block style={{fontSize: 12, color: theme.pageTextLight}}>{endingPoint.date}</Block>
               </PrivacyFilter>
               {lowestPoint && lowestPoint.date !== endingPoint.date ? (
                 <PrivacyFilter activationFilters={[!isCardHovered]}>
@@ -224,8 +199,7 @@ export function BalanceForecastCard({
                       marginTop: 4,
                     }}
                   >
-                    <Trans>Low</Trans>:{' '}
-                    {format(lowestPoint.balance, 'financial')}
+                    <Trans>Low</Trans>: {format(lowestPoint.balance, 'financial')}
                   </Block>
                 </PrivacyFilter>
               ) : null}
@@ -236,7 +210,7 @@ export function BalanceForecastCard({
         {isLoading && !normalizedForecastData ? (
           <LoadingIndicator />
         ) : errorMessage ? (
-          <View style={{ height: 120, padding: 20 }}>
+          <View style={{height: 120, padding: 20}}>
             <Block
               style={{
                 fontSize: 13,
@@ -249,23 +223,17 @@ export function BalanceForecastCard({
           </View>
         ) : forecastData && forecastData.dataPoints.length > 0 ? (
           <>
-            <Container style={{ height: 'auto', flex: 1 }}>
+            <Container style={{height: 'auto', flex: 1}}>
               {(width, height) => (
                 <ResponsiveContainer>
                   <LineChart
                     width={width}
                     height={height}
                     data={chartData}
-                    margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+                    margin={{top: 5, right: 5, left: 5, bottom: 5}}
                   >
                     <defs>
-                      <linearGradient
-                        id={gradientId}
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
+                      <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                         {zeroCrossingGradientOffset == null ? (
                           <stop
                             offset="0%"
@@ -291,7 +259,7 @@ export function BalanceForecastCard({
                     </defs>
                     <Tooltip
                       isAnimationActive={false}
-                      content={({ active, payload }) => {
+                      content={({active, payload}) => {
                         if (active && payload && payload.length) {
                           return (
                             <div
@@ -305,15 +273,10 @@ export function BalanceForecastCard({
                                 padding: 10,
                               }}
                             >
-                              <div style={{ marginBottom: 5 }}>
+                              <div style={{marginBottom: 5}}>
                                 <strong>{payload[0].payload.date}</strong>
                               </div>
-                              <div>
-                                {format(
-                                  payload[0].value as number,
-                                  'financial',
-                                )}
-                              </div>
+                              <div>{format(payload[0].value as number, 'financial')}</div>
                             </div>
                           );
                         }
@@ -327,16 +290,14 @@ export function BalanceForecastCard({
                         strokeDasharray="4 4"
                       />
                     )}
-                    {hasNegativeBalance && (
-                      <ReferenceLine y={0} stroke={theme.pageTextSubdued} />
-                    )}
+                    {hasNegativeBalance && <ReferenceLine y={0} stroke={theme.pageTextSubdued} />}
                     <Line
                       type="monotone"
                       dataKey="balance"
                       stroke={`url(#${gradientId})`}
                       strokeWidth={2}
                       dot={false}
-                      activeDot={{ r: 4 }}
+                      activeDot={{r: 4}}
                       opacity={isUpdatingForecast ? 0.45 : 1}
                     />
                   </LineChart>
@@ -351,24 +312,17 @@ export function BalanceForecastCard({
               }}
             >
               {isTrackingBudgetForecast ? (
-                <Trans>
-                  Forecast = starting balance + budgeted income - budgeted
-                  expenses
-                </Trans>
+                <Trans>Forecast = starting balance + budgeted income - budgeted expenses</Trans>
               ) : scheduledOccurrenceCount === 0 ? (
                 hasFilters ? (
-                  <Trans>
-                    Filtered running total only; no scheduled occurrences in
-                    this range
-                  </Trans>
+                  <Trans>Filtered running total only; no scheduled occurrences in this range</Trans>
                 ) : (
                   <Trans>No scheduled transactions in this range</Trans>
                 )
               ) : (
                 <>
                   <Trans count={scheduledOccurrenceCount}>
-                    {{ count: scheduledOccurrenceCount }} scheduled transactions
-                    included
+                    {{count: scheduledOccurrenceCount}} scheduled transactions included
                   </Trans>
                   {hasFilters ? (
                     <>
@@ -387,7 +341,7 @@ export function BalanceForecastCard({
             </Block>
           </>
         ) : (
-          <View style={{ height: 120, padding: 20 }}>
+          <View style={{height: 120, padding: 20}}>
             <Block
               style={{
                 fontSize: 13,
@@ -396,8 +350,8 @@ export function BalanceForecastCard({
               }}
             >
               <Trans>
-                No transactions are included in this report. Adjust your
-                filters, accounts, or date range to see a balance projection.
+                No transactions are included in this report. Adjust your filters, accounts, or date
+                range to see a balance projection.
               </Trans>
             </Block>
           </View>

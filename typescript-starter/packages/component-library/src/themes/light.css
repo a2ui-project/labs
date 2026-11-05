@@ -155,9 +155,7 @@
   --color-buttonPrimaryShadow: rgba(0, 0, 0, 0.3);
   --color-buttonPrimaryDisabledText: var(--palette-white);
   --color-buttonPrimaryDisabledBackground: var(--palette-navy300);
-  --color-buttonPrimaryDisabledBorder: var(
-    --color-buttonPrimaryDisabledBackground
-  );
+  --color-buttonPrimaryDisabledBorder: var(--color-buttonPrimaryDisabledBackground);
 
   --color-buttonNormalText: var(--palette-navy900);
   --color-buttonNormalTextHover: var(--color-buttonNormalText);

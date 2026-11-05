@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { TagEntity } from '@actual-app/core/types/models';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import { v4 as uuidv4 } from 'uuid';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {TagEntity} from '@actual-app/core/types/models';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import type {QueryClient, QueryKey} from '@tanstack/react-query';
+import {v4 as uuidv4} from 'uuid';
 
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import type { AppDispatch } from '#redux/store';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import type {AppDispatch} from '#redux/store';
 
-import { tagQueries } from './queries';
+import {tagQueries} from './queries';
 
 function invalidateQueries(queryClient: QueryClient, queryKey?: QueryKey) {
   void queryClient.invalidateQueries({
@@ -34,11 +34,7 @@ function invalidateQueries(queryClient: QueryClient, queryKey?: QueryKey) {
   });
 }
 
-function dispatchErrorNotification(
-  dispatch: AppDispatch,
-  message: string,
-  error?: Error,
-) {
+function dispatchErrorNotification(dispatch: AppDispatch, message: string, error?: Error) {
   dispatch(
     addNotification({
       notification: {
@@ -58,10 +54,10 @@ type CreateTagPayload = {
 export function useCreateTagMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ tag }: CreateTagPayload) => {
+    mutationFn: async ({tag}: CreateTagPayload) => {
       return await send('tags-create', tag);
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -83,10 +79,10 @@ type UpdateTagPayload = {
 export function useUpdateTagMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ tag }: UpdateTagPayload) => {
+    mutationFn: async ({tag}: UpdateTagPayload) => {
       return await send('tags-update', tag);
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -109,11 +105,11 @@ type RenameTagPayload = {
 export function useRenameTagMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id, tag }: RenameTagPayload) => {
-      return await send('tags-rename', { id, tag });
+    mutationFn: async ({id, tag}: RenameTagPayload) => {
+      return await send('tags-rename', {id, tag});
     },
     onSuccess: () => invalidateQueries(queryClient),
     onError: error => {
@@ -134,11 +130,11 @@ type DeleteTagPayload = {
 export function useDeleteTagMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id }: DeleteTagPayload) => {
-      return await send('tags-delete', { id });
+    mutationFn: async ({id}: DeleteTagPayload) => {
+      return await send('tags-delete', {id});
     },
     onSuccess: () => invalidateQueries(queryClient),
     onError: error => {
@@ -159,10 +155,10 @@ type DeleteTagsPayload = {
 export function useDeleteTagsMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ ids }: DeleteTagsPayload) => {
+    mutationFn: async ({ids}: DeleteTagsPayload) => {
       return await send('tags-delete-all', ids);
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -184,10 +180,10 @@ type HideTagsPayload = {
 export function useHideTagsMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ ids }: HideTagsPayload) => {
+    mutationFn: async ({ids}: HideTagsPayload) => {
       return await send('tags-hide-all', ids);
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -209,10 +205,10 @@ type UnhideTagsPayload = {
 export function useUnhideTagsMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ ids }: UnhideTagsPayload) => {
+    mutationFn: async ({ids}: UnhideTagsPayload) => {
       return await send('tags-unhide-all', ids);
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -230,7 +226,7 @@ export function useUnhideTagsMutation() {
 export function useDiscoverTagsMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
     mutationFn: async () => {

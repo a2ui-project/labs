@@ -21,43 +21,29 @@ import {
   getShortYearFormat,
   getShortYearRegex,
 } from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type { Query } from '@actual-app/core/shared/query';
-import {
-  amountToInteger,
-  currencyToAmount,
-} from '@actual-app/core/shared/util';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import {q} from '@actual-app/core/shared/query';
+import type {Query} from '@actual-app/core/shared/query';
+import {amountToInteger, currencyToAmount} from '@actual-app/core/shared/util';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 // @ts-strict-ignore
-import { isValid as isDateValid, parse as parseDate } from 'date-fns';
+import {isValid as isDateValid, parse as parseDate} from 'date-fns';
 
 export function accountFilter(
-  accountId?:
-    | AccountEntity['id']
-    | 'onbudget'
-    | 'offbudget'
-    | 'closed'
-    | 'uncategorized',
+  accountId?: AccountEntity['id'] | 'onbudget' | 'offbudget' | 'closed' | 'uncategorized',
   field = 'account',
 ) {
   if (accountId) {
     if (accountId === 'onbudget') {
       return {
-        $and: [
-          { [`${field}.offbudget`]: false },
-          { [`${field}.closed`]: false },
-        ],
+        $and: [{[`${field}.offbudget`]: false}, {[`${field}.closed`]: false}],
       };
     } else if (accountId === 'offbudget') {
       return {
-        $and: [
-          { [`${field}.offbudget`]: true },
-          { [`${field}.closed`]: false },
-        ],
+        $and: [{[`${field}.offbudget`]: true}, {[`${field}.closed`]: false}],
       };
     } else if (accountId === 'closed') {
-      return { [`${field}.closed`]: true };
+      return {[`${field}.closed`]: true};
     } else if (accountId === 'uncategorized') {
       return {
         [`${field}.offbudget`]: false,
@@ -71,7 +57,7 @@ export function accountFilter(
         ],
       };
     } else {
-      return { [field]: accountId };
+      return {[field]: accountId};
     }
   }
 
@@ -79,14 +65,9 @@ export function accountFilter(
 }
 
 export function transactions(
-  accountId?:
-    | AccountEntity['id']
-    | 'onbudget'
-    | 'offbudget'
-    | 'closed'
-    | 'uncategorized',
+  accountId?: AccountEntity['id'] | 'onbudget' | 'offbudget' | 'closed' | 'uncategorized',
 ) {
-  let query = q('transactions').options({ splits: 'grouped' });
+  let query = q('transactions').options({splits: 'grouped'});
 
   const filter = accountFilter(accountId);
   if (filter) {
@@ -116,20 +97,20 @@ export function transactionsSearch(
 
   return currentQuery.filter({
     $or: {
-      'payee.name': { $like: `%${escapedSearch}%` },
-      'payee.transfer_acct.name': { $like: `%${escapedSearch}%` },
-      notes: { $like: `%${escapedSearch}%` },
-      'category.name': { $like: `%${escapedSearch}%` },
-      'account.name': { $like: `%${escapedSearch}%` },
+      'payee.name': {$like: `%${escapedSearch}%`},
+      'payee.transfer_acct.name': {$like: `%${escapedSearch}%`},
+      notes: {$like: `%${escapedSearch}%`},
+      'category.name': {$like: `%${escapedSearch}%`},
+      'account.name': {$like: `%${escapedSearch}%`},
       $or: [
-        isDateValid(parsedDate) && { date: dayFromDate(parsedDate) },
+        isDateValid(parsedDate) && {date: dayFromDate(parsedDate)},
         amount != null && {
-          amount: { $transform: '$abs', $eq: amountToInteger(amount) },
+          amount: {$transform: '$abs', $eq: amountToInteger(amount)},
         },
         amount != null &&
           Number.isInteger(amount) && {
             amount: {
-              $transform: { $abs: { $idiv: ['$', 100] } },
+              $transform: {$abs: {$idiv: ['$', 100]}},
               $eq: amount,
             },
           },

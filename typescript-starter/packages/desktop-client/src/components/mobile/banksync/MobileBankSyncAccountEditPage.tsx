@@ -15,31 +15,31 @@
  */
 
 import React from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { useUnlinkAccountMutation } from '#accounts';
-import { BankSyncCheckboxOptions } from '#components/banksync/BankSyncCheckboxOptions';
-import { FieldMapping } from '#components/banksync/FieldMapping';
-import { useBankSyncAccountSettings } from '#components/banksync/useBankSyncAccountSettings';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page } from '#components/Page';
-import { useAccount } from '#hooks/useAccount';
-import { useNavigate } from '#hooks/useNavigate';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {useUnlinkAccountMutation} from '#accounts';
+import {BankSyncCheckboxOptions} from '#components/banksync/BankSyncCheckboxOptions';
+import {FieldMapping} from '#components/banksync/FieldMapping';
+import {useBankSyncAccountSettings} from '#components/banksync/useBankSyncAccountSettings';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page} from '#components/Page';
+import {useAccount} from '#hooks/useAccount';
+import {useNavigate} from '#hooks/useNavigate';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
 export function MobileBankSyncAccountEditPage() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { accountId } = useParams<{ accountId: string }>();
+  const {accountId} = useParams<{accountId: string}>();
   const account = useAccount(accountId!);
 
   const {
@@ -82,7 +82,7 @@ export function MobileBankSyncAccountEditPage() {
             onUnlink: () => {
               if (accountId) {
                 unlinkAccount.mutate(
-                  { id: accountId },
+                  {id: accountId},
                   {
                     onSuccess: () => navigate('/bank-sync'),
                   },
@@ -122,8 +122,7 @@ export function MobileBankSyncAccountEditPage() {
     );
   }
 
-  const mapping =
-    mappings.get(transactionDirection) ?? new Map<string, string>();
+  const mapping = mappings.get(transactionDirection) ?? new Map<string, string>();
 
   return (
     <Page
@@ -135,15 +134,15 @@ export function MobileBankSyncAccountEditPage() {
       }
       padding={0}
     >
-      <View style={{ flex: 1, backgroundColor: theme.mobilePageBackground }}>
+      <View style={{flex: 1, backgroundColor: theme.mobilePageBackground}}>
         <View
           style={{
             flex: 1,
             overflow: 'auto',
           }}
         >
-          <View style={{ padding: 16 }}>
-            <Text style={{ fontSize: 15, marginBottom: 10 }}>
+          <View style={{padding: 16}}>
+            <Text style={{fontSize: 15, marginBottom: 10}}>
               <Trans>Field mapping</Trans>
             </Text>
 
@@ -156,7 +155,7 @@ export function MobileBankSyncAccountEditPage() {
               isMobile
             />
 
-            <Text style={{ fontSize: 15, marginTop: 20, marginBottom: 10 }}>
+            <Text style={{fontSize: 15, marginTop: 20, marginBottom: 10}}>
               <Trans>Options</Trans>
             </Text>
 

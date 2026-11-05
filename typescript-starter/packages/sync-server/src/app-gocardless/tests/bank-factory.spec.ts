@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { BankFactory, banks } from '#app-gocardless/bank-factory';
+import {BankFactory, banks} from '#app-gocardless/bank-factory';
 import IntegrationBank from '#app-gocardless/banks/integration-bank';
 
 describe('BankFactory', () => {

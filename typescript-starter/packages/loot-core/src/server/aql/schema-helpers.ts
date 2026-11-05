@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { fromDateRepr, toDateRepr } from '#server/models';
+import {fromDateRepr, toDateRepr} from '#server/models';
 // @ts-strict-ignore
-import { dayFromDate } from '#shared/months';
+import {dayFromDate} from '#shared/months';
 
 function isRequired(name, fieldDesc) {
   return fieldDesc.required || name === 'id';
@@ -39,10 +39,7 @@ export function convertInputType(value, type) {
     case 'date':
       if (value instanceof Date) {
         return toDateRepr(dayFromDate(value));
-      } else if (
-        value.match(/^\d{4}-\d{2}-\d{2}$/) == null ||
-        value < '1995-01-01'
-      ) {
+      } else if (value.match(/^\d{4}-\d{2}-\d{2}$/) == null || value < '1995-01-01') {
         throw new Error('Invalid date: ' + value);
       }
 
@@ -101,13 +98,7 @@ export function convertOutputType(value, type) {
   return value;
 }
 
-export function conform(
-  schema,
-  schemaConfig,
-  table,
-  obj,
-  { skipNull = false } = {},
-) {
+export function conform(schema, schemaConfig, table, obj, {skipNull = false} = {}) {
   const tableSchema = schema[table];
   if (tableSchema == null) {
     throw new Error(`Table "${table}" does not exist`);
@@ -134,18 +125,12 @@ export function conform(
         const fieldDesc = tableSchema[field];
         if (fieldDesc == null) {
           throw new Error(
-            `Field "${field}" does not exist on table ${table}: ${JSON.stringify(
-              obj,
-            )}`,
+            `Field "${field}" does not exist on table ${table}: ${JSON.stringify(obj)}`,
           );
         }
 
         if (isRequired(field, fieldDesc) && obj[field] == null) {
-          throw new Error(
-            `"${field}" is required for table "${table}": ${JSON.stringify(
-              obj,
-            )}`,
-          );
+          throw new Error(`"${field}" is required for table "${table}": ${JSON.stringify(obj)}`);
         }
 
         // treat undefined as missing
@@ -165,7 +150,7 @@ export function conform(
 }
 
 export function convertForInsert(schema, schemaConfig, table, rawObj) {
-  const obj = { ...rawObj };
+  const obj = {...rawObj};
 
   const tableSchema = schema[table];
   if (tableSchema == null) {
@@ -180,16 +165,12 @@ export function convertForInsert(schema, schemaConfig, table, rawObj) {
     if (obj[field] == null) {
       if (fieldDesc.default !== undefined) {
         obj[field] =
-          typeof fieldDesc.default === 'function'
-            ? fieldDesc.default()
-            : fieldDesc.default;
+          typeof fieldDesc.default === 'function' ? fieldDesc.default() : fieldDesc.default;
       } else if (isRequired(field, fieldDesc)) {
         // Although this check is also done in `conform`, it only
         // checks the fields in `obj`. For insert, we need to do it
         // here to check that all required fields in the table exist
-        throw new Error(
-          `"${field}" is required for table "${table}": ${JSON.stringify(obj)}`,
-        );
+        throw new Error(`"${field}" is required for table "${table}": ${JSON.stringify(obj)}`);
       }
     }
   });
@@ -197,11 +178,11 @@ export function convertForInsert(schema, schemaConfig, table, rawObj) {
   // We use `skipNull` to remove any null values. There's no need to
   // set those when inserting, that will be the default and it reduces
   // the amount of messages generated to sync
-  return conform(schema, schemaConfig, table, obj, { skipNull: true });
+  return conform(schema, schemaConfig, table, obj, {skipNull: true});
 }
 
 export function convertForUpdate(schema, schemaConfig, table, rawObj) {
-  const obj = { ...rawObj };
+  const obj = {...rawObj};
 
   const tableSchema = schema[table];
   if (tableSchema == null) {

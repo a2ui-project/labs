@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import React, { forwardRef } from 'react';
-import type { HTMLProps, Ref } from 'react';
+import React, {forwardRef} from 'react';
+import type {HTMLProps, Ref} from 'react';
 
-import { css, cx } from '@emotion/css';
+import {css, cx} from '@emotion/css';
 
-import type { CSSProperties } from './styles';
+import type {CSSProperties} from './styles';
 
 export const viewStyles = css({
   alignItems: 'stretch',
@@ -44,7 +44,7 @@ type ViewProps = Omit<HTMLProps<HTMLDivElement>, 'style'> & {
 };
 
 export const View = forwardRef<HTMLDivElement, ViewProps>((props, ref) => {
-  const { className = '', style, nativeStyle, innerRef, ...restProps } = props;
+  const {className = '', style, nativeStyle, innerRef, ...restProps} = props;
 
   return (
     <div

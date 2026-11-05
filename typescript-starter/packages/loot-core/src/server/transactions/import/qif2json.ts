@@ -35,7 +35,7 @@ type QIFTransaction = {
   division?: Division[];
 };
 
-export function qif2json(qif, options: { dateFormat?: string } = {}) {
+export function qif2json(qif, options: {dateFormat?: string} = {}) {
   const lines = qif.split('\n').filter(Boolean);
   let line = lines.shift();
   const type = /!Type:([^$]*)$/.exec(line.trim());
@@ -78,9 +78,7 @@ export function qif2json(qif, options: { dateFormat?: string } = {}) {
         transaction.memo = line.substring(1);
         break;
       case 'A':
-        transaction.address = (transaction.address || []).concat(
-          line.substring(1),
-        );
+        transaction.address = (transaction.address || []).concat(line.substring(1));
         break;
       case 'P':
         transaction.payee = line.substring(1).replace(/&amp;/g, '&');

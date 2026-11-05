@@ -14,35 +14,32 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { styles } from '@actual-app/components/styles';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Block} from '@actual-app/components/block';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {styles} from '@actual-app/components/styles';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  AccountEntity,
-  NetWorthWidget,
-} from '@actual-app/core/types/models';
+import type {AccountEntity, NetWorthWidget} from '@actual-app/core/types/models';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { Change } from '#components/reports/Change';
-import { DateRange } from '#components/reports/DateRange';
-import { NetWorthGraph } from '#components/reports/graphs/NetWorthGraph';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { createSpreadsheet as netWorthSpreadsheet } from '#components/reports/spreadsheets/net-worth-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {Change} from '#components/reports/Change';
+import {DateRange} from '#components/reports/DateRange';
+import {NetWorthGraph} from '#components/reports/graphs/NetWorthGraph';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {createSpreadsheet as netWorthSpreadsheet} from '#components/reports/spreadsheets/net-worth-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
 type NetWorthCardProps = {
   widgetId: string;
@@ -60,8 +57,8 @@ export function NetWorthCard({
   onMetaChange,
 }: NetWorthCardProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
   const [_firstDayOfWeekIdx] = useSyncedPref('firstDayOfWeekIdx');
   const firstDayOfWeekIdx = _firstDayOfWeekIdx || '0';
   const format = useFormat();
@@ -74,18 +71,12 @@ export function NetWorthCard({
   useEffect(() => {
     async function fetchLatestTransaction() {
       const latestTrans = await send('get-latest-transaction');
-      setLatestTransaction(
-        latestTrans ? latestTrans.date : monthUtils.currentDay(),
-      );
+      setLatestTransaction(latestTrans ? latestTrans.date : monthUtils.currentDay());
     }
     void fetchLatestTransaction();
   }, []);
 
-  const [start, end] = calculateTimeRange(
-    meta?.timeFrame,
-    undefined,
-    latestTransaction,
-  );
+  const [start, end] = calculateTimeRange(meta?.timeFrame, undefined, latestTransaction);
   const onCardHover = useCallback(() => setIsCardHovered(true), []);
   const onCardHoverEnd = useCallback(() => setIsCardHovered(false), []);
 
@@ -126,13 +117,9 @@ export function NetWorthCard({
       to={`/reports/net-worth/${widgetId}`}
       onRename={() => setNameMenuOpen(true)}
     >
-      <View
-        style={{ flex: 1 }}
-        onPointerEnter={onCardHover}
-        onPointerLeave={onCardHoverEnd}
-      >
-        <View style={{ flexDirection: 'row', padding: 20 }}>
-          <View style={{ flex: 1 }}>
+      <View style={{flex: 1}} onPointerEnter={onCardHover} onPointerLeave={onCardHoverEnd}>
+        <View style={{flexDirection: 'row', padding: 20}}>
+          <View style={{flex: 1}}>
             <ReportCardName
               name={meta?.name || t('Net Worth')}
               isEditing={nameMenuOpen}
@@ -148,7 +135,7 @@ export function NetWorthCard({
             <DateRange start={start} end={end} />
           </View>
           {data && (
-            <View style={{ textAlign: 'right' }}>
+            <View style={{textAlign: 'right'}}>
               <Block
                 style={{
                   ...styles.mediumText,
@@ -157,9 +144,7 @@ export function NetWorthCard({
                 }}
               >
                 <PrivacyFilter activationFilters={[!isCardHovered]}>
-                  <FinancialText>
-                    {format(data.netWorth, 'financial')}
-                  </FinancialText>
+                  <FinancialText>{format(data.netWorth, 'financial')}</FinancialText>
                 </PrivacyFilter>
               </Block>
               <PrivacyFilter activationFilters={[!isCardHovered]}>
@@ -177,7 +162,7 @@ export function NetWorthCard({
             showTooltip={!isEditing && !isNarrowWidth}
             interval={meta?.interval || 'Monthly'}
             mode={meta?.mode || 'trend'}
-            style={{ height: 'auto', flex: 1 }}
+            style={{height: 'auto', flex: 1}}
           />
         ) : (
           <LoadingIndicator />

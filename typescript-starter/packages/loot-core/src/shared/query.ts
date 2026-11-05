@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { WithRequired } from '#types/util';
+import type {WithRequired} from '#types/util';
 
 export type ObjectExpression = {
   [key: string]: ObjectExpression | unknown;
@@ -80,14 +80,7 @@ export class Query {
     });
   }
 
-  select(
-    exprs:
-      | Array<ObjectExpression | string>
-      | ObjectExpression
-      | string
-      | '*'
-      | ['*'] = [],
-  ) {
+  select(exprs: Array<ObjectExpression | string> | ObjectExpression | string | '*' | ['*'] = []) {
     if (!Array.isArray(exprs)) {
       exprs = [exprs];
     }
@@ -102,7 +95,7 @@ export class Query {
   calculate(expr: ObjectExpression | string) {
     return new Query({
       ...this.state,
-      selectExpressions: [{ result: expr }],
+      selectExpressions: [{result: expr}],
       calculation: true,
     });
   }
@@ -130,27 +123,27 @@ export class Query {
   }
 
   limit(num: number) {
-    return new Query({ ...this.state, limit: num });
+    return new Query({...this.state, limit: num});
   }
 
   offset(num: number) {
-    return new Query({ ...this.state, offset: num });
+    return new Query({...this.state, offset: num});
   }
 
   raw() {
-    return new Query({ ...this.state, rawMode: true });
+    return new Query({...this.state, rawMode: true});
   }
 
   withDead() {
-    return new Query({ ...this.state, withDead: true });
+    return new Query({...this.state, withDead: true});
   }
 
   withoutValidatedRefs() {
-    return new Query({ ...this.state, validateRefs: false });
+    return new Query({...this.state, validateRefs: false});
   }
 
   options(opts: Record<string, unknown>) {
-    return new Query({ ...this.state, tableOptions: opts });
+    return new Query({...this.state, tableOptions: opts});
   }
 
   reset() {
@@ -166,27 +159,24 @@ export class Query {
   }
 }
 
-export function getPrimaryOrderBy(
-  query: Query,
-  defaultOrderBy: ObjectExpression | null,
-) {
+export function getPrimaryOrderBy(query: Query, defaultOrderBy: ObjectExpression | null) {
   const orderExprs = query.serialize().orderExpressions;
   if (orderExprs.length === 0) {
     if (defaultOrderBy) {
-      return { order: 'asc', ...defaultOrderBy };
+      return {order: 'asc', ...defaultOrderBy};
     }
     return null;
   }
 
   const firstOrder = orderExprs[0];
   if (typeof firstOrder === 'string') {
-    return { field: firstOrder, order: 'asc' };
+    return {field: firstOrder, order: 'asc'};
   }
   // Handle this form: { field: 'desc' }
   const [field] = Object.keys(firstOrder);
-  return { field, order: firstOrder[field] };
+  return {field, order: firstOrder[field]};
 }
 
 export function q(table: QueryState['table']) {
-  return new Query({ table });
+  return new Query({table});
 }

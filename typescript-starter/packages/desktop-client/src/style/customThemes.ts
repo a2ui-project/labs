@@ -80,9 +80,7 @@ export function normalizeGitHubRepo(repo: string): string {
  * Try fetching actual.css from main branch.
  */
 export function fetchThemeCss(repo: string): Promise<string> {
-  const url = new URL(
-    `https://raw.githubusercontent.com/${repo}/refs/heads/main/actual.css`,
-  );
+  const url = new URL(`https://raw.githubusercontent.com/${repo}/refs/heads/main/actual.css`);
   url.searchParams.set('v', Date.now().toString());
 
   return fetchDirectCss(url.toString());
@@ -92,11 +90,9 @@ export function fetchThemeCss(repo: string): Promise<string> {
  * Fetch CSS from a direct URL (not a GitHub repo).
  */
 export async function fetchDirectCss(url: string): Promise<string> {
-  const response = await fetch(url, { cache: 'no-store' });
+  const response = await fetch(url, {cache: 'no-store'});
   if (!response.ok) {
-    throw new Error(
-      `Failed to fetch CSS from ${url}: ${response.status} ${response.statusText}`,
-    );
+    throw new Error(`Failed to fetch CSS from ${url}: ${response.status} ${response.statusText}`);
   }
   return response.text();
 }
@@ -104,10 +100,7 @@ export async function fetchDirectCss(url: string): Promise<string> {
 /** Strip surrounding single or double quotes from a string. */
 function stripQuotes(s: string): string {
   const t = s.trim();
-  if (
-    (t.startsWith("'") && t.endsWith("'")) ||
-    (t.startsWith('"') && t.endsWith('"'))
-  ) {
+  if ((t.startsWith("'") && t.endsWith("'")) || (t.startsWith('"') && t.endsWith('"'))) {
     return t.slice(1, -1).trim();
   }
   return t;
@@ -132,9 +125,7 @@ function stripQuotes(s: string): string {
 function validateFontFamilyValue(value: string, property: string): void {
   const trimmed = value.trim();
   if (!trimmed) {
-    throw new Error(
-      `Invalid font-family value for "${property}": value must not be empty.`,
-    );
+    throw new Error(`Invalid font-family value for "${property}": value must not be empty.`);
   }
 
   // Split on commas, then validate each font name
@@ -195,23 +186,19 @@ function validatePropertyValue(value: string, property: string): void {
   const hexColorPattern = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?([0-9a-fA-F]{2})?$/;
 
   // 2. RGB/RGBA functions: rgb(...) or rgba(...) with simple numeric/percentage values
-  const rgbRgbaPattern =
-    /^rgba?\(\s*\d+%?\s*,\s*\d+%?\s*,\s*\d+%?\s*(,\s*[\d.]+)?\s*\)$/;
+  const rgbRgbaPattern = /^rgba?\(\s*\d+%?\s*,\s*\d+%?\s*,\s*\d+%?\s*(,\s*[\d.]+)?\s*\)$/;
 
   // 3. HSL/HSLA functions: hsl(...) or hsla(...) with simple numeric/percentage values
-  const hslHslaPattern =
-    /^hsla?\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*(,\s*[\d.]+)?\s*\)$/;
+  const hslHslaPattern = /^hsla?\(\s*\d+\s*,\s*\d+%\s*,\s*\d+%\s*(,\s*[\d.]+)?\s*\)$/;
 
   // 4. Length values with units: number (including decimals) followed by valid CSS unit
-  const lengthPattern =
-    /^(\d+\.?\d*|\d*\.\d+)(px|em|rem|%|vh|vw|vmin|vmax|cm|mm|in|pt|pc|ex|ch)$/;
+  const lengthPattern = /^(\d+\.?\d*|\d*\.\d+)(px|em|rem|%|vh|vw|vmin|vmax|cm|mm|in|pt|pc|ex|ch)$/;
 
   // 5. Unitless numbers (integers or decimals)
   const numberPattern = /^(\d+\.?\d*|\d*\.\d+)$/;
 
   // 6. CSS keywords: common safe keywords
-  const keywordPattern =
-    /^(inherit|initial|unset|revert|transparent|none|auto|normal)$/i;
+  const keywordPattern = /^(inherit|initial|unset|revert|transparent|none|auto|normal)$/i;
 
   // Check if value matches any allowed pattern
   if (
@@ -266,11 +253,10 @@ function extractFontFaceBlocks(css: string): {
     if (closeBrace === -1) break;
 
     fontFaceBlocks.push(remaining.substring(openBrace + 1, closeBrace).trim());
-    remaining =
-      remaining.substring(0, atIdx) + remaining.substring(closeBrace + 1);
+    remaining = remaining.substring(0, atIdx) + remaining.substring(closeBrace + 1);
   }
 
-  return { fontFaceBlocks, remaining: remaining.trim() };
+  return {fontFaceBlocks, remaining: remaining.trim()};
 }
 
 /**
@@ -336,12 +322,7 @@ function splitDeclarations(content: string): string[] {
       inDoubleQuote = !inDoubleQuote;
     } else if (ch === '(' && !inSingleQuote && !inDoubleQuote) {
       parenDepth++;
-    } else if (
-      ch === ')' &&
-      !inSingleQuote &&
-      !inDoubleQuote &&
-      parenDepth > 0
-    ) {
+    } else if (ch === ')' && !inSingleQuote && !inDoubleQuote && parenDepth > 0) {
       parenDepth--;
     }
 
@@ -410,9 +391,7 @@ function validateRootContent(rootContent: string): void {
     // Property name after -- should only contain: letters, digits, underscore, and dashes (not consecutive dashes at start/end)
     const propertyNameAfterDashes = property.substring(2);
     if (propertyNameAfterDashes.length === 0) {
-      throw new Error(
-        `Invalid property "${property}". Property name cannot be empty after "--".`,
-      );
+      throw new Error(`Invalid property "${property}". Property name cannot be empty after "--".`);
     }
 
     // Check for invalid characters (no brackets, no special characters except underscore and dash)
@@ -424,9 +403,7 @@ function validateRootContent(rootContent: string): void {
 
     // Check that property doesn't end with a dash (after the -- prefix)
     if (property.endsWith('-')) {
-      throw new Error(
-        `Invalid property "${property}". Property name cannot end with a dash.`,
-      );
+      throw new Error(`Invalid property "${property}". Property name cannot end with a dash.`);
     }
 
     // Extract and validate the value
@@ -450,7 +427,7 @@ export function validateThemeCss(css: string): string {
   const cleaned = css.replace(/\/\*[\s\S]*?\*\//g, '').trim();
 
   // Extract @font-face blocks (if any) from the CSS
-  const { fontFaceBlocks, remaining } = extractFontFaceBlocks(cleaned);
+  const {fontFaceBlocks, remaining} = extractFontFaceBlocks(cleaned);
 
   // Validate @font-face blocks (reject remote URLs, enforce size limits)
   validateFontFaceBlocks(fontFaceBlocks);
@@ -604,7 +581,7 @@ export async function embedThemeFonts(
         );
       }
 
-      fontRefs.push({ fullMatch, quote, path, cleanPath, mime });
+      fontRefs.push({fullMatch, quote, path, cleanPath, mime});
     }
 
     offset = closeBrace + 1;
@@ -614,15 +591,13 @@ export async function embedThemeFonts(
   if (fontRefs.length === 0) return css;
 
   // Fetch fonts sequentially to enforce a running total size budget
-  const fetched: { ref: FontRef; dataUri: string }[] = [];
+  const fetched: {ref: FontRef; dataUri: string}[] = [];
   let totalBytes = 0;
   for (const ref of fontRefs) {
     const fontUrl = baseUrl + ref.cleanPath;
     const perFontTimeout = AbortSignal.timeout(FONT_FETCH_TIMEOUT_MS);
-    const fetchSignal = signal
-      ? AbortSignal.any([signal, perFontTimeout])
-      : perFontTimeout;
-    const response = await fetch(fontUrl, { signal: fetchSignal });
+    const fetchSignal = signal ? AbortSignal.any([signal, perFontTimeout]) : perFontTimeout;
+    const response = await fetch(fontUrl, {signal: fetchSignal});
     if (!response.ok) {
       throw new Error(
         `Failed to fetch font file "${ref.cleanPath}" from ${fontUrl}: ${response.status} ${response.statusText}`,
@@ -641,12 +616,12 @@ export async function embedThemeFonts(
       );
     }
     const base64 = arrayBufferToBase64(buffer);
-    fetched.push({ ref, dataUri: `data:${ref.mime};base64,${base64}` });
+    fetched.push({ref, dataUri: `data:${ref.mime};base64,${base64}`});
   }
 
   // Replace each url() reference with its data: URI
   let result = css;
-  for (const { ref, dataUri } of fetched) {
+  for (const {ref, dataUri} of fetched) {
     const q = ref.quote || "'";
     result = result.replace(ref.fullMatch, `url(${q}${dataUri}${q})`);
   }
@@ -693,9 +668,7 @@ export function usesRedesignSidebarPalette(css: string): boolean {
  * Parse the installed theme JSON from global prefs.
  * Returns a single InstalledTheme or null if none is installed.
  */
-export function parseInstalledTheme(
-  json: string | undefined,
-): InstalledTheme | null {
+export function parseInstalledTheme(json: string | undefined): InstalledTheme | null {
   if (!json) return null;
   try {
     const parsed = JSON.parse(json);
@@ -713,10 +686,7 @@ export function parseInstalledTheme(
         repo: parsed.repo,
         cssContent: parsed.cssContent,
       };
-      if (
-        typeof parsed.baseTheme === 'string' &&
-        isBaseTheme(parsed.baseTheme)
-      ) {
+      if (typeof parsed.baseTheme === 'string' && isBaseTheme(parsed.baseTheme)) {
         result.baseTheme = parsed.baseTheme;
       }
       return result;
@@ -786,7 +756,7 @@ export function migrateLegacyOverride(params: {
   newLightJson: string | undefined;
   newDarkJson: string | undefined;
 } | null {
-  const { existingOverride, lightJson, darkJson } = params;
+  const {existingOverride, lightJson, darkJson} = params;
 
   if (existingOverride?.trim()) {
     return null;

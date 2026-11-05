@@ -15,9 +15,9 @@
  */
 
 // @ts-strict-ignore
-import { Buffer } from 'node:buffer';
+import {Buffer} from 'node:buffer';
 import fs from 'node:fs/promises';
-import { resolve } from 'node:path';
+import {resolve} from 'node:path';
 
 import {
   create,
@@ -26,22 +26,15 @@ import {
   SyncResponseSchema,
   toBinary,
 } from '@actual-app/crdt';
-import type { Request, Response } from 'express';
+import type {Request, Response} from 'express';
 import express from 'express';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { getAccountDb, isAdmin } from './account-db';
-import { FileNotFound } from './app-sync/errors';
-import {
-  File,
-  FilesService,
-  FileUpdate,
-} from './app-sync/services/files-service';
-import {
-  validateSyncedFile,
-  validateUploadedFile,
-} from './app-sync/validation';
-import { config } from './load-config';
+import {getAccountDb, isAdmin} from './account-db';
+import {FileNotFound} from './app-sync/errors';
+import {File, FilesService, FileUpdate} from './app-sync/services/files-service';
+import {validateSyncedFile, validateUploadedFile} from './app-sync/validation';
+import {config} from './load-config';
 import * as UserService from './services/user-service';
 import * as simpleSync from './sync-simple';
 import {
@@ -49,13 +42,8 @@ import {
   requestLoggerMiddleware,
   validateSessionMiddleware,
 } from './util/middlewares';
-import {
-  getPathForGroupFile,
-  getPathForUserFile,
-  isValidFileId,
-  isValidGroupId,
-} from './util/paths';
-import type { GroupId } from './util/paths';
+import {getPathForGroupFile, getPathForUserFile, isValidFileId, isValidGroupId} from './util/paths';
+import type {GroupId} from './util/paths';
 
 const app = express();
 app.use(validateSessionMiddleware);
@@ -73,11 +61,11 @@ app.use(
     limit: `${config.get('upload.syncEncryptedFileSizeLimitMB')}mb`,
   }),
 );
-app.use(express.json({ limit: `${config.get('upload.fileSizeLimitMB')}mb` }));
+app.use(express.json({limit: `${config.get('upload.fileSizeLimitMB')}mb`}));
 
-export { app as handlers };
+export {app as handlers};
 
-const OK_RESPONSE = { status: 'ok' };
+const OK_RESPONSE = {status: 'ok'};
 
 function boolToInt(deleted: boolean) {
   return deleted ? 1 : 0;
@@ -91,11 +79,7 @@ function generateGroupId(): GroupId {
   return id;
 }
 
-function extractSingleHeader(
-  req: Request,
-  res: Response,
-  key: string,
-): string | null {
+function extractSingleHeader(req: Request, res: Response, key: string): string | null {
   const value = req.headers[key];
   if (!value) {
     return null;
@@ -158,7 +142,7 @@ app.post('/sync', async (req, res): Promise<void> => {
   } catch (e) {
     console.log('Error parsing sync request', e);
     res.status(500);
-    res.send({ status: 'error', reason: 'internal-error' });
+    res.send({status: 'error', reason: 'internal-error'});
     return;
   }
 
@@ -179,12 +163,7 @@ app.post('/sync', async (req, res): Promise<void> => {
 
   const filesService = new FilesService(getAccountDb());
 
-  const currentFile = verifyFileExists(
-    fileId,
-    filesService,
-    res,
-    'file-not-found',
-  );
+  const currentFile = verifyFileExists(fileId, filesService, res, 'file-not-found');
 
   if (!currentFile) {
     return;
@@ -204,7 +183,7 @@ app.post('/sync', async (req, res): Promise<void> => {
     return;
   }
 
-  const { trie, newMessages } = simpleSync.sync(messages, since, groupId);
+  const {trie, newMessages} = simpleSync.sync(messages, since, groupId);
 
   const responsePb = create(SyncResponseSchema, {
     merkle: JSON.stringify(trie),
@@ -219,7 +198,7 @@ app.post('/sync', async (req, res): Promise<void> => {
 app.post('/user-get-key', (req, res) => {
   if (!res.locals) return;
 
-  const { fileId } = req.body || {};
+  const {fileId} = req.body || {};
 
   const filesService = new FilesService(getAccountDb());
   const file = verifyFileExists(fileId, filesService, res, 'file-not-found');
@@ -246,7 +225,7 @@ app.post('/user-get-key', (req, res) => {
 });
 
 app.post('/user-create-key', (req, res) => {
-  const { fileId, keyId, keySalt, testContent } = req.body || {};
+  const {fileId, keyId, keySalt, testContent} = req.body || {};
 
   const filesService = new FilesService(getAccountDb());
   const file = verifyFileExists(fileId, filesService, res, 'file-not-found');
@@ -275,15 +254,10 @@ app.post('/user-create-key', (req, res) => {
 });
 
 app.post('/reset-user-file', async (req, res) => {
-  const { fileId } = req.body || {};
+  const {fileId} = req.body || {};
 
   const filesService = new FilesService(getAccountDb());
-  const file = verifyFileExists(
-    fileId,
-    filesService,
-    res,
-    'User or file not found',
-  );
+  const file = verifyFileExists(fileId, filesService, res, 'User or file not found');
 
   if (!file) {
     return;
@@ -298,7 +272,7 @@ app.post('/reset-user-file', async (req, res) => {
 
   const groupId = file.groupId;
 
-  filesService.update(file.id, new FileUpdate({ groupId: null }));
+  filesService.update(file.id, new FileUpdate({groupId: null}));
 
   if (groupId) {
     try {
@@ -343,9 +317,7 @@ app.post('/upload-user-file', async (req, res) => {
   }
 
   const keyId =
-    encryptMeta && typeof encryptMeta === 'string'
-      ? JSON.parse(encryptMeta).keyId
-      : null;
+    encryptMeta && typeof encryptMeta === 'string' ? JSON.parse(encryptMeta).keyId : null;
 
   const filesService = new FilesService(getAccountDb());
   let currentFile;
@@ -360,9 +332,7 @@ app.post('/upload-user-file', async (req, res) => {
     }
   }
 
-  const fileAccessError = currentFile
-    ? requireFileAccess(currentFile, res.locals.user_id)
-    : null;
+  const fileAccessError = currentFile ? requireFileAccess(currentFile, res.locals.user_id) : null;
   if (fileAccessError) {
     res.status(403);
     res.send(fileAccessError);
@@ -379,7 +349,7 @@ app.post('/upload-user-file', async (req, res) => {
     await fs.writeFile(getPathForUserFile(fileId), req.body);
   } catch (err) {
     console.log('Error writing file', err);
-    res.status(500).send({ status: 'error' });
+    res.status(500).send({status: 'error'});
     return;
   }
 
@@ -402,7 +372,7 @@ app.post('/upload-user-file', async (req, res) => {
       }),
     );
 
-    res.send({ status: 'ok', groupId });
+    res.send({status: 'ok', groupId});
     return;
   }
 
@@ -410,7 +380,7 @@ app.post('/upload-user-file', async (req, res) => {
     // sync state was reset, create new group
     const newGroupId = generateGroupId();
     groupId = newGroupId;
-    filesService.update(fileId, new FileUpdate({ groupId: newGroupId }));
+    filesService.update(fileId, new FileUpdate({groupId: newGroupId}));
   }
 
   // Regardless, update some properties
@@ -423,7 +393,7 @@ app.post('/upload-user-file', async (req, res) => {
     }),
   );
 
-  res.send({ status: 'ok', groupId });
+  res.send({status: 'ok', groupId});
 });
 
 app.get('/download-user-file', async (req, res) => {
@@ -440,12 +410,7 @@ app.get('/download-user-file', async (req, res) => {
   }
 
   const filesService = new FilesService(getAccountDb());
-  const file = verifyFileExists(
-    fileId,
-    filesService,
-    res,
-    'User or file not found',
-  );
+  const file = verifyFileExists(fileId, filesService, res, 'User or file not found');
 
   if (!file) {
     return;
@@ -467,11 +432,11 @@ app.get('/download-user-file', async (req, res) => {
   }
 
   res.setHeader('Content-Disposition', `attachment;filename=${fileId}`);
-  res.sendFile(path, { dotfiles: 'allow' });
+  res.sendFile(path, {dotfiles: 'allow'});
 });
 
 app.post('/update-user-filename', (req, res) => {
-  const { fileId, name } = req.body || {};
+  const {fileId, name} = req.body || {};
 
   const filesService = new FilesService(getAccountDb());
   const file = verifyFileExists(fileId, filesService, res, 'file-not-found');
@@ -487,13 +452,13 @@ app.post('/update-user-filename', (req, res) => {
     return;
   }
 
-  filesService.update(file.id, new FileUpdate({ name }));
+  filesService.update(file.id, new FileUpdate({name}));
   res.send(OK_RESPONSE);
 });
 
 app.get('/list-user-files', (req, res) => {
   const fileService = new FilesService(getAccountDb());
-  const rows = fileService.find({ userId: res.locals.user_id });
+  const rows = fileService.find({userId: res.locals.user_id});
   res.send({
     status: 'ok',
     data: rows.map(row => ({
@@ -558,7 +523,7 @@ app.get('/get-user-file-info', (req, res) => {
 });
 
 app.post('/delete-user-file', (req, res) => {
-  const { fileId } = req.body || {};
+  const {fileId} = req.body || {};
 
   if (!fileId) {
     res.status(422).send({
@@ -582,7 +547,7 @@ app.post('/delete-user-file', (req, res) => {
     return;
   }
 
-  filesService.update(file.id, new FileUpdate({ deleted: true }));
+  filesService.update(file.id, new FileUpdate({deleted: true}));
 
   res.send(OK_RESPONSE);
 });

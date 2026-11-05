@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { getIntervalFormat, ReportOptions } from './ReportOptions';
+import {getIntervalFormat, ReportOptions} from './ReportOptions';
 
 // The six values selectable in Settings -> Formatting -> Dates.
 // See `components/settings/Format.tsx`.
@@ -53,15 +53,12 @@ describe('getIntervalFormat', () => {
 
   describe('Monthly and Yearly intervals', () => {
     // No day/month ambiguity to resolve, so the preference must not reach them.
-    it.each(['Monthly', 'Yearly'])(
-      '%s is unchanged by the date format preference',
-      interval => {
-        const base = ReportOptions.intervalFormat.get(interval);
-        for (const dateFormat of DATE_FORMATS) {
-          expect(getIntervalFormat(interval, dateFormat)).toBe(base);
-        }
-      },
-    );
+    it.each(['Monthly', 'Yearly'])('%s is unchanged by the date format preference', interval => {
+      const base = ReportOptions.intervalFormat.get(interval);
+      for (const dateFormat of DATE_FORMATS) {
+        expect(getIntervalFormat(interval, dateFormat)).toBe(base);
+      }
+    });
   });
 
   it('returns an empty string for an unknown interval', () => {

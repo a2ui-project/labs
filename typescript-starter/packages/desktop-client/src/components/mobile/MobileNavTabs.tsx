@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useState } from 'react';
-import type { ComponentProps, ComponentType, CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
-import { NavLink } from 'react-router';
-import { animated, config, useSpring } from 'react-spring';
+import React, {useCallback, useState} from 'react';
+import type {ComponentProps, ComponentType, CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
+import {NavLink} from 'react-router';
+import {animated, config, useSpring} from 'react-spring';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
 import {
   SvgAdd,
   SvgCog,
@@ -31,15 +31,15 @@ import {
   SvgTuning,
   SvgWallet,
 } from '@actual-app/components/icons/v1';
-import { SvgCalendar3 } from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { useDrag } from '@use-gesture/react';
+import {SvgCalendar3} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {useDrag} from '@use-gesture/react';
 
-import { useIsTestEnv } from '#hooks/useIsTestEnv';
-import { useScrollListener } from '#hooks/useScrollListener';
-import { useSyncServerStatus } from '#hooks/useSyncServerStatus';
+import {useIsTestEnv} from '#hooks/useIsTestEnv';
+import {useScrollListener} from '#hooks/useScrollListener';
+import {useSyncServerStatus} from '#hooks/useSyncServerStatus';
 
 const COLUMN_COUNT = 3;
 const PILL_HEIGHT = 15;
@@ -52,14 +52,12 @@ const HIDDEN_Y = TOTAL_HEIGHT;
 export const MOBILE_NAV_HEIGHT = ROW_HEIGHT + PILL_HEIGHT;
 
 export function MobileNavTabs() {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
   const syncServerStatus = useSyncServerStatus();
   const isTestEnv = useIsTestEnv();
   const isUsingServer = syncServerStatus !== 'no-server' || isTestEnv;
-  const [navbarState, setNavbarState] = useState<'default' | 'open' | 'hidden'>(
-    'default',
-  );
+  const [navbarState, setNavbarState] = useState<'default' | 'open' | 'hidden'>('default');
 
   const navTabStyle = {
     flex: `1 1 ${100 / COLUMN_COUNT}%`,
@@ -68,15 +66,15 @@ export function MobileNavTabs() {
     maxWidth: `${100 / COLUMN_COUNT}%`,
   };
 
-  const [{ y }, api] = useSpring(() => ({ from: { y: OPEN_DEFAULT_Y } }), []);
+  const [{y}, api] = useSpring(() => ({from: {y: OPEN_DEFAULT_Y}}), []);
 
   const openFull = useCallback(
-    ({ canceled }: { canceled?: boolean }) => {
+    ({canceled}: {canceled?: boolean}) => {
       // when cancel is true, it means that the user passed the upwards threshold
       // so we change the spring config to create a nice wobbly effect
       setNavbarState('open');
       void api.start({
-        to: { y: OPEN_FULL_Y },
+        to: {y: OPEN_FULL_Y},
         immediate: isTestEnv,
         config: canceled ? config.wobbly : config.stiff,
       });
@@ -88,9 +86,9 @@ export function MobileNavTabs() {
     (velocity = 0) => {
       setNavbarState('default');
       void api.start({
-        to: { y: OPEN_DEFAULT_Y },
+        to: {y: OPEN_DEFAULT_Y},
         immediate: isTestEnv,
-        config: { ...config.stiff, velocity },
+        config: {...config.stiff, velocity},
       });
     },
     [api, isTestEnv],
@@ -100,9 +98,9 @@ export function MobileNavTabs() {
     (velocity = 0) => {
       setNavbarState('hidden');
       void api.start({
-        to: { y: HIDDEN_Y },
+        to: {y: HIDDEN_Y},
         immediate: isTestEnv,
-        config: { ...config.stiff, velocity },
+        config: {...config.stiff, velocity},
       });
     },
     [api, isTestEnv],
@@ -167,18 +165,16 @@ export function MobileNavTabs() {
       style: navTabStyle,
       Icon: SvgCog,
     },
-  ].map(tab => (
-    <NavTab key={tab.path} onClick={() => openDefault()} {...tab} />
-  ));
+  ].map(tab => <NavTab key={tab.path} onClick={() => openDefault()} {...tab} />);
 
   const bufferTabsCount = COLUMN_COUNT - (navTabs.length % COLUMN_COUNT);
-  const bufferTabs = Array.from({ length: bufferTabsCount }).map((_, idx) => (
+  const bufferTabs = Array.from({length: bufferTabsCount}).map((_, idx) => (
     <div key={idx} style={navTabStyle} />
   ));
 
   useScrollListener(
     useCallback(
-      ({ isScrolling, hasScrolledToEnd }) => {
+      ({isScrolling, hasScrolledToEnd}) => {
         if (isScrolling('down') && !hasScrolledToEnd('up')) {
           hide();
         } else if (isScrolling('up') && !hasScrolledToEnd('down')) {
@@ -190,14 +186,7 @@ export function MobileNavTabs() {
   );
 
   const bind = useDrag(
-    ({
-      last,
-      velocity: [, vy],
-      direction: [, dy],
-      offset: [, oy],
-      cancel,
-      canceled,
-    }) => {
+    ({last, velocity: [, vy], direction: [, dy], offset: [, oy], cancel, canceled}) => {
       // if the user drags up passed a threshold, then we cancel
       // the drag so that the sheet resets to its open position
       if (oy < 0) {
@@ -210,18 +199,18 @@ export function MobileNavTabs() {
         if (oy > ROW_HEIGHT * 0.5 || (vy > 0.5 && dy > 0)) {
           openDefault(vy);
         } else {
-          openFull({ canceled });
+          openFull({canceled});
         }
       } else {
         // when the user keeps dragging, we just move the sheet according to
         // the cursor position
-        void api.start({ to: { y: oy }, immediate: true });
+        void api.start({to: {y: oy}, immediate: true});
       }
     },
     {
       from: () => [0, y.get()],
       filterTaps: true,
-      bounds: { top: -TOTAL_HEIGHT, bottom: TOTAL_HEIGHT - ROW_HEIGHT },
+      bounds: {top: -TOTAL_HEIGHT, bottom: TOTAL_HEIGHT - ROW_HEIGHT},
       axis: 'y',
       rubberband: true,
     },
@@ -242,7 +231,7 @@ export function MobileNavTabs() {
         position: 'fixed',
         zIndex: 100,
         bottom: 0,
-        ...(!isNarrowWidth && { display: 'none' }),
+        ...(!isNarrowWidth && {display: 'none'}),
       }}
       data-navbar-state={navbarState}
     >
@@ -287,11 +276,11 @@ type NavTabProps = {
   onClick: ComponentProps<typeof NavLink>['onClick'];
 };
 
-function NavTab({ Icon: TabIcon, name, path, style, onClick }: NavTabProps) {
+function NavTab({Icon: TabIcon, name, path, style, onClick}: NavTabProps) {
   return (
     <NavLink
       to={path}
-      style={({ isActive }) => ({
+      style={({isActive}) => ({
         ...styles.noTapHighlight,
         alignItems: 'center',
         color: isActive ? theme.mobileNavItemSelected : theme.mobileNavItem,
@@ -305,7 +294,7 @@ function NavTab({ Icon: TabIcon, name, path, style, onClick }: NavTabProps) {
       })}
       onClick={onClick}
     >
-      <TabIcon width={22} height={22} style={{ minHeight: '22px' }} />
+      <TabIcon width={22} height={22} style={{minHeight: '22px'}} />
       {name}
     </NavLink>
   );

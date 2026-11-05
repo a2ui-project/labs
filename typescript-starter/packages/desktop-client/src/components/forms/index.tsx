@@ -15,20 +15,20 @@
  */
 
 import React from 'react';
-import type { ComponentProps, ReactNode } from 'react';
+import type {ComponentProps, ReactNode} from 'react';
 
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
 
 type SectionLabelProps = {
   title?: string;
   style?: CSSProperties;
 };
 
-export const SectionLabel = ({ title, style }: SectionLabelProps) => {
+export const SectionLabel = ({title, style}: SectionLabelProps) => {
   return (
     <View
       style={{
@@ -58,7 +58,7 @@ const defaultLabelStyle: CSSProperties = {
   color: theme.tableText,
 };
 
-export const FormLabel = ({ style, title, id, htmlFor }: FormLabelProps) => {
+export const FormLabel = ({style, title, id, htmlFor}: FormLabelProps) => {
   return (
     <Text
       style={{
@@ -73,11 +73,7 @@ export const FormLabel = ({ style, title, id, htmlFor }: FormLabelProps) => {
   );
 };
 
-export const FormTextLabel = ({
-  style,
-  title,
-  id,
-}: Omit<FormLabelProps, 'htmlFor'>) => {
+export const FormTextLabel = ({style, title, id}: Omit<FormLabelProps, 'htmlFor'>) => {
   return (
     <Text
       style={{
@@ -96,7 +92,7 @@ type FormFieldProps = {
   children: ReactNode;
 };
 
-export const FormField = ({ style, children }: FormFieldProps) => {
+export const FormField = ({style, children}: FormFieldProps) => {
   return <View style={style}>{children}</View>;
 };
 

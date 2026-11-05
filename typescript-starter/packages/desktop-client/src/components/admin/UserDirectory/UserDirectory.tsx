@@ -15,38 +15,38 @@
  */
 
 // @ts-strict-ignore
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import type {CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as undo from '@actual-app/core/platform/client/undo';
-import type { NewUserEntity, UserEntity } from '@actual-app/core/types/models';
+import type {NewUserEntity, UserEntity} from '@actual-app/core/types/models';
 
-import { InfiniteScrollWrapper } from '#components/common/InfiniteScrollWrapper';
-import { Link } from '#components/common/Link';
-import { Search } from '#components/common/Search';
-import { SelectedProvider, useSelected } from '#hooks/useSelected';
-import { pushModal } from '#modals/modalsSlice';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { signOut } from '#users/usersSlice';
+import {InfiniteScrollWrapper} from '#components/common/InfiniteScrollWrapper';
+import {Link} from '#components/common/Link';
+import {Search} from '#components/common/Search';
+import {SelectedProvider, useSelected} from '#hooks/useSelected';
+import {pushModal} from '#modals/modalsSlice';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {signOut} from '#users/usersSlice';
 
-import { UserDirectoryHeader } from './UserDirectoryHeader';
-import { UserDirectoryRow } from './UserDirectoryRow';
+import {UserDirectoryHeader} from './UserDirectoryHeader';
+import {UserDirectoryRow} from './UserDirectoryRow';
 
 type ManageUserDirectoryContentProps = {
   isModal: boolean;
 };
 
 function useGetUserDirectoryErrors() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const getUserDirectoryErrors = useCallback(
     reason => {
@@ -56,15 +56,11 @@ function useGetUserDirectoryErrors() {
         case 'token-expired':
           return t('Login expired, please log in again.');
         case 'user-cant-be-empty':
-          return t(
-            'Please enter a value for the username; the field cannot be empty.',
-          );
+          return t('Please enter a value for the username; the field cannot be empty.');
         case 'role-cant-be-empty':
           return t('Select a role; the field cannot be empty.');
         case 'user-already-exists':
-          return t(
-            'The username you entered already exists. Please choose a different username.',
-          );
+          return t('The username you entered already exists. Please choose a different username.');
         case 'not-all-deleted':
           return t(
             'Not all users were deleted. Check if one of the selected users is the server owner.',
@@ -76,25 +72,25 @@ function useGetUserDirectoryErrors() {
         default:
           return t(
             'An internal error occurred, sorry! Visit https://actualbudget.org/contact/ for support. (ref: {{reason}})',
-            { reason },
+            {reason},
           );
       }
     },
     [t],
   );
 
-  return { getUserDirectoryErrors };
+  return {getUserDirectoryErrors};
 }
 
-function UserDirectoryContent({ isModal }: ManageUserDirectoryContentProps) {
-  const { t } = useTranslation();
+function UserDirectoryContent({isModal}: ManageUserDirectoryContentProps) {
+  const {t} = useTranslation();
 
   const [allUsers, setAllUsers] = useState([]);
   const [page, setPage] = useState(0);
   const [filter, setFilter] = useState('');
   const dispatch = useDispatch();
 
-  const { getUserDirectoryErrors } = useGetUserDirectoryErrors();
+  const {getUserDirectoryErrors} = useGetUserDirectoryErrors();
 
   const filteredUsers = useMemo(() => {
     return (
@@ -197,7 +193,7 @@ function UserDirectoryContent({ isModal }: ManageUserDirectoryContentProps) {
     }
 
     await loadUsers();
-    selectedInst.dispatch({ type: 'select-none' });
+    selectedInst.dispatch({type: 'select-none'});
   }, [selectedInst, loadUsers, dispatch, t, getUserDirectoryErrors]);
 
   const onEditUser = useCallback(
@@ -267,8 +263,8 @@ function UserDirectoryContent({ isModal }: ManageUserDirectoryContentProps) {
           >
             <Text>
               <Trans>
-                Manage and view users who can create new budgets or be invited
-                to access existing ones.
+                Manage and view users who can create new budgets or be invited to access existing
+                ones.
               </Trans>{' '}
               <Link
                 variant="external"
@@ -279,19 +275,15 @@ function UserDirectoryContent({ isModal }: ManageUserDirectoryContentProps) {
               </Link>
             </Text>
           </View>
-          <View style={{ flex: 1 }} />
-          <Search
-            placeholder={t('Filter users...')}
-            value={filter}
-            onChange={onSearchChange}
-          />
+          <View style={{flex: 1}} />
+          <Search placeholder={t('Filter users...')} value={filter} onChange={onSearchChange} />
         </View>
 
         <View style={styles.tableContainer}>
           <UserDirectoryHeader />
           <InfiniteScrollWrapper loadMore={loadMore}>
             {filteredUsers.length === 0 ? (
-              <EmptyMessage text={t('No users')} style={{ marginTop: 15 }} />
+              <EmptyMessage text={t('No users')} style={{marginTop: 15}} />
             ) : (
               <UsersList
                 users={filteredUsers}
@@ -311,15 +303,10 @@ function UserDirectoryContent({ isModal }: ManageUserDirectoryContentProps) {
             flexShrink: 0,
           }}
         >
-          <SpaceBetween
-            gap={10}
-            style={{ alignItems: 'center', justifyContent: 'flex-end' }}
-          >
+          <SpaceBetween gap={10} style={{alignItems: 'center', justifyContent: 'flex-end'}}>
             {selectedInst.items.size > 0 && (
               <Button onPress={onDeleteSelected}>
-                <Trans count={selectedCount}>
-                  Delete {{ selectedCount }} users
-                </Trans>
+                <Trans count={selectedCount}>Delete {{selectedCount}} users</Trans>
               </Button>
             )}
             <Button variant="primary" onPress={onAddUser}>
@@ -337,7 +324,7 @@ type EmptyMessageProps = {
   style?: CSSProperties;
 };
 
-function EmptyMessage({ text, style }: EmptyMessageProps) {
+function EmptyMessage({text, style}: EmptyMessageProps) {
   return (
     <View
       style={{
@@ -358,7 +345,7 @@ type ManageUsersProps = {
   isModal: boolean;
 };
 
-export function UserDirectory({ isModal }: ManageUsersProps) {
+export function UserDirectory({isModal}: ManageUsersProps) {
   return <UserDirectoryContent isModal={isModal} />;
 }
 
@@ -370,13 +357,7 @@ type UsersListProps = {
   onEditUser?: (rule: UserEntity) => void;
 };
 
-function UsersList({
-  users,
-  selectedItems,
-  hoveredUser,
-  onHover,
-  onEditUser,
-}: UsersListProps) {
+function UsersList({users, selectedItems, hoveredUser, onHover, onEditUser}: UsersListProps) {
   if (users.length === 0) {
     return null;
   }

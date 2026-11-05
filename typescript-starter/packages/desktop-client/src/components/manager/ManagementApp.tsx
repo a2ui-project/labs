@@ -14,42 +14,39 @@
  * limitations under the License.
  */
 
-import React, { useEffect } from 'react';
-import { Trans } from 'react-i18next';
-import { Navigate, Route, Routes } from 'react-router';
+import React, {useEffect} from 'react';
+import {Trans} from 'react-i18next';
+import {Navigate, Route, Routes} from 'react-router';
 
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { tokens } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {tokens} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
 
-import { setAppState } from '#app/appSlice';
-import { ProtectedRoute } from '#auth/ProtectedRoute';
-import { Permissions } from '#auth/types';
+import {setAppState} from '#app/appSlice';
+import {ProtectedRoute} from '#auth/ProtectedRoute';
+import {Permissions} from '#auth/types';
 import {
   BackToFileListButton,
   UserDirectoryPage,
 } from '#components/admin/UserDirectory/UserDirectoryPage';
-import { AppBackground } from '#components/AppBackground';
-import { LoggedInUser } from '#components/LoggedInUser';
-import { Notifications } from '#components/Notifications';
-import {
-  useMultiuserEnabled,
-  useServerVersion,
-} from '#components/ServerContext';
-import { useMetaThemeColor } from '#hooks/useMetaThemeColor';
-import { useDispatch, useSelector } from '#redux';
-import { loggedIn } from '#users/usersSlice';
+import {AppBackground} from '#components/AppBackground';
+import {LoggedInUser} from '#components/LoggedInUser';
+import {Notifications} from '#components/Notifications';
+import {useMultiuserEnabled, useServerVersion} from '#components/ServerContext';
+import {useMetaThemeColor} from '#hooks/useMetaThemeColor';
+import {useDispatch, useSelector} from '#redux';
+import {loggedIn} from '#users/usersSlice';
 
-import { BudgetFileSelection } from './BudgetFileSelection';
-import { ConfigServer } from './ConfigServer';
-import { ServerURL } from './ServerURL';
-import { Bootstrap } from './subscribe/Bootstrap';
-import { ChangePassword } from './subscribe/ChangePassword';
-import { Error } from './subscribe/Error';
-import { Login } from './subscribe/Login';
-import { OpenIdCallback } from './subscribe/OpenIdCallback';
-import { WelcomeScreen } from './WelcomeScreen';
+import {BudgetFileSelection} from './BudgetFileSelection';
+import {ConfigServer} from './ConfigServer';
+import {ServerURL} from './ServerURL';
+import {Bootstrap} from './subscribe/Bootstrap';
+import {ChangePassword} from './subscribe/ChangePassword';
+import {Error} from './subscribe/Error';
+import {Login} from './subscribe/Login';
+import {OpenIdCallback} from './subscribe/OpenIdCallback';
+import {WelcomeScreen} from './WelcomeScreen';
 
 function Version() {
   const version = useServerVersion();
@@ -58,7 +55,7 @@ function Version() {
     <Text
       style={{
         color: theme.pageTextSubdued,
-        ':hover': { color: theme.pageText },
+        ':hover': {color: theme.pageText},
         margin: 15,
         marginLeft: 17,
         [`@media (min-width: ${tokens.breakpoint_small})`]: {
@@ -72,8 +69,7 @@ function Version() {
       }}
     >
       <Trans>
-        App: v{{ appVersion: window.Actual.ACTUAL_VERSION }} | Server:{' '}
-        {{ serverVersion: version }}
+        App: v{{appVersion: window.Actual.ACTUAL_VERSION}} | Server: {{serverVersion: version}}
       </Trans>
     </Text>
   );
@@ -87,9 +83,7 @@ export function ManagementApp() {
   const userData = useSelector(state => state.user.data);
   const multiuserEnabled = useMultiuserEnabled();
 
-  const managerHasInitialized = useSelector(
-    state => state.app.managerHasInitialized,
-  );
+  const managerHasInitialized = useSelector(state => state.app.managerHasInitialized);
 
   const dispatch = useDispatch();
 
@@ -97,14 +91,14 @@ export function ManagementApp() {
   useEffect(() => {
     async function fetchData() {
       await dispatch(loggedIn());
-      dispatch(setAppState({ managerHasInitialized: true }));
+      dispatch(setAppState({managerHasInitialized: true}));
     }
 
     void fetchData();
   }, [dispatch]);
 
   return (
-    <View style={{ height: '100%', color: theme.pageText }}>
+    <View style={{height: '100%', color: theme.pageText}}>
       <AppBackground />
       <View
         style={{
@@ -163,11 +157,7 @@ export function ManagementApp() {
                     element={
                       <ProtectedRoute
                         permission={Permissions.ADMINISTRATOR}
-                        element={
-                          <UserDirectoryPage
-                            bottomContent={<BackToFileListButton />}
-                          />
-                        }
+                        element={<UserDirectoryPage bottomContent={<BackToFileListButton />} />}
                       />
                     }
                   />
@@ -189,12 +179,7 @@ export function ManagementApp() {
                   <Route path="/config-server" element={null} />
                   <Route
                     path="/*"
-                    element={
-                      <LoggedInUser
-                        hideIfNoServer
-                        style={{ padding: '4px 7px' }}
-                      />
-                    }
+                    element={<LoggedInUser hideIfNoServer style={{padding: '4px 7px'}} />}
                   />
                 </Routes>
               </View>

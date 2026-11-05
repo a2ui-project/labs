@@ -15,17 +15,17 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { isElectron } from '@actual-app/core/shared/environment';
-import { css } from '@emotion/css';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {isElectron} from '@actual-app/core/shared/environment';
+import {css} from '@emotion/css';
 
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
-import { normalizeUrl } from './linkParser';
+import {normalizeUrl} from './linkParser';
 
 type MobileLinkedNotesProps = {
   displayText: string;
@@ -46,7 +46,7 @@ export function MobileLinkedNotes({
   isFilePath,
 }: MobileLinkedNotesProps) {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const handleClick = async () => {
     if (isFilePath) {

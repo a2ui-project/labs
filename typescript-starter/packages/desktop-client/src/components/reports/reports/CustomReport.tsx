@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useEffectEvent, useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useLocation, useParams } from 'react-router';
+import React, {useEffect, useEffectEvent, useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useLocation, useParams} from 'react-router';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { Block } from '@actual-app/components/block';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {Block} from '@actual-app/components/block';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
 import type {
   balanceTypeOpType,
@@ -36,16 +36,16 @@ import type {
   sortByOpType,
   TransactionEntity,
 } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
-import type { TransObjectLiteral } from '@actual-app/core/types/util';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
+import type {TransObjectLiteral} from '@actual-app/core/types/util';
 
-import { Warning } from '#components/alerts';
-import { AppliedFilters } from '#components/filters/AppliedFilters';
-import { FinancialText } from '#components/FinancialText';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page, PageHeader } from '#components/Page';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { ChooseGraph } from '#components/reports/ChooseGraph';
+import {Warning} from '#components/alerts';
+import {AppliedFilters} from '#components/filters/AppliedFilters';
+import {FinancialText} from '#components/FinancialText';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page, PageHeader} from '#components/Page';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {ChooseGraph} from '#components/reports/ChooseGraph';
 import {
   defaultsGraphList,
   defaultsList,
@@ -53,35 +53,31 @@ import {
   disabledLegendLabel,
   disabledList,
 } from '#components/reports/disabledList';
-import { getLiveRange } from '#components/reports/getLiveRange';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportLegend } from '#components/reports/ReportLegend';
-import {
-  defaultReport,
-  getIntervalFormat,
-  ReportOptions,
-} from '#components/reports/ReportOptions';
-import type { dateRangeProps } from '#components/reports/ReportOptions';
-import { ReportSidebar } from '#components/reports/ReportSidebar';
-import { ReportSummary } from '#components/reports/ReportSummary';
-import { ReportTopbar } from '#components/reports/ReportTopbar';
-import type { SavedStatus } from '#components/reports/SaveReportMenu';
-import { setSessionReport } from '#components/reports/setSessionReport';
-import { createCustomSpreadsheet } from '#components/reports/spreadsheets/custom-spreadsheet';
-import { createGroupedSpreadsheet } from '#components/reports/spreadsheets/grouped-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { calculateHasWarning, fromDateRepr } from '#components/reports/util';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { useLocalPref } from '#hooks/useLocalPref';
-import { useNavigate } from '#hooks/useNavigate';
-import { usePayees } from '#hooks/usePayees';
-import { useReport as useCustomReport } from '#hooks/useReport';
-import { useRuleConditionFilters } from '#hooks/useRuleConditionFilters';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {getLiveRange} from '#components/reports/getLiveRange';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportLegend} from '#components/reports/ReportLegend';
+import {defaultReport, getIntervalFormat, ReportOptions} from '#components/reports/ReportOptions';
+import type {dateRangeProps} from '#components/reports/ReportOptions';
+import {ReportSidebar} from '#components/reports/ReportSidebar';
+import {ReportSummary} from '#components/reports/ReportSummary';
+import {ReportTopbar} from '#components/reports/ReportTopbar';
+import type {SavedStatus} from '#components/reports/SaveReportMenu';
+import {setSessionReport} from '#components/reports/setSessionReport';
+import {createCustomSpreadsheet} from '#components/reports/spreadsheets/custom-spreadsheet';
+import {createGroupedSpreadsheet} from '#components/reports/spreadsheets/grouped-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {calculateHasWarning, fromDateRepr} from '#components/reports/util';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {useLocalPref} from '#hooks/useLocalPref';
+import {useNavigate} from '#hooks/useNavigate';
+import {usePayees} from '#hooks/usePayees';
+import {useReport as useCustomReport} from '#hooks/useReport';
+import {useRuleConditionFilters} from '#hooks/useRuleConditionFilters';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
 /**
  * Transform `selectedCategories` into `conditions`.
@@ -91,7 +87,7 @@ function useSelectedCategories(
   categories: CategoryEntity[],
 ): CategoryEntity[] {
   const existingCategoryCondition = useMemo(
-    () => conditions.find(({ field }) => field === 'category'),
+    () => conditions.find(({field}) => field === 'category'),
     [conditions],
   );
 
@@ -102,24 +98,16 @@ function useSelectedCategories(
 
     switch (existingCategoryCondition.op) {
       case 'is':
-        return categories.filter(
-          ({ id }) => id === existingCategoryCondition.value,
-        );
+        return categories.filter(({id}) => id === existingCategoryCondition.value);
 
       case 'isNot':
-        return categories.filter(
-          ({ id }) => existingCategoryCondition.value !== id,
-        );
+        return categories.filter(({id}) => existingCategoryCondition.value !== id);
 
       case 'oneOf':
-        return categories.filter(({ id }) =>
-          existingCategoryCondition.value.includes(id),
-        );
+        return categories.filter(({id}) => existingCategoryCondition.value.includes(id));
 
       case 'notOneOf':
-        return categories.filter(
-          ({ id }) => !existingCategoryCondition.value.includes(id),
-        );
+        return categories.filter(({id}) => !existingCategoryCondition.value.includes(id));
 
       default:
         break;
@@ -129,26 +117,18 @@ function useSelectedCategories(
   }, [existingCategoryCondition, categories]);
 }
 
-const BUDGETED_SUPPORTED_CONDITION_FIELDS = new Set<
-  RuleConditionEntity['field']
->(['category']);
+const BUDGETED_SUPPORTED_CONDITION_FIELDS = new Set<RuleConditionEntity['field']>(['category']);
 
 export function CustomReport() {
   const params = useParams();
-  const { data: report, isPending } = useCustomReport(params.id);
+  const {data: report, isPending} = useCustomReport(params.id);
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
 
   if (isPending) {
     return <LoadingIndicator />;
   }
 
-  return (
-    <CustomReportInner
-      key={report?.id}
-      report={report}
-      budgetType={budgetType}
-    />
-  );
+  return <CustomReportInner key={report?.id} report={report} budgetType={budgetType} />;
 }
 
 type CustomReportInnerProps = {
@@ -156,26 +136,20 @@ type CustomReportInnerProps = {
   budgetType: SyncedPrefs['budgetType'];
 };
 
-function CustomReportInner({
-  report: initialReport,
-  budgetType,
-}: CustomReportInnerProps) {
+function CustomReportInner({report: initialReport, budgetType}: CustomReportInnerProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
 
-  const { data: categories = { grouped: [], list: [] } } = useCategories();
-  const { isNarrowWidth } = useResponsive();
+  const {data: categories = {grouped: [], list: []}} = useCategories();
+  const {isNarrowWidth} = useResponsive();
   const [_firstDayOfWeekIdx] = useSyncedPref('firstDayOfWeekIdx');
   const firstDayOfWeekIdx = _firstDayOfWeekIdx || '0';
 
-  const [viewLegend = false, setViewLegendPref] =
-    useLocalPref('reportsViewLegend');
-  const [viewSummary = false, setViewSummaryPref] =
-    useLocalPref('reportsViewSummary');
-  const [viewLabels = false, setViewLabelsPref] =
-    useLocalPref('reportsViewLabel');
+  const [viewLegend = false, setViewLegendPref] = useLocalPref('reportsViewLegend');
+  const [viewSummary = false, setViewSummaryPref] = useLocalPref('reportsViewSummary');
+  const [viewLabels = false, setViewLabelsPref] = useLocalPref('reportsViewLabel');
 
   const {
     conditions,
@@ -219,35 +193,25 @@ function CustomReportInner({
   // - conditions with a "category_group" field
   const isComplexCategoryCondition =
     !!conditions.find(
-      ({ field, op }) =>
+      ({field, op}) =>
         field === 'category' &&
-        [
-          'contains',
-          'doesNotContain',
-          'matches',
-          'hasTags',
-          'hasAnyTag',
-        ].includes(op),
+        ['contains', 'doesNotContain', 'matches', 'hasTags', 'hasAnyTag'].includes(op),
     ) ||
-    conditions.filter(({ field }) => field === 'category').length >= 2 ||
-    conditions.filter(({ field }) => field === 'category_group').length >= 1;
+    conditions.filter(({field}) => field === 'category').length >= 2 ||
+    conditions.filter(({field}) => field === 'category_group').length >= 1;
 
   const setSelectedCategories = (newCategories: CategoryEntity[]) => {
-    const newCategoryIdSet = new Set(newCategories.map(({ id }) => id));
-    const allCategoryIds = categories.list.map(({ id }) => id);
-    const allCategoriesSelected = !allCategoryIds.find(
-      id => !newCategoryIdSet.has(id),
-    );
+    const newCategoryIdSet = new Set(newCategories.map(({id}) => id));
+    const allCategoryIds = categories.list.map(({id}) => id);
+    const allCategoriesSelected = !allCategoryIds.find(id => !newCategoryIdSet.has(id));
     const newCondition = {
       field: 'category',
       op: 'oneOf',
-      value: newCategories.map(({ id }) => id),
+      value: newCategories.map(({id}) => id),
       type: 'id',
     } satisfies RuleConditionEntity;
 
-    const existingCategoryCondition = conditions.find(
-      ({ field }) => field === 'category',
-    );
+    const existingCategoryCondition = conditions.find(({field}) => field === 'category');
 
     // If the existing conditions already have one for "category" - replace it
     if (existingCategoryCondition) {
@@ -295,32 +259,22 @@ function CustomReportInner({
   const [includeCurrentInterval, setIncludeCurrentInterval] = useState(
     loadReport.includeCurrentInterval,
   );
-  const [showHiddenCategories, setShowHiddenCategories] = useState(
-    loadReport.showHiddenCategories,
-  );
-  const [showUncategorized, setShowUncategorized] = useState(
-    loadReport.showUncategorized,
-  );
+  const [showHiddenCategories, setShowHiddenCategories] = useState(loadReport.showHiddenCategories);
+  const [showUncategorized, setShowUncategorized] = useState(loadReport.showUncategorized);
   const [trimIntervals, setTrimIntervals] = useState(loadReport.trimIntervals);
-  const [showTrendLines, setShowTrendLines] = useState(
-    loadReport.showTrendLines,
-  );
+  const [showTrendLines, setShowTrendLines] = useState(loadReport.showTrendLines);
   const [graphType, setGraphType] = useState(loadReport.graphType);
 
   const [dateRange, setDateRange] = useState(loadReport.dateRange);
   const dateRangeLine =
     interval === 'Daily'
       ? 0
-      : ReportOptions.dateRange.filter(f => f[interval as keyof dateRangeProps])
-          .length - 3;
+      : ReportOptions.dateRange.filter(f => f[interval as keyof dateRangeProps]).length - 3;
 
-  const [intervals, setIntervals] = useState(
-    monthUtils.rangeInclusive(startDate, endDate),
-  );
+  const [intervals, setIntervals] = useState(monthUtils.rangeInclusive(startDate, endDate));
   const [earliestTransactionDate, setEarliestTransactionDate] =
     useState<TransactionEntity['date']>('');
-  const [latestTransactionDate, setLatestTransactionDate] =
-    useState<TransactionEntity['date']>('');
+  const [latestTransactionDate, setLatestTransactionDate] = useState<TransactionEntity['date']>('');
   const [report, setReport] = useState(loadReport);
   const [savedStatus, setSavedStatus] = useState<SavedStatus>(
     'savedStatus' in session
@@ -337,10 +291,8 @@ function CustomReportInner({
     ) => {
       onApplyFilter(null);
 
-      const filtersToApply =
-        savedStatus !== 'saved' ? conditions : currentConditions;
-      const conditionsOpToApply =
-        savedStatus !== 'saved' ? conditionsOp : currentConditionsOp;
+      const filtersToApply = savedStatus !== 'saved' ? conditions : currentConditions;
+      const conditionsOpToApply = savedStatus !== 'saved' ? conditionsOp : currentConditionsOp;
 
       filtersToApply?.forEach(onApplyFilter);
       if (conditionsOpToApply) {
@@ -358,23 +310,19 @@ function CustomReportInner({
       const fromDate =
         interval === 'Weekly'
           ? 'dayFromDate'
-          : (((ReportOptions.intervalMap.get(interval) || 'Day').toLowerCase() +
-              'FromDate') as 'dayFromDate' | 'monthFromDate' | 'yearFromDate');
+          : (((ReportOptions.intervalMap.get(interval) || 'Day').toLowerCase() + 'FromDate') as
+              | 'dayFromDate'
+              | 'monthFromDate'
+              | 'yearFromDate');
 
       const earliestInterval =
         interval === 'Weekly'
-          ? monthUtils.weekFromDate(
-              fromDateRepr(earliestTransactionDate),
-              firstDayOfWeekIdx,
-            )
+          ? monthUtils.weekFromDate(fromDateRepr(earliestTransactionDate), firstDayOfWeekIdx)
           : monthUtils[fromDate](fromDateRepr(earliestTransactionDate));
 
       const latestInterval =
         interval === 'Weekly'
-          ? monthUtils.weekFromDate(
-              fromDateRepr(latestTransactionDate),
-              firstDayOfWeekIdx,
-            )
+          ? monthUtils.weekFromDate(fromDateRepr(latestTransactionDate), firstDayOfWeekIdx)
           : monthUtils[fromDate](fromDateRepr(latestTransactionDate));
 
       const currentInterval =
@@ -386,28 +334,20 @@ function CustomReportInner({
               ? monthUtils.currentYear()
               : monthUtils.currentMonth();
 
-      const maxInterval =
-        latestInterval > currentInterval ? latestInterval : currentInterval;
+      const maxInterval = latestInterval > currentInterval ? latestInterval : currentInterval;
 
       const allIntervals =
         interval === 'Weekly'
-          ? monthUtils.weekRangeInclusive(
+          ? monthUtils.weekRangeInclusive(earliestInterval, maxInterval, firstDayOfWeekIdx)
+          : monthUtils[ReportOptions.intervalRange.get(interval) || 'rangeInclusive'](
               earliestInterval,
               maxInterval,
-              firstDayOfWeekIdx,
-            )
-          : monthUtils[
-              ReportOptions.intervalRange.get(interval) || 'rangeInclusive'
-            ](earliestInterval, maxInterval);
+            );
 
       const allIntervalsMap = allIntervals
         .map((inter: string) => ({
           name: inter,
-          pretty: monthUtils.format(
-            inter,
-            getIntervalFormat(interval, dateFormat),
-            locale,
-          ),
+          pretty: monthUtils.format(inter, getIntervalFormat(interval, dateFormat), locale),
         }))
         .reverse();
 
@@ -450,11 +390,7 @@ function CustomReportInner({
       setEarliestTransactionDate(earliestTransactionDate);
       setLatestTransactionDate(latestTransactionDate);
 
-      void onSetAllIntervals(
-        earliestTransactionDate,
-        latestTransactionDate,
-        interval,
-      );
+      void onSetAllIntervals(earliestTransactionDate, latestTransactionDate, interval);
       onSetStartAndEndDates(
         earliestTransactionDate,
         latestTransactionDate,
@@ -483,14 +419,10 @@ function CustomReportInner({
   useEffect(() => {
     const [start, end] = [startDate, endDate];
     if (interval === 'Weekly') {
-      setIntervals(
-        monthUtils.weekRangeInclusive(start, end, firstDayOfWeekIdx),
-      );
+      setIntervals(monthUtils.weekRangeInclusive(start, end, firstDayOfWeekIdx));
     } else {
       setIntervals(
-        monthUtils[
-          ReportOptions.intervalRange.get(interval) || 'rangeInclusive'
-        ](start, end),
+        monthUtils[ReportOptions.intervalRange.get(interval) || 'rangeInclusive'](start, end),
       );
     }
   }, [interval, startDate, endDate, firstDayOfWeekIdx]);
@@ -498,8 +430,8 @@ function CustomReportInner({
   const balanceTypeOp: balanceTypeOpType =
     ReportOptions.balanceTypeMap.get(balanceType) || 'totalDebts';
   const sortByOp: sortByOpType = sortBy || 'desc';
-  const { data: payees = [] } = usePayees();
-  const { data: accounts = [] } = useAccounts();
+  const {data: payees = []} = usePayees();
+  const {data: accounts = []} = useAccounts();
 
   const hasWarning = calculateHasWarning(conditions, {
     categories: categories.list,
@@ -611,9 +543,7 @@ function CustomReportInner({
   const graphData = useReport('default', getGraphData);
   const groupedData = useReport('grouped', getGroupData);
 
-  const data: DataEntity | null = graphData
-    ? { ...graphData, groupedData }
-    : null;
+  const data: DataEntity | null = graphData ? {...graphData, groupedData} : null;
 
   const customReportItems: CustomReportEntity = {
     id: '',
@@ -667,21 +597,13 @@ function CustomReportInner({
       setGraphType(newGraph);
     }
 
-    if (
-      (disabledGraphList(item, newGraph, 'disabledSplit') || []).includes(
-        groupBy,
-      )
-    ) {
+    if ((disabledGraphList(item, newGraph, 'disabledSplit') || []).includes(groupBy)) {
       const cond = defaultsGraphList(item, newGraph, 'defaultSplit');
       setSessionReport('groupBy', cond);
       setGroupBy(cond);
     }
 
-    if (
-      (disabledGraphList(item, newGraph, 'disabledType') || []).includes(
-        balanceType,
-      )
-    ) {
+    if ((disabledGraphList(item, newGraph, 'disabledType') || []).includes(balanceType)) {
       const cond = defaultsGraphList(item, newGraph, 'defaultType');
       setSessionReport('balanceType', cond);
       setBalanceType(cond);
@@ -690,20 +612,12 @@ function CustomReportInner({
 
   const defaultItems = (item: string) => {
     const chooseGraph = ReportOptions.groupByItems.has(item) ? graphType : item;
-    if (
-      (disabledGraphList(mode, chooseGraph, 'disabledSplit') || []).includes(
-        groupBy,
-      )
-    ) {
+    if ((disabledGraphList(mode, chooseGraph, 'disabledSplit') || []).includes(groupBy)) {
       const cond = defaultsGraphList(mode, chooseGraph, 'defaultSplit');
       setSessionReport('groupBy', cond);
       setGroupBy(cond);
     }
-    if (
-      (disabledGraphList(mode, chooseGraph, 'disabledType') || []).includes(
-        balanceType,
-      )
-    ) {
+    if ((disabledGraphList(mode, chooseGraph, 'disabledType') || []).includes(balanceType)) {
       const cond = defaultsGraphList(mode, chooseGraph, 'defaultType');
       setSessionReport('balanceType', cond);
       setBalanceType(cond);
@@ -725,9 +639,7 @@ function CustomReportInner({
         return disabledLegendLabel(mode, graphType, 'disableLabel') || false;
       }
       default:
-        return (
-          (disabledList.modeGraphsMap.get(mode) || []).includes(type) || false
-        );
+        return (disabledList.modeGraphsMap.get(mode) || []).includes(type) || false;
     }
   };
 
@@ -749,7 +661,7 @@ function CustomReportInner({
     setSessionReport('endDate', dateEnd);
     setStartDate(dateStart);
     setEndDate(dateEnd);
-    onReportChange({ type: 'modify' });
+    onReportChange({type: 'modify'});
   };
 
   const onChangeViews = (viewType: string) => {
@@ -825,7 +737,7 @@ function CustomReportInner({
         }
         break;
       case 'rename':
-        setReport({ ...report, name: params.savedReport?.name || '' });
+        setReport({...report, name: params.savedReport?.name || ''});
         break;
       case 'modify':
         if (report.name) {
@@ -880,13 +792,10 @@ function CustomReportInner({
                 <Text>
                   <Trans>Custom Report:</Trans>
                 </Text>{' '}
-                <Text style={{ marginLeft: 5, color: theme.pageTextPositive }}>
+                <Text style={{marginLeft: 5, color: theme.pageTextPositive}}>
                   {
                     {
-                      name:
-                        report.name?.length > 0
-                          ? report.name
-                          : t('Unsaved report'),
+                      name: report.name?.length > 0 ? report.name : t('Unsaved report'),
                     } as TransObjectLiteral
                   }
                 </Text>
@@ -984,7 +893,7 @@ function CustomReportInner({
                       'conditions',
                       conditions.map(f => (f === oldFilter ? newFilter : f)),
                     );
-                    onReportChange({ type: 'modify' });
+                    onReportChange({type: 'modify'});
                     onUpdateFilter(oldFilter, newFilter);
                   }}
                   onDelete={deletedFilter => {
@@ -993,18 +902,18 @@ function CustomReportInner({
                       conditions.filter(f => f !== deletedFilter),
                     );
                     onDeleteFilter(deletedFilter);
-                    onReportChange({ type: 'modify' });
+                    onReportChange({type: 'modify'});
                   }}
                   conditionsOp={conditionsOp}
                   onConditionsOpChange={co => {
                     onConditionsOpChange(co);
-                    onReportChange({ type: 'modify' });
+                    onReportChange({type: 'modify'});
                   }}
                 />
               </View>
 
               {hasWarning && (
-                <Warning style={{ paddingTop: 5, paddingBottom: 5 }}>
+                <Warning style={{paddingTop: 5, paddingBottom: 5}}>
                   {t(
                     'This report is configured to use a non-existing filter value (i.e. category/account/payee).',
                   )}
@@ -1044,16 +953,14 @@ function CustomReportInner({
                       left={<Block>{balanceType}:</Block>}
                       right={
                         <FinancialText>
-                          <PrivacyFilter>
-                            {format(data[balanceTypeOp], 'financial')}
-                          </PrivacyFilter>
+                          <PrivacyFilter>{format(data[balanceTypeOp], 'financial')}</PrivacyFilter>
                         </FinancialText>
                       }
                     />
                   </View>
                 </View>
               )}
-              <View style={{ flex: 1, overflow: 'auto' }}>
+              <View style={{flex: 1, overflow: 'auto'}}>
                 {data ? (
                   <ChooseGraph
                     data={data}
@@ -1095,11 +1002,7 @@ function CustomReportInner({
                   />
                 )}
                 {viewLegend && (
-                  <ReportLegend
-                    legend={data.legend}
-                    groupBy={groupBy}
-                    interval={interval}
-                  />
+                  <ReportLegend legend={data.legend} groupBy={groupBy} interval={interval} />
                 )}
               </View>
             )}

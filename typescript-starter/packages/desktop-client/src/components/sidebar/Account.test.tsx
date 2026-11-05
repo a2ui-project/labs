@@ -15,29 +15,22 @@
  */
 
 import React from 'react';
-import type { ReactNode } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
-import { MemoryRouter } from 'react-router';
+import type {ReactNode} from 'react';
+import {DndProvider} from 'react-dnd';
+import {HTML5Backend} from 'react-dnd-html5-backend';
+import {MemoryRouter} from 'react-router';
 
-import { generateAccount } from '@actual-app/core/mocks';
-import { initServer } from '@actual-app/core/platform/client/connection';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {generateAccount} from '@actual-app/core/mocks';
+import {initServer} from '@actual-app/core/platform/client/connection';
+import {act, fireEvent, render, screen} from '@testing-library/react';
 
-import { SpreadsheetProvider } from '#hooks/useSpreadsheet';
-import {
-  configureTestAppStore,
-  createTestQueryClient,
-  TestProviders,
-} from '#mocks';
+import {SpreadsheetProvider} from '#hooks/useSpreadsheet';
+import {configureTestAppStore, createTestQueryClient, TestProviders} from '#mocks';
 import * as bindings from '#spreadsheet/bindings';
 
-import { Account } from './Account';
+import {Account} from './Account';
 
-vi.mock(
-  '@actual-app/core/platform/client/connection',
-  () => import('#mocks/connection'),
-);
+vi.mock('@actual-app/core/platform/client/connection', () => import('#mocks/connection'));
 
 // jsdom does not implement matchMedia, which the component uses for
 // touch-device detection
@@ -57,11 +50,11 @@ describe('sidebar Account context menu', () => {
 
   beforeEach(() => {
     initServer({
-      query: async () => ({ data: [], dependencies: [] }),
-      'get-cell': async () => ({ name: 'test-cell', value: 0 }),
+      query: async () => ({data: [], dependencies: []}),
+      'get-cell': async () => ({name: 'test-cell', value: 0}),
     });
 
-    store = configureTestAppStore({ queryClient: createTestQueryClient() });
+    store = configureTestAppStore({queryClient: createTestQueryClient()});
   });
 
   async function renderRow(children: ReactNode) {
@@ -82,18 +75,12 @@ describe('sidebar Account context menu', () => {
   function contextMenuItemNames() {
     return store
       .getState()
-      .contextMenu.items.map(item =>
-        typeof item === 'object' ? item.name : null,
-      );
+      .contextMenu.items.map(item => (typeof item === 'object' ? item.name : null));
   }
 
   it('does not open on the All accounts row', async () => {
     await renderRow(
-      <Account
-        name="All accounts"
-        to="/accounts"
-        query={bindings.allAccountBalance()}
-      />,
+      <Account name="All accounts" to="/accounts" query={bindings.allAccountBalance()} />,
     );
 
     fireEvent.contextMenu(screen.getByText('All accounts'));

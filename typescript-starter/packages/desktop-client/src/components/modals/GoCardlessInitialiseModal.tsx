@@ -15,37 +15,27 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { ButtonWithLoading } from '@actual-app/components/button';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { Input } from '@actual-app/components/input';
-import { Text } from '@actual-app/components/text';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {ButtonWithLoading} from '@actual-app/components/button';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {Input} from '@actual-app/components/input';
+import {Text} from '@actual-app/components/text';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { Error } from '#components/alerts';
-import { Link } from '#components/common/Link';
-import {
-  Modal,
-  ModalButtons,
-  ModalCloseButton,
-  ModalHeader,
-} from '#components/common/Modal';
-import { FormField, FormLabel } from '#components/forms';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { getSecretsError } from '#util/error';
+import {Error} from '#components/alerts';
+import {Link} from '#components/common/Link';
+import {Modal, ModalButtons, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {FormField, FormLabel} from '#components/forms';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {getSecretsError} from '#util/error';
 
-type GoCardlessInitialiseModalProps = Extract<
-  ModalType,
-  { name: 'gocardless-init' }
->['options'];
+type GoCardlessInitialiseModalProps = Extract<ModalType, {name: 'gocardless-init'}>['options'];
 
-export const GoCardlessInitialiseModal = ({
-  onSuccess,
-}: GoCardlessInitialiseModalProps) => {
-  const { t } = useTranslation();
+export const GoCardlessInitialiseModal = ({onSuccess}: GoCardlessInitialiseModalProps) => {
+  const {t} = useTranslation();
   const [secretId, setSecretId] = useState('');
   const [secretKey, setSecretKey] = useState('');
   const [isValid, setIsValid] = useState(true);
@@ -57,15 +47,13 @@ export const GoCardlessInitialiseModal = ({
   const onSubmit = async (close: () => void) => {
     if (!secretId || !secretKey) {
       setIsValid(false);
-      setError(
-        t('It is required to provide both the secret id and secret key.'),
-      );
+      setError(t('It is required to provide both the secret id and secret key.'));
       return;
     }
 
     setIsLoading(true);
 
-    let { error, reason } =
+    let {error, reason} =
       (await send('secret-set', {
         name: 'gocardless_secretId',
         value: secretId,
@@ -77,7 +65,7 @@ export const GoCardlessInitialiseModal = ({
       setError(getSecretsError(error, reason));
       return;
     } else {
-      ({ error, reason } =
+      ({error, reason} =
         (await send('secret-set', {
           name: 'gocardless_secretKey',
           value: secretKey,
@@ -97,19 +85,18 @@ export const GoCardlessInitialiseModal = ({
   };
 
   return (
-    <Modal name="gocardless-init" containerProps={{ style: { width: '30vw' } }}>
-      {({ state }) => (
+    <Modal name="gocardless-init" containerProps={{style: {width: '30vw'}}}>
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Set up GoCardless')}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
-          <View style={{ display: 'flex', gap: 10 }}>
+          <View style={{display: 'flex', gap: 10}}>
             <Text>
               <Trans>
-                In order to enable bank sync via GoCardless (only for EU banks)
-                you will need to create access credentials. This can be done by
-                creating an account with{' '}
+                In order to enable bank sync via GoCardless (only for EU banks) you will need to
+                create access credentials. This can be done by creating an account with{' '}
                 <Link
                   variant="external"
                   to="https://actualbudget.org/docs/advanced/bank-sync/"

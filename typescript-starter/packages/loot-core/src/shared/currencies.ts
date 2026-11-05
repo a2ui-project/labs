@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { NumberFormats } from './util';
+import type {NumberFormats} from './util';
 
 export type Currency = {
   code: string;

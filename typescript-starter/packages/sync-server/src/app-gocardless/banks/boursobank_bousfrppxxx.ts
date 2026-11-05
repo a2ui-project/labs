@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-import { title } from '#util/title';
+import {title} from '#util/title';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
-const regexCard =
-  /^CARTE (?<date>\d{2}\/\d{2}\/\d{2}) (?<payeeName>.+?)( \d+)?( CB\*\d{4})?$/;
+const regexCard = /^CARTE (?<date>\d{2}\/\d{2}\/\d{2}) (?<payeeName>.+?)( \d+)?( CB\*\d{4})?$/;
 const regexAtmWithdrawal =
   /^RETRAIT DAB (?<date>\d{2}\/\d{2}\/\d{2}) (?<locationName>.+?) CB\*\d{4,}/;
 const regexTransfer = /^VIR /;
 const regexInstantTransfer = /^VIR INST /;
 const regexSepa = /^(PRLV|VIR) SEPA /;
 const regexLoan = /^ECH PRET:/;
-const regexCreditNote =
-  /^AVOIR (?<date>\d{2}\/\d{2}\/\d{2}) (?<payeeName>.+?) CB\*\d{4,}/;
+const regexCreditNote = /^AVOIR (?<date>\d{2}\/\d{2}\/\d{2}) (?<payeeName>.+?) CB\*\d{4,}/;
 
 export default {
   ...Fallback,
@@ -36,7 +34,7 @@ export default {
   institutionIds: ['BOURSORAMA_BOUSFRPP'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     editedTrans.remittanceInformationUnstructuredArray = (
       transaction.remittanceInformationUnstructuredArray ?? []
@@ -64,9 +62,7 @@ export default {
       // Loan
       editedTrans.payeeName = 'Prêt bancaire';
       editedTrans.notes = match;
-    } else if (
-      (match = infoArray.find(line => regexAtmWithdrawal.test(line)))
-    ) {
+    } else if ((match = infoArray.find(line => regexAtmWithdrawal.test(line)))) {
       // ATM withdrawal
       const atmMatch = match.match(regexAtmWithdrawal);
       editedTrans.payeeName = 'Retrait DAB';
@@ -82,9 +78,7 @@ export default {
       if (infoArray.length > 1) {
         editedTrans.notes += ' ' + infoArray.filter(l => l !== match).join(' ');
       }
-    } else if (
-      (match = infoArray.find(line => regexInstantTransfer.test(line)))
-    ) {
+    } else if ((match = infoArray.find(line => regexInstantTransfer.test(line)))) {
       // Instant transfer
       editedTrans.payeeName = title(match.replace(regexInstantTransfer, ''));
       editedTrans.notes = infoArray.filter(l => l !== match).join(' ');

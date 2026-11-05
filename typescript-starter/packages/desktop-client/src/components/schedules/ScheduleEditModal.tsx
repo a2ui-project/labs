@@ -15,42 +15,36 @@
  */
 
 // @ts-strict-ignore
-import React, { useMemo } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useMemo} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { send, sendCatch } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {send, sendCatch} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type {
-  RecurConfig,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import type {RecurConfig, ScheduleEntity} from '@actual-app/core/types/models';
 
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { usePayeesById } from '#hooks/usePayees';
-import { useScheduleEdit } from '#hooks/useScheduleEdit';
-import { useSelected } from '#hooks/useSelected';
-import { pushModal } from '#modals/modalsSlice';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { aqlQuery } from '#queries/aqlQuery';
-import { useDispatch } from '#redux';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {usePayeesById} from '#hooks/usePayees';
+import {useScheduleEdit} from '#hooks/useScheduleEdit';
+import {useSelected} from '#hooks/useSelected';
+import {pushModal} from '#modals/modalsSlice';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {aqlQuery} from '#queries/aqlQuery';
+import {useDispatch} from '#redux';
 
-import { updateScheduleConditions } from './schedule-edit-utils';
-import { ScheduleEditForm } from './ScheduleEditForm';
+import {updateScheduleConditions} from './schedule-edit-utils';
+import {ScheduleEditForm} from './ScheduleEditForm';
 
-type ScheduleEditModalProps = Extract<
-  ModalType,
-  { name: 'schedule-edit' }
->['options'];
+type ScheduleEditModalProps = Extract<ModalType, {name: 'schedule-edit'}>['options'];
 
-export function ScheduleEditModal({ id, transaction }: ScheduleEditModalProps) {
-  const { t } = useTranslation();
+export function ScheduleEditModal({id, transaction}: ScheduleEditModalProps) {
+  const {t} = useTranslation();
 
   const adding = id == null;
   const fromTrans = transaction != null;
-  const { data: payees } = usePayeesById();
+  const {data: payees} = usePayeesById();
   const globalDispatch = useDispatch();
 
   // Create initial schedule if adding from transaction
@@ -89,13 +83,13 @@ export function ScheduleEditModal({ id, transaction }: ScheduleEditModalProps) {
     return {
       posts_transaction: false,
       _date: date,
-      _conditions: [{ op: 'isapprox', field: 'date', value: date }],
+      _conditions: [{op: 'isapprox', field: 'date', value: date}],
       _actions: [],
       ...transFields,
     } satisfies Partial<ScheduleEntity>;
   }, [adding, fromTrans, payees, transaction]);
 
-  const { state, dispatch, loadSchedule } = useScheduleEdit({
+  const {state, dispatch, loadSchedule} = useScheduleEdit({
     scheduleId: id,
     adding,
     initialSchedule,
@@ -109,14 +103,14 @@ export function ScheduleEditModal({ id, transaction }: ScheduleEditModalProps) {
   );
 
   async function onSave(close: () => void) {
-    dispatch({ type: 'form-error', error: null });
+    dispatch({type: 'form-error', error: null});
     if (!state.schedule) {
       return;
     }
 
     if (state.fields.name) {
-      const { data: sameName } = await aqlQuery(
-        q('schedules').filter({ name: state.fields.name }).select('id'),
+      const {data: sameName} = await aqlQuery(
+        q('schedules').filter({name: state.fields.name}).select('id'),
       );
       if (sameName.length > 0 && sameName[0].id !== state.schedule.id) {
         dispatch({
@@ -127,28 +121,22 @@ export function ScheduleEditModal({ id, transaction }: ScheduleEditModalProps) {
       }
     }
 
-    const { error, conditions } = updateScheduleConditions(
-      state.schedule,
-      state.fields,
-    );
+    const {error, conditions} = updateScheduleConditions(state.schedule, state.fields);
 
     if (error) {
-      dispatch({ type: 'form-error', error });
+      dispatch({type: 'form-error', error});
       return;
     }
 
-    const res = await sendCatch(
-      adding ? 'schedule/create' : 'schedule/update',
-      {
-        schedule: {
-          id: state.schedule.id,
-          posts_transaction: state.fields.posts_transaction,
-          custom_upcoming_length: state.fields.custom_upcoming_length,
-          name: state.fields.name,
-        },
-        conditions,
+    const res = await sendCatch(adding ? 'schedule/create' : 'schedule/update', {
+      schedule: {
+        id: state.schedule.id,
+        posts_transaction: state.fields.posts_transaction,
+        custom_upcoming_length: state.fields.custom_upcoming_length,
+        name: state.fields.name,
       },
-    );
+      conditions,
+    });
 
     if (res.error) {
       dispatch({
@@ -168,7 +156,7 @@ export function ScheduleEditModal({ id, transaction }: ScheduleEditModalProps) {
   }
 
   async function onEditRule(id: string) {
-    const rule = await send('rule-get', { id });
+    const rule = await send('rule-get', {id});
 
     if (!rule) {
       return;
@@ -186,7 +174,7 @@ export function ScheduleEditModal({ id, transaction }: ScheduleEditModalProps) {
                 throw new Error('Schedule found');
               }
 
-              dispatch({ type: 'set-schedule', schedule });
+              dispatch({type: 'set-schedule', schedule});
             },
           },
         },
@@ -201,29 +189,28 @@ export function ScheduleEditModal({ id, transaction }: ScheduleEditModalProps) {
         schedule: scheduleId,
       })),
     });
-    selectedInst.dispatch({ type: 'select-none' });
+    selectedInst.dispatch({type: 'select-none'});
   }
 
   async function onUnlinkTransactions(ids: string[]) {
     await send('transactions-batch-update', {
-      updated: ids.map(id => ({ id, schedule: null })),
+      updated: ids.map(id => ({id, schedule: null})),
     });
-    selectedInst.dispatch({ type: 'select-none' });
+    selectedInst.dispatch({type: 'select-none'});
   }
 
-  const { schedule } = state;
+  const {schedule} = state;
 
   if (schedule == null) {
     return null;
   }
 
   function onSwitchTransactions(mode: 'linked' | 'matched') {
-    dispatch({ type: 'switch-transactions', mode });
-    selectedInst.dispatch({ type: 'select-none' });
+    dispatch({type: 'switch-transactions', mode});
+    selectedInst.dispatch({type: 'select-none'});
   }
 
-  const payee =
-    payees && state.fields.payee ? payees[state.fields.payee] : null;
+  const payee = payees && state.fields.payee ? payees[state.fields.payee] : null;
   // This is derived from the date
   const repeats =
     state.fields.date && typeof state.fields.date !== 'string'
@@ -231,17 +218,11 @@ export function ScheduleEditModal({ id, transaction }: ScheduleEditModalProps) {
       : false;
   return (
     <Modal name="schedule-edit">
-      {({ state: modalState }) => (
+      {({state: modalState}) => (
         <>
           <ModalHeader
-            title={
-              payee
-                ? t(`Schedule: {{name}}`, { name: payee.name })
-                : t('Schedule')
-            }
-            rightContent={
-              <ModalCloseButton onPress={() => modalState.close()} />
-            }
+            title={payee ? t(`Schedule: {{name}}`, {name: payee.name}) : t('Schedule')}
+            rightContent={<ModalCloseButton onPress={() => modalState.close()} />}
           />
           <ScheduleEditForm
             fields={state.fields}
@@ -271,10 +252,7 @@ export function ScheduleEditModal({ id, transaction }: ScheduleEditModalProps) {
             <Button onPress={() => modalState.close()}>
               <Trans>Cancel</Trans>
             </Button>
-            <Button
-              variant="primary"
-              onPress={() => onSave(() => modalState.close())}
-            >
+            <Button variant="primary" onPress={() => onSave(() => modalState.close())}>
               {adding ? t('Add') : t('Save')}
             </Button>
           </SpaceBetween>

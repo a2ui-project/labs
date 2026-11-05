@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 
-import { categoryQueries } from '#budget';
+import {categoryQueries} from '#budget';
 
 export function useCategory(id?: string | null) {
   return useQuery({

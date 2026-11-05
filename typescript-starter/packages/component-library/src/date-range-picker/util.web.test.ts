@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 import {
   clamp,
@@ -92,9 +92,7 @@ describe('date helpers', () => {
   });
 
   it('formats month- and day-shaped values without timezone shifts', () => {
-    expect(
-      formatDate('2020-01', 'en-US', { month: 'short', year: 'numeric' }),
-    ).toBe('Jan 2020');
+    expect(formatDate('2020-01', 'en-US', {month: 'short', year: 'numeric'})).toBe('Jan 2020');
     expect(
       formatDate('2020-01-15', 'en-US', {
         year: 'numeric',

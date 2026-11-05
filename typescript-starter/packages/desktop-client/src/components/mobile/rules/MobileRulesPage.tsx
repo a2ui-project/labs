@@ -14,50 +14,50 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { listen, send } from '@actual-app/core/platform/client/connection';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {listen, send} from '@actual-app/core/platform/client/connection';
 import * as undo from '@actual-app/core/platform/client/undo';
-import { getNormalisedString } from '@actual-app/core/shared/normalisation';
-import { q } from '@actual-app/core/shared/query';
-import type { RuleEntity } from '@actual-app/core/types/models';
+import {getNormalisedString} from '@actual-app/core/shared/normalisation';
+import {q} from '@actual-app/core/shared/query';
+import type {RuleEntity} from '@actual-app/core/types/models';
 
-import { Search } from '#components/common/Search';
-import { ruleToString } from '#components/ManageRules';
-import { MobilePageHeader, Page } from '#components/Page';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useNavigate } from '#hooks/useNavigate';
-import { usePayees } from '#hooks/usePayees';
-import { useSchedules } from '#hooks/useSchedules';
-import { useUndo } from '#hooks/useUndo';
-import { useUrlParam } from '#hooks/useUrlParam';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {Search} from '#components/common/Search';
+import {ruleToString} from '#components/ManageRules';
+import {MobilePageHeader, Page} from '#components/Page';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useNavigate} from '#hooks/useNavigate';
+import {usePayees} from '#hooks/usePayees';
+import {useSchedules} from '#hooks/useSchedules';
+import {useUndo} from '#hooks/useUndo';
+import {useUrlParam} from '#hooks/useUrlParam';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
-import { AddRuleButton } from './AddRuleButton';
-import { RulesList } from './RulesList';
+import {AddRuleButton} from './AddRuleButton';
+import {RulesList} from './RulesList';
 
 export function MobileRulesPage() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
   const [visibleRulesParam] = useUrlParam('visible-rules');
   const [allRules, setAllRules] = useState<RuleEntity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('');
 
-  const { schedules = [] } = useSchedules({
+  const {schedules = []} = useSchedules({
     query: useMemo(() => q('schedules').select('*'), []),
   });
-  const { data: { list: categories } = { list: [] } } = useCategories();
-  const { data: payees = [] } = usePayees();
-  const { data: accounts = [] } = useAccounts();
+  const {data: {list: categories} = {list: []}} = useCategories();
+  const {data: payees = []} = usePayees();
+  const {data: accounts = []} = useAccounts();
   const filterData = useMemo(
     () => ({
       payees,
@@ -73,9 +73,7 @@ export function MobileRulesPage() {
       return allRules;
     }
 
-    const visibleRuleIdsSet = new Set(
-      visibleRulesParam.split(',').map(id => id.trim()),
-    );
+    const visibleRuleIdsSet = new Set(visibleRulesParam.split(',').map(id => id.trim()));
     return allRules.filter(rule => visibleRuleIdsSet.has(rule.id));
   }, [allRules, visibleRulesParam]);
 
@@ -88,9 +86,7 @@ export function MobileRulesPage() {
     return filter === ''
       ? rules
       : rules.filter(rule =>
-          getNormalisedString(ruleToString(rule, filterData)).includes(
-            getNormalisedString(filter),
-          ),
+          getNormalisedString(ruleToString(rule, filterData)).includes(getNormalisedString(filter)),
         );
   }, [visibleRules, filter, filterData, schedules]);
 
@@ -143,18 +139,14 @@ export function MobileRulesPage() {
   const handleRuleDelete = useCallback(
     async (rule: RuleEntity) => {
       try {
-        const { someDeletionsFailed } = await send('rule-delete-all', [
-          rule.id,
-        ]);
+        const {someDeletionsFailed} = await send('rule-delete-all', [rule.id]);
 
         if (someDeletionsFailed) {
           dispatch(
             addNotification({
               notification: {
                 type: 'warning',
-                message: t(
-                  'This rule could not be deleted because it is linked to a schedule.',
-                ),
+                message: t('This rule could not be deleted because it is linked to a schedule.'),
               },
             }),
           );
@@ -183,9 +175,7 @@ export function MobileRulesPage() {
 
   return (
     <Page
-      header={
-        <MobilePageHeader title={t('Rules')} rightContent={<AddRuleButton />} />
-      }
+      header={<MobilePageHeader title={t('Rules')} rightContent={<AddRuleButton />} />}
       padding={0}
     >
       <View

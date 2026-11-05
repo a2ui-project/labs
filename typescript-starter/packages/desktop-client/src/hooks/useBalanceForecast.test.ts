@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { buildBalanceForecastRequest } from './useBalanceForecast';
+import {buildBalanceForecastRequest} from './useBalanceForecast';
 
 describe('buildBalanceForecastRequest', () => {
   it('keeps schedule forecast filters and account selection', () => {
     expect(
       buildBalanceForecastRequest({
         accountIds: ['acct'],
-        conditions: [{ field: 'account', op: 'is', value: 'acct' }],
+        conditions: [{field: 'account', op: 'is', value: 'acct'}],
         conditionsOp: 'and',
         startDate: '2024-03-01',
         endDate: '2024-03-31',
@@ -32,7 +32,7 @@ describe('buildBalanceForecastRequest', () => {
       }),
     ).toEqual({
       accountIds: ['acct'],
-      conditions: [{ field: 'account', op: 'is', value: 'acct' }],
+      conditions: [{field: 'account', op: 'is', value: 'acct'}],
       conditionsOp: 'and',
       startDate: '2024-03-01',
       endDate: '2024-03-31',

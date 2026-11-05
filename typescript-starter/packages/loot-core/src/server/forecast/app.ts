@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-import { createApp } from '#server/app';
+import {createApp} from '#server/app';
 import * as db from '#server/db';
-import type { RuleConditionEntity } from '#types/models';
-import type { ForecastResult, ForecastSource } from '#types/models/forecast';
+import type {RuleConditionEntity} from '#types/models';
+import type {ForecastResult, ForecastSource} from '#types/models/forecast';
 
-import { resolveForecastAccounts } from './forecast-accounts';
-import type {
-  AccountWithComputedBalance,
-  DbAccountForRules,
-} from './forecast-accounts';
-import { buildFilterInfo, getTransactions } from './forecast-filters';
+import {resolveForecastAccounts} from './forecast-accounts';
+import type {AccountWithComputedBalance, DbAccountForRules} from './forecast-accounts';
+import {buildFilterInfo, getTransactions} from './forecast-filters';
 import {
   buildForecastDateContext,
   createEmptyForecastResult,
@@ -35,7 +32,7 @@ import {
   FORECAST_UNASSIGNED_ACCOUNT_ID,
   getNormalizedSchedules,
 } from './forecast-schedules';
-import { projectTrackingBudgetForecast } from './forecast-tracking-budget';
+import {projectTrackingBudgetForecast} from './forecast-tracking-budget';
 
 export type ForecastRequestParams = {
   accountIds?: string[];
@@ -83,16 +80,14 @@ export async function generateForecast({
   const dateContext = buildForecastDateContext(startDate, endDate);
 
   if (source === 'tracking-budget') {
-    const { value: budgetType = 'envelope' } =
+    const {value: budgetType = 'envelope'} =
       (await db.first<Pick<db.DbPreference, 'value'>>(
         `SELECT value FROM preferences WHERE id = ?`,
         ['budgetType'],
       )) ?? {};
 
     if (budgetType !== 'tracking') {
-      throw new Error(
-        'Tracking budget forecasts require a Tracking Budget file.',
-      );
+      throw new Error('Tracking budget forecasts require a Tracking Budget file.');
     }
 
     const accounts = await resolveForecastAccounts({
@@ -101,7 +96,7 @@ export async function generateForecast({
       resolvedConditionsOp: 'and',
       canRestrictAccounts: false,
     });
-    const { dataPoints, lowestBalance } = projectTrackingBudgetForecast({
+    const {dataPoints, lowestBalance} = projectTrackingBudgetForecast({
       accounts,
       dateContext,
     });
@@ -114,7 +109,7 @@ export async function generateForecast({
     };
   }
 
-  const { filterInfo, plainConditions, resolvedConditionsOp } = buildFilterInfo(
+  const {filterInfo, plainConditions, resolvedConditionsOp} = buildFilterInfo(
     conditions,
     conditionsOp,
   );
@@ -126,10 +121,7 @@ export async function generateForecast({
   });
 
   if (accounts.length === 0) {
-    return createEmptyForecastResult(
-      dateContext.forecastStartDate,
-      dateContext.forecastEndDate,
-    );
+    return createEmptyForecastResult(dateContext.forecastStartDate, dateContext.forecastEndDate);
   }
 
   if (
@@ -148,18 +140,11 @@ export async function generateForecast({
   ]);
   const schedules = includeUnassigned
     ? schedulesRaw
-    : schedulesRaw.filter(
-        schedule => schedule._account !== FORECAST_UNASSIGNED_ACCOUNT_ID,
-      );
+    : schedulesRaw.filter(schedule => schedule._account !== FORECAST_UNASSIGNED_ACCOUNT_ID);
 
-  const ruleAccountsById = new Map(
-    ruleAccounts.map(account => [account.id, account]),
-  );
+  const ruleAccountsById = new Map(ruleAccounts.map(account => [account.id, account]));
   if (includeUnassigned) {
-    ruleAccountsById.set(
-      FORECAST_UNASSIGNED_ACCOUNT_ID,
-      createUnassignedRuleAccountStub(),
-    );
+    ruleAccountsById.set(FORECAST_UNASSIGNED_ACCOUNT_ID, createUnassignedRuleAccountStub());
   }
 
   const futureOccurrences = await buildFutureScheduleOccurrences(
@@ -169,7 +154,7 @@ export async function generateForecast({
     ruleAccountsById,
     transactions,
   );
-  const { dataPoints, lowestBalance } = projectForecastData({
+  const {dataPoints, lowestBalance} = projectForecastData({
     accounts,
     transactions,
     futureOccurrences,

@@ -15,32 +15,23 @@
  */
 
 import React from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {ComponentPropsWithoutRef} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
+import {Menu} from '@actual-app/components/menu';
 
-import { trackingBudget } from '#spreadsheet/bindings';
+import {trackingBudget} from '#spreadsheet/bindings';
 
-import { useTrackingSheetValue } from './TrackingBudgetComponents';
+import {useTrackingSheetValue} from './TrackingBudgetComponents';
 
-type BalanceMenuProps = Omit<
-  ComponentPropsWithoutRef<typeof Menu>,
-  'onMenuSelect' | 'items'
-> & {
+type BalanceMenuProps = Omit<ComponentPropsWithoutRef<typeof Menu>, 'onMenuSelect' | 'items'> & {
   categoryId: string;
   onCarryover: (carryover: boolean) => void;
 };
 
-export function BalanceMenu({
-  categoryId,
-  onCarryover,
-  ...props
-}: BalanceMenuProps) {
-  const { t } = useTranslation();
-  const carryover = useTrackingSheetValue(
-    trackingBudget.catCarryover(categoryId),
-  );
+export function BalanceMenu({categoryId, onCarryover, ...props}: BalanceMenuProps) {
+  const {t} = useTranslation();
+  const carryover = useTrackingSheetValue(trackingBudget.catCarryover(categoryId));
   return (
     <Menu
       {...props}
@@ -56,9 +47,7 @@ export function BalanceMenu({
       items={[
         {
           name: 'carryover',
-          text: carryover
-            ? t('Remove overspending rollover')
-            : t('Rollover overspending'),
+          text: carryover ? t('Remove overspending rollover') : t('Rollover overspending'),
         },
       ]}
     />

@@ -15,23 +15,23 @@
  */
 
 import React from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { AccountEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity} from '@actual-app/core/types/models';
 
-import { useUnlinkAccountMutation } from '#accounts';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {useUnlinkAccountMutation} from '#accounts';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
-import { BankSyncCheckboxOptions } from './BankSyncCheckboxOptions';
-import { FieldMapping } from './FieldMapping';
-import { useBankSyncAccountSettings } from './useBankSyncAccountSettings';
+import {BankSyncCheckboxOptions} from './BankSyncCheckboxOptions';
+import {FieldMapping} from './FieldMapping';
+import {useBankSyncAccountSettings} from './useBankSyncAccountSettings';
 
 export type TransactionDirection = 'payment' | 'deposit';
 
@@ -138,29 +138,23 @@ function getByPath(obj: unknown, path: string): unknown {
   return current;
 }
 
-export const getFields = (
-  transaction: Record<string, unknown>,
-): MappableFieldWithExample[] =>
+export const getFields = (transaction: Record<string, unknown>): MappableFieldWithExample[] =>
   mappableFields.map(field => ({
     actualField: field.actualField,
     syncFields: field.syncFields
       .map(syncField => {
         const value = getByPath(transaction, syncField);
-        return value !== undefined
-          ? { field: syncField, example: String(value) }
-          : null;
+        return value !== undefined ? {field: syncField, example: String(value)} : null;
       })
-      .filter(
-        (item): item is { field: string; example: string } => item !== null,
-      ),
+      .filter((item): item is {field: string; example: string} => item !== null),
   }));
 
 export type EditSyncAccountProps = {
   account: AccountEntity;
 };
 
-export function EditSyncAccount({ account }: EditSyncAccountProps) {
-  const { t } = useTranslation();
+export function EditSyncAccount({account}: EditSyncAccountProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
 
   const {
@@ -198,7 +192,7 @@ export function EditSyncAccount({ account }: EditSyncAccountProps) {
             isViewBankSyncSettings: true,
             onUnlink: () => {
               unlinkAccount.mutate(
-                { id: account.id },
+                {id: account.id},
                 {
                   onSuccess: close,
                 },
@@ -213,15 +207,11 @@ export function EditSyncAccount({ account }: EditSyncAccountProps) {
   const potentiallyTruncatedAccountName =
     account.name.length > 30 ? account.name.slice(0, 30) + '...' : account.name;
 
-  const mapping =
-    mappings.get(transactionDirection) ?? new Map<string, string>();
+  const mapping = mappings.get(transactionDirection) ?? new Map<string, string>();
 
   return (
-    <Modal
-      name="synced-account-edit"
-      containerProps={{ style: { width: 800 } }}
-    >
-      {({ state }) => (
+    <Modal name="synced-account-edit" containerProps={{style: {width: 800}}}>
+      {({state}) => (
         <>
           <ModalHeader
             title={t('{{accountName}} bank sync settings', {
@@ -230,7 +220,7 @@ export function EditSyncAccount({ account }: EditSyncAccountProps) {
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
 
-          <Text style={{ fontSize: 15 }}>
+          <Text style={{fontSize: 15}}>
             <Trans>Field mapping</Trans>
           </Text>
 
@@ -242,7 +232,7 @@ export function EditSyncAccount({ account }: EditSyncAccountProps) {
             setMapping={setMapping}
           />
 
-          <Text style={{ fontSize: 15, margin: '1em 0 .5em 0' }}>
+          <Text style={{fontSize: 15, margin: '1em 0 .5em 0'}}>
             <Trans>Options</Trans>
           </Text>
 
@@ -270,7 +260,7 @@ export function EditSyncAccount({ account }: EditSyncAccountProps) {
             }}
           >
             <Button
-              style={{ color: theme.errorText }}
+              style={{color: theme.errorText}}
               onPress={() => {
                 void onUnlink(() => state.close());
               }}

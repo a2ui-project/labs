@@ -14,36 +14,28 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgCode } from '@actual-app/components/icons/v1';
-import { Menu } from '@actual-app/components/menu';
-import { Select } from '@actual-app/components/select';
-import { Text } from '@actual-app/components/text';
-import { theme as themeStyle } from '@actual-app/components/theme';
-import { tokens } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
-import type { DarkTheme, Theme } from '@actual-app/core/types/prefs';
-import { css } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {SvgCode} from '@actual-app/components/icons/v1';
+import {Menu} from '@actual-app/components/menu';
+import {Select} from '@actual-app/components/select';
+import {Text} from '@actual-app/components/text';
+import {theme as themeStyle} from '@actual-app/components/theme';
+import {tokens} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
+import type {DarkTheme, Theme} from '@actual-app/core/types/prefs';
+import {css} from '@emotion/css';
 
-import { useSidebar } from '#components/sidebar/SidebarProvider';
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import {
-  darkThemeOptions,
-  themeOptions,
-  usePreferredDarkTheme,
-  useTheme,
-} from '#style';
-import {
-  parseInstalledTheme,
-  serializeInstalledTheme,
-} from '#style/customThemes';
-import type { InstalledTheme } from '#style/customThemes';
+import {useSidebar} from '#components/sidebar/SidebarProvider';
+import {useGlobalPref} from '#hooks/useGlobalPref';
+import {darkThemeOptions, themeOptions, usePreferredDarkTheme, useTheme} from '#style';
+import {parseInstalledTheme, serializeInstalledTheme} from '#style/customThemes';
+import type {InstalledTheme} from '#style/customThemes';
 
-import { ThemeInstaller } from './ThemeInstaller';
-import { Column, Setting } from './UI';
+import {ThemeInstaller} from './ThemeInstaller';
+import {Column, Setting} from './UI';
 
 const INSTALL_NEW_VALUE = '__install_new__';
 const INSTALL_CUSTOM_LIGHT = '__install_custom_light__';
@@ -56,7 +48,7 @@ type InstallerState = {
 } | null;
 
 export function ThemeSettings() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const sidebar = useSidebar();
   const [theme, switchTheme] = useTheme();
   const [darkTheme, switchDarkTheme] = usePreferredDarkTheme();
@@ -73,15 +65,11 @@ export function ThemeSettings() {
   const [customCssOverride] = useGlobalPref('customCssOverride');
   const hasCustomCssOverride = Boolean(customCssOverride?.trim());
 
-  const installedCustomLightTheme = parseInstalledTheme(
-    installedLightThemeJson,
-  );
+  const installedCustomLightTheme = parseInstalledTheme(installedLightThemeJson);
   const installedCustomDarkTheme = parseInstalledTheme(installedDarkThemeJson);
 
   const buildOptions = useCallback(() => {
-    const options: Array<readonly [string, string] | typeof Menu.line> = [
-      ...themeOptions,
-    ];
+    const options: Array<readonly [string, string] | typeof Menu.line> = [...themeOptions];
 
     if (theme !== 'auto' && installedCustomLightTheme) {
       options.push([
@@ -96,9 +84,7 @@ export function ThemeSettings() {
   }, [installedCustomLightTheme, theme, t]);
 
   const buildLightOptions = useCallback(() => {
-    const options: Array<readonly [string, string] | typeof Menu.line> = [
-      ['light', t('Light')],
-    ];
+    const options: Array<readonly [string, string] | typeof Menu.line> = [['light', t('Light')]];
     if (installedCustomLightTheme) {
       options.push([
         `custom-light:${installedCustomLightTheme.id}`,
@@ -111,9 +97,7 @@ export function ThemeSettings() {
   }, [installedCustomLightTheme, t]);
 
   const buildDarkOptions = useCallback(() => {
-    const options: Array<readonly [string, string] | typeof Menu.line> = [
-      ...darkThemeOptions,
-    ];
+    const options: Array<readonly [string, string] | typeof Menu.line> = [...darkThemeOptions];
     if (installedCustomDarkTheme) {
       options.push([
         `custom-dark:${installedCustomDarkTheme.id}`,
@@ -154,7 +138,7 @@ export function ThemeSettings() {
   const handleLightThemeChange = useCallback(
     (value: string) => {
       if (value === INSTALL_CUSTOM_LIGHT) {
-        setShowInstaller({ slot: 'light', catalogMode: 'light' });
+        setShowInstaller({slot: 'light', catalogMode: 'light'});
         return;
       }
       if (value === 'light') {
@@ -167,7 +151,7 @@ export function ThemeSettings() {
   const handleDarkThemeChange = useCallback(
     (value: string) => {
       if (value === INSTALL_CUSTOM_DARK) {
-        setShowInstaller({ slot: 'dark', catalogMode: 'dark' });
+        setShowInstaller({slot: 'dark', catalogMode: 'dark'});
         return;
       }
       if (!value.startsWith('custom-dark:')) {
@@ -201,11 +185,7 @@ export function ThemeSettings() {
   }, []);
 
   const handleEditOverride = useCallback(() => {
-    setShowInstaller(
-      theme === 'auto'
-        ? { slot: 'light', catalogMode: 'light' }
-        : { slot: 'light' },
-    );
+    setShowInstaller(theme === 'auto' ? {slot: 'light', catalogMode: 'light'} : {slot: 'light'});
   }, [theme]);
 
   return (
@@ -225,9 +205,7 @@ export function ThemeSettings() {
                 gap: '1em',
                 width: '100%',
                 [`@media (min-width: ${
-                  sidebar.floating
-                    ? tokens.breakpoint_small
-                    : tokens.breakpoint_medium
+                  sidebar.floating ? tokens.breakpoint_small : tokens.breakpoint_medium
                 })`]: {
                   flexDirection: 'row',
                 },
@@ -255,9 +233,7 @@ export function ThemeSettings() {
                   {hasCustomCssOverride && (
                     <Button
                       variant="bare"
-                      aria-label={t(
-                        'Custom CSS override active — click to edit',
-                      )}
+                      aria-label={t('Custom CSS override active — click to edit')}
                       onPress={handleEditOverride}
                       style={{
                         color: themeStyle.pageTextPositive,
@@ -265,7 +241,7 @@ export function ThemeSettings() {
                       }}
                     >
                       <Trans>Custom CSS is active</Trans>
-                      <SvgCode style={{ width: 14, height: 14 }} />
+                      <SvgCode style={{width: 14, height: 14}} />
                     </Button>
                   )}
                 </View>
@@ -283,8 +259,7 @@ export function ThemeSettings() {
                       options={buildLightOptions()}
                       className={css({
                         '&[data-hovered]': {
-                          backgroundColor:
-                            themeStyle.buttonNormalBackgroundHover,
+                          backgroundColor: themeStyle.buttonNormalBackgroundHover,
                         },
                         maxWidth: '100%',
                       })}
@@ -301,8 +276,7 @@ export function ThemeSettings() {
                       options={buildDarkOptions()}
                       className={css({
                         '&[data-hovered]': {
-                          backgroundColor:
-                            themeStyle.buttonNormalBackgroundHover,
+                          backgroundColor: themeStyle.buttonNormalBackgroundHover,
                         },
                         maxWidth: '100%',
                       })}
@@ -318,9 +292,7 @@ export function ThemeSettings() {
               onInstall={handleInstall}
               onClose={handleInstallerClose}
               installedTheme={
-                showInstaller.slot === 'dark'
-                  ? installedCustomDarkTheme
-                  : installedCustomLightTheme
+                showInstaller.slot === 'dark' ? installedCustomDarkTheme : installedCustomLightTheme
               }
               mode={showInstaller.catalogMode}
             />

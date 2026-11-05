@@ -15,13 +15,13 @@
  */
 
 import React from 'react';
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { Text } from '@actual-app/components/text';
-import { View } from '@actual-app/components/view';
+import {Text} from '@actual-app/components/text';
+import {View} from '@actual-app/components/view';
 
-import { Link } from '#components/common/Link';
-import { useServerURL } from '#components/ServerContext';
+import {Link} from '#components/common/Link';
+import {useServerURL} from '#components/ServerContext';
 
 export function ServerURL() {
   const url = useServerURL();
@@ -48,7 +48,7 @@ export function ServerURL() {
           <Trans>Using this device only</Trans>
         )}
       </Text>
-      <Link variant="internal" to="/config-server" style={{ marginLeft: 15 }}>
+      <Link variant="internal" to="/config-server" style={{marginLeft: 15}}>
         {url ? <Trans>Change</Trans> : <Trans>Set up sync</Trans>}
       </Link>
     </View>

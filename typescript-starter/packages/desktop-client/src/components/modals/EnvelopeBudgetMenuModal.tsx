@@ -14,43 +14,32 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import type { CSSProperties } from 'react';
-import { Trans } from 'react-i18next';
+import React, {useState} from 'react';
+import type {CSSProperties} from 'react';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import {
-  SvgCheveronDown,
-  SvgCheveronUp,
-} from '@actual-app/components/icons/v1';
-import { SvgNotesPaper } from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { amountToInteger, integerToAmount } from '@actual-app/core/shared/util';
-import { t } from 'i18next';
+import {Button} from '@actual-app/components/button';
+import {SvgCheveronDown, SvgCheveronUp} from '@actual-app/components/icons/v1';
+import {SvgNotesPaper} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {amountToInteger, integerToAmount} from '@actual-app/core/shared/util';
+import {t} from 'i18next';
 
-import { BudgetMenu } from '#components/budget/envelope/BudgetMenu';
-import { useEnvelopeSheetValue } from '#components/budget/envelope/EnvelopeBudgetComponents';
-import {
-  Modal,
-  ModalCloseButton,
-  ModalHeader,
-  ModalTitle,
-} from '#components/common/Modal';
-import { AmountInput } from '#components/mobile/transactions/AmountInput';
-import { Notes } from '#components/Notes';
-import { useCategory } from '#hooks/useCategory';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useNotes } from '#hooks/useNotes';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {BudgetMenu} from '#components/budget/envelope/BudgetMenu';
+import {useEnvelopeSheetValue} from '#components/budget/envelope/EnvelopeBudgetComponents';
+import {Modal, ModalCloseButton, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {AmountInput} from '#components/mobile/transactions/AmountInput';
+import {Notes} from '#components/Notes';
+import {useCategory} from '#hooks/useCategory';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useNotes} from '#hooks/useNotes';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
-type EnvelopeBudgetMenuModalProps = Extract<
-  ModalType,
-  { name: 'envelope-budget-menu' }
->['options'];
+type EnvelopeBudgetMenuModalProps = Extract<ModalType, {name: 'envelope-budget-menu'}>['options'];
 
 export function EnvelopeBudgetMenuModal({
   categoryId,
@@ -76,10 +65,8 @@ export function EnvelopeBudgetMenuModal({
     borderTop: `1px solid ${theme.pillBorder}`,
   };
 
-  const budgeted = useEnvelopeSheetValue(
-    envelopeBudget.catBudgeted(categoryId),
-  );
-  const { data: category } = useCategory(categoryId);
+  const budgeted = useEnvelopeSheetValue(envelopeBudget.catBudgeted(categoryId));
+  const {data: category} = useCategory(categoryId);
   const mobileCalculatorEnabled = useFeatureFlag('mobileCalculator');
 
   const notesId = category ? `${category.id}-${month}` : '';
@@ -108,10 +95,10 @@ export function EnvelopeBudgetMenuModal({
     <Modal
       name="envelope-budget-menu"
       wrapperProps={{
-        style: mobileCalculatorEnabled ? { paddingBottom: '30vh' } : undefined,
+        style: mobileCalculatorEnabled ? {paddingBottom: '30vh'} : undefined,
       }}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={<ModalTitle title={category.name} shrinkOnOverflow />}
@@ -172,28 +159,16 @@ export function EnvelopeBudgetMenuModal({
             }}
           >
             <Button style={buttonStyle} onPress={_onEditNotes}>
-              <SvgNotesPaper
-                width={20}
-                height={20}
-                style={{ paddingRight: 5 }}
-              />
+              <SvgNotesPaper width={20} height={20} style={{paddingRight: 5}} />
               <Trans>Edit notes</Trans>
             </Button>
           </View>
           <View>
             <Button variant="bare" style={buttonStyle} onPress={onShowMore}>
               {!showMore ? (
-                <SvgCheveronUp
-                  width={30}
-                  height={30}
-                  style={{ paddingRight: 5 }}
-                />
+                <SvgCheveronUp width={30} height={30} style={{paddingRight: 5}} />
               ) : (
-                <SvgCheveronDown
-                  width={30}
-                  height={30}
-                  style={{ paddingRight: 5 }}
-                />
+                <SvgCheveronDown width={30} height={30} style={{paddingRight: 5}} />
               )}
               <Trans>Actions</Trans>
             </Button>

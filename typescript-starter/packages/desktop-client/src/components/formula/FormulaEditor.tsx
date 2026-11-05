@@ -14,31 +14,24 @@
  * limitations under the License.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode, RefObject } from 'react';
-import { Trans } from 'react-i18next';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {ReactNode, RefObject} from 'react';
+import {Trans} from 'react-i18next';
 
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { EditorView } from '@codemirror/view';
-import CodeMirror, { EditorState } from '@uiw/react-codemirror';
-import type { ReactCodeMirrorProps } from '@uiw/react-codemirror';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {EditorView} from '@codemirror/view';
+import CodeMirror, {EditorState} from '@uiw/react-codemirror';
+import type {ReactCodeMirrorProps} from '@uiw/react-codemirror';
 
-import { autocompleteTabAcceptHighest } from '#components/codemirror/autocompleteTabAccept';
-import { DateSelect } from '#components/select/DateSelect';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useTheme } from '#style/theme';
+import {autocompleteTabAcceptHighest} from '#components/codemirror/autocompleteTabAccept';
+import {DateSelect} from '#components/select/DateSelect';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useTheme} from '#style/theme';
 
-import {
-  excelFormulaExtension,
-  formatMonthYear,
-  parseMonthYear,
-} from './codeMirror-excelLanguage';
-import type {
-  FormulaBadgeClick,
-  MonthYearFormat,
-} from './codeMirror-excelLanguage';
-import { budgetQueryDimensions } from './formulaCatalog';
+import {excelFormulaExtension, formatMonthYear, parseMonthYear} from './codeMirror-excelLanguage';
+import type {FormulaBadgeClick, MonthYearFormat} from './codeMirror-excelLanguage';
+import {budgetQueryDimensions} from './formulaCatalog';
 
 type FormulaMode = 'transaction' | 'query';
 
@@ -91,12 +84,9 @@ export function FormulaEditor({
   const [activeTheme] = useTheme();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
   const [queryPicker, setQueryPicker] = useState<BadgePickerState | null>(null);
-  const [dimensionPicker, setDimensionPicker] =
-    useState<BadgePickerState | null>(null);
-  const [timeframePicker, setTimeframePicker] =
-    useState<TimeframePickerState | null>(null);
-  const [categoryPicker, setCategoryPicker] =
-    useState<CategoryPickerState | null>(null);
+  const [dimensionPicker, setDimensionPicker] = useState<BadgePickerState | null>(null);
+  const [timeframePicker, setTimeframePicker] = useState<TimeframePickerState | null>(null);
+  const [categoryPicker, setCategoryPicker] = useState<CategoryPickerState | null>(null);
   const suppressBadgePickerUntilRef = useRef(0);
   const badgePickerPopoverRef = useRef<HTMLDivElement | null>(null);
 
@@ -146,8 +136,7 @@ export function FormulaEditor({
       if (details.variant === 'budget-category-list') {
         setCategoryPicker({
           ...picker,
-          selectedCategoryIds:
-            details.categories?.map(category => category.id) ?? [],
+          selectedCategoryIds: details.categories?.map(category => category.id) ?? [],
         });
         return;
       }
@@ -173,7 +162,7 @@ export function FormulaEditor({
           to: picker.to,
           insert: replacement,
         },
-        selection: { anchor: picker.from + replacement.length },
+        selection: {anchor: picker.from + replacement.length},
       });
       suppressBadgePickerUntilRef.current = Date.now() + 300;
       picker.view.focus();
@@ -217,28 +206,17 @@ export function FormulaEditor({
       return;
     }
 
-    replaceBadgeValue(
-      categoryPicker,
-      categoryPicker.selectedCategoryIds.join(', '),
-    );
+    replaceBadgeValue(categoryPicker, categoryPicker.selectedCategoryIds.join(', '));
   }, [categoryPicker, replaceBadgeValue]);
 
   useEffect(() => {
-    if (
-      !queryPicker &&
-      !dimensionPicker &&
-      !timeframePicker &&
-      !categoryPicker
-    ) {
+    if (!queryPicker && !dimensionPicker && !timeframePicker && !categoryPicker) {
       return;
     }
 
     const onMouseDown = (event: MouseEvent) => {
       const target = event.target;
-      if (
-        target instanceof Node &&
-        badgePickerPopoverRef.current?.contains(target)
-      ) {
+      if (target instanceof Node && badgePickerPopoverRef.current?.contains(target)) {
         return;
       }
 
@@ -261,12 +239,7 @@ export function FormulaEditor({
   ]);
 
   useEffect(() => {
-    if (
-      !queryPicker &&
-      !dimensionPicker &&
-      !timeframePicker &&
-      !categoryPicker
-    ) {
+    if (!queryPicker && !dimensionPicker && !timeframePicker && !categoryPicker) {
       return;
     }
 
@@ -274,24 +247,13 @@ export function FormulaEditor({
       if (event.key === 'Escape') {
         event.preventDefault();
         closeBadgePickers();
-        (
-          queryPicker ??
-          dimensionPicker ??
-          timeframePicker ??
-          categoryPicker
-        )?.view.focus();
+        (queryPicker ?? dimensionPicker ?? timeframePicker ?? categoryPicker)?.view.focus();
       }
     };
 
     document.addEventListener('keydown', onKeyDown, true);
     return () => document.removeEventListener('keydown', onKeyDown, true);
-  }, [
-    closeBadgePickers,
-    categoryPicker,
-    dimensionPicker,
-    queryPicker,
-    timeframePicker,
-  ]);
+  }, [closeBadgePickers, categoryPicker, dimensionPicker, queryPicker, timeframePicker]);
 
   const extensions = useMemo(
     () => [
@@ -327,21 +289,10 @@ export function FormulaEditor({
       // Must come late + highest precedence so Tab accepts completion when the popup is open
       autocompleteTabAcceptHighest,
     ],
-    [
-      mode,
-      queries,
-      isDarkTheme,
-      disabled,
-      singleLine,
-      variables,
-      categoryBadges,
-      openBadgePicker,
-    ],
+    [mode, queries, isDarkTheme, disabled, singleLine, variables, categoryBadges, openBadgePicker],
   );
 
-  const codeMirrorTheme: ReactCodeMirrorProps['theme'] = isDarkTheme
-    ? 'dark'
-    : 'light';
+  const codeMirrorTheme: ReactCodeMirrorProps['theme'] = isDarkTheme ? 'dark' : 'light';
 
   return (
     <>
@@ -414,9 +365,7 @@ export function FormulaEditor({
             {Object.entries(categoryBadges).map(([categoryId, label]) => (
               <BadgeMenuButton
                 key={categoryId}
-                selected={categoryPicker.selectedCategoryIds.includes(
-                  categoryId,
-                )}
+                selected={categoryPicker.selectedCategoryIds.includes(categoryId)}
                 onClick={() => toggleCategoryPickerValue(categoryId)}
               >
                 {label}
@@ -432,11 +381,7 @@ export function FormulaEditor({
               margin: '4px 4px 0',
             }}
           >
-            <button
-              type="button"
-              onClick={closeBadgePickers}
-              style={pickerActionButtonStyle}
-            >
+            <button type="button" onClick={closeBadgePickers} style={pickerActionButtonStyle}>
               <Trans>Cancel</Trans>
             </button>
             <button

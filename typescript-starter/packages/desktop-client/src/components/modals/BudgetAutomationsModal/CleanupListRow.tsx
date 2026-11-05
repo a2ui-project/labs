@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { SvgRefresh } from '@actual-app/components/icons/v1';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {SvgRefresh} from '@actual-app/components/icons/v1';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import type { CleanupConfig } from '#components/budget/goals/cleanupModel';
-import { CleanupAutomationReadOnly } from '#components/budget/goals/editor/CleanupAutomationReadOnly';
-import type { CleanupGroup } from '#hooks/useCleanupGroups';
+import type {CleanupConfig} from '#components/budget/goals/cleanupModel';
+import {CleanupAutomationReadOnly} from '#components/budget/goals/editor/CleanupAutomationReadOnly';
+import type {CleanupGroup} from '#hooks/useCleanupGroups';
 
 type CleanupListRowProps = {
   config: CleanupConfig;
@@ -32,13 +32,8 @@ type CleanupListRowProps = {
   onSelect: () => void;
 };
 
-export function CleanupListRow({
-  config,
-  groups,
-  isActive,
-  onSelect,
-}: CleanupListRowProps) {
-  const { t } = useTranslation();
+export function CleanupListRow({config, groups, isActive, onSelect}: CleanupListRowProps) {
+  const {t} = useTranslation();
   const borderColor = isActive ? theme.tableBorderSelected : 'transparent';
   const backgroundColor = isActive ? theme.upcomingBackground : 'transparent';
 
@@ -71,18 +66,16 @@ export function CleanupListRow({
           width: 28,
           height: 28,
           borderRadius: 6,
-          backgroundColor: isActive
-            ? theme.upcomingBackground
-            : theme.pillBackground,
+          backgroundColor: isActive ? theme.upcomingBackground : theme.pillBackground,
           color: isActive ? theme.pageTextPositive : theme.pageTextLight,
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
         }}
       >
-        <SvgRefresh width={14} height={14} style={{ color: 'inherit' }} />
+        <SvgRefresh width={14} height={14} style={{color: 'inherit'}} />
       </View>
-      <View style={{ minWidth: 0, flex: 1 }}>
+      <View style={{minWidth: 0, flex: 1}}>
         <Text
           style={{
             fontSize: 12,

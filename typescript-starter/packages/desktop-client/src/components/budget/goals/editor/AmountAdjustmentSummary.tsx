@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { amountToInteger } from '@actual-app/core/shared/util';
-import type {
-  AverageTemplate,
-  ScheduleTemplate,
-} from '@actual-app/core/types/models/templates';
+import {amountToInteger} from '@actual-app/core/shared/util';
+import type {AverageTemplate, ScheduleTemplate} from '@actual-app/core/types/models/templates';
 
-import { useFormat } from '#hooks/useFormat';
+import {useFormat} from '#hooks/useFormat';
 
 type AmountAdjustmentSummaryProps = {
   template: ScheduleTemplate | AverageTemplate;
@@ -30,9 +27,7 @@ type AmountAdjustmentSummaryProps = {
 
 // Trailing clause for a template's increase or decrease adjustment, e.g.
 // "(increased by 10%)". Renders nothing when no adjustment is set.
-export function AmountAdjustmentSummary({
-  template,
-}: AmountAdjustmentSummaryProps) {
+export function AmountAdjustmentSummary({template}: AmountAdjustmentSummaryProps) {
   const format = useFormat();
 
   if (template.adjustment === undefined) {
@@ -43,20 +38,17 @@ export function AmountAdjustmentSummary({
   const magnitude = Math.abs(template.adjustment);
 
   if (template.adjustmentType === 'fixed') {
-    const amount = format(
-      amountToInteger(magnitude, format.currency.decimalPlaces),
-      'financial',
-    );
+    const amount = format(amountToInteger(magnitude, format.currency.decimalPlaces), 'financial');
     return increase ? (
-      <Trans>(increased by {{ amount }})</Trans>
+      <Trans>(increased by {{amount}})</Trans>
     ) : (
-      <Trans>(decreased by {{ amount }})</Trans>
+      <Trans>(decreased by {{amount}})</Trans>
     );
   }
 
   return increase ? (
-    <Trans>(increased by {{ percent: magnitude }}%)</Trans>
+    <Trans>(increased by {{percent: magnitude}}%)</Trans>
   ) : (
-    <Trans>(decreased by {{ percent: magnitude }}%)</Trans>
+    <Trans>(decreased by {{percent: magnitude}}%)</Trans>
   );
 }

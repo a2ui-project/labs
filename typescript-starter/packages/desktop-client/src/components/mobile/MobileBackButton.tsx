@@ -15,23 +15,19 @@
  */
 
 import React from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { Trans } from 'react-i18next';
+import type {ComponentPropsWithoutRef} from 'react';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgCheveronLeft } from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
+import {Button} from '@actual-app/components/button';
+import {SvgCheveronLeft} from '@actual-app/components/icons/v1';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
 
-import { useNavigate } from '#hooks/useNavigate';
+import {useNavigate} from '#hooks/useNavigate';
 
 type MobileBackButtonProps = ComponentPropsWithoutRef<typeof Button>;
 
-export function MobileBackButton({
-  onPress,
-  style,
-  ...props
-}: MobileBackButtonProps) {
+export function MobileBackButton({onPress, style, ...props}: MobileBackButtonProps) {
   const navigate = useNavigate();
   return (
     <Button
@@ -43,9 +39,7 @@ export function MobileBackButton({
       onPress={onPress || (() => navigate(-1))}
       {...props}
     >
-      <SvgCheveronLeft
-        style={{ width: 30, height: 30, margin: -10, marginLeft: -5 }}
-      />
+      <SvgCheveronLeft style={{width: 30, height: 30, margin: -10, marginLeft: -5}} />
       <Text
         style={{
           ...styles.text,

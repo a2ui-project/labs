@@ -15,27 +15,22 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
 
-import { CategoryGroupAutocomplete } from '#components/autocomplete/CategoryGroupAutocomplete';
-import {
-  Modal,
-  ModalCloseButton,
-  ModalHeader,
-  ModalTitle,
-} from '#components/common/Modal';
-import { SectionLabel } from '#components/forms';
-import { SheetNameProvider } from '#hooks/useSheetName';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {CategoryGroupAutocomplete} from '#components/autocomplete/CategoryGroupAutocomplete';
+import {Modal, ModalCloseButton, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {SectionLabel} from '#components/forms';
+import {SheetNameProvider} from '#hooks/useSheetName';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
 type CategoryGroupAutocompleteModalProps = Extract<
   ModalType,
-  { name: 'category-group-autocomplete' }
+  {name: 'category-group-autocomplete'}
 >['options'];
 
 export function CategoryGroupAutocompleteModal({
@@ -48,11 +43,11 @@ export function CategoryGroupAutocompleteModal({
   clearOnSelect,
   onClose,
 }: CategoryGroupAutocompleteModalProps) {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
 
   const defaultAutocompleteProps = {
-    containerProps: { style: { height: isNarrowWidth ? '90vh' : 275 } },
+    containerProps: {style: {height: isNarrowWidth ? '90vh' : 275}},
   };
 
   return (
@@ -62,27 +57,25 @@ export function CategoryGroupAutocompleteModal({
       onClose={onClose}
       containerProps={{
         style: {
-          height: isNarrowWidth
-            ? 'calc(var(--visual-viewport-height) * 0.85)'
-            : 275,
+          height: isNarrowWidth ? 'calc(var(--visual-viewport-height) * 0.85)' : 275,
           backgroundColor: theme.menuAutoCompleteBackground,
         },
       }}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           {isNarrowWidth && (
             <ModalHeader
               title={
                 <ModalTitle
                   title={title || t('Category group')}
-                  getStyle={() => ({ color: theme.menuAutoCompleteText })}
+                  getStyle={() => ({color: theme.menuAutoCompleteText})}
                 />
               }
               rightContent={
                 <ModalCloseButton
                   onPress={() => state.close()}
-                  style={{ color: theme.menuAutoCompleteText }}
+                  style={{color: theme.menuAutoCompleteText}}
                 />
               }
             />
@@ -98,10 +91,8 @@ export function CategoryGroupAutocompleteModal({
                 }}
               />
             )}
-            <View style={{ flex: 1 }}>
-              <SheetNameProvider
-                name={month ? monthUtils.sheetForMonth(month) : ''}
-              >
+            <View style={{flex: 1}}>
+              <SheetNameProvider name={month ? monthUtils.sheetForMonth(month) : ''}>
                 <CategoryGroupAutocomplete
                   focused
                   embedded

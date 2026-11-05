@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class MobilePayeesPage {
   readonly page: Page;
@@ -26,7 +26,7 @@ export class MobilePayeesPage {
   constructor(page: Page) {
     this.page = page;
     this.searchBox = page.getByPlaceholder('Filter payees…');
-    this.payeesList = page.getByRole('grid', { name: 'Payees' });
+    this.payeesList = page.getByRole('grid', {name: 'Payees'});
     this.emptyMessage = page.getByText('No payees found.');
     this.loadingIndicator = page.getByTestId('animated-loading');
   }
@@ -86,6 +86,6 @@ export class MobilePayeesPage {
    * Wait for loading to complete
    */
   async waitForLoadingToComplete(timeout: number = 10000) {
-    await this.loadingIndicator.waitFor({ state: 'hidden', timeout });
+    await this.loadingIndicator.waitFor({state: 'hidden', timeout});
   }
 }

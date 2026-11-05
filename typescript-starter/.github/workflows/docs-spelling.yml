@@ -29,22 +29,22 @@ name: Check Spelling (Docs)
 on:
   push:
     branches:
-      - '**'
+      - "**"
     tags-ignore:
-      - '**'
+      - "**"
     paths:
-      - 'packages/docs/**'
-      - '.github/workflows/docs-spelling.yml'
-      - '.github/actions/docs-spelling/**'
+      - "packages/docs/**"
+      - ".github/workflows/docs-spelling.yml"
+      - ".github/actions/docs-spelling/**"
   pull_request:
     paths:
-      - 'packages/docs/**'
-      - '.github/workflows/docs-spelling.yml'
-      - '.github/actions/docs-spelling/**'
+      - "packages/docs/**"
+      - ".github/workflows/docs-spelling.yml"
+      - ".github/actions/docs-spelling/**"
     types:
-      - 'opened'
-      - 'reopened'
-      - 'synchronize'
+      - "opened"
+      - "reopened"
+      - "synchronize"
 
 permissions:
   contents: read

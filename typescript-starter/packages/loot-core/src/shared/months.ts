@@ -16,11 +16,11 @@
 
 // @ts-strict-ignore
 import * as d from 'date-fns';
-import type { Locale } from 'date-fns';
+import type {Locale} from 'date-fns';
 
-import { memoizeOne } from '#shared/memoize';
+import {memoizeOne} from '#shared/memoize';
 import * as Platform from '#shared/platform';
-import type { SyncedPrefs } from '#types/prefs';
+import type {SyncedPrefs} from '#types/prefs';
 
 type DateLike = string | Date;
 type Day = 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -130,10 +130,7 @@ export function weekFromDate(
   firstDayOfWeekIdx: SyncedPrefs['firstDayOfWeekIdx'],
 ): string {
   const converted = parseInt(firstDayOfWeekIdx || '0') as Day;
-  return d.format(
-    _parse(d.startOfWeek(_parse(date), { weekStartsOn: converted })),
-    'yyyy-MM-dd',
-  );
+  return d.format(_parse(d.startOfWeek(_parse(date), {weekStartsOn: converted})), 'yyyy-MM-dd');
 }
 
 export function firstDayOfMonth(date: DateLike): string {
@@ -156,17 +153,12 @@ export function currentMonth(): string {
   }
 }
 
-export function currentWeek(
-  firstDayOfWeekIdx?: SyncedPrefs['firstDayOfWeekIdx'],
-): string {
+export function currentWeek(firstDayOfWeekIdx?: SyncedPrefs['firstDayOfWeekIdx']): string {
   if (global.IS_TESTING || Platform.isPlaywright) {
     return global.currentWeek || '2017-01-01';
   } else {
     const converted = parseInt(firstDayOfWeekIdx || '0') as Day;
-    return d.format(
-      _parse(d.startOfWeek(new Date(), { weekStartsOn: converted })),
-      'yyyy-MM-dd',
-    );
+    return d.format(_parse(d.startOfWeek(new Date(), {weekStartsOn: converted})), 'yyyy-MM-dd');
   }
 }
 
@@ -222,17 +214,11 @@ export function addWeeks(date: DateLike, n: number): string {
   return d.format(d.addWeeks(_parse(date), n), 'yyyy-MM-dd');
 }
 
-export function differenceInCalendarMonths(
-  month1: DateLike,
-  month2: DateLike,
-): number {
+export function differenceInCalendarMonths(month1: DateLike, month2: DateLike): number {
   return d.differenceInCalendarMonths(_parse(month1), _parse(month2));
 }
 
-export function differenceInCalendarDays(
-  month1: DateLike,
-  month2: DateLike,
-): number {
+export function differenceInCalendarDays(month1: DateLike, month2: DateLike): number {
   return d.differenceInCalendarDays(_parse(month1), _parse(month2));
 }
 
@@ -274,18 +260,14 @@ export function isCurrentDay(day: DateLike): boolean {
 
 // TODO: This doesn't really fit in this module anymore, should
 // probably live elsewhere
-export function bounds(month: DateLike): { start: number; end: number } {
+export function bounds(month: DateLike): {start: number; end: number} {
   return {
     start: parseInt(d.format(d.startOfMonth(_parse(month)), 'yyyyMMdd')),
     end: parseInt(d.format(d.endOfMonth(_parse(month)), 'yyyyMMdd')),
   };
 }
 
-export function _yearRange(
-  start: DateLike,
-  end: DateLike,
-  inclusive = false,
-): string[] {
+export function _yearRange(start: DateLike, end: DateLike, inclusive = false): string[] {
   const years: string[] = [];
   let year = yearFromDate(start);
   const endYear = yearFromDate(end);
@@ -334,11 +316,7 @@ export function weekRangeInclusive(
   return _weekRange(start, end, true, firstDayOfWeekIdx);
 }
 
-export function _range(
-  start: DateLike,
-  end: DateLike,
-  inclusive = false,
-): string[] {
+export function _range(start: DateLike, end: DateLike, inclusive = false): string[] {
   const months: string[] = [];
   let month = monthFromDate(start);
   const endMonth = monthFromDate(end);
@@ -362,11 +340,7 @@ export function rangeInclusive(start: DateLike, end: DateLike): string[] {
   return _range(start, end, true);
 }
 
-export function _dayRange(
-  start: DateLike,
-  end: DateLike,
-  inclusive = false,
-): string[] {
+export function _dayRange(start: DateLike, end: DateLike, inclusive = false): string[] {
   const days: string[] = [];
   let day = start;
   while (d.isBefore(_parse(day), _parse(end))) {
@@ -419,10 +393,7 @@ export function getWeekEnd(
   firstDayOfWeekIdx?: SyncedPrefs['firstDayOfWeekIdx'],
 ): string {
   const converted = parseInt(firstDayOfWeekIdx || '0') as Day;
-  return d.format(
-    _parse(d.endOfWeek(_parse(date), { weekStartsOn: converted })),
-    'yyyy-MM-dd',
-  );
+  return d.format(_parse(d.endOfWeek(_parse(date), {weekStartsOn: converted})), 'yyyy-MM-dd');
 }
 
 export function getYearStart(month: string): string {
@@ -452,22 +423,18 @@ export function sheetForMonth(month: string): string {
 }
 
 export function nameForMonth(month: DateLike, locale?: Locale): string {
-  return d.format(_parse(month), "MMMM ''yy", { locale });
+  return d.format(_parse(month), "MMMM ''yy", {locale});
 }
 
-export function format(
-  month: DateLike,
-  format: string,
-  locale?: Locale,
-): string {
-  return d.format(_parse(month), format, { locale });
+export function format(month: DateLike, format: string, locale?: Locale): string {
+  return d.format(_parse(month), format, {locale});
 }
 
 export function formatDistance(
   date1: DateLike,
   date2: DateLike,
   locale?: Locale,
-  options?: { addSuffix?: boolean; includeSeconds?: boolean },
+  options?: {addSuffix?: boolean; includeSeconds?: boolean},
 ): string {
   return d.formatDistance(_parse(date1), _parse(date2), {
     locale,
@@ -477,10 +444,7 @@ export function formatDistance(
 
 export const getDateFormatRegex = memoizeOne((format: string) => {
   return new RegExp(
-    format
-      .replace(/d+/g, '\\d{1,2}')
-      .replace(/M+/g, '\\d{1,2}')
-      .replace(/y+/g, '\\d{4}'),
+    format.replace(/d+/g, '\\d{1,2}').replace(/M+/g, '\\d{1,2}').replace(/y+/g, '\\d{4}'),
   );
 });
 

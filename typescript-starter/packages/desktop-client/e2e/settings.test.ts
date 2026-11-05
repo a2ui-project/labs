@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { Navigation } from './page-models/navigation';
-import type { SettingsPage } from './page-models/settings-page';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {Navigation} from './page-models/navigation';
+import type {SettingsPage} from './page-models/settings-page';
 
 test.describe('Settings', () => {
   let page: Page;
@@ -27,7 +27,7 @@ test.describe('Settings', () => {
   let settingsPage: SettingsPage;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new Navigation(page);
     configurationPage = new ConfigurationPage(page);

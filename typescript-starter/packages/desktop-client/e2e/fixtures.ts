@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { test as base, expect as baseExpect } from '@playwright/test';
-import type { Browser, Locator, Page } from '@playwright/test';
+import {test as base, expect as baseExpect} from '@playwright/test';
+import type {Browser, Locator, Page} from '@playwright/test';
 
 /**
  * Disable CSS transitions and animations globally in e2e (non-VRT) runs.
@@ -51,9 +51,9 @@ const disableAnimationsInitScript = () => {
 
 export const test = process.env.VRT
   ? base
-  : base.extend<object, { browser: Browser }>({
+  : base.extend<object, {browser: Browser}>({
       browser: [
-        async ({ browser }, runWithBrowser) => {
+        async ({browser}, runWithBrowser) => {
           const originalNewPage = browser.newPage.bind(browser);
           browser.newPage = async options => {
             const page = await originalNewPage(options);
@@ -62,7 +62,7 @@ export const test = process.env.VRT
           };
           await runWithBrowser(browser);
         },
-        { scope: 'worker' },
+        {scope: 'worker'},
       ],
     });
 
@@ -96,10 +96,7 @@ export const expect = baseExpect.extend({
 
     // Switch to midnight theme and check
     await page.evaluate(() => window.Actual.setTheme('midnight'));
-    await baseExpect(dataThemeLocator).toHaveAttribute(
-      'data-theme',
-      'midnight',
-    );
+    await baseExpect(dataThemeLocator).toHaveAttribute('data-theme', 'midnight');
     await baseExpect(target).toHaveScreenshot(config);
 
     // Switch back to lightmode

@@ -16,8 +16,9 @@ For this PR:
 - [ ] I updated/added relevant documentation.
 - [ ] My code changes (if any) have tests.
 - [ ] License checks pass (`python3 ./scripts/fix_licenses.py --check`).
+- [ ] Format checks pass (`./scripts/fix_format.sh --check`).
 
 <!-- Links -->
 
 [CLA]: https://cla.developers.google.com/
-[Contributors Guide]: https://github.com/a2ui-project/labs/blob/main/CONTRIBUTING.md
+[Contributors Guide]: https://github.com/a2ui-project/a2ui-labs/blob/main/CONTRIBUTING.md

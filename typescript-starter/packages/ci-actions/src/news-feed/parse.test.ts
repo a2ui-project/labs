@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import {
-  absolutizeLinks,
-  buildNewsFeed,
-  getPostSlug,
-  parsePost,
-  stripHtmlComments,
-} from './parse';
-import type { NewsEntry } from './parse';
+import {absolutizeLinks, buildNewsFeed, getPostSlug, parsePost, stripHtmlComments} from './parse';
+import type {NewsEntry} from './parse';
 
 const siteUrl = 'https://actualbudget.org';
 
@@ -51,9 +45,7 @@ describe('absolutizeLinks', () => {
     expect(
       // Two backslashes resolve like `//` but aren't caught by the
       // protocol-relative check, giving an invalid host that throws.
-      absolutizeLinks('[x](\\\\[)', siteUrl, '/blog/', message =>
-        warnings.push(message),
-      ),
+      absolutizeLinks('[x](\\\\[)', siteUrl, '/blog/', message => warnings.push(message)),
     ).toBe('[x](\\\\[)');
     expect(warnings).toEqual(['Leaving unparseable link "\\\\[" as-is']);
   });
@@ -135,7 +127,7 @@ This patch release delivers bugfixes.
 
 - [#7707](https://github.com/actualbudget/actual/pull/7707) Count only failed logins — thanks @danielhopkins
 `,
-        { siteUrl },
+        {siteUrl},
       );
 
       expect(entry).toMatchObject({
@@ -152,11 +144,9 @@ This patch release delivers bugfixes.
         parsePost(
           '2026-08-02-release-26-8-0.md',
           releasePost.replace('slug: release-26.8.0', 'slug: big-release'),
-          { siteUrl },
+          {siteUrl},
         ),
-      ).toThrow(
-        'Release post "2026-08-02-release-26-8-0.md" has an unexpected slug "big-release"',
-      );
+      ).toThrow('Release post "2026-08-02-release-26-8-0.md" has an unexpected slug "big-release"');
     });
   });
 
@@ -181,20 +171,13 @@ More text.
 `;
 
     it('parses front matter, rewrites links and strips the truncate marker', () => {
-      const entry = parsePost(
-        '2026-07-27-design-competition-sidenav.md',
-        post,
-        {
-          siteUrl,
-          postSlugs: new Map([
-            [
-              '2026-07-27-design-competition-sidenav.md',
-              'design-competition-sidenav',
-            ],
-            ['2026-08-05-sidenav-voting-open.md', 'sidenav-voting-open'],
-          ]),
-        },
-      );
+      const entry = parsePost('2026-07-27-design-competition-sidenav.md', post, {
+        siteUrl,
+        postSlugs: new Map([
+          ['2026-07-27-design-competition-sidenav.md', 'design-competition-sidenav'],
+          ['2026-08-05-sidenav-voting-open.md', 'sidenav-voting-open'],
+        ]),
+      });
 
       expect(entry).toMatchObject({
         id: 'post-design-competition-sidenav',
@@ -204,12 +187,8 @@ More text.
         url: 'https://actualbudget.org/blog/design-competition-sidenav',
       });
       expect(entry?.body).not.toContain('truncate');
-      expect(entry?.body).toContain(
-        '[link](https://actualbudget.org/blog/sidenav-voting-open)',
-      );
-      expect(entry?.body).toContain(
-        '[docs](https://actualbudget.org/docs/settings)',
-      );
+      expect(entry?.body).toContain('[link](https://actualbudget.org/blog/sidenav-voting-open)');
+      expect(entry?.body).toContain('[docs](https://actualbudget.org/docs/settings)');
     });
 
     it('resolves links to posts that use a custom slug', () => {
@@ -219,10 +198,7 @@ slug: 2023-12-15-automate-your-budget-with-goal-templates
 ---
 x`;
       const postSlugs = new Map([
-        [
-          '2023-12-15-automate.md',
-          getPostSlug('2023-12-15-automate.md', target),
-        ],
+        ['2023-12-15-automate.md', getPostSlug('2023-12-15-automate.md', target)],
         ['2024-03-25-twist.md', 'twist'],
       ]);
       const entry = parsePost(
@@ -234,7 +210,7 @@ in_app_notification: true
 
 Start [here](./2023-12-15-automate.md#month-ahead).
 `,
-        { siteUrl, postSlugs },
+        {siteUrl, postSlugs},
       );
       expect(entry?.body).toBe(
         'Start [here](https://actualbudget.org/blog/2023-12-15-automate-your-budget-with-goal-templates#month-ahead).',
@@ -257,11 +233,9 @@ Intro.
 
 # Not a leading heading
 `,
-        { siteUrl },
+        {siteUrl},
       );
-      expect(entry?.body).toBe(
-        'Intro.\n\n## Later heading\n\n# Not a leading heading',
-      );
+      expect(entry?.body).toBe('Intro.\n\n## Later heading\n\n# Not a leading heading');
     });
 
     it('falls back to the filename for the date and slug', () => {
@@ -274,7 +248,7 @@ in_app_notification: true
 
 Body text.
 `,
-        { siteUrl },
+        {siteUrl},
       );
       expect(entry).toMatchObject({
         id: 'post-automate-twist',
@@ -292,7 +266,7 @@ Body text.
 title: Unmarked
 ---
 x`,
-          { siteUrl },
+          {siteUrl},
         ),
       ).toBeUndefined();
       expect(
@@ -303,7 +277,7 @@ title: Opted out
 in_app_notification: false
 ---
 x`,
-          { siteUrl },
+          {siteUrl},
         ),
       ).toBeUndefined();
     });
@@ -318,7 +292,7 @@ draft: true
 in_app_notification: true
 ---
 x`,
-          { siteUrl },
+          {siteUrl},
         ),
       ).toBeUndefined();
       expect(() =>
@@ -329,7 +303,7 @@ title: Welcome
 in_app_notification: true
 ---
 x`,
-          { siteUrl },
+          {siteUrl},
         ),
       ).toThrow('Post "welcome.md" is marked for the app but has no date');
     });

@@ -15,16 +15,13 @@
  */
 
 // @ts-strict-ignore
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  CategoryEntity,
-  RuleConditionEntity,
-} from '@actual-app/core/types/models';
+import type {CategoryEntity, RuleConditionEntity} from '@actual-app/core/types/models';
 
-import type { useSpreadsheet } from '#hooks/useSpreadsheet';
+import type {useSpreadsheet} from '#hooks/useSpreadsheet';
 
-import type { BudgetMonthCell } from './budgetMonthCell';
+import type {BudgetMonthCell} from './budgetMonthCell';
 
 type BudgetAnalysisIntervalData = {
   date: string;
@@ -52,10 +49,7 @@ type createBudgetAnalysisSpreadsheetProps = {
   showHiddenCategories?: boolean;
 };
 
-export function isBaseCategory(
-  cat: CategoryEntity,
-  showHiddenCategories: boolean,
-): boolean {
+export function isBaseCategory(cat: CategoryEntity, showHiddenCategories: boolean): boolean {
   return !cat.is_income && (showHiddenCategories || !cat.hidden);
 }
 
@@ -66,10 +60,7 @@ export function isBaseCategory(
  * planning ahead, but it never cuts off existing data: if a transaction is
  * dated even further out, that month stays selectable.
  */
-export function getLastSelectableMonth(
-  currentMonth: string,
-  latestMonth: string,
-): string {
+export function getLastSelectableMonth(currentMonth: string, latestMonth: string): string {
   const futureMonth = `${Number(currentMonth.slice(0, 4)) + 1}-12`;
   return latestMonth > futureMonth ? latestMonth : futureMonth;
 }
@@ -199,22 +190,17 @@ export function createBudgetAnalysisSpreadsheet({
     setData: (data: BudgetAnalysisData) => void,
   ) => {
     // Get all categories
-    const { list: allCategories, grouped: allCategoryGroups } =
-      await send('get-categories');
+    const {list: allCategories, grouped: allCategoryGroups} = await send('get-categories');
 
     // Build a UUID → name map for category groups so text-based operators
     // (contains, doesNotContain, matches) can match against the group name.
     const groupNameById = new Map<string, string>(
-      allCategoryGroups.map(
-        (g: { id: string; name: string }) => [g.id, g.name] as const,
-      ),
+      allCategoryGroups.map((g: {id: string; name: string}) => [g.id, g.name] as const),
     );
 
     // Filter categories based on conditions (supports both 'category' and 'category_group' fields)
     const relevantConditions = conditions.filter(
-      cond =>
-        !cond.customName &&
-        (cond.field === 'category' || cond.field === 'category_group'),
+      cond => !cond.customName && (cond.field === 'category' || cond.field === 'category_group'),
     );
 
     // Base set: expense categories only; hidden categories are included when
@@ -231,9 +217,7 @@ export function createBudgetAnalysisSpreadsheet({
         const getKey = (cat: CategoryEntity) =>
           cond.field === 'category_group' ? cat.group : cat.id;
         const matchesRegex =
-          cond.op === 'matches' &&
-          typeof cond.value === 'string' &&
-          cond.value.length <= 256
+          cond.op === 'matches' && typeof cond.value === 'string' && cond.value.length <= 256
             ? (() => {
                 try {
                   return new RegExp(cond.value, 'i');
@@ -248,9 +232,7 @@ export function createBudgetAnalysisSpreadsheet({
           // rather than the UUID. For category_group, resolve UUID → name via
           // the map; for category, use the category's own name directly.
           const textValue =
-            cond.field === 'category_group'
-              ? (groupNameById.get(key) ?? key)
-              : cat.name;
+            cond.field === 'category_group' ? (groupNameById.get(key) ?? key) : cat.name;
           if (cond.op === 'is') {
             return cond.value === key;
           } else if (cond.op === 'isNot') {
@@ -280,9 +262,7 @@ export function createBudgetAnalysisSpreadsheet({
       if (conditionsOp === 'or') {
         // OR: Union of all matching categories
         const categoryIds = new Set(conditionResults.flat().map(cat => cat.id));
-        categoriesToInclude = baseCategories.filter(cat =>
-          categoryIds.has(cat.id),
-        );
+        categoriesToInclude = baseCategories.filter(cat => categoryIds.has(cat.id));
       } else {
         // AND: Intersection of all matching categories
         if (conditionResults.length === 0) {
@@ -298,9 +278,7 @@ export function createBudgetAnalysisSpreadsheet({
               }
             }
           }
-          categoriesToInclude = baseCategories.filter(cat =>
-            firstSet.has(cat.id),
-          );
+          categoriesToInclude = baseCategories.filter(cat => firstSet.has(cat.id));
         }
       }
     } else {
@@ -318,10 +296,7 @@ export function createBudgetAnalysisSpreadsheet({
 
     // Track running balance that respects carryover flags
     // Get the balance from the month before the start period to initialize properly
-    const monthBeforeStart = monthUtils.subMonths(
-      monthUtils.getMonth(startDate),
-      1,
-    );
+    const monthBeforeStart = monthUtils.subMonths(monthUtils.getMonth(startDate), 1);
     const prevMonthData = await send('envelope-budget-month', {
       month: monthBeforeStart,
     });
@@ -344,15 +319,10 @@ export function createBudgetAnalysisSpreadsheet({
     for (const month of intervals) {
       // Get budget values from the server for this month
       // This uses the same calculations as the budget page
-      const monthData = await send('envelope-budget-month', { month });
+      const monthData = await send('envelope-budget-month', {month});
 
-      const {
-        budgeted,
-        spent,
-        carryoverToNextMonth,
-        overspendingThisMonth,
-        hasBudgetData,
-      } = summarizeMonthCategories(monthData, categoriesToInclude);
+      const {budgeted, spent, carryoverToNextMonth, overspendingThisMonth, hasBudgetData} =
+        summarizeMonthCategories(monthData, categoriesToInclude);
 
       // Apply overspending adjustment from previous month (negative value)
       const overspendingAdjustment = overspendingFromPrevMonth;

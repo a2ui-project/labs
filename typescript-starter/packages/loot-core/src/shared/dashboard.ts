@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { NewDashboardWidgetEntity } from '#types/models';
+import type {NewDashboardWidgetEntity} from '#types/models';
 
 export const DEFAULT_DASHBOARD_STATE: NewDashboardWidgetEntity[] = [
   // Top row: Key metrics at a glance

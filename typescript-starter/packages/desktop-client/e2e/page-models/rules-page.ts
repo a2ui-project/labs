@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { EditRuleModal } from './edit-rule-modal';
+import {EditRuleModal} from './edit-rule-modal';
 
 export class RulesPage {
   readonly page: Page;
@@ -57,10 +57,6 @@ export class RulesPage {
   }
 
   async rightClickNthRule(index: number) {
-    await this.page
-      .getByTestId('table')
-      .getByTestId('row')
-      .nth(index)
-      .click({ button: 'right' });
+    await this.page.getByTestId('table').getByTestId('row').nth(index).click({button: 'right'});
   }
 }

@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import { useCallback, useMemo, useState } from 'react';
-import { Dialog, DialogTrigger } from 'react-aria-components';
-import { ErrorBoundary } from 'react-error-boundary';
+import {useCallback, useMemo, useState} from 'react';
+import {Dialog, DialogTrigger} from 'react-aria-components';
+import {ErrorBoundary} from 'react-error-boundary';
 import ReactGridLayout from 'react-grid-layout';
-import type { Layout } from 'react-grid-layout';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { Trans, useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router';
+import type {Layout} from 'react-grid-layout';
+import {useHotkeys} from 'react-hotkeys-hook';
+import {Trans, useTranslation} from 'react-i18next';
+import {useLocation} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgDotsHorizontalTriple } from '@actual-app/components/icons/v1';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgDotsHorizontalTriple} from '@actual-app/components/icons/v1';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import type {
   CustomReportWidget,
   DashboardPageEntity,
@@ -38,24 +38,18 @@ import type {
   MarkdownWidget,
 } from '@actual-app/core/types/models';
 
-import { MOBILE_NAV_HEIGHT } from '#components/mobile/MobileNavTabs';
-import { MobilePageHeader, Page } from '#components/Page';
-import { useAccounts } from '#hooks/useAccounts';
-import {
-  useDashboardPages,
-  useDashboardPageWidgets,
-} from '#hooks/useDashboardPages';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useNavigate } from '#hooks/useNavigate';
-import { useReports } from '#hooks/useReports';
-import { useResizeObserver } from '#hooks/useResizeObserver';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { useUndo } from '#hooks/useUndo';
-import {
-  addNotification,
-  removeNotification,
-} from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {MOBILE_NAV_HEIGHT} from '#components/mobile/MobileNavTabs';
+import {MobilePageHeader, Page} from '#components/Page';
+import {useAccounts} from '#hooks/useAccounts';
+import {useDashboardPages, useDashboardPageWidgets} from '#hooks/useDashboardPages';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useNavigate} from '#hooks/useNavigate';
+import {useReports} from '#hooks/useReports';
+import {useResizeObserver} from '#hooks/useResizeObserver';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {useUndo} from '#hooks/useUndo';
+import {addNotification, removeNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 import {
   useAddDashboardWidgetMutation,
   useDeleteDashboardPageMutation,
@@ -65,30 +59,28 @@ import {
   useUpdateDashboardWidgetsMutation,
 } from '#reports/mutations';
 
-import { NON_DRAGGABLE_AREA_CLASS_NAME } from './constants';
-import { DashboardHeader } from './DashboardHeader';
+import {NON_DRAGGABLE_AREA_CLASS_NAME} from './constants';
+import {DashboardHeader} from './DashboardHeader';
 import './overview.scss';
-import { DashboardSelector } from './DashboardSelector';
-import { LoadingIndicator } from './LoadingIndicator';
-import { AgeOfMoneyCard } from './reports/AgeOfMoneyCard';
-import { BalanceForecastCard } from './reports/BalanceForecastCard';
-import { BudgetAnalysisCard } from './reports/BudgetAnalysisCard';
-import { CalendarCard } from './reports/CalendarCard';
-import { CashFlowCard } from './reports/CashFlowCard';
-import { CrossoverCard } from './reports/CrossoverCard';
-import { CustomReportListCards } from './reports/CustomReportListCards';
-import { FormulaCard } from './reports/FormulaCard';
-import { MarkdownCard } from './reports/MarkdownCard';
-import { MissingReportCard } from './reports/MissingReportCard';
-import { MonteCarloCard } from './reports/monte-carlo/MonteCarloCard';
-import { NetWorthCard } from './reports/NetWorthCard';
-import { SankeyCard } from './reports/SankeyCard';
-import { SpendingCard } from './reports/SpendingCard';
-import { SummaryCard } from './reports/SummaryCard';
+import {DashboardSelector} from './DashboardSelector';
+import {LoadingIndicator} from './LoadingIndicator';
+import {AgeOfMoneyCard} from './reports/AgeOfMoneyCard';
+import {BalanceForecastCard} from './reports/BalanceForecastCard';
+import {BudgetAnalysisCard} from './reports/BudgetAnalysisCard';
+import {CalendarCard} from './reports/CalendarCard';
+import {CashFlowCard} from './reports/CashFlowCard';
+import {CrossoverCard} from './reports/CrossoverCard';
+import {CustomReportListCards} from './reports/CustomReportListCards';
+import {FormulaCard} from './reports/FormulaCard';
+import {MarkdownCard} from './reports/MarkdownCard';
+import {MissingReportCard} from './reports/MissingReportCard';
+import {MonteCarloCard} from './reports/monte-carlo/MonteCarloCard';
+import {NetWorthCard} from './reports/NetWorthCard';
+import {SankeyCard} from './reports/SankeyCard';
+import {SpendingCard} from './reports/SpendingCard';
+import {SummaryCard} from './reports/SummaryCard';
 
-function isCustomReportWidget(
-  widget: DashboardWidgetEntity,
-): widget is CustomReportWidget {
+function isCustomReportWidget(widget: DashboardWidgetEntity): widget is CustomReportWidget {
   return widget.type === 'custom-report';
 }
 
@@ -124,8 +116,8 @@ type OverviewProps = {
   dashboard: DashboardPageEntity;
 };
 
-export function Overview({ dashboard }: OverviewProps) {
-  const { t } = useTranslation();
+export function Overview({dashboard}: OverviewProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const [_firstDayOfWeekIdx] = useSyncedPref('firstDayOfWeekIdx');
   const firstDayOfWeekIdx = _firstDayOfWeekIdx || '0';
@@ -137,13 +129,10 @@ export function Overview({ dashboard }: OverviewProps) {
 
   const [isImporting, setIsImporting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const { isNarrowWidth } = useResponsive();
-  const currentBreakpoint: 'mobile' | 'desktop' = isNarrowWidth
-    ? 'mobile'
-    : 'desktop';
+  const {isNarrowWidth} = useResponsive();
+  const currentBreakpoint: 'mobile' | 'desktop' = isNarrowWidth ? 'mobile' : 'desktop';
 
-  const { data: customReports = [], isPending: isCustomReportsLoading } =
-    useReports();
+  const {data: customReports = [], isPending: isCustomReportsLoading} = useReports();
 
   const sankeyFeatureFlag = useFeatureFlag('sankeyReport');
 
@@ -151,14 +140,11 @@ export function Overview({ dashboard }: OverviewProps) {
     () => new Map(customReports.map(report => [report.id, report])),
     [customReports],
   );
-  const { data: dashboardPages = [], isPending: isDashboardPageLoading } =
-    useDashboardPages();
+  const {data: dashboardPages = [], isPending: isDashboardPageLoading} = useDashboardPages();
 
-  const { data: widgets = [], isPending: isWidgetsLoading } =
-    useDashboardPageWidgets(dashboard.id);
+  const {data: widgets = [], isPending: isWidgetsLoading} = useDashboardPageWidgets(dashboard.id);
 
-  const isLoading =
-    isCustomReportsLoading || isWidgetsLoading || isDashboardPageLoading;
+  const isLoading = isCustomReportsLoading || isWidgetsLoading || isDashboardPageLoading;
 
   const navigate = useNavigate();
 
@@ -227,7 +213,7 @@ export function Overview({ dashboard }: OverviewProps) {
   );
 
   const closeNotifications = () => {
-    dispatch(removeNotification({ id: 'import' }));
+    dispatch(removeNotification({id: 'import'}));
   };
 
   // Close import notifications when doing "undo" operation
@@ -240,7 +226,7 @@ export function Overview({ dashboard }: OverviewProps) {
     [closeNotifications],
   );
 
-  const { undo } = useUndo();
+  const {undo} = useUndo();
 
   const onDispatchSucessNotification = (message: string) => {
     dispatch(
@@ -346,7 +332,7 @@ export function Overview({ dashboard }: OverviewProps) {
           };
         }
 
-        return { ...widget, id: undefined, tombstone: undefined };
+        return {...widget, id: undefined, tombstone: undefined};
       }),
     } satisfies ExportImportDashboard;
 
@@ -367,9 +353,7 @@ export function Overview({ dashboard }: OverviewProps) {
         addNotification({
           notification: {
             type: 'error',
-            message: t(
-              'Fatal error occurred: unable to open import file dialog.',
-            ),
+            message: t('Fatal error occurred: unable to open import file dialog.'),
           },
         }),
       );
@@ -453,10 +437,7 @@ export function Overview({ dashboard }: OverviewProps) {
 
   const updateDashboardWidgetMutation = useUpdateDashboardWidgetMutation();
 
-  const onMetaChange = (
-    widget: { i: string },
-    newMeta: DashboardWidgetEntity['meta'],
-  ) => {
+  const onMetaChange = (widget: {i: string}, newMeta: DashboardWidgetEntity['meta']) => {
     updateDashboardWidgetMutation.mutate({
       widget: {
         id: widget.i,
@@ -469,7 +450,7 @@ export function Overview({ dashboard }: OverviewProps) {
 
   const onDeleteDashboard = async (id: string) => {
     deleteDashboardPageMutation.mutate(
-      { id },
+      {id},
       {
         onSuccess: () => {
           const nextDashboard = dashboardPages.find(d => d.id !== id);
@@ -482,7 +463,7 @@ export function Overview({ dashboard }: OverviewProps) {
     );
   };
 
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
 
   if (isLoading) {
     return <LoadingIndicator message={t('Loading reports...')} />;
@@ -513,10 +494,7 @@ export function Overview({ dashboard }: OverviewProps) {
                 backgroundColor: theme.mobilePageBackground,
               }}
             >
-              <DashboardSelector
-                dashboards={dashboardPages}
-                currentDashboard={dashboard}
-              />
+              <DashboardSelector dashboards={dashboardPages} currentDashboard={dashboard} />
             </View>
           </View>
         ) : (
@@ -541,10 +519,7 @@ export function Overview({ dashboard }: OverviewProps) {
               {currentBreakpoint === 'desktop' && (
                 <>
                   {/* Dashboard Selector */}
-                  <DashboardSelector
-                    dashboards={dashboardPages}
-                    currentDashboard={dashboard}
-                  />
+                  <DashboardSelector dashboards={dashboardPages} currentDashboard={dashboard} />
 
                   <View
                     style={{
@@ -685,17 +660,11 @@ export function Overview({ dashboard }: OverviewProps) {
 
                   {/* The Editing Button */}
                   {isEditing ? (
-                    <Button
-                      isDisabled={isImporting}
-                      onPress={() => setIsEditing(false)}
-                    >
+                    <Button isDisabled={isImporting} onPress={() => setIsEditing(false)}>
                       <Trans>Finish editing dashboard</Trans>
                     </Button>
                   ) : (
-                    <Button
-                      isDisabled={isImporting}
-                      onPress={() => setIsEditing(true)}
-                    >
+                    <Button isDisabled={isImporting} onPress={() => setIsEditing(true)}>
                       <Trans>Edit dashboard</Trans>
                     </Button>
                   )}
@@ -706,7 +675,7 @@ export function Overview({ dashboard }: OverviewProps) {
                       <SvgDotsHorizontalTriple
                         width={15}
                         height={15}
-                        style={{ transform: 'rotateZ(90deg)' }}
+                        style={{transform: 'rotateZ(90deg)'}}
                       />
                     </Button>
                     <Popover>
@@ -728,9 +697,7 @@ export function Overview({ dashboard }: OverviewProps) {
                                 void onDeleteDashboard(dashboard.id);
                                 break;
                               default:
-                                throw new Error(
-                                  `Unrecognized menu option: ${String(item)}`,
-                                );
+                                throw new Error(`Unrecognized menu option: ${String(item)}`);
                             }
                           }}
                           items={[
@@ -754,8 +721,7 @@ export function Overview({ dashboard }: OverviewProps) {
                             {
                               name: 'delete',
                               text: t('Delete dashboard'),
-                              disabled:
-                                isImporting || dashboardPages.length <= 1,
+                              disabled: isImporting || dashboardPages.length <= 1,
                             },
                           ]}
                         />
@@ -777,7 +743,7 @@ export function Overview({ dashboard }: OverviewProps) {
           <View
             data-testid="reports-overview"
             innerRef={containerRef}
-            style={{ userSelect: 'none', paddingBottom: MOBILE_NAV_HEIGHT }}
+            style={{userSelect: 'none', paddingBottom: MOBILE_NAV_HEIGHT}}
           >
             {isMounted && (
               <ReactGridLayout
@@ -794,9 +760,7 @@ export function Overview({ dashboard }: OverviewProps) {
                 resizeConfig={{
                   enabled: currentBreakpoint === 'desktop' && isEditing,
                 }}
-                onLayoutChange={
-                  currentBreakpoint === 'desktop' ? onLayoutChange : undefined
-                }
+                onLayoutChange={currentBreakpoint === 'desktop' ? onLayoutChange : undefined}
               >
                 {currentLayout.map(item => {
                   const widget = widgetMap.get(item.i);
@@ -809,10 +773,7 @@ export function Overview({ dashboard }: OverviewProps) {
                     <div key={item.i}>
                       <ErrorBoundary
                         fallbackRender={() => (
-                          <MissingReportCard
-                            widgetId={item.i}
-                            isEditing={isEditing}
-                          >
+                          <MissingReportCard widgetId={item.i} isEditing={isEditing}>
                             <Trans>This widget has failed to load.</Trans>
                           </MissingReportCard>
                         )}
@@ -823,9 +784,7 @@ export function Overview({ dashboard }: OverviewProps) {
                             isEditing={isEditing}
                             accounts={accounts}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : widget.type === 'crossover-card' ? (
                           <CrossoverCard
@@ -833,36 +792,28 @@ export function Overview({ dashboard }: OverviewProps) {
                             isEditing={isEditing}
                             accounts={accounts}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : widget.type === 'age-of-money-card' ? (
                           <AgeOfMoneyCard
                             widgetId={item.i}
                             isEditing={isEditing}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : widget.type === 'cash-flow-card' ? (
                           <CashFlowCard
                             widgetId={item.i}
                             isEditing={isEditing}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : widget.type === 'spending-card' ? (
                           <SpendingCard
                             widgetId={item.i}
                             isEditing={isEditing}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : widget.type === 'budget-analysis-card' &&
                           budgetAnalysisReportEnabled ? (
@@ -870,9 +821,7 @@ export function Overview({ dashboard }: OverviewProps) {
                             widgetId={item.i}
                             isEditing={isEditing}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : widget.type === 'balance-forecast-card' &&
                           balanceForecastReportEnabled ? (
@@ -881,18 +830,14 @@ export function Overview({ dashboard }: OverviewProps) {
                             isEditing={isEditing}
                             accounts={accounts}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : widget.type === 'markdown-card' ? (
                           <MarkdownCard
                             widgetId={item.i}
                             isEditing={isEditing}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : widget.type === 'custom-report' ? (
                           <CustomReportListCards
@@ -905,9 +850,7 @@ export function Overview({ dashboard }: OverviewProps) {
                             widgetId={item.i}
                             isEditing={isEditing}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : widget.type === 'calendar-card' ? (
                           <CalendarCard
@@ -915,38 +858,28 @@ export function Overview({ dashboard }: OverviewProps) {
                             isEditing={isEditing}
                             meta={widget.meta}
                             firstDayOfWeekIdx={firstDayOfWeekIdx}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : widget.type === 'formula-card' && formulaMode ? (
                           <FormulaCard
                             widgetId={item.i}
                             isEditing={isEditing}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
-                        ) : widget.type === 'sankey-card' &&
-                          sankeyFeatureFlag ? (
+                        ) : widget.type === 'sankey-card' && sankeyFeatureFlag ? (
                           <SankeyCard
                             widgetId={item.i}
                             isEditing={isEditing}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
-                        ) : widget.type === 'monte-carlo-card' &&
-                          monteCarloReportEnabled ? (
+                        ) : widget.type === 'monte-carlo-card' && monteCarloReportEnabled ? (
                           <MonteCarloCard
                             widgetId={item.i}
                             isEditing={isEditing}
                             meta={widget.meta}
-                            onMetaChange={newMeta =>
-                              onMetaChange(item, newMeta)
-                            }
+                            onMetaChange={newMeta => onMetaChange(item, newMeta)}
                           />
                         ) : null}
                       </ErrorBoundary>

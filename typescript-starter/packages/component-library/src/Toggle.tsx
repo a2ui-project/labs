@@ -15,12 +15,12 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
+import type {CSSProperties} from 'react';
 
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import { theme } from './theme';
-import { View } from './View';
+import {theme} from './theme';
+import {View} from './View';
 
 type ToggleProps = {
   id: string;
@@ -92,9 +92,7 @@ export const Toggle = ({
               borderRadius: '100px',
               transition: '0.2s',
               boxShadow: '0 0 2px 0 rgba(10, 10, 10, 0.29)',
-              backgroundColor: isDisabled
-                ? theme.checkboxToggleDisabled
-                : '#fff',
+              backgroundColor: isDisabled ? theme.checkboxToggleDisabled : '#fff',
             },
             isOn && {
               left: 'calc(100% - 2px)',

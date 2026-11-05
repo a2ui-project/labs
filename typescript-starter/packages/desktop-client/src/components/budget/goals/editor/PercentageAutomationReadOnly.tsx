@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import type { PercentageTemplate } from '@actual-app/core/types/models/templates';
+import type {PercentageTemplate} from '@actual-app/core/types/models/templates';
 
 type PercentageAutomationReadOnlyProps = {
   template: PercentageTemplate;
@@ -27,38 +27,28 @@ export const PercentageAutomationReadOnly = ({
   template,
   categoryNameMap,
 }: PercentageAutomationReadOnlyProps) => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   if (template.category === 'all income') {
     return template.previous ? (
-      <Trans>
-        Budget {{ percent: template.percent }}% of total income last month
-      </Trans>
+      <Trans>Budget {{percent: template.percent}}% of total income last month</Trans>
     ) : (
-      <Trans>
-        Budget {{ percent: template.percent }}% of total income this month
-      </Trans>
+      <Trans>Budget {{percent: template.percent}}% of total income this month</Trans>
     );
   }
 
   if (template.category === 'available funds') {
     return template.previous ? (
-      <Trans>
-        Budget {{ percent: template.percent }}% of available funds to budget
-        last month
-      </Trans>
+      <Trans>Budget {{percent: template.percent}}% of available funds to budget last month</Trans>
     ) : (
-      <Trans>
-        Budget {{ percent: template.percent }}% of available funds to budget
-        this month
-      </Trans>
+      <Trans>Budget {{percent: template.percent}}% of available funds to budget this month</Trans>
     );
   }
 
   // Regular income categories
   return template.previous ? (
     <Trans>
-      Budget {{ percent: template.percent }}% of &lsquo;
+      Budget {{percent: template.percent}}% of &lsquo;
       {{
         category: categoryNameMap[template.category] ?? t('Unknown category'),
       }}
@@ -66,7 +56,7 @@ export const PercentageAutomationReadOnly = ({
     </Trans>
   ) : (
     <Trans>
-      Budget {{ percent: template.percent }}% of &lsquo;
+      Budget {{percent: template.percent}}% of &lsquo;
       {{
         category: categoryNameMap[template.category] ?? t('Unknown category'),
       }}

@@ -16,15 +16,15 @@
 
 import React from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css, keyframes } from '@emotion/css';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css, keyframes} from '@emotion/css';
 
-import { useReducedMotion } from '#hooks/useReducedMotion';
+import {useReducedMotion} from '#hooks/useReducedMotion';
 
 const pulse = keyframes({
-  '0%, 100%': { opacity: 0.15 },
-  '50%': { opacity: 0.4 },
+  '0%, 100%': {opacity: 0.15},
+  '50%': {opacity: 0.4},
 });
 
 const barBase = {
@@ -35,7 +35,7 @@ const barBase = {
   backgroundColor: theme.pageText,
 };
 
-const staticBar = css({ ...barBase, opacity: 0.25 });
+const staticBar = css({...barBase, opacity: 0.25});
 const pulsingBar = css({
   ...barBase,
   animationName: pulse,
@@ -55,10 +55,7 @@ export function ReportCardValueSkeleton() {
         width: '100%',
       }}
     >
-      <div
-        aria-hidden="true"
-        className={reducedMotion ? staticBar : pulsingBar}
-      />
+      <div aria-hidden="true" className={reducedMotion ? staticBar : pulsingBar} />
     </View>
   );
 }

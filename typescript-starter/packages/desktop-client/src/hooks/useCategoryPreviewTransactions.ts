@@ -14,36 +14,31 @@
  * limitations under the License.
  */
 
-import { useCallback, useMemo } from 'react';
+import {useCallback, useMemo} from 'react';
 
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  CategoryEntity,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
+import type {CategoryEntity, ScheduleEntity} from '@actual-app/core/types/models';
 
-import { categoryBalance } from '#spreadsheet/bindings';
+import {categoryBalance} from '#spreadsheet/bindings';
 
-import { useCategory } from './useCategory';
-import { useCategoryScheduleGoalTemplates } from './useCategoryScheduleGoalTemplates';
-import { usePreviewTransactions } from './usePreviewTransactions';
-import { useSheetValue } from './useSheetValue';
+import {useCategory} from './useCategory';
+import {useCategoryScheduleGoalTemplates} from './useCategoryScheduleGoalTemplates';
+import {usePreviewTransactions} from './usePreviewTransactions';
+import {useSheetValue} from './useSheetValue';
 
 type UseCategoryPreviewTransactionsProps = {
   categoryId: CategoryEntity['id'];
   month: string;
 };
 
-type UseCategoryPreviewTransactionsResult = ReturnType<
-  typeof usePreviewTransactions
->;
+type UseCategoryPreviewTransactionsResult = ReturnType<typeof usePreviewTransactions>;
 
 export function useCategoryPreviewTransactions({
   categoryId,
   month,
 }: UseCategoryPreviewTransactionsProps): UseCategoryPreviewTransactionsResult {
-  const { data: category } = useCategory(categoryId);
-  const { schedules } = useCategoryScheduleGoalTemplates({
+  const {data: category} = useCategory(categoryId);
+  const {schedules} = useCategoryScheduleGoalTemplates({
     category,
   });
 
@@ -88,8 +83,7 @@ export function useCategoryPreviewTransactions({
     }
 
     const previewTransactions = allPreviewTransactions.filter(
-      transaction =>
-        transaction.schedule && schedulesToPreview.has(transaction.schedule),
+      transaction => transaction.schedule && schedulesToPreview.has(transaction.schedule),
     );
 
     const transactionIds = new Set(previewTransactions.map(t => t.id));
@@ -103,12 +97,5 @@ export function useCategoryPreviewTransactions({
       isLoading,
       error,
     };
-  }, [
-    allPreviewTransactions,
-    allRunningBalances,
-    category,
-    error,
-    isLoading,
-    schedulesToPreview,
-  ]);
+  }, [allPreviewTransactions, allRunningBalances, category, error, isLoading, schedulesToPreview]);
 }

@@ -15,13 +15,13 @@
  */
 
 import * as db from '#server/db';
-import { Rule } from '#server/rules';
-import { getRuleForSchedule } from '#server/schedules/app';
-import type { Currency } from '#shared/currencies';
-import type { CategoryEntity } from '#types/models';
+import {Rule} from '#server/rules';
+import {getRuleForSchedule} from '#server/schedules/app';
+import type {Currency} from '#shared/currencies';
+import type {CategoryEntity} from '#types/models';
 
-import { isTrackingBudget } from './actions';
-import { runSchedule } from './schedule-template';
+import {isTrackingBudget} from './actions';
+import {runSchedule} from './schedule-template';
 
 vi.mock('#server/db');
 vi.mock('./actions');
@@ -42,7 +42,7 @@ const defaultCurrency: Currency = {
   symbolFirst: false,
 };
 
-const defaultCategory = { id: '1', name: 'Test Category' } as CategoryEntity;
+const defaultCategory = {id: '1', name: 'Test Category'} as CategoryEntity;
 
 type RuleSpec = {
   id?: string;
@@ -52,13 +52,7 @@ type RuleSpec = {
   interval?: number;
 };
 
-function makeRule({
-  id = 'r',
-  start,
-  amount,
-  frequency,
-  interval = 1,
-}: RuleSpec): Rule {
+function makeRule({id = 'r', start, amount, frequency, interval = 1}: RuleSpec): Rule {
   return new Rule({
     id,
     stage: 'pre',
@@ -80,34 +74,30 @@ function makeRule({
         },
         type: 'date',
       },
-      { op: 'is', field: 'amount', value: amount, type: 'number' },
+      {op: 'is', field: 'amount', value: amount, type: 'number'},
     ],
     actions: [],
   });
 }
 
 function mockSingleSchedule(spec: RuleSpec, completed: number = 0) {
-  vi.mocked(db.first).mockResolvedValue({ id: 1, completed });
+  vi.mocked(db.first).mockResolvedValue({id: 1, completed});
   vi.mocked(getRuleForSchedule).mockResolvedValue(makeRule(spec));
   vi.mocked(isTrackingBudget).mockReturnValue(false);
 }
 
-function mockSchedulesByName(
-  specsByName: Record<string, { spec: RuleSpec; completed?: number }>,
-) {
+function mockSchedulesByName(specsByName: Record<string, {spec: RuleSpec; completed?: number}>) {
   const names = Object.keys(specsByName);
   const sidByName: Record<string, number> = Object.fromEntries(
     names.map((name, i) => [name, i + 1]),
   );
-  vi.mocked(db.first).mockImplementation(
-    async (_q: string, params?: unknown[]) => {
-      const name = (params as string[] | undefined)?.[0] ?? '';
-      return {
-        id: sidByName[name],
-        completed: specsByName[name]?.completed ?? 0,
-      };
-    },
-  );
+  vi.mocked(db.first).mockImplementation(async (_q: string, params?: unknown[]) => {
+    const name = (params as string[] | undefined)?.[0] ?? '';
+    return {
+      id: sidByName[name],
+      completed: specsByName[name]?.completed ?? 0,
+    };
+  });
   vi.mocked(getRuleForSchedule).mockImplementation(async id => {
     const name = names.find(n => sidByName[n] === Number(id)) ?? names[0];
     return makeRule(specsByName[name].spec);
@@ -233,10 +223,10 @@ describe('runSchedule', () => {
     ];
     mockSchedulesByName({
       Internet: {
-        spec: { start: '2024-01-15', amount: -10000, frequency: 'monthly' },
+        spec: {start: '2024-01-15', amount: -10000, frequency: 'monthly'},
       },
       Insurance: {
-        spec: { start: '2024-12-15', amount: -60000, frequency: 'yearly' },
+        spec: {start: '2024-12-15', amount: -60000, frequency: 'yearly'},
       },
     });
 
@@ -311,10 +301,10 @@ describe('runSchedule', () => {
     ];
     mockSchedulesByName({
       'Schedule A': {
-        spec: { start: '2024-08-01', amount: -10000, frequency: 'monthly' },
+        spec: {start: '2024-08-01', amount: -10000, frequency: 'monthly'},
       },
       'Schedule B': {
-        spec: { start: '2024-09-01', amount: -20000, frequency: 'monthly' },
+        spec: {start: '2024-09-01', amount: -20000, frequency: 'monthly'},
       },
     });
 
@@ -406,10 +396,7 @@ describe('runSchedule', () => {
         priority: 0,
       } as const,
     ];
-    mockSingleSchedule(
-      { start: '2024-08-15', amount: -10000, frequency: 'monthly' },
-      1,
-    );
+    mockSingleSchedule({start: '2024-08-15', amount: -10000, frequency: 'monthly'}, 1);
 
     const result = await runSchedule(
       template_lines,
@@ -475,10 +462,10 @@ describe('runSchedule', () => {
     ];
     mockSchedulesByName({
       'November bill': {
-        spec: { start: '2024-11-15', amount: -60000, frequency: 'yearly' },
+        spec: {start: '2024-11-15', amount: -60000, frequency: 'yearly'},
       },
       'May bill': {
-        spec: { start: '2024-05-15', amount: -120000, frequency: 'yearly' },
+        spec: {start: '2024-05-15', amount: -120000, frequency: 'yearly'},
       },
     });
 
@@ -509,15 +496,15 @@ describe('runSchedule', () => {
         priority: 0,
       } as const,
     ];
-    vi.mocked(db.first).mockResolvedValue({ id: 1, completed: 0 });
+    vi.mocked(db.first).mockResolvedValue({id: 1, completed: 0});
     vi.mocked(getRuleForSchedule).mockResolvedValue(
       new Rule({
         id: 'r',
         stage: 'pre',
         conditionsOp: 'and',
         conditions: [
-          { op: 'is', field: 'date', value: '2023-06-01', type: 'date' },
-          { op: 'is', field: 'amount', value: -10000, type: 'number' },
+          {op: 'is', field: 'date', value: '2023-06-01', type: 'date'},
+          {op: 'is', field: 'amount', value: -10000, type: 'number'},
         ],
         actions: [],
       }),
@@ -535,9 +522,7 @@ describe('runSchedule', () => {
       defaultCategory,
       defaultCurrency,
     );
-    expect(result.errors).toContainEqual(
-      expect.stringMatching(/Schedule Past is in the Past/),
-    );
+    expect(result.errors).toContainEqual(expect.stringMatching(/Schedule Past is in the Past/));
     expect(result.to_budget).toBe(0);
   });
 
@@ -686,9 +671,9 @@ describe('runSchedule', () => {
         priority: 0,
       } as const,
     ];
-    vi.mocked(db.first).mockResolvedValue({ id: 1, completed: 0 });
+    vi.mocked(db.first).mockResolvedValue({id: 1, completed: 0});
     vi.mocked(getRuleForSchedule).mockResolvedValue(
-      makeRule({ start: '2024-12-15', amount: -12000, frequency: 'yearly' }),
+      makeRule({start: '2024-12-15', amount: -12000, frequency: 'yearly'}),
     );
     vi.mocked(isTrackingBudget).mockReturnValue(true);
 

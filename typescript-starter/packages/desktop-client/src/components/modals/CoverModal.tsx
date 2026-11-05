@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { styles } from '@actual-app/components/styles';
-import { View } from '@actual-app/components/view';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
+import {Button} from '@actual-app/components/button';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {styles} from '@actual-app/components/styles';
+import {View} from '@actual-app/components/view';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
 
-import {
-  addToBeBudgetedGroup,
-  removeCategoriesFromGroups,
-} from '#components/budget/util';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { FieldLabel, TapField } from '#components/mobile/MobileForms';
-import { AmountInput } from '#components/util/AmountInput';
-import { useCategories } from '#hooks/useCategories';
-import { useInitialMount } from '#hooks/useInitialMount';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { pushModal } from '#modals/modalsSlice';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {addToBeBudgetedGroup, removeCategoriesFromGroups} from '#components/budget/util';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {FieldLabel, TapField} from '#components/mobile/MobileForms';
+import {AmountInput} from '#components/util/AmountInput';
+import {useCategories} from '#hooks/useCategories';
+import {useInitialMount} from '#hooks/useInitialMount';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {pushModal} from '#modals/modalsSlice';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
-type CoverModalProps = Extract<ModalType, { name: 'cover' }>['options'];
+type CoverModalProps = Extract<ModalType, {name: 'cover'}>['options'];
 
 export function CoverModal({
   title,
@@ -47,22 +44,17 @@ export function CoverModal({
   showToBeBudgeted = true,
   onSubmit,
 }: CoverModalProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [hideFraction] = useSyncedPref('hideFraction');
 
-  const { data: { grouped: originalCategoryGroups } = { grouped: [] } } =
-    useCategories();
+  const {data: {grouped: originalCategoryGroups} = {grouped: []}} = useCategories();
   const [categoryGroups, categories] = useMemo(() => {
     const expenseGroups = originalCategoryGroups.filter(g => !g.is_income);
-    const categoryGroups = showToBeBudgeted
-      ? addToBeBudgetedGroup(expenseGroups)
-      : expenseGroups;
+    const categoryGroups = showToBeBudgeted ? addToBeBudgetedGroup(expenseGroups) : expenseGroups;
     const filteredCategoryGroups = categoryId
       ? removeCategoriesFromGroups(categoryGroups, categoryId)
       : categoryGroups;
-    const filteredCategoryies = filteredCategoryGroups.flatMap(
-      g => g.categories || [],
-    );
+    const filteredCategoryies = filteredCategoryGroups.flatMap(g => g.categories || []);
     return [filteredCategoryGroups, filteredCategoryies];
   }, [categoryId, originalCategoryGroups, showToBeBudgeted]);
 
@@ -87,9 +79,7 @@ export function CoverModal({
   }, [categoryGroups, dispatch, month]);
 
   const fromCategory = categories.find(c => c.id === fromCategoryId);
-  const [amount, setAmount] = useState<IntegerAmount>(
-    Math.abs(initialAmount ?? 0),
-  );
+  const [amount, setAmount] = useState<IntegerAmount>(Math.abs(initialAmount ?? 0));
 
   const _onSubmit = () => {
     if (amount && fromCategoryId) {
@@ -106,7 +96,7 @@ export function CoverModal({
 
   return (
     <Modal name="cover">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={title}

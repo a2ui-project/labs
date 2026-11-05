@@ -15,10 +15,10 @@
  */
 
 // @ts-strict-ignore
-import { createContext, useContext } from 'react';
-import type { PropsWithChildren } from 'react';
+import {createContext, useContext} from 'react';
+import type {PropsWithChildren} from 'react';
 
-import type { Binding, SheetFields, SheetNames } from '#spreadsheet';
+import type {Binding, SheetFields, SheetNames} from '#spreadsheet';
 
 function unresolveName(name) {
   const idx = name.indexOf('!');
@@ -28,19 +28,15 @@ function unresolveName(name) {
       name: name.slice(idx + 1),
     };
   }
-  return { sheet: null, name };
+  return {sheet: null, name};
 }
 
 const SheetNameContext = createContext<string | undefined>(undefined);
 
-type SheetNameProviderProps = PropsWithChildren<{ name: string }>;
+type SheetNameProviderProps = PropsWithChildren<{name: string}>;
 
-export function SheetNameProvider({ children, name }: SheetNameProviderProps) {
-  return (
-    <SheetNameContext.Provider value={name}>
-      {children}
-    </SheetNameContext.Provider>
-  );
+export function SheetNameProvider({children, name}: SheetNameProviderProps) {
+  return <SheetNameContext.Provider value={name}>{children}</SheetNameContext.Provider>;
 }
 
 export function useSheetName<

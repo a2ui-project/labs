@@ -18,9 +18,9 @@
 // @generated from file sync.proto (syntax proto3)
 /* eslint-disable */
 
-import type { Message as Message$1 } from '@bufbuild/protobuf';
-import type { GenFile, GenMessage } from '@bufbuild/protobuf/codegenv2';
-import { fileDesc, messageDesc } from '@bufbuild/protobuf/codegenv2';
+import type {Message as Message$1} from '@bufbuild/protobuf';
+import type {GenFile, GenMessage} from '@bufbuild/protobuf/codegenv2';
+import {fileDesc, messageDesc} from '@bufbuild/protobuf/codegenv2';
 
 /**
  * Describes the file sync.proto.
@@ -53,8 +53,10 @@ export type EncryptedData = Message$1<'EncryptedData'> & {
  * Describes the message EncryptedData.
  * Use `create(EncryptedDataSchema)` to create a new message.
  */
-export const EncryptedDataSchema: GenMessage<EncryptedData> /*@__PURE__*/ =
-  messageDesc(file_sync, 0);
+export const EncryptedDataSchema: GenMessage<EncryptedData> /*@__PURE__*/ = messageDesc(
+  file_sync,
+  0,
+);
 
 /**
  * @generated from message Message
@@ -85,10 +87,7 @@ export type Message = Message$1<'Message'> & {
  * Describes the message Message.
  * Use `create(MessageSchema)` to create a new message.
  */
-export const MessageSchema: GenMessage<Message> /*@__PURE__*/ = messageDesc(
-  file_sync,
-  1,
-);
+export const MessageSchema: GenMessage<Message> /*@__PURE__*/ = messageDesc(file_sync, 1);
 
 /**
  * @generated from message MessageEnvelope
@@ -114,8 +113,10 @@ export type MessageEnvelope = Message$1<'MessageEnvelope'> & {
  * Describes the message MessageEnvelope.
  * Use `create(MessageEnvelopeSchema)` to create a new message.
  */
-export const MessageEnvelopeSchema: GenMessage<MessageEnvelope> /*@__PURE__*/ =
-  messageDesc(file_sync, 2);
+export const MessageEnvelopeSchema: GenMessage<MessageEnvelope> /*@__PURE__*/ = messageDesc(
+  file_sync,
+  2,
+);
 
 /**
  * @generated from message SyncRequest
@@ -151,8 +152,7 @@ export type SyncRequest = Message$1<'SyncRequest'> & {
  * Describes the message SyncRequest.
  * Use `create(SyncRequestSchema)` to create a new message.
  */
-export const SyncRequestSchema: GenMessage<SyncRequest> /*@__PURE__*/ =
-  messageDesc(file_sync, 3);
+export const SyncRequestSchema: GenMessage<SyncRequest> /*@__PURE__*/ = messageDesc(file_sync, 3);
 
 /**
  * @generated from message SyncResponse
@@ -173,5 +173,4 @@ export type SyncResponse = Message$1<'SyncResponse'> & {
  * Describes the message SyncResponse.
  * Use `create(SyncResponseSchema)` to create a new message.
  */
-export const SyncResponseSchema: GenMessage<SyncResponse> /*@__PURE__*/ =
-  messageDesc(file_sync, 4);
+export const SyncResponseSchema: GenMessage<SyncResponse> /*@__PURE__*/ = messageDesc(file_sync, 4);

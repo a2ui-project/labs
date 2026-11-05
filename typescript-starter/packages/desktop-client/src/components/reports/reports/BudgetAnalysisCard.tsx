@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-import React, { useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useMemo, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Block} from '@actual-app/components/block';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { BudgetAnalysisWidget } from '@actual-app/core/types/models';
+import type {BudgetAnalysisWidget} from '@actual-app/core/types/models';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { DateRange } from '#components/reports/DateRange';
-import { BudgetAnalysisGraph } from '#components/reports/graphs/BudgetAnalysisGraph';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { createBudgetAnalysisSpreadsheet } from '#components/reports/spreadsheets/budget-analysis-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useFormat } from '#hooks/useFormat';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {DateRange} from '#components/reports/DateRange';
+import {BudgetAnalysisGraph} from '#components/reports/graphs/BudgetAnalysisGraph';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {createBudgetAnalysisSpreadsheet} from '#components/reports/spreadsheets/budget-analysis-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useFormat} from '#hooks/useFormat';
 
 type BudgetAnalysisCardProps = {
   widgetId: string;
@@ -49,7 +49,7 @@ export function BudgetAnalysisCard({
   meta = {},
   onMetaChange,
 }: BudgetAnalysisCardProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
   const [isCardHovered, setIsCardHovered] = useState(false);
@@ -63,9 +63,7 @@ export function BudgetAnalysisCard({
 
   const [startMonth, endMonth] = calculateTimeRange(timeFrame);
   const startDate = monthUtils.monthFromDate(startMonth) + '-01';
-  const endDate = monthUtils.getMonthEnd(
-    monthUtils.monthFromDate(endMonth) + '-01',
-  );
+  const endDate = monthUtils.getMonthEnd(monthUtils.monthFromDate(endMonth) + '-01');
 
   const getGraphData = useMemo(() => {
     return createBudgetAnalysisSpreadsheet({
@@ -75,13 +73,7 @@ export function BudgetAnalysisCard({
       endDate,
       showHiddenCategories: meta?.showHiddenCategories ?? false,
     });
-  }, [
-    meta?.conditions,
-    meta?.conditionsOp,
-    meta?.showHiddenCategories,
-    startDate,
-    endDate,
-  ]);
+  }, [meta?.conditions, meta?.conditionsOp, meta?.showHiddenCategories, startDate, endDate]);
 
   const data = useReport('default', getGraphData);
 
@@ -99,12 +91,12 @@ export function BudgetAnalysisCard({
       onRename={() => setNameMenuOpen(true)}
     >
       <View
-        style={{ flex: 1 }}
+        style={{flex: 1}}
         onPointerEnter={() => setIsCardHovered(true)}
         onPointerLeave={() => setIsCardHovered(false)}
       >
-        <View style={{ flexDirection: 'row', padding: 20 }}>
-          <View style={{ flex: 1 }}>
+        <View style={{flexDirection: 'row', padding: 20}}>
+          <View style={{flex: 1}}>
             <ReportCardName
               name={meta?.name || t('Budget Analysis')}
               isEditing={nameMenuOpen}
@@ -117,13 +109,10 @@ export function BudgetAnalysisCard({
               }}
               onClose={() => setNameMenuOpen(false)}
             />
-            <DateRange
-              start={monthUtils.getMonth(startDate)}
-              end={monthUtils.getMonth(endDate)}
-            />
+            <DateRange start={monthUtils.getMonth(startDate)} end={monthUtils.getMonth(endDate)} />
           </View>
           {data && (
-            <View style={{ textAlign: 'right' }}>
+            <View style={{textAlign: 'right'}}>
               <Block
                 style={{
                   ...styles.mediumText,
@@ -143,7 +132,7 @@ export function BudgetAnalysisCard({
         </View>
         {data ? (
           <BudgetAnalysisGraph
-            style={{ flex: 1 }}
+            style={{flex: 1}}
             data={data}
             graphType={meta?.graphType || 'Bar'}
             showBalance={meta?.showBalance ?? true}

@@ -80,8 +80,7 @@ module.exports = {
         if (node.type === 'AssignmentExpression') {
           identifier = node.left.type === 'Identifier' ? node.left : null;
         } else if (node.type === 'UpdateExpression') {
-          identifier =
-            node.argument.type === 'Identifier' ? node.argument : null;
+          identifier = node.argument.type === 'Identifier' ? node.argument : null;
         }
 
         if (identifier) {
@@ -89,9 +88,7 @@ module.exports = {
           // Search from the identifier's scope upward to find the variable
           let identifierScope = getScope(identifier);
           while (identifierScope) {
-            const variable = identifierScope.variables.find(
-              v => v.name === name,
-            );
+            const variable = identifierScope.variables.find(v => v.name === name);
             if (variable) {
               // Found the variable - it's declared in identifierScope
               // (variables in a scope's variables array are declared in that scope)
@@ -108,9 +105,7 @@ module.exports = {
         // Fallback: find variable in scope chain (for destructuring, etc.)
         let currentScope = scope;
         while (currentScope) {
-          const variable = currentScope.variables.find(
-            v => v.name === name && v.defs.length > 0,
-          );
+          const variable = currentScope.variables.find(v => v.name === name && v.defs.length > 0);
           if (variable) {
             // Variable is declared in currentScope (it's in currentScope.variables)
             if (!reassignedVariablesByScope.has(currentScope)) {
@@ -149,10 +144,7 @@ module.exports = {
           if (prop.type === 'Property') {
             if (prop.value.type === 'Identifier') {
               names.push(prop.value.name);
-            } else if (
-              prop.value.type === 'ObjectPattern' ||
-              prop.value.type === 'ArrayPattern'
-            ) {
+            } else if (prop.value.type === 'ObjectPattern' || prop.value.type === 'ArrayPattern') {
               names.push(...extractVariableNames(prop.value));
             }
           } else if (prop.type === 'RestElement') {
@@ -164,10 +156,7 @@ module.exports = {
           if (element) {
             if (element.type === 'Identifier') {
               names.push(element.name);
-            } else if (
-              element.type === 'ObjectPattern' ||
-              element.type === 'ArrayPattern'
-            ) {
+            } else if (element.type === 'ObjectPattern' || element.type === 'ArrayPattern') {
               names.push(...extractVariableNames(element));
             } else if (element.type === 'RestElement') {
               names.push(...extractVariableNames(element.argument));
@@ -300,9 +289,7 @@ module.exports = {
                 // Variable not found in nodeScope, search upward (shouldn't happen, but be safe)
                 let currentScope = nodeScope.upper;
                 while (currentScope) {
-                  const foundVar = currentScope.variables.find(
-                    v => v.name === name,
-                  );
+                  const foundVar = currentScope.variables.find(v => v.name === name);
                   if (foundVar) {
                     variableScope = currentScope;
                     break;
@@ -315,9 +302,9 @@ module.exports = {
           }
 
           // Check if all variables in this declaration can be const
-          const allCanBeConst = Array.from(
-            allVariablesInDeclaration.entries(),
-          ).every(([name, varScope]) => !isReassignedInScope(name, varScope));
+          const allCanBeConst = Array.from(allVariablesInDeclaration.entries()).every(
+            ([name, varScope]) => !isReassignedInScope(name, varScope),
+          );
 
           // Check each declarator
           for (const declarator of node.declarations) {
@@ -365,8 +352,7 @@ module.exports = {
                   }
                   return null;
                 };
-                targetNode =
-                  findIdentifier(declarator.id, variableName) || declarator.id;
+                targetNode = findIdentifier(declarator.id, variableName) || declarator.id;
               }
 
               // Report for this variable

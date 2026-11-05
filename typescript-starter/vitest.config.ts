@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { defineConfig } from 'vitest/config';
+import {defineConfig} from 'vitest/config';
 
 export default defineConfig({
   test: {
@@ -24,7 +24,7 @@ export default defineConfig({
       'packages/component-library/vitest.web.config.ts',
       {
         extends: 'packages/loot-core/vitest.web.config.ts',
-        test: { name: 'loot-core-web', dir: 'packages/loot-core' },
+        test: {name: 'loot-core-web', dir: 'packages/loot-core'},
       },
     ],
     onConsoleLog: (log, type) => {

@@ -15,17 +15,17 @@
  */
 
 // @ts-strict-ignore
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Mock } from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
+import type {Mock} from 'vitest';
 
-import { createCoordinator } from './coordinator';
+import {createCoordinator} from './coordinator';
 
 // ── Types ───────────────────────────────────────────────────────────────
 
 type MockPort = {
   postMessage: Mock;
   start: Mock;
-  onmessage: ((event: { data: unknown }) => void) | null;
+  onmessage: ((event: {data: unknown}) => void) | null;
 };
 
 type Coordinator = ReturnType<typeof createCoordinator>;
@@ -33,7 +33,7 @@ type Coordinator = ReturnType<typeof createCoordinator>;
 // ── Test helpers ────────────────────────────────────────────────────────
 
 function createMockPort(): MockPort {
-  return { postMessage: vi.fn(), start: vi.fn(), onmessage: null };
+  return {postMessage: vi.fn(), start: vi.fn(), onmessage: null};
 }
 
 function setup(): Coordinator {
@@ -43,18 +43,18 @@ function setup(): Coordinator {
 /** Simulate a new tab connecting to the SharedWorker. */
 function connectTab(coordinator: Coordinator): MockPort {
   const port = createMockPort();
-  coordinator.onconnect({ ports: [port] });
+  coordinator.onconnect({ports: [port]});
   return port;
 }
 
 /** Send a message on behalf of a port (as if the tab sent it). */
 function sendMsg(port: MockPort, msg: Record<string, unknown>): void {
-  port.onmessage!({ data: msg });
+  port.onmessage!({data: msg});
 }
 
 /** Send the standard init message from a tab. */
 function sendInit(port: MockPort): void {
-  sendMsg(port, { type: 'init', version: '1.0', isDev: false });
+  sendMsg(port, {type: 'init', version: '1.0', isDev: false});
 }
 
 /**
@@ -65,7 +65,7 @@ function sendInit(port: MockPort): void {
 function simulateWorkerConnect(leaderPort: MockPort): void {
   sendMsg(leaderPort, {
     type: '__from-worker',
-    msg: { type: 'connect' },
+    msg: {type: 'connect'},
   });
 }
 
@@ -73,10 +73,7 @@ function simulateWorkerConnect(leaderPort: MockPort): void {
  * Set up a fully running budget group with one leader tab.
  * Returns the leader port.
  */
-function setupBudgetGroup(
-  coordinator: Coordinator,
-  budgetId: string,
-): MockPort {
+function setupBudgetGroup(coordinator: Coordinator, budgetId: string): MockPort {
   const leader = connectTab(coordinator);
   sendInit(leader);
   leader.postMessage.mockClear();
@@ -85,7 +82,7 @@ function setupBudgetGroup(
   sendMsg(leader, {
     id: 'lb-1',
     name: 'load-budget',
-    args: { id: budgetId },
+    args: {id: budgetId},
   });
 
   // Simulate the Worker reporting connect
@@ -94,7 +91,7 @@ function setupBudgetGroup(
   // Simulate successful load-budget reply
   sendMsg(leader, {
     type: '__from-worker',
-    msg: { type: 'reply', id: 'lb-1', result: {} },
+    msg: {type: 'reply', id: 'lb-1', result: {}},
   });
 
   leader.postMessage.mockClear();
@@ -155,16 +152,14 @@ describe('SharedWorker coordinator', () => {
       sendInit(port2);
 
       expect(port2.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: '__role-change', role: 'UNASSIGNED' }),
+        expect.objectContaining({type: '__role-change', role: 'UNASSIGNED'}),
       );
-      expect(port2.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'connect' }),
-      );
+      expect(port2.postMessage).toHaveBeenCalledWith(expect.objectContaining({type: 'connect'}));
     });
 
     it('caches init message for new leaders', () => {
       const port1 = connectTab(coordinator);
-      const initMsg = { type: 'init', version: '2.0', isDev: true };
+      const initMsg = {type: 'init', version: '2.0', isDev: true};
       sendMsg(port1, initMsg);
 
       expect(coordinator.getState().cachedInitMsg).toEqual(initMsg);
@@ -178,14 +173,14 @@ describe('SharedWorker coordinator', () => {
 
       sendMsg(leader, {
         type: '__from-worker',
-        msg: { type: 'app-init-failure', error: 'boom' },
+        msg: {type: 'app-init-failure', error: 'boom'},
       });
 
       const port2 = connectTab(coordinator);
       sendInit(port2);
 
       expect(port2.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'app-init-failure', error: 'boom' }),
+        expect.objectContaining({type: 'app-init-failure', error: 'boom'}),
       );
     });
 
@@ -196,19 +191,19 @@ describe('SharedWorker coordinator', () => {
 
       sendMsg(leader, {
         type: '__from-worker',
-        msg: { type: 'app-init-failure', error: 'boom' },
+        msg: {type: 'app-init-failure', error: 'boom'},
       });
       expect(coordinator.getState().lastAppInitFailure).toEqual(
-        expect.objectContaining({ type: 'app-init-failure' }),
+        expect.objectContaining({type: 'app-init-failure'}),
       );
 
-      sendMsg(leader, { name: '__app-init-failure-acknowledged' });
+      sendMsg(leader, {name: '__app-init-failure-acknowledged'});
       expect(coordinator.getState().lastAppInitFailure).toBeNull();
 
       const port2 = connectTab(coordinator);
       sendInit(port2);
       expect(port2.postMessage).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'app-init-failure' }),
+        expect.objectContaining({type: 'app-init-failure'}),
       );
     });
 
@@ -217,11 +212,11 @@ describe('SharedWorker coordinator', () => {
       sendInit(failedLeader);
       sendMsg(failedLeader, {
         type: '__from-worker',
-        msg: { type: 'app-init-failure', error: 'boom' },
+        msg: {type: 'app-init-failure', error: 'boom'},
       });
       expect(coordinator.getState().lastAppInitFailure).not.toBeNull();
 
-      sendMsg(failedLeader, { type: 'tab-closing' });
+      sendMsg(failedLeader, {type: 'tab-closing'});
 
       const newLeader = connectTab(coordinator);
       sendInit(newLeader);
@@ -242,7 +237,7 @@ describe('SharedWorker coordinator', () => {
       sendMsg(leader, {
         id: 'lb-1',
         name: 'load-budget',
-        args: { id: 'my-budget' },
+        args: {id: 'my-budget'},
       });
 
       const state = coordinator.getState();
@@ -254,7 +249,7 @@ describe('SharedWorker coordinator', () => {
       expect(leader.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: '__to-worker',
-          msg: expect.objectContaining({ name: 'load-budget' }),
+          msg: expect.objectContaining({name: 'load-budget'}),
         }),
       );
     });
@@ -269,7 +264,7 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-2',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       expect(follower.postMessage).toHaveBeenCalledWith(
@@ -281,9 +276,7 @@ describe('SharedWorker coordinator', () => {
       );
 
       // Should also get connect since backend is already running
-      expect(follower.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'connect' }),
-      );
+      expect(follower.postMessage).toHaveBeenCalledWith(expect.objectContaining({type: 'connect'}));
 
       const group = coordinator.getState().budgetGroups.get('budget-1');
       expect(group.followers.has(follower)).toBe(true);
@@ -300,7 +293,7 @@ describe('SharedWorker coordinator', () => {
       sendMsg(tab2, {
         id: 'lb-3',
         name: 'load-budget',
-        args: { id: 'budget-2' },
+        args: {id: 'budget-2'},
       });
 
       expect(tab2.postMessage).toHaveBeenCalledWith(
@@ -325,7 +318,7 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
       follower.postMessage.mockClear();
 
@@ -333,12 +326,12 @@ describe('SharedWorker coordinator', () => {
       sendMsg(leader, {
         id: 'lb-switch',
         name: 'load-budget',
-        args: { id: 'budget-2' },
+        args: {id: 'budget-2'},
       });
 
       // Follower should be pushed to show-budgets
       expect(follower.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'push', name: 'show-budgets' }),
+        expect.objectContaining({type: 'push', name: 'show-budgets'}),
       );
     });
   });
@@ -354,14 +347,14 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
       follower.postMessage.mockClear();
 
-      sendMsg(follower, { id: 'cb-1', name: 'close-budget' });
+      sendMsg(follower, {id: 'cb-1', name: 'close-budget'});
 
       expect(follower.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'reply', id: 'cb-1', data: {} }),
+        expect.objectContaining({type: 'reply', id: 'cb-1', data: {}}),
       );
 
       const group = coordinator.getState().budgetGroups.get('budget-1');
@@ -377,12 +370,12 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
       follower.postMessage.mockClear();
       leader.postMessage.mockClear();
 
-      sendMsg(leader, { id: 'cb-leader', name: 'close-budget' });
+      sendMsg(leader, {id: 'cb-leader', name: 'close-budget'});
 
       // Leader should get __close-and-transfer
       expect(leader.postMessage).toHaveBeenCalledWith(
@@ -409,12 +402,12 @@ describe('SharedWorker coordinator', () => {
       const leader = setupBudgetGroup(coordinator, 'budget-1');
       leader.postMessage.mockClear();
 
-      sendMsg(leader, { id: 'cb-solo', name: 'close-budget' });
+      sendMsg(leader, {id: 'cb-solo', name: 'close-budget'});
 
       expect(leader.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: '__to-worker',
-          msg: expect.objectContaining({ name: 'close-budget' }),
+          msg: expect.objectContaining({name: 'close-budget'}),
         }),
       );
     });
@@ -422,12 +415,12 @@ describe('SharedWorker coordinator', () => {
     it('close-budget reply from Worker cleans up group', () => {
       const leader = setupBudgetGroup(coordinator, 'budget-1');
 
-      sendMsg(leader, { id: 'cb-solo', name: 'close-budget' });
+      sendMsg(leader, {id: 'cb-solo', name: 'close-budget'});
 
       // Simulate Worker reply
       sendMsg(leader, {
         type: '__from-worker',
-        msg: { type: 'reply', id: 'cb-solo', result: {} },
+        msg: {type: 'reply', id: 'cb-solo', result: {}},
       });
 
       expect(coordinator.getState().budgetGroups.has('budget-1')).toBe(false);
@@ -445,12 +438,12 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
       follower.postMessage.mockClear();
 
       // Leader closes tab
-      sendMsg(leader, { type: 'tab-closing' });
+      sendMsg(leader, {type: 'tab-closing'});
 
       // Follower should be promoted
       expect(follower.postMessage).toHaveBeenCalledWith(
@@ -468,7 +461,7 @@ describe('SharedWorker coordinator', () => {
     it('last tab leaving removes budget group', () => {
       const leader = setupBudgetGroup(coordinator, 'budget-1');
 
-      sendMsg(leader, { type: 'tab-closing' });
+      sendMsg(leader, {type: 'tab-closing'});
 
       expect(coordinator.getState().budgetGroups.has('budget-1')).toBe(false);
     });
@@ -481,13 +474,13 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       const group = coordinator.getState().budgetGroups.get('budget-1');
       expect(group.followers.has(follower)).toBe(true);
 
-      sendMsg(follower, { type: 'tab-closing' });
+      sendMsg(follower, {type: 'tab-closing'});
 
       expect(group.followers.has(follower)).toBe(false);
     });
@@ -504,7 +497,7 @@ describe('SharedWorker coordinator', () => {
       vi.advanceTimersByTime(10_000);
 
       expect(port1.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: '__heartbeat-ping' }),
+        expect.objectContaining({type: '__heartbeat-ping'}),
       );
     });
 
@@ -516,9 +509,7 @@ describe('SharedWorker coordinator', () => {
       // Second heartbeat — port didn't respond, gets removed
       vi.advanceTimersByTime(10_000);
 
-      expect(coordinator.getState().connectedPorts.includes(leader)).toBe(
-        false,
-      );
+      expect(coordinator.getState().connectedPorts.includes(leader)).toBe(false);
     });
 
     it('keeps ports that respond with pong', () => {
@@ -527,7 +518,7 @@ describe('SharedWorker coordinator', () => {
       // First heartbeat
       vi.advanceTimersByTime(10_000);
       // Respond with pong
-      sendMsg(leader, { type: '__heartbeat-pong' });
+      sendMsg(leader, {type: '__heartbeat-pong'});
       // Second heartbeat — should NOT remove the port
       vi.advanceTimersByTime(10_000);
 
@@ -541,13 +532,11 @@ describe('SharedWorker coordinator', () => {
       sendInit(leader);
       leader.postMessage.mockClear();
 
-      sendMsg(leader, { type: '__resume-tab', budgetId: null });
+      sendMsg(leader, {type: '__resume-tab', budgetId: null});
 
       expect(coordinator.getState().portToBudget.get(leader)).toBe('__lobby');
       expect(coordinator.getState().unassignedPorts.has(leader)).toBe(false);
-      expect(
-        coordinator.getState().budgetGroups.get('__lobby').leaderPort,
-      ).toBe(leader);
+      expect(coordinator.getState().budgetGroups.get('__lobby').leaderPort).toBe(leader);
       expect(leader.postMessage).not.toHaveBeenCalledWith(
         expect.objectContaining({
           type: '__role-change',
@@ -563,15 +552,15 @@ describe('SharedWorker coordinator', () => {
       liveLeader.postMessage.mockClear();
 
       vi.advanceTimersByTime(10_000);
-      sendMsg(liveLeader, { type: '__heartbeat-pong' });
+      sendMsg(liveLeader, {type: '__heartbeat-pong'});
       vi.advanceTimersByTime(10_000);
 
-      sendMsg(orphanedLeader, { id: 'req-orphan', name: 'get-budgets' });
+      sendMsg(orphanedLeader, {id: 'req-orphan', name: 'get-budgets'});
 
       expect(liveLeader.postMessage).not.toHaveBeenCalledWith(
         expect.objectContaining({
           type: '__to-worker',
-          msg: expect.objectContaining({ name: 'get-budgets' }),
+          msg: expect.objectContaining({name: 'get-budgets'}),
         }),
       );
     });
@@ -583,13 +572,11 @@ describe('SharedWorker coordinator', () => {
       vi.advanceTimersByTime(10_000);
       vi.advanceTimersByTime(10_000);
 
-      sendMsg(leader, { type: '__resume-tab', budgetId: 'budget-1' });
+      sendMsg(leader, {type: '__resume-tab', budgetId: 'budget-1'});
 
       expect(coordinator.getState().connectedPorts.includes(leader)).toBe(true);
       expect(coordinator.getState().portToBudget.get(leader)).toBe('budget-1');
-      expect(
-        coordinator.getState().budgetGroups.get('budget-1').leaderPort,
-      ).toBe(leader);
+      expect(coordinator.getState().budgetGroups.get('budget-1').leaderPort).toBe(leader);
       expect(leader.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: '__role-change',
@@ -613,25 +600,20 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
       follower.postMessage.mockClear();
 
       vi.advanceTimersByTime(10_000);
-      sendMsg(leader, { type: '__heartbeat-pong' });
+      sendMsg(leader, {type: '__heartbeat-pong'});
       vi.advanceTimersByTime(10_000);
 
-      sendMsg(follower, { type: '__resume-tab', budgetId: 'budget-1' });
+      sendMsg(follower, {type: '__resume-tab', budgetId: 'budget-1'});
 
-      expect(coordinator.getState().connectedPorts.includes(follower)).toBe(
+      expect(coordinator.getState().connectedPorts.includes(follower)).toBe(true);
+      expect(coordinator.getState().budgetGroups.get('budget-1').followers.has(follower)).toBe(
         true,
       );
-      expect(
-        coordinator
-          .getState()
-          .budgetGroups.get('budget-1')
-          .followers.has(follower),
-      ).toBe(true);
       expect(follower.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: '__role-change',
@@ -639,9 +621,7 @@ describe('SharedWorker coordinator', () => {
           budgetId: 'budget-1',
         }),
       );
-      expect(follower.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'connect' }),
-      );
+      expect(follower.postMessage).toHaveBeenCalledWith(expect.objectContaining({type: 'connect'}));
     });
   });
 
@@ -656,17 +636,17 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       // Follower sends a request
       follower.postMessage.mockClear();
-      sendMsg(follower, { id: 'req-1', name: 'get-budgets' });
+      sendMsg(follower, {id: 'req-1', name: 'get-budgets'});
 
       // Worker replies
       sendMsg(leader, {
         type: '__from-worker',
-        msg: { type: 'reply', id: 'req-1', result: ['b1'] },
+        msg: {type: 'reply', id: 'req-1', result: ['b1']},
       });
 
       expect(follower.postMessage).toHaveBeenCalledWith(
@@ -686,7 +666,7 @@ describe('SharedWorker coordinator', () => {
       sendMsg(leader, {
         id: 'lb-1',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       const unassigned = connectTab(coordinator);
@@ -697,7 +677,7 @@ describe('SharedWorker coordinator', () => {
       simulateWorkerConnect(leader);
 
       expect(unassigned.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'connect' }),
+        expect.objectContaining({type: 'connect'}),
       );
     });
 
@@ -709,12 +689,12 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
       leader.postMessage.mockClear();
 
       // Fire-and-forget message (no id)
-      sendMsg(follower, { type: 'client-connected-to-backend' });
+      sendMsg(follower, {type: 'client-connected-to-backend'});
 
       expect(leader.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -733,12 +713,12 @@ describe('SharedWorker coordinator', () => {
       sendInit(unassigned);
       leader.postMessage.mockClear();
 
-      sendMsg(unassigned, { id: 'req-u', name: 'get-budgets' });
+      sendMsg(unassigned, {id: 'req-u', name: 'get-budgets'});
 
       expect(leader.postMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           type: '__to-worker',
-          msg: expect.objectContaining({ name: 'get-budgets' }),
+          msg: expect.objectContaining({name: 'get-budgets'}),
         }),
       );
     });
@@ -757,11 +737,11 @@ describe('SharedWorker coordinator', () => {
         sendMsg(follower, {
           id: 'lb-f',
           name: 'load-budget',
-          args: { id: 'budget-1' },
+          args: {id: 'budget-1'},
         });
         follower.postMessage.mockClear();
 
-        sendMsg(follower, { id: 'op-1', name: opName });
+        sendMsg(follower, {id: 'op-1', name: opName});
 
         // Follower should be elected as leader for a temp group
         expect(follower.postMessage).toHaveBeenCalledWith(
@@ -786,14 +766,14 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
       follower.postMessage.mockClear();
 
-      sendMsg(leader, { id: 'cb-1', name: 'create-budget' });
+      sendMsg(leader, {id: 'cb-1', name: 'create-budget'});
 
       expect(follower.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'push', name: 'show-budgets' }),
+        expect.objectContaining({type: 'push', name: 'show-budgets'}),
       );
 
       const group = coordinator.getState().budgetGroups.get('budget-1');
@@ -807,7 +787,7 @@ describe('SharedWorker coordinator', () => {
       sendInit(tab2);
       tab2.postMessage.mockClear();
 
-      sendMsg(tab2, { id: 'cdb-1', name: 'create-demo-budget' });
+      sendMsg(tab2, {id: 'cdb-1', name: 'create-demo-budget'});
 
       // Old demo leader should have been evicted
       expect(demoLeader.postMessage).toHaveBeenCalledWith(
@@ -817,12 +797,10 @@ describe('SharedWorker coordinator', () => {
         }),
       );
       expect(demoLeader.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'push', name: 'show-budgets' }),
+        expect.objectContaining({type: 'push', name: 'show-budgets'}),
       );
 
-      expect(coordinator.getState().budgetGroups.has('_demo-budget')).toBe(
-        false,
-      );
+      expect(coordinator.getState().budgetGroups.has('_demo-budget')).toBe(false);
     });
 
     it('create-budget with testMode evicts existing _test-budget group', () => {
@@ -835,7 +813,7 @@ describe('SharedWorker coordinator', () => {
       sendMsg(tab2, {
         id: 'ctb-1',
         name: 'create-budget',
-        args: { testMode: true },
+        args: {testMode: true},
       });
 
       expect(testLeader.postMessage).toHaveBeenCalledWith(
@@ -854,11 +832,11 @@ describe('SharedWorker coordinator', () => {
       sendMsg(creator, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       // Creator sends create-budget → gets temp Worker
-      sendMsg(creator, { id: 'cb-1', name: 'create-budget' });
+      sendMsg(creator, {id: 'cb-1', name: 'create-budget'});
 
       const tempId = coordinator.getState().portToBudget.get(creator);
       expect(tempId).toMatch(/^__creating-/);
@@ -867,12 +845,12 @@ describe('SharedWorker coordinator', () => {
       simulateWorkerConnect(creator);
 
       // Track a load-prefs request
-      sendMsg(creator, { id: 'lp-1', name: 'load-prefs' });
+      sendMsg(creator, {id: 'lp-1', name: 'load-prefs'});
 
       // Worker replies with load-prefs containing the new budget ID
       sendMsg(creator, {
         type: '__from-worker',
-        msg: { type: 'reply', id: 'lp-1', result: { id: 'new-budget-123' } },
+        msg: {type: 'reply', id: 'lp-1', result: {id: 'new-budget-123'}},
       });
 
       const state = coordinator.getState();
@@ -895,7 +873,7 @@ describe('SharedWorker coordinator', () => {
       sendMsg(leader2, {
         id: 'db-1',
         name: 'delete-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       // budget-1 leader should be evicted
@@ -919,7 +897,7 @@ describe('SharedWorker coordinator', () => {
       sendMsg(deleter, {
         id: 'db-1',
         name: 'delete-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       // After evicting budget-1, no connected group remains
@@ -962,11 +940,11 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
       follower.postMessage.mockClear();
 
-      sendMsg(leader, { id: 'cb-leader', name: 'close-budget' });
+      sendMsg(leader, {id: 'cb-leader', name: 'close-budget'});
       sendMsg(follower, {
         type: '__track-restore',
         requestId: '__restore-budget',
@@ -979,27 +957,21 @@ describe('SharedWorker coordinator', () => {
 
       sendMsg(follower, {
         type: '__from-worker',
-        msg: { type: 'connect' },
+        msg: {type: 'connect'},
       });
 
-      expect(
-        coordinator.getState().budgetGroups.get('budget-1').backendConnected,
-      ).toBe(false);
+      expect(coordinator.getState().budgetGroups.get('budget-1').backendConnected).toBe(false);
       expect(reloaded.postMessage).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'connect' }),
+        expect.objectContaining({type: 'connect'}),
       );
 
       sendMsg(follower, {
         type: '__from-worker',
-        msg: { type: 'reply', id: '__restore-budget', result: {} },
+        msg: {type: 'reply', id: '__restore-budget', result: {}},
       });
 
-      expect(
-        coordinator.getState().budgetGroups.get('budget-1').backendConnected,
-      ).toBe(true);
-      expect(reloaded.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'connect' }),
-      );
+      expect(coordinator.getState().budgetGroups.get('budget-1').backendConnected).toBe(true);
+      expect(reloaded.postMessage).toHaveBeenCalledWith(expect.objectContaining({type: 'connect'}));
     });
 
     it('still broadcasts connect if restore finishes before the worker connect event', () => {
@@ -1010,10 +982,10 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
-      sendMsg(leader, { id: 'cb-leader', name: 'close-budget' });
+      sendMsg(leader, {id: 'cb-leader', name: 'close-budget'});
       sendMsg(follower, {
         type: '__track-restore',
         requestId: '__restore-budget',
@@ -1026,24 +998,20 @@ describe('SharedWorker coordinator', () => {
 
       sendMsg(follower, {
         type: '__from-worker',
-        msg: { type: 'reply', id: '__restore-budget', result: {} },
+        msg: {type: 'reply', id: '__restore-budget', result: {}},
       });
 
       expect(reloaded.postMessage).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'connect' }),
+        expect.objectContaining({type: 'connect'}),
       );
 
       sendMsg(follower, {
         type: '__from-worker',
-        msg: { type: 'connect' },
+        msg: {type: 'connect'},
       });
 
-      expect(
-        coordinator.getState().budgetGroups.get('budget-1').backendConnected,
-      ).toBe(true);
-      expect(reloaded.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'connect' }),
-      );
+      expect(coordinator.getState().budgetGroups.get('budget-1').backendConnected).toBe(true);
+      expect(reloaded.postMessage).toHaveBeenCalledWith(expect.objectContaining({type: 'connect'}));
     });
   });
 
@@ -1070,21 +1038,21 @@ describe('SharedWorker coordinator', () => {
       sendMsg(follower, {
         id: 'lb-f',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       follower.postMessage.mockClear();
       leader2.postMessage.mockClear();
 
       // Follower sends request — should go to budget-1's leader only
-      sendMsg(follower, { id: 'req-1', name: 'some-action' });
+      sendMsg(follower, {id: 'req-1', name: 'some-action'});
 
       expect(leader1.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: '__to-worker' }),
+        expect.objectContaining({type: '__to-worker'}),
       );
       // leader2 should NOT have received this
       expect(leader2.postMessage).not.toHaveBeenCalledWith(
-        expect.objectContaining({ type: '__to-worker' }),
+        expect.objectContaining({type: '__to-worker'}),
       );
     });
   });
@@ -1100,7 +1068,7 @@ describe('SharedWorker coordinator', () => {
       sendMsg(f1, {
         id: 'lb-f1',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       const f2 = connectTab(coordinator);
@@ -1108,7 +1076,7 @@ describe('SharedWorker coordinator', () => {
       sendMsg(f2, {
         id: 'lb-f2',
         name: 'load-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       f1.postMessage.mockClear();
@@ -1122,29 +1090,29 @@ describe('SharedWorker coordinator', () => {
       sendMsg(deleter, {
         id: 'lb-del',
         name: 'load-budget',
-        args: { id: 'budget-other' },
+        args: {id: 'budget-other'},
       });
       simulateWorkerConnect(deleter);
       sendMsg(deleter, {
         type: '__from-worker',
-        msg: { type: 'reply', id: 'lb-del', result: {} },
+        msg: {type: 'reply', id: 'lb-del', result: {}},
       });
 
       sendMsg(deleter, {
         id: 'db-1',
         name: 'delete-budget',
-        args: { id: 'budget-1' },
+        args: {id: 'budget-1'},
       });
 
       // All budget-1 tabs should be pushed to show-budgets
       expect(f1.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'push', name: 'show-budgets' }),
+        expect.objectContaining({type: 'push', name: 'show-budgets'}),
       );
       expect(f2.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'push', name: 'show-budgets' }),
+        expect.objectContaining({type: 'push', name: 'show-budgets'}),
       );
       expect(leader.postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'push', name: 'show-budgets' }),
+        expect.objectContaining({type: 'push', name: 'show-budgets'}),
       );
 
       expect(coordinator.getState().budgetGroups.has('budget-1')).toBe(false);

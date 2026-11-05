@@ -15,25 +15,18 @@
  */
 
 // @ts-strict-ignore
-import { useEffect, useEffectEvent, useReducer, useState } from 'react';
+import {useEffect, useEffectEvent, useReducer, useState} from 'react';
 
-import { send, sendCatch } from '@actual-app/core/platform/client/connection';
+import {send, sendCatch} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import {
-  extractScheduleConds,
-  getScheduledAmount,
-} from '@actual-app/core/shared/schedules';
-import type {
-  RecurConfig,
-  ScheduleEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import {extractScheduleConds, getScheduledAmount} from '@actual-app/core/shared/schedules';
+import type {RecurConfig, ScheduleEntity, TransactionEntity} from '@actual-app/core/types/models';
 
-import { updateScheduleConditions } from '#components/schedules/schedule-edit-utils';
-import type { ScheduleFormFields } from '#components/schedules/ScheduleEditForm';
-import { aqlQuery } from '#queries/aqlQuery';
-import { liveQuery } from '#queries/liveQuery';
+import {updateScheduleConditions} from '#components/schedules/schedule-edit-utils';
+import type {ScheduleFormFields} from '#components/schedules/ScheduleEditForm';
+import {aqlQuery} from '#queries/aqlQuery';
+import {liveQuery} from '#queries/liveQuery';
 
 export type ScheduleEditState = {
   isCustom?: boolean;
@@ -63,7 +56,7 @@ type ScheduleEditAction =
   | {
       type: 'set-field';
       field: 'amount';
-      value: number | { num1: number; num2: number };
+      value: number | {num1: number; num2: number};
     }
   | {
       type: 'set-field';
@@ -103,10 +96,7 @@ type ScheduleEditAction =
     };
 
 function createScheduleEditReducer(useGetScheduledAmount: boolean = false) {
-  return (
-    state: ScheduleEditState,
-    action: ScheduleEditAction,
-  ): ScheduleEditState => {
+  return (state: ScheduleEditState, action: ScheduleEditAction): ScheduleEditState => {
     switch (action.type) {
       case 'set-schedule': {
         const schedule = action.schedule;
@@ -130,8 +120,7 @@ function createScheduleEditReducer(useGetScheduledAmount: boolean = false) {
             amountOp: schedule._amountOp || 'isapprox',
             date: schedule._date ?? null,
             posts_transaction: action.schedule.posts_transaction ?? false,
-            custom_upcoming_length:
-              action.schedule.custom_upcoming_length ?? null,
+            custom_upcoming_length: action.schedule.custom_upcoming_length ?? null,
             name: schedule.name ?? null,
           },
         };
@@ -141,27 +130,24 @@ function createScheduleEditReducer(useGetScheduledAmount: boolean = false) {
           throw new Error('Unknown field: ' + action.field);
         }
 
-        const fields: { [key: string]: typeof action.value | undefined } = {
+        const fields: {[key: string]: typeof action.value | undefined} = {
           [action.field]: action.value,
         };
 
         // If we are changing the amount operator either to or
         // away from the `isbetween` operator, the amount value is
         // different and we need to convert it
-        if (
-          action.field === 'amountOp' &&
-          action.value !== state.fields.amountOp
-        ) {
+        if (action.field === 'amountOp' && action.value !== state.fields.amountOp) {
           if (action.value === 'isbetween') {
             // We need a range if switching to `isbetween`
             if (useGetScheduledAmount) {
               const num = getScheduledAmount(state.fields.amount);
-              fields.amount = { num1: num, num2: num };
+              fields.amount = {num1: num, num2: num};
             } else {
               fields.amount =
                 typeof state.fields.amount === 'number'
-                  ? { num1: state.fields.amount, num2: state.fields.amount }
-                  : { num1: 0, num2: 0 };
+                  ? {num1: state.fields.amount, num2: state.fields.amount}
+                  : {num1: 0, num2: 0};
             }
           } else if (state.fields.amountOp === 'isbetween') {
             // We need just a number if switching away from `isbetween`
@@ -179,7 +165,7 @@ function createScheduleEditReducer(useGetScheduledAmount: boolean = false) {
 
         return {
           ...state,
-          fields: { ...state.fields, ...fields },
+          fields: {...state.fields, ...fields},
         };
       }
 
@@ -189,11 +175,10 @@ function createScheduleEditReducer(useGetScheduledAmount: boolean = false) {
         if (action.transactionId && transactions) {
           transactions.sort(
             (a, b) =>
-              (action.transactionId === b.id ? 1 : 0) -
-              (action.transactionId === a.id ? 1 : 0),
+              (action.transactionId === b.id ? 1 : 0) - (action.transactionId === a.id ? 1 : 0),
           );
         }
-        return { ...state, transactions };
+        return {...state, transactions};
       }
 
       case 'set-repeats': {
@@ -235,11 +220,11 @@ function createScheduleEditReducer(useGetScheduledAmount: boolean = false) {
       }
 
       case 'form-error': {
-        return { ...state, error: action.error };
+        return {...state, error: action.error};
       }
 
       case 'switch-transactions': {
-        return { ...state, transactionsMode: action.mode };
+        return {...state, transactionsMode: action.mode};
       }
 
       default: {
@@ -291,9 +276,7 @@ export function useScheduleEdit({
     }
 
     setIsLoading(true);
-    const { data } = await aqlQuery(
-      q('schedules').filter({ id: scheduleId }).select('*'),
-    );
+    const {data} = await aqlQuery(q('schedules').filter({id: scheduleId}).select('*'));
     setIsLoading(false);
 
     return data[0];
@@ -302,14 +285,14 @@ export function useScheduleEdit({
   const setSchedule = useEffectEvent(async () => {
     if (adding) {
       if (initialSchedule) {
-        dispatch({ type: 'set-schedule', schedule: initialSchedule });
+        dispatch({type: 'set-schedule', schedule: initialSchedule});
       }
       return;
     }
 
     const schedule = await loadSchedule();
     if (schedule && state.schedule == null) {
-      dispatch({ type: 'set-schedule', schedule });
+      dispatch({type: 'set-schedule', schedule});
     }
   });
 
@@ -324,41 +307,37 @@ export function useScheduleEdit({
       const date = state.fields.date;
 
       if (date === null) {
-        dispatch({ type: 'set-upcoming-dates', dates: null });
+        dispatch({type: 'set-upcoming-dates', dates: null});
         return;
       }
 
       if (typeof date === 'string') {
         const today = monthUtils.currentDay();
         if (date === today || monthUtils.isAfter(date, today)) {
-          dispatch({ type: 'set-upcoming-dates', dates: [date] });
+          dispatch({type: 'set-upcoming-dates', dates: [date]});
         } else {
-          dispatch({ type: 'set-upcoming-dates', dates: null });
+          dispatch({type: 'set-upcoming-dates', dates: null});
         }
         return;
       }
 
-      const { data } = await sendCatch('schedule/get-upcoming-dates', {
+      const {data} = await sendCatch('schedule/get-upcoming-dates', {
         config: date,
         count: 3,
       });
-      dispatch({ type: 'set-upcoming-dates', dates: data });
+      dispatch({type: 'set-upcoming-dates', dates: data});
     }
     void run();
   }, [state.fields.date]);
 
   // Load linked transactions
   useEffect(() => {
-    if (
-      state.schedule &&
-      state.schedule.id &&
-      state.transactionsMode === 'linked'
-    ) {
+    if (state.schedule && state.schedule.id && state.transactionsMode === 'linked') {
       const live = liveQuery<TransactionEntity>(
         q('transactions')
-          .filter({ schedule: state.schedule.id })
+          .filter({schedule: state.schedule.id})
           .select('*')
-          .options({ splits: 'all' }),
+          .options({splits: 'all'}),
         {
           onData: data =>
             dispatch({
@@ -381,7 +360,7 @@ export function useScheduleEdit({
       const updated = updateScheduleConditions(state.schedule, state.fields);
 
       if ('error' in updated) {
-        dispatch({ type: 'form-error', error: updated.error });
+        dispatch({type: 'form-error', error: updated.error});
         return;
       }
 
@@ -389,24 +368,21 @@ export function useScheduleEdit({
       // public names automatically. We really should be doing that
       // at the database layer
       const conditions = (updated.conditions || []).map(cond => {
-        const typedCond = cond as { field: string; op: string; value: unknown };
+        const typedCond = cond as {field: string; op: string; value: unknown};
         if (typedCond.field === 'description') {
-          return { ...typedCond, field: 'payee' };
+          return {...typedCond, field: 'payee'};
         } else if (typedCond.field === 'acct') {
-          return { ...typedCond, field: 'account' };
+          return {...typedCond, field: 'account'};
         }
         return typedCond;
       });
 
       void send('make-filters-from-conditions', {
         conditions,
-      }).then(({ filters }) => {
+      }).then(({filters}) => {
         if (current) {
           const live = liveQuery<TransactionEntity>(
-            q('transactions')
-              .filter({ $and: filters })
-              .select('*')
-              .options({ splits: 'all' }),
+            q('transactions').filter({$and: filters}).select('*').options({splits: 'all'}),
             {
               onData: data =>
                 dispatch({

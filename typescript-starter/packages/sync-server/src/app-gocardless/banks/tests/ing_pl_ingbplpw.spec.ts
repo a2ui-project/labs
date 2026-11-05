@@ -15,12 +15,9 @@
  */
 
 import IngPlIngbplpw from '#app-gocardless/banks/ing_pl_ingbplpw';
-import type {
-  Balance,
-  Transaction,
-} from '#app-gocardless/gocardless-node.types';
-import type { DetailedAccountWithInstitution } from '#app-gocardless/gocardless.types';
-import { mockTransactionAmount } from '#app-gocardless/services/tests/fixtures';
+import type {Balance, Transaction} from '#app-gocardless/gocardless-node.types';
+import type {DetailedAccountWithInstitution} from '#app-gocardless/gocardless.types';
+import {mockTransactionAmount} from '#app-gocardless/services/tests/fixtures';
 
 describe('IngPlIngbplpw', () => {
   describe('#normalizeAccount', () => {
@@ -31,10 +28,7 @@ describe('IngPlIngbplpw', () => {
       ownerName: 'John Example',
       product: 'Current Account for Individuals (Retail)',
       bic: 'INGBPLPW',
-      ownerAddressUnstructured: [
-        'UL. EXAMPLE STREET 10 M.1',
-        '00-000 WARSZAWA',
-      ],
+      ownerAddressUnstructured: ['UL. EXAMPLE STREET 10 M.1', '00-000 WARSZAWA'],
       id: 'd3eccc94-9536-48d3-98be-813f79199ee3',
       created: '2022-07-24T20:45:47.929582Z',
       last_accessed: '2023-01-24T22:12:00.193558Z',
@@ -161,23 +155,23 @@ describe('IngPlIngbplpw', () => {
     it('should calculate the starting balance correctly', () => {
       const sortedTransactions: Transaction[] = [
         {
-          transactionAmount: { amount: '-100.00', currency: 'USD' },
+          transactionAmount: {amount: '-100.00', currency: 'USD'},
           balanceAfterTransaction: {
-            balanceAmount: { amount: '400.00', currency: 'USD' },
+            balanceAmount: {amount: '400.00', currency: 'USD'},
             balanceType: 'interimBooked',
           },
         },
         {
-          transactionAmount: { amount: '50.00', currency: 'USD' },
+          transactionAmount: {amount: '50.00', currency: 'USD'},
           balanceAfterTransaction: {
-            balanceAmount: { amount: '450.00', currency: 'USD' },
+            balanceAmount: {amount: '450.00', currency: 'USD'},
             balanceType: 'interimBooked',
           },
         },
         {
-          transactionAmount: { amount: '-25.00', currency: 'USD' },
+          transactionAmount: {amount: '-25.00', currency: 'USD'},
           balanceAfterTransaction: {
-            balanceAmount: { amount: '475.00', currency: 'USD' },
+            balanceAmount: {amount: '475.00', currency: 'USD'},
             balanceType: 'interimBooked',
           },
         },
@@ -186,18 +180,15 @@ describe('IngPlIngbplpw', () => {
       const balances: Balance[] = [
         {
           balanceType: 'interimBooked',
-          balanceAmount: { amount: '500.00', currency: 'USD' },
+          balanceAmount: {amount: '500.00', currency: 'USD'},
         },
         {
           balanceType: 'closingBooked',
-          balanceAmount: { amount: '600.00', currency: 'USD' },
+          balanceAmount: {amount: '600.00', currency: 'USD'},
         },
       ];
 
-      const startingBalance = IngPlIngbplpw.calculateStartingBalance(
-        sortedTransactions,
-        balances,
-      );
+      const startingBalance = IngPlIngbplpw.calculateStartingBalance(sortedTransactions, balances);
 
       expect(startingBalance).toEqual(50000);
     });
@@ -208,12 +199,10 @@ describe('IngPlIngbplpw', () => {
       const balances: Balance[] = [
         {
           balanceType: 'interimBooked',
-          balanceAmount: { amount: '500.00', currency: 'USD' },
+          balanceAmount: {amount: '500.00', currency: 'USD'},
         },
       ];
-      expect(
-        IngPlIngbplpw.calculateStartingBalance(transactions, balances),
-      ).toEqual(50000);
+      expect(IngPlIngbplpw.calculateStartingBalance(transactions, balances)).toEqual(50000);
     });
   });
 });

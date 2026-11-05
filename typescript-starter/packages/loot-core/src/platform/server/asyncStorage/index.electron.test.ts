@@ -34,7 +34,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  fs.rmSync(dataDir, { recursive: true, force: true });
+  fs.rmSync(dataDir, {recursive: true, force: true});
   delete process.env.ACTUAL_DATA_DIR;
 });
 
@@ -45,7 +45,7 @@ describe('electron asyncStorage', () => {
 
     // The on-disk file is complete, valid JSON.
     const raw = fs.readFileSync(storePath(), 'utf8');
-    expect(JSON.parse(raw)).toEqual({ language: 'en' });
+    expect(JSON.parse(raw)).toEqual({language: 'en'});
 
     // A fresh init reads the persisted value.
     asyncStorage.init();
@@ -57,9 +57,7 @@ describe('electron asyncStorage', () => {
     await asyncStorage.setItem('language', 'en');
     await asyncStorage.setItem('theme', 'dark');
 
-    const leftovers = fs
-      .readdirSync(dataDir)
-      .filter(name => name.endsWith('.tmp'));
+    const leftovers = fs.readdirSync(dataDir).filter(name => name.endsWith('.tmp'));
     expect(leftovers).toEqual([]);
   });
 
@@ -83,9 +81,7 @@ describe('electron asyncStorage', () => {
       'max-months': '3',
       'floating-sidebar': 'true',
     });
-    expect(
-      fs.readdirSync(dataDir).filter(name => name.endsWith('.tmp')),
-    ).toEqual([]);
+    expect(fs.readdirSync(dataDir).filter(name => name.endsWith('.tmp'))).toEqual([]);
   });
 
   it('starts empty without a backup when no store file exists', () => {

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { t } from 'i18next';
-import { v4 as uuidv4 } from 'uuid';
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
+import {t} from 'i18next';
+import {v4 as uuidv4} from 'uuid';
 
-import { resetApp } from '#app/appSlice';
+import {resetApp} from '#app/appSlice';
 
 const sliceName = 'notifications';
 
@@ -41,7 +41,7 @@ export type Notification = {
   onClose?: (() => void) | undefined;
   internal?: string | undefined;
 };
-export type NotificationWithId = Notification & { id: string };
+export type NotificationWithId = Notification & {id: string};
 
 type NotificationsState = {
   notifications: NotificationWithId[];
@@ -94,18 +94,10 @@ const notificationsSlice = createSlice({
       };
       state.notifications = [...state.notifications, notification];
     },
-    removeNotification(
-      state,
-      action: PayloadAction<RemoveNotificationPayload>,
-    ) {
-      state.notifications = state.notifications.filter(
-        notif => notif.id !== action.payload.id,
-      );
+    removeNotification(state, action: PayloadAction<RemoveNotificationPayload>) {
+      state.notifications = state.notifications.filter(notif => notif.id !== action.payload.id);
     },
-    setNotificationInset(
-      state,
-      action: PayloadAction<SetNotificationInsetPayload>,
-    ) {
+    setNotificationInset(state, action: PayloadAction<SetNotificationInsetPayload>) {
       state.inset = action.payload?.inset ? action.payload.inset : {};
     },
   },
@@ -114,7 +106,7 @@ const notificationsSlice = createSlice({
   },
 });
 
-export const { name, reducer, getInitialState } = notificationsSlice;
+export const {name, reducer, getInitialState} = notificationsSlice;
 
 export const actions = {
   ...notificationsSlice.actions,

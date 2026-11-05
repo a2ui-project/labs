@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Form } from 'react-aria-components';
-import { Trans } from 'react-i18next';
+import React, {useEffect, useRef, useState} from 'react';
+import {Form} from 'react-aria-components';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { GenericInput } from '#components/util/GenericInput';
+import {GenericInput} from '#components/util/GenericInput';
 
 type SaveReportChooseProps = {
   onApply: (cond: string) => void;
 };
 
-export function SaveReportChoose({ onApply }: SaveReportChooseProps) {
+export function SaveReportChoose({onApply}: SaveReportChooseProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [err, setErr] = useState('');
   const [value, setValue] = useState('');
@@ -54,18 +54,18 @@ export function SaveReportChoose({ onApply }: SaveReportChooseProps) {
           onApply(value);
         }}
       >
-        <View style={{ flexDirection: 'row', align: 'center' }}>
-          <Text style={{ userSelect: 'none', flex: 1 }}>
+        <View style={{flexDirection: 'row', align: 'center'}}>
+          <Text style={{userSelect: 'none', flex: 1}}>
             <Trans>Choose Report</Trans>
           </Text>
-          <View style={{ flex: 1 }} />
+          <View style={{flex: 1}} />
         </View>
         <GenericInput
           ref={inputRef}
           field="report"
           type="saved"
           value={value}
-          style={{ marginTop: 10 }}
+          style={{marginTop: 10}}
           onChange={setValue}
         />
 
@@ -83,8 +83,8 @@ export function SaveReportChoose({ onApply }: SaveReportChooseProps) {
         </View>
       </Form>
       {err !== '' ? (
-        <View style={{ padding: 10, alignItems: 'center' }}>
-          <Text style={{ color: theme.errorText }}>{err}</Text>
+        <View style={{padding: 10, alignItems: 'center'}}>
+          <Text style={{color: theme.errorText}}>{err}</Text>
         </View>
       ) : (
         <View />

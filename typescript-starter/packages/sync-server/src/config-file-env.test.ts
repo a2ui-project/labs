@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import {mkdtempSync, rmSync, writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
 import convict from 'convict';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
-import { applyFileEnv, readFileEnv } from './config-file-env';
+import {applyFileEnv, readFileEnv} from './config-file-env';
 
 describe('config file env', () => {
   let secretDirectory: string;
@@ -50,24 +50,20 @@ describe('config file env', () => {
   });
 
   afterEach(() => {
-    rmSync(secretDirectory, { recursive: true, force: true });
+    rmSync(secretDirectory, {recursive: true, force: true});
   });
 
   describe('readFileEnv', () => {
     it('reads the contents of the file the variable points at', () => {
       const filePath = writeSecret('secret', 'from-file');
 
-      expect(
-        readFileEnv('TEST_SECRET_FILE', { TEST_SECRET_FILE: filePath }),
-      ).toBe('from-file');
+      expect(readFileEnv('TEST_SECRET_FILE', {TEST_SECRET_FILE: filePath})).toBe('from-file');
     });
 
     it('trims surrounding whitespace from the file value', () => {
       const filePath = writeSecret('secret', '  from-file\n');
 
-      expect(
-        readFileEnv('TEST_SECRET_FILE', { TEST_SECRET_FILE: filePath }),
-      ).toBe('from-file');
+      expect(readFileEnv('TEST_SECRET_FILE', {TEST_SECRET_FILE: filePath})).toBe('from-file');
     });
 
     it('returns undefined when the variable is not set', () => {
@@ -77,17 +73,17 @@ describe('config file env', () => {
     it('throws when the file cannot be read, naming the variable and path', () => {
       const missing = join(secretDirectory, 'does-not-exist');
 
-      expect(() =>
-        readFileEnv('TEST_SECRET_FILE', { TEST_SECRET_FILE: missing }),
-      ).toThrow(`Could not read TEST_SECRET_FILE from '${missing}'`);
+      expect(() => readFileEnv('TEST_SECRET_FILE', {TEST_SECRET_FILE: missing})).toThrow(
+        `Could not read TEST_SECRET_FILE from '${missing}'`,
+      );
     });
 
     it('throws when the variable is set but empty', () => {
       // An empty value means a mount that did not produce a path. Falling back
       // to the plain variable here would hide the misconfiguration.
-      expect(() =>
-        readFileEnv('TEST_SECRET_FILE', { TEST_SECRET_FILE: '' }),
-      ).toThrow('Could not read TEST_SECRET_FILE');
+      expect(() => readFileEnv('TEST_SECRET_FILE', {TEST_SECRET_FILE: ''})).toThrow(
+        'Could not read TEST_SECRET_FILE',
+      );
     });
   });
 
@@ -96,12 +92,9 @@ describe('config file env', () => {
       const config = buildSchema();
       const filePath = writeSecret('secret', 'from-file');
 
-      const applied = applyFileEnv(
-        config,
-        'TEST_SECRET_FILE',
-        'openId.client_secret',
-        { TEST_SECRET_FILE: filePath },
-      );
+      const applied = applyFileEnv(config, 'TEST_SECRET_FILE', 'openId.client_secret', {
+        TEST_SECRET_FILE: filePath,
+      });
 
       expect(applied).toBe(true);
       expect(config.get('openId.client_secret')).toBe('from-file');
@@ -126,16 +119,11 @@ describe('config file env', () => {
     it('leaves the setting alone when the variable is not set', () => {
       const config = buildSchema();
 
-      const applied = applyFileEnv(
-        config,
-        'TEST_SECRET_FILE',
-        'openId.client_secret',
-        {},
-      );
+      const applied = applyFileEnv(config, 'TEST_SECRET_FILE', 'openId.client_secret', {});
 
       expect(applied).toBe(false);
       expect(config.get('openId.client_secret')).toBe('');
-      expect(() => config.validate({ allowed: 'strict' })).not.toThrow();
+      expect(() => config.validate({allowed: 'strict'})).not.toThrow();
     });
   });
 });

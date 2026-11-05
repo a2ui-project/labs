@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useEffect, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import type { CleanupTemplate } from '@actual-app/core/types/models/cleanup-templates';
-import type { Template } from '@actual-app/core/types/models/templates';
+import {Button} from '@actual-app/components/button';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {CleanupTemplate} from '@actual-app/core/types/models/cleanup-templates';
+import type {Template} from '@actual-app/core/types/models/templates';
 
-import { cleanupToNotes } from '#components/budget/goals/cleanupModel';
-import { Link } from '#components/common/Link';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { Notes } from '#components/Notes';
-import { useCategories } from '#hooks/useCategories';
-import { useCategory } from '#hooks/useCategory';
-import { useCleanupGroups } from '#hooks/useCleanupGroups';
-import { useNotes } from '#hooks/useNotes';
+import {cleanupToNotes} from '#components/budget/goals/cleanupModel';
+import {Link} from '#components/common/Link';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {Notes} from '#components/Notes';
+import {useCategories} from '#hooks/useCategories';
+import {useCategory} from '#hooks/useCategory';
+import {useCleanupGroups} from '#hooks/useCleanupGroups';
+import {useNotes} from '#hooks/useNotes';
 
 // The UI's CategoryAutocomplete stores the income category id on a
 // percentage template, but text-template grammar addresses categories by
@@ -45,7 +45,7 @@ function sanitizePercentageCategoriesForNotes(
   return templates.map(template => {
     if (template.type !== 'percentage') return template;
     const name = idToName.get(template.category);
-    if (name) return { ...template, category: name };
+    if (name) return {...template, category: name};
     return template;
   });
 }
@@ -59,10 +59,10 @@ export function UnmigrateBudgetAutomationsModal({
   templates: Template[];
   cleanup: CleanupTemplate[];
 }) {
-  const { t } = useTranslation();
-  const { data: category } = useCategory(categoryId);
-  const { data: categoryData } = useCategories();
-  const { groups: cleanupGroups } = useCleanupGroups();
+  const {t} = useTranslation();
+  const {data: category} = useCategory(categoryId);
+  const {data: categoryData} = useCategories();
+  const {groups: cleanupGroups} = useCleanupGroups();
   const existingNotes = useNotes(categoryId) || '';
   const [editedNotes, setEditedNotes] = useState<string>('');
 
@@ -76,15 +76,11 @@ export function UnmigrateBudgetAutomationsModal({
       idToName.set(cat.id, cat.name);
     }
     const sanitized = sanitizePercentageCategoriesForNotes(templates, idToName);
-    const groupName = (groupId: string) =>
-      cleanupGroups.find(g => g.id === groupId)?.name ?? null;
+    const groupName = (groupId: string) => cleanupGroups.find(g => g.id === groupId)?.name ?? null;
     let mounted = true;
     void (async () => {
       try {
-        const text: string = await send(
-          'budget/render-note-templates',
-          sanitized,
-        );
+        const text: string = await send('budget/render-note-templates', sanitized);
         const cleanupText = cleanupToNotes(cleanup, groupName);
         const combined = [text, cleanupText].filter(Boolean).join('\n');
         if (mounted) setRendered(combined);
@@ -126,11 +122,7 @@ export function UnmigrateBudgetAutomationsModal({
       } else {
         const separator = base ? (base.endsWith('\n') ? '\n' : '\n\n') : '';
         setEditedNotes(
-          base +
-            separator +
-            t('Export from automations UI:') +
-            '\n' +
-            newLines.join('\n'),
+          base + separator + t('Export from automations UI:') + '\n' + newLines.join('\n'),
         );
       }
     }
@@ -139,15 +131,13 @@ export function UnmigrateBudgetAutomationsModal({
   async function onSave(close: () => void) {
     setSaving(true);
     try {
-      await send('notes-save-undoable', { id: categoryId, note: editedNotes });
+      await send('notes-save-undoable', {id: categoryId, note: editedNotes});
       // Hand control back to the notes parser: clear the UI-managed goal_def
       // and mark notes as the source of truth. `storeNoteTemplates` will
       // re-derive goal_def from the notes the next time it runs (e.g. on
       // modal open or when applying templates).
       await send('budget/set-category-automations', {
-        categoriesWithTemplates: [
-          { id: categoryId, templates: [], cleanup: [] },
-        ],
+        categoriesWithTemplates: [{id: categoryId, templates: [], cleanup: []}],
         source: 'notes',
       });
       await send('budget/store-note-templates');
@@ -162,11 +152,11 @@ export function UnmigrateBudgetAutomationsModal({
     <Modal
       name="category-automations-unmigrate"
       containerProps={{
-        style: { width: 850, height: 650, paddingBottom: 20 },
+        style: {width: 850, height: 650, paddingBottom: 20},
       }}
     >
-      {({ state }) => (
-        <SpaceBetween direction="vertical" style={{ height: '100%' }}>
+      {({state}) => (
+        <SpaceBetween direction="vertical" style={{height: '100%'}}>
           <ModalHeader
             title={t('Un-migrate automations: {{category}}', {
               category: category?.name,
@@ -181,22 +171,16 @@ export function UnmigrateBudgetAutomationsModal({
                 justifyContent: 'center',
               }}
             >
-              <AnimatedLoading style={{ width: 20, height: 20 }} />
+              <AnimatedLoading style={{width: 20, height: 20}} />
             </View>
           ) : (
-            <SpaceBetween
-              direction="vertical"
-              style={{ overflowY: 'auto', flex: 1 }}
-            >
-              <View style={{ display: 'inline-block', minHeight: 'unset' }}>
+            <SpaceBetween direction="vertical" style={{overflowY: 'auto', flex: 1}}>
+              <View style={{display: 'inline-block', minHeight: 'unset'}}>
                 <Trans>
-                  If the automation UI isn&apos;t working for you, you can
-                  temporarily switch back to notes-based automations. Please let
-                  us know your feedback about what&apos;s not working on the{' '}
-                  <Link
-                    variant="external"
-                    to="https://github.com/actualbudget/actual/issues/"
-                  >
+                  If the automation UI isn&apos;t working for you, you can temporarily switch back
+                  to notes-based automations. Please let us know your feedback about what&apos;s not
+                  working on the{' '}
+                  <Link variant="external" to="https://github.com/actualbudget/actual/issues/">
                     feedback issue
                   </Link>
                   .
@@ -204,8 +188,8 @@ export function UnmigrateBudgetAutomationsModal({
               </View>
               <View>
                 <Trans>
-                  We have merged your existing automations with the notes for
-                  this category. Please review and edit as needed.
+                  We have merged your existing automations with the notes for this category. Please
+                  review and edit as needed.
                 </Trans>
               </View>
               <Notes
@@ -223,7 +207,7 @@ export function UnmigrateBudgetAutomationsModal({
               />
             </SpaceBetween>
           )}
-          <SpaceBetween gap={10} style={{ justifyContent: 'flex-end' }}>
+          <SpaceBetween gap={10} style={{justifyContent: 'flex-end'}}>
             <Button onPress={() => state.close()}>
               <Trans>Cancel</Trans>
             </Button>
@@ -232,11 +216,7 @@ export function UnmigrateBudgetAutomationsModal({
               onPress={() => onSave(() => state.close())}
               isDisabled={saving}
             >
-              {saving && (
-                <AnimatedLoading
-                  style={{ width: 16, height: 16, marginRight: 6 }}
-                />
-              )}
+              {saving && <AnimatedLoading style={{width: 16, height: 16, marginRight: 6}} />}
               <Trans>Save notes & un-migrate</Trans>
             </Button>
           </SpaceBetween>

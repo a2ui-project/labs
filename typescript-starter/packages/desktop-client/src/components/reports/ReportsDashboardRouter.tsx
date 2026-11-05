@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-import { useEffect } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import {useEffect} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Block } from '@actual-app/components/block';
-import { View } from '@actual-app/components/view';
+import {Block} from '@actual-app/components/block';
+import {View} from '@actual-app/components/view';
 
-import { useDashboardPages } from '#hooks/useDashboardPages';
-import { useNavigate } from '#hooks/useNavigate';
+import {useDashboardPages} from '#hooks/useDashboardPages';
+import {useNavigate} from '#hooks/useNavigate';
 
-import { LoadingIndicator } from './LoadingIndicator';
-import { Overview } from './Overview';
+import {LoadingIndicator} from './LoadingIndicator';
+import {Overview} from './Overview';
 
 export function ReportsDashboardRouter() {
-  const { t } = useTranslation();
-  const { dashboardId } = useParams<{ dashboardId?: string }>();
+  const {t} = useTranslation();
+  const {dashboardId} = useParams<{dashboardId?: string}>();
   const navigate = useNavigate();
-  const { data: dashboardPages = [], isPending } = useDashboardPages();
+  const {data: dashboardPages = [], isPending} = useDashboardPages();
 
   // Redirect to first dashboard if no dashboardId in URL
   useEffect(() => {
     if (!dashboardId && !isPending && dashboardPages.length > 0) {
-      void navigate(`/reports/${dashboardPages[0].id}`, { replace: true });
+      void navigate(`/reports/${dashboardPages[0].id}`, {replace: true});
     }
   }, [dashboardId, isPending, dashboardPages, navigate]);
 
@@ -61,7 +61,7 @@ export function ReportsDashboardRouter() {
             alignItems: 'center',
           }}
         >
-          <Block style={{ marginBottom: 20, fontSize: 18 }}>
+          <Block style={{marginBottom: 20, fontSize: 18}}>
             <Trans>Dashboard not found</Trans>
           </Block>
         </View>

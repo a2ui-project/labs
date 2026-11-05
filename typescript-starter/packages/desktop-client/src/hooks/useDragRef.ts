@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 
 /**
  * Returns a callback ref that calls `drag(element)` when the DOM node is attached.

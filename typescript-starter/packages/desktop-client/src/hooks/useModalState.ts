@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 
-import { popModal } from '#modals/modalsSlice';
-import type { Modal } from '#modals/modalsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {popModal} from '#modals/modalsSlice';
+import type {Modal} from '#modals/modalsSlice';
+import {useDispatch, useSelector} from '#redux';
 
 type ModalState = {
   onClose: () => void;

@@ -14,22 +14,19 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useMemo} from 'react';
+import {useTranslation} from 'react-i18next';
 
 import * as monthUtils from '@actual-app/core/shared/months';
-import { getUpcomingDays } from '@actual-app/core/shared/schedules';
-import type { ScheduleStatusType } from '@actual-app/core/shared/schedules';
-import type {
-  CategoryEntity,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
-import type { Locale } from 'date-fns';
-import type { TFunction } from 'i18next';
+import {getUpcomingDays} from '@actual-app/core/shared/schedules';
+import type {ScheduleStatusType} from '@actual-app/core/shared/schedules';
+import type {CategoryEntity, ScheduleEntity} from '@actual-app/core/types/models';
+import type {Locale} from 'date-fns';
+import type {TFunction} from 'i18next';
 
-import { useCategoryScheduleGoalTemplates } from './useCategoryScheduleGoalTemplates';
-import { useLocale } from './useLocale';
-import { useSyncedPref } from './useSyncedPref';
+import {useCategoryScheduleGoalTemplates} from './useCategoryScheduleGoalTemplates';
+import {useLocale} from './useLocale';
+import {useSyncedPref} from './useSyncedPref';
 
 type UseCategoryScheduleGoalTemplateProps = {
   category: CategoryEntity;
@@ -53,17 +50,14 @@ export function useCategoryScheduleGoalTemplateIndicator({
   category,
   month,
 }: UseCategoryScheduleGoalTemplateProps): UseCategoryScheduleGoalTemplateResult {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const locale = useLocale();
 
-  const [upcomingScheduledTransactionLength] = useSyncedPref(
-    'upcomingScheduledTransactionLength',
-  );
+  const [upcomingScheduledTransactionLength] = useSyncedPref('upcomingScheduledTransactionLength');
   const upcomingDays = getUpcomingDays(upcomingScheduledTransactionLength);
-  const { schedules, statuses: scheduleStatuses } =
-    useCategoryScheduleGoalTemplates({
-      category,
-    });
+  const {schedules, statuses: scheduleStatuses} = useCategoryScheduleGoalTemplates({
+    category,
+  });
 
   return useMemo<UseCategoryScheduleGoalTemplateResult>(() => {
     const schedulesToDisplay = schedules
@@ -76,10 +70,7 @@ export function useCategoryScheduleGoalTemplateIndicator({
           return true;
         }
 
-        const indicatorStartDate = monthUtils.subDays(
-          schedule.next_date,
-          upcomingDays,
-        );
+        const indicatorStartDate = monthUtils.subDays(schedule.next_date, upcomingDays);
         return monthUtils.monthFromDate(indicatorStartDate) === month;
       })
       .sort((a, b) => {
@@ -105,15 +96,12 @@ export function useCategoryScheduleGoalTemplateIndicator({
       .join('\n');
 
     const schedule = schedulesToDisplay[0] || null;
-    const scheduleStatus =
-      (schedule ? scheduleStatuses.get(schedule.id) : null) || null;
+    const scheduleStatus = (schedule ? scheduleStatuses.get(schedule.id) : null) || null;
 
     return {
       schedule,
       scheduleStatus,
-      isScheduleRecurring: !!(
-        typeof schedule?._date === 'object' && schedule?._date?.frequency
-      ),
+      isScheduleRecurring: !!(typeof schedule?._date === 'object' && schedule?._date?.frequency),
       description,
     };
   }, [locale, month, scheduleStatuses, schedules, t, upcomingDays]);
@@ -146,27 +134,19 @@ function getScheduleStatusDescription({
   const formattedDate = monthUtils.format(schedule.next_date, 'MMMM d', locale);
   switch (scheduleStatus) {
     case 'missed':
-      return t(
-        'Missed {{scheduleName}} due {{distanceFromNow}} ({{formattedDate}})',
-        {
-          scheduleName: schedule.name,
-          distanceFromNow,
-          formattedDate,
-        },
-      );
+      return t('Missed {{scheduleName}} due {{distanceFromNow}} ({{formattedDate}})', {
+        scheduleName: schedule.name,
+        distanceFromNow,
+        formattedDate,
+      });
     case 'due':
     case 'upcoming':
-      return t(
-        '{{scheduleName}} is due {{distanceFromNow}} ({{formattedDate}})',
-        {
-          scheduleName: schedule.name,
-          distanceFromNow: isToday ? t('today') : distanceFromNow,
-          formattedDate,
-        },
-      );
+      return t('{{scheduleName}} is due {{distanceFromNow}} ({{formattedDate}})', {
+        scheduleName: schedule.name,
+        distanceFromNow: isToday ? t('today') : distanceFromNow,
+        formattedDate,
+      });
     default:
-      throw new Error(
-        `Unsupported schedule status for tooltip: ${scheduleStatus}`,
-      );
+      throw new Error(`Unsupported schedule status for tooltip: ${scheduleStatus}`);
   }
 }

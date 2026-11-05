@@ -18,7 +18,7 @@
 // Requirements
 //------------------------------------------------------------------------------
 
-import { runClassic } from 'eslint-vitest-rule-tester';
+import {runClassic} from 'eslint-vitest-rule-tester';
 
 import plugin from '../../index';
 const rule = plugin.rules['prefer-const'];
@@ -76,7 +76,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useConst',
-            data: { name: 'x' },
+            data: {name: 'x'},
           },
         ],
       },
@@ -86,11 +86,11 @@ void runClassic(
         errors: [
           {
             messageId: 'useConst',
-            data: { name: 'x' },
+            data: {name: 'x'},
           },
           {
             messageId: 'useConst',
-            data: { name: 'y' },
+            data: {name: 'y'},
           },
         ],
       },
@@ -100,7 +100,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useConst',
-            data: { name: 'x' },
+            data: {name: 'x'},
           },
         ],
       },
@@ -110,11 +110,11 @@ void runClassic(
         errors: [
           {
             messageId: 'useConst',
-            data: { name: 'x' },
+            data: {name: 'x'},
           },
           {
             messageId: 'useConst',
-            data: { name: 'y' },
+            data: {name: 'y'},
           },
         ],
       },
@@ -124,7 +124,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useConst',
-            data: { name: 'x' },
+            data: {name: 'x'},
           },
         ],
       },
@@ -134,7 +134,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useConst',
-            data: { name: 'x' },
+            data: {name: 'x'},
           },
         ],
       },
@@ -144,7 +144,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useConst',
-            data: { name: 'x' },
+            data: {name: 'x'},
           },
         ],
       },
@@ -154,7 +154,7 @@ void runClassic(
         errors: [
           {
             messageId: 'useConst',
-            data: { name: 'x' },
+            data: {name: 'x'},
           },
         ],
       },
@@ -163,7 +163,7 @@ void runClassic(
   {
     parserOptions: {
       ecmaVersion: 2020,
-      ecmaFeatures: { jsx: true },
+      ecmaFeatures: {jsx: true},
     },
   },
 );

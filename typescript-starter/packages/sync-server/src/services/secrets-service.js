@@ -16,7 +16,7 @@
 
 import createDebug from 'debug';
 
-import { getAccountDb } from '#account-db';
+import {getAccountDb} from '#account-db';
 
 /**
  * An enum of valid secret names.
@@ -58,10 +58,10 @@ class SecretsDb {
 
     const secretKey = getSecretKey(name, fileId);
     this.debug(`setting secret '${name}' to '${value}'`);
-    return this.db.mutate(
-      `INSERT OR REPLACE INTO secrets (name, value) VALUES (?, ?)`,
-      [secretKey, value],
-    );
+    return this.db.mutate(`INSERT OR REPLACE INTO secrets (name, value) VALUES (?, ?)`, [
+      secretKey,
+      value,
+    ]);
   }
 
   get(name, fileId = null) {
@@ -71,9 +71,7 @@ class SecretsDb {
 
     const secretKey = getSecretKey(name, fileId);
     this.debug(`getting secret '${name}'`);
-    return this.db.first(`SELECT value FROM secrets WHERE name = ?`, [
-      secretKey,
-    ]);
+    return this.db.first(`SELECT value FROM secrets WHERE name = ?`, [secretKey]);
   }
 
   reset(name, fileId = null) {
@@ -82,9 +80,7 @@ class SecretsDb {
     }
 
     const secretKey = getSecretKey(name, fileId);
-    const result = this.db.mutate(`DELETE FROM secrets WHERE name = ?`, [
-      secretKey,
-    ]);
+    const result = this.db.mutate(`DELETE FROM secrets WHERE name = ?`, [secretKey]);
     return {
       ...result,
       deletedFrom: fileId == null ? 'global' : 'per-budget-file',

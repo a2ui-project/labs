@@ -14,41 +14,38 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useMemo } from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useCallback, useMemo} from 'react';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgCheveronRight } from '@actual-app/components/icons/v1';
-import { SvgViewShow } from '@actual-app/components/icons/v2';
-import { Label } from '@actual-app/components/label';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgCheveronRight} from '@actual-app/components/icons/v1';
+import {SvgViewShow} from '@actual-app/components/icons/v2';
+import {Label} from '@actual-app/components/label';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
-import { AutoTextSize } from 'auto-text-size';
+import {q} from '@actual-app/core/shared/query';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
+import {AutoTextSize} from 'auto-text-size';
 
-import { MOBILE_NAV_HEIGHT } from '#components/mobile/MobileNavTabs';
-import { PullToRefresh } from '#components/mobile/PullToRefresh';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { CellValue } from '#components/spreadsheet/CellValue';
-import { SchedulesProvider } from '#hooks/useCachedSchedules';
-import { useFormat } from '#hooks/useFormat';
-import { useLocalPref } from '#hooks/useLocalPref';
-import { useSheetValue } from '#hooks/useSheetValue';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import type { Binding } from '#spreadsheet';
-import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
+import {MOBILE_NAV_HEIGHT} from '#components/mobile/MobileNavTabs';
+import {PullToRefresh} from '#components/mobile/PullToRefresh';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {CellValue} from '#components/spreadsheet/CellValue';
+import {SchedulesProvider} from '#hooks/useCachedSchedules';
+import {useFormat} from '#hooks/useFormat';
+import {useLocalPref} from '#hooks/useLocalPref';
+import {useSheetValue} from '#hooks/useSheetValue';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import type {Binding} from '#spreadsheet';
+import {envelopeBudget, trackingBudget} from '#spreadsheet/bindings';
 
-import { ExpenseGroupList } from './ExpenseGroupList';
-import { IncomeGroup } from './IncomeGroup';
+import {ExpenseGroupList} from './ExpenseGroupList';
+import {IncomeGroup} from './IncomeGroup';
 
 export const ROW_HEIGHT = 50;
 
@@ -81,11 +78,11 @@ type ToBudgetProps = {
   show3Columns: boolean;
 };
 
-function ToBudget({ toBudget, onPress, show3Columns }: ToBudgetProps) {
-  const { t } = useTranslation();
+function ToBudget({toBudget, onPress, show3Columns}: ToBudgetProps) {
+  const {t} = useTranslation();
   const amount = useSheetValue(toBudget) ?? 0;
   const format = useFormat();
-  const sidebarColumnWidth = getColumnWidth({ show3Columns, isSidebar: true });
+  const sidebarColumnWidth = getColumnWidth({show3Columns, isSidebar: true});
 
   return (
     <View
@@ -114,7 +111,7 @@ function ToBudget({ toBudget, onPress, show3Columns }: ToBudgetProps) {
             />
           </View>
           <CellValue binding={toBudget} type="financial">
-            {({ type, value }) => (
+            {({type, value}) => (
               <View>
                 <PrivacyFilter>
                   <AutoTextSize
@@ -162,16 +159,14 @@ type SavedProps = {
   show3Columns: boolean;
 };
 
-function Saved({ projected, onPress, show3Columns }: SavedProps) {
-  const { t } = useTranslation();
-  const binding = projected
-    ? trackingBudget.totalBudgetedSaved
-    : trackingBudget.totalSaved;
+function Saved({projected, onPress, show3Columns}: SavedProps) {
+  const {t} = useTranslation();
+  const binding = projected ? trackingBudget.totalBudgetedSaved : trackingBudget.totalSaved;
 
   const saved = useSheetValue<'tracking-budget', typeof binding>(binding) || 0;
   const format = useFormat();
   const isNegative = saved < 0;
-  const sidebarColumnWidth = getColumnWidth({ show3Columns, isSidebar: true });
+  const sidebarColumnWidth = getColumnWidth({show3Columns, isSidebar: true});
 
   return (
     <View
@@ -183,7 +178,7 @@ function Saved({ projected, onPress, show3Columns }: SavedProps) {
       }}
     >
       <Button variant="bare" onPress={onPress}>
-        <View style={{ alignItems: 'flex-start' }}>
+        <View style={{alignItems: 'flex-start'}}>
           {projected ? (
             <View>
               <AutoTextSize
@@ -209,11 +204,8 @@ function Saved({ projected, onPress, show3Columns }: SavedProps) {
             />
           )}
 
-          <CellValue<'tracking-budget', typeof binding>
-            binding={binding}
-            type="financial"
-          >
-            {({ type, value }) => (
+          <CellValue<'tracking-budget', typeof binding> binding={binding} type="financial">
+            {({type, value}) => (
               <View>
                 <PrivacyFilter>
                   <AutoTextSize
@@ -277,7 +269,7 @@ function BudgetGroups({
   show3Columns,
   showHiddenCategories,
 }: BudgetGroupsProps) {
-  const { incomeGroup, expenseGroups } = useMemo(() => {
+  const {incomeGroup, expenseGroups} = useMemo(() => {
     const categoryGroupsToDisplay = categoryGroups.filter(
       group => !group.hidden || showHiddenCategories,
     );
@@ -287,8 +279,7 @@ function BudgetGroups({
     };
   }, [categoryGroups, showHiddenCategories]);
 
-  const [collapsedGroupIds = [], setCollapsedGroupIdsPref] =
-    useLocalPref('budget.collapsed');
+  const [collapsedGroupIds = [], setCollapsedGroupIdsPref] = useLocalPref('budget.collapsed');
 
   const onToggleCollapse = useCallback(
     (id: CategoryGroupEntity['id']) => {
@@ -311,7 +302,7 @@ function BudgetGroups({
   return (
     <View
       data-testid="budget-groups"
-      style={{ flex: '1 0 auto', overflowY: 'auto', paddingBottom: 15 }}
+      style={{flex: '1 0 auto', overflowY: 'auto', paddingBottom: 15}}
     >
       <ExpenseGroupList
         categoryGroups={expenseGroups}
@@ -361,22 +352,18 @@ export function BudgetTable({
   onEditCategoryGroup,
   onEditCategory,
 }: BudgetTableProps) {
-  const { width } = useResponsive();
+  const {width} = useResponsive();
   const show3Columns = width >= 300;
 
   // let editMode = false; // neuter editMode -- sorry, not rewriting drag-n-drop right now
 
-  const [showSpentColumn = false, setShowSpentColumnPref] = useLocalPref(
-    'mobile.showSpentColumn',
-  );
+  const [showSpentColumn = false, setShowSpentColumnPref] = useLocalPref('mobile.showSpentColumn');
 
   function toggleSpentColumn() {
     setShowSpentColumnPref(!showSpentColumn);
   }
 
-  const [showHiddenCategories = false] = useLocalPref(
-    'budget.showHiddenCategories',
-  );
+  const [showHiddenCategories = false] = useLocalPref('budget.showHiddenCategories');
 
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
 
@@ -434,7 +421,7 @@ function BudgetTableHeader({
   showSpentColumn,
   toggleSpentColumn,
 }: BudgetTableHeaderProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
   const buttonStyle = {
@@ -442,8 +429,8 @@ function BudgetTableHeader({
     backgroundColor: 'transparent',
     borderRadius: 'unset',
   };
-  const sidebarColumnWidth = getColumnWidth({ show3Columns, isSidebar: true });
-  const columnWidth = getColumnWidth({ show3Columns });
+  const sidebarColumnWidth = getColumnWidth({show3Columns, isSidebar: true});
+  const columnWidth = getColumnWidth({show3Columns});
 
   const amountStyle: CSSProperties = {
     ...styles.tnum,
@@ -508,7 +495,7 @@ function BudgetTableHeader({
             }
             type="financial"
           >
-            {({ type: formatType, value }) => (
+            {({type: formatType, value}) => (
               <Button
                 variant="bare"
                 isDisabled={show3Columns}
@@ -518,8 +505,8 @@ function BudgetTableHeader({
                   width: columnWidth,
                 }}
               >
-                <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{flex: 1, alignItems: 'flex-end'}}>
+                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
                     {!show3Columns && (
                       <SvgViewShow
                         width={12}
@@ -538,7 +525,7 @@ function BudgetTableHeader({
                         maxFontSizePx={12}
                         mode="multiline"
                         title={t('Budgeted')}
-                        style={{ color: theme.formInputText, paddingRight: 4 }}
+                        style={{color: theme.formInputText, paddingRight: 4}}
                       />
                     </View>
                   </View>
@@ -555,10 +542,7 @@ function BudgetTableHeader({
                           paddingRight: 4,
                         }}
                       >
-                        {format(
-                          budgetType === 'tracking' ? value : -value,
-                          formatType,
-                        )}
+                        {format(budgetType === 'tracking' ? value : -value, formatType)}
                       </AutoTextSize>
                     </PrivacyFilter>
                   </View>
@@ -570,13 +554,11 @@ function BudgetTableHeader({
         {(show3Columns || showSpentColumn) && (
           <CellValue<'envelope-budget' | 'tracking-budget', 'total-spent'>
             binding={
-              budgetType === 'tracking'
-                ? trackingBudget.totalSpent
-                : envelopeBudget.totalSpent
+              budgetType === 'tracking' ? trackingBudget.totalSpent : envelopeBudget.totalSpent
             }
             type="financial"
           >
-            {({ type, value }) => (
+            {({type, value}) => (
               <Button
                 variant="bare"
                 isDisabled={show3Columns}
@@ -586,8 +568,8 @@ function BudgetTableHeader({
                   width: columnWidth,
                 }}
               >
-                <View style={{ flex: 1, alignItems: 'flex-end' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{flex: 1, alignItems: 'flex-end'}}>
+                  <View style={{flexDirection: 'row', alignItems: 'center'}}>
                     {!show3Columns && (
                       <SvgViewShow
                         width={12}
@@ -606,7 +588,7 @@ function BudgetTableHeader({
                         maxFontSizePx={12}
                         mode="oneline"
                         title={t('Spent')}
-                        style={{ color: theme.formInputText, paddingRight: 4 }}
+                        style={{color: theme.formInputText, paddingRight: 4}}
                       />
                     </View>
                   </View>
@@ -634,15 +616,13 @@ function BudgetTableHeader({
         )}
         <CellValue<'envelope-budget' | 'tracking-budget', 'total-leftover'>
           binding={
-            budgetType === 'tracking'
-              ? trackingBudget.totalLeftover
-              : envelopeBudget.totalBalance
+            budgetType === 'tracking' ? trackingBudget.totalLeftover : envelopeBudget.totalBalance
           }
           type="financial"
         >
-          {({ type, value }) => (
-            <View style={{ width: columnWidth }}>
-              <View style={{ flex: 1, alignItems: 'flex-end !important' }}>
+          {({type, value}) => (
+            <View style={{width: columnWidth}}>
+              <View style={{flex: 1, alignItems: 'flex-end !important'}}>
                 <View>
                   <AutoTextSize
                     as={Label}
@@ -650,7 +630,7 @@ function BudgetTableHeader({
                     maxFontSizePx={12}
                     mode="oneline"
                     title={t('Balance')}
-                    style={{ color: theme.formInputText }}
+                    style={{color: theme.formInputText}}
                   />
                 </View>
                 <View>

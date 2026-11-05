@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { initReactI18next } from 'react-i18next';
+import {initReactI18next} from 'react-i18next';
 
 import * as Platform from '@actual-app/core/shared/platform';
 import i18n from 'i18next';
 import resourcesToBackend from 'i18next-resources-to-backend';
 
-import { languages } from './languages';
+import {languages} from './languages';
 
 export const availableLanguages = Platform.isPlaywright
   ? []
@@ -63,9 +63,7 @@ const resolveLanguage = (language: string) => {
 
   const lowercaseLanguage = language.toLowerCase();
   if (lowercaseLanguage !== language) {
-    console.info(
-      `Unknown locale ${language}, falling back to ${lowercaseLanguage}`,
-    );
+    console.info(`Unknown locale ${language}, falling back to ${lowercaseLanguage}`);
     return resolveLanguage(lowercaseLanguage);
   }
 

@@ -25,7 +25,7 @@ let hasInitialized = false;
  * The goal of this function is to retry X amount of times
  * to retrieve the backend script with a small delay.
  */
-const importScriptsWithRetry = async (script, { maxRetries = 5 } = {}) => {
+const importScriptsWithRetry = async (script, {maxRetries = 5} = {}) => {
   try {
     importScripts(script);
   } catch (error) {
@@ -33,9 +33,7 @@ const importScriptsWithRetry = async (script, { maxRetries = 5 } = {}) => {
     if (maxRetries <= 0) {
       throw error;
     } else {
-      console.groupCollapsed(
-        `Failed to load backend, will retry ${maxRetries} more time(s)`,
-      );
+      console.groupCollapsed(`Failed to load backend, will retry ${maxRetries} more time(s)`);
       console.log(error);
       console.groupEnd();
     }
@@ -81,10 +79,7 @@ self.addEventListener('message', async event => {
         // let version = msg.version;
         const hash = msg.hash;
 
-        if (
-          !self.SharedArrayBuffer &&
-          !msg.isSharedArrayBufferOverrideEnabled
-        ) {
+        if (!self.SharedArrayBuffer && !msg.isSharedArrayBufferOverrideEnabled) {
           appInitFailureInterval = postMessageWithRetry({
             type: 'app-init-failure',
             SharedArrayBufferMissing: true,
@@ -95,10 +90,9 @@ self.addEventListener('message', async event => {
 
         // A single failed importScripts bricks the SharedWorker until
         // it's evicted, so retry in production too.
-        await importScriptsWithRetry(
-          `${msg.publicUrl}/kcab/kcab.worker.${hash}.js`,
-          { maxRetries: isDev ? 5 : 3 },
-        );
+        await importScriptsWithRetry(`${msg.publicUrl}/kcab/kcab.worker.${hash}.js`, {
+          maxRetries: isDev ? 5 : 3,
+        });
 
         backend.initApp(isDev, self).catch(err => {
           console.log(err);

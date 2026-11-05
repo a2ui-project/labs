@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
-import type { ReactNode } from 'react';
+import {useMemo} from 'react';
+import type {ReactNode} from 'react';
 
 const interleaveArrays = (...arrays: ReactNode[][]) =>
   Array.from(
@@ -37,10 +37,7 @@ export function useFormatList(values: ReactNode[], lng: string, opt = {}) {
   );
 
   const parts = useMemo(() => {
-    const placeholders = Array.from(
-      { length: values.length },
-      (_, i) => `<${i}>`,
-    );
+    const placeholders = Array.from({length: values.length}, (_, i) => `<${i}>`);
     const formatted = formatter.format(placeholders);
     return formatted.split(/<\d+>/g);
   }, [values.length, formatter]);

@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-import { useId } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useId} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ReferenceLine,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {css} from '@emotion/css';
+import {Area, AreaChart, CartesianGrid, ReferenceLine, Tooltip, XAxis, YAxis} from 'recharts';
 
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
 type PayloadItem = {
   payload: {
@@ -46,8 +38,8 @@ type CustomTooltipProps = {
   payload?: PayloadItem[];
 };
 
-function CustomTooltip({ active, payload }: CustomTooltipProps) {
-  const { t } = useTranslation();
+function CustomTooltip({active, payload}: CustomTooltipProps) {
+  const {t} = useTranslation();
 
   if (active && payload && payload.length) {
     return (
@@ -62,7 +54,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
           padding: 10,
         })}
       >
-        <div style={{ marginBottom: 5 }}>
+        <div style={{marginBottom: 5}}>
           <strong>{payload[0].payload.date}</strong>
         </div>
         <div>
@@ -92,7 +84,7 @@ export function AgeOfMoneyGraph({
   compact = false,
   showTooltip = true,
 }: AgeOfMoneyGraphProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const animationProps = useRechartsAnimation();
   const privacyMode = usePrivacyMode();
   const id = useId();
@@ -110,13 +102,13 @@ export function AgeOfMoneyGraph({
     <Container
       style={{
         ...style,
-        ...(compact && { height: 'auto' }),
+        ...(compact && {height: 'auto'}),
       }}
     >
       {(width, height) =>
         data && data.length > 0 ? (
           <div>
-            {!compact && <div style={{ marginTop: '15px' }} />}
+            {!compact && <div style={{marginTop: '15px'}} />}
             <AreaChart
               width={width}
               height={height}
@@ -130,42 +122,27 @@ export function AgeOfMoneyGraph({
             >
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="0%"
-                    stopColor={theme.reportsChartFill}
-                    stopOpacity={0.3}
-                  />
-                  <stop
-                    offset="100%"
-                    stopColor={theme.reportsChartFill}
-                    stopOpacity={0.05}
-                  />
+                  <stop offset="0%" stopColor={theme.reportsChartFill} stopOpacity={0.3} />
+                  <stop offset="100%" stopColor={theme.reportsChartFill} stopOpacity={0.05} />
                 </linearGradient>
               </defs>
-              {!compact && (
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              )}
+              {!compact && <CartesianGrid strokeDasharray="3 3" vertical={false} />}
               {!compact && (
                 <XAxis
                   dataKey="date"
-                  tick={{ fill: theme.reportsLabel, fontSize: 12 }}
-                  tickLine={{ stroke: theme.reportsLabel }}
+                  tick={{fill: theme.reportsLabel, fontSize: 12}}
+                  tickLine={{stroke: theme.reportsLabel}}
                 />
               )}
               {!compact && (
                 <YAxis
                   tickFormatter={value => (privacyMode ? '•••' : `${value}d`)}
-                  tick={{ fill: theme.reportsLabel, fontSize: 12 }}
-                  tickLine={{ stroke: theme.reportsLabel }}
+                  tick={{fill: theme.reportsLabel, fontSize: 12}}
+                  tickLine={{stroke: theme.reportsLabel}}
                   domain={[0, yAxisMax]}
                 />
               )}
-              {showTooltip && (
-                <Tooltip
-                  content={<CustomTooltip />}
-                  isAnimationActive={false}
-                />
-              )}
+              {showTooltip && <Tooltip content={<CustomTooltip />} isAnimationActive={false} />}
               {!compact && (
                 <ReferenceLine
                   y={targetReferenceAge}
@@ -187,7 +164,7 @@ export function AgeOfMoneyGraph({
                 fill={`url(#${gradientId})`}
                 fillOpacity={1}
                 dot={!compact && data.length <= 90}
-                activeDot={{ r: 6, fill: theme.reportsChartFill }}
+                activeDot={{r: 6, fill: theme.reportsChartFill}}
                 {...animationProps}
               />
             </AreaChart>

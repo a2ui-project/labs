@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-import { useMemo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useMemo, useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { View } from '@actual-app/components/view';
-import type {
-  AccountEntity,
-  FormulaWidget,
-} from '@actual-app/core/types/models';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity, FormulaWidget} from '@actual-app/core/types/models';
 
-import { FormulaResult } from '#components/reports/FormulaResult';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { useAccounts } from '#hooks/useAccounts';
-import { useFormulaExecution } from '#hooks/useFormulaExecution';
-import { useThemeColors } from '#hooks/useThemeColors';
+import {FormulaResult} from '#components/reports/FormulaResult';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {useAccounts} from '#hooks/useAccounts';
+import {useFormulaExecution} from '#hooks/useFormulaExecution';
+import {useThemeColors} from '#hooks/useThemeColors';
 
 type FormulaCardProps = {
   widgetId: string;
@@ -43,13 +40,8 @@ type FormulaCardProps = {
 const EMPTY_QUERIES = {};
 const EMPTY_ACCOUNTS: AccountEntity[] = [];
 
-export function FormulaCard({
-  widgetId,
-  isEditing,
-  meta,
-  onMetaChange,
-}: FormulaCardProps) {
-  const { t } = useTranslation();
+export function FormulaCard({widgetId, isEditing, meta, onMetaChange}: FormulaCardProps) {
+  const {t} = useTranslation();
   const [nameMenuOpen, setNameMenuOpen] = useState(false);
   const themeColors = useThemeColors();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -69,11 +61,11 @@ export function FormulaCard({
     () =>
       accounts
         .filter(account => !account.tombstone)
-        .map(account => ({ id: account.id, name: account.name })),
+        .map(account => ({id: account.id, name: account.name})),
     [accounts],
   );
 
-  const { result, isLoading, error } = useFormulaExecution(
+  const {result, isLoading, error} = useFormulaExecution(
     formula,
     meta?.queries ?? EMPTY_QUERIES,
     meta?.queriesVersion,
@@ -94,7 +86,7 @@ export function FormulaCard({
     }),
     [result, themeColors],
   );
-  const { result: colorResult, error: colorError } = useFormulaExecution(
+  const {result: colorResult, error: colorError} = useFormulaExecution(
     colorFormula,
     meta?.queries ?? EMPTY_QUERIES,
     meta?.queriesVersion,
@@ -103,8 +95,7 @@ export function FormulaCard({
   );
 
   // Determine the custom color from color formula result
-  const customColor =
-    colorFormula && !colorError && colorResult ? String(colorResult) : null;
+  const customColor = colorFormula && !colorError && colorResult ? String(colorResult) : null;
 
   return (
     <ReportCard
@@ -114,9 +105,9 @@ export function FormulaCard({
       to={`/reports/formula/${widgetId}`}
       onRename={() => setNameMenuOpen(true)}
     >
-      <View style={{ flex: 1, overflow: 'hidden' }}>
+      <View style={{flex: 1, overflow: 'hidden'}}>
         {showTitle && (
-          <View style={{ flexGrow: 0, flexShrink: 0, padding: 20 }}>
+          <View style={{flexGrow: 0, flexShrink: 0, padding: 20}}>
             <ReportCardName
               name={meta?.name || t('Formula')}
               isEditing={nameMenuOpen}

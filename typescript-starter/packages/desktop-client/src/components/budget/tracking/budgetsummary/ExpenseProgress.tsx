@@ -16,19 +16,19 @@
 
 import React from 'react';
 
-import { theme } from '@actual-app/components/theme';
+import {theme} from '@actual-app/components/theme';
 
-import { useTrackingSheetValue } from '#components/budget/tracking/TrackingBudgetComponents';
-import type { Binding } from '#spreadsheet';
+import {useTrackingSheetValue} from '#components/budget/tracking/TrackingBudgetComponents';
+import type {Binding} from '#spreadsheet';
 
-import { fraction } from './fraction';
-import { PieProgress } from './PieProgress';
+import {fraction} from './fraction';
+import {PieProgress} from './PieProgress';
 
 type ExpenseProgressProps = {
   current: Binding<'tracking-budget', 'total-spent'>;
   target: Binding<'tracking-budget', 'total-budgeted'>;
 };
-export function ExpenseProgress({ current, target }: ExpenseProgressProps) {
+export function ExpenseProgress({current, target}: ExpenseProgressProps) {
   let totalSpent = useTrackingSheetValue(current) || 0;
   const totalBudgeted = useTrackingSheetValue(target) || 0;
 
@@ -52,7 +52,7 @@ export function ExpenseProgress({ current, target }: ExpenseProgressProps) {
       progress={frac}
       color={over ? theme.numberNegative : theme.numberPositive}
       backgroundColor={over ? theme.errorBackground : theme.budgetCurrentMonth}
-      style={{ width: 20, height: 20 }}
+      style={{width: 20, height: 20}}
     />
   );
 }

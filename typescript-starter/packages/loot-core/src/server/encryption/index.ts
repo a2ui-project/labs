@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 import * as internals from '#server/encryption/encryption-internals';
 
@@ -27,12 +27,12 @@ class Key {
   id;
   value;
 
-  constructor({ id }) {
+  constructor({id}) {
     this.id = id || uuidv4();
   }
 
-  async createFromPassword({ password, salt }) {
-    this.value = await internals.createKey({ secret: password, salt });
+  async createFromPassword({password, salt}) {
+    this.value = await internals.createKey({secret: password, salt});
   }
 
   async createFromBase64(str) {
@@ -81,7 +81,7 @@ export function randomBytes(n) {
 export async function loadKey(key) {
   let keyInstance;
   if (!(key instanceof Key)) {
-    keyInstance = new Key({ id: key.id });
+    keyInstance = new Key({id: key.id});
     await keyInstance.createFromBase64(key.base64);
   } else {
     keyInstance = key;
@@ -98,8 +98,8 @@ export function unloadAllKeys() {
   keys = {};
 }
 
-export async function createKey({ id, password, salt }) {
-  const key = new Key({ id });
-  await key.createFromPassword({ password, salt });
+export async function createKey({id, password, salt}) {
+  const key = new Key({id});
+  await key.createFromPassword({password, salt});
   return key;
 }

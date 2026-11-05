@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useEffect, useMemo, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  SummaryContent,
-  SummaryWidget,
-} from '@actual-app/core/types/models';
+import type {SummaryContent, SummaryWidget} from '@actual-app/core/types/models';
 
-import { DateRange } from '#components/reports/DateRange';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { ReportCardValueSkeleton } from '#components/reports/ReportCardValueSkeleton';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { summarySpreadsheet } from '#components/reports/spreadsheets/summary-spreadsheet';
-import { SummaryNumber } from '#components/reports/SummaryNumber';
-import { useReport } from '#components/reports/useReport';
-import { useLocale } from '#hooks/useLocale';
+import {DateRange} from '#components/reports/DateRange';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {ReportCardValueSkeleton} from '#components/reports/ReportCardValueSkeleton';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {summarySpreadsheet} from '#components/reports/spreadsheets/summary-spreadsheet';
+import {SummaryNumber} from '#components/reports/SummaryNumber';
+import {useReport} from '#components/reports/useReport';
+import {useLocale} from '#hooks/useLocale';
 
 type SummaryCardProps = {
   widgetId: string;
@@ -42,23 +39,16 @@ type SummaryCardProps = {
   onMetaChange: (newMeta: SummaryWidget['meta']) => void;
 };
 
-export function SummaryCard({
-  widgetId,
-  isEditing,
-  meta = {},
-  onMetaChange,
-}: SummaryCardProps) {
+export function SummaryCard({widgetId, isEditing, meta = {}, onMetaChange}: SummaryCardProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [latestTransaction, setLatestTransaction] = useState<string>('');
   const [nameMenuOpen, setNameMenuOpen] = useState(false);
 
   useEffect(() => {
     async function fetchLatestTransaction() {
       const latestTrans = await send('get-latest-transaction');
-      setLatestTransaction(
-        latestTrans ? latestTrans.date : monthUtils.currentDay(),
-      );
+      setLatestTransaction(latestTrans ? latestTrans.date : monthUtils.currentDay());
     }
     void fetchLatestTransaction();
   }, []);
@@ -81,23 +71,15 @@ export function SummaryCard({
               return JSON.parse(meta.content);
             } catch (error) {
               console.error('Failed to parse meta.content:', error);
-              return { type: 'sum' };
+              return {type: 'sum'};
             }
           })()
-        : { type: 'sum' }) as SummaryContent,
+        : {type: 'sum'}) as SummaryContent,
     [meta],
   );
 
   const params = useMemo(
-    () =>
-      summarySpreadsheet(
-        start,
-        end,
-        meta?.conditions,
-        meta?.conditionsOp,
-        content,
-        locale,
-      ),
+    () => summarySpreadsheet(start, end, meta?.conditions, meta?.conditionsOp, content, locale),
     [start, end, meta?.conditions, meta?.conditionsOp, content, locale],
   );
 
@@ -111,8 +93,8 @@ export function SummaryCard({
       to={`/reports/summary/${widgetId}`}
       onRename={() => setNameMenuOpen(true)}
     >
-      <View style={{ flex: 1, overflow: 'hidden' }}>
-        <View style={{ flexGrow: 0, flexShrink: 0, padding: 20 }}>
+      <View style={{flex: 1, overflow: 'hidden'}}>
+        <View style={{flexGrow: 0, flexShrink: 0, padding: 20}}>
           <ReportCardName
             name={meta?.name || t('Summary')}
             isEditing={nameMenuOpen}

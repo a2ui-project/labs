@@ -20,12 +20,7 @@ type ErrorWithMeta = {
 };
 
 export type UnsafeZipMeta = {
-  zipReason:
-    | 'unsafe-entry-name'
-    | 'archive-size'
-    | 'entry-size'
-    | 'total-size'
-    | 'duplicate-entry';
+  zipReason: 'unsafe-entry-name' | 'archive-size' | 'entry-size' | 'total-size' | 'duplicate-entry';
   entryName?: string;
   maxSize?: number;
 };
@@ -47,7 +42,7 @@ export function toMB(bytes?: number): number | null {
 }
 
 function getUnsafeZipError(meta: UnsafeZipMeta): string {
-  const { entryName } = meta;
+  const {entryName} = meta;
   const maxSizeMB = toMB(meta.maxSize);
   switch (meta.zipReason) {
     case 'archive-size':
@@ -76,8 +71,7 @@ function getUnsafeZipError(meta: UnsafeZipMeta): string {
 // column named" in INSERT statements.
 export function isMissingSchemaError(error: unknown): boolean {
   return (
-    error instanceof Error &&
-    /no such (table|column)|has no column named/i.test(error.message)
+    error instanceof Error && /no such (table|column)|has no column named/i.test(error.message)
   );
 }
 
@@ -155,7 +149,7 @@ export function getDownloadError({
   }
 }
 
-export function getTestKeyError({ reason }: ErrorWithMeta) {
+export function getTestKeyError({reason}: ErrorWithMeta) {
   switch (reason) {
     case 'network':
       return 'Unable to connect to the server. We need to access the server to get some information about your keys.';
@@ -182,7 +176,7 @@ export function getSyncError(error: string, id: string, meta?: unknown) {
   }
 }
 
-export function getBankSyncError(error: { message?: string }) {
+export function getBankSyncError(error: {message?: string}) {
   return error.message || 'We had an unknown problem syncing the account.';
 }
 
@@ -192,7 +186,7 @@ export class LazyLoadFailedError extends Error {
 
   constructor(name: string, cause: unknown) {
     super(`Error: failed loading lazy-loaded module ${name}`);
-    this.meta = { name };
+    this.meta = {name};
     this.cause = cause;
   }
 }

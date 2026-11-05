@@ -16,7 +16,7 @@
 
 import path from 'node:path';
 
-import { defineConfig } from '@playwright/test';
+import {defineConfig} from '@playwright/test';
 
 const e2ePort = Number(process.env.E2E_PORT) || 3001;
 
@@ -27,8 +27,8 @@ export default defineConfig({
   workers: Number(process.env.E2E_WORKERS) || (process.env.CI ? 4 : undefined),
   testDir: 'e2e/',
   reporter: process.env.CI
-    ? [['blob'], ['list'], ['junit', { outputFile: 'test-results/junit.xml' }]]
-    : [['html', { open: 'never' }]],
+    ? [['blob'], ['list'], ['junit', {outputFile: 'test-results/junit.xml'}]]
+    : [['html', {open: 'never'}]],
   use: {
     userAgent: 'playwright',
     screenshot: 'only-on-failure',
@@ -50,7 +50,7 @@ export default defineConfig({
     // overlays (e.g. rgba(…, .15) row striping) slip through with 0
     // reported diff pixels; 0.05 catches them while staying above
     // anti-aliasing noise.
-    toHaveScreenshot: { maxDiffPixels: 5, threshold: 0.05 },
+    toHaveScreenshot: {maxDiffPixels: 5, threshold: 0.05},
   },
   webServer: process.env.E2E_START_URL
     ? undefined

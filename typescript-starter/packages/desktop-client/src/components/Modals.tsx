@@ -15,102 +15,102 @@
  */
 
 // @ts-strict-ignore
-import React, { Fragment, useEffect, useEffectEvent } from 'react';
-import { useLocation } from 'react-router';
+import React, {Fragment, useEffect, useEffectEvent} from 'react';
+import {useLocation} from 'react-router';
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
 
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { useModalState } from '#hooks/useModalState';
-import { SheetNameProvider } from '#hooks/useSheetName';
-import { closeModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {useModalState} from '#hooks/useModalState';
+import {SheetNameProvider} from '#hooks/useSheetName';
+import {closeModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
-import { EditSyncAccount } from './banksync/EditSyncAccount';
-import { AccountAutocompleteModal } from './modals/AccountAutocompleteModal';
-import { AccountGroupsModal } from './modals/AccountGroupsModal';
-import { AccountMenuModal } from './modals/AccountMenuModal';
-import { AccountReconcileModal } from './modals/AccountReconcileModal';
-import { AkahuInitialiseModal } from './modals/AkahuInitialiseModal';
-import { BudgetAutomationsModal } from './modals/BudgetAutomationsModal';
-import { BudgetPageMenuModal } from './modals/BudgetPageMenuModal';
-import { CategoryAutocompleteModal } from './modals/CategoryAutocompleteModal';
-import { CategoryGroupAutocompleteModal } from './modals/CategoryGroupAutocompleteModal';
-import { CategoryGroupMenuModal } from './modals/CategoryGroupMenuModal';
-import { CategoryMenuModal } from './modals/CategoryMenuModal';
-import { CloseAccountModal } from './modals/CloseAccountModal';
-import { ConfirmCategoryDeleteModal } from './modals/ConfirmCategoryDeleteModal';
-import { ConfirmDeleteModal } from './modals/ConfirmDeleteModal';
-import { ConfirmPayeesMergeModal } from './modals/ConfirmPayeesMergeModal';
-import { ConfirmTransactionEditModal } from './modals/ConfirmTransactionEditModal';
-import { ConfirmUnlinkAccountModal } from './modals/ConfirmUnlinkAccountModal';
-import { ConvertToScheduleModal } from './modals/ConvertToScheduleModal';
-import { CopyWidgetToDashboardModal } from './modals/CopyWidgetToDashboardModal';
-import { CoverModal } from './modals/CoverModal';
-import { CreateAccountModal } from './modals/CreateAccountModal';
-import { CreateEncryptionKeyModal } from './modals/CreateEncryptionKeyModal';
-import { CreateLocalAccountModal } from './modals/CreateLocalAccountModal';
-import { EditUserAccess } from './modals/EditAccess';
-import { EditFieldModal } from './modals/EditFieldModal';
-import { EditRuleModal } from './modals/EditRuleModal';
-import { EditUserFinanceApp } from './modals/EditUser';
-import { EnableBankingExternalMsgModal } from './modals/EnableBankingExternalMsgModal';
-import { EnableBankingInitialiseModal } from './modals/EnableBankingInitialiseModal';
-import { EnvelopeBalanceMenuModal } from './modals/EnvelopeBalanceMenuModal';
-import { EnvelopeBudgetMenuModal } from './modals/EnvelopeBudgetMenuModal';
-import { EnvelopeBudgetMonthMenuModal } from './modals/EnvelopeBudgetMonthMenuModal';
-import { EnvelopeBudgetSummaryModal } from './modals/EnvelopeBudgetSummaryModal';
-import { EnvelopeIncomeBalanceMenuModal } from './modals/EnvelopeIncomeBalanceMenuModal';
-import { EnvelopeToBudgetMenuModal } from './modals/EnvelopeToBudgetMenuModal';
-import { FixEncryptionKeyModal } from './modals/FixEncryptionKeyModal';
-import { GoalTemplateModal } from './modals/GoalTemplateModal';
-import { GoCardlessExternalMsgModal } from './modals/GoCardlessExternalMsgModal';
-import { GoCardlessInitialiseModal } from './modals/GoCardlessInitialiseModal';
-import { HoldBufferModal } from './modals/HoldBufferModal';
-import { ImportTransactionsModal } from './modals/ImportTransactionsModal';
-import { KeyboardShortcutModal } from './modals/KeyboardShortcutModal';
-import { LoadBackupModal } from './modals/LoadBackupModal';
-import { ConfirmChangeDocumentDirModal } from './modals/manager/ConfirmChangeDocumentDir';
-import { DeleteFileModal } from './modals/manager/DeleteFileModal';
-import { DuplicateFileModal } from './modals/manager/DuplicateFileModal';
-import { FilesSettingsModal } from './modals/manager/FilesSettingsModal';
-import { ImportActualModal } from './modals/manager/ImportActualModal';
-import { ImportModal } from './modals/manager/ImportModal';
-import { ImportYNAB4Modal } from './modals/manager/ImportYNAB4Modal';
-import { ImportYNAB5Modal } from './modals/manager/ImportYNAB5Modal';
-import { ManageRulesModal } from './modals/ManageRulesModal';
-import { MergeUnusedPayeesModal } from './modals/MergeUnusedPayeesModal';
-import { NewCategoryGroupModal } from './modals/NewCategoryGroupModal';
-import { NewCategoryModal } from './modals/NewCategoryModal';
-import { NotesModal } from './modals/NotesModal';
-import { OpenIDEnableModal } from './modals/OpenIDEnableModal';
-import { OutOfSyncMigrationsModal } from './modals/OutOfSyncMigrationsModal';
-import { PasswordEnableModal } from './modals/PasswordEnableModal';
-import { PayeeAutocompleteModal } from './modals/PayeeAutocompleteModal';
-import { PluggyAiInitialiseModal } from './modals/PluggyAiInitialiseModal';
-import { ScheduledTransactionMenuModal } from './modals/ScheduledTransactionMenuModal';
-import { SelectLinkedAccountsModal } from './modals/SelectLinkedAccountsModal';
-import { SimpleFinInitialiseModal } from './modals/SimpleFinInitialiseModal';
-import { TrackingBalanceMenuModal } from './modals/TrackingBalanceMenuModal';
-import { TrackingBudgetMenuModal } from './modals/TrackingBudgetMenuModal';
-import { TrackingBudgetMonthMenuModal } from './modals/TrackingBudgetMonthMenuModal';
-import { TrackingBudgetSummaryModal } from './modals/TrackingBudgetSummaryModal';
-import { TransactionTableColumnsModal } from './modals/TransactionTableColumnsModal';
-import { TransferModal } from './modals/TransferModal';
-import { TransferOwnership } from './modals/TransferOwnership';
-import { UnmigrateBudgetAutomationsModal } from './modals/UnmigrateBudgetAutomationsModal';
-import { CategoryLearning } from './payees/CategoryLearning';
-import { DiscoverSchedules } from './schedules/DiscoverSchedules';
-import { PostsOfflineNotification } from './schedules/PostsOfflineNotification';
-import { ScheduleEditModal } from './schedules/ScheduleEditModal';
-import { ScheduleLink } from './schedules/ScheduleLink';
-import { UpcomingLength } from './schedules/UpcomingLength';
+import {EditSyncAccount} from './banksync/EditSyncAccount';
+import {AccountAutocompleteModal} from './modals/AccountAutocompleteModal';
+import {AccountGroupsModal} from './modals/AccountGroupsModal';
+import {AccountMenuModal} from './modals/AccountMenuModal';
+import {AccountReconcileModal} from './modals/AccountReconcileModal';
+import {AkahuInitialiseModal} from './modals/AkahuInitialiseModal';
+import {BudgetAutomationsModal} from './modals/BudgetAutomationsModal';
+import {BudgetPageMenuModal} from './modals/BudgetPageMenuModal';
+import {CategoryAutocompleteModal} from './modals/CategoryAutocompleteModal';
+import {CategoryGroupAutocompleteModal} from './modals/CategoryGroupAutocompleteModal';
+import {CategoryGroupMenuModal} from './modals/CategoryGroupMenuModal';
+import {CategoryMenuModal} from './modals/CategoryMenuModal';
+import {CloseAccountModal} from './modals/CloseAccountModal';
+import {ConfirmCategoryDeleteModal} from './modals/ConfirmCategoryDeleteModal';
+import {ConfirmDeleteModal} from './modals/ConfirmDeleteModal';
+import {ConfirmPayeesMergeModal} from './modals/ConfirmPayeesMergeModal';
+import {ConfirmTransactionEditModal} from './modals/ConfirmTransactionEditModal';
+import {ConfirmUnlinkAccountModal} from './modals/ConfirmUnlinkAccountModal';
+import {ConvertToScheduleModal} from './modals/ConvertToScheduleModal';
+import {CopyWidgetToDashboardModal} from './modals/CopyWidgetToDashboardModal';
+import {CoverModal} from './modals/CoverModal';
+import {CreateAccountModal} from './modals/CreateAccountModal';
+import {CreateEncryptionKeyModal} from './modals/CreateEncryptionKeyModal';
+import {CreateLocalAccountModal} from './modals/CreateLocalAccountModal';
+import {EditUserAccess} from './modals/EditAccess';
+import {EditFieldModal} from './modals/EditFieldModal';
+import {EditRuleModal} from './modals/EditRuleModal';
+import {EditUserFinanceApp} from './modals/EditUser';
+import {EnableBankingExternalMsgModal} from './modals/EnableBankingExternalMsgModal';
+import {EnableBankingInitialiseModal} from './modals/EnableBankingInitialiseModal';
+import {EnvelopeBalanceMenuModal} from './modals/EnvelopeBalanceMenuModal';
+import {EnvelopeBudgetMenuModal} from './modals/EnvelopeBudgetMenuModal';
+import {EnvelopeBudgetMonthMenuModal} from './modals/EnvelopeBudgetMonthMenuModal';
+import {EnvelopeBudgetSummaryModal} from './modals/EnvelopeBudgetSummaryModal';
+import {EnvelopeIncomeBalanceMenuModal} from './modals/EnvelopeIncomeBalanceMenuModal';
+import {EnvelopeToBudgetMenuModal} from './modals/EnvelopeToBudgetMenuModal';
+import {FixEncryptionKeyModal} from './modals/FixEncryptionKeyModal';
+import {GoalTemplateModal} from './modals/GoalTemplateModal';
+import {GoCardlessExternalMsgModal} from './modals/GoCardlessExternalMsgModal';
+import {GoCardlessInitialiseModal} from './modals/GoCardlessInitialiseModal';
+import {HoldBufferModal} from './modals/HoldBufferModal';
+import {ImportTransactionsModal} from './modals/ImportTransactionsModal';
+import {KeyboardShortcutModal} from './modals/KeyboardShortcutModal';
+import {LoadBackupModal} from './modals/LoadBackupModal';
+import {ConfirmChangeDocumentDirModal} from './modals/manager/ConfirmChangeDocumentDir';
+import {DeleteFileModal} from './modals/manager/DeleteFileModal';
+import {DuplicateFileModal} from './modals/manager/DuplicateFileModal';
+import {FilesSettingsModal} from './modals/manager/FilesSettingsModal';
+import {ImportActualModal} from './modals/manager/ImportActualModal';
+import {ImportModal} from './modals/manager/ImportModal';
+import {ImportYNAB4Modal} from './modals/manager/ImportYNAB4Modal';
+import {ImportYNAB5Modal} from './modals/manager/ImportYNAB5Modal';
+import {ManageRulesModal} from './modals/ManageRulesModal';
+import {MergeUnusedPayeesModal} from './modals/MergeUnusedPayeesModal';
+import {NewCategoryGroupModal} from './modals/NewCategoryGroupModal';
+import {NewCategoryModal} from './modals/NewCategoryModal';
+import {NotesModal} from './modals/NotesModal';
+import {OpenIDEnableModal} from './modals/OpenIDEnableModal';
+import {OutOfSyncMigrationsModal} from './modals/OutOfSyncMigrationsModal';
+import {PasswordEnableModal} from './modals/PasswordEnableModal';
+import {PayeeAutocompleteModal} from './modals/PayeeAutocompleteModal';
+import {PluggyAiInitialiseModal} from './modals/PluggyAiInitialiseModal';
+import {ScheduledTransactionMenuModal} from './modals/ScheduledTransactionMenuModal';
+import {SelectLinkedAccountsModal} from './modals/SelectLinkedAccountsModal';
+import {SimpleFinInitialiseModal} from './modals/SimpleFinInitialiseModal';
+import {TrackingBalanceMenuModal} from './modals/TrackingBalanceMenuModal';
+import {TrackingBudgetMenuModal} from './modals/TrackingBudgetMenuModal';
+import {TrackingBudgetMonthMenuModal} from './modals/TrackingBudgetMonthMenuModal';
+import {TrackingBudgetSummaryModal} from './modals/TrackingBudgetSummaryModal';
+import {TransactionTableColumnsModal} from './modals/TransactionTableColumnsModal';
+import {TransferModal} from './modals/TransferModal';
+import {TransferOwnership} from './modals/TransferOwnership';
+import {UnmigrateBudgetAutomationsModal} from './modals/UnmigrateBudgetAutomationsModal';
+import {CategoryLearning} from './payees/CategoryLearning';
+import {DiscoverSchedules} from './schedules/DiscoverSchedules';
+import {PostsOfflineNotification} from './schedules/PostsOfflineNotification';
+import {ScheduleEditModal} from './schedules/ScheduleEditModal';
+import {ScheduleLink} from './schedules/ScheduleLink';
+import {UpcomingLength} from './schedules/UpcomingLength';
 
 export function Modals() {
   const location = useLocation();
   const dispatch = useDispatch();
-  const { modalStack } = useModalState();
+  const {modalStack} = useModalState();
   const [budgetId] = useMetadataPref('id');
 
   const onCloseModal = useEffectEvent(() => {
@@ -125,16 +125,14 @@ export function Modals() {
 
   const modals = modalStack
     .map((modal, idx) => {
-      const { name } = modal;
+      const {name} = modal;
       const key = `${name}-${idx}`;
       switch (name) {
         case 'goal-templates':
           return budgetId ? <GoalTemplateModal key={key} /> : null;
 
         case 'category-automations-edit':
-          return budgetId ? (
-            <BudgetAutomationsModal key={name} {...modal.options} />
-          ) : null;
+          return budgetId ? <BudgetAutomationsModal key={name} {...modal.options} /> : null;
 
         case 'category-automations-unmigrate':
           return budgetId ? (
@@ -189,12 +187,7 @@ export function Modals() {
 
         case 'load-backup':
           return (
-            <LoadBackupModal
-              key={key}
-              watchUpdates
-              {...modal.options}
-              backupDisabled={false}
-            />
+            <LoadBackupModal key={key} watchUpdates {...modal.options} backupDisabled={false} />
           );
 
         case 'manage-rules':
@@ -249,9 +242,7 @@ export function Modals() {
           return <CategoryAutocompleteModal key={key} {...modal.options} />;
 
         case 'category-group-autocomplete':
-          return (
-            <CategoryGroupAutocompleteModal key={key} {...modal.options} />
-          );
+          return <CategoryGroupAutocompleteModal key={key} {...modal.options} />;
 
         case 'account-autocomplete':
           return <AccountAutocompleteModal key={key} {...modal.options} />;
@@ -270,10 +261,7 @@ export function Modals() {
 
         case 'envelope-budget-summary':
           return (
-            <SheetNameProvider
-              key={key}
-              name={monthUtils.sheetForMonth(modal.options.month)}
-            >
+            <SheetNameProvider key={key} name={monthUtils.sheetForMonth(modal.options.month)}>
               <EnvelopeBudgetSummaryModal key={key} {...modal.options} />
             </SheetNameProvider>
           );
@@ -310,20 +298,14 @@ export function Modals() {
 
         case 'envelope-budget-menu':
           return (
-            <SheetNameProvider
-              key={key}
-              name={monthUtils.sheetForMonth(modal.options.month)}
-            >
+            <SheetNameProvider key={key} name={monthUtils.sheetForMonth(modal.options.month)}>
               <EnvelopeBudgetMenuModal {...modal.options} />
             </SheetNameProvider>
           );
 
         case 'tracking-budget-menu':
           return (
-            <SheetNameProvider
-              key={key}
-              name={monthUtils.sheetForMonth(modal.options.month)}
-            >
+            <SheetNameProvider key={key} name={monthUtils.sheetForMonth(modal.options.month)}>
               <TrackingBudgetMenuModal {...modal.options} />
             </SheetNameProvider>
           );
@@ -336,50 +318,35 @@ export function Modals() {
 
         case 'envelope-balance-menu':
           return (
-            <SheetNameProvider
-              key={key}
-              name={monthUtils.sheetForMonth(modal.options.month)}
-            >
+            <SheetNameProvider key={key} name={monthUtils.sheetForMonth(modal.options.month)}>
               <EnvelopeBalanceMenuModal {...modal.options} />
             </SheetNameProvider>
           );
 
         case 'envelope-income-balance-menu':
           return (
-            <SheetNameProvider
-              key={key}
-              name={monthUtils.sheetForMonth(modal.options.month)}
-            >
+            <SheetNameProvider key={key} name={monthUtils.sheetForMonth(modal.options.month)}>
               <EnvelopeIncomeBalanceMenuModal {...modal.options} />
             </SheetNameProvider>
           );
 
         case 'envelope-summary-to-budget-menu':
           return (
-            <SheetNameProvider
-              key={key}
-              name={monthUtils.sheetForMonth(modal.options.month)}
-            >
+            <SheetNameProvider key={key} name={monthUtils.sheetForMonth(modal.options.month)}>
               <EnvelopeToBudgetMenuModal {...modal.options} />
             </SheetNameProvider>
           );
 
         case 'hold-buffer':
           return (
-            <SheetNameProvider
-              key={key}
-              name={monthUtils.sheetForMonth(modal.options.month)}
-            >
+            <SheetNameProvider key={key} name={monthUtils.sheetForMonth(modal.options.month)}>
               <HoldBufferModal {...modal.options} />
             </SheetNameProvider>
           );
 
         case 'tracking-balance-menu':
           return (
-            <SheetNameProvider
-              key={key}
-              name={monthUtils.sheetForMonth(modal.options.month)}
-            >
+            <SheetNameProvider key={key} name={monthUtils.sheetForMonth(modal.options.month)}>
               <TrackingBalanceMenuModal {...modal.options} />
             </SheetNameProvider>
           );
@@ -398,20 +365,14 @@ export function Modals() {
 
         case 'envelope-budget-month-menu':
           return (
-            <SheetNameProvider
-              key={key}
-              name={monthUtils.sheetForMonth(modal.options.month)}
-            >
+            <SheetNameProvider key={key} name={monthUtils.sheetForMonth(modal.options.month)}>
               <EnvelopeBudgetMonthMenuModal {...modal.options} />
             </SheetNameProvider>
           );
 
         case 'tracking-budget-month-menu':
           return (
-            <SheetNameProvider
-              key={key}
-              name={monthUtils.sheetForMonth(modal.options.month)}
-            >
+            <SheetNameProvider key={key} name={monthUtils.sheetForMonth(modal.options.month)}>
               <TrackingBudgetMonthMenuModal {...modal.options} />
             </SheetNameProvider>
           );
@@ -455,9 +416,7 @@ export function Modals() {
           throw new Error('Unknown modal');
       }
     })
-    .map((modal, idx) => (
-      <Fragment key={`${modalStack[idx].name}-${idx}`}>{modal}</Fragment>
-    ));
+    .map((modal, idx) => <Fragment key={`${modalStack[idx].name}-${idx}`}>{modal}</Fragment>);
 
   // fragment needed per TS types
   // oxlint-disable-next-line react/jsx-no-useless-fragment

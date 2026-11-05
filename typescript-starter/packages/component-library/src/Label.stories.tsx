@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Input } from './Input';
-import { Label } from './Label';
-import { View } from './View';
+import {Input} from './Input';
+import {Label} from './Label';
+import {View} from './View';
 
 const meta = {
   title: 'Components/Label',
@@ -51,9 +51,9 @@ export const WithInput: Story = {
     title: 'Email Address',
   },
   render: args => (
-    <View style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+    <View style={{display: 'flex', flexDirection: 'column', gap: 5}}>
       <Label {...args} />
-      <Input placeholder="user@example.com" style={{ width: 250 }} />
+      <Input placeholder="user@example.com" style={{width: 250}} />
     </View>
   ),
   parameters: {
@@ -70,18 +70,18 @@ export const MultipleLabels: Story = {
     title: 'First Name',
   },
   render: args => (
-    <View style={{ display: 'flex', flexDirection: 'column', gap: 15 }}>
-      <View style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+    <View style={{display: 'flex', flexDirection: 'column', gap: 15}}>
+      <View style={{display: 'flex', flexDirection: 'column', gap: 5}}>
         <Label {...args} />
-        <Input style={{ width: 250 }} />
+        <Input style={{width: 250}} />
       </View>
-      <View style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <View style={{display: 'flex', flexDirection: 'column', gap: 5}}>
         <Label title="Last Name" />
-        <Input style={{ width: 250 }} />
+        <Input style={{width: 250}} />
       </View>
-      <View style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <View style={{display: 'flex', flexDirection: 'column', gap: 5}}>
         <Label title="Password" />
-        <Input type="password" style={{ width: 250 }} />
+        <Input type="password" style={{width: 250}} />
       </View>
     </View>
   ),

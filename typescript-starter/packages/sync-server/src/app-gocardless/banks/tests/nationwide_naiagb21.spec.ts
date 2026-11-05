@@ -15,7 +15,7 @@
  */
 
 import Nationwide from '#app-gocardless/banks/nationwide_naiagb21';
-import { mockTransactionAmount } from '#app-gocardless/services/tests/fixtures';
+import {mockTransactionAmount} from '#app-gocardless/services/tests/fixtures';
 
 describe('Nationwide', () => {
   describe('#normalizeTransaction', () => {
@@ -30,10 +30,7 @@ describe('Nationwide', () => {
         transactionAmount: mockTransactionAmount,
       };
 
-      const normalizedTransaction = Nationwide.normalizeTransaction(
-        transaction,
-        true,
-      );
+      const normalizedTransaction = Nationwide.normalizeTransaction(transaction, true);
 
       expect(normalizedTransaction?.date).toEqual(date);
     });
@@ -47,14 +44,9 @@ describe('Nationwide', () => {
         transactionAmount: mockTransactionAmount,
       };
 
-      const normalizedTransaction = Nationwide.normalizeTransaction(
-        transaction,
-        false,
-      );
+      const normalizedTransaction = Nationwide.normalizeTransaction(transaction, false);
 
-      expect(
-        new Date(normalizedTransaction?.date ?? '').getTime(),
-      ).toBeLessThan(d.getTime());
+      expect(new Date(normalizedTransaction?.date ?? '').getTime()).toBeLessThan(d.getTime());
     });
 
     it('keeps transactionId if in the correct format', () => {
@@ -65,10 +57,7 @@ describe('Nationwide', () => {
         transactionAmount: mockTransactionAmount,
       };
 
-      const normalizedTransaction = Nationwide.normalizeTransaction(
-        transaction,
-        false,
-      );
+      const normalizedTransaction = Nationwide.normalizeTransaction(transaction, false);
 
       expect(normalizedTransaction?.transactionId).toBe(transactionId);
     });
@@ -80,10 +69,7 @@ describe('Nationwide', () => {
         transactionAmount: mockTransactionAmount,
       };
 
-      const normalizedTransaction = Nationwide.normalizeTransaction(
-        transaction,
-        false,
-      );
+      const normalizedTransaction = Nationwide.normalizeTransaction(transaction, false);
 
       expect(normalizedTransaction?.transactionId).toBeUndefined();
     });
@@ -95,10 +81,7 @@ describe('Nationwide', () => {
         transactionAmount: mockTransactionAmount,
       };
 
-      const normalizedTransaction = Nationwide.normalizeTransaction(
-        transaction,
-        false,
-      );
+      const normalizedTransaction = Nationwide.normalizeTransaction(transaction, false);
 
       expect(normalizedTransaction?.transactionId).toBeUndefined();
     });
@@ -110,10 +93,7 @@ describe('Nationwide', () => {
         transactionAmount: mockTransactionAmount,
       };
 
-      const normalizedTransaction = Nationwide.normalizeTransaction(
-        transaction,
-        false,
-      );
+      const normalizedTransaction = Nationwide.normalizeTransaction(transaction, false);
 
       expect(normalizedTransaction?.transactionId).toBeUndefined();
     });

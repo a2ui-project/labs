@@ -24,22 +24,20 @@ type Listener = (args: unknown) => void;
 type Handler = (args: unknown) => unknown | Promise<unknown>;
 
 let listeners = new Map<string, Array<Listener>>();
-let serverHandler:
-  | null
-  | ((msg: { name: string; args: unknown; catchErrors: boolean }) => unknown) =
+let serverHandler: null | ((msg: {name: string; args: unknown; catchErrors: boolean}) => unknown) =
   null;
 
 export const initServer = (handlers: Record<string, Handler>) => {
   serverHandler = msg => {
-    const { name, args, catchErrors } = msg;
+    const {name, args, catchErrors} = msg;
     if (handlers[name]) {
       return Promise.resolve().then(() => {
         const promise = Promise.resolve(handlers[name](args));
 
         if (catchErrors) {
           return promise.then(
-            data => ({ data }),
-            error => ({ error }),
+            data => ({data}),
+            error => ({error}),
           );
         }
 
@@ -65,20 +63,16 @@ export const serverPush = (name: string, args: unknown) => {
   });
 };
 
-export const send = async (
-  name: string,
-  args: unknown,
-  { catchErrors = false } = {},
-) => {
+export const send = async (name: string, args: unknown, {catchErrors = false} = {}) => {
   if (serverHandler) {
-    return serverHandler({ name, args, catchErrors });
+    return serverHandler({name, args, catchErrors});
   } else {
     throw new Error('`send` called with no mock server installed');
   }
 };
 
 export const sendCatch = (name: string, args: unknown) => {
-  return send(name, args, { catchErrors: true });
+  return send(name, args, {catchErrors: true});
 };
 
 export const listen = (name: string, cb: Listener) => {

@@ -35,44 +35,33 @@ import type {
   RefObject,
   UIEvent,
 } from 'react';
-import { AutoSizer } from 'react-virtualized-auto-sizer';
+import {AutoSizer} from 'react-virtualized-auto-sizer';
 
-import { Button } from '@actual-app/components/button';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { SvgDelete, SvgExpandArrow } from '@actual-app/components/icons/v0';
-import { SvgCheckmark } from '@actual-app/components/icons/v1';
-import { Input } from '@actual-app/components/input';
-import { Menu } from '@actual-app/components/menu';
-import type { MenuItem } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {SvgDelete, SvgExpandArrow} from '@actual-app/components/icons/v0';
+import {SvgCheckmark} from '@actual-app/components/icons/v1';
+import {Input} from '@actual-app/components/input';
+import {Menu} from '@actual-app/components/menu';
+import type {MenuItem} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { useMergedRefs } from '#hooks/useMergedRefs';
-import { useModalState } from '#hooks/useModalState';
-import {
-  AvoidRefocusScrollProvider,
-  useProperFocus,
-} from '#hooks/useProperFocus';
-import { useSelectedItems } from '#hooks/useSelected';
-import { useSheetValue } from '#hooks/useSheetValue';
-import type {
-  Binding,
-  SheetFields,
-  SheetNames,
-  Spreadsheets,
-} from '#spreadsheet';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {useMergedRefs} from '#hooks/useMergedRefs';
+import {useModalState} from '#hooks/useModalState';
+import {AvoidRefocusScrollProvider, useProperFocus} from '#hooks/useProperFocus';
+import {useSelectedItems} from '#hooks/useSelected';
+import {useSheetValue} from '#hooks/useSheetValue';
+import type {Binding, SheetFields, SheetNames, Spreadsheets} from '#spreadsheet';
 
-import { FixedSizeList } from './FixedSizeList';
-import {
-  ConditionalPrivacyFilter,
-  mergeConditionalPrivacyFilterProps,
-} from './PrivacyFilter';
+import {FixedSizeList} from './FixedSizeList';
+import {ConditionalPrivacyFilter, mergeConditionalPrivacyFilterProps} from './PrivacyFilter';
 
 export const ROW_HEIGHT = 32;
 
@@ -95,7 +84,7 @@ type FieldProps = ComponentProps<typeof View> & {
   contentStyle?: CSSProperties;
 };
 export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
-  { width, name, truncate = true, children, style, contentStyle, ...props },
+  {width, name, truncate = true, children, style, contentStyle, ...props},
   ref,
 ) {
   return (
@@ -103,7 +92,7 @@ export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
       innerRef={ref}
       {...props}
       style={{
-        ...(width === 'flex' ? { flex: 1, flexBasis: 0 } : { width }),
+        ...(width === 'flex' ? {flex: 1, flexBasis: 0} : {width}),
         borderTopWidth: 1,
         borderBottomWidth: 1,
         borderColor: theme.tableBorder,
@@ -144,7 +133,7 @@ export const Field = forwardRef<HTMLDivElement, FieldProps>(function Field(
 export const UnexposedCellContent = forwardRef<
   HTMLSpanElement,
   Pick<CellProps, 'value' | 'formatter' | 'style'>
->(function UnexposedCellContent({ value, formatter, style, ...props }, ref) {
+>(function UnexposedCellContent({value, formatter, style, ...props}, ref) {
   return (
     <Text
       innerRef={ref}
@@ -170,15 +159,11 @@ type CellProps = Omit<ComponentProps<typeof View>, 'children' | 'value'> & {
   plain?: boolean;
   exposed?: boolean;
   children?: ReactNode | (() => ReactNode);
-  unexposedContent?: (
-    props: ComponentProps<typeof UnexposedCellContent>,
-  ) => ReactNode;
+  unexposedContent?: (props: ComponentProps<typeof UnexposedCellContent>) => ReactNode;
   value?: string;
   valueStyle?: CSSProperties | null;
   onExpose?: (name: string) => void;
-  privacyFilter?: ComponentProps<
-    typeof ConditionalPrivacyFilter
-  >['privacyFilter'];
+  privacyFilter?: ComponentProps<typeof ConditionalPrivacyFilter>['privacyFilter'];
 };
 export function Cell({
   width,
@@ -203,8 +188,7 @@ export function Cell({
 
   useProperFocus(viewRef, focused !== undefined ? focused : exposed);
 
-  const widthStyle: CSSProperties =
-    width === 'flex' ? { flex: 1, flexBasis: 0 } : { width };
+  const widthStyle: CSSProperties = width === 'flex' ? {flex: 1, flexBasis: 0} : {width};
   const cellStyle: CSSProperties = {
     position: 'relative',
     textAlign: textAlign || 'left',
@@ -260,7 +244,7 @@ export function Cell({
             }
           >
             {unexposedContent ? (
-              unexposedContent({ value, formatter })
+              unexposedContent({value, formatter})
             ) : (
               <UnexposedCellContent value={value} formatter={formatter} />
             )}
@@ -287,7 +271,7 @@ export function Cell({
 
   return (
     <View
-      style={{ ...widthStyle, ...cellStyle, ...style }}
+      style={{...widthStyle, ...cellStyle, ...style}}
       {...viewProps}
       innerRef={mergedRef}
       data-testid={name}
@@ -302,7 +286,7 @@ type RowProps = ComponentProps<typeof View> & {
   collapsed?: boolean;
 };
 export const Row = forwardRef<HTMLDivElement, RowProps>(function Row(
-  { inset = 0, collapsed, children, height, style, ...nativeProps },
+  {inset = 0, collapsed, children, height, style, ...nativeProps},
   ref,
 ) {
   return (
@@ -313,7 +297,7 @@ export const Row = forwardRef<HTMLDivElement, RowProps>(function Row(
         height: height || ROW_HEIGHT,
         flex: '0 0 ' + (height || ROW_HEIGHT) + 'px',
         userSelect: 'text',
-        ...(collapsed && { marginTop: -1 }),
+        ...(collapsed && {marginTop: -1}),
         ...style,
       }}
       data-testid="row"
@@ -333,25 +317,17 @@ const inputCellStyle = {
 
 const readonlyInputStyle = {
   backgroundColor: 'transparent',
-  '::selection': { backgroundColor: theme.formInputTextReadOnlySelection },
+  '::selection': {backgroundColor: theme.formInputTextReadOnlySelection},
 };
 
-type InputValueProps = Omit<
-  ComponentProps<typeof Input>,
-  'value' | 'onUpdate'
-> & {
+type InputValueProps = Omit<ComponentProps<typeof Input>, 'value' | 'onUpdate'> & {
   value?: string;
   onUpdate?: (newValue: string) => void;
 } & {
   [key: `data-${string}`]: unknown;
 };
 
-function InputValue({
-  value: defaultValue,
-  onUpdate,
-  onBlur,
-  ...props
-}: InputValueProps) {
+function InputValue({value: defaultValue, onUpdate, onBlur, ...props}: InputValueProps) {
   const [value, setValue] = useState(defaultValue);
   const [prevDefaultValue, setPrevDefaultValue] = useState(defaultValue);
 
@@ -422,13 +398,7 @@ type InputCellProps = ComponentProps<typeof Cell> & {
   onBlur?: ComponentProps<typeof InputValue>['onBlur'];
   textAlign?: CSSProperties['textAlign'];
 };
-export function InputCell({
-  inputProps,
-  onUpdate,
-  onBlur,
-  textAlign,
-  ...props
-}: InputCellProps) {
+export function InputCell({inputProps, onUpdate, onBlur, textAlign, ...props}: InputCellProps) {
   return (
     <Cell textAlign={textAlign} {...props}>
       {() => (
@@ -436,7 +406,7 @@ export function InputCell({
           value={props.value}
           onUpdate={onUpdate}
           onBlur={onBlur}
-          style={{ textAlign, ...(inputProps && inputProps.style) }}
+          style={{textAlign, ...(inputProps && inputProps.style)}}
           {...inputProps}
         />
       )}
@@ -520,13 +490,13 @@ export function CustomCell({
 type DeleteCellProps = Omit<ComponentProps<typeof Cell>, 'children'> & {
   onDelete?: () => void;
 };
-export function DeleteCell({ onDelete, style, ...props }: DeleteCellProps) {
+export function DeleteCell({onDelete, style, ...props}: DeleteCellProps) {
   return (
     <Cell
       {...props}
       name="delete"
       width={20}
-      style={{ alignItems: 'center', userSelect: 'none', ...style }}
+      style={{alignItems: 'center', userSelect: 'none', ...style}}
       onClick={e => {
         e.stopPropagation();
         onDelete?.();
@@ -549,20 +519,7 @@ type CellButtonProps = {
   className?: string;
 };
 export const CellButton = forwardRef<HTMLDivElement, CellButtonProps>(
-  (
-    {
-      children,
-      style,
-      primary,
-      bare,
-      disabled,
-      clickBehavior,
-      onSelect,
-      onEdit,
-      className,
-    },
-    ref,
-  ) => {
+  ({children, style, primary, bare, disabled, clickBehavior, onSelect, onEdit, className}, ref) => {
     // This represents a cell that acts like a button: it's clickable,
     // focusable, etc. The reason we don't use a button is because the
     // full behavior is undesirable: we really don't want stuff like
@@ -668,7 +625,7 @@ export function SelectCell({
       focused={focused}
       name="select"
       width={20}
-      style={{ alignItems: 'center', userSelect: 'none', ...style }}
+      style={{alignItems: 'center', userSelect: 'none', ...style}}
       onClick={e => {
         e.stopPropagation();
         onSelect?.(e);
@@ -687,9 +644,7 @@ export function SelectCell({
               ? '1px solid ' + theme.checkboxBorderSelected
               : '1px solid ' + theme.formInputBorder,
             color: theme.checkboxText,
-            backgroundColor: selected
-              ? theme.checkboxBackgroundSelected
-              : theme.tableBackground,
+            backgroundColor: selected ? theme.checkboxBackgroundSelected : theme.tableBackground,
             ':focus': {
               border: '1px solid ' + theme.checkboxBorderSelected,
               boxShadow: '0 1px 2px ' + theme.checkboxShadowSelected,
@@ -707,18 +662,13 @@ export function SelectCell({
   );
 }
 
-type SheetCellValueProps<
-  SheetName extends SheetNames,
-  FieldName extends SheetFields<SheetName>,
-> = {
+type SheetCellValueProps<SheetName extends SheetNames, FieldName extends SheetFields<SheetName>> = {
   binding: Binding<SheetName, FieldName>;
   type: FormatType;
   getValueStyle?: (value: Spreadsheets[SheetName][FieldName]) => CSSProperties;
   formatExpr?: (value: Spreadsheets[SheetName][FieldName]) => string;
   unformatExpr?: (value: string) => unknown;
-  privacyFilter?: ComponentProps<
-    typeof ConditionalPrivacyFilter
-  >['privacyFilter'];
+  privacyFilter?: ComponentProps<typeof ConditionalPrivacyFilter>['privacyFilter'];
 };
 
 export type SheetCellProps<
@@ -726,19 +676,13 @@ export type SheetCellProps<
   FieldName extends SheetFields<SheetName>,
 > = ComponentProps<typeof Cell> & {
   valueProps: SheetCellValueProps<SheetName, FieldName>;
-  inputProps?: Omit<
-    ComponentProps<typeof InputValue>,
-    'value' | 'onUpdate' | 'onBlur'
-  > & {
+  inputProps?: Omit<ComponentProps<typeof InputValue>, 'value' | 'onUpdate' | 'onBlur'> & {
     onBlur?: () => void;
   };
   onSave?: (value) => void;
   textAlign?: CSSProperties['textAlign'];
 };
-export function SheetCell<
-  SheetName extends SheetNames,
-  FieldName extends SheetFields<SheetName>,
->({
+export function SheetCell<SheetName extends SheetNames, FieldName extends SheetFields<SheetName>>({
   valueProps,
   valueStyle,
   inputProps,
@@ -746,14 +690,7 @@ export function SheetCell<
   onSave,
   ...props
 }: SheetCellProps<SheetName, FieldName>) {
-  const {
-    binding,
-    type,
-    getValueStyle,
-    formatExpr,
-    unformatExpr,
-    privacyFilter,
-  } = valueProps;
+  const {binding, type, getValueStyle, formatExpr, unformatExpr, privacyFilter} = valueProps;
 
   const sheetValue = useSheetValue(binding, () => {
     // "close" the cell if it's editing
@@ -765,23 +702,13 @@ export function SheetCell<
 
   return (
     <Cell
-      valueStyle={
-        getValueStyle
-          ? { ...valueStyle, ...getValueStyle(sheetValue) }
-          : valueStyle
-      }
+      valueStyle={getValueStyle ? {...valueStyle, ...getValueStyle(sheetValue)} : valueStyle}
       textAlign={textAlign}
       {...props}
       value={String(sheetValue ?? '')}
-      formatter={value =>
-        props.formatter ? props.formatter(value, type) : format(value, type)
-      }
+      formatter={value => (props.formatter ? props.formatter(value, type) : format(value, type))}
       privacyFilter={
-        privacyFilter != null
-          ? privacyFilter
-          : type === 'financial'
-            ? true
-            : undefined
+        privacyFilter != null ? privacyFilter : type === 'financial' ? true : undefined
       }
       data-cellname={sheetValue}
     >
@@ -793,7 +720,7 @@ export function SheetCell<
               onSave(unformatExpr ? unformatExpr(value) : value);
             }}
             {...inputProps}
-            style={{ textAlign, ...(inputProps?.style || {}) }}
+            style={{textAlign, ...(inputProps?.style || {})}}
           />
         );
       }}
@@ -804,11 +731,7 @@ export function SheetCell<
 type TableHeaderProps = Omit<ComponentProps<typeof Row>, 'headers'> & {
   headers?: Array<ComponentProps<typeof Cell>>;
 };
-export function TableHeader({
-  headers,
-  children,
-  ...rowProps
-}: TableHeaderProps) {
+export function TableHeader({headers, children, ...rowProps}: TableHeaderProps) {
   return (
     <View
       style={{
@@ -866,23 +789,18 @@ export function SelectedItemsButton<Name extends string>({
     return null;
   }
 
-  const buttonLabel =
-    typeof name === 'function' ? name(selectedItems.size) : name;
+  const buttonLabel = typeof name === 'function' ? name(selectedItems.size) : name;
 
   return (
-    <View style={{ flexShrink: 0 }}>
+    <View style={{flexShrink: 0}}>
       <Button
         ref={triggerRef}
         variant="bare"
-        style={{ color: theme.pageTextPositive }}
+        style={{color: theme.pageTextPositive}}
         onPress={() => setMenuOpen(true)}
         data-testid={id + '-select-button'}
       >
-        <SvgExpandArrow
-          width={8}
-          height={8}
-          style={{ marginRight: 5, color: theme.pageText }}
-        />
+        <SvgExpandArrow width={8} height={8} style={{marginRight: 5, color: theme.pageText}} />
         {buttonLabel}
       </Button>
 
@@ -926,10 +844,9 @@ export type TableHandleRef<T extends TableItem = TableItem> = {
   isAnchored(): boolean;
 };
 
-type TableWithNavigatorProps<T extends TableItem = TableItem> =
-  TableProps<T> & {
-    fields: string[] | ((item?: T) => string[]);
-  };
+type TableWithNavigatorProps<T extends TableItem = TableItem> = TableProps<T> & {
+  fields: string[] | ((item?: T) => string[]);
+};
 
 export function TableWithNavigator<T extends TableItem = TableItem>({
   fields,
@@ -939,7 +856,7 @@ export function TableWithNavigator<T extends TableItem = TableItem>({
   return <Table {...props} navigator={navigator} />;
 }
 
-type TableItem = { id: number | string };
+type TableItem = {id: number | string};
 
 export type TableProps<T extends TableItem = TableItem> = {
   items: T[];
@@ -1002,7 +919,7 @@ export const Table = forwardRef(
       };
     }
 
-    const { onEdit, editingId, focusedField, getNavigatorProps } = navigator;
+    const {onEdit, editingId, focusedField, getNavigatorProps} = navigator;
     const list = useRef(null);
     const listContainerInnerRef = useRef<HTMLDivElement>(null);
     const listContainer = listContainerRef || listContainerInnerRef;
@@ -1089,7 +1006,7 @@ export const Table = forwardRef(
       );
     }
 
-    function renderRow({ index, style, key }) {
+    function renderRow({index, style, key}) {
       const item = items[index];
       const editing = editingId === item.id;
       const selected = isSelected && isSelected(item.id);
@@ -1115,7 +1032,7 @@ export const Table = forwardRef(
             transform: 'translateY(var(--pos))',
             backgroundColor,
           }}
-          nativeStyle={{ '--pos': `${style.top - 1}px` }}
+          nativeStyle={{'--pos': `${style.top - 1}px`}}
           data-focus-key={item.id}
         >
           {row}
@@ -1124,15 +1041,10 @@ export const Table = forwardRef(
     }
 
     function getScrollOffset(height, index) {
-      return (
-        index * (rowHeight - 1) +
-        (rowHeight - 1) / 2 -
-        height / 2 +
-        (rowHeight - 1) * 2
-      );
+      return index * (rowHeight - 1) + (rowHeight - 1) / 2 - height / 2 + (rowHeight - 1) * 2;
     }
 
-    function onItemsRendered({ overscanStopIndex }) {
+    function onItemsRendered({overscanStopIndex}) {
       if (loadMore && overscanStopIndex > items.length - 100) {
         loadMore();
       }
@@ -1192,7 +1104,7 @@ export const Table = forwardRef(
         {headers && (
           <TableHeader
             height={rowHeight}
-            {...(Array.isArray(headers) ? { headers } : { children: headers })}
+            {...(Array.isArray(headers) ? {headers} : {children: headers})}
           />
         )}
         <View
@@ -1205,7 +1117,7 @@ export const Table = forwardRef(
             getEmptyContent(renderEmpty)
           ) : (
             <AutoSizer
-              renderProp={({ width = 0, height = 0 }) => {
+              renderProp={({width = 0, height = 0}) => {
                 if (width === 0 || height === 0) {
                   return null;
                 }
@@ -1222,12 +1134,8 @@ export const Table = forwardRef(
                       renderRow={renderRow}
                       itemCount={count || items.length}
                       itemSize={rowHeight - 1}
-                      itemKey={
-                        getItemKey || ((index: number) => items[index].id)
-                      }
-                      indexForKey={key =>
-                        items.findIndex(item => item.id === key)
-                      }
+                      itemKey={getItemKey || ((index: number) => items[index].id)}
+                      indexForKey={key => items.findIndex(item => item.id === key)}
                       initialScrollOffset={
                         initialScrollTo.current
                           ? getScrollOffset(height, initialScrollTo.current)
@@ -1246,9 +1154,7 @@ export const Table = forwardRef(
       </View>
     );
   },
-) as <T extends TableItem>(
-  props: TableProps<T> & { ref?: Ref<TableHandleRef<T>> },
-) => ReactElement;
+) as <T extends TableItem>(props: TableProps<T> & {ref?: Ref<TableHandleRef<T>>}) => ReactElement;
 
 // @ts-expect-error fix me
 Table.displayName = 'Table';
@@ -1407,13 +1313,7 @@ export function useTableNavigator<T extends TableItem>(
             e.stopPropagation();
 
             onMove(
-              e.key === 'Enter'
-                ? e.shiftKey
-                  ? 'up'
-                  : 'down'
-                : e.shiftKey
-                  ? 'left'
-                  : 'right',
+              e.key === 'Enter' ? (e.shiftKey ? 'up' : 'down') : e.shiftKey ? 'left' : 'right',
             );
             break;
           default:
@@ -1450,5 +1350,5 @@ export function useTableNavigator<T extends TableItem>(
     };
   }
 
-  return { onEdit, editingId, focusedField, getNavigatorProps };
+  return {onEdit, editingId, focusedField, getNavigatorProps};
 }

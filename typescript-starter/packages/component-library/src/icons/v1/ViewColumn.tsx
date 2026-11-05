@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgViewColumn = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -26,9 +26,6 @@ export const SvgViewColumn = (props: SVGProps<SVGSVGElement>) => (
       ...props.style,
     }}
   >
-    <path
-      d="M12 4H8v12h4zm2 0v12h4V4zM6 4H2v12h4zM0 2h20v16H0z"
-      fill="currentColor"
-    />
+    <path d="M12 4H8v12h4zm2 0v12h4V4zM6 4H2v12h4zM0 2h20v16H0z" fill="currentColor" />
   </svg>
 );

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -23,7 +23,7 @@ export default {
   institutionIds: ['NATIONWIDE_NAIAGB21'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     // Nationwide can sometimes return pending transactions with a date
     // representing the latest a transaction could be booked. This stops
@@ -32,10 +32,7 @@ export default {
     // transaction is booked
     if (!booked) {
       const useDate = new Date(
-        Math.min(
-          new Date(transaction.bookingDate ?? '').getTime(),
-          new Date().getTime(),
-        ),
+        Math.min(new Date(transaction.bookingDate ?? '').getTime(), new Date().getTime()),
       );
       editedTrans.date = useDate.toISOString().slice(0, 10);
     }

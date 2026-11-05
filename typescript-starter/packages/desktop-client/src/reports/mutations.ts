@@ -14,60 +14,47 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { sendCatch } from '@actual-app/core/platform/client/connection';
-import type { send } from '@actual-app/core/platform/client/connection';
+import {sendCatch} from '@actual-app/core/platform/client/connection';
+import type {send} from '@actual-app/core/platform/client/connection';
 import type {
   CustomReportEntity,
   DashboardPageEntity,
   DashboardWidgetEntity,
 } from '@actual-app/core/types/models';
-import type {
-  EverythingButIdOptional,
-  WithOptional,
-} from '@actual-app/core/types/util';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import { v4 as uuidv4 } from 'uuid';
+import type {EverythingButIdOptional, WithOptional} from '@actual-app/core/types/util';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import type {QueryClient, QueryKey} from '@tanstack/react-query';
+import {v4 as uuidv4} from 'uuid';
 
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import type { AppDispatch } from '#redux/store';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import type {AppDispatch} from '#redux/store';
 
-import { dashboardQueries, reportQueries } from './queries';
+import {dashboardQueries, reportQueries} from './queries';
 
 const sendThrow: typeof send = async (name, args) => {
-  const { error, data } = await sendCatch(name, args);
+  const {error, data} = await sendCatch(name, args);
   if (error) {
     throw error;
   }
   return data;
 };
 
-function invalidateReportQueries(
-  queryClient: QueryClient,
-  queryKey?: QueryKey,
-) {
+function invalidateReportQueries(queryClient: QueryClient, queryKey?: QueryKey) {
   void queryClient.invalidateQueries({
     queryKey: queryKey ?? reportQueries.lists(),
   });
 }
 
-function invalidateDashboardQueries(
-  queryClient: QueryClient,
-  queryKey?: QueryKey,
-) {
+function invalidateDashboardQueries(queryClient: QueryClient, queryKey?: QueryKey) {
   void queryClient.invalidateQueries({
     queryKey: queryKey ?? dashboardQueries.lists(),
   });
 }
 
-function dispatchErrorNotification(
-  dispatch: AppDispatch,
-  message: string,
-  error?: Error,
-) {
+function dispatchErrorNotification(dispatch: AppDispatch, message: string, error?: Error) {
   dispatch(
     addNotification({
       notification: {
@@ -87,10 +74,10 @@ type UpdateReportPayload = {
 export function useUpdateReportMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ report }: UpdateReportPayload) => {
+    mutationFn: async ({report}: UpdateReportPayload) => {
       return await sendThrow('report/update', report);
     },
     onSuccess: () => invalidateReportQueries(queryClient),
@@ -112,10 +99,10 @@ type DeleteReportPayload = {
 export function useDeleteReportMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id }: DeleteReportPayload) => {
+    mutationFn: async ({id}: DeleteReportPayload) => {
       return await sendThrow('report/delete', id);
     },
     onSuccess: () => invalidateReportQueries(queryClient),
@@ -137,10 +124,10 @@ type CreateReportMutationPayload = {
 export function useCreateReportMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ report }: CreateReportMutationPayload) => {
+    mutationFn: async ({report}: CreateReportMutationPayload) => {
       return await sendThrow('report/create', report);
     },
     onSuccess: () => invalidateReportQueries(queryClient),
@@ -162,11 +149,11 @@ type CreateDashboardPageMutationPayload = {
 export function useCreateDashboardPageMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ name }: CreateDashboardPageMutationPayload) => {
-      return await sendThrow('dashboard-create', { name });
+    mutationFn: async ({name}: CreateDashboardPageMutationPayload) => {
+      return await sendThrow('dashboard-create', {name});
     },
     onSuccess: () => invalidateDashboardQueries(queryClient),
     onError: error => {
@@ -187,10 +174,10 @@ type DeleteDashboardPageMutationPayload = {
 export function useDeleteDashboardPageMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id }: DeleteDashboardPageMutationPayload) => {
+    mutationFn: async ({id}: DeleteDashboardPageMutationPayload) => {
       return await sendThrow('dashboard-delete', id);
     },
     onSuccess: () => invalidateDashboardQueries(queryClient),
@@ -213,11 +200,11 @@ type RenameDashboardPageMutationPayload = {
 export function useRenameDashboardPageMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id, name }: RenameDashboardPageMutationPayload) => {
-      return await sendThrow('dashboard-rename', { id, name });
+    mutationFn: async ({id, name}: RenameDashboardPageMutationPayload) => {
+      return await sendThrow('dashboard-rename', {id, name});
     },
     onSuccess: () => invalidateDashboardQueries(queryClient),
     onError: error => {
@@ -238,10 +225,10 @@ type UpdateDashboardWidgetsMutationPayload = {
 export function useUpdateDashboardWidgetsMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ widgets }: UpdateDashboardWidgetsMutationPayload) => {
+    mutationFn: async ({widgets}: UpdateDashboardWidgetsMutationPayload) => {
       return await sendThrow('dashboard-update', widgets);
     },
     onSuccess: () => invalidateDashboardQueries(queryClient),
@@ -249,9 +236,7 @@ export function useUpdateDashboardWidgetsMutation() {
       console.error('Error updating dashboard widgets:', error);
       dispatchErrorNotification(
         dispatch,
-        t(
-          'There was an error updating the dashboard widgets. Please try again.',
-        ),
+        t('There was an error updating the dashboard widgets. Please try again.'),
         error,
       );
     },
@@ -265,10 +250,10 @@ type UpdateDashboardWidgetMutationPayload = {
 export function useUpdateDashboardWidgetMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ widget }: UpdateDashboardWidgetMutationPayload) => {
+    mutationFn: async ({widget}: UpdateDashboardWidgetMutationPayload) => {
       return await sendThrow('dashboard-update-widget', widget);
     },
     onSuccess: () => invalidateDashboardQueries(queryClient),
@@ -276,9 +261,7 @@ export function useUpdateDashboardWidgetMutation() {
       console.error('Error updating dashboard widget:', error);
       dispatchErrorNotification(
         dispatch,
-        t(
-          'There was an error updating the dashboard widget. Please try again.',
-        ),
+        t('There was an error updating the dashboard widget. Please try again.'),
         error,
       );
     },
@@ -292,10 +275,10 @@ type ResetDashboardPageMutationPayload = {
 export function useResetDashboardPageMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id }: ResetDashboardPageMutationPayload) => {
+    mutationFn: async ({id}: ResetDashboardPageMutationPayload) => {
       return await sendThrow('dashboard-reset', id);
     },
     onSuccess: () => invalidateDashboardQueries(queryClient),
@@ -311,19 +294,16 @@ export function useResetDashboardPageMutation() {
 }
 
 type AddDashboardWidgetMutationPayload = {
-  widget: WithOptional<
-    Omit<DashboardWidgetEntity, 'id' | 'tombstone'>,
-    'x' | 'y'
-  >;
+  widget: WithOptional<Omit<DashboardWidgetEntity, 'id' | 'tombstone'>, 'x' | 'y'>;
 };
 
 export function useAddDashboardWidgetMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ widget }: AddDashboardWidgetMutationPayload) => {
+    mutationFn: async ({widget}: AddDashboardWidgetMutationPayload) => {
       return await sendThrow('dashboard-add-widget', widget);
     },
     onSuccess: () => invalidateDashboardQueries(queryClient),
@@ -345,10 +325,10 @@ type RemoveDashboardWidgetMutationPayload = {
 export function useRemoveDashboardWidgetMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id }: RemoveDashboardWidgetMutationPayload) => {
+    mutationFn: async ({id}: RemoveDashboardWidgetMutationPayload) => {
       return await sendThrow('dashboard-remove-widget', id);
     },
     onSuccess: () => invalidateDashboardQueries(queryClient),
@@ -356,9 +336,7 @@ export function useRemoveDashboardWidgetMutation() {
       console.error('Error removing dashboard widget:', error);
       dispatchErrorNotification(
         dispatch,
-        t(
-          'There was an error removing the dashboard widget. Please try again.',
-        ),
+        t('There was an error removing the dashboard widget. Please try again.'),
         error,
       );
     },
@@ -373,13 +351,10 @@ type CopyDashboardWidgetMutationPayload = {
 export function useCopyDashboardWidgetMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      targetDashboardPageId,
-    }: CopyDashboardWidgetMutationPayload) => {
+    mutationFn: async ({id, targetDashboardPageId}: CopyDashboardWidgetMutationPayload) => {
       return await sendThrow('dashboard-copy-widget', {
         id,
         targetDashboardPageId,
@@ -405,14 +380,11 @@ type ImportDashboardPageMutationPayload = {
 export function useImportDashboardPageMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({
-      filePath,
-      dashboardPageId,
-    }: ImportDashboardPageMutationPayload) => {
-      return await sendThrow('dashboard-import', { filePath, dashboardPageId });
+    mutationFn: async ({filePath, dashboardPageId}: ImportDashboardPageMutationPayload) => {
+      return await sendThrow('dashboard-import', {filePath, dashboardPageId});
     },
     onSuccess: () => invalidateDashboardQueries(queryClient),
     onError: error => {

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useLocalPref } from '#hooks/useLocalPref';
+import {useLocalPref} from '#hooks/useLocalPref';
 
-import type { GroupBucket, SidebarAccountTree } from './useSidebarAccountTree';
+import type {GroupBucket, SidebarAccountTree} from './useSidebarAccountTree';
 
 type Side = 'on' | 'off';
 
@@ -28,9 +28,7 @@ export type SidebarSectionKey =
   | `ungrouped-${Side}`;
 
 export function bucketKey(side: Side, bucket: GroupBucket): SidebarSectionKey {
-  return bucket.group
-    ? `group-${bucket.group.id}-${side}`
-    : `ungrouped-${side}`;
+  return bucket.group ? `group-${bucket.group.id}-${side}` : `ungrouped-${side}`;
 }
 
 type UseSidebarCollapseStateArgs = {
@@ -38,23 +36,17 @@ type UseSidebarCollapseStateArgs = {
   isSearching: boolean;
 };
 
-export function useSidebarCollapseState({
-  tree,
-  isSearching,
-}: UseSidebarCollapseStateArgs): {
+export function useSidebarCollapseState({tree, isSearching}: UseSidebarCollapseStateArgs): {
   isOpen: (key: SidebarSectionKey) => boolean;
   toggle: (key: SidebarSectionKey) => void;
   allOpen: boolean;
   toggleAll: () => void;
 } {
-  const [openState = {}, setOpenState] = useLocalPref(
-    'sidebar.accountsOpenState',
-  );
+  const [openState = {}, setOpenState] = useLocalPref('sidebar.accountsOpenState');
 
   const isOpen = (key: SidebarSectionKey) =>
     isSearching ? true : (openState[key] ?? key !== 'closed');
-  const toggle = (key: SidebarSectionKey) =>
-    setOpenState({ ...openState, [key]: !isOpen(key) });
+  const toggle = (key: SidebarSectionKey) => setOpenState({...openState, [key]: !isOpen(key)});
 
   const allKeys: SidebarSectionKey[] = [
     'onbudget',
@@ -73,5 +65,5 @@ export function useSidebarCollapseState({
       ...Object.fromEntries(allKeys.map(key => [key, !allOpen])),
     });
 
-  return { isOpen, toggle, allOpen, toggleAll };
+  return {isOpen, toggle, allOpen, toggleAll};
 }

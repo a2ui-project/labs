@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { RecurConfig, ScheduleEntity } from './schedule';
+import type {RecurConfig, ScheduleEntity} from './schedule';
 
 export type NewRuleEntity = {
   stage: 'pre' | null | 'post';
@@ -47,16 +47,13 @@ export type FieldValueTypes = {
   reconciled: boolean;
 };
 
-type BaseConditionEntity<
-  Field extends keyof FieldValueTypes,
-  Op extends RuleConditionOp,
-> = {
+type BaseConditionEntity<Field extends keyof FieldValueTypes, Op extends RuleConditionOp> = {
   field: Field;
   op: Op;
   value: Op extends 'oneOf' | 'notOneOf'
     ? Array<FieldValueTypes[Field]>
     : Op extends 'isbetween'
-      ? { num1: number; num2: number }
+      ? {num1: number; num2: number}
       : FieldValueTypes[Field];
   options?: {
     inflow?: boolean;
@@ -67,7 +64,7 @@ type BaseConditionEntity<
   conditionsOp?: 'and' | 'or';
   type?: 'id' | 'boolean' | 'date' | 'number' | 'string';
   customName?: string;
-  queryFilter?: Record<string, { $oneof: string[] }>;
+  queryFilter?: Record<string, {$oneof: string[]}>;
 };
 
 export type RuleConditionEntity =
@@ -85,61 +82,25 @@ export type RuleConditionEntity =
     >
   | BaseConditionEntity<
       'category',
-      | 'is'
-      | 'isNot'
-      | 'oneOf'
-      | 'notOneOf'
-      | 'contains'
-      | 'doesNotContain'
-      | 'matches'
+      'is' | 'isNot' | 'oneOf' | 'notOneOf' | 'contains' | 'doesNotContain' | 'matches'
     >
   | BaseConditionEntity<
       'category_group',
-      | 'is'
-      | 'isNot'
-      | 'oneOf'
-      | 'notOneOf'
-      | 'contains'
-      | 'doesNotContain'
-      | 'matches'
+      'is' | 'isNot' | 'oneOf' | 'notOneOf' | 'contains' | 'doesNotContain' | 'matches'
     >
-  | BaseConditionEntity<
-      'amount',
-      'is' | 'isapprox' | 'isbetween' | 'gt' | 'gte' | 'lt' | 'lte'
-    >
-  | BaseConditionEntity<
-      'date',
-      'is' | 'isapprox' | 'isbetween' | 'gt' | 'gte' | 'lt' | 'lte'
-    >
+  | BaseConditionEntity<'amount', 'is' | 'isapprox' | 'isbetween' | 'gt' | 'gte' | 'lt' | 'lte'>
+  | BaseConditionEntity<'date', 'is' | 'isapprox' | 'isbetween' | 'gt' | 'gte' | 'lt' | 'lte'>
   | BaseConditionEntity<
       'notes',
-      | 'is'
-      | 'isNot'
-      | 'contains'
-      | 'doesNotContain'
-      | 'matches'
-      | 'hasTags'
-      | 'hasAnyTag'
+      'is' | 'isNot' | 'contains' | 'doesNotContain' | 'matches' | 'hasTags' | 'hasAnyTag'
     >
   | BaseConditionEntity<
       'payee',
-      | 'is'
-      | 'isNot'
-      | 'oneOf'
-      | 'notOneOf'
-      | 'contains'
-      | 'doesNotContain'
-      | 'matches'
+      'is' | 'isNot' | 'oneOf' | 'notOneOf' | 'contains' | 'doesNotContain' | 'matches'
     >
   | BaseConditionEntity<
       'imported_payee',
-      | 'is'
-      | 'isNot'
-      | 'oneOf'
-      | 'notOneOf'
-      | 'contains'
-      | 'doesNotContain'
-      | 'matches'
+      'is' | 'isNot' | 'oneOf' | 'notOneOf' | 'contains' | 'doesNotContain' | 'matches'
     >
   | BaseConditionEntity<'saved', 'is'>
   | BaseConditionEntity<'cleared', 'is'>

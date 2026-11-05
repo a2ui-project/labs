@@ -22,9 +22,7 @@ export const types = {
     type: 'string',
     description: (
       <span>
-        <a href="https://en.wikipedia.org/wiki/Universally_unique_identifier">
-          UUID
-        </a>
+        <a href="https://en.wikipedia.org/wiki/Universally_unique_identifier">UUID</a>
       </span>
     ),
   },
@@ -43,10 +41,9 @@ export const types = {
     type: 'integer',
     description: (
       <span>
-        A currency amount is an integer representing the value without any
-        decimal places. Usually it's <code>value * 100</code>, but it depends on
-        your currency. For example, a USD amount of <code>$120.30</code> would
-        be <code>12030</code>.
+        A currency amount is an integer representing the value without any decimal places. Usually
+        it's <code>value * 100</code>, but it depends on your currency. For example, a USD amount of{' '}
+        <code>$120.30</code> would be <code>12030</code>.
       </span>
     ),
   },
@@ -67,9 +64,7 @@ export const objects = {
     {
       name: 'dataDir',
       type: 'string',
-      description: (
-        <span>The directory to store locally cached budget files.</span>
-      ),
+      description: <span>The directory to store locally cached budget files.</span>,
     },
     {
       name: 'verbose',
@@ -83,9 +78,9 @@ export const objects = {
       name: 'id',
       type: types.id,
     },
-    { name: 'account', type: types.id, required: true },
-    { name: 'date', type: 'date', required: true },
-    { name: 'amount', type: types.amount },
+    {name: 'account', type: types.id, required: true},
+    {name: 'date', type: 'date', required: true},
+    {name: 'amount', type: types.amount},
     {
       name: 'payee',
       type: types.id,
@@ -102,8 +97,8 @@ export const objects = {
       description: (
         <div>
           <div className="mb-6">
-            If given, a payee will be created with this name. If this matches an
-            already existing payee, that payee will be used.
+            If given, a payee will be created with this name. If this matches an already existing
+            payee, that payee will be used.
           </div>
           * Only available in a <a href="#types-of-methods">create</a> request
         </div>
@@ -115,8 +110,8 @@ export const objects = {
       description:
         'This can be anything. Meant to represent the raw description when importing, allowing the user to see the original value.',
     },
-    { name: 'category', type: types.id },
-    { name: 'notes', type: 'string' },
+    {name: 'category', type: types.id},
+    {name: 'notes', type: 'string'},
     {
       name: 'imported_id',
       type: 'string',
@@ -128,17 +123,15 @@ export const objects = {
       type: 'string',
       description: (
         <span>
-          If a transfer, the <code>id</code> of the corresponding transaction in
-          the other account. See <a href="#transfers">transfers</a>.
+          If a transfer, the <code>id</code> of the corresponding transaction in the other account.
+          See <a href="#transfers">transfers</a>.
         </span>
       ),
     },
     {
       name: 'cleared',
       type: 'boolean',
-      description: (
-        <span>A flag indicating if the transaction has cleared or not.</span>
-      ),
+      description: <span>A flag indicating if the transaction has cleared or not.</span>,
     },
     {
       name: 'subtransactions',
@@ -157,8 +150,8 @@ export const objects = {
   ],
 
   account: [
-    { name: 'id', type: types.id },
-    { name: 'name', type: 'string', required: true },
+    {name: 'id', type: types.id},
+    {name: 'name', type: 'string', required: true},
     {
       name: 'offbudget',
       type: 'bool',
@@ -182,8 +175,8 @@ export const objects = {
       type: 'number | null',
       description: (
         <span>
-          The current balance of the account as reported by bank sync. Can also
-          be set manually. Defaults to <code>null</code>
+          The current balance of the account as reported by bank sync. Can also be set manually.
+          Defaults to <code>null</code>
         </span>
       ),
     },
@@ -192,22 +185,22 @@ export const objects = {
       type: 'id | null',
       description: (
         <span>
-          The <a href="#account-group">account group</a> this account belongs
-          to. Defaults to <code>null</code>
+          The <a href="#account-group">account group</a> this account belongs to. Defaults to{' '}
+          <code>null</code>
         </span>
       ),
     },
   ],
 
   accountGroup: [
-    { name: 'id', type: types.id },
-    { name: 'name', type: 'string', required: true },
+    {name: 'id', type: types.id},
+    {name: 'name', type: 'string', required: true},
   ],
 
   category: [
-    { name: 'id', type: types.id },
-    { name: 'name', type: 'string', required: true },
-    { name: 'group_id', type: types.id, required: true },
+    {name: 'id', type: types.id},
+    {name: 'name', type: 'string', required: true},
+    {name: 'group_id', type: types.id, required: true},
     {
       name: 'is_income',
       type: 'bool',
@@ -220,8 +213,8 @@ export const objects = {
   ],
 
   categoryGroup: [
-    { name: 'id', type: types.id },
-    { name: 'name', type: 'string', required: true },
+    {name: 'id', type: types.id},
+    {name: 'name', type: 'string', required: true},
     {
       name: 'is_income',
       type: 'bool',
@@ -237,8 +230,8 @@ export const objects = {
       description: (
         <div>
           <div className="mb-6">
-            An array of categories in this group. Not valid when creating or
-            updating a category group
+            An array of categories in this group. Not valid when creating or updating a category
+            group
           </div>
           Only available in a <code>get</code>.
         </div>
@@ -254,19 +247,16 @@ export const objects = {
     {
       name: 'name',
       type: 'string',
-      description: (
-        <span>Not mandatory but schedule names must be unique.</span>
-      ),
+      description: <span>Not mandatory but schedule names must be unique.</span>,
     },
     {
       name: 'rule',
       type: 'string',
       description: (
         <span>
-          All schedules have an associated underlying rule. Not to be supplied
-          with a new schedule. It will be auto created. Rules can not updated to
-          another rule. You can however edit the rule with the API above for
-          Rule.
+          All schedules have an associated underlying rule. Not to be supplied with a new schedule.
+          It will be auto created. Rules can not updated to another rule. You can however edit the
+          rule with the API above for Rule.
         </span>
       ),
     },
@@ -274,9 +264,7 @@ export const objects = {
       name: 'next_date',
       type: 'string',
       description: (
-        <span>
-          Next occurrence of a schedule. Not to be supplied with a new schedule.
-        </span>
+        <span>Next occurrence of a schedule. Not to be supplied with a new schedule.</span>
       ),
     },
     {
@@ -289,8 +277,8 @@ export const objects = {
       type: 'boolean',
       description: (
         <span>
-          Whether the schedule should auto-post transactions on your behalf.
-          Defaults to <code>false</code>.
+          Whether the schedule should auto-post transactions on your behalf. Defaults to{' '}
+          <code>false</code>.
         </span>
       ),
     },
@@ -317,8 +305,8 @@ export const objects = {
       type: 'number | { num1: number; num2: number }',
       description: (
         <span>
-          Provide only one number, except if the amount uses a isbetween in
-          amountOp, in this case num1 and 2 should be provided.
+          Provide only one number, except if the amount uses a isbetween in amountOp, in this case
+          num1 and 2 should be provided.
         </span>
       ),
     },
@@ -337,9 +325,8 @@ export const objects = {
       required: true,
       description: (
         <span>
-          Mandatory field when creating a schedule. If the schedule is a single
-          occurrence just supply the date. otherwise refer to RecurConfig
-          details below.
+          Mandatory field when creating a schedule. If the schedule is a single occurrence just
+          supply the date. otherwise refer to RecurConfig details below.
         </span>
       ),
     },
@@ -357,8 +344,7 @@ export const objects = {
       type: 'number',
       description: (
         <span>
-          The interval at which the recurrence happens. Defaults to{' '}
-          <code>1</code> if omitted.
+          The interval at which the recurrence happens. Defaults to <code>1</code> if omitted.
         </span>
       ),
     },
@@ -367,27 +353,21 @@ export const objects = {
       type: 'RecurPattern[]',
       description: (
         <span>
-          Optional patterns to control specific dates for recurrence (e.g.
-          certain weekdays or month days).
+          Optional patterns to control specific dates for recurrence (e.g. certain weekdays or month
+          days).
         </span>
       ),
     },
     {
       name: 'skipWeekend',
       type: 'boolean',
-      description: (
-        <span>If true, skips weekends when calculating recurrence dates.</span>
-      ),
+      description: <span>If true, skips weekends when calculating recurrence dates.</span>,
     },
     {
       name: 'start',
       type: 'string',
       required: true,
-      description: (
-        <span>
-          The ISO date string indicating the start date of the recurrence.
-        </span>
-      ),
+      description: <span>The ISO date string indicating the start date of the recurrence.</span>,
     },
     {
       name: 'endMode',
@@ -395,8 +375,8 @@ export const objects = {
       required: true,
       description: (
         <span>
-          Specifies how the recurrence ends: never ends, after a number of
-          occurrences, or on a specific date.
+          Specifies how the recurrence ends: never ends, after a number of occurrences, or on a
+          specific date.
         </span>
       ),
     },
@@ -405,8 +385,8 @@ export const objects = {
       type: 'number',
       description: (
         <span>
-          Used when <code>endMode</code> is <code>'after_n_occurrences'</code>.
-          Indicates how many times it should repeat.
+          Used when <code>endMode</code> is <code>'after_n_occurrences'</code>. Indicates how many
+          times it should repeat.
         </span>
       ),
     },
@@ -415,8 +395,8 @@ export const objects = {
       type: 'string',
       description: (
         <span>
-          Used when <code>endMode</code> is <code>'on_date'</code>. The ISO date
-          string indicating when the recurrence should end.
+          Used when <code>endMode</code> is <code>'on_date'</code>. The ISO date string indicating
+          when the recurrence should end.
         </span>
       ),
     },
@@ -425,54 +405,52 @@ export const objects = {
       type: `'before' | 'after'`,
       description: (
         <span>
-          If a calculated date falls on a weekend and <code>skipWeekend</code>{' '}
-          is true, this controls whether the date moves to the{' '}
-          <code>before</code> or <code>after</code> weekday.
+          If a calculated date falls on a weekend and <code>skipWeekend</code> is true, this
+          controls whether the date moves to the <code>before</code> or <code>after</code> weekday.
         </span>
       ),
     },
   ],
 
   payee: [
-    { name: 'id', type: types.id },
-    { name: 'name', type: 'string', required: true },
-    { name: 'category', type: types.id },
+    {name: 'id', type: types.id},
+    {name: 'name', type: 'string', required: true},
+    {name: 'category', type: types.id},
     {
       name: 'transfer_acct',
       type: types.id,
       description: (
         <span>
-          The <code>id</code> of the account this payee transfers to/from, if
-          this is a transfer payee.
+          The <code>id</code> of the account this payee transfers to/from, if this is a transfer
+          payee.
         </span>
       ),
     },
   ],
 
   tag: [
-    { name: 'id', type: types.id },
-    { name: 'tag', type: 'string', required: true },
-    { name: 'color', type: 'string' },
-    { name: 'description', type: 'string' },
-    { name: 'hidden', type: 'boolean' },
+    {name: 'id', type: types.id},
+    {name: 'tag', type: 'string', required: true},
+    {name: 'color', type: 'string'},
+    {name: 'description', type: 'string'},
+    {name: 'hidden', type: 'boolean'},
   ],
 
   condition: [
-    { name: 'field', type: 'string', required: true },
-    { name: 'op', type: 'string', required: true },
-    { name: 'value', type: 'string', required: true },
+    {name: 'field', type: 'string', required: true},
+    {name: 'op', type: 'string', required: true},
+    {name: 'value', type: 'string', required: true},
   ],
 
   rule: [
-    { name: 'id', type: types.id },
+    {name: 'id', type: types.id},
     {
       name: 'stage',
       type: 'string',
       required: true,
       description: (
         <span>
-          Must be one of <code>pre</code>, <code>default</code>, or{' '}
-          <code>post</code>.
+          Must be one of <code>pre</code>, <code>default</code>, or <code>post</code>.
         </span>
       ),
     },
@@ -485,8 +463,8 @@ export const objects = {
         </span>
       ),
     },
-    { name: 'conditions', type: 'ConditionOrAction[]' },
-    { name: 'actions', type: 'ConditionOrAction[]' },
+    {name: 'conditions', type: 'ConditionOrAction[]'},
+    {name: 'actions', type: 'ConditionOrAction[]'},
   ],
 
   budgetFile: [
@@ -500,11 +478,7 @@ export const objects = {
       name: 'cloudFileId',
       type: 'string',
       required: true,
-      description: (
-        <span>
-          The id for the budget on the server. This is usually a UUID.
-        </span>
-      ),
+      description: <span>The id for the budget on the server. This is usually a UUID.</span>,
     },
     {
       name: 'groupId',
@@ -521,9 +495,7 @@ export const objects = {
     {
       name: 'encryptKeyId',
       type: 'string',
-      description: (
-        <span>The encryption key ID for the file, if it is encrypted.</span>
-      ),
+      description: <span>The encryption key ID for the file, if it is encrypted.</span>,
     },
     {
       name: 'state',
@@ -538,7 +510,7 @@ export const objects = {
   ],
 };
 
-function Table({ style, headers, className, children }) {
+function Table({style, headers, className, children}) {
   return (
     <table className={`text-sm ${className}`} style={style}>
       <thead>
@@ -557,7 +529,7 @@ function Table({ style, headers, className, children }) {
 
 export function PrimitiveTypeList() {
   return (
-    <Table headers={['Name', 'Type', 'Notes']} style={{ maxWidth: 700 }}>
+    <Table headers={['Name', 'Type', 'Notes']} style={{maxWidth: 700}}>
       {Object.keys(types).map(name => {
         return (
           <PrimitiveType
@@ -572,7 +544,7 @@ export function PrimitiveTypeList() {
   );
 }
 
-export function PrimitiveType({ name, type, description }) {
+export function PrimitiveType({name, type, description}) {
   return (
     <tr>
       <td valign="top">
@@ -586,14 +558,10 @@ export function PrimitiveType({ name, type, description }) {
   );
 }
 
-export function StructType({ fields }) {
+export function StructType({fields}) {
   return (
     <div className="struct mt-4 mb-10">
-      <Table
-        className="mb-0"
-        showBorder={true}
-        headers={['Field', 'Type', 'Required?', 'Notes']}
-      >
+      <Table className="mb-0" showBorder={true} headers={['Field', 'Type', 'Required?', 'Notes']}>
         {fields.map(field => {
           return (
             <tr key={field.name}>
@@ -602,9 +570,7 @@ export function StructType({ fields }) {
               </td>
               <td valign="top">
                 <code className="text-gray-600">
-                  {typeof field.type === 'string'
-                    ? field.type
-                    : field.type.name}
+                  {typeof field.type === 'string' ? field.type : field.type.name}
                 </code>
               </td>
               <td valign="top">{field.required ? 'yes' : 'no'}</td>
@@ -617,25 +583,20 @@ export function StructType({ fields }) {
   );
 }
 
-function Argument({ arg }) {
+function Argument({arg}) {
   if (arg.properties) {
     return (
       <span>
         {arg.name ? arg.name + ': ' : ''}
         {'{ '}
-        {arg.properties
-          .map(prop => <Argument key={prop.name} arg={prop} />)
-          .map(insertCommas)}
+        {arg.properties.map(prop => <Argument key={prop.name} arg={prop} />).map(insertCommas)}
         {' }'}
       </span>
     );
   }
   return (
-    <span style={{ position: 'relative' }}>
-      <span
-        className="text-gray-500"
-        style={{ position: 'absolute', bottom: -20, fontSize: 12 }}
-      >
+    <span style={{position: 'relative'}}>
+      <span className="text-gray-500" style={{position: 'absolute', bottom: -20, fontSize: 12}}>
         {arg.type}
       </span>
       {arg.name}
@@ -650,16 +611,13 @@ function insertCommas(element, i, arr) {
   return [element, ', '];
 }
 
-export function Method({ name, args, returns = 'Promise<null>', children }) {
+export function Method({name, args, returns = 'Promise<null>', children}) {
   return (
     <p className="method">
       <div className="p-4 pb-6 rounded border-b bg-gray-100 overflow-auto">
         <code className="text-blue-800">
-          {name}(
-          {args
-            .map(arg => <Argument key={arg.name} arg={arg} />)
-            .map(insertCommas)}
-          ) <span className="text-gray-500">&rarr; {returns}</span>
+          {name}({args.map(arg => <Argument key={arg.name} arg={arg} />).map(insertCommas)}){' '}
+          <span className="text-gray-500">&rarr; {returns}</span>
         </code>
       </div>
       {children && React.cloneElement(children, {})}
@@ -667,6 +625,6 @@ export function Method({ name, args, returns = 'Promise<null>', children }) {
   );
 }
 
-export function MethodBox({ children }) {
-  return <div style={{ border: '1px solid red' }}>{children}</div>;
+export function MethodBox({children}) {
+  return <div style={{border: '1px solid red'}}>{children}</div>;
 }

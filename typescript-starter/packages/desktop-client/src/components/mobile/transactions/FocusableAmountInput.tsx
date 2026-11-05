@@ -14,31 +14,25 @@
  * limitations under the License.
  */
 
-import React, { memo, useEffect, useRef, useState } from 'react';
-import type {
-  ComponentPropsWithRef,
-  CSSProperties,
-  FocusEvent,
-  HTMLProps,
-  Ref,
-} from 'react';
+import React, {memo, useEffect, useRef, useState} from 'react';
+import type {ComponentPropsWithRef, CSSProperties, FocusEvent, HTMLProps, Ref} from 'react';
 
-import { Button } from '@actual-app/components/button';
-import type { CSSProperties as EmotionCSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import type {CSSProperties as EmotionCSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import {
   amountToCurrency,
   appendDecimals,
   currencyToAmount,
   reapplyThousandSeparators,
 } from '@actual-app/core/shared/util';
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import { makeAmountFullStyle } from '#components/budget/util';
-import { useMergedRefs } from '#hooks/useMergedRefs';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {makeAmountFullStyle} from '#components/budget/util';
+import {useMergedRefs} from '#hooks/useMergedRefs';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
 type AmountInputProps = {
   value: number;
@@ -66,10 +60,7 @@ const AmountInput = memo(function AmountInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const [hideFraction] = useSyncedPref('hideFraction');
 
-  const mergedInputRef = useMergedRefs<HTMLInputElement>(
-    props.inputRef,
-    inputRef,
-  );
+  const mergedInputRef = useMergedRefs<HTMLInputElement>(props.inputRef, inputRef);
 
   const initialValue = Math.abs(props.value);
 
@@ -152,7 +143,7 @@ const AmountInput = memo(function AmountInput({
       onBlur={onBlur}
       onKeyUp={onKeyUp}
       data-testid="amount-input"
-      style={{ flex: 1, textAlign: 'center', position: 'absolute' }}
+      style={{flex: 1, textAlign: 'center', position: 'absolute'}}
     />
   );
 
@@ -169,7 +160,7 @@ const AmountInput = memo(function AmountInput({
         ...style,
       }}
     >
-      <View style={{ overflowY: 'auto', overflowX: 'hidden' }}>{input}</View>
+      <View style={{overflowY: 'auto', overflowX: 'hidden'}}>{input}</View>
       <Text
         style={{
           pointerEvents: 'none',
@@ -272,7 +263,7 @@ export const FocusableAmountInput = memo(function FocusableAmountInput({
             display: 'none',
           }),
         }}
-        textStyle={{ fontSize: 15, textAlign: 'right', ...textStyle }}
+        textStyle={{fontSize: 15, textAlign: 'right', ...textStyle}}
       />
 
       <View>
@@ -295,7 +286,7 @@ export const FocusableAmountInput = memo(function FocusableAmountInput({
           {...buttonProps}
           className={css({
             ...(buttonProps && buttonProps.style),
-            ...(focused && { display: 'none' }),
+            ...(focused && {display: 'none'}),
             '&[data-pressed]': {
               backgroundColor: 'transparent',
             },

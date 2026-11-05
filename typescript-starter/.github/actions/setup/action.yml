@@ -17,17 +17,17 @@ description: Setup the environment for the project
 
 inputs:
   working-directory:
-    description: 'Working directory to run in, default .'
+    description: "Working directory to run in, default ."
     required: false
-    default: '.'
+    default: "."
   download-translations:
-    description: 'Whether to download translations as part of setup, default true'
+    description: "Whether to download translations as part of setup, default true"
     required: false
-    default: 'true'
+    default: "true"
   cache:
-    description: 'Whether to restore and save dependency and Lage caches, default true'
+    description: "Whether to restore and save dependency and Lage caches, default true"
     required: false
-    default: 'true'
+    default: "true"
 
 runs:
   using: composite

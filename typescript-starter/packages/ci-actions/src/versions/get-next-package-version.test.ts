@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { getNextVersion } from './get-next-package-version';
+import {getNextVersion} from './get-next-package-version';
 
 describe('getNextVersion (lib)', () => {
   it('hotfix increments patch', () => {

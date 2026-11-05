@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
 export class BootstrapPage {
   readonly page: Page;

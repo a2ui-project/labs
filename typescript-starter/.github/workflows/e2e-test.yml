@@ -17,15 +17,15 @@ name: E2E Tests
 on:
   pull_request:
     paths:
-      - 'packages/**'
-      - 'package.json'
-      - 'yarn.lock'
-      - '.github/workflows/e2e-test.yml'
-      - '!packages/sync-server/**' # Sync server changes don't affect E2E tests
-      - '!packages/api/**' # API changes don't affect E2E tests
-      - '!packages/ci-actions/**' # CI actions changes don't affect E2E tests
-      - '!packages/docs/**' # Docs changes don't affect E2E tests
-      - '!packages/eslint-plugin-actual/**' # Eslint plugin changes don't affect E2E tests
+      - "packages/**"
+      - "package.json"
+      - "yarn.lock"
+      - ".github/workflows/e2e-test.yml"
+      - "!packages/sync-server/**" # Sync server changes don't affect E2E tests
+      - "!packages/api/**" # API changes don't affect E2E tests
+      - "!packages/ci-actions/**" # CI actions changes don't affect E2E tests
+      - "!packages/docs/**" # Docs changes don't affect E2E tests
+      - "!packages/eslint-plugin-actual/**" # Eslint plugin changes don't affect E2E tests
   merge_group:
 
 env:
@@ -49,7 +49,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Build browser bundle
         # REACT_APP_NETLIFY=true flips isNonProductionEnvironment() on in the
         # bundle so the "Create test file" button (used by every e2e beforeEach
@@ -60,7 +60,7 @@ jobs:
         # source-code English instead of upstream Weblate en.json (which can
         # drift between snapshot capture and test runs).
         env:
-          REACT_APP_NETLIFY: 'true'
+          REACT_APP_NETLIFY: "true"
         run: yarn build:browser --skip-translations
       - name: Upload build artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -81,7 +81,7 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.61.1-jammy
     env:
-      E2E_USE_BUILD: '1'
+      E2E_USE_BUILD: "1"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -89,7 +89,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Trust the repository directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Download web build
@@ -158,7 +158,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Trust the repository directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
@@ -194,7 +194,7 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.61.1-jammy
     env:
-      E2E_USE_BUILD: '1'
+      E2E_USE_BUILD: "1"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -202,7 +202,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Trust the repository directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Download web build

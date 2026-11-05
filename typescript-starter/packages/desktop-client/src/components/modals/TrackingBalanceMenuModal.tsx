@@ -15,39 +15,28 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
-import { Trans } from 'react-i18next';
+import type {CSSProperties} from 'react';
+import {Trans} from 'react-i18next';
 
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import {
-  BalanceWithCarryover,
-  CarryoverIndicator,
-} from '#components/budget/BalanceWithCarryover';
-import { BalanceMenu } from '#components/budget/tracking/BalanceMenu';
-import {
-  Modal,
-  ModalCloseButton,
-  ModalHeader,
-  ModalTitle,
-} from '#components/common/Modal';
-import { CellValueText } from '#components/spreadsheet/CellValue';
-import { useCategory } from '#hooks/useCategory';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { trackingBudget } from '#spreadsheet/bindings';
+import {BalanceWithCarryover, CarryoverIndicator} from '#components/budget/BalanceWithCarryover';
+import {BalanceMenu} from '#components/budget/tracking/BalanceMenu';
+import {Modal, ModalCloseButton, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {CellValueText} from '#components/spreadsheet/CellValue';
+import {useCategory} from '#hooks/useCategory';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {trackingBudget} from '#spreadsheet/bindings';
 
 type TrackingBalanceMenuModalProps = Omit<
-  Extract<ModalType, { name: 'tracking-balance-menu' }>['options'],
+  Extract<ModalType, {name: 'tracking-balance-menu'}>['options'],
   'month'
 >;
 
-export function TrackingBalanceMenuModal({
-  categoryId,
-  onCarryover,
-}: TrackingBalanceMenuModalProps) {
+export function TrackingBalanceMenuModal({categoryId, onCarryover}: TrackingBalanceMenuModalProps) {
   const defaultMenuItemStyle: CSSProperties = {
     ...styles.mobileMenuItem,
     color: theme.menuItemText,
@@ -55,7 +44,7 @@ export function TrackingBalanceMenuModal({
     borderTop: `1px solid ${theme.pillBorder}`,
   };
 
-  const { data: category } = useCategory(categoryId);
+  const {data: category} = useCategory(categoryId);
 
   if (!category) {
     return null;
@@ -63,7 +52,7 @@ export function TrackingBalanceMenuModal({
 
   return (
     <Modal name="tracking-balance-menu">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={<ModalTitle title={category.name} shrinkOnOverflow />}
@@ -91,7 +80,7 @@ export function TrackingBalanceMenuModal({
               goal={trackingBudget.catGoal(categoryId)}
               budgeted={trackingBudget.catBudgeted(categoryId)}
               longGoal={trackingBudget.catLongGoal(categoryId)}
-              CarryoverIndicator={({ style }) => (
+              CarryoverIndicator={({style}) => (
                 <CarryoverIndicator
                   style={{
                     width: 15,

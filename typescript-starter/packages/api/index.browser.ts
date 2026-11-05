@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { startBackendWorker } from '@actual-app/core/platform/client/backend-worker';
-import { send } from '@actual-app/core/platform/client/connection';
-import type { InitConfig } from '@actual-app/core/server/main';
+import {startBackendWorker} from '@actual-app/core/platform/client/backend-worker';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {InitConfig} from '@actual-app/core/server/main';
 
 import InlineWorker from './browser-worker?worker&inline';
 
@@ -25,9 +25,7 @@ export * as utils from './utils';
 
 let worker: Worker | null = null;
 
-export async function init(
-  config: InitConfig = {},
-): Promise<{ send: typeof send }> {
+export async function init(config: InitConfig = {}): Promise<{send: typeof send}> {
   worker = new InlineWorker();
 
   try {
@@ -38,7 +36,7 @@ export async function init(
     throw error;
   }
 
-  return { send };
+  return {send};
 }
 
 export async function shutdown() {

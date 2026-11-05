@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
+import {useState} from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Input } from './Input';
-import { View } from './View';
+import {Input} from './Input';
+import {View} from './View';
 
 const meta = {
   title: 'Components/Input',
@@ -40,7 +40,7 @@ export const Default: Story = {
   },
   decorators: [
     Story => (
-      <View style={{ width: 250 }}>
+      <View style={{width: 250}}>
         <Story />
       </View>
     ),
@@ -60,7 +60,7 @@ export const WithValue: Story = {
   },
   decorators: [
     Story => (
-      <View style={{ width: 250 }}>
+      <View style={{width: 250}}>
         <Story />
       </View>
     ),
@@ -81,7 +81,7 @@ export const Disabled: Story = {
   },
   decorators: [
     Story => (
-      <View style={{ width: 250 }}>
+      <View style={{width: 250}}>
         <Story />
       </View>
     ),
@@ -89,8 +89,7 @@ export const Disabled: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'Disabled inputs prevent user interaction and display muted text.',
+        story: 'Disabled inputs prevent user interaction and display muted text.',
       },
     },
   },
@@ -109,10 +108,7 @@ export const WithOnEnter: Story = {
           gap: 10,
         }}
       >
-        <Input
-          placeholder="Press Enter to submit"
-          onEnter={value => setSubmittedValue(value)}
-        />
+        <Input placeholder="Press Enter to submit" onEnter={value => setSubmittedValue(value)} />
         {submittedValue && <span>Submitted: {submittedValue}</span>}
       </View>
     );
@@ -139,10 +135,7 @@ export const WithOnEscape: Story = {
           gap: 10,
         }}
       >
-        <Input
-          placeholder="Press Escape to cancel"
-          onEscape={() => setEscaped(true)}
-        />
+        <Input placeholder="Press Escape to cancel" onEscape={() => setEscaped(true)} />
         {escaped && <span>Escape pressed!</span>}
       </View>
     );
@@ -150,8 +143,7 @@ export const WithOnEscape: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'The onEscape callback is triggered when the user presses Escape.',
+        story: 'The onEscape callback is triggered when the user presses Escape.',
       },
     },
   },
@@ -170,10 +162,7 @@ export const WithOnChangeValue: Story = {
           gap: 10,
         }}
       >
-        <Input
-          placeholder="Type something..."
-          onChangeValue={newValue => setValue(newValue)}
-        />
+        <Input placeholder="Type something..." onChangeValue={newValue => setValue(newValue)} />
         <span>Current value: {value}</span>
       </View>
     );
@@ -181,8 +170,7 @@ export const WithOnChangeValue: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'The onChangeValue callback provides the new value on each keystroke.',
+        story: 'The onChangeValue callback provides the new value on each keystroke.',
       },
     },
   },
@@ -195,7 +183,7 @@ export const NumberInput: Story = {
   },
   decorators: [
     Story => (
-      <View style={{ width: 150 }}>
+      <View style={{width: 150}}>
         <Story />
       </View>
     ),
@@ -216,7 +204,7 @@ export const PasswordInput: Story = {
   },
   decorators: [
     Story => (
-      <View style={{ width: 250 }}>
+      <View style={{width: 250}}>
         <Story />
       </View>
     ),

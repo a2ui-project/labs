@@ -15,23 +15,17 @@
  */
 
 // @ts-strict-ignore
-import {
-  forwardRef,
-  useCallback,
-  useEffectEvent,
-  useLayoutEffect,
-  useState,
-} from 'react';
-import type { ComponentProps, ComponentRef } from 'react';
+import {forwardRef, useCallback, useEffectEvent, useLayoutEffect, useState} from 'react';
+import type {ComponentProps, ComponentRef} from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { PayeeEntity } from '@actual-app/core/types/models';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {PayeeEntity} from '@actual-app/core/types/models';
 
-import { Table, useTableNavigator } from '#components/table';
-import { useSelectedItems } from '#hooks/useSelected';
+import {Table, useTableNavigator} from '#components/table';
+import {useSelectedItems} from '#hooks/useSelected';
 
-import { PayeeTableRow } from './PayeeTableRow';
+import {PayeeTableRow} from './PayeeTableRow';
 
 // Table items require an ID to work, it's optional in the loot-core
 // model so would need to verify accuracy of that before changing there
@@ -45,14 +39,8 @@ type PayeeTableProps = {
   'onUpdate' | 'onDelete' | 'onViewRules' | 'onCreateRule'
 >;
 
-export const PayeeTable = forwardRef<
-  ComponentRef<typeof Table<PayeeWithId>>,
-  PayeeTableProps
->(
-  (
-    { payees, ruleCounts, onUpdate, onDelete, onViewRules, onCreateRule },
-    ref,
-  ) => {
+export const PayeeTable = forwardRef<ComponentRef<typeof Table<PayeeWithId>>, PayeeTableProps>(
+  ({payees, ruleCounts, onUpdate, onDelete, onViewRules, onCreateRule}, ref) => {
     const [hovered, setHovered] = useState(null);
     const selectedItems = useSelectedItems();
 
@@ -72,19 +60,17 @@ export const PayeeTable = forwardRef<
     }, []);
 
     const tableNavigator = useTableNavigator(payees, item =>
-      item.transfer_acct == null
-        ? ['select', 'name', 'rule-count']
-        : ['rule-count'],
+      item.transfer_acct == null ? ['select', 'name', 'rule-count'] : ['rule-count'],
     );
 
     return (
-      <View style={{ flex: 1 }} onMouseLeave={() => setHovered(null)}>
+      <View style={{flex: 1}} onMouseLeave={() => setHovered(null)}>
         <Table
           navigator={tableNavigator}
           ref={ref}
           items={payees}
           backgroundColor={theme.tableBackground}
-          renderItem={({ item, editing, focusedField, onEdit }) => {
+          renderItem={({item, editing, focusedField, onEdit}) => {
             return (
               <PayeeTableRow
                 payee={item}

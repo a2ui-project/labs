@@ -14,46 +14,37 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Dialog, DialogTrigger } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Dialog, DialogTrigger} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { DateRangePicker } from '@actual-app/components/date-range-picker';
-import type { DateRangePreset } from '@actual-app/components/date-range-picker';
-import { SvgCopy, SvgTrash } from '@actual-app/components/icons/v1';
-import { SvgDownloadThickBottom } from '@actual-app/components/icons/v2';
-import { Input } from '@actual-app/components/input';
-import { Popover } from '@actual-app/components/popover';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {DateRangePicker} from '@actual-app/components/date-range-picker';
+import type {DateRangePreset} from '@actual-app/components/date-range-picker';
+import {SvgCopy, SvgTrash} from '@actual-app/components/icons/v1';
+import {SvgDownloadThickBottom} from '@actual-app/components/icons/v2';
+import {Input} from '@actual-app/components/input';
+import {Popover} from '@actual-app/components/popover';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  RuleConditionEntity,
-  TimeFrame,
-} from '@actual-app/core/types/models';
+import type {RuleConditionEntity, TimeFrame} from '@actual-app/core/types/models';
 
-import { AppliedFilters } from '#components/filters/AppliedFilters';
-import { FilterButton } from '#components/filters/FiltersMenu';
-import { buildDateRangePresets } from '#components/reports/dateRangePresets';
-import { clampMonthRangeToBounds } from '#components/reports/monthRange';
-import {
-  asMonthSlidingTimeFrame,
-  calculateTimeRange,
-} from '#components/reports/reportRanges';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useLanguage } from '#hooks/useLocale';
-import { useRuleConditionFilters } from '#hooks/useRuleConditionFilters';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import type { AppDispatch } from '#redux/store';
+import {AppliedFilters} from '#components/filters/AppliedFilters';
+import {FilterButton} from '#components/filters/FiltersMenu';
+import {buildDateRangePresets} from '#components/reports/dateRangePresets';
+import {clampMonthRangeToBounds} from '#components/reports/monthRange';
+import {asMonthSlidingTimeFrame, calculateTimeRange} from '#components/reports/reportRanges';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useLanguage} from '#hooks/useLocale';
+import {useRuleConditionFilters} from '#hooks/useRuleConditionFilters';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import type {AppDispatch} from '#redux/store';
 
-import {
-  normalizeQueryTimeFrameEnd,
-  normalizeQueryTimeFrameStart,
-} from './queryTimeFrame';
+import {normalizeQueryTimeFrameEnd, normalizeQueryTimeFrameStart} from './queryTimeFrame';
 
 type QueryConfig = {
   conditions?: RuleConditionEntity[];
@@ -62,20 +53,14 @@ type QueryConfig = {
 };
 
 export function normalizeMonthRangeForPicker(start: string, end: string) {
-  return [monthUtils.getMonth(start), monthUtils.getMonth(end)] satisfies [
+  return [monthUtils.getMonth(start), monthUtils.getMonth(end)] satisfies [string, string];
+}
+
+export function normalizeMonthPickerSelectionForQuery(start: string, end: string) {
+  return [normalizeQueryTimeFrameStart(start), normalizeQueryTimeFrameEnd(end)] satisfies [
     string,
     string,
   ];
-}
-
-export function normalizeMonthPickerSelectionForQuery(
-  start: string,
-  end: string,
-) {
-  return [
-    normalizeQueryTimeFrameStart(start),
-    normalizeQueryTimeFrameEnd(end),
-  ] satisfies [string, string];
 }
 
 export function shouldIgnoreMonthPickerNoop(
@@ -84,10 +69,7 @@ export function shouldIgnoreMonthPickerNoop(
   nextStart: string,
   nextEnd: string,
 ) {
-  const [currentStartMonth, currentEndMonth] = normalizeMonthRangeForPicker(
-    startDate,
-    endDate,
-  );
+  const [currentStartMonth, currentEndMonth] = normalizeMonthRangeForPicker(startDate, endDate);
 
   return currentStartMonth === nextStart && currentEndMonth === nextEnd;
 }
@@ -97,24 +79,18 @@ export function canRenderDateRangePicker(
   earliestMonth: string,
   latestMonth: string,
 ) {
-  return (
-    isTransactionBoundsReady && Boolean(earliestMonth) && Boolean(latestMonth)
-  );
+  return isTransactionBoundsReady && Boolean(earliestMonth) && Boolean(latestMonth);
 }
 
 export function calculateDateRangeBoundMonths(
-  earliestTransaction: { date: string } | null,
-  latestTransaction: { date: string } | null,
+  earliestTransaction: {date: string} | null,
+  latestTransaction: {date: string} | null,
 ) {
   const currentMonth = monthUtils.currentMonth();
   const currentDay = monthUtils.currentDay();
 
-  const earliestTransactionDate = earliestTransaction
-    ? earliestTransaction.date
-    : currentDay;
-  const latestTransactionDate = latestTransaction
-    ? latestTransaction.date
-    : currentDay;
+  const earliestTransactionDate = earliestTransaction ? earliestTransaction.date : currentDay;
+  const latestTransactionDate = latestTransaction ? latestTransaction.date : currentDay;
 
   const computedEarliestMonth = earliestTransaction
     ? monthUtils.getMonth(earliestTransaction.date)
@@ -124,9 +100,7 @@ export function calculateDateRangeBoundMonths(
     : currentMonth;
 
   const computedLatestMonth =
-    latestTransactionMonth > currentMonth
-      ? latestTransactionMonth
-      : currentMonth;
+    latestTransactionMonth > currentMonth ? latestTransactionMonth : currentMonth;
 
   return {
     earliestMonth: computedEarliestMonth,
@@ -136,14 +110,9 @@ export function calculateDateRangeBoundMonths(
   };
 }
 
-type PresetTimeRangeMode = Exclude<
-  TimeFrame['mode'],
-  'sliding-window' | 'static'
->;
+type PresetTimeRangeMode = Exclude<TimeFrame['mode'], 'sliding-window' | 'static'>;
 
-function isPresetTimeRangeMode(
-  mode: TimeFrame['mode'],
-): mode is PresetTimeRangeMode {
+function isPresetTimeRangeMode(mode: TimeFrame['mode']): mode is PresetTimeRangeMode {
   return !['sliding-window', 'static'].includes(mode);
 }
 
@@ -152,8 +121,8 @@ type QueryManagerProps = {
   onQueriesChange: (queries: Record<string, QueryConfig>) => void;
 };
 
-export function QueryManager({ queries, onQueriesChange }: QueryManagerProps) {
-  const { t } = useTranslation();
+export function QueryManager({queries, onQueriesChange}: QueryManagerProps) {
+  const {t} = useTranslation();
   const [newQueryName, setNewQueryName] = useState('');
   const [isAddingQuery, setIsAddingQuery] = useState(false);
   const dispatch = useDispatch();
@@ -191,7 +160,7 @@ export function QueryManager({ queries, onQueriesChange }: QueryManagerProps) {
   }
 
   function handleRemoveQuery(queryName: string) {
-    const newQueries = { ...queries };
+    const newQueries = {...queries};
     delete newQueries[queryName];
     onQueriesChange(newQueries);
   }
@@ -204,7 +173,7 @@ export function QueryManager({ queries, onQueriesChange }: QueryManagerProps) {
   }
 
   return (
-    <View style={{ padding: 20, flex: 1, minWidth: 400 }}>
+    <View style={{padding: 20, flex: 1, minWidth: 400}}>
       <View
         style={{
           display: 'flex',
@@ -214,13 +183,10 @@ export function QueryManager({ queries, onQueriesChange }: QueryManagerProps) {
           marginBottom: 16,
         }}
       >
-        <Text style={{ fontSize: 18, fontWeight: 600 }}>
+        <Text style={{fontSize: 18, fontWeight: 600}}>
           <Trans>Query Definitions</Trans>
         </Text>
-        <Button
-          variant="primary"
-          onPress={() => setIsAddingQuery(!isAddingQuery)}
-        >
+        <Button variant="primary" onPress={() => setIsAddingQuery(!isAddingQuery)}>
           {isAddingQuery ? <Trans>Cancel</Trans> : <Trans>Add Query</Trans>}
         </Button>
       </View>
@@ -235,7 +201,7 @@ export function QueryManager({ queries, onQueriesChange }: QueryManagerProps) {
             backgroundColor: theme.tableBackground,
           }}
         >
-          <View style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
+          <View style={{display: 'flex', flexDirection: 'row', gap: 8}}>
             <Input
               placeholder={t("Query name (e.g., 'expenses', 'income')")}
               value={newQueryName}
@@ -245,7 +211,7 @@ export function QueryManager({ queries, onQueriesChange }: QueryManagerProps) {
                   handleAddQuery();
                 }
               }}
-              style={{ flex: 1 }}
+              style={{flex: 1}}
             />
             <Button variant="primary" onPress={handleAddQuery}>
               <Trans>Create</Trans>
@@ -266,19 +232,17 @@ export function QueryManager({ queries, onQueriesChange }: QueryManagerProps) {
           }}
         >
           <Text>
-            <Trans>
-              No queries defined. Click 'Add Query' to create your first query.
-            </Trans>
+            <Trans>No queries defined. Click 'Add Query' to create your first query.</Trans>
           </Text>
-          <Text style={{ fontSize: 12, marginTop: 8 }}>
+          <Text style={{fontSize: 12, marginTop: 8}}>
             <Trans>
-              Queries allow you to reference filtered transaction data in your
-              formulas using QUERY("queryName") or QUERY_COUNT("queryName")
+              Queries allow you to reference filtered transaction data in your formulas using
+              QUERY("queryName") or QUERY_COUNT("queryName")
             </Trans>
           </Text>
         </View>
       ) : (
-        <View style={{ display: 'block' }}>
+        <View style={{display: 'block'}}>
           {Object.entries(queries).map(([queryName, config]) => (
             <QueryItem
               key={queryName}
@@ -301,49 +265,30 @@ type QueryItemProps = {
   onRemove: () => void;
 };
 
-function QueryItem({
-  queryName,
-  defaultConfig,
-  onUpdate,
-  onRemove,
-}: QueryItemProps) {
+function QueryItem({queryName, defaultConfig, onUpdate, onRemove}: QueryItemProps) {
   const language = useLanguage();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [importJsonText, setImportJsonText] = useState('');
   const dispatch = useDispatch<AppDispatch>();
 
   // Time range state
   const [startDate, setStartDate] = useState(
-    defaultConfig.timeFrame?.start ||
-      monthUtils.dayFromDate(monthUtils.currentMonth()),
+    defaultConfig.timeFrame?.start || monthUtils.dayFromDate(monthUtils.currentMonth()),
   );
-  const [endDate, setEndDate] = useState(
-    defaultConfig.timeFrame?.end || monthUtils.currentDay(),
-  );
+  const [endDate, setEndDate] = useState(defaultConfig.timeFrame?.end || monthUtils.currentDay());
 
   const [earliestMonth, setEarliestMonth] = useState(monthUtils.currentMonth());
   const [latestMonth, setLatestMonth] = useState(monthUtils.currentMonth());
-  const [isTransactionBoundsReady, setIsTransactionBoundsReady] =
-    useState(false);
-  const [earliestTransaction, setEarliestTransaction] = useState(
-    monthUtils.currentDay(),
-  );
-  const [latestTransaction, setLatestTransaction] = useState(
-    monthUtils.currentDay(),
-  );
+  const [isTransactionBoundsReady, setIsTransactionBoundsReady] = useState(false);
+  const [earliestTransaction, setEarliestTransaction] = useState(monthUtils.currentDay());
+  const [latestTransaction, setLatestTransaction] = useState(monthUtils.currentDay());
 
-  const timeRangeRef = useRef<string>(
-    defaultConfig.timeFrame?.mode || 'sliding-window',
-  );
-  const conditionsRef = useRef<RuleConditionEntity[]>(
-    defaultConfig.conditions || [],
-  );
+  const timeRangeRef = useRef<string>(defaultConfig.timeFrame?.mode || 'sliding-window');
+  const conditionsRef = useRef<RuleConditionEntity[]>(defaultConfig.conditions || []);
 
   // Accepting null here to detect changes and make rerender work properly:
-  const conditionsOpRef = useRef<'and' | 'or' | null>(
-    defaultConfig.conditionsOp || null,
-  );
+  const conditionsOpRef = useRef<'and' | 'or' | null>(defaultConfig.conditionsOp || null);
 
   useEffect(() => {
     if (conditionsRef.current.length === 0) {
@@ -359,11 +304,10 @@ function QueryItem({
   useEffect(() => {
     async function run() {
       try {
-        const [earliestTransactionResult, latestTransactionResult] =
-          await Promise.all([
-            send('get-earliest-transaction').catch(() => null),
-            send('get-latest-transaction').catch(() => null),
-          ]);
+        const [earliestTransactionResult, latestTransactionResult] = await Promise.all([
+          send('get-earliest-transaction').catch(() => null),
+          send('get-latest-transaction').catch(() => null),
+        ]);
 
         const computedBounds = calculateDateRangeBoundMonths(
           earliestTransactionResult,
@@ -427,14 +371,7 @@ function QueryItem({
         },
       });
     },
-    [
-      filters.conditions,
-      filters.conditionsOp,
-      timeRangeRef,
-      startDate,
-      endDate,
-      onUpdate,
-    ],
+    [filters.conditions, filters.conditionsOp, timeRangeRef, startDate, endDate, onUpdate],
   );
 
   useEffect(() => {
@@ -452,13 +389,7 @@ function QueryItem({
       };
       sendUpdate();
     }
-  }, [
-    filters.conditions,
-    filters.conditionsOp,
-    startDate,
-    endDate,
-    sendUpdate,
-  ]);
+  }, [filters.conditions, filters.conditionsOp, startDate, endDate, sendUpdate]);
 
   async function handleExport() {
     const config = {
@@ -569,9 +500,7 @@ function QueryItem({
     currentQuarter: t('Current quarter transactions'),
     previousQuarter: t('Previous quarter transactions'),
   } satisfies Record<PresetTimeRangeMode, string>;
-  const presetTimeRangeLabel = isPresetTimeRange
-    ? presetTimeRangeLabels[timeRangeMode]
-    : null;
+  const presetTimeRangeLabel = isPresetTimeRange ? presetTimeRangeLabels[timeRangeMode] : null;
 
   function formatDayLabel(date: string) {
     return monthUtils.format(date, dateFormat);
@@ -586,8 +515,10 @@ function QueryItem({
   const presets: DateRangePreset[] = buildDateRangePresets({
     t,
     onSelectRange: ([rangeStart, rangeEnd, rangeMode]) => {
-      const [normalizedRangeStart, normalizedRangeEnd] =
-        normalizeMonthPickerSelectionForQuery(rangeStart, rangeEnd);
+      const [normalizedRangeStart, normalizedRangeEnd] = normalizeMonthPickerSelectionForQuery(
+        rangeStart,
+        rangeEnd,
+      );
 
       setStartDate(normalizedRangeStart);
       setEndDate(normalizedRangeEnd);
@@ -640,7 +571,7 @@ function QueryItem({
             alignItems: 'center',
           }}
         >
-          <Text style={{ fontWeight: 600, fontFamily: 'monospace' }}>
+          <Text style={{fontWeight: 600, fontFamily: 'monospace'}}>
             <Trans>QUERY("{queryName}")</Trans>
           </Text>
         </View>
@@ -653,24 +584,21 @@ function QueryItem({
             alignItems: 'center',
           }}
         >
-          <View style={{ display: 'flex', flexDirection: 'row', gap: 4 }}>
+          <View style={{display: 'flex', flexDirection: 'row', gap: 4}}>
             <Button
               variant="bare"
               onPress={handleExport}
               aria-label={t('Export query configuration')}
             >
-              <SvgCopy style={{ width: 13, height: 13 }} />
+              <SvgCopy style={{width: 13, height: 13}} />
             </Button>
             <DialogTrigger>
-              <Button
-                variant="bare"
-                aria-label={t('Import query configuration')}
-              >
-                <SvgDownloadThickBottom style={{ width: 13, height: 13 }} />
+              <Button variant="bare" aria-label={t('Import query configuration')}>
+                <SvgDownloadThickBottom style={{width: 13, height: 13}} />
               </Button>
               <Popover>
                 <Dialog>
-                  <View style={{ padding: 16, minWidth: 400 }}>
+                  <View style={{padding: 16, minWidth: 400}}>
                     <Text
                       style={{
                         fontSize: 14,
@@ -731,11 +659,7 @@ function QueryItem({
                       <Button variant="bare" slot="close">
                         <Trans>Cancel</Trans>
                       </Button>
-                      <Button
-                        variant="primary"
-                        onPress={handleImport}
-                        slot="close"
-                      >
+                      <Button variant="primary" onPress={handleImport} slot="close">
                         <Trans>Import</Trans>
                       </Button>
                     </View>
@@ -744,13 +668,13 @@ function QueryItem({
               </Popover>
             </DialogTrigger>
             <Button variant="bare" onPress={onRemove}>
-              <SvgTrash style={{ width: 13, height: 13 }} />
+              <SvgTrash style={{width: 13, height: 13}} />
             </Button>
           </View>
         </View>
       </View>
 
-      <View style={{ marginBottom: 12 }}>
+      <View style={{marginBottom: 12}}>
         <View
           style={{
             display: 'flex',
@@ -762,11 +686,10 @@ function QueryItem({
           }}
         >
           <Button
-            style={{ minWidth: 50 }}
+            style={{minWidth: 50}}
             variant={timeRangeMode === 'static' ? 'normal' : 'primary'}
             onPress={() => {
-              const newMode =
-                timeRangeMode === 'static' ? 'sliding-window' : 'static';
+              const newMode = timeRangeMode === 'static' ? 'sliding-window' : 'static';
               const [newStart, newEnd] = calculateTimeRange(
                 asMonthSlidingTimeFrame({
                   start: startDate,
@@ -777,13 +700,7 @@ function QueryItem({
 
               setStartDate(newStart);
               setEndDate(newEnd);
-              sendUpdate(
-                filters.conditions,
-                filters.conditionsOp,
-                newStart,
-                newEnd,
-                newMode,
-              );
+              sendUpdate(filters.conditions, filters.conditionsOp, newStart, newEnd, newMode);
             }}
           >
             {timeRangeLabel}
@@ -811,19 +728,14 @@ function QueryItem({
               }}
               presets={presets}
               onChangeDates={(newStart, newEnd) => {
-                if (
-                  shouldIgnoreMonthPickerNoop(
-                    startDate,
-                    endDate,
-                    newStart,
-                    newEnd,
-                  )
-                ) {
+                if (shouldIgnoreMonthPickerNoop(startDate, endDate, newStart, newEnd)) {
                   return;
                 }
 
-                const [normalizedStart, normalizedEnd] =
-                  normalizeMonthPickerSelectionForQuery(newStart, newEnd);
+                const [normalizedStart, normalizedEnd] = normalizeMonthPickerSelectionForQuery(
+                  newStart,
+                  newEnd,
+                );
 
                 setStartDate(normalizedStart);
                 setEndDate(normalizedEnd);
@@ -837,11 +749,7 @@ function QueryItem({
               }}
             />
           ) : (
-            <Button
-              variant="normal"
-              isDisabled
-              aria-label={t('Loading date range...')}
-            >
+            <Button variant="normal" isDisabled aria-label={t('Loading date range...')}>
               {t('Loading date range...')}
             </Button>
           )}
@@ -861,7 +769,7 @@ function QueryItem({
         ) : null}
       </View>
 
-      <View style={{ marginBottom: 8, flex: 1 }}>
+      <View style={{marginBottom: 8, flex: 1}}>
         <Text
           style={{
             fontSize: 12,
@@ -889,14 +797,10 @@ function QueryItem({
               onDelete={filters.onDelete}
               conditionsOp={filters.conditionsOp}
               onConditionsOpChange={filters.onConditionsOpChange}
-              style={{ maxWidth: '100%' }}
+              style={{maxWidth: '100%'}}
             />
           )}
-          <FilterButton
-            compact={false}
-            onApply={filters.onApply}
-            hover={false}
-          />
+          <FilterButton compact={false} onApply={filters.onApply} hover={false} />
         </View>
       </View>
     </View>

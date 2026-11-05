@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { amountToInteger } from '#app-gocardless/utils';
+import {amountToInteger} from '#app-gocardless/utils';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -32,7 +32,7 @@ export default {
   ],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     if (booked) {
       editedTrans.date = transaction.bookingDate;
@@ -58,8 +58,7 @@ export default {
 
     if (transaction.remittanceInformationStructured) {
       const remittanceInfoRegex = / (\d{4}-\d{2}-\d{2}) /;
-      const matches =
-        transaction.remittanceInformationStructured.match(remittanceInfoRegex);
+      const matches = transaction.remittanceInformationStructured.match(remittanceInfoRegex);
       if (matches) {
         editedTrans.date = matches[1];
         return Fallback.normalizeTransaction(transaction, booked, editedTrans);
@@ -79,9 +78,7 @@ export default {
    *  holds the remaining credit limit.
    */
   calculateStartingBalance(sortedTransactions = [], balances = []) {
-    const currentBalance = balances.find(
-      balance => 'expected' === balance.balanceType,
-    );
+    const currentBalance = balances.find(balance => 'expected' === balance.balanceType);
 
     return sortedTransactions.reduce(
       (total, trans) => {

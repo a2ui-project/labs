@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { HyperFormula } from 'hyperformula';
+import {HyperFormula} from 'hyperformula';
 
-import { bootstrapHyperFormula } from '#util/bootstrapHyperFormula';
+import {bootstrapHyperFormula} from '#util/bootstrapHyperFormula';
 
-import { budgetQueryDimensions } from './formulaCatalog';
+import {budgetQueryDimensions} from './formulaCatalog';
 
 type FormulaMode = 'transaction' | 'query';
 
@@ -156,10 +156,7 @@ function getParserInstance() {
 }
 
 function getTokenRange(token: Token) {
-  if (
-    typeof token.startOffset !== 'number' ||
-    typeof token.endOffset !== 'number'
-  ) {
+  if (typeof token.startOffset !== 'number' || typeof token.endOffset !== 'number') {
     return null;
   }
 
@@ -170,11 +167,7 @@ function getTokenRange(token: Token) {
   };
 }
 
-function findNextToken(
-  tokens: Token[],
-  cursor: { value: number },
-  expressionName: string,
-) {
+function findNextToken(tokens: Token[], cursor: {value: number}, expressionName: string) {
   const index = tokens.findIndex((token, offset) => {
     return offset >= cursor.value && token.image === expressionName;
   });
@@ -210,16 +203,12 @@ function getBadgeRangesFromNamedExpressionToken({
     ];
   }
 
-  const namesByLength = Object.keys(namedExpressionBadges).sort(
-    (a, b) => b.length - a.length,
-  );
+  const namesByLength = Object.keys(namedExpressionBadges).sort((a, b) => b.length - a.length);
   const ranges: FormulaBadgeRange[] = [];
   let offset = 0;
 
   while (offset < token.image.length) {
-    const name = namesByLength.find(candidate =>
-      token.image.startsWith(candidate, offset),
-    );
+    const name = namesByLength.find(candidate => token.image.startsWith(candidate, offset));
 
     if (!name) {
       return [];
@@ -237,18 +226,13 @@ function getBadgeRangesFromNamedExpressionToken({
   return ranges;
 }
 
-function visitAstInSourceOrder(
-  ast: FormulaAst,
-  visit: (node: FormulaAst) => void,
-) {
+function visitAstInSourceOrder(ast: FormulaAst, visit: (node: FormulaAst) => void) {
   visit(ast);
 
   switch (ast.type) {
     case 'FUNCTION_CALL':
       if (Array.isArray(ast.args)) {
-        (ast.args as FormulaAst[]).forEach(arg =>
-          visitAstInSourceOrder(arg, visit),
-        );
+        (ast.args as FormulaAst[]).forEach(arg => visitAstInSourceOrder(arg, visit));
       }
       return;
     case 'ARRAY':
@@ -294,10 +278,7 @@ function visitAstInSourceOrder(
   }
 }
 
-function visitStringArgsInSourceOrder(
-  ast: FormulaAst,
-  visit: (node: FormulaAst) => void,
-) {
+function visitStringArgsInSourceOrder(ast: FormulaAst, visit: (node: FormulaAst) => void) {
   if (ast.type === 'STRING') {
     visit(ast);
     return;
@@ -322,7 +303,7 @@ function visitStringArgsInSourceOrder(
 }
 
 function getStringNodeRanges(ast: FormulaAst, stringTokens: Token[]) {
-  const stringCursor = { value: 0 };
+  const stringCursor = {value: 0};
   const stringNodeRanges = new WeakMap<FormulaAst, FormulaRange>();
 
   visitAstInSourceOrder(ast, node => {
@@ -514,22 +495,15 @@ function getBadgeRangesFromAst({
   namedExpressionTokens: Token[];
   namedExpressionBadges: Record<string, string>;
 }) {
-  const namedExpressionCursor = { value: 0 };
+  const namedExpressionCursor = {value: 0};
   const badgeRanges: FormulaBadgeRange[] = [];
 
   visitAstInSourceOrder(ast, node => {
-    if (
-      node.type !== 'NAMED_EXPRESSION' ||
-      typeof node.expressionName !== 'string'
-    ) {
+    if (node.type !== 'NAMED_EXPRESSION' || typeof node.expressionName !== 'string') {
       return;
     }
 
-    const token = findNextToken(
-      namedExpressionTokens,
-      namedExpressionCursor,
-      node.expressionName,
-    );
+    const token = findNextToken(namedExpressionTokens, namedExpressionCursor, node.expressionName);
     if (!token) {
       return;
     }
@@ -554,15 +528,13 @@ function getNamedExpressionBadges({
 }) {
   return {
     ...(mode === 'transaction' ? transactionNamedExpressionBadges : {}),
-    ...Object.fromEntries(
-      Object.keys(variables ?? {}).map(name => [name, name]),
-    ),
+    ...Object.fromEntries(Object.keys(variables ?? {}).map(name => [name, name])),
   };
 }
 
 function doRangesOverlap(
-  firstRange: { from: number; to: number },
-  secondRange: { from: number; to: number },
+  firstRange: {from: number; to: number},
+  secondRange: {from: number; to: number},
 ) {
   return firstRange.from < secondRange.to && secondRange.from < firstRange.to;
 }
@@ -576,7 +548,7 @@ function findSourceTextRanges(source: string, sourceText: string) {
   let from = source.indexOf(sourceText);
 
   while (from !== -1) {
-    ranges.push({ from, to: from + sourceText.length });
+    ranges.push({from, to: from + sourceText.length});
     from = source.indexOf(sourceText, from + 1);
   }
 
@@ -602,22 +574,17 @@ export function remapCachedFormulaBadgeRanges({
 }: {
   formula: string;
   cachedRanges: CachedFormulaBadgeRange[];
-  blockedRanges?: Array<{ from: number; to: number }>;
+  blockedRanges?: Array<{from: number; to: number}>;
 }): FormulaBadgeRange[] {
   const usedRanges = [...blockedRanges];
 
-  return cachedRanges.flatMap(({ sourceText, ...range }) => {
+  return cachedRanges.flatMap(({sourceText, ...range}) => {
     const match = findSourceTextRanges(formula, sourceText)
       .filter(candidate => {
-        return !usedRanges.some(usedRange =>
-          doRangesOverlap(candidate, usedRange),
-        );
+        return !usedRanges.some(usedRange => doRangesOverlap(candidate, usedRange));
       })
       .sort((a, b) => {
-        return (
-          Math.abs(a.from - range.from) - Math.abs(b.from - range.from) ||
-          a.from - b.from
-        );
+        return Math.abs(a.from - range.from) - Math.abs(b.from - range.from) || a.from - b.from;
       })[0];
 
     if (!match) {
@@ -625,7 +592,7 @@ export function remapCachedFormulaBadgeRanges({
     }
 
     usedRanges.push(match);
-    return [{ ...range, ...match }];
+    return [{...range, ...match}];
   });
 }
 
@@ -643,12 +610,12 @@ export function getFormulaBadgeRangeResult({
   categoryBadges?: Record<string, string>;
 }): FormulaBadgeRangeResult {
   if (!formula.startsWith('=')) {
-    return { ranges: [], status: 'inactive' };
+    return {ranges: [], status: 'inactive'};
   }
 
-  const namedExpressionBadges = getNamedExpressionBadges({ mode, variables });
+  const namedExpressionBadges = getNamedExpressionBadges({mode, variables});
   if (mode !== 'query' && Object.keys(namedExpressionBadges).length === 0) {
-    return { ranges: [], status: 'ok' };
+    return {ranges: [], status: 'ok'};
   }
 
   try {
@@ -657,11 +624,8 @@ export function getFormulaBadgeRangeResult({
     const ast = parsed.ast;
     const tokenizeResult = parser._parser?.tokenizeFormula(formula.slice(1));
 
-    if (
-      !tokenizeResult ||
-      (tokenizeResult.errors && tokenizeResult.errors.length > 0)
-    ) {
-      return { ranges: [], status: 'failed' };
+    if (!tokenizeResult || (tokenizeResult.errors && tokenizeResult.errors.length > 0)) {
+      return {ranges: [], status: 'failed'};
     }
 
     const namedExpressionTokens = tokenizeResult.tokens.filter(
@@ -697,7 +661,7 @@ export function getFormulaBadgeRangeResult({
       status: 'ok',
     };
   } catch {
-    return { ranges: [], status: 'failed' };
+    return {ranges: [], status: 'failed'};
   }
 }
 

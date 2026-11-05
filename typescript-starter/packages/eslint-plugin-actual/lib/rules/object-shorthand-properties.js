@@ -24,14 +24,12 @@ module.exports = {
   meta: {
     type: 'suggestion',
     docs: {
-      description:
-        'Enforce property shorthand syntax in object literals (properties only)',
+      description: 'Enforce property shorthand syntax in object literals (properties only)',
     },
     fixable: 'code',
     schema: [],
     messages: {
-      useShorthand:
-        'Expected property shorthand. Use `{{key}}` instead of `{{key}}: {{key}}`.',
+      useShorthand: 'Expected property shorthand. Use `{{key}}` instead of `{{key}}: {{key}}`.',
     },
   },
 
@@ -57,10 +55,7 @@ module.exports = {
       }
 
       // Value must be an identifier with the same name as the key
-      if (
-        node.value.type !== 'Identifier' ||
-        node.key.name !== node.value.name
-      ) {
+      if (node.value.type !== 'Identifier' || node.key.name !== node.value.name) {
         return false;
       }
 

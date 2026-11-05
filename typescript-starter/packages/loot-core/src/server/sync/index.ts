@@ -15,51 +15,38 @@
  */
 
 // @ts-strict-ignore
-import {
-  deserializeClock,
-  getClock,
-  merkle,
-  serializeClock,
-  Timestamp,
-} from '@actual-app/crdt';
+import {deserializeClock, getClock, merkle, serializeClock, Timestamp} from '@actual-app/crdt';
 
-import { captureException } from '#platform/exceptions';
+import {captureException} from '#platform/exceptions';
 import * as asyncStorage from '#platform/server/asyncStorage';
 import * as connection from '#platform/server/connection';
-import { logger } from '#platform/server/log';
-import {
-  setType as setBudgetType,
-  triggerBudgetChanges,
-} from '#server/budget/base';
+import {logger} from '#platform/server/log';
+import {setType as setBudgetType, triggerBudgetChanges} from '#server/budget/base';
 import * as db from '#server/db';
-import { PostError, SyncError } from '#server/errors';
-import { app } from '#server/main-app';
-import { runMutator } from '#server/mutators';
-import { postBinary } from '#server/post';
+import {PostError, SyncError} from '#server/errors';
+import {app} from '#server/main-app';
+import {runMutator} from '#server/mutators';
+import {postBinary} from '#server/post';
 import * as prefs from '#server/prefs';
-import { getServer } from '#server/server-config';
+import {getServer} from '#server/server-config';
 import * as sheet from '#server/sheet';
-import { resolveName } from '#server/spreadsheet/util';
+import {resolveName} from '#server/spreadsheet/util';
 import * as undo from '#server/undo';
-import { once, sequential } from '#shared/async';
-import { isMissingSchemaError } from '#shared/errors';
-import { getIn, setIn } from '#shared/util';
-import type { MetadataPrefs } from '#types/prefs';
+import {once, sequential} from '#shared/async';
+import {isMissingSchemaError} from '#shared/errors';
+import {getIn, setIn} from '#shared/util';
+import type {MetadataPrefs} from '#types/prefs';
 
 import * as encoder from './encoder';
-import { PENDING_MESSAGES_TABLE_SQL } from './messages-pending';
-import { rebuildMerkleHash } from './repair';
-import {
-  deserializeValueSafe,
-  isUnknownFormatValue,
-  serializeValue,
-} from './serialization';
-import type { UnknownFormatValue } from './serialization';
-import { isError, notifyDeferredMessages, quoteSqlId } from './utils';
+import {PENDING_MESSAGES_TABLE_SQL} from './messages-pending';
+import {rebuildMerkleHash} from './repair';
+import {deserializeValueSafe, isUnknownFormatValue, serializeValue} from './serialization';
+import type {UnknownFormatValue} from './serialization';
+import {isError, notifyDeferredMessages, quoteSqlId} from './utils';
 
-export { makeTestMessage } from './make-test-message';
-export { resetSync } from './reset';
-export { repairSync } from './repair';
+export {makeTestMessage} from './make-test-message';
+export {resetSync} from './reset';
+export {repairSync} from './repair';
 
 const FULL_SYNC_DELAY = 1000;
 let SYNCING_MODE = 'enabled';
@@ -118,13 +105,7 @@ function deferMessage(msg: Message) {
            SET timestamp = excluded.timestamp, value = excluded.value
            WHERE excluded.timestamp > messages_pending.timestamp`,
     ),
-    [
-      msg.timestamp.toString(),
-      msg.dataset,
-      msg.row,
-      msg.column,
-      serializeValue(msg.value),
-    ],
+    [msg.timestamp.toString(), msg.dataset, msg.row, msg.column, serializeValue(msg.value)],
   );
 }
 
@@ -133,12 +114,8 @@ function deferMessage(msg: Message) {
 // Deferral only makes sense for inbound messages; for locally-created
 // messages a missing table/column is a bug and must surface as an
 // apply-failure.
-function apply(
-  msg: Message,
-  prev?: boolean,
-  deferUnknownSchema?: boolean,
-): boolean {
-  const { dataset, row, column, value } = msg;
+function apply(msg: Message, prev?: boolean, deferUnknownSchema?: boolean): boolean {
+  const {dataset, row, column, value} = msg;
 
   if (dataset === 'prefs') {
     // Do nothing, it doesn't exist in the db
@@ -153,7 +130,7 @@ function apply(
       return false;
     }
     throw new SyncError('invalid-schema', {
-      error: { message: 'Unknown value format: ' + value.raw, stack: '' },
+      error: {message: 'Unknown value format: ' + value.raw, stack: ''},
       query: {
         sql: `INSERT INTO ${quoteSqlId(dataset)} (id, ${quoteSqlId(column)}) VALUES (?, ?)`,
         params: [row, value.raw],
@@ -181,7 +158,7 @@ function apply(
         return false;
       }
       throw new SyncError('invalid-schema', {
-        error: { message: error.message, stack: error.stack },
+        error: {message: error.message, stack: error.stack},
         query,
       });
     }
@@ -233,7 +210,7 @@ function fetchAll(table: string, ids: string[]) {
           message: error.message,
           stack: error.stack,
         },
-        query: { sql, params: partIds },
+        query: {sql, params: partIds},
       });
     }
   }
@@ -316,12 +293,12 @@ function compareMessages(messages: Message[]): Message[] {
   // it cover every message for that cell.
   const cells = new Map<string, CompareKey>();
   for (const message of messages) {
-    const { dataset, row, column } = message;
+    const {dataset, row, column} = message;
     const timestampStr = message.timestamp.toString();
     const key = cellKey(dataset, row, column);
     const existing = cells.get(key);
     if (!existing || timestampStr < existing.timestamp) {
-      cells.set(key, { dataset, row, column, timestamp: timestampStr });
+      cells.set(key, {dataset, row, column, timestamp: timestampStr});
     }
   }
 
@@ -336,15 +313,12 @@ function compareMessages(messages: Message[]): Message[] {
       chunk.push(chunk[chunk.length - 1]);
     }
 
-    const params = chunk.flatMap(cell => [
-      cell.dataset,
-      cell.row,
-      cell.column,
-      cell.timestamp,
-    ]);
-    const rows = db.runQuery<
-      Pick<db.DbCrdtMessage, 'dataset' | 'row' | 'column' | 'timestamp'>
-    >(db.cache(compareMessagesSql(chunkSize)), params, true);
+    const params = chunk.flatMap(cell => [cell.dataset, cell.row, cell.column, cell.timestamp]);
+    const rows = db.runQuery<Pick<db.DbCrdtMessage, 'dataset' | 'row' | 'column' | 'timestamp'>>(
+      db.cache(compareMessagesSql(chunkSize)),
+      params,
+      true,
+    );
 
     for (const logged of rows) {
       const key = cellKey(logged.dataset, logged.row, logged.column);
@@ -360,9 +334,7 @@ function compareMessages(messages: Message[]): Message[] {
   const newMessages: Message[] = [];
   for (const message of messages) {
     const timestampStr = message.timestamp.toString();
-    const logged = loggedTimestamps.get(
-      cellKey(message.dataset, message.row, message.column),
-    );
+    const logged = loggedTimestamps.get(cellKey(message.dataset, message.row, message.column));
 
     if (!logged) {
       newMessages.push(message);
@@ -370,7 +342,7 @@ function compareMessages(messages: Message[]): Message[] {
       // Exactly this message is already in the log: nothing to do
     } else if (logged.some(timestamp => timestamp > timestampStr)) {
       // A later message for this cell exists, so this one is old
-      newMessages.push({ ...message, old: true });
+      newMessages.push({...message, old: true});
     } else {
       newMessages.push(message);
     }
@@ -389,7 +361,7 @@ function applyMessagesForImport(messages: Message[]): void {
   db.transaction(() => {
     for (let i = 0; i < messages.length; i++) {
       const msg = messages[i];
-      const { dataset } = msg;
+      const {dataset} = msg;
 
       if (!msg.old) {
         try {
@@ -494,7 +466,7 @@ async function _applyMessages(messages: Message[], deferUnknownSchema = false) {
     const added = new Set();
 
     for (const msg of messages) {
-      const { dataset, row, column, timestamp, value } = msg;
+      const {dataset, row, column, timestamp, value} = msg;
 
       if (!msg.old) {
         const applied = apply(
@@ -549,17 +521,14 @@ async function _applyMessages(messages: Message[], deferUnknownSchema = false) {
 
       // Save the clock in the db first (queries might throw
       // exceptions)
-      db.runQuery(
-        db.cache(
-          'INSERT OR REPLACE INTO messages_clock (id, clock) VALUES (1, ?)',
-        ),
-        [serializeClock({ ...clock, merkle: currentMerkle })],
-      );
+      db.runQuery(db.cache('INSERT OR REPLACE INTO messages_clock (id, clock) VALUES (1, ?)'), [
+        serializeClock({...clock, merkle: currentMerkle}),
+      ]);
     }
 
     newData = fetchData(idsPerTable);
   };
-  db.transaction(applyInTransaction, { immediate: true });
+  db.transaction(applyInTransaction, {immediate: true});
 
   // The transaction succeeded, so we can update in-memory objects now
   undo.appendMessages(messages, oldData);
@@ -575,7 +544,7 @@ async function _applyMessages(messages: Message[], deferUnknownSchema = false) {
 
   // Save any synced prefs
   if (Object.keys(prefsToSet).length > 0) {
-    void prefs.savePrefs(prefsToSet, { avoidSync: true });
+    void prefs.savePrefs(prefsToSet, {avoidSync: true});
     connection.send('prefs-updated');
   }
 
@@ -602,14 +571,9 @@ async function _applyMessages(messages: Message[], deferUnknownSchema = false) {
           'closed-accounts-balance',
         ].map(cellName => resolveName('__global', cellName)),
       );
-      const accountGroupCellPrefix = resolveName(
-        '__global',
-        'account-group-balance-',
-      );
+      const accountGroupCellPrefix = resolveName('__global', 'account-group-balance-');
       const cellsToRecompute = [...s.getNodes().keys()].filter(
-        name =>
-          globalAggregateCells.has(name) ||
-          name.startsWith(accountGroupCellPrefix),
+        name => globalAggregateCells.has(name) || name.startsWith(accountGroupCellPrefix),
       );
       for (const name of cellsToRecompute) {
         s.recompute(name);
@@ -655,12 +619,11 @@ export function receiveMessages(messages: Message[]): Promise<Message[]> {
     // Receiving the latest timestamp preserves the clock and drift check while
     // advancing the counter once per batch.
     let latest = null;
-    for (const { timestamp } of messages) {
+    for (const {timestamp} of messages) {
       if (
         latest === null ||
         timestamp.millis() > latest.millis() ||
-        (timestamp.millis() === latest.millis() &&
-          timestamp.counter() > latest.counter())
+        (timestamp.millis() === latest.millis() && timestamp.counter() > latest.counter())
       ) {
         latest = timestamp;
       }
@@ -695,13 +658,13 @@ async function errorHandler(e: Error) {
         meta: e.meta,
       });
     } else {
-      app.events.emit('sync', { type: 'error', meta: e.meta });
+      app.events.emit('sync', {type: 'error', meta: e.meta});
     }
   } else if (e instanceof Timestamp.ClockDriftError) {
     app.events.emit('sync', {
       type: 'error',
       subtype: 'clock-drift',
-      meta: { message: e.message },
+      meta: {message: e.message},
     });
   }
 }
@@ -768,9 +731,7 @@ export function clearFullSyncTimeout(): void {
 }
 
 let syncTimeout = null;
-export function scheduleFullSync(): Promise<
-  { messages: Message[] } | { error: unknown }
-> {
+export function scheduleFullSync(): Promise<{messages: Message[]} | {error: unknown}> {
   clearFullSyncTimeout();
 
   if (checkSyncingMode('enabled') && !checkSyncingMode('offline')) {
@@ -789,8 +750,7 @@ export function scheduleFullSync(): Promise<
 
 function getTablesFromMessages(messages: Message[]): string[] {
   return messages.reduce((acc, message) => {
-    const dataset =
-      message.dataset === 'schedules_next_date' ? 'schedules' : message.dataset;
+    const dataset = message.dataset === 'schedules_next_date' ? 'schedules' : message.dataset;
 
     if (!acc.includes(dataset)) {
       acc.push(dataset);
@@ -804,7 +764,7 @@ function getTablesFromMessages(messages: Message[]): string[] {
 // perform a full sync and wait for everything to finish, usually if
 // you're doing an initial sync before working with a file.
 export async function initialFullSync(): Promise<{
-  error?: { message: string; reason: string; meta: unknown };
+  error?: {message: string; reason: string; meta: unknown};
 }> {
   const result = await fullSync();
   if (isError(result)) {
@@ -816,10 +776,9 @@ export async function initialFullSync(): Promise<{
 }
 
 export const fullSync = once(async function (): Promise<
-  | { messages: Message[] }
-  | { error: { message: string; reason: string; meta: unknown } }
+  {messages: Message[]} | {error: {message: string; reason: string; meta: unknown}}
 > {
-  app.events.emit('sync', { type: 'start' });
+  app.events.emit('sync', {type: 'start'});
   let messages;
 
   try {
@@ -842,10 +801,7 @@ export const fullSync = once(async function (): Promise<
           subtype: 'invalid-schema',
           meta: e.meta,
         });
-      } else if (
-        e.reason === 'decrypt-failure' ||
-        e.reason === 'encrypt-failure'
-      ) {
+      } else if (e.reason === 'decrypt-failure' || e.reason === 'encrypt-failure') {
         app.events.emit('sync', {
           type: 'error',
           subtype: e.reason,
@@ -858,27 +814,27 @@ export const fullSync = once(async function (): Promise<
           meta: e.meta,
         });
       } else {
-        app.events.emit('sync', { type: 'error', meta: e.meta });
+        app.events.emit('sync', {type: 'error', meta: e.meta});
       }
     } else if (e instanceof PostError) {
       logger.log(e);
       if (e.reason === 'unauthorized') {
-        app.events.emit('sync', { type: 'unauthorized' });
+        app.events.emit('sync', {type: 'unauthorized'});
 
         // Set the user into read-only mode
         void asyncStorage.setItem('readOnly', 'true');
       } else if (e.reason === 'network-failure') {
-        app.events.emit('sync', { type: 'error', subtype: 'network' });
+        app.events.emit('sync', {type: 'error', subtype: 'network'});
       } else {
-        app.events.emit('sync', { type: 'error', subtype: e.reason });
+        app.events.emit('sync', {type: 'error', subtype: e.reason});
       }
     } else {
       captureException(e);
       // TODO: Send the message to the client and allow them to expand & view it
-      app.events.emit('sync', { type: 'error' });
+      app.events.emit('sync', {type: 'error'});
     }
 
-    return { error: { message: e.message, reason: e.reason, meta: e.meta } };
+    return {error: {message: e.message, reason: e.reason, meta: e.meta}};
   }
 
   const tables = getTablesFromMessages(messages);
@@ -888,7 +844,7 @@ export const fullSync = once(async function (): Promise<
     tables,
     syncDisabled: checkSyncingMode('disabled'),
   });
-  return { messages };
+  return {messages};
 });
 
 async function _fullSync(
@@ -896,20 +852,11 @@ async function _fullSync(
   count: number,
   prevDiffTime: number,
 ): Promise<Message[]> {
-  const {
-    id: currentId,
-    cloudFileId,
-    groupId,
-    lastSyncedTimestamp,
-  } = prefs.getPrefs() || {};
+  const {id: currentId, cloudFileId, groupId, lastSyncedTimestamp} = prefs.getPrefs() || {};
 
   clearFullSyncTimeout();
 
-  if (
-    checkSyncingMode('disabled') ||
-    checkSyncingMode('offline') ||
-    !currentId
-  ) {
+  if (checkSyncingMode('disabled') || checkSyncingMode('offline') || !currentId) {
     return [];
   }
 
@@ -926,12 +873,7 @@ async function _fullSync(
 
   const userToken = await asyncStorage.getItem('user-token');
 
-  logger.info(
-    'Syncing since',
-    since,
-    messages.length,
-    '(attempt: ' + count + ')',
-  );
+  logger.info('Syncing since', since, messages.length, '(attempt: ' + count + ')');
 
   const buffer = await encoder.encode(groupId, cloudFileId, since, messages);
 
@@ -939,13 +881,9 @@ async function _fullSync(
   // the payload size. Right now it's at 20MB on the server. We should
   // check the worst case here and make multiple requests if it's
   // really large.
-  const resBuffer = await postBinary(
-    getServer().SYNC_SERVER + '/sync',
-    buffer,
-    {
-      'X-ACTUAL-TOKEN': userToken,
-    },
-  );
+  const resBuffer = await postBinary(getServer().SYNC_SERVER + '/sync', buffer, {
+    'X-ACTUAL-TOKEN': userToken,
+  });
 
   // Abort if the file is either no longer loaded, the group id has
   // changed because of a sync reset
@@ -1024,9 +962,7 @@ async function _fullSync(
 
       if (rebuiltMerkle.trie.hash === res.merkle.hash) {
         // Rebuilding the merkle worked... but why?
-        const clocks = await db.all<db.DbClockMessage>(
-          'SELECT * FROM messages_clock',
-        );
+        const clocks = await db.all<db.DbClockMessage>('SELECT * FROM messages_clock');
         if (clocks.length !== 1) {
           logger.log('Bad number of clocks:', clocks.length);
         }
@@ -1051,8 +987,7 @@ async function _fullSync(
     );
   } else {
     // All synced up, store the current time as a simple optimization for the next sync
-    const requiresUpdate =
-      getClock().timestamp.toString() !== lastSyncedTimestamp;
+    const requiresUpdate = getClock().timestamp.toString() !== lastSyncedTimestamp;
 
     if (requiresUpdate) {
       await prefs.savePrefs({

@@ -15,16 +15,12 @@
  */
 
 // @ts-strict-ignore
-import { contextBridge, ipcRenderer } from 'electron';
-import type { IpcRenderer } from 'electron';
+import {contextBridge, ipcRenderer} from 'electron';
+import type {IpcRenderer} from 'electron';
 
-import type {
-  GetBootstrapDataPayload,
-  OpenFileDialogPayload,
-  SaveFileDialogPayload,
-} from './index';
+import type {GetBootstrapDataPayload, OpenFileDialogPayload, SaveFileDialogPayload} from './index';
 
-const { version: VERSION, isDev: IS_DEV }: GetBootstrapDataPayload =
+const {version: VERSION, isDev: IS_DEV}: GetBootstrapDataPayload =
   ipcRenderer.sendSync('get-bootstrap-data');
 
 contextBridge.exposeInMainWorld('Actual', {
@@ -32,17 +28,14 @@ contextBridge.exposeInMainWorld('Actual', {
   ACTUAL_VERSION: VERSION,
   logToTerminal: console.log,
   ipcConnect: (
-    func: (payload: {
-      on: IpcRenderer['on'];
-      emit: (name: string, data: unknown) => void;
-    }) => void,
+    func: (payload: {on: IpcRenderer['on']; emit: (name: string, data: unknown) => void}) => void,
   ) => {
     func({
       on(name, handler) {
         return ipcRenderer.on(name, (_event, value) => handler(value));
       },
       emit(name, data) {
-        return ipcRenderer.send('message', { name, args: data });
+        return ipcRenderer.send('message', {name, args: data});
       },
     });
   },
@@ -106,15 +99,8 @@ contextBridge.exposeInMainWorld('Actual', {
     ipcRenderer.send('set-theme', theme);
   },
 
-  moveBudgetDirectory: (
-    currentBudgetDirectory: string,
-    newDirectory: string,
-  ) => {
-    return ipcRenderer.invoke(
-      'move-budget-directory',
-      currentBudgetDirectory,
-      newDirectory,
-    );
+  moveBudgetDirectory: (currentBudgetDirectory: string, newDirectory: string) => {
+    return ipcRenderer.invoke('move-budget-directory', currentBudgetDirectory, newDirectory);
   },
 
   setDocumentDir: (directory: string) => {

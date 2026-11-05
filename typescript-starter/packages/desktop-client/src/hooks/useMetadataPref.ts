@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 
-import type { MetadataPrefs } from '@actual-app/core/types/prefs';
+import type {MetadataPrefs} from '@actual-app/core/types/prefs';
 
-import { savePrefs } from '#prefs/prefsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {savePrefs} from '#prefs/prefsSlice';
+import {useDispatch, useSelector} from '#redux';
 
-type SetMetadataPrefAction<K extends keyof MetadataPrefs> = (
-  value: MetadataPrefs[K],
-) => void;
+type SetMetadataPrefAction<K extends keyof MetadataPrefs> = (value: MetadataPrefs[K]) => void;
 
 export function useMetadataPref<K extends keyof MetadataPrefs>(
   prefName: K,
@@ -31,7 +29,7 @@ export function useMetadataPref<K extends keyof MetadataPrefs>(
   const dispatch = useDispatch();
   const setLocalPref = useCallback<SetMetadataPrefAction<K>>(
     value => {
-      void dispatch(savePrefs({ prefs: { [prefName]: value } }));
+      void dispatch(savePrefs({prefs: {[prefName]: value}}));
     },
     [prefName, dispatch],
   );

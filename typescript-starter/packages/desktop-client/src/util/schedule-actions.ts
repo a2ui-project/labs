@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import { getUpcomingDays } from '@actual-app/core/shared/schedules';
+import {q} from '@actual-app/core/shared/query';
+import {getUpcomingDays} from '@actual-app/core/shared/schedules';
 import type {
   RuleActionEntity,
   RuleConditionEntity,
@@ -36,32 +36,27 @@ export function calculateFutureTransactionInfo(
 ) {
   const today = monthUtils.currentDay();
   const upcomingDays = getUpcomingDays(upcomingLength, today);
-  const daysUntilTransaction = monthUtils.differenceInCalendarDays(
-    transaction.date,
-    today,
-  );
+  const daysUntilTransaction = monthUtils.differenceInCalendarDays(transaction.date, today);
   const isBeyondWindow = daysUntilTransaction > upcomingDays;
 
-  return { isBeyondWindow, daysUntilTransaction, upcomingDays };
+  return {isBeyondWindow, daysUntilTransaction, upcomingDays};
 }
 
 export async function createSingleTimeScheduleFromTransaction(
   transaction: TransactionEntity,
 ): Promise<ScheduleEntity['id']> {
-  const conditions: RuleConditionEntity[] = [
-    { op: 'is', field: 'date', value: transaction.date },
-  ];
+  const conditions: RuleConditionEntity[] = [{op: 'is', field: 'date', value: transaction.date}];
 
   const actions: RuleActionEntity[] = [];
 
   if (transaction.amount != null) {
-    conditions.push({ op: 'is', field: 'amount', value: transaction.amount });
+    conditions.push({op: 'is', field: 'amount', value: transaction.amount});
   }
   if (transaction.payee != null && transaction.payee !== '') {
-    conditions.push({ op: 'is', field: 'payee', value: transaction.payee });
+    conditions.push({op: 'is', field: 'payee', value: transaction.payee});
   }
   if (transaction.account != null && transaction.account !== '') {
-    conditions.push({ op: 'is', field: 'account', value: transaction.account });
+    conditions.push({op: 'is', field: 'account', value: transaction.account});
   }
 
   if (transaction.is_parent && transaction.subtransactions) {
@@ -145,13 +140,13 @@ export async function createSingleTimeScheduleFromTransaction(
   if (actions.length > 0) {
     const schedules = await send(
       'query',
-      q('schedules').filter({ id: scheduleId }).select('rule').serialize(),
+      q('schedules').filter({id: scheduleId}).select('rule').serialize(),
     );
 
     const ruleId = schedules?.data?.[0]?.rule;
 
     if (ruleId) {
-      const rule = await send('rule-get', { id: ruleId });
+      const rule = await send('rule-get', {id: ruleId});
 
       if (rule) {
         const linkScheduleActions = rule.actions.filter(

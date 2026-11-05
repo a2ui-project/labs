@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { NavigateFunction } from 'react-router';
+import type {NavigateFunction} from 'react-router';
 
 import * as monthUtils from '@actual-app/core/shared/months';
 import type {
@@ -25,11 +25,11 @@ import type {
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
 
-import { ReportOptions } from '#components/reports/ReportOptions';
+import {ReportOptions} from '#components/reports/ReportOptions';
 
 type showActivityProps = {
   navigate: NavigateFunction;
-  categories: { list: CategoryEntity[]; grouped: CategoryGroupEntity[] };
+  categories: {list: CategoryEntity[]; grouped: CategoryGroupEntity[]};
   accounts: AccountEntity[];
   balanceTypeOp: balanceTypeOpType;
   filters: RuleConditionEntity[];
@@ -60,15 +60,16 @@ export function showActivity({
   uncategorizedId,
   interval = 'Day',
 }: showActivityProps) {
-  const isOutFlow =
-    balanceTypeOp === 'totalDebts' || type === 'debts' ? true : false;
+  const isOutFlow = balanceTypeOp === 'totalDebts' || type === 'debts' ? true : false;
   const hiddenCategories = categories.list.filter(f => f.hidden).map(e => e.id);
   const offBudgetAccounts = accounts.filter(f => f.offbudget).map(e => e.id);
   const fromDate =
     interval === 'Weekly'
       ? 'dayFromDate'
-      : (((ReportOptions.intervalMap.get(interval) || 'Day').toLowerCase() +
-          'FromDate') as 'dayFromDate' | 'monthFromDate' | 'yearFromDate');
+      : (((ReportOptions.intervalMap.get(interval) || 'Day').toLowerCase() + 'FromDate') as
+          | 'dayFromDate'
+          | 'monthFromDate'
+          | 'yearFromDate');
   const isDateOp = interval === 'Weekly' || type !== 'time';
   const drilldownFilter =
     field === 'category' && uncategorizedId === 'transfer'
@@ -107,7 +108,7 @@ export function showActivity({
       field: 'date',
       op: 'lte',
       value: endDate,
-      options: { date: true },
+      options: {date: true},
     },
     !(
       ['netAssets', 'netDebts'].includes(balanceTypeOp) ||
@@ -140,9 +141,6 @@ export function showActivity({
   ].filter(f => f);
 
   void navigate(balanceTypeOp === 'totalBudgeted' ? '/budget' : '/accounts', {
-    state:
-      balanceTypeOp === 'totalBudgeted'
-        ? { goBack: true }
-        : { goBack: true, filterConditions },
+    state: balanceTypeOp === 'totalBudgeted' ? {goBack: true} : {goBack: true, filterConditions},
   });
 }

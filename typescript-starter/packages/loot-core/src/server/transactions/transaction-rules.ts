@@ -16,20 +16,14 @@
 
 // @ts-strict-ignore
 
-import { logger } from '#platform/server/log';
-import { aqlQuery, schemaConfig } from '#server/aql';
+import {logger} from '#platform/server/log';
+import {aqlQuery, schemaConfig} from '#server/aql';
 import * as db from '#server/db';
-import {
-  getAccount,
-  getCategory,
-  getPayee,
-  getPayeeByName,
-  insertPayee,
-} from '#server/db';
-import { getMappings } from '#server/db/mappings';
-import { RuleError } from '#server/errors';
-import { ensureFormulaPreferencesLoaded } from '#server/formulas/bootstrap';
-import { requiredFields, toDateRepr } from '#server/models';
+import {getAccount, getCategory, getPayee, getPayeeByName, insertPayee} from '#server/db';
+import {getMappings} from '#server/db/mappings';
+import {RuleError} from '#server/errors';
+import {ensureFormulaPreferencesLoaded} from '#server/formulas/bootstrap';
+import {requiredFields, toDateRepr} from '#server/models';
 import {
   Action,
   Condition,
@@ -45,33 +39,23 @@ import {
   extractBalanceOfLiterals,
   resolveAccountIdForBalanceOf,
 } from '#server/rules/balanceOfFormula';
-import { addSyncListener, batchMessages } from '#server/sync';
-import {
-  addDays,
-  currentDay,
-  dayFromDate,
-  parseDate,
-  subDays,
-} from '#shared/months';
-import { q } from '#shared/query';
-import { getApproxNumberThreshold, sortNumbers } from '#shared/rules';
-import { extractTagsForFilter } from '#shared/tags';
-import { ungroupTransaction } from '#shared/transactions';
-import { fastSetMerge, partitionByField } from '#shared/util';
-import type {
-  RuleActionEntity,
-  RuleEntity,
-  TransactionEntity,
-} from '#types/models';
+import {addSyncListener, batchMessages} from '#server/sync';
+import {addDays, currentDay, dayFromDate, parseDate, subDays} from '#shared/months';
+import {q} from '#shared/query';
+import {getApproxNumberThreshold, sortNumbers} from '#shared/rules';
+import {extractTagsForFilter} from '#shared/tags';
+import {ungroupTransaction} from '#shared/transactions';
+import {fastSetMerge, partitionByField} from '#shared/util';
+import type {RuleActionEntity, RuleEntity, TransactionEntity} from '#types/models';
 
-import { batchUpdateTransactions } from '.';
+import {batchUpdateTransactions} from '.';
 
 // TODO: Detect if it looks like the user is creating a rename rule
 // and prompt to create it in the pre phase instead
 // * We could also make the "create rule" button a dropdown that
 //   provides different "templates" like "create renaming rule"
 
-export { iterateIds } from '#server/rules';
+export {iterateIds} from '#server/rules';
 
 let allRules;
 let unlistenSync;
@@ -84,7 +68,7 @@ export function resetState() {
     field: 'imported_payee',
     method: 'firstchar',
   });
-  payeeIndexer = new RuleIndexer({ field: 'payee' });
+  payeeIndexer = new RuleIndexer({field: 'payee'});
 }
 
 // Database functions
@@ -100,14 +84,14 @@ function invert(obj) {
 const internalFields = schemaConfig.views.transactions.fields;
 const publicFields = invert(schemaConfig.views.transactions.fields);
 
-function fromInternalField<T extends { field: string }>(obj: T): T {
+function fromInternalField<T extends {field: string}>(obj: T): T {
   return {
     ...obj,
     field: publicFields[obj.field] || obj.field,
   };
 }
 
-function toInternalField<T extends { field: string }>(obj: T): T {
+function toInternalField<T extends {field: string}>(obj: T): T {
   return {
     ...obj,
     field: internalFields[obj.field] || obj.field,
@@ -137,15 +121,11 @@ export function serializeConditionsOrActions(arr) {
 }
 
 export const ruleModel = {
-  validate(rule, { update }: { update?: boolean } = {}) {
+  validate(rule, {update}: {update?: boolean} = {}) {
     requiredFields('rules', rule, ['conditions', 'actions'], update);
 
     if (!update || 'stage' in rule) {
-      if (
-        rule.stage !== 'pre' &&
-        rule.stage !== 'post' &&
-        rule.stage !== null
-      ) {
+      if (rule.stage !== 'pre' && rule.stage !== 'post' && rule.stage !== null) {
         throw new Error('Invalid rule stage: ' + rule.stage);
       }
     }
@@ -159,7 +139,7 @@ export const ruleModel = {
   },
 
   toJS(row) {
-    const { conditions, conditions_op, actions, ...fields } = row;
+    const {conditions, conditions_op, actions, ...fields} = row;
     return {
       ...fields,
       conditionsOp: conditions_op,
@@ -169,7 +149,7 @@ export const ruleModel = {
   },
 
   fromJS(rule) {
-    const { conditions, conditionsOp, actions, ...row } = rule;
+    const {conditions, conditionsOp, actions, ...row} = rule;
     if (conditionsOp) {
       row.conditions_op = conditionsOp;
     }
@@ -237,15 +217,13 @@ export function getRules() {
   return [...allRules.values()];
 }
 
-export async function insertRule(
-  rule: Omit<RuleEntity, 'id'> & { id?: string },
-) {
+export async function insertRule(rule: Omit<RuleEntity, 'id'> & {id?: string}) {
   rule = ruleModel.validate(rule);
   return db.insertWithUUID('rules', ruleModel.fromJS(rule));
 }
 
 export async function updateRule(rule) {
-  rule = ruleModel.validate(rule, { update: true });
+  rule = ruleModel.validate(rule, {update: true});
   return db.update('rules', ruleModel.fromJS(rule));
 }
 
@@ -306,9 +284,7 @@ function onApplySync(oldValues, newValues) {
   }
 }
 
-export async function getRuleIdFromScheduleId(
-  scheduleId: string,
-): Promise<string | null> {
+export async function getRuleIdFromScheduleId(scheduleId: string): Promise<string | null> {
   const row = await db.first<Pick<db.DbSchedule, 'rule'>>(
     'SELECT rule FROM schedules WHERE id = ?',
     [scheduleId],
@@ -317,12 +293,8 @@ export async function getRuleIdFromScheduleId(
   return row?.rule || null;
 }
 
-export async function getAllRuleIdsFromSchedules(
-  excluding: string,
-): Promise<string[]> {
-  const rows = await db.all<Pick<db.DbSchedule, 'rule'>>(
-    'SELECT rule FROM schedules',
-  );
+export async function getAllRuleIdsFromSchedules(excluding: string): Promise<string[]> {
+  const rows = await db.all<Pick<db.DbSchedule, 'rule'>>('SELECT rule FROM schedules');
 
   // map all rule ids, filter out null/undefined, and de-dupe if needed
   const ruleIds = rows
@@ -334,17 +306,12 @@ export async function getAllRuleIdsFromSchedules(
 }
 
 // Runner
-export async function runRules(
-  trans,
-  accounts: Map<string, db.DbAccount> | null = null,
-) {
+export async function runRules(trans, accounts: Map<string, db.DbAccount> | null = null) {
   await ensureFormulaPreferencesLoaded();
 
   let accountsMap: Map<string, db.DbAccount> = null;
   if (accounts === null) {
-    accountsMap = new Map(
-      (await db.getAccounts()).map(account => [account.id, account]),
-    );
+    accountsMap = new Map((await db.getAccounts()).map(account => [account.id, account]));
   } else {
     accountsMap = accounts;
   }
@@ -356,7 +323,7 @@ export async function runRules(
     ),
   );
 
-  let finalTrans = await prepareTransactionForRules({ ...trans }, accountsMap, {
+  let finalTrans = await prepareTransactionForRules({...trans}, accountsMap, {
     includeBalance: false,
   });
   let lastCategoryIdForGroup: string | null = finalTrans.category ?? null;
@@ -366,12 +333,9 @@ export async function runRules(
   // about to run and actually reads it. `rules` is only the candidates
   // from the indexers, so checking their actions up front isn't enough.
   let hasBalance = false;
-  async function ensureBalanceFor(rule: { actions: Action[] }) {
+  async function ensureBalanceFor(rule: {actions: Action[]}) {
     if (!hasBalance && trans.account && actionsReferenceBalance(rule.actions)) {
-      finalTrans.balance = await getRunningBalanceBeforeTransaction(
-        trans,
-        trans.account,
-      );
+      finalTrans.balance = await getRunningBalanceBeforeTransaction(trans, trans.account);
       hasBalance = true;
     }
   }
@@ -385,12 +349,9 @@ export async function runRules(
     }
   }
 
-  const RuleIdsLinkedToSchedules =
-    await getAllRuleIdsFromSchedules(scheduleRuleID);
+  const RuleIdsLinkedToSchedules = await getAllRuleIdsFromSchedules(scheduleRuleID);
 
-  const formulaStrings = rules.flatMap(rule =>
-    collectFormulasFromActions(rule.actions),
-  );
+  const formulaStrings = rules.flatMap(rule => collectFormulasFromActions(rule.actions));
   finalTrans._balanceOfPrefetched = await prefetchBalanceOfForTransaction(
     finalTrans,
     accountsMap,
@@ -417,11 +378,7 @@ export async function runRules(
         // if a rule is not linked to a schedule, run it.
         if (rules[i].evalConditions(finalTrans)) {
           await ensureBalanceFor(rules[i]);
-          finalTrans = Object.assign(
-            {},
-            finalTrans,
-            rules[i].execActions(finalTrans),
-          );
+          finalTrans = Object.assign({}, finalTrans, rules[i].execActions(finalTrans));
         }
         await resolvePayeeNameForRules(finalTrans);
         lastCategoryIdForGroup = await refreshCategoryGroupIfChanged(
@@ -433,11 +390,7 @@ export async function runRules(
       // if there is no scheduleRuleID then just run all rules.
       if (rules[i].evalConditions(finalTrans)) {
         await ensureBalanceFor(rules[i]);
-        finalTrans = Object.assign(
-          {},
-          finalTrans,
-          rules[i].execActions(finalTrans),
-        );
+        finalTrans = Object.assign({}, finalTrans, rules[i].execActions(finalTrans));
       }
       await resolvePayeeNameForRules(finalTrans);
       lastCategoryIdForGroup = await refreshCategoryGroupIfChanged(
@@ -467,17 +420,8 @@ function conditionSpecialCases(cond: Condition | null): Condition | null {
       ],
       {},
     );
-  } else if (
-    cond.op === 'isNot' &&
-    cond.field === 'category' &&
-    cond.value === null
-  ) {
-    return new Condition(
-      'and',
-      cond.field,
-      [cond, new Condition('is', 'parent', false, null)],
-      {},
-    );
+  } else if (cond.op === 'isNot' && cond.field === 'category' && cond.value === null) {
+    return new Condition('and', cond.field, [cond, new Condition('is', 'parent', false, null)], {});
   }
   return cond;
 }
@@ -485,7 +429,7 @@ function conditionSpecialCases(cond: Condition | null): Condition | null {
 // This does the inverse: finds all the transactions matching a rule
 export function conditionsToAQL(
   conditions,
-  { recurDateBounds = 100, applySpecialCases = true } = {},
+  {recurDateBounds = 100, applySpecialCases = true} = {},
 ) {
   const errors = [];
 
@@ -508,8 +452,8 @@ export function conditionsToAQL(
 
   // rule -> actualql
   const mapConditionToActualQL = cond => {
-    const { type, options } = cond;
-    let { field, op, value } = cond;
+    const {type, options} = cond;
+    let {field, op, value} = cond;
 
     const getValue = value => {
       if (type === 'number') {
@@ -542,32 +486,27 @@ export function conditionsToAQL(
         if (options) {
           if (options.outflow) {
             return {
-              $and: [
-                { amount: { $lt: 0 } },
-                { [field]: { $transform: '$neg', [aqlOp]: value } },
-              ],
+              $and: [{amount: {$lt: 0}}, {[field]: {$transform: '$neg', [aqlOp]: value}}],
             };
           } else if (options.inflow) {
             return {
-              $and: [{ amount: { $gt: 0 } }, { [field]: { [aqlOp]: value } }],
+              $and: [{amount: {$gt: 0}}, {[field]: {[aqlOp]: value}}],
             };
           }
         }
 
-        return { amount: { [aqlOp]: value } };
+        return {amount: {[aqlOp]: value}};
       } else if (type === 'string') {
         return {
           [field]: {
-            $transform: !['hasTags', 'hasAnyTag'].includes(op)
-              ? '$lower'
-              : undefined,
+            $transform: !['hasTags', 'hasAnyTag'].includes(op) ? '$lower' : undefined,
             [aqlOp]: value,
           },
         };
       } else if (type === 'date') {
-        return { [field]: { [aqlOp]: value.date } };
+        return {[field]: {[aqlOp]: value.date}};
       }
-      return { [field]: { [aqlOp]: value } };
+      return {[field]: {[aqlOp]: value}};
     };
 
     switch (op) {
@@ -576,7 +515,7 @@ export function conditionsToAQL(
         if (type === 'date') {
           if (value.type === 'recur') {
             const dates = value.schedule
-              .occurrences({ take: recurDateBounds })
+              .occurrences({take: recurDateBounds})
               .toArray()
               .map(d => dayFromDate(d.date));
 
@@ -584,13 +523,10 @@ export function conditionsToAQL(
               $or: dates.map(d => {
                 if (op === 'isapprox') {
                   return {
-                    $and: [
-                      { date: { $gte: subDays(d, 2) } },
-                      { date: { $lte: addDays(d, 2) } },
-                    ],
+                    $and: [{date: {$gte: subDays(d, 2)}}, {date: {$lte: addDays(d, 2)}}],
                   };
                 }
-                return { date: d };
+                return {date: d};
               }),
             };
           } else {
@@ -600,24 +536,24 @@ export function conditionsToAQL(
               const low = subDays(fullDate, 2);
 
               return {
-                $and: [{ date: { $gte: low } }, { date: { $lte: high } }],
+                $and: [{date: {$gte: low}}, {date: {$lte: high}}],
               };
             } else {
               switch (value.type) {
                 case 'date':
-                  return { date: value.date };
+                  return {date: value.date};
                 case 'month': {
                   const low = value.date + '-00';
                   const high = value.date + '-99';
                   return {
-                    $and: [{ date: { $gte: low } }, { date: { $lte: high } }],
+                    $and: [{date: {$gte: low}}, {date: {$lte: high}}],
                   };
                 }
                 case 'year': {
                   const low = value.date + '-00-00';
                   const high = value.date + '-99-99';
                   return {
-                    $and: [{ date: { $gte: low } }, { date: { $lte: high } }],
+                    $and: [{date: {$gte: low}}, {date: {$lte: high}}],
                   };
                 }
                 default:
@@ -653,16 +589,12 @@ export function conditionsToAQL(
         // number type so we don't use `apply`
         const [low, high] = sortNumbers(value.num1, value.num2);
         return {
-          [field]: [{ $gte: low }, { $lte: high }],
+          [field]: [{$gte: low}, {$lte: high}],
         };
       case 'contains':
         // Running contains with id will automatically reach into
         // the `name` of the referenced table and do a string match
-        return apply(
-          type === 'id' ? field + '.name' : field,
-          '$like',
-          '%' + value + '%',
-        );
+        return apply(type === 'id' ? field + '.name' : field, '$like', '%' + value + '%');
       case 'matches':
         // Running contains with id will automatically reach into
         // the `name` of the referenced table and do a regex match
@@ -670,18 +602,14 @@ export function conditionsToAQL(
       case 'doesNotContain':
         // Running contains with id will automatically reach into
         // the `name` of the referenced table and do a string match
-        return apply(
-          type === 'id' ? field + '.name' : field,
-          '$notlike',
-          '%' + value + '%',
-        );
+        return apply(type === 'id' ? field + '.name' : field, '$notlike', '%' + value + '%');
       case 'oneOf':
         const values = value;
         if (values.length === 0) {
           // This forces it to match nothing
-          return { id: null };
+          return {id: null};
         }
-        return { $or: values.map(v => apply(field, '$eq', v)) };
+        return {$or: values.map(v => apply(field, '$eq', v))};
 
       case 'hasTags': {
         const tagValues = extractTagsForFilter(value);
@@ -689,14 +617,12 @@ export function conditionsToAQL(
         if (tagValues.length === 0) {
           // No `#tag` patterns in the input — match nothing rather than
           // returning an empty `$and` (which would match every row).
-          return { id: null };
+          return {id: null};
         }
 
         return {
           $and: tagValues.map(v => {
-            const escapedTag = v
-              .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-              .replace(/\\\$/g, '[$]'); // Use '[$]' instead of '\$' so AQL string unescaping doesn't turn it into a bare '$' end-of-string anchor
+            const escapedTag = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\$/g, '[$]'); // Use '[$]' instead of '\$' so AQL string unescaping doesn't turn it into a bare '$' end-of-string anchor
             const pattern = `(?<!#)${escapedTag}([\\s#]|$)`;
             return apply(field, '$regexp', pattern);
           }),
@@ -706,13 +632,11 @@ export function conditionsToAQL(
       case 'hasAnyTag': {
         const tagValues = extractTagsForFilter(value);
         if (tagValues.length === 0) {
-          return { id: null };
+          return {id: null};
         }
         return {
           $or: tagValues.map(v => {
-            const escapedTag = v
-              .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-              .replace(/\\\$/g, '[$]'); // Use '[$]' instead of '\$' so AQL string unescaping doesn't turn it into a bare '$' end-of-string anchor
+            const escapedTag = v.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\$/g, '[$]'); // Use '[$]' instead of '\$' so AQL string unescaping doesn't turn it into a bare '$' end-of-string anchor
             const pattern = `(?<!#)${escapedTag}([\\s#]|$)`;
             return apply(field, '$regexp', pattern);
           }),
@@ -723,9 +647,9 @@ export function conditionsToAQL(
         const notValues = value;
         if (notValues.length === 0) {
           // This forces it to match nothing
-          return { id: null };
+          return {id: null};
         }
-        return { $and: notValues.map(v => apply(field, '$ne', v)) };
+        return {$and: notValues.map(v => apply(field, '$ne', v))};
       case 'gt':
         return apply(field, '$gt', getValue(value));
       case 'gte':
@@ -744,9 +668,9 @@ export function conditionsToAQL(
         };
 
       case 'onBudget':
-        return { 'account.offbudget': false };
+        return {'account.offbudget': false};
       case 'offBudget':
-        return { 'account.offbudget': true };
+        return {'account.offbudget': true};
 
       default:
         throw new Error('Unhandled operator: ' + op);
@@ -754,7 +678,7 @@ export function conditionsToAQL(
   };
 
   const filters = conditions.map(mapConditionToActualQL);
-  return { filters, errors };
+  return {filters, errors};
 }
 
 export async function applyActions(
@@ -774,21 +698,13 @@ export async function applyActions(
           return new Action(action.op, null, action.value, action.options);
         } else if (action.op === 'link-schedule') {
           return new Action(action.op, null, action.value, null);
-        } else if (
-          action.op === 'prepend-notes' ||
-          action.op === 'append-notes'
-        ) {
+        } else if (action.op === 'prepend-notes' || action.op === 'append-notes') {
           return new Action(action.op, null, action.value, null);
         } else if (action.op === 'delete-transaction') {
           return new Action(action.op, null, null, null);
         }
 
-        return new Action(
-          action.op,
-          action.field,
-          action.value,
-          action.options,
-        );
+        return new Action(action.op, action.field, action.value, action.options);
       } catch (e) {
         logger.log('Action error', e);
         return null;
@@ -806,7 +722,7 @@ export async function applyActions(
   const includeBalance = actionsReferenceBalance(parsedActions);
   const transactionsForRules = await Promise.all(
     transactions.map(transaction =>
-      prepareTransactionForRules(transaction, accountsMap, { includeBalance }),
+      prepareTransactionForRules(transaction, accountsMap, {includeBalance}),
     ),
   );
 
@@ -829,7 +745,7 @@ export async function applyActions(
     finalized.push(await finalizeTransactionForRules(trans));
   }
 
-  return batchUpdateTransactions({ updated: finalized });
+  return batchUpdateTransactions({updated: finalized});
 }
 
 export function getRulesForPayee(payeeId) {
@@ -847,7 +763,7 @@ function* getIsSetterRules(
   stage,
   condField,
   actionField,
-  { condValue, actionValue }: { condValue?: string; actionValue?: string },
+  {condValue, actionValue}: {condValue?: string; actionValue?: string},
 ) {
   const rules = getRules();
   for (let i = 0; i < rules.length; i++) {
@@ -874,7 +790,7 @@ function* getOneOfSetterRules(
   stage,
   condField,
   actionField,
-  { condValue, actionValue }: { condValue?: string; actionValue: string },
+  {condValue, actionValue}: {condValue?: string; actionValue: string},
 ) {
   const rules = getRules();
   for (let i = 0; i < rules.length; i++) {
@@ -912,14 +828,11 @@ export async function updatePayeeRenameRule(fromNames: string[], to: string) {
   if (renameRule) {
     const condition = renameRule.conditions[0];
     const newValue = [
-      ...fastSetMerge(
-        new Set(condition.value),
-        new Set(fromNames.filter(name => name !== '')),
-      ),
+      ...fastSetMerge(new Set(condition.value), new Set(fromNames.filter(name => name !== ''))),
     ];
     const rule = {
       ...renameRule,
-      conditions: [{ ...condition, value: newValue }],
+      conditions: [{...condition, value: newValue}],
     };
     await updateRule(rule);
     return renameRule.id;
@@ -927,8 +840,8 @@ export async function updatePayeeRenameRule(fromNames: string[], to: string) {
     const rule = new Rule({
       stage: 'pre',
       conditionsOp: 'and',
-      conditions: [{ op: 'oneOf', field: 'imported_payee', value: fromNames }],
-      actions: [{ op: 'set', field: 'payee', value: to }],
+      conditions: [{op: 'oneOf', field: 'imported_payee', value: fromNames}],
+      actions: [{op: 'set', field: 'payee', value: to}],
     });
     return insertRule(rule.serialize());
   }
@@ -946,7 +859,7 @@ export function getProbableCategory(transactions) {
   const winner = transactions.reduce((winner, trans) => {
     const score = scores.get(trans.category);
     if (!winner || score > winner.score) {
-      return { score, category: trans.category };
+      return {score, category: trans.category};
     }
     return winner;
   }, null);
@@ -1027,7 +940,7 @@ export async function updateCategoryRules(transactions) {
           if (action.value !== category) {
             await updateRule({
               ...rule,
-              actions: [{ ...action, value: category }],
+              actions: [{...action, value: category}],
             });
           }
         }
@@ -1036,8 +949,8 @@ export async function updateCategoryRules(transactions) {
         const newRule = new Rule({
           stage: null,
           conditionsOp: 'and',
-          conditions: [{ op: 'is', field: 'payee', value: payeeId }],
-          actions: [{ op: 'set', field: 'category', value: category }],
+          conditions: [{op: 'is', field: 'payee', value: payeeId}],
+          actions: [{op: 'set', field: 'category', value: category}],
         });
         await insertRule(newRule.serialize());
       }
@@ -1071,37 +984,32 @@ export async function getRunningBalanceBeforeTransaction(
 ): Promise<number> {
   const dateBoundary = trans.date ?? currentDay();
   let query = q('transactions')
-    .filter({ account: accountId, is_parent: false })
-    .options({ splits: 'inline' });
+    .filter({account: accountId, is_parent: false})
+    .options({splits: 'inline'});
 
   if (trans.id) {
-    query = query.filter({ id: { $ne: trans.id } });
+    query = query.filter({id: {$ne: trans.id}});
   }
 
   const sameDayFilter =
     trans.sort_order != null
       ? {
-          $and: [
-            { date: dateBoundary },
-            { sort_order: { $lt: trans.sort_order } },
-          ],
+          $and: [{date: dateBoundary}, {sort_order: {$lt: trans.sort_order}}],
         }
       : {
           $and: [
-            { date: dateBoundary },
+            {date: dateBoundary},
             {
               $or: [
-                { sort_order: { $ne: null } }, // ordered items come before null sort_order
-                ...(trans.id ? [{ id: { $lt: trans.id } }] : []), // among nulls, tie-break by id
+                {sort_order: {$ne: null}}, // ordered items come before null sort_order
+                ...(trans.id ? [{id: {$lt: trans.id}}] : []), // among nulls, tie-break by id
               ],
             },
           ],
         };
 
-  const { data: balance } = await aqlQuery(
-    query
-      .filter({ $or: [{ date: { $lt: dateBoundary } }, sameDayFilter] })
-      .calculate({ $sum: '$amount' }),
+  const {data: balance} = await aqlQuery(
+    query.filter({$or: [{date: {$lt: dateBoundary}}, sameDayFilter]}).calculate({$sum: '$amount'}),
   );
 
   return balance ?? 0;
@@ -1122,10 +1030,7 @@ export async function prefetchBalanceOfForTransaction(
   for (const literal of literals) {
     const accountId = resolveAccountIdForBalanceOf(literal, accountsMap);
     if (accountId) {
-      map.set(
-        literal,
-        await getRunningBalanceBeforeTransaction(trans, accountId),
-      );
+      map.set(literal, await getRunningBalanceBeforeTransaction(trans, accountId));
     } else {
       map.set(literal, 0);
     }
@@ -1140,10 +1045,10 @@ const BALANCE_VARIABLE = /\bbalance\b/i;
 // `balance` variable. `BALANCE_OF(...)` is a different, prefetched value
 // and does not count.
 export function actionsReferenceBalance(
-  actions: Array<{ options?: { template?: string; formula?: string } }>,
+  actions: Array<{options?: {template?: string; formula?: string}}>,
 ): boolean {
   return actions.some(action => {
-    const { template, formula } = action.options ?? {};
+    const {template, formula} = action.options ?? {};
     return (
       (typeof template === 'string' && BALANCE_VARIABLE.test(template)) ||
       (typeof formula === 'string' && BALANCE_VARIABLE.test(formula))
@@ -1154,9 +1059,9 @@ export function actionsReferenceBalance(
 export async function prepareTransactionForRules(
   trans: TransactionEntity,
   accounts: Map<string, db.DbAccount> | null = null,
-  { includeBalance = true }: { includeBalance?: boolean } = {},
+  {includeBalance = true}: {includeBalance?: boolean} = {},
 ): Promise<TransactionForRules> {
-  const r: TransactionForRules = { ...trans };
+  const r: TransactionForRules = {...trans};
   if (trans.payee) {
     const payee = await getPayee(trans.payee);
     if (payee) {
@@ -1176,10 +1081,7 @@ export async function prepareTransactionForRules(
     }
 
     if (includeBalance) {
-      r.balance = await getRunningBalanceBeforeTransaction(
-        trans,
-        trans.account,
-      );
+      r.balance = await getRunningBalanceBeforeTransaction(trans, trans.account);
     }
   }
 

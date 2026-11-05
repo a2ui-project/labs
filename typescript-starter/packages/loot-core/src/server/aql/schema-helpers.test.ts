@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-import {
-  conform,
-  convertForInsert,
-  convertForUpdate,
-  convertFromSelect,
-} from './schema-helpers';
+import {conform, convertForInsert, convertForUpdate, convertFromSelect} from './schema-helpers';
 
 const basicSchema = {
   transactions: {
-    id: { type: 'id' },
-    date: { type: 'date', required: true },
-    account: { type: 'id', required: true },
-    amount: { type: 'integer', default: 0, required: true },
-    cleared: { type: 'boolean', default: true },
-    notes: { type: 'text' },
-    sort_order: { type: 'float', default: () => Date.now() },
+    id: {type: 'id'},
+    date: {type: 'date', required: true},
+    account: {type: 'id', required: true},
+    amount: {type: 'integer', default: 0, required: true},
+    cleared: {type: 'boolean', default: true},
+    notes: {type: 'text'},
+    sort_order: {type: 'float', default: () => Date.now()},
   },
 };
 
@@ -69,7 +64,7 @@ describe('schema-helpers', () => {
       id: 'foo',
       amount: 5001,
     });
-    expect(trans).toEqual({ id: 'foo', amount: 5001 });
+    expect(trans).toEqual({id: 'foo', amount: 5001});
   });
 
   test('insert forces required fields to exist and be non-null', () => {
@@ -149,11 +144,11 @@ describe('schema-helpers', () => {
       basicSchema,
       {
         views: {
-          transactions: { fields: { amount: 'amount2', cleared: 'cleared2' } },
+          transactions: {fields: {amount: 'amount2', cleared: 'cleared2'}},
         },
       },
       'transactions',
-      { amount: 100, cleared: false, date: '2020-01-01' },
+      {amount: 100, cleared: false, date: '2020-01-01'},
     );
     expect(obj.amount2).toBe(100);
     expect(obj.cleared2).toBe(0);

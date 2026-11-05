@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-import type {
-  balanceTypeOpType,
-  GroupedEntity,
-  sortByOpType,
-} from '@actual-app/core/types/models';
+import type {balanceTypeOpType, GroupedEntity, sortByOpType} from '@actual-app/core/types/models';
 
 const reverseSort: Partial<Record<sortByOpType, sortByOpType>> = {
   asc: 'desc',

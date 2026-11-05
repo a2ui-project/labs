@@ -14,33 +14,33 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useEffect, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { SvgExclamationSolid } from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {SvgExclamationSolid} from '@actual-app/components/icons/v1';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { CustomReportEntity } from '@actual-app/core/types/models';
+import type {CustomReportEntity} from '@actual-app/core/types/models';
 
-import { DateRange } from '#components/reports/DateRange';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { calculateHasWarning } from '#components/reports/util';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { usePayees } from '#hooks/usePayees';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { useUpdateReportMutation } from '#reports/mutations';
+import {DateRange} from '#components/reports/DateRange';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {calculateHasWarning} from '#components/reports/util';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {usePayees} from '#hooks/usePayees';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {useUpdateReportMutation} from '#reports/mutations';
 
-import { GetCardData } from './GetCardData';
-import { MissingReportCard } from './MissingReportCard';
+import {GetCardData} from './GetCardData';
+import {MissingReportCard} from './MissingReportCard';
 
 type CustomReportListCardsProps = {
   widgetId: string;
@@ -48,11 +48,7 @@ type CustomReportListCardsProps = {
   report?: CustomReportEntity;
 };
 
-export function CustomReportListCards({
-  widgetId,
-  isEditing,
-  report,
-}: CustomReportListCardsProps) {
+export function CustomReportListCards({widgetId, isEditing, report}: CustomReportListCardsProps) {
   // It's possible for a dashboard to reference a non-existing
   // custom report
   if (!report) {
@@ -63,13 +59,7 @@ export function CustomReportListCards({
     );
   }
 
-  return (
-    <CustomReportListCardsInner
-      widgetId={widgetId}
-      isEditing={isEditing}
-      report={report}
-    />
-  );
+  return <CustomReportListCardsInner widgetId={widgetId} isEditing={isEditing} report={report} />;
 }
 
 function CustomReportListCardsInner({
@@ -79,7 +69,7 @@ function CustomReportListCardsInner({
 }: CustomReportListCardsProps & {
   report: CustomReportEntity;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const dispatch = useDispatch();
 
@@ -87,9 +77,9 @@ function CustomReportListCardsInner({
   const [earliestTransaction, setEarliestTransaction] = useState('');
   const [latestTransaction, setLatestTransaction] = useState('');
 
-  const { data: payees = [] } = usePayees();
-  const { data: accounts = [] } = useAccounts();
-  const { data: categories = { list: [], grouped: [] } } = useCategories();
+  const {data: payees = []} = usePayees();
+  const {data: accounts = []} = useAccounts();
+  const {data: categories = {list: [], grouped: []}} = useCategories();
 
   const hasWarning = calculateHasWarning(report.conditions ?? [], {
     categories: categories.list,
@@ -104,12 +94,8 @@ function CustomReportListCardsInner({
     async function run() {
       const earliestTrans = await send('get-earliest-transaction');
       const latestTrans = await send('get-latest-transaction');
-      setEarliestTransaction(
-        earliestTrans ? earliestTrans.date : monthUtils.currentDay(),
-      );
-      setLatestTransaction(
-        latestTrans ? latestTrans.date : monthUtils.currentDay(),
-      );
+      setEarliestTransaction(earliestTrans ? earliestTrans.date : monthUtils.currentDay());
+      setLatestTransaction(latestTrans ? latestTrans.date : monthUtils.currentDay());
     }
     void run();
   }, []);
@@ -123,7 +109,7 @@ function CustomReportListCardsInner({
     };
 
     updateReportMutation.mutate(
-      { report: updatedReport },
+      {report: updatedReport},
       {
         onSuccess: () => {
           setNameMenuOpen(false);
@@ -153,14 +139,14 @@ function CustomReportListCardsInner({
       to={`/reports/custom/${report.id}`}
       onRename={() => setNameMenuOpen(true)}
     >
-      <View style={{ flex: 1, padding: 10 }}>
+      <View style={{flex: 1, padding: 10}}>
         <View
           style={{
             flexShrink: 0,
             paddingBottom: 5,
           }}
         >
-          <View style={{ flex: 1 }}>
+          <View style={{flex: 1}}>
             <ReportCardName
               name={report.name}
               isEditing={nameMenuOpen}
@@ -170,9 +156,7 @@ function CustomReportListCardsInner({
             {report.isDateStatic ? (
               <DateRange start={report.startDate} end={report.endDate} />
             ) : (
-              <Text style={{ color: theme.pageTextSubdued }}>
-                {t(report.dateRange)}
-              </Text>
+              <Text style={{color: theme.pageTextSubdued}}>{t(report.dateRange)}</Text>
             )}
           </View>
         </View>
@@ -188,19 +172,15 @@ function CustomReportListCardsInner({
         />
       </View>
       {hasWarning && (
-        <View style={{ padding: 5, position: 'absolute', bottom: 0 }}>
+        <View style={{padding: 5, position: 'absolute', bottom: 0}}>
           <Tooltip
             content={t(
               'The widget is configured to use a non-existing filter value (i.e. category/account/payee). Edit the filters used in this report widget to remove the warning.',
             )}
             placement="bottom start"
-            style={{ ...styles.tooltip, maxWidth: 300 }}
+            style={{...styles.tooltip, maxWidth: 300}}
           >
-            <SvgExclamationSolid
-              width={20}
-              height={20}
-              style={{ color: theme.warningText }}
-            />
+            <SvgExclamationSolid width={20} height={20} style={{color: theme.warningText}} />
           </Tooltip>
         </View>
       )}

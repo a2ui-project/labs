@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { RuleConditionEntity } from '@actual-app/core/types/models';
+import type {RuleConditionEntity} from '@actual-app/core/types/models';
 
 export function subfieldFromFilter({
   field,

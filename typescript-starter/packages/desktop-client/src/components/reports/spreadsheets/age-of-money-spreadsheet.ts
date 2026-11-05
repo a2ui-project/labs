@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type {
-  AgeOfMoneyGranularity,
-  RuleConditionEntity,
-} from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import type {AgeOfMoneyGranularity, RuleConditionEntity} from '@actual-app/core/types/models';
 import * as d from 'date-fns';
 
-import { runAll } from '#components/reports/util';
-import type { useSpreadsheet } from '#hooks/useSpreadsheet';
+import {runAll} from '#components/reports/util';
+import type {useSpreadsheet} from '#hooks/useSpreadsheet';
 
 export type AgeOfMoneyData = {
   graphData: Array<{
@@ -70,13 +67,13 @@ export function classifyTransactions(transactions: TransactionWithCategory[]): {
 
   for (const t of transactions) {
     if (t.amount > 0) {
-      income.push({ id: t.id, date: t.date, amount: t.amount });
+      income.push({id: t.id, date: t.date, amount: t.amount});
     } else {
-      expenses.push({ id: t.id, date: t.date, amount: t.amount });
+      expenses.push({id: t.id, date: t.date, amount: t.amount});
     }
   }
 
-  return { income, expenses };
+  return {income, expenses};
 }
 
 /**
@@ -90,11 +87,9 @@ export function classifyTransactions(transactions: TransactionWithCategory[]): {
 export function calculateAgeOfMoney(
   incomeTransactions: Transaction[],
   expenseTransactions: Transaction[],
-): { ages: Array<{ date: string; age: number }>; insufficientData: boolean } {
+): {ages: Array<{date: string; age: number}>; insufficientData: boolean} {
   // Sort income by date ascending (oldest first)
-  const sortedIncome = [...incomeTransactions].sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
+  const sortedIncome = [...incomeTransactions].sort((a, b) => a.date.localeCompare(b.date));
 
   // Create income buckets
   const buckets: IncomeBucket[] = sortedIncome.map(t => ({
@@ -103,11 +98,9 @@ export function calculateAgeOfMoney(
   }));
 
   // Sort expenses by date ascending
-  const sortedExpenses = [...expenseTransactions].sort((a, b) =>
-    a.date.localeCompare(b.date),
-  );
+  const sortedExpenses = [...expenseTransactions].sort((a, b) => a.date.localeCompare(b.date));
 
-  const ages: Array<{ date: string; age: number }> = [];
+  const ages: Array<{date: string; age: number}> = [];
   let currentBucketIdx = 0;
   let insufficientData = false;
 
@@ -144,18 +137,18 @@ export function calculateAgeOfMoney(
       const expenseDate = d.parseISO(expense.date);
       const bucketDate = d.parseISO(lastBucketDate);
       const ageInDays = d.differenceInDays(expenseDate, bucketDate);
-      ages.push({ date: expense.date, age: Math.max(0, ageInDays) });
+      ages.push({date: expense.date, age: Math.max(0, ageInDays)});
     }
   }
 
-  return { ages, insufficientData };
+  return {ages, insufficientData};
 }
 
 /**
  * Calculate the average of the last N ages
  */
 export function calculateAverageAge(
-  ages: Array<{ date: string; age: number }>,
+  ages: Array<{date: string; age: number}>,
   count: number = 10,
 ): number | null {
   if (ages.length === 0) return null;
@@ -168,17 +161,14 @@ export function calculateAverageAge(
 /**
  * Get the period key for a given date based on granularity
  */
-export function getPeriodKey(
-  date: string,
-  granularity: AgeOfMoneyGranularity,
-): string {
+export function getPeriodKey(date: string, granularity: AgeOfMoneyGranularity): string {
   const parsed = d.parseISO(date);
   switch (granularity) {
     case 'daily':
       return date; // YYYY-MM-DD
     case 'weekly': {
       // Use start of week (Monday) as key
-      const weekStart = d.startOfWeek(parsed, { weekStartsOn: 1 });
+      const weekStart = d.startOfWeek(parsed, {weekStartsOn: 1});
       return d.format(weekStart, 'yyyy-MM-dd');
     }
     case 'monthly':
@@ -190,10 +180,7 @@ export function getPeriodKey(
 /**
  * Format a period key for display based on granularity
  */
-export function formatPeriodLabel(
-  periodKey: string,
-  granularity: AgeOfMoneyGranularity,
-): string {
+export function formatPeriodLabel(periodKey: string, granularity: AgeOfMoneyGranularity): string {
   switch (granularity) {
     case 'daily':
       return d.format(d.parseISO(periodKey), 'MMM d, yyyy');
@@ -226,7 +213,7 @@ export function generatePeriods(
       break;
     case 'weekly':
       // Start from the beginning of the week containing startDate
-      current = d.startOfWeek(current, { weekStartsOn: 1 });
+      current = d.startOfWeek(current, {weekStartsOn: 1});
       while (current <= end) {
         periods.push(d.format(current, 'yyyy-MM-dd'));
         current = d.addWeeks(current, 1);
@@ -249,11 +236,11 @@ export function generatePeriods(
  * Group ages by period and calculate rolling average for each period
  */
 export function calculateGraphData(
-  ages: Array<{ date: string; age: number }>,
+  ages: Array<{date: string; age: number}>,
   startMonth: string,
   endMonth: string,
   granularity: AgeOfMoneyGranularity = 'monthly',
-): Array<{ date: string; ageOfMoney: number }> {
+): Array<{date: string; ageOfMoney: number}> {
   const startDate = monthUtils.firstDayOfMonth(startMonth);
   let endDate = monthUtils.lastDayOfMonth(endMonth);
 
@@ -269,11 +256,11 @@ export function calculateGraphData(
   }
 
   const periods = generatePeriods(startDate, endDate, granularity);
-  const result: Array<{ date: string; ageOfMoney: number }> = [];
+  const result: Array<{date: string; ageOfMoney: number}> = [];
 
   // Group ages by period
   const agesByPeriod: Record<string, number[]> = {};
-  for (const { date, age } of ages) {
+  for (const {date, age} of ages) {
     const periodKey = getPeriodKey(date, granularity);
     if (!agesByPeriod[periodKey]) {
       agesByPeriod[periodKey] = [];
@@ -308,7 +295,7 @@ export function calculateGraphData(
  * Determine the trend based on the last few data points
  */
 export function calculateTrend(
-  graphData: Array<{ date: string; ageOfMoney: number }>,
+  graphData: Array<{date: string; ageOfMoney: number}>,
 ): 'up' | 'down' | 'stable' {
   if (graphData.length < 2) return 'stable';
 
@@ -331,15 +318,13 @@ export type AgeOfMoneyParams = {
   granularity?: AgeOfMoneyGranularity;
 };
 
-type AccountCondition = Extract<RuleConditionEntity, { field: 'account' }>;
+type AccountCondition = Extract<RuleConditionEntity, {field: 'account'}>;
 
 /**
  * Invert an account filter op so we can match counterpart accounts that
  * fall *outside* the filtered set.
  */
-function invertAccountOp(
-  op: AccountCondition['op'],
-): AccountCondition['op'] | null {
+function invertAccountOp(op: AccountCondition['op']): AccountCondition['op'] | null {
   switch (op) {
     case 'is':
       return 'isNot';
@@ -377,26 +362,26 @@ function accountConditionToTransferAcctAql(
 
   switch (op) {
     case 'is':
-      return { [field]: { $eq: value } };
+      return {[field]: {$eq: value}};
     case 'isNot':
-      return { [field]: { $ne: value } };
+      return {[field]: {$ne: value}};
     case 'oneOf': {
       if (!Array.isArray(value)) return null;
       const values = value;
-      if (values.length === 0) return { id: null };
-      return { $or: values.map(v => ({ [field]: { $eq: v } })) };
+      if (values.length === 0) return {id: null};
+      return {$or: values.map(v => ({[field]: {$eq: v}}))};
     }
     case 'notOneOf': {
       if (!Array.isArray(value)) return null;
       const values = value;
       // Empty notOneOf is a tautology (everything is outside the empty set).
-      if (values.length === 0) return { [field]: { $ne: null } };
-      return { $and: values.map(v => ({ [field]: { $ne: v } })) };
+      if (values.length === 0) return {[field]: {$ne: null}};
+      return {$and: values.map(v => ({[field]: {$ne: v}}))};
     }
     case 'onBudget':
-      return { 'payee.transfer_acct.offbudget': false };
+      return {'payee.transfer_acct.offbudget': false};
     case 'offBudget':
-      return { 'payee.transfer_acct.offbudget': true };
+      return {'payee.transfer_acct.offbudget': true};
     case 'contains': {
       if (typeof value !== 'string') return null;
       return {
@@ -437,8 +422,8 @@ export function buildTransferInclusionFilter(
   conditionsOp: 'and' | 'or' = 'and',
 ): Record<string, unknown> {
   const base: Array<Record<string, unknown>> = [
-    { 'payee.transfer_acct': null },
-    { 'payee.transfer_acct.offbudget': true },
+    {'payee.transfer_acct': null},
+    {'payee.transfer_acct.offbudget': true},
   ];
 
   const accountConditions = conditions.filter(
@@ -446,7 +431,7 @@ export function buildTransferInclusionFilter(
   );
 
   if (accountConditions.length === 0) {
-    return { $or: base };
+    return {$or: base};
   }
 
   // Destination/source is outside the filtered set when it fails the
@@ -457,11 +442,11 @@ export function buildTransferInclusionFilter(
     const invertedOp = invertAccountOp(cond.op);
     if (invertedOp == null) {
       // Unsupported op — fall back to default transfer exclusion
-      return { $or: base };
+      return {$or: base};
     }
     const clause = accountConditionToTransferAcctAql(invertedOp, cond.value);
     if (clause == null) {
-      return { $or: base };
+      return {$or: base};
     }
     negations.push(clause);
   }
@@ -470,19 +455,16 @@ export function buildTransferInclusionFilter(
     conditionsOp === 'and'
       ? negations.length === 1
         ? negations[0]
-        : { $or: negations }
+        : {$or: negations}
       : negations.length === 1
         ? negations[0]
-        : { $and: negations };
+        : {$and: negations};
 
   return {
     $or: [
       ...base,
       {
-        $and: [
-          { 'payee.transfer_acct.offbudget': false },
-          filteredOutCounterpart,
-        ],
+        $and: [{'payee.transfer_acct.offbudget': false}, filteredOutCounterpart],
       },
     ],
   };
@@ -504,14 +486,11 @@ export function createAgeOfMoneySpreadsheet({
     const fixedEnd = endDate > today ? today : endDate;
 
     const activeConditions = conditions.filter(cond => !cond.customName);
-    const { filters } = await send('make-filters-from-conditions', {
+    const {filters} = await send('make-filters-from-conditions', {
       conditions: activeConditions,
     });
     const conditionsOpKey = conditionsOp === 'or' ? '$or' : '$and';
-    const transferFilter = buildTransferInclusionFilter(
-      activeConditions,
-      conditionsOp,
-    );
+    const transferFilter = buildTransferInclusionFilter(activeConditions, conditionsOp);
 
     // Query for ALL income transactions up to the end date
     // FIFO requires complete income history to calculate ages correctly
@@ -524,10 +503,10 @@ export function createAgeOfMoneySpreadsheet({
           [conditionsOpKey]: filters,
         })
         .filter({
-          date: { $lte: fixedEnd },
+          date: {$lte: fixedEnd},
           'account.offbudget': false,
           ...transferFilter,
-          amount: { $gt: 0 },
+          amount: {$gt: 0},
         })
         .select(['id', 'date', 'amount']);
     }
@@ -543,10 +522,10 @@ export function createAgeOfMoneySpreadsheet({
           [conditionsOpKey]: filters,
         })
         .filter({
-          date: { $lte: fixedEnd },
+          date: {$lte: fixedEnd},
           'account.offbudget': false,
           ...transferFilter,
-          amount: { $lt: 0 },
+          amount: {$lt: 0},
         })
         .select(['id', 'date', 'amount']);
     }
@@ -555,22 +534,14 @@ export function createAgeOfMoneySpreadsheet({
       const [incomeData, expenseData] = data as [Transaction[], Transaction[]];
 
       // Calculate ages using FIFO method on ALL historical data
-      const { ages, insufficientData } = calculateAgeOfMoney(
-        incomeData,
-        expenseData,
-      );
+      const {ages, insufficientData} = calculateAgeOfMoney(incomeData, expenseData);
 
       // Filter ages to only those within the display range
       const displayStart = monthUtils.firstDayOfMonth(start);
-      const filteredAges = ages.filter(({ date }) => date >= displayStart);
+      const filteredAges = ages.filter(({date}) => date >= displayStart);
 
       // Generate graph data from filtered ages with specified granularity
-      const graphData = calculateGraphData(
-        filteredAges,
-        start,
-        end,
-        granularity,
-      );
+      const graphData = calculateGraphData(filteredAges, start, end, granularity);
 
       // Calculate current age from ages within the display range
       const currentAge = calculateAverageAge(filteredAges, 10);

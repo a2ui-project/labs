@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { parseBoolFlag, parseIntFlag } from './utils';
+import {parseBoolFlag, parseIntFlag} from './utils';
 
 describe('parseBoolFlag', () => {
   it('parses "true"', () => {
@@ -32,9 +32,7 @@ describe('parseBoolFlag', () => {
   });
 
   it('includes the flag name in the error message', () => {
-    expect(() => parseBoolFlag('1', '--offbudget')).toThrow(
-      'Invalid --offbudget',
-    );
+    expect(() => parseBoolFlag('1', '--offbudget')).toThrow('Invalid --offbudget');
   });
 });
 

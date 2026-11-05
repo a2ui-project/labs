@@ -16,14 +16,10 @@
 
 // @ts-strict-ignore
 import * as asyncStorage from '#platform/server/asyncStorage';
-import { createApp } from '#server/app';
-import { del, get, patch, post } from '#server/post';
-import { getServer } from '#server/server-config';
-import type {
-  NewUserAccessEntity,
-  UserAvailable,
-  UserEntity,
-} from '#types/models';
+import {createApp} from '#server/app';
+import {del, get, patch, post} from '#server/post';
+import {getServer} from '#server/server-config';
+import type {NewUserAccessEntity, UserAvailable, UserEntity} from '#types/models';
 
 export type AdminHandlers = {
   'users-get': typeof getUsers;
@@ -65,7 +61,7 @@ async function getUsers() {
         const list = JSON.parse(res) as UserEntity[];
         return list;
       } catch (err) {
-        return { error: 'Failed to parse response: ' + err.message };
+        return {error: 'Failed to parse response: ' + err.message};
       }
     }
   }
@@ -75,9 +71,7 @@ async function getUsers() {
 
 async function deleteAllUsers(
   ids: Array<UserEntity['id']>,
-): Promise<
-  { someDeletionsFailed: boolean; ids?: number[] } | { error: string }
-> {
+): Promise<{someDeletionsFailed: boolean; ids?: number[]} | {error: string}> {
   const userToken = await asyncStorage.getItem('user-token');
   if (userToken) {
     try {
@@ -95,16 +89,14 @@ async function deleteAllUsers(
         return res;
       }
     } catch (err) {
-      return { error: err.reason };
+      return {error: err.reason};
     }
   }
 
-  return { someDeletionsFailed: true };
+  return {someDeletionsFailed: true};
 }
 
-async function addUser(
-  user: Omit<UserEntity, 'id'>,
-): Promise<{ error: string } | { id: string }> {
+async function addUser(user: Omit<UserEntity, 'id'>): Promise<{error: string} | {id: string}> {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (userToken) {
@@ -115,16 +107,14 @@ async function addUser(
 
       return res as UserEntity;
     } catch (err) {
-      return { error: err.reason };
+      return {error: err.reason};
     }
   }
 
   return null;
 }
 
-async function updateUser(
-  user: Omit<UserEntity, 'id'>,
-): Promise<{ error: string } | { id: string }> {
+async function updateUser(user: Omit<UserEntity, 'id'>): Promise<{error: string} | {id: string}> {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (userToken) {
@@ -135,7 +125,7 @@ async function updateUser(
 
       return res as UserEntity;
     } catch (err) {
-      return { error: err.reason };
+      return {error: err.reason};
     }
   }
 
@@ -144,7 +134,7 @@ async function updateUser(
 
 async function addAccess(
   access: NewUserAccessEntity,
-): Promise<{ error?: string } | Record<string, never>> {
+): Promise<{error?: string} | Record<string, never>> {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (userToken) {
@@ -155,7 +145,7 @@ async function addAccess(
 
       return {};
     } catch (err) {
-      return { error: err.reason };
+      return {error: err.reason};
     }
   }
 
@@ -168,51 +158,41 @@ async function deleteAllAccess({
 }: {
   fileId: string;
   ids: string[];
-}): Promise<
-  { someDeletionsFailed: boolean; ids?: number[] } | { error: unknown }
-> {
+}): Promise<{someDeletionsFailed: boolean; ids?: number[]} | {error: unknown}> {
   const userToken = await asyncStorage.getItem('user-token');
   if (userToken) {
     try {
-      const res = await del(
-        getServer().BASE_SERVER + `/admin/access?fileId=${fileId}`,
-        {
-          token: userToken,
-          ids,
-        },
-      );
+      const res = await del(getServer().BASE_SERVER + `/admin/access?fileId=${fileId}`, {
+        token: userToken,
+        ids,
+      });
 
       if (res) {
         return res;
       }
     } catch (err) {
-      return { error: err.reason };
+      return {error: err.reason};
     }
   }
 
-  return { someDeletionsFailed: true };
+  return {someDeletionsFailed: true};
 }
 
-async function accessGetAvailableUsers(
-  fileId: string,
-): Promise<UserAvailable[] | { error: string }> {
+async function accessGetAvailableUsers(fileId: string): Promise<UserAvailable[] | {error: string}> {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (userToken) {
-    const res = await get(
-      `${getServer().BASE_SERVER + '/admin/access/users'}?fileId=${fileId}`,
-      {
-        headers: {
-          'X-ACTUAL-TOKEN': userToken,
-        },
+    const res = await get(`${getServer().BASE_SERVER + '/admin/access/users'}?fileId=${fileId}`, {
+      headers: {
+        'X-ACTUAL-TOKEN': userToken,
       },
-    );
+    });
 
     if (res) {
       try {
         return JSON.parse(res) as UserAvailable[];
       } catch (err) {
-        return { error: 'Failed to parse response: ' + err.message };
+        return {error: 'Failed to parse response: ' + err.message};
       }
     }
   }
@@ -226,20 +206,20 @@ async function transferOwnership({
 }: {
   fileId: string;
   newUserId: string;
-}): Promise<{ error?: string } | Record<string, never>> {
+}): Promise<{error?: string} | Record<string, never>> {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (userToken) {
     try {
       await post(
         getServer().BASE_SERVER + '/admin/access/transfer-ownership/',
-        { fileId, newUserId },
+        {fileId, newUserId},
         {
           'X-ACTUAL-TOKEN': userToken,
         },
       );
     } catch (err) {
-      return { error: err.reason };
+      return {error: err.reason};
     }
   }
 

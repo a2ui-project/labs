@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { useTranslation } from 'react-i18next';
+import {useMemo} from 'react';
+import {useHotkeys} from 'react-hotkeys-hook';
+import {useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
-import { validForMerge } from '@actual-app/core/shared/merge';
-import { q } from '@actual-app/core/shared/query';
-import {
-  extractScheduleConds,
-  scheduleIsRecurring,
-} from '@actual-app/core/shared/schedules';
-import { isPreviewId } from '@actual-app/core/shared/transactions';
-import { validForTransfer } from '@actual-app/core/shared/transfer';
-import type { TransactionEntity } from '@actual-app/core/types/models';
+import {Menu} from '@actual-app/components/menu';
+import {validForMerge} from '@actual-app/core/shared/merge';
+import {q} from '@actual-app/core/shared/query';
+import {extractScheduleConds, scheduleIsRecurring} from '@actual-app/core/shared/schedules';
+import {isPreviewId} from '@actual-app/core/shared/transactions';
+import {validForTransfer} from '@actual-app/core/shared/transfer';
+import type {TransactionEntity} from '@actual-app/core/types/models';
 
-import { SelectedItemsButton } from '#components/table';
-import { useSchedules } from '#hooks/useSchedules';
-import { useSelectedItems } from '#hooks/useSelected';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {SelectedItemsButton} from '#components/table';
+import {useSchedules} from '#hooks/useSchedules';
+import {useSelectedItems} from '#hooks/useSelected';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
 type SelectedTransactionsButtonProps = {
   getTransaction: (id: string) => TransactionEntity | undefined;
@@ -41,14 +38,7 @@ type SelectedTransactionsButtonProps = {
   onDuplicate: (selectedIds: string[]) => void;
   onDelete: (selectedIds: string[]) => void;
   onEdit: (
-    type:
-      | 'date'
-      | 'amount'
-      | 'account'
-      | 'payee'
-      | 'notes'
-      | 'category'
-      | 'cleared',
+    type: 'date' | 'amount' | 'account' | 'payee' | 'notes' | 'category' | 'cleared',
     selectedIds: string[],
   ) => void;
   onLinkSchedule: (selectedIds: string[]) => void;
@@ -83,24 +73,22 @@ export function SelectedTransactionsButton({
   onMakeAsNonSplitTransactions,
   onMergeTransactions,
 }: SelectedTransactionsButtonProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const selectedItems = useSelectedItems();
   const selectedIds = useMemo(() => [...selectedItems], [selectedItems]);
 
   const scheduleIds = useMemo(() => {
-    return selectedIds
-      .filter(id => isPreviewId(id))
-      .map(id => id.split('/')[1]);
+    return selectedIds.filter(id => isPreviewId(id)).map(id => id.split('/')[1]);
   }, [selectedIds]);
 
   const scheduleQuery = useMemo(() => {
     return q('schedules')
-      .filter({ id: { $oneof: scheduleIds } })
+      .filter({id: {$oneof: scheduleIds}})
       .select('*');
   }, [scheduleIds]);
 
-  const { schedules: selectedSchedules } = useSchedules({
+  const {schedules: selectedSchedules} = useSchedules({
     query: scheduleQuery,
   });
 
@@ -128,19 +116,18 @@ export function SelectedTransactionsButton({
     );
   }, [types.preview, selectedIds, getTransaction]);
 
-  const twoTransactions: [TransactionEntity, TransactionEntity] | undefined =
-    useMemo(() => {
-      if (selectedIds?.length !== 2) {
-        return undefined;
-      }
-      const [t0, t1] = selectedIds.map(getTransaction);
-      // previously selected transactions aren't always present in current transaction list
-      if (!t0 || !t1) {
-        return undefined;
-      }
+  const twoTransactions: [TransactionEntity, TransactionEntity] | undefined = useMemo(() => {
+    if (selectedIds?.length !== 2) {
+      return undefined;
+    }
+    const [t0, t1] = selectedIds.map(getTransaction);
+    // previously selected transactions aren't always present in current transaction list
+    if (!t0 || !t1) {
+      return undefined;
+    }
 
-      return [t0, t1];
-    }, [selectedIds, getTransaction]);
+    return [t0, t1];
+  }, [selectedIds, getTransaction]);
 
   const canBeTransfer = useMemo(() => {
     // only two selected
@@ -152,14 +139,12 @@ export function SelectedTransactionsButton({
   }, [twoTransactions]);
 
   const canMerge = useMemo(() => {
-    return Boolean(
-      twoTransactions && validForMerge(twoTransactions[0], twoTransactions[1]),
-    );
+    return Boolean(twoTransactions && validForMerge(twoTransactions[0], twoTransactions[1]));
   }, [twoTransactions]);
 
   const canBeSkipped = useMemo(() => {
     const recurringSchedules = selectedSchedules.filter(s => {
-      const { date: dateCond } = extractScheduleConds(s._conditions);
+      const {date: dateCond} = extractScheduleConds(s._conditions);
       return scheduleIsRecurring(dateCond);
     });
 
@@ -168,7 +153,7 @@ export function SelectedTransactionsButton({
 
   const canBeCompleted = useMemo(() => {
     const singleSchedules = selectedSchedules.filter(s => {
-      const { date: dateCond } = extractScheduleConds(s._conditions);
+      const {date: dateCond} = extractScheduleConds(s._conditions);
       return !scheduleIsRecurring(dateCond);
     });
 
@@ -184,23 +169,12 @@ export function SelectedTransactionsButton({
     const [firstTransaction] = transactions;
 
     const areAllSameDateAndAccount = transactions.every(
-      tx =>
-        tx &&
-        tx.date === firstTransaction?.date &&
-        tx.account === firstTransaction?.account,
+      tx => tx && tx.date === firstTransaction?.date && tx.account === firstTransaction?.account,
     );
-    const areNoSplitTransactions = transactions.every(
-      tx => tx && !tx.is_parent && !tx.is_child,
-    );
-    const areNoReconciledTransactions = transactions.every(
-      tx => tx && !tx.reconciled,
-    );
+    const areNoSplitTransactions = transactions.every(tx => tx && !tx.is_parent && !tx.is_child);
+    const areNoReconciledTransactions = transactions.every(tx => tx && !tx.reconciled);
 
-    return (
-      areAllSameDateAndAccount &&
-      areNoSplitTransactions &&
-      areNoReconciledTransactions
-    );
+    return areAllSameDateAndAccount && areNoSplitTransactions && areNoReconciledTransactions;
   }, [selectedIds, types, getTransaction]);
 
   const canUnsplitTransactions = useMemo(() => {
@@ -210,12 +184,8 @@ export function SelectedTransactionsButton({
 
     const transactions = selectedIds.map(id => getTransaction(id));
 
-    const areNoReconciledTransactions = transactions.every(
-      tx => tx && !tx.reconciled,
-    );
-    const areAllSplitTransactions = transactions.every(
-      tx => tx && (tx.is_parent || tx.is_child),
-    );
+    const areNoReconciledTransactions = transactions.every(tx => tx && !tx.reconciled);
+    const areAllSplitTransactions = transactions.every(tx => tx && (tx.is_parent || tx.is_child));
     return areNoReconciledTransactions && areAllSplitTransactions;
   }, [selectedIds, types, getTransaction]);
 
@@ -233,7 +203,7 @@ export function SelectedTransactionsButton({
     if (scheduleId) {
       dispatch(
         pushModal({
-          modal: { name: 'schedule-edit', options: { id: scheduleId } },
+          modal: {name: 'schedule-edit', options: {id: scheduleId}},
         }),
       );
     }
@@ -243,65 +213,33 @@ export function SelectedTransactionsButton({
     enabled: types.trans,
     scopes: ['app'],
   };
-  useHotkeys('f', () => onShow(selectedIds), hotKeyOptions, [
-    onShow,
-    selectedIds,
-  ]);
-  useHotkeys('u', () => onDuplicate(selectedIds), hotKeyOptions, [
-    onDuplicate,
-    selectedIds,
-  ]);
-  useHotkeys('d', () => onDelete(selectedIds), hotKeyOptions, [
-    onDelete,
-    selectedIds,
-  ]);
-  useHotkeys('e', () => onEdit('date', selectedIds), hotKeyOptions, [
-    onEdit,
-    selectedIds,
-  ]);
-  useHotkeys('a', () => onEdit('account', selectedIds), hotKeyOptions, [
-    onEdit,
-    selectedIds,
-  ]);
-  useHotkeys('p', () => onEdit('payee', selectedIds), hotKeyOptions, [
-    onEdit,
-    selectedIds,
-  ]);
-  useHotkeys('n', () => onEdit('notes', selectedIds), hotKeyOptions, [
-    onEdit,
-    selectedIds,
-  ]);
-  useHotkeys('c', () => onEdit('category', selectedIds), hotKeyOptions, [
-    onEdit,
-    selectedIds,
-  ]);
-  useHotkeys('l', () => onEdit('cleared', selectedIds), hotKeyOptions, [
-    onEdit,
-    selectedIds,
-  ]);
+  useHotkeys('f', () => onShow(selectedIds), hotKeyOptions, [onShow, selectedIds]);
+  useHotkeys('u', () => onDuplicate(selectedIds), hotKeyOptions, [onDuplicate, selectedIds]);
+  useHotkeys('d', () => onDelete(selectedIds), hotKeyOptions, [onDelete, selectedIds]);
+  useHotkeys('e', () => onEdit('date', selectedIds), hotKeyOptions, [onEdit, selectedIds]);
+  useHotkeys('a', () => onEdit('account', selectedIds), hotKeyOptions, [onEdit, selectedIds]);
+  useHotkeys('p', () => onEdit('payee', selectedIds), hotKeyOptions, [onEdit, selectedIds]);
+  useHotkeys('n', () => onEdit('notes', selectedIds), hotKeyOptions, [onEdit, selectedIds]);
+  useHotkeys('c', () => onEdit('category', selectedIds), hotKeyOptions, [onEdit, selectedIds]);
+  useHotkeys('l', () => onEdit('cleared', selectedIds), hotKeyOptions, [onEdit, selectedIds]);
   useHotkeys(
     's',
-    () =>
-      !types.trans || linked ? onViewSchedule() : onLinkSchedule(selectedIds),
+    () => (!types.trans || linked ? onViewSchedule() : onLinkSchedule(selectedIds)),
     {
       scopes: ['app'],
     },
     [onLinkSchedule, onViewSchedule, linked, selectedIds],
   );
   // edit amount (only if we're not in a merge context)
-  useHotkeys(
-    'm',
-    () => !canMerge && onEdit('amount', selectedIds),
-    hotKeyOptions,
-    [onEdit, selectedIds],
-  );
+  useHotkeys('m', () => !canMerge && onEdit('amount', selectedIds), hotKeyOptions, [
+    onEdit,
+    selectedIds,
+  ]);
   // merge
-  useHotkeys(
-    'g',
-    () => canMerge && onMergeTransactions(selectedIds),
-    hotKeyOptions,
-    [onMergeTransactions, selectedIds],
-  );
+  useHotkeys('g', () => canMerge && onMergeTransactions(selectedIds), hotKeyOptions, [
+    onMergeTransactions,
+    selectedIds,
+  ]);
   // make transfer
   useHotkeys(
     'r',
@@ -313,7 +251,7 @@ export function SelectedTransactionsButton({
   return (
     <SelectedItemsButton
       id="transactions"
-      name={count => t('{{count}} transactions', { count })}
+      name={count => t('{{count}} transactions', {count})}
       // @ts-expect-error fix me
       items={[
         ...(!types.trans
@@ -336,18 +274,17 @@ export function SelectedTransactionsButton({
                   name: 'skip',
                   text: t('Skip next scheduled date'),
                 } as const),
-              canBeCompleted &&
-                ({ name: 'complete', text: t('Mark as completed') } as const),
+              canBeCompleted && ({name: 'complete', text: t('Mark as completed')} as const),
             ]
           : [
-              { name: 'show', text: t('Show'), key: 'F' } as const,
+              {name: 'show', text: t('Show'), key: 'F'} as const,
               {
                 name: 'duplicate',
                 text: t('Duplicate'),
                 key: 'U',
                 disabled: ambiguousDuplication,
               } as const,
-              { name: 'delete', text: t('Delete'), key: 'D' } as const,
+              {name: 'delete', text: t('Delete'), key: 'D'} as const,
               ...(linked
                 ? [
                     {
@@ -415,14 +352,14 @@ export function SelectedTransactionsButton({
                   ]
                 : []),
               Menu.line,
-              { type: Menu.label, name: t('Edit field'), text: '' } as const,
-              { name: 'date', text: t('Date'), key: 'E' } as const,
-              { name: 'account', text: t('Account'), key: 'A' } as const,
-              { name: 'payee', text: t('Payee'), key: 'P' } as const,
-              { name: 'notes', text: t('Notes'), key: 'N' } as const,
-              { name: 'category', text: t('Category'), key: 'C' } as const,
-              { name: 'amount', text: t('Amount'), key: 'M' } as const,
-              { name: 'cleared', text: t('Cleared'), key: 'L' } as const,
+              {type: Menu.label, name: t('Edit field'), text: ''} as const,
+              {name: 'date', text: t('Date'), key: 'E'} as const,
+              {name: 'account', text: t('Account'), key: 'A'} as const,
+              {name: 'payee', text: t('Payee'), key: 'P'} as const,
+              {name: 'notes', text: t('Notes'), key: 'N'} as const,
+              {name: 'category', text: t('Category'), key: 'C'} as const,
+              {name: 'amount', text: t('Amount'), key: 'M'} as const,
+              {name: 'cleared', text: t('Cleared'), key: 'L'} as const,
             ]),
       ]}
       onSelect={name => {

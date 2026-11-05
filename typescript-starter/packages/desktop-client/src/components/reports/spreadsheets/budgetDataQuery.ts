@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { Handlers } from '@actual-app/core/types/handlers';
+import type {Handlers} from '@actual-app/core/types/handlers';
 import type {
   CategoryEntity,
   CategoryGroupEntity,
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 
-import type { QueryDataEntity } from '#components/reports/ReportOptions';
+import type {QueryDataEntity} from '#components/reports/ReportOptions';
 
-import type { BudgetMonthCell } from './budgetMonthCell';
+import type {BudgetMonthCell} from './budgetMonthCell';
 
 type BudgetDataConditionsOp = 'and' | 'or';
 
@@ -43,7 +43,7 @@ async function mapWithConcurrency<TItem, TResult>(
   const safeConcurrency = Math.max(1, Math.min(concurrency, items.length));
   let nextIndex = 0;
 
-  const workers = Array.from({ length: safeConcurrency }, async () => {
+  const workers = Array.from({length: safeConcurrency}, async () => {
     while (true) {
       const currentIndex = nextIndex;
       nextIndex += 1;
@@ -59,9 +59,7 @@ async function mapWithConcurrency<TItem, TResult>(
   return results;
 }
 
-export function isSupportedCategoryCondition(
-  condition: RuleConditionEntity,
-): boolean {
+export function isSupportedCategoryCondition(condition: RuleConditionEntity): boolean {
   if (condition.field !== 'category' && condition.field !== 'category_group') {
     return false;
   }
@@ -71,10 +69,7 @@ export function isSupportedCategoryCondition(
   }
 
   if (condition.op === 'oneOf' || condition.op === 'notOneOf') {
-    return (
-      Array.isArray(condition.value) &&
-      condition.value.every(id => typeof id === 'string')
-    );
+    return Array.isArray(condition.value) && condition.value.every(id => typeof id === 'string');
   }
 
   if (
@@ -99,14 +94,8 @@ export function filterCategoriesByConditions(
   }
 
   const categoryConditions = conditions.filter(
-    (
-      cond,
-    ): cond is Extract<
-      RuleConditionEntity,
-      { field: 'category' | 'category_group' }
-    > =>
-      !cond.customName &&
-      (cond.field === 'category' || cond.field === 'category_group'),
+    (cond): cond is Extract<RuleConditionEntity, {field: 'category' | 'category_group'}> =>
+      !cond.customName && (cond.field === 'category' || cond.field === 'category_group'),
   );
 
   if (categoryConditions.length === 0) {
@@ -125,15 +114,9 @@ export function filterCategoriesByConditions(
 
   const evaluateCondition = (
     category: CategoryEntity,
-    condition: Extract<
-      RuleConditionEntity,
-      { field: 'category' | 'category_group' }
-    >,
+    condition: Extract<RuleConditionEntity, {field: 'category' | 'category_group'}>,
   ): boolean => {
-    const key =
-      condition.field === 'category_group'
-        ? (category.group ?? '')
-        : category.id;
+    const key = condition.field === 'category_group' ? (category.group ?? '') : category.id;
     const textValue =
       condition.field === 'category_group'
         ? (categoryGroupNameById.get(key) ?? key)
@@ -211,7 +194,7 @@ export async function fetchBudgetData({
   conditions?: RuleConditionEntity[];
   conditionsOp?: BudgetDataConditionsOp;
   budgetType?: SyncedPrefs['budgetType'];
-}): Promise<{ assets: QueryDataEntity[]; debts: QueryDataEntity[] }> {
+}): Promise<{assets: QueryDataEntity[]; debts: QueryDataEntity[]}> {
   const groupById = new Map(categoryGroups.map(g => [g.id, g] as const));
   const assets: QueryDataEntity[] = [];
   const debts: QueryDataEntity[] = [];
@@ -230,20 +213,14 @@ export async function fetchBudgetData({
 
   const monthFetchConcurrency = 8;
   const endpointName: keyof Handlers =
-    budgetType === 'tracking'
-      ? 'tracking-budget-month'
-      : 'envelope-budget-month';
+    budgetType === 'tracking' ? 'tracking-budget-month' : 'envelope-budget-month';
 
-  const monthDataList = await mapWithConcurrency(
-    months,
-    monthFetchConcurrency,
-    async month => ({
-      month,
-      monthData: await send(endpointName, { month }),
-    }),
-  );
+  const monthDataList = await mapWithConcurrency(months, monthFetchConcurrency, async month => ({
+    month,
+    monthData: await send(endpointName, {month}),
+  }));
 
-  for (const { month, monthData } of monthDataList) {
+  for (const {month, monthData} of monthDataList) {
     const dateKey = interval === 'Yearly' ? month.slice(0, 4) : month;
 
     for (const cat of filteredCategories) {
@@ -283,5 +260,5 @@ export async function fetchBudgetData({
     }
   }
 
-  return { assets, debts };
+  return {assets, debts};
 }

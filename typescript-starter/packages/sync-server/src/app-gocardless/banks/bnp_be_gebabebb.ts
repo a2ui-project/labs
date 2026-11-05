@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
   ...Fallback,
 
-  institutionIds: [
-    'FINTRO_BE_GEBABEBB',
-    'HELLO_BE_GEBABEBB',
-    'BNP_BE_GEBABEBB',
-  ],
+  institutionIds: ['FINTRO_BE_GEBABEBB', 'HELLO_BE_GEBABEBB', 'BNP_BE_GEBABEBB'],
 
   /** BNP_BE_GEBABEBB provides a lot of useful information via the 'additionalField'
    *  There does not seem to be a specification of this field, but the following information is contained in its subfields:
@@ -37,7 +33,7 @@ export default {
    *  field in the remittanceInformationUnstructuredArray field.
    */
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     // Extract the creditor name to fill it in with information from the
     // additionalInformation field in case it's not yet defined.
@@ -46,8 +42,7 @@ export default {
     if (transaction.additionalInformation) {
       const additionalInformationObject: Record<string, string> = {};
       const additionalInfoRegex = /(, )?([^:]+): ((\[.*?\])|([^,]*))/g;
-      const matches =
-        transaction.additionalInformation.matchAll(additionalInfoRegex);
+      const matches = transaction.additionalInformation.matchAll(additionalInfoRegex);
       if (matches) {
         let creditorNameFromNarrative; // Possible value for creditorName
         for (const match of matches) {
@@ -56,9 +51,7 @@ export default {
           if (key === 'narrative') {
             // Set narrativeName to the first element in the "narrative" array.
             const first_value = value.matchAll(/'(.+?)'/g)?.next().value;
-            creditorNameFromNarrative = first_value
-              ? first_value[1].trim()
-              : undefined;
+            creditorNameFromNarrative = first_value ? first_value[1].trim() : undefined;
           }
           // Remove square brackets and single quotes and commas
           value = value.replace(/[[\]',]/g, '');

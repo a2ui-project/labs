@@ -14,36 +14,34 @@
  * limitations under the License.
  */
 
-import { captureException } from '#platform/exceptions';
+import {captureException} from '#platform/exceptions';
 // @ts-strict-ignore
 import * as asyncStorage from '#platform/server/asyncStorage';
 import * as connection from '#platform/server/connection';
 import * as cloudStorage from '#server/cloud-storage';
 import * as db from '#server/db';
-import { runMutator } from '#server/mutators';
+import {runMutator} from '#server/mutators';
 import * as prefs from '#server/prefs';
 
-import { deleteStalePendingMessages } from './replay';
-import { notifyDroppedMessages } from './utils';
+import {deleteStalePendingMessages} from './replay';
+import {notifyDroppedMessages} from './utils';
 
-export async function resetSync(
-  keyState?,
-): Promise<{ error?: { reason: string; meta?: unknown } }> {
+export async function resetSync(keyState?): Promise<{error?: {reason: string; meta?: unknown}}> {
   if (!keyState) {
     // If we aren't resetting the key, make sure our key is up-to-date
     // so we don't accidentally upload a file encrypted with the wrong
     // key (or not encrypted at all)
-    const { valid, error } = await cloudStorage.checkKey();
+    const {valid, error} = await cloudStorage.checkKey();
     if (error) {
-      return { error };
+      return {error};
     } else if (!valid) {
-      return { error: { reason: 'file-has-new-key' } };
+      return {error: {reason: 'file-has-new-key'}};
     }
   }
 
-  const { error } = await cloudStorage.resetSyncState(keyState);
+  const {error} = await cloudStorage.resetSyncState(keyState);
   if (error) {
-    return { error };
+    return {error};
   }
 
   // Resetting discards deferred newer-version messages for every
@@ -56,9 +54,7 @@ export async function resetSync(
     // them later would resurrect rows hard-deleted below. Stale rows go
     // first, uncounted, so only real losses feed the warning.
     deleteStalePendingMessages();
-    discardedDeferredCount = Number(
-      db.runQuery('DELETE FROM messages_pending').changes,
-    );
+    discardedDeferredCount = Number(db.runQuery('DELETE FROM messages_pending').changes);
 
     // TOOD: We could automatically generate the list of tables to
     // cleanup by looking at the schema
@@ -92,21 +88,19 @@ export async function resetSync(
   });
 
   if (keyState) {
-    const { key } = keyState;
-    const { cloudFileId } = prefs.getPrefs();
+    const {key} = keyState;
+    const {cloudFileId} = prefs.getPrefs();
 
     // The key has changed, we need to update our local data to
     // store the new key
 
     // Persist key in async storage
-    const keys = JSON.parse(
-      (await asyncStorage.getItem(`encrypt-keys`)) || '{}',
-    );
+    const keys = JSON.parse((await asyncStorage.getItem(`encrypt-keys`)) || '{}');
     keys[cloudFileId] = key.serialize();
     await asyncStorage.setItem('encrypt-keys', JSON.stringify(keys));
 
     // Save the key id in prefs
-    await prefs.savePrefs({ encryptKeyId: key.getId() });
+    await prefs.savePrefs({encryptKeyId: key.getId()});
   }
 
   // Finally, upload the file to make it the "true" version that all
@@ -115,10 +109,10 @@ export async function resetSync(
     await cloudStorage.upload();
   } catch (e) {
     if (e.reason) {
-      return { error: e };
+      return {error: e};
     }
     captureException(e);
-    return { error: { reason: 'upload-failure' } };
+    return {error: {reason: 'upload-failure'}};
   } finally {
     connection.send('prefs-updated');
   }

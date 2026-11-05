@@ -14,36 +14,33 @@
  * limitations under the License.
  */
 
-import React, { memo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {memo, useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgDotsHorizontalTriple } from '@actual-app/components/icons/v1';
-import {
-  SvgArrowButtonDown1,
-  SvgArrowButtonUp1,
-} from '@actual-app/components/icons/v2';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgDotsHorizontalTriple} from '@actual-app/components/icons/v1';
+import {SvgArrowButtonDown1, SvgArrowButtonUp1} from '@actual-app/components/icons/v2';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import { useEnvelopeBudget } from '#components/budget/envelope/EnvelopeBudgetContext';
-import { NotesButton } from '#components/NotesButton';
-import { useLocale } from '#hooks/useLocale';
-import { SheetNameProvider } from '#hooks/useSheetName';
-import { useUndo } from '#hooks/useUndo';
+import {useEnvelopeBudget} from '#components/budget/envelope/EnvelopeBudgetContext';
+import {NotesButton} from '#components/NotesButton';
+import {useLocale} from '#hooks/useLocale';
+import {SheetNameProvider} from '#hooks/useSheetName';
+import {useUndo} from '#hooks/useUndo';
 
-import { BudgetMonthMenu } from './BudgetMonthMenu';
-import { ToBudget } from './ToBudget';
-import { TotalsList } from './TotalsList';
+import {BudgetMonthMenu} from './BudgetMonthMenu';
+import {ToBudget} from './ToBudget';
+import {TotalsList} from './TotalsList';
 
 type BudgetSummaryProps = {
   month: string;
 };
-export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
+export const BudgetSummary = memo(({month}: BudgetSummaryProps) => {
   const locale = useLocale();
   const {
     currentMonth,
@@ -54,7 +51,7 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef(null);
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
 
   function onMenuOpen() {
     setMenuOpen(true);
@@ -64,28 +61,19 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
     setMenuOpen(false);
   }
 
-  const prevMonthName = monthUtils.format(
-    monthUtils.prevMonth(month),
-    'MMM',
-    locale,
-  );
+  const prevMonthName = monthUtils.format(monthUtils.prevMonth(month), 'MMM', locale);
 
-  const ExpandOrCollapseIcon = collapsed
-    ? SvgArrowButtonDown1
-    : SvgArrowButtonUp1;
+  const ExpandOrCollapseIcon = collapsed ? SvgArrowButtonDown1 : SvgArrowButtonUp1;
 
   const displayMonth = monthUtils.format(month, "MMMM ''yy", locale);
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <View
       data-testid="budget-summary"
       data-month={month}
       style={{
-        backgroundColor:
-          month === currentMonth
-            ? theme.budgetCurrentMonth
-            : theme.budgetOtherMonth,
+        backgroundColor: month === currentMonth ? theme.budgetCurrentMonth : theme.budgetOtherMonth,
         boxShadow: styles.cardShadow,
         borderRadius: 6,
         marginLeft: 0,
@@ -108,7 +96,7 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
         <View
           style={{
             padding: '0 13px',
-            ...(collapsed ? { margin: '10px 0' } : { marginTop: 16 }),
+            ...(collapsed ? {margin: '10px 0'} : {marginTop: 16}),
           }}
         >
           <View
@@ -120,11 +108,7 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
           >
             <Button
               variant="bare"
-              aria-label={
-                collapsed
-                  ? t('Expand month summary')
-                  : t('Collapse month summary')
-              }
+              aria-label={collapsed ? t('Expand month summary') : t('Collapse month summary')}
               className="hover-visible"
               onPress={onToggleSummaryCollapse}
             >
@@ -132,7 +116,7 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
                 width={13}
                 height={13}
                 // The margin is to make it the exact same size as the dots button
-                style={{ color: theme.pageTextLight, margin: 1 }}
+                style={{color: theme.pageTextLight, margin: 1}}
               />
             </Button>
           </View>
@@ -146,7 +130,7 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
                 fontWeight: 500,
                 textDecorationSkip: 'ink',
               },
-              currentMonth === month && { fontWeight: 'bold' },
+              currentMonth === month && {fontWeight: 'bold'},
             ])}
           >
             {monthUtils.format(month, 'MMMM', locale)}
@@ -170,25 +154,16 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
                 defaultColor={theme.pageTextLight}
               />
             </View>
-            <View style={{ userSelect: 'none', marginLeft: 2 }}>
-              <Button
-                ref={triggerRef}
-                variant="bare"
-                aria-label={t('Menu')}
-                onPress={onMenuOpen}
-              >
+            <View style={{userSelect: 'none', marginLeft: 2}}>
+              <Button ref={triggerRef} variant="bare" aria-label={t('Menu')} onPress={onMenuOpen}>
                 <SvgDotsHorizontalTriple
                   width={15}
                   height={15}
-                  style={{ color: theme.pageTextLight }}
+                  style={{color: theme.pageTextLight}}
                 />
               </Button>
 
-              <Popover
-                triggerRef={triggerRef}
-                isOpen={menuOpen}
-                onOpenChange={onMenuClose}
-              >
+              <Popover triggerRef={triggerRef} isOpen={menuOpen} onOpenChange={onMenuClose}>
                 <BudgetMonthMenu
                   onCopyLastMonthBudget={() => {
                     onBudgetAction(month, 'copy-last');
@@ -196,7 +171,7 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
                     showUndoNotification({
                       message: t(
                         "{{displayMonth}} budgets have all been set to last month's budgeted amounts.",
-                        { displayMonth },
+                        {displayMonth},
                       ),
                     });
                   }}
@@ -204,10 +179,9 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
                     onBudgetAction(month, 'set-zero');
                     onMenuClose();
                     showUndoNotification({
-                      message: t(
-                        '{{displayMonth}} budgets have all been set to zero.',
-                        { displayMonth },
-                      ),
+                      message: t('{{displayMonth}} budgets have all been set to zero.', {
+                        displayMonth,
+                      }),
                     });
                   }}
                   onSetMonthsAverage={numberOfMonths => {
@@ -216,9 +190,7 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
                     showUndoNotification({
                       message:
                         numberOfMonths === 12
-                          ? t(
-                              `${displayMonth} budgets have all been set to yearly average.`,
-                            )
+                          ? t(`${displayMonth} budgets have all been set to yearly average.`)
                           : t(
                               `${displayMonth} budgets have all been set to ${numberOfMonths} month average.`,
                             ),
@@ -232,20 +204,18 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
                     onBudgetAction(month, 'apply-goal-template');
                     onMenuClose();
                     showUndoNotification({
-                      message: t(
-                        '{{displayMonth}} budget templates have been applied.',
-                        { displayMonth },
-                      ),
+                      message: t('{{displayMonth}} budget templates have been applied.', {
+                        displayMonth,
+                      }),
                     });
                   }}
                   onOverwriteWithBudgetTemplates={() => {
                     onBudgetAction(month, 'overwrite-goal-template');
                     onMenuClose();
                     showUndoNotification({
-                      message: t(
-                        '{{displayMonth}} budget templates have been overwritten.',
-                        { displayMonth },
-                      ),
+                      message: t('{{displayMonth}} budget templates have been overwritten.', {
+                        displayMonth,
+                      }),
                     });
                   }}
                   onEndOfMonthCleanup={() => {
@@ -254,7 +224,7 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
                     showUndoNotification({
                       message: t(
                         '{{displayMonth}} end-of-month cleanup templates have been applied.',
-                        { displayMonth },
+                        {displayMonth},
                       ),
                     });
                   }}
@@ -294,7 +264,7 @@ export const BudgetSummary = memo(({ month }: BudgetSummaryProps) => {
                 borderColor: theme.tableBorder,
               }}
             />
-            <View style={{ margin: '23px 0' }}>
+            <View style={{margin: '23px 0'}}>
               <ToBudget
                 prevMonthName={prevMonthName}
                 month={month}

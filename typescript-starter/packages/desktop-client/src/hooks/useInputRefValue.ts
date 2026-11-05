@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
-import type { RefObject } from 'react';
+import {useEffect, useState} from 'react';
+import type {RefObject} from 'react';
 
-import { useRefEventListener } from './useRefEventListener';
+import {useRefEventListener} from './useRefEventListener';
 
 export function useInputRefValue(
   inputRef: RefObject<HTMLInputElement | null>,
 ): [string, (newValue: string) => void] {
   const [value, setValue] = useState('');
-  useRefEventListener(inputRef, 'input', e =>
-    setValue((e.target as HTMLInputElement).value),
-  );
-  useEffect(
-    () => setValue(inputRef.current?.value ?? ''),
-    [inputRef, setValue],
-  );
+  useRefEventListener(inputRef, 'input', e => setValue((e.target as HTMLInputElement).value));
+  useEffect(() => setValue(inputRef.current?.value ?? ''), [inputRef, setValue]);
 
   function _setValue(newValue: string) {
     if (!inputRef.current) return;
@@ -47,7 +42,7 @@ export function useInputRefValue(
       'value',
     )?.set;
     nativeSetter?.call(inputRef.current, newValue);
-    inputRef.current.dispatchEvent(new Event('input', { bubbles: true }));
+    inputRef.current.dispatchEvent(new Event('input', {bubbles: true}));
   }
   return [value, _setValue];
 }

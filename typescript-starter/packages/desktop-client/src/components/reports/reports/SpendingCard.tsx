@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-import React, { useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useMemo, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Block} from '@actual-app/components/block';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { SpendingWidget } from '@actual-app/core/types/models';
+import type {SpendingWidget} from '@actual-app/core/types/models';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { DateRange } from '#components/reports/DateRange';
-import { SpendingGraph } from '#components/reports/graphs/SpendingGraph';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { calculateSpendingReportTimeRange } from '#components/reports/reportRanges';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {DateRange} from '#components/reports/DateRange';
+import {SpendingGraph} from '#components/reports/graphs/SpendingGraph';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {calculateSpendingReportTimeRange} from '#components/reports/reportRanges';
 import {
   getSpendingAverageRangeLabel,
   normalizeSpendingAverageRange,
 } from '#components/reports/spendingAverageRange';
-import { createSpendingSpreadsheet } from '#components/reports/spreadsheets/spending-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useFormat } from '#hooks/useFormat';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {createSpendingSpreadsheet} from '#components/reports/spreadsheets/spending-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useFormat} from '#hooks/useFormat';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
 type SpendingCardProps = {
   widgetId: string;
@@ -48,13 +48,8 @@ type SpendingCardProps = {
   onMetaChange: (newMeta: SpendingWidget['meta']) => void;
 };
 
-export function SpendingCard({
-  widgetId,
-  isEditing,
-  meta = {},
-  onMetaChange,
-}: SpendingCardProps) {
-  const { t } = useTranslation();
+export function SpendingCard({widgetId, isEditing, meta = {}, onMetaChange}: SpendingCardProps) {
+  const {t} = useTranslation();
   const format = useFormat();
   const [budgetTypePref] = useSyncedPref('budgetType');
   const budgetType: 'envelope' | 'tracking' =
@@ -69,8 +64,7 @@ export function SpendingCard({
 
   const [compare, compareTo] = calculateSpendingReportTimeRange(meta ?? {});
 
-  const selection =
-    spendingReportMode === 'single-month' ? 'compareTo' : spendingReportMode;
+  const selection = spendingReportMode === 'single-month' ? 'compareTo' : spendingReportMode;
   const getGraphData = useMemo(() => {
     return createSpendingSpreadsheet({
       conditions: meta?.conditions,
@@ -80,14 +74,7 @@ export function SpendingCard({
       averageRange,
       budgetType,
     });
-  }, [
-    meta?.conditions,
-    meta?.conditionsOp,
-    compare,
-    compareTo,
-    averageRange,
-    budgetType,
-  ]);
+  }, [meta?.conditions, meta?.conditionsOp, compare, compareTo, averageRange, budgetType]);
 
   const data = useReport('default', getGraphData);
   const todayDay =
@@ -98,10 +85,7 @@ export function SpendingCard({
         : monthUtils.getDay(monthUtils.currentDay()) - 1;
   const difference =
     data &&
-    Math.round(
-      data.intervalData[todayDay][selection] -
-        data.intervalData[todayDay].compare,
-    );
+    Math.round(data.intervalData[todayDay][selection] - data.intervalData[todayDay].compare);
 
   return (
     <ReportCard
@@ -112,12 +96,12 @@ export function SpendingCard({
       onRename={() => setNameMenuOpen(true)}
     >
       <View
-        style={{ flex: 1 }}
+        style={{flex: 1}}
         onPointerEnter={() => setIsCardHovered(true)}
         onPointerLeave={() => setIsCardHovered(false)}
       >
-        <View style={{ flexDirection: 'row', padding: 20 }}>
-          <View style={{ flex: 1 }}>
+        <View style={{flexDirection: 'row', padding: 20}}>
+          <View style={{flex: 1}}>
             <ReportCardName
               name={meta?.name || t('Monthly Spending')}
               isEditing={nameMenuOpen}
@@ -134,13 +118,11 @@ export function SpendingCard({
               start={compare}
               end={compareTo}
               type={spendingReportMode}
-              comparisonLabel={
-                spendingReportMode === 'average' ? averageRangeLabel : undefined
-              }
+              comparisonLabel={spendingReportMode === 'average' ? averageRangeLabel : undefined}
             />
           </View>
           {data && (
-            <View style={{ textAlign: 'right' }}>
+            <View style={{textAlign: 'right'}}>
               <Block
                 style={{
                   ...styles.mediumText,
@@ -167,7 +149,7 @@ export function SpendingCard({
         </View>
         {data ? (
           <SpendingGraph
-            style={{ flex: 1 }}
+            style={{flex: 1}}
             compact
             data={data}
             mode={spendingReportMode}

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { getAccountDb } from '../src/account-db';
+import {getAccountDb} from '../src/account-db';
 
 export const up = async function () {
   const accountDb = getAccountDb();

@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import type { AccountPage } from './page-models/account-page';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { Navigation } from './page-models/navigation';
+import {expect, test} from './fixtures';
+import type {AccountPage} from './page-models/account-page';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {Navigation} from './page-models/navigation';
 
 test.describe('Transactions', () => {
   let page: Page;
@@ -27,7 +27,7 @@ test.describe('Transactions', () => {
   let accountPage: AccountPage;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new Navigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -62,7 +62,7 @@ test.describe('Transactions', () => {
       await expect(datepicker).toMatchThemeScreenshots();
 
       // Select "is xxxxx"
-      await datepicker.getByText('20', { exact: true }).click();
+      await datepicker.getByText('20', {exact: true}).click();
       await filterTooltip.applyButton.click();
 
       // Assert that there are no transactions
@@ -88,9 +88,7 @@ test.describe('Transactions', () => {
 
       // Assert that there are only clothing transactions
       for (let i = 0; i < 5; i++) {
-        await expect(accountPage.getNthTransaction(i).category).toHaveText(
-          'Clothing',
-        );
+        await expect(accountPage.getNthTransaction(i).category).toHaveText('Clothing');
       }
       await expect(page).toMatchThemeScreenshots();
     });
@@ -101,12 +99,8 @@ test.describe('Transactions', () => {
 
       const filterTooltip = await accountPage.filterBy('Category');
 
-      await filterTooltip.locator
-        .getByRole('button', { name: 'Category', exact: true })
-        .click();
-      await page
-        .getByRole('button', { name: 'Category group', exact: true })
-        .click();
+      await filterTooltip.locator.getByRole('button', {name: 'Category', exact: true}).click();
+      await page.getByRole('button', {name: 'Category group', exact: true}).click();
 
       await expect(filterTooltip.locator).toMatchThemeScreenshots();
 
@@ -149,33 +143,25 @@ test.describe('Transactions', () => {
 
       // Assert that all Payees are Kroger
       for (let i = 0; i < 10; i++) {
-        await expect(accountPage.getNthTransaction(i).payee).toHaveText(
-          'Kroger',
-        );
+        await expect(accountPage.getNthTransaction(i).payee).toHaveText('Kroger');
       }
       await accountPage.removeFilter(0);
 
       await accountPage.filterBy('Payee');
-      await filtersMenuTooltip
-        .getByRole('button', { name: 'contains' })
-        .click();
+      await filtersMenuTooltip.getByRole('button', {name: 'contains'}).click();
       const textInput = filtersMenuTooltip.getByPlaceholder('nothing');
 
       await textInput.fill('De');
       await filterTooltip.applyButton.click();
       // Assert that all Payees are Deposit
       for (let i = 0; i < 9; i++) {
-        await expect(accountPage.getNthTransaction(i).payee).toHaveText(
-          'Deposit',
-        );
+        await expect(accountPage.getNthTransaction(i).payee).toHaveText('Deposit');
       }
 
       await accountPage.removeFilter(0);
 
       await accountPage.filterBy('Payee');
-      await filtersMenuTooltip
-        .getByRole('button', { name: 'contains' })
-        .click();
+      await filtersMenuTooltip.getByRole('button', {name: 'contains'}).click();
 
       await textInput.fill('l');
       await filterTooltip.applyButton.click();
@@ -187,17 +173,13 @@ test.describe('Transactions', () => {
       await accountPage.removeFilter(0);
 
       await accountPage.filterBy('Payee');
-      await filtersMenuTooltip
-        .getByRole('button', { name: 'does not contain' })
-        .click();
+      await filtersMenuTooltip.getByRole('button', {name: 'does not contain'}).click();
 
       await textInput.fill('l');
       await filterTooltip.applyButton.click();
       // Assert that all Payees DO NOT contain the letter 'l'
       for (let i = 0; i < 19; i++) {
-        await expect(accountPage.getNthTransaction(i).payee).not.toHaveText(
-          /l/,
-        );
+        await expect(accountPage.getNthTransaction(i).payee).not.toHaveText(/l/);
       }
 
       await expect(page).toMatchThemeScreenshots();
@@ -271,12 +253,9 @@ test.describe('Transactions', () => {
     await expect(transaction.category.locator('input')).toHaveValue('Transfer');
     await expect(page).toMatchThemeScreenshots();
 
-    const balanceBeforeTransaction =
-      await accountPage.accountBalance.textContent();
-    const allAccountsBefore =
-      await accountPage.sidebarAllAccountsBalance.textContent();
-    const onBudgetBefore =
-      await accountPage.sidebarOnBudgetBalance.textContent();
+    const balanceBeforeTransaction = await accountPage.accountBalance.textContent();
+    const allAccountsBefore = await accountPage.sidebarAllAccountsBalance.textContent();
+    const onBudgetBefore = await accountPage.sidebarOnBudgetBalance.textContent();
 
     await accountPage.addEnteredTransaction();
 
@@ -289,15 +268,13 @@ test.describe('Transactions', () => {
 
     // Wait for balance to update after adding transaction
     await expect(async () => {
-      const balanceAfterTransaction =
-        await accountPage.accountBalance.textContent();
+      const balanceAfterTransaction = await accountPage.accountBalance.textContent();
       expect(balanceAfterTransaction).not.toBe(balanceBeforeTransaction);
     }).toPass();
 
     // For an on-budget transfer, net totals should be unchanged
     await expect(async () => {
-      const allAccounts =
-        await accountPage.sidebarAllAccountsBalance.textContent();
+      const allAccounts = await accountPage.sidebarAllAccountsBalance.textContent();
       const onBudget = await accountPage.sidebarOnBudgetBalance.textContent();
       expect(allAccounts).toBe(allAccountsBefore);
       expect(onBudget).toBe(onBudgetBefore);
@@ -335,9 +312,7 @@ test.describe('Transactions', () => {
       const tooltip = page.getByRole('tooltip');
       await expect(tooltip).toBeVisible();
       await expect(tooltip).toContainText(longNote);
-      await expect(
-        tooltip.getByRole('button', { name: '#groceries' }),
-      ).toBeVisible();
+      await expect(tooltip.getByRole('button', {name: '#groceries'})).toBeVisible();
     });
   });
 
@@ -365,7 +340,7 @@ test.describe('Transactions', () => {
       await page.keyboard.press('ArrowUp');
       await page.keyboard.press('Enter');
 
-      await modal.getByRole('button', { name: 'Save', exact: true }).click();
+      await modal.getByRole('button', {name: 'Save', exact: true}).click();
       await expect(modal).not.toBeVisible();
 
       // The saved layout has notes hidden and category moved before payee
@@ -377,10 +352,8 @@ test.describe('Transactions', () => {
       await expect(modal.locator('#toggle-column-notes')).not.toBeChecked();
 
       // Reset to default restores the original layout
-      await modal
-        .getByRole('button', { name: 'Reset to default', exact: true })
-        .click();
-      await modal.getByRole('button', { name: 'Save', exact: true }).click();
+      await modal.getByRole('button', {name: 'Reset to default', exact: true}).click();
+      await modal.getByRole('button', {name: 'Save', exact: true}).click();
       await expect(modal).not.toBeVisible();
 
       await expect(header).toHaveText('DatePayeeNotesCategoryPaymentDeposit✓');
@@ -393,7 +366,7 @@ test.describe('Transactions', () => {
       const modal = await accountPage.openTransactionColumnsModal();
       await modal.locator('label[for="toggle-column-notes"]').click();
       await modal.getByText('Apply to all transaction tables').click();
-      await modal.getByRole('button', { name: 'Save', exact: true }).click();
+      await modal.getByRole('button', {name: 'Save', exact: true}).click();
       await expect(modal).not.toBeVisible();
       await expect(header).not.toContainText('Notes');
 

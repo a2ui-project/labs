@@ -17,11 +17,11 @@ name: Count points
 on:
   schedule:
     # Run at 00:00 on the first day of every month
-    - cron: '0 0 1 * *'
+    - cron: "0 0 1 * *"
   workflow_dispatch:
     inputs:
       startDate:
-        description: 'Start date for point counter (YYYY-MM-DD)'
+        description: "Start date for point counter (YYYY-MM-DD)"
         required: true
         type: string
 
@@ -41,7 +41,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Count points
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

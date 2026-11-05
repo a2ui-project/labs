@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { enUS } from 'date-fns/locale';
+import {enUS} from 'date-fns/locale';
 import i18next from 'i18next';
 
-import { getRecurringDescription } from '#util/schedule';
+import {getRecurringDescription} from '#util/schedule';
 
 // getRecurringDescription uses the full English sentence as the translation
 // key, so with no resources i18next echoes the key back with interpolation
@@ -32,11 +32,7 @@ void i18next.init({
 describe('getRecurringDescription', () => {
   it('describes weekly interval', () => {
     expect(
-      getRecurringDescription(
-        { start: '2021-05-17', frequency: 'weekly' },
-        'MM/dd/yyyy',
-        enUS,
-      ),
+      getRecurringDescription({start: '2021-05-17', frequency: 'weekly'}, 'MM/dd/yyyy', enUS),
     ).toBe('Every week on Monday');
 
     expect(
@@ -54,11 +50,7 @@ describe('getRecurringDescription', () => {
 
   it('describes monthly interval', () => {
     expect(
-      getRecurringDescription(
-        { start: '2021-04-25', frequency: 'monthly' },
-        'MM/dd/yyyy',
-        enUS,
-      ),
+      getRecurringDescription({start: '2021-04-25', frequency: 'monthly'}, 'MM/dd/yyyy', enUS),
     ).toBe('Every month on the 25th');
 
     expect(
@@ -78,7 +70,7 @@ describe('getRecurringDescription', () => {
         {
           start: '2021-04-25',
           frequency: 'monthly',
-          patterns: [{ type: 'day', value: 25 }],
+          patterns: [{type: 'day', value: 25}],
         },
         'MM/dd/yyyy',
         enUS,
@@ -91,7 +83,7 @@ describe('getRecurringDescription', () => {
           start: '2021-04-25',
           frequency: 'monthly',
           interval: 2,
-          patterns: [{ type: 'day', value: 25 }],
+          patterns: [{type: 'day', value: 25}],
         },
         'MM/dd/yyyy',
         enUS,
@@ -104,7 +96,7 @@ describe('getRecurringDescription', () => {
         {
           start: '2021-04-25',
           frequency: 'monthly',
-          patterns: [{ type: 'day', value: 31 }],
+          patterns: [{type: 'day', value: 31}],
         },
         'MM/dd/yyyy',
         enUS,
@@ -117,7 +109,7 @@ describe('getRecurringDescription', () => {
         {
           start: '2021-04-25',
           frequency: 'monthly',
-          patterns: [{ type: 'day', value: -1 }],
+          patterns: [{type: 'day', value: -1}],
         },
         'MM/dd/yyyy',
         enUS,
@@ -130,7 +122,7 @@ describe('getRecurringDescription', () => {
         {
           start: '2021-04-25',
           frequency: 'monthly',
-          patterns: [{ type: 'FR', value: 2 }],
+          patterns: [{type: 'FR', value: 2}],
         },
         'MM/dd/yyyy',
         enUS,
@@ -142,7 +134,7 @@ describe('getRecurringDescription', () => {
         {
           start: '2021-04-25',
           frequency: 'monthly',
-          patterns: [{ type: 'FR', value: -1 }],
+          patterns: [{type: 'FR', value: -1}],
         },
         'MM/dd/yyyy',
         enUS,
@@ -158,9 +150,9 @@ describe('getRecurringDescription', () => {
           start: '2021-04-25',
           frequency: 'monthly',
           patterns: [
-            { type: 'day', value: 15 },
-            { type: 'day', value: 3 },
-            { type: 'day', value: 20 },
+            {type: 'day', value: 15},
+            {type: 'day', value: 3},
+            {type: 'day', value: 20},
           ],
         },
         'MM/dd/yyyy',
@@ -174,9 +166,9 @@ describe('getRecurringDescription', () => {
           start: '2021-04-25',
           frequency: 'monthly',
           patterns: [
-            { type: 'day', value: 3 },
-            { type: 'day', value: -1 },
-            { type: 'day', value: 20 },
+            {type: 'day', value: 3},
+            {type: 'day', value: -1},
+            {type: 'day', value: 20},
           ],
         },
         'MM/dd/yyyy',
@@ -191,9 +183,9 @@ describe('getRecurringDescription', () => {
           start: '2021-04-25',
           frequency: 'monthly',
           patterns: [
-            { type: 'day', value: 3 },
-            { type: 'day', value: -1 },
-            { type: 'FR', value: 2 },
+            {type: 'day', value: 3},
+            {type: 'day', value: -1},
+            {type: 'FR', value: 2},
           ],
         },
         'MM/dd/yyyy',
@@ -208,10 +200,10 @@ describe('getRecurringDescription', () => {
           start: '2021-04-25',
           frequency: 'monthly',
           patterns: [
-            { type: 'SA', value: 1 },
-            { type: 'day', value: 2 },
-            { type: 'FR', value: 3 },
-            { type: 'day', value: 10 },
+            {type: 'SA', value: 1},
+            {type: 'day', value: 2},
+            {type: 'FR', value: 3},
+            {type: 'day', value: 10},
           ],
         },
         'MM/dd/yyyy',
@@ -222,11 +214,7 @@ describe('getRecurringDescription', () => {
 
   it('describes yearly interval', () => {
     expect(
-      getRecurringDescription(
-        { start: '2021-05-17', frequency: 'yearly' },
-        'MM/dd/yyyy',
-        enUS,
-      ),
+      getRecurringDescription({start: '2021-05-17', frequency: 'yearly'}, 'MM/dd/yyyy', enUS),
     ).toBe('Every year on May 17th');
 
     expect(

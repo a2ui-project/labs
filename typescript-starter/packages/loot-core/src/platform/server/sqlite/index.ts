@@ -16,15 +16,15 @@
 
 // @ts-strict-ignore
 import initSqlJS from '@jlongster/sql.js';
-import type { Database, SqlJsStatic, Statement } from '@jlongster/sql.js';
+import type {Database, SqlJsStatic, Statement} from '@jlongster/sql.js';
 
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 
-import { normalise } from './normalise';
-import type { SqlParam } from './types';
-import { unicodeLike } from './unicodeLike';
+import {normalise} from './normalise';
+import type {SqlParam} from './types';
+import {unicodeLike} from './unicodeLike';
 
-export type { SqlParam } from './types';
+export type {SqlParam} from './types';
 
 // Types exported from sql.js (and Emscripten) are incomplete, so we need to redefine them here
 type FSStream = (typeof FS)['FSStream'] & {
@@ -37,8 +37,8 @@ type FSStream = (typeof FS)['FSStream'] & {
 type FS = Omit<typeof FS, 'lookupPath' | 'open' | 'close'> & {
   lookupPath: (
     path: string,
-    opts?: { follow?: boolean },
-  ) => { node: (typeof FS)['FSNode'] & { link?: string } };
+    opts?: {follow?: boolean},
+  ) => {node: (typeof FS)['FSNode'] & {link?: string}};
   open: (path: string, flags: string, mode?: number) => FSStream;
   close: (stream: FSStream) => void;
 };
@@ -63,13 +63,13 @@ export function setWasmBinary(binary: ArrayBuffer | Uint8Array) {
 export async function init({
   baseURL = process.env.PUBLIC_URL,
   wasmBinary = wasmBinaryOverride,
-}: { baseURL?: string; wasmBinary?: ArrayBuffer | Uint8Array } = {}) {
+}: {baseURL?: string; wasmBinary?: ArrayBuffer | Uint8Array} = {}) {
   // `initSqlJS` doesn't actually return a real promise, so make sure
   // we're returning a real one for correct semantics
   return new Promise((resolve, reject) => {
     initSqlJS({
       locateFile: file => baseURL + file,
-      ...(wasmBinary ? { wasmBinary: wasmBinary as ArrayBuffer } : {}),
+      ...(wasmBinary ? {wasmBinary: wasmBinary as ArrayBuffer} : {}),
     }).then(
       sql => {
         SQL = sql as SqlJsModule;
@@ -106,7 +106,7 @@ export function runQuery(
   sql: string | Statement,
   params?: SqlParam[],
   fetchAll?: false,
-): { changes: unknown };
+): {changes: unknown};
 export function runQuery<T>(
   db: Database,
   sql: string | Statement,
@@ -118,7 +118,7 @@ export function runQuery<T>(
   sql: string | Statement,
   params: SqlParam[] = [],
   fetchAll = false,
-): T[] | { changes: unknown } {
+): T[] | {changes: unknown} {
   if (params) {
     verifyParamTypes(sql, params);
   }
@@ -146,7 +146,7 @@ export function runQuery<T>(
     }
   } else {
     stmt.run(params);
-    return { changes: db.getRowsModified() };
+    return {changes: db.getRowsModified()};
   }
 }
 
@@ -168,7 +168,7 @@ export type TransactionOptions = {
 export function transaction(
   db: Database,
   fn: () => void,
-  { immediate = false }: TransactionOptions = {},
+  {immediate = false}: TransactionOptions = {},
 ) {
   let before, after, undo;
   if (transactionDepth > 0) {
@@ -245,7 +245,7 @@ export async function openDatabase(pathOrBuffer?: string | Uint8Array) {
         db = new SQL.Database(
           path.includes('/blocked') ? path : SQL.FS.readlink(path),
           // @ts-expect-error 2nd argument missed in sql.js types
-          { filename: true },
+          {filename: true},
         );
         // absurd-sql serves every page cache miss with a synchronous
         // round trip to IndexedDB, so allow the cache to hold a whole

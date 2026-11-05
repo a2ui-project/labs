@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { getAccountDb } from '../src/account-db';
+import {getAccountDb} from '../src/account-db';
 
 export const up = async function () {
   await getAccountDb().exec(`

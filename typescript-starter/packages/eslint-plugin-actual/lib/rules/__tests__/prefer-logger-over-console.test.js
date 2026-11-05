@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { runClassic } from 'eslint-vitest-rule-tester';
+import {runClassic} from 'eslint-vitest-rule-tester';
 
 import plugin from '../../index';
 const rule = plugin.rules['prefer-logger-over-console'];
@@ -43,7 +43,7 @@ logger.log("test");`,
         errors: [
           {
             messageId: 'preferLogger',
-            data: { method: 'log' },
+            data: {method: 'log'},
           },
         ],
       },
@@ -56,7 +56,7 @@ logger.warn("warning");`,
         errors: [
           {
             messageId: 'preferLogger',
-            data: { method: 'warn' },
+            data: {method: 'warn'},
           },
         ],
       },
@@ -69,7 +69,7 @@ logger.error("error");`,
         errors: [
           {
             messageId: 'preferLogger',
-            data: { method: 'error' },
+            data: {method: 'error'},
           },
         ],
       },
@@ -82,7 +82,7 @@ logger.info("info");`,
         errors: [
           {
             messageId: 'preferLogger',
-            data: { method: 'info' },
+            data: {method: 'info'},
           },
         ],
       },
@@ -95,7 +95,7 @@ logger.debug("debug");`,
         errors: [
           {
             messageId: 'preferLogger',
-            data: { method: 'debug' },
+            data: {method: 'debug'},
           },
         ],
       },
@@ -108,7 +108,7 @@ logger.group("Group Name");`,
         errors: [
           {
             messageId: 'preferLogger',
-            data: { method: 'group' },
+            data: {method: 'group'},
           },
         ],
       },
@@ -121,7 +121,7 @@ logger.groupEnd();`,
         errors: [
           {
             messageId: 'preferLogger',
-            data: { method: 'groupEnd' },
+            data: {method: 'groupEnd'},
           },
         ],
       },
@@ -134,7 +134,7 @@ logger.log("test");`,
         errors: [
           {
             messageId: 'preferLogger',
-            data: { method: 'log' },
+            data: {method: 'log'},
           },
         ],
       },
@@ -147,7 +147,7 @@ logger.log("test");`,
         errors: [
           {
             messageId: 'preferLogger',
-            data: { method: 'log' },
+            data: {method: 'log'},
           },
         ],
       },
@@ -160,7 +160,7 @@ log.log("test");`,
         errors: [
           {
             messageId: 'preferLogger',
-            data: { method: 'log' },
+            data: {method: 'log'},
           },
         ],
       },

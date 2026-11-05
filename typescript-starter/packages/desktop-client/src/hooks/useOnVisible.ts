@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useEffect, useEffectEvent, useRef } from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 type UseOnVisibleOptions = {
   /** When false, the visibility listener is not attached. Default true. */
@@ -30,7 +30,7 @@ export function useOnVisible(
   callback: () => void | Promise<void>,
   options: UseOnVisibleOptions = {},
 ) {
-  const { isEnabled = true } = options;
+  const {isEnabled = true} = options;
   const inProgress = useRef(false);
 
   const runCallback = useEffectEvent(async () => {
@@ -57,7 +57,6 @@ export function useOnVisible(
     }
 
     document.addEventListener('visibilitychange', onVisibilityChange);
-    return () =>
-      document.removeEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, [isEnabled]);
 }

@@ -18,7 +18,7 @@
 // Requirements
 //------------------------------------------------------------------------------
 
-import { runClassic } from 'eslint-vitest-rule-tester';
+import {runClassic} from 'eslint-vitest-rule-tester';
 
 import plugin from '../../index';
 const rule = plugin.rules['no-anchor-tag'];
@@ -101,7 +101,7 @@ void runClassic(
   {
     parserOptions: {
       ecmaVersion: 2020,
-      ecmaFeatures: { jsx: true },
+      ecmaFeatures: {jsx: true},
       sourceType: 'module',
     },
   },

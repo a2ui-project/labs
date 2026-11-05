@@ -15,8 +15,8 @@
  */
 
 export type ParsedSegment =
-  | { type: 'text'; content: string }
-  | { type: 'tag'; content: string; tag: string }
+  | {type: 'text'; content: string}
+  | {type: 'tag'; content: string; tag: string}
   | {
       type: 'link';
       content: string;
@@ -72,7 +72,7 @@ function parseTagsInWord(word: string): ParsedSegment[] {
   const segments: ParsedSegment[] = [];
 
   if (!word.includes('#') || word.length <= 1) {
-    return [{ type: 'text', content: word }];
+    return [{type: 'text', content: word}];
   }
 
   let lastEmptyTag = -1;
@@ -81,25 +81,25 @@ function parseTagsInWord(word: string): ParsedSegment[] {
   parts.forEach((tag, ti) => {
     if (ti === 0) {
       if (tag) {
-        segments.push({ type: 'text', content: tag });
+        segments.push({type: 'text', content: tag});
       }
       return;
     }
 
     if (!tag) {
       lastEmptyTag = ti;
-      segments.push({ type: 'text', content: '#' });
+      segments.push({type: 'text', content: '#'});
       return;
     }
 
     if (lastEmptyTag === ti - 1) {
-      segments.push({ type: 'text', content: `${tag}` });
+      segments.push({type: 'text', content: `${tag}`});
       return;
     }
     lastEmptyTag = -1;
 
     const validTag = `#${tag}`;
-    segments.push({ type: 'tag', content: validTag, tag });
+    segments.push({type: 'tag', content: validTag, tag});
   });
 
   return segments;
@@ -128,10 +128,7 @@ export function parseNotes(notes: string): ParsedSegment[] {
 
       // Add the link segment
       const [fullMatch, displayText, url] = markdownMatch;
-      const isFilePath =
-        url.startsWith('/') ||
-        /^[A-Z]:\\/i.test(url) ||
-        url.startsWith('file://');
+      const isFilePath = url.startsWith('/') || /^[A-Z]:\\/i.test(url) || url.startsWith('file://');
       segments.push({
         type: 'link',
         content: fullMatch,
@@ -214,7 +211,7 @@ function parseTextWithTags(text: string): ParsedSegment[] {
   for (const word of words) {
     // Check if it's whitespace
     if (/^\s+$/.test(word)) {
-      segments.push({ type: 'text', content: word });
+      segments.push({type: 'text', content: word});
       continue;
     }
 
@@ -238,7 +235,7 @@ function parseTextWithTags(text: string): ParsedSegment[] {
 
     // Plain text
     if (word) {
-      segments.push({ type: 'text', content: word });
+      segments.push({type: 'text', content: word});
     }
   }
 

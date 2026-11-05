@@ -16,14 +16,14 @@
 
 // @ts-strict-ignore
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Text } from '@actual-app/components/text';
-import { TextOneLine } from '@actual-app/components/text-one-line';
-import { theme } from '@actual-app/components/theme';
+import {Text} from '@actual-app/components/text';
+import {TextOneLine} from '@actual-app/components/text-one-line';
+import {theme} from '@actual-app/components/theme';
 
-import { useAccount } from '#hooks/useAccount';
-import { usePayee } from '#hooks/usePayee';
+import {useAccount} from '#hooks/useAccount';
+import {usePayee} from '#hooks/usePayee';
 
 type DisplayIdProps = {
   type: 'accounts' | 'payees';
@@ -31,11 +31,7 @@ type DisplayIdProps = {
   noneColor?: string;
 };
 
-export function DisplayId({
-  type,
-  id,
-  noneColor = theme.pageTextSubdued,
-}: DisplayIdProps) {
+export function DisplayId({type, id, noneColor = theme.pageTextSubdued}: DisplayIdProps) {
   return type === 'accounts' ? (
     <AccountDisplayId id={id} noneColor={noneColor} />
   ) : (
@@ -43,12 +39,12 @@ export function DisplayId({
   );
 }
 
-function AccountDisplayId({ id, noneColor }) {
-  const { t } = useTranslation();
+function AccountDisplayId({id, noneColor}) {
+  const {t} = useTranslation();
   const account = useAccount(id);
   return (
     <Text
-      style={account == null ? { color: noneColor } : null}
+      style={account == null ? {color: noneColor} : null}
       title={account ? account.name : t('None')}
     >
       {account ? account.name : t('None')}
@@ -56,12 +52,12 @@ function AccountDisplayId({ id, noneColor }) {
   );
 }
 
-function PayeeDisplayId({ id, noneColor }) {
-  const { t } = useTranslation();
-  const { data: payee } = usePayee(id);
+function PayeeDisplayId({id, noneColor}) {
+  const {t} = useTranslation();
+  const {data: payee} = usePayee(id);
   return (
     <TextOneLine
-      style={payee == null ? { color: noneColor } : null}
+      style={payee == null ? {color: noneColor} : null}
       title={payee ? payee.name : t('None')}
     >
       {payee ? payee.name : t('None')}

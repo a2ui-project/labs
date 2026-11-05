@@ -16,10 +16,10 @@
 
 // @ts-strict-ignore
 import fc from 'fast-check';
-import type { Arbitrary } from 'fast-check';
+import type {Arbitrary} from 'fast-check';
 
-import { schema } from '#server/aql';
-import { addDays } from '#shared/months';
+import {schema} from '#server/aql';
+import {addDays} from '#shared/months';
 
 export function typeArbitrary(typeDesc, name?) {
   let arb;
@@ -40,7 +40,7 @@ export function typeArbitrary(typeDesc, name?) {
       arb = fc.string();
       break;
     case 'date':
-      arb = fc.integer({ min: 0, max: 365 * 4 }).map(n => {
+      arb = fc.integer({min: 0, max: 365 * 4}).map(n => {
         return addDays('2018-01-01', n);
       });
       break;
@@ -55,9 +55,7 @@ export function typeArbitrary(typeDesc, name?) {
     return fc.option(arb).map(val => {
       if (val == null) {
         if (typeDesc.default !== undefined) {
-          return typeof typeDesc.default === 'function'
-            ? typeDesc.default()
-            : typeDesc.default;
+          return typeof typeDesc.default === 'function' ? typeDesc.default() : typeDesc.default;
         } else if (typeDesc.type === 'boolean') {
           return false;
         }
@@ -70,7 +68,7 @@ export function typeArbitrary(typeDesc, name?) {
 
 export function flattenSortTransactions(arr) {
   const flattened = arr.reduce((list, trans) => {
-    const { subtransactions, ...fields } = trans;
+    const {subtransactions, ...fields} = trans;
 
     if (subtransactions.length > 0) {
       list.push({
@@ -111,13 +109,9 @@ export function flattenSortTransactions(arr) {
 }
 
 function tableArbitrary<
-  T extends Record<string, { type: string; required?: boolean }>,
+  T extends Record<string, {type: string; required?: boolean}>,
   E extends Record<string, Arbitrary<unknown>>,
->(
-  tableSchema: T,
-  extraArbs?: E,
-  requiredKeys: Array<Extract<keyof T | keyof E, string>> = [],
-) {
+>(tableSchema: T, extraArbs?: E, requiredKeys: Array<Extract<keyof T | keyof E, string>> = []) {
   const arb = fc.record(
     {
       ...Object.fromEntries<T>(
@@ -126,7 +120,7 @@ function tableArbitrary<
         }),
       ),
       // Override the amount to make it a smaller integer
-      amount: fc.integer({ min: -1000000, max: 1000000 }),
+      amount: fc.integer({min: -1000000, max: 1000000}),
       ...extraArbs,
     },
     {
@@ -144,10 +138,8 @@ function tableArbitrary<
 export function makeTransaction({
   splitFreq = 1,
   payeeIds,
-}: { splitFreq?: number; payeeIds?: string[] } = {}) {
-  const payeeField = payeeIds
-    ? { payee: fc.oneof(...payeeIds.map(id => fc.constant(id))) }
-    : null;
+}: {splitFreq?: number; payeeIds?: string[]} = {}) {
+  const payeeField = payeeIds ? {payee: fc.oneof(...payeeIds.map(id => fc.constant(id)))} : null;
 
   const subtrans = tableArbitrary(schema.transactions, payeeField);
 
@@ -156,8 +148,8 @@ export function makeTransaction({
     {
       ...payeeField,
       subtransactions: fc.oneof(
-        { arbitrary: fc.constant([]), weight: 100 },
-        { arbitrary: fc.array(subtrans), weight: splitFreq * 100 },
+        {arbitrary: fc.constant([]), weight: 100},
+        {arbitrary: fc.array(subtrans), weight: splitFreq * 100},
       ),
     },
     ['subtransactions'],
@@ -165,11 +157,11 @@ export function makeTransaction({
 }
 
 export const makeTransactionArray = (
-  options: { minLength?; maxLength?; splitFreq?; payeeIds? } = {},
+  options: {minLength?; maxLength?; splitFreq?; payeeIds?} = {},
 ) => {
-  const { minLength, maxLength, ...transOpts } = options;
+  const {minLength, maxLength, ...transOpts} = options;
   return fc
-    .array(makeTransaction(transOpts), { minLength, maxLength })
+    .array(makeTransaction(transOpts), {minLength, maxLength})
     .map(arr => flattenSortTransactions(arr));
 };
 export const payee = tableArbitrary(schema.payees);

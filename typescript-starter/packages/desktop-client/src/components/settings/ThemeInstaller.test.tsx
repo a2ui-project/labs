@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-import { render as rtlRender, screen, waitFor } from '@testing-library/react';
+import {render as rtlRender, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { useThemeCatalog } from '#hooks/useThemeCatalog';
-import { resetTestProviders, TestProviders } from '#mocks';
-import {
-  fetchThemeCss,
-  generateThemeId,
-  validateThemeCss,
-} from '#style/customThemes';
-import type { CatalogTheme } from '#style/customThemes';
+import {useThemeCatalog} from '#hooks/useThemeCatalog';
+import {resetTestProviders, TestProviders} from '#mocks';
+import {fetchThemeCss, generateThemeId, validateThemeCss} from '#style/customThemes';
+import type {CatalogTheme} from '#style/customThemes';
 
-import { ThemeInstaller } from './ThemeInstaller';
+import {ThemeInstaller} from './ThemeInstaller';
 
-function render(
-  ui: Parameters<typeof rtlRender>[0],
-  options?: Parameters<typeof rtlRender>[1],
-) {
-  return rtlRender(ui, { wrapper: TestProviders, ...options });
+function render(ui: Parameters<typeof rtlRender>[0], options?: Parameters<typeof rtlRender>[1]) {
+  return rtlRender(ui, {wrapper: TestProviders, ...options});
 }
 
 vi.mock('#style/customThemes', async () => {
@@ -85,40 +78,19 @@ describe('ThemeInstaller', () => {
       name: 'Demo Theme',
       repo: 'actualbudget/demo-theme',
       mode: 'dark',
-      colors: [
-        '#1a1a2e',
-        '#16213e',
-        '#0f3460',
-        '#e94560',
-        '#533483',
-        '#f1f1f1',
-      ],
+      colors: ['#1a1a2e', '#16213e', '#0f3460', '#e94560', '#533483', '#f1f1f1'],
     },
     {
       name: 'Ocean Blue',
       repo: 'actualbudget/ocean-theme',
       mode: 'light',
-      colors: [
-        '#0d47a1',
-        '#1565c0',
-        '#1976d2',
-        '#1e88e5',
-        '#42a5f5',
-        '#90caf9',
-      ],
+      colors: ['#0d47a1', '#1565c0', '#1976d2', '#1e88e5', '#42a5f5', '#90caf9'],
     },
     {
       name: 'Forest Green',
       repo: 'actualbudget/forest-theme',
       mode: 'light',
-      colors: [
-        '#1b5e20',
-        '#2e7d32',
-        '#388e3c',
-        '#43a047',
-        '#66bb6a',
-        '#a5d6a7',
-      ],
+      colors: ['#1b5e20', '#2e7d32', '#388e3c', '#43a047', '#66bb6a', '#a5d6a7'],
     },
   ];
 
@@ -149,30 +121,22 @@ describe('ThemeInstaller', () => {
 
   describe('rendering', () => {
     it('renders the component with title and close button', () => {
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
       expect(screen.getByText('Install Custom Theme')).toBeVisible();
-      expect(screen.getByRole('button', { name: 'Close' })).toBeVisible();
+      expect(screen.getByRole('button', {name: 'Close'})).toBeVisible();
     });
 
     it('renders catalog themes', () => {
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
-      expect(screen.getByRole('button', { name: 'Demo Theme' })).toBeVisible();
-      expect(screen.getByRole('button', { name: 'Ocean Blue' })).toBeVisible();
-      expect(
-        screen.getByRole('button', { name: 'Forest Green' }),
-      ).toBeVisible();
+      expect(screen.getByRole('button', {name: 'Demo Theme'})).toBeVisible();
+      expect(screen.getByRole('button', {name: 'Ocean Blue'})).toBeVisible();
+      expect(screen.getByRole('button', {name: 'Forest Green'})).toBeVisible();
     });
 
     it('does not render error message initially', () => {
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
       // Error messages have specific styling, check they're not present
       const errorElements = screen.queryAllByText(/Failed/i);
@@ -183,11 +147,9 @@ describe('ThemeInstaller', () => {
   describe('catalog theme selection', () => {
     it('calls onInstall when a catalog theme is clicked', async () => {
       const user = userEvent.setup();
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
-      await user.click(screen.getByRole('button', { name: 'Demo Theme' }));
+      await user.click(screen.getByRole('button', {name: 'Demo Theme'}));
 
       await waitFor(() => {
         expect(mockOnInstall).toHaveBeenCalledWith(
@@ -202,9 +164,7 @@ describe('ThemeInstaller', () => {
 
     it('preserves pasted CSS when a catalog theme is selected', async () => {
       const user = userEvent.setup();
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
       const textArea = screen.getByRole('textbox', {
         name: 'Custom Theme CSS',
@@ -215,15 +175,13 @@ describe('ThemeInstaller', () => {
 
       expect(textArea).toHaveValue(cssText);
 
-      await user.click(screen.getByRole('button', { name: 'Demo Theme' }));
+      await user.click(screen.getByRole('button', {name: 'Demo Theme'}));
       expect(textArea).toHaveValue(cssText);
     });
 
     it('clears error when a catalog theme is selected', async () => {
       const user = userEvent.setup();
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
       // First, create an error by pasting invalid CSS
       const textArea = screen.getByRole('textbox', {
@@ -231,7 +189,7 @@ describe('ThemeInstaller', () => {
       });
       await user.click(textArea);
       await user.paste('invalid css');
-      await user.click(screen.getByRole('button', { name: 'Demo Theme' }));
+      await user.click(screen.getByRole('button', {name: 'Demo Theme'}));
 
       expect(screen.queryByText(/Failed/i)).not.toBeInTheDocument();
     });
@@ -248,18 +206,16 @@ describe('ThemeInstaller', () => {
         Promise.reject(new Error(errorMessage)),
       );
 
-      render(
-        <ThemeInstaller onInstall={testOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={testOnInstall} onClose={mockOnClose} />);
 
-      await user.click(screen.getByRole('button', { name: 'Demo Theme' }));
+      await user.click(screen.getByRole('button', {name: 'Demo Theme'}));
 
       // Wait for the error to be displayed - this confirms the rejection worked
       await waitFor(
         () => {
           expect(screen.getByText(errorMessage)).toBeInTheDocument();
         },
-        { timeout: 2000 },
+        {timeout: 2000},
       );
 
       // Verify fetchThemeCss was called with correct argument
@@ -307,7 +263,7 @@ describe('ThemeInstaller', () => {
 
       // Verify erroring theme (Demo Theme) has error styling
       await waitFor(() => {
-        const demoButton = screen.getByRole('button', { name: 'Demo Theme' });
+        const demoButton = screen.getByRole('button', {name: 'Demo Theme'});
         const demoButtonStyle = demoButton.getAttribute('style') || '';
         // Check that error styling is applied - should contain CSS variable for errorText in border
         // and errorBackground in backgroundColor
@@ -317,7 +273,7 @@ describe('ThemeInstaller', () => {
       });
 
       // Verify previously active theme (Ocean Blue) still shows as active (not the erroring one)
-      const oceanButton = screen.getByRole('button', { name: 'Ocean Blue' });
+      const oceanButton = screen.getByRole('button', {name: 'Ocean Blue'});
       const oceanButtonStyle = oceanButton.getAttribute('style') || '';
       // Active theme should have buttonPrimaryBackground in border (indicating it's active)
       expect(oceanButtonStyle).toMatch(/buttonPrimaryBackground/);
@@ -333,11 +289,9 @@ describe('ThemeInstaller', () => {
       const user = userEvent.setup();
       vi.mocked(fetchThemeCss).mockRejectedValue('String error');
 
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
-      await user.click(screen.getByRole('button', { name: 'Demo Theme' }));
+      await user.click(screen.getByRole('button', {name: 'Demo Theme'}));
 
       await waitFor(() => {
         expect(screen.getByText('Failed to load theme')).toBeInTheDocument();
@@ -353,11 +307,9 @@ describe('ThemeInstaller', () => {
         throw new Error(validationError);
       });
 
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
-      await user.click(screen.getByRole('button', { name: 'Demo Theme' }));
+      await user.click(screen.getByRole('button', {name: 'Demo Theme'}));
 
       await waitFor(() => {
         expect(screen.getByText(validationError)).toBeInTheDocument();
@@ -370,9 +322,7 @@ describe('ThemeInstaller', () => {
   describe('close button', () => {
     it('calls onClose when close button is clicked', async () => {
       const user = userEvent.setup();
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
       const closeButton = screen.getByText('Close');
       await user.click(closeButton);
@@ -383,9 +333,7 @@ describe('ThemeInstaller', () => {
 
   describe('catalog theme display', () => {
     it('displays theme color palette correctly', () => {
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
       // Check that color palettes are rendered instead of images
       const images = screen.queryAllByRole('img');
@@ -400,9 +348,7 @@ describe('ThemeInstaller', () => {
     });
 
     it('displays theme author correctly', () => {
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
       // Author should be displayed as "by actualbudget"
       const authorTexts = screen.getAllByText(/by/i);
@@ -410,9 +356,7 @@ describe('ThemeInstaller', () => {
     });
 
     it('displays source link for themes', () => {
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
 
       const sourceLinks = screen.getAllByText('Source');
       expect(sourceLinks.length).toBeGreaterThan(0);
@@ -422,9 +366,7 @@ describe('ThemeInstaller', () => {
   describe('customCssOverride pref binding', () => {
     it('pre-fills the textarea from customCssOverride on mount', () => {
       mockCustomCssOverride = ':root { --color-accent: #ff00aa; }';
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
       expect(screen.getByLabelText('Custom Theme CSS')).toHaveValue(
         ':root { --color-accent: #ff00aa; }',
       );
@@ -432,9 +374,7 @@ describe('ThemeInstaller', () => {
 
     it('leaves the textarea empty when customCssOverride is undefined', () => {
       mockCustomCssOverride = undefined;
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
       expect(screen.getByLabelText('Custom Theme CSS')).toHaveValue('');
     });
 
@@ -443,20 +383,16 @@ describe('ThemeInstaller', () => {
       mockCustomCssOverride = undefined;
       vi.mocked(validateThemeCss).mockImplementation(css => css.trim());
 
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
       const textarea = screen.getByLabelText('Custom Theme CSS');
       await user.click(textarea);
       await user.paste('  :root { --color-accent: #ff0000; }  ');
-      await user.click(screen.getByRole('button', { name: 'Apply' }));
+      await user.click(screen.getByRole('button', {name: 'Apply'}));
 
       // validateThemeCss is mocked as css => css.trim(), so the setter
       // must receive the trimmed version — not the raw pasted string.
       // This proves the Apply path runs validation, not a raw pass-through.
-      expect(mockSetCustomCssOverride).toHaveBeenCalledWith(
-        ':root { --color-accent: #ff0000; }',
-      );
+      expect(mockSetCustomCssOverride).toHaveBeenCalledWith(':root { --color-accent: #ff0000; }');
       // Textarea must also reflect the normalized value so the editor stays
       // in sync with what was actually persisted.
       expect(textarea).toHaveValue(':root { --color-accent: #ff0000; }');
@@ -466,12 +402,10 @@ describe('ThemeInstaller', () => {
       const user = userEvent.setup();
       mockCustomCssOverride = ':root { --color-accent: #ff0000; }';
 
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
       const textarea = screen.getByLabelText('Custom Theme CSS');
       await user.clear(textarea);
-      await user.click(screen.getByRole('button', { name: 'Apply' }));
+      await user.click(screen.getByRole('button', {name: 'Apply'}));
 
       expect(mockSetCustomCssOverride).toHaveBeenCalledWith('');
     });
@@ -483,12 +417,10 @@ describe('ThemeInstaller', () => {
         throw new Error('invalid css');
       });
 
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
       const textarea = screen.getByLabelText('Custom Theme CSS');
       await user.type(textarea, 'not valid css');
-      await user.click(screen.getByRole('button', { name: 'Apply' }));
+      await user.click(screen.getByRole('button', {name: 'Apply'}));
 
       expect(mockSetCustomCssOverride).not.toHaveBeenCalled();
       expect(await screen.findByText('invalid css')).toBeInTheDocument();
@@ -498,10 +430,8 @@ describe('ThemeInstaller', () => {
       const user = userEvent.setup();
       mockCustomCssOverride = ':root { --color-accent: #ff0000; }';
 
-      render(
-        <ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />,
-      );
-      await user.click(screen.getByRole('button', { name: 'Demo Theme' }));
+      render(<ThemeInstaller onInstall={mockOnInstall} onClose={mockOnClose} />);
+      await user.click(screen.getByRole('button', {name: 'Demo Theme'}));
 
       await waitFor(() => {
         expect(mockOnInstall).toHaveBeenCalled();

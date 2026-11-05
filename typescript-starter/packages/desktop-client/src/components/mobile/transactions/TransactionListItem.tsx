@@ -15,56 +15,45 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
-import { mergeProps } from 'react-aria';
-import type { ListBoxItemRenderProps } from 'react-aria-components';
-import { useTranslation } from 'react-i18next';
+import type {CSSProperties} from 'react';
+import {mergeProps} from 'react-aria';
+import type {ListBoxItemRenderProps} from 'react-aria-components';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgSplit } from '@actual-app/components/icons/v0';
+import {Button} from '@actual-app/components/button';
+import {SvgSplit} from '@actual-app/components/icons/v0';
 import {
   SvgArrowsSynchronize,
   SvgCalendar3,
   SvgCheckCircle1,
   SvgLockClosed,
 } from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { TextOneLine } from '@actual-app/components/text-one-line';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { isPreviewId } from '@actual-app/core/shared/transactions';
-import { integerToCurrency } from '@actual-app/core/shared/util';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type {
-  AccountEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
-import {
-  PressResponder,
-  useLongPress,
-  usePress,
-} from '@react-aria/interactions';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {TextOneLine} from '@actual-app/components/text-one-line';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {isPreviewId} from '@actual-app/core/shared/transactions';
+import {integerToCurrency} from '@actual-app/core/shared/util';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {AccountEntity, TransactionEntity} from '@actual-app/core/types/models';
+import {PressResponder, useLongPress, usePress} from '@react-aria/interactions';
 
-import { makeAmountFullStyle } from '#components/budget/util';
-import { TransferDirectionIcon } from '#components/common/TransferDirectionIcon';
-import { useAccount } from '#hooks/useAccount';
-import { useCachedSchedules } from '#hooks/useCachedSchedules';
-import { useCategories } from '#hooks/useCategories';
-import { useDisplayPayee } from '#hooks/useDisplayPayee';
-import { usePayee } from '#hooks/usePayee';
-import { NotesTagFormatter } from '#notes/NotesTagFormatter';
-import { useSelector } from '#redux';
+import {makeAmountFullStyle} from '#components/budget/util';
+import {TransferDirectionIcon} from '#components/common/TransferDirectionIcon';
+import {useAccount} from '#hooks/useAccount';
+import {useCachedSchedules} from '#hooks/useCachedSchedules';
+import {useCategories} from '#hooks/useCategories';
+import {useDisplayPayee} from '#hooks/useDisplayPayee';
+import {usePayee} from '#hooks/usePayee';
+import {NotesTagFormatter} from '#notes/NotesTagFormatter';
+import {useSelector} from '#redux';
 
-import { lookupName, Status } from './TransactionEdit';
+import {lookupName, Status} from './TransactionEdit';
 
 export const ROW_HEIGHT = 60;
 
-const getTextStyle = ({
-  isPreview,
-}: {
-  isPreview: boolean;
-}): CSSProperties => ({
+const getTextStyle = ({isPreview}: {isPreview: boolean}): CSSProperties => ({
   ...styles.text,
   fontSize: 14,
   ...(isPreview
@@ -75,7 +64,7 @@ const getTextStyle = ({
     : {}),
 });
 
-const getScheduleIconStyle = ({ isPreview }: { isPreview: boolean }) => ({
+const getScheduleIconStyle = ({isPreview}: {isPreview: boolean}) => ({
   width: 12,
   height: 12,
   marginRight: 5,
@@ -102,22 +91,20 @@ export function TransactionListItem({
   transaction,
   ...itemProps
 }: TransactionListItemProps) {
-  const { t } = useTranslation();
-  const { data: { list: categories } = { list: [] } } = useCategories();
+  const {t} = useTranslation();
+  const {data: {list: categories} = {list: []}} = useCategories();
 
-  const { data: payee } = usePayee(transaction?.payee);
-  const displayPayee = useDisplayPayee({ transaction });
+  const {data: payee} = usePayee(transaction?.payee);
+  const displayPayee = useDisplayPayee({transaction});
 
   const account = useAccount(transaction?.account || '');
   const transferAccount = useAccount(payee?.transfer_acct || '');
   const isPreview = isPreviewId(transaction?.id || '');
-  const { schedules = [] } = useCachedSchedules();
+  const {schedules = []} = useCachedSchedules();
 
-  const newTransactions = useSelector(
-    state => state.transactions.newTransactions,
-  );
+  const newTransactions = useSelector(state => state.transactions.newTransactions);
 
-  const { longPressProps } = useLongPress({
+  const {longPressProps} = useLongPress({
     accessibilityDescription: 'Long press to select multiple transactions',
     onLongPress: () => {
       if (isPreview) {
@@ -128,7 +115,7 @@ export function TransactionListItem({
     },
   });
 
-  const { pressProps } = usePress({
+  const {pressProps} = usePress({
     onPress: () => {
       onPress(transaction!);
     },
@@ -151,9 +138,7 @@ export function TransactionListItem({
     schedule: scheduleId,
   } = transaction;
 
-  const schedule = scheduleId
-    ? schedules.find(s => s.id === scheduleId)
-    : undefined;
+  const schedule = scheduleId ? schedules.find(s => s.id === scheduleId) : undefined;
   const displayedNotes = notes || (isPreview ? schedule?.name : undefined);
 
   const previewStatus = forceUpcoming ? 'upcoming' : categoryId;
@@ -169,7 +154,7 @@ export function TransactionListItem({
         : null;
 
   const prettyCategory = specialCategory || categoryName;
-  const textStyle = getTextStyle({ isPreview });
+  const textStyle = getTextStyle({isPreview});
 
   return (
     <View
@@ -208,7 +193,7 @@ export function TransactionListItem({
             flex: 1,
             borderRadius: 0,
             borderWidth: 0,
-            ...(isReconciling && { paddingRight: 0 }),
+            ...(isReconciling && {paddingRight: 0}),
             ...(isPreview
               ? {
                   backgroundColor: theme.tableRowHeaderBackground,
@@ -227,12 +212,9 @@ export function TransactionListItem({
               padding: isReconciling ? '0 0 0 4px' : '0 4px',
             }}
           >
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <PayeeIcons
-                  transaction={transaction}
-                  transferAccount={transferAccount}
-                />
+            <View style={{flex: 1}}>
+              <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                <PayeeIcons transaction={transaction} transferAccount={transferAccount} />
                 <TextOneLine
                   style={{
                     ...textStyle,
@@ -273,9 +255,7 @@ export function TransactionListItem({
                         style={{
                           width: 11,
                           height: 11,
-                          color: isCleared
-                            ? theme.noticeTextLight
-                            : theme.pageTextSubdued,
+                          color: isCleared ? theme.noticeTextLight : theme.pageTextSubdued,
                           marginRight: 5,
                         }}
                       />
@@ -294,13 +274,8 @@ export function TransactionListItem({
                       fontSize: 11,
                       marginTop: 1,
                       fontWeight: '400',
-                      color: prettyCategory
-                        ? theme.tableText
-                        : theme.menuItemTextSelected,
-                      fontStyle:
-                        specialCategory || !prettyCategory
-                          ? 'italic'
-                          : undefined,
+                      color: prettyCategory ? theme.tableText : theme.menuItemTextSelected,
+                      fontStyle: specialCategory || !prettyCategory ? 'italic' : undefined,
                       textAlign: 'left',
                     }}
                   >
@@ -323,7 +298,7 @@ export function TransactionListItem({
                 </TextOneLine>
               )}
             </View>
-            <View style={{ justifyContent: 'center', alignItems: 'flex-end' }}>
+            <View style={{justifyContent: 'center', alignItems: 'flex-end'}}>
               <Text
                 style={{
                   ...styles.tnum,
@@ -368,10 +343,7 @@ export function TransactionListItem({
               alignItems: 'center',
             }}
           >
-            <ClearedStatusIcon
-              isReconciled={isReconciled}
-              isCleared={isCleared}
-            />
+            <ClearedStatusIcon isReconciled={isReconciled} isCleared={isCleared} />
           </View>
         ) : (
           <Button
@@ -391,10 +363,7 @@ export function TransactionListItem({
             }}
             onPress={() => onToggleCleared?.(transaction)}
           >
-            <ClearedStatusIcon
-              isReconciled={isReconciled}
-              isCleared={isCleared}
-            />
+            <ClearedStatusIcon isReconciled={isReconciled} isCleared={isCleared} />
           </Button>
         ))}
     </View>
@@ -406,10 +375,7 @@ type ClearedStatusIconProps = {
   isCleared?: boolean;
 };
 
-function ClearedStatusIcon({
-  isReconciled,
-  isCleared,
-}: ClearedStatusIconProps) {
+function ClearedStatusIcon({isReconciled, isCleared}: ClearedStatusIconProps) {
   return isReconciled ? (
     <SvgLockClosed
       style={{
@@ -434,17 +400,13 @@ type PayeeIconsProps = {
   transferAccount?: AccountEntity;
 };
 
-function PayeeIcons({ transaction, transferAccount }: PayeeIconsProps) {
-  const { id, schedule: scheduleId } = transaction;
-  const { isLoading: isSchedulesLoading, schedules = [] } =
-    useCachedSchedules();
+function PayeeIcons({transaction, transferAccount}: PayeeIconsProps) {
+  const {id, schedule: scheduleId} = transaction;
+  const {isLoading: isSchedulesLoading, schedules = []} = useCachedSchedules();
   const isPreview = isPreviewId(id);
   const schedule = schedules.find(s => s.id === scheduleId);
   const isScheduleRecurring =
-    schedule &&
-    schedule._date &&
-    typeof schedule._date === 'object' &&
-    !!schedule._date.frequency;
+    schedule && schedule._date && typeof schedule._date === 'object' && !!schedule._date.frequency;
 
   if (isSchedulesLoading) {
     return null;
@@ -454,14 +416,14 @@ function PayeeIcons({ transaction, transferAccount }: PayeeIconsProps) {
     <>
       {schedule &&
         (isScheduleRecurring ? (
-          <SvgArrowsSynchronize style={getScheduleIconStyle({ isPreview })} />
+          <SvgArrowsSynchronize style={getScheduleIconStyle({isPreview})} />
         ) : (
-          <SvgCalendar3 style={getScheduleIconStyle({ isPreview })} />
+          <SvgCalendar3 style={getScheduleIconStyle({isPreview})} />
         ))}
       {transferAccount && (
         <TransferDirectionIcon
           isDeposit={transaction.amount > 0}
-          style={{ width: 12, height: 12, marginRight: 5 }}
+          style={{width: 12, height: 12, marginRight: 5}}
         />
       )}
     </>

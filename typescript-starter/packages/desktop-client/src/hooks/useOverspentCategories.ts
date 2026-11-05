@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 
 import * as monthUtils from '@actual-app/core/shared/months';
-import { groupById } from '@actual-app/core/shared/util';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type { CategoryEntity } from '@actual-app/core/types/models';
+import {groupById} from '@actual-app/core/shared/util';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {CategoryEntity} from '@actual-app/core/types/models';
 
-import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
+import {envelopeBudget, trackingBudget} from '#spreadsheet/bindings';
 
-import { useCategories } from './useCategories';
-import { useSpreadsheet } from './useSpreadsheet';
-import { useSyncedPref } from './useSyncedPref';
+import {useCategories} from './useCategories';
+import {useSpreadsheet} from './useSpreadsheet';
+import {useSyncedPref} from './useSyncedPref';
 
 type UseOverspentCategoriesProps = {
   month: string;
@@ -44,15 +44,12 @@ export function useOverspentCategories({
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
 
   const {
-    data: { list: categories, grouped: categoryGroups } = {
+    data: {list: categories, grouped: categoryGroups} = {
       list: [],
       grouped: [],
     },
   } = useCategories();
-  const categoryGroupsById = useMemo(
-    () => groupById(categoryGroups),
-    [categoryGroups],
-  );
+  const categoryGroupsById = useMemo(() => groupById(categoryGroups), [categoryGroups]);
 
   const categoryBalanceBindings = useMemo(
     () =>
@@ -79,9 +76,9 @@ export function useOverspentCategories({
   const [overspendingByCategory, setOverspendingByCategory] = useState<
     Record<string, IntegerAmount>
   >({});
-  const [carryoverFlagByCategory, setCarryoverFlagByCategory] = useState<
-    Record<string, boolean>
-  >({});
+  const [carryoverFlagByCategory, setCarryoverFlagByCategory] = useState<Record<string, boolean>>(
+    {},
+  );
 
   useEffect(() => {
     setOverspendingByCategory({});
@@ -103,7 +100,7 @@ export function useOverspentCategories({
         } else {
           // Update to remove covered category.
           setCarryoverFlagByCategory(prev => {
-            const { [categoryId]: _, ...rest } = prev;
+            const {[categoryId]: _, ...rest} = prev;
             return rest;
           });
         }
@@ -129,7 +126,7 @@ export function useOverspentCategories({
         } else if (balance >= 0) {
           // Update to remove covered category.
           setOverspendingByCategory(prev => {
-            const { [categoryId]: _, ...rest } = prev;
+            const {[categoryId]: _, ...rest} = prev;
             return rest;
           });
         }
@@ -149,10 +146,7 @@ export function useOverspentCategories({
     );
 
     const categoriesToReturn = categories
-      .filter(
-        category =>
-          categoryIdsToReturn.includes(category.id) && !category.is_income,
-      )
+      .filter(category => categoryIdsToReturn.includes(category.id) && !category.is_income)
       .filter(category =>
         budgetType === 'tracking'
           ? !category.hidden && !categoryGroupsById[category.group]?.hidden
@@ -160,10 +154,7 @@ export function useOverspentCategories({
       );
 
     const amountsByCategory = new Map(
-      categoriesToReturn.map(category => [
-        category.id,
-        overspendingByCategory[category.id],
-      ]),
+      categoriesToReturn.map(category => [category.id, overspendingByCategory[category.id]]),
     );
 
     const totalAmount = Array.from(amountsByCategory.values()).reduce(
@@ -176,11 +167,5 @@ export function useOverspentCategories({
       amountsByCategory,
       totalAmount,
     };
-  }, [
-    budgetType,
-    carryoverFlagByCategory,
-    categories,
-    categoryGroupsById,
-    overspendingByCategory,
-  ]);
+  }, [budgetType, carryoverFlagByCategory, categories, categoryGroupsById, overspendingByCategory]);
 }

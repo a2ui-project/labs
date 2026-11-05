@@ -15,26 +15,26 @@
  */
 
 import React from 'react';
-import type { GridListItemProps } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import type {GridListItemProps} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { format as monthUtilFormat } from '@actual-app/core/shared/months';
-import type { ScheduleStatusType } from '@actual-app/core/shared/schedules';
-import { getScheduledAmount } from '@actual-app/core/shared/schedules';
-import type { ScheduleEntity } from '@actual-app/core/types/models';
-import type { WithRequired } from '@actual-app/core/types/util';
+import {Button} from '@actual-app/components/button';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {format as monthUtilFormat} from '@actual-app/core/shared/months';
+import type {ScheduleStatusType} from '@actual-app/core/shared/schedules';
+import {getScheduledAmount} from '@actual-app/core/shared/schedules';
+import type {ScheduleEntity} from '@actual-app/core/types/models';
+import type {WithRequired} from '@actual-app/core/types/util';
 
-import { ActionableGridListItem } from '#components/mobile/ActionableGridListItem';
-import { StatusBadge } from '#components/schedules/StatusBadge';
-import { DisplayId } from '#components/util/DisplayId';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
+import {ActionableGridListItem} from '#components/mobile/ActionableGridListItem';
+import {StatusBadge} from '#components/schedules/StatusBadge';
+import {DisplayId} from '#components/util/DisplayId';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
 
 type SchedulesListItemProps = {
   onDelete: () => void;
@@ -48,15 +48,13 @@ export function SchedulesListItem({
   style,
   ...props
 }: SchedulesListItemProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
 
   const amount = getScheduledAmount(schedule._amount);
   const amountStr =
-    (schedule._amountOp === 'isapprox' || schedule._amountOp === 'isbetween'
-      ? '~'
-      : '') +
+    (schedule._amountOp === 'isapprox' || schedule._amountOp === 'isbetween' ? '~' : '') +
     (amount > 0 ? '+' : '') +
     format(Math.abs(amount || 0), 'financial');
 
@@ -65,7 +63,7 @@ export function SchedulesListItem({
       id={schedule.id}
       value={schedule}
       textValue={schedule.name || t('Unnamed schedule')}
-      style={{ ...styles.mobileListItem, padding: '8px 16px', ...style }}
+      style={{...styles.mobileListItem, padding: '8px 16px', ...style}}
       actions={
         <Button
           variant="bare"
@@ -80,10 +78,7 @@ export function SchedulesListItem({
       }
       {...props}
     >
-      <SpaceBetween
-        gap={12}
-        style={{ alignItems: 'flex-start', width: '100%' }}
-      >
+      <SpaceBetween gap={12} style={{alignItems: 'flex-start', width: '100%'}}>
         <View
           style={{
             flex: 1,
@@ -96,24 +91,22 @@ export function SchedulesListItem({
             style={{
               fontSize: 15,
               fontWeight: 600,
-              color: schedule.name
-                ? theme.pageText
-                : theme.buttonNormalDisabledText,
+              color: schedule.name ? theme.pageText : theme.buttonNormalDisabledText,
             }}
           >
             {schedule.name || t('Unnamed schedule')}
           </Text>
 
           {/* Payee and Account */}
-          <SpaceBetween gap={4} style={{ flexWrap: 'wrap' }}>
+          <SpaceBetween gap={4} style={{flexWrap: 'wrap'}}>
             <SpaceBetween gap={4} direction="horizontal">
-              <Text style={{ color: theme.pageTextSubdued }}>
+              <Text style={{color: theme.pageTextSubdued}}>
                 <Trans>Payee:</Trans>
               </Text>
               <DisplayId type="payees" id={schedule._payee} />
             </SpaceBetween>
             <SpaceBetween gap={4} direction="horizontal">
-              <Text style={{ color: theme.pageTextSubdued }}>
+              <Text style={{color: theme.pageTextSubdued}}>
                 <Trans>Account:</Trans>
               </Text>
               <DisplayId type="accounts" id={schedule._account} />
@@ -121,21 +114,19 @@ export function SchedulesListItem({
           </SpaceBetween>
 
           {/* Amount and Date */}
-          <SpaceBetween gap={8} style={{ flexWrap: 'wrap' }}>
+          <SpaceBetween gap={8} style={{flexWrap: 'wrap'}}>
             <SpaceBetween gap={4} direction="horizontal">
-              <Text style={{ color: theme.pageTextSubdued }}>
+              <Text style={{color: theme.pageTextSubdued}}>
                 <Trans>Amount:</Trans>
               </Text>
-              <Text style={{ ...styles.tnum, color: theme.pageText }}>
-                {amountStr}
-              </Text>
+              <Text style={{...styles.tnum, color: theme.pageText}}>{amountStr}</Text>
             </SpaceBetween>
             {schedule.next_date && (
               <SpaceBetween gap={4} direction="horizontal">
-                <Text style={{ color: theme.pageTextSubdued }}>
+                <Text style={{color: theme.pageTextSubdued}}>
                   <Trans>Next:</Trans>
                 </Text>
-                <Text style={{ color: theme.pageText }}>
+                <Text style={{color: theme.pageText}}>
                   {monthUtilFormat(schedule.next_date, dateFormat)}
                 </Text>
               </SpaceBetween>
@@ -144,7 +135,7 @@ export function SchedulesListItem({
         </View>
 
         {/* Status badge */}
-        <View style={{ flexShrink: 0, paddingTop: 2 }}>
+        <View style={{flexShrink: 0, paddingTop: 2}}>
           <StatusBadge status={status} />
         </View>
       </SpaceBetween>

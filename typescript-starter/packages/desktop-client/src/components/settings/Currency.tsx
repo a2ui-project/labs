@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import React, { useMemo } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useMemo} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Select } from '@actual-app/components/select';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { currencies, getCurrency } from '@actual-app/core/shared/currencies';
-import { css } from '@emotion/css';
+import {Select} from '@actual-app/components/select';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {currencies, getCurrency} from '@actual-app/core/shared/currencies';
+import {css} from '@emotion/css';
 
-import { Checkbox } from '#components/forms';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {Checkbox} from '#components/forms';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
-import { Column, Setting } from './UI';
+import {Column, Setting} from './UI';
 
 export function CurrencySettings() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const currencyTranslations = useMemo(
     () =>
@@ -90,17 +90,11 @@ export function CurrencySettings() {
     [t],
   );
 
-  const [defaultCurrencyCode, setDefaultCurrencyCodePref] = useSyncedPref(
-    'defaultCurrencyCode',
-  );
+  const [defaultCurrencyCode, setDefaultCurrencyCodePref] = useSyncedPref('defaultCurrencyCode');
   const selectedCurrencyCode = defaultCurrencyCode || '';
 
-  const [symbolPosition, setSymbolPositionPref] = useSyncedPref(
-    'currencySymbolPosition',
-  );
-  const [spaceEnabled, setSpaceEnabledPref] = useSyncedPref(
-    'currencySpaceBetweenAmountAndSymbol',
-  );
+  const [symbolPosition, setSymbolPositionPref] = useSyncedPref('currencySymbolPosition');
+  const [spaceEnabled, setSpaceEnabledPref] = useSyncedPref('currencySpaceBetweenAmountAndSymbol');
   const [, setNumberFormatPref] = useSyncedPref('numberFormat');
   const [, setHideFractionPref] = useSyncedPref('hideFraction');
 
@@ -111,15 +105,11 @@ export function CurrencySettings() {
   });
 
   const currencyOptions: [string, string][] = currencies.map(currency => {
-    const translatedName =
-      currencyTranslations.get(currency.code) ?? currency.name;
+    const translatedName = currencyTranslations.get(currency.code) ?? currency.name;
     if (currency.code === '') {
       return [currency.code, translatedName];
     }
-    return [
-      currency.code,
-      `${currency.code} - ${translatedName} (${currency.symbol})`,
-    ];
+    return [currency.code, `${currency.code} - ${translatedName} (${currency.symbol})`];
   });
 
   const handleCurrencyChange = (code: string) => {
@@ -161,14 +151,14 @@ export function CurrencySettings() {
             width: '100%',
           }}
         >
-          <View style={{ display: 'flex', flexDirection: 'row', gap: '1.5em' }}>
+          <View style={{display: 'flex', flexDirection: 'row', gap: '1.5em'}}>
             <Column title={t('Default Currency')}>
               <Select
                 value={selectedCurrencyCode}
                 onChange={handleCurrencyChange}
                 options={currencyOptions}
                 className={selectButtonClassName}
-                style={{ width: '100%' }}
+                style={{width: '100%'}}
               />
             </Column>
 
@@ -183,7 +173,7 @@ export function CurrencySettings() {
                 onChange={value => setSymbolPositionPref(value)}
                 options={symbolPositionOptions.map(f => [f.value, f.label])}
                 className={selectButtonClassName}
-                style={{ width: '100%' }}
+                style={{width: '100%'}}
                 disabled={selectedCurrencyCode === ''}
               />
             </Column>
@@ -201,14 +191,9 @@ export function CurrencySettings() {
               <Checkbox
                 id="settings-spaceEnabled"
                 checked={spaceEnabled === 'true'}
-                onChange={e =>
-                  setSpaceEnabledPref(e.target.checked ? 'true' : 'false')
-                }
+                onChange={e => setSpaceEnabledPref(e.target.checked ? 'true' : 'false')}
               />
-              <label
-                htmlFor="settings-spaceEnabled"
-                style={{ marginLeft: '0.5em' }}
-              >
+              <label htmlFor="settings-spaceEnabled" style={{marginLeft: '0.5em'}}>
                 <Trans>Add space between amount and symbol</Trans>
               </label>
             </View>
@@ -218,10 +203,9 @@ export function CurrencySettings() {
     >
       <Text>
         <Trans>
-          <strong>Currency settings</strong> affect how amounts are displayed
-          throughout the application. Changing the currency will affect the
-          number format, symbol position, and whether fractions are shown. These
-          can be adjusted after the currency is set.
+          <strong>Currency settings</strong> affect how amounts are displayed throughout the
+          application. Changing the currency will affect the number format, symbol position, and
+          whether fractions are shown. These can be adjusted after the currency is set.
         </Trans>
       </Text>
     </Setting>

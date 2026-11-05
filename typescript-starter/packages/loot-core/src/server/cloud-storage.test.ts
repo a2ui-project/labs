@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { Mock } from 'vitest';
+import type {Mock} from 'vitest';
 
-const { mockedFetch, mockedGetItem, mockedRemoveItem } = vi.hoisted(
-  (): { mockedFetch: Mock; mockedGetItem: Mock; mockedRemoveItem: Mock } => ({
+const {mockedFetch, mockedGetItem, mockedRemoveItem} = vi.hoisted(
+  (): {mockedFetch: Mock; mockedGetItem: Mock; mockedRemoveItem: Mock} => ({
     mockedFetch: vi.fn(),
     mockedGetItem: vi.fn(),
     mockedRemoveItem: vi.fn(),
@@ -54,14 +54,14 @@ describe('listRemoteFiles', () => {
         }),
         {
           status: 401,
-          headers: { 'Content-Type': 'application/json' },
+          headers: {'Content-Type': 'application/json'},
         },
       ),
     );
 
-    const { setServer } = await import('./server-config');
+    const {setServer} = await import('./server-config');
     setServer('https://test.env');
-    const { listRemoteFiles } = await import('./cloud-storage');
+    const {listRemoteFiles} = await import('./cloud-storage');
     await listRemoteFiles();
 
     expect(mockedGetItem).toHaveBeenCalledWith('user-token');
@@ -74,18 +74,18 @@ describe('listRemoteFiles', () => {
       new Response(
         JSON.stringify({
           status: 'error',
-          data: { reason: 'token-expired' },
+          data: {reason: 'token-expired'},
         }),
         {
           status: 403,
-          headers: { 'Content-Type': 'application/json' },
+          headers: {'Content-Type': 'application/json'},
         },
       ),
     );
 
-    const { setServer } = await import('./server-config');
+    const {setServer} = await import('./server-config');
     setServer('https://test.env');
-    const { listRemoteFiles } = await import('./cloud-storage');
+    const {listRemoteFiles} = await import('./cloud-storage');
     await listRemoteFiles();
 
     expect(mockedRemoveItem).toHaveBeenCalledWith('user-token');

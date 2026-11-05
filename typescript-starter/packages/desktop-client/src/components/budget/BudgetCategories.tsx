@@ -14,51 +14,45 @@
  * limitations under the License.
  */
 
-import React, { memo, useMemo, useState } from 'react';
+import React, {memo, useMemo, useState} from 'react';
 
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
 
-import { DropHighlightPosContext } from '#components/sort';
-import type { DragState, OnDropCallback } from '#components/sort';
-import { Row } from '#components/table';
-import { useLocalPref } from '#hooks/useLocalPref';
+import {DropHighlightPosContext} from '#components/sort';
+import type {DragState, OnDropCallback} from '#components/sort';
+import {Row} from '#components/table';
+import {useLocalPref} from '#hooks/useLocalPref';
 
-import { ExpenseCategory } from './ExpenseCategory';
-import { ExpenseGroup } from './ExpenseGroup';
-import { IncomeCategory } from './IncomeCategory';
-import { IncomeGroup } from './IncomeGroup';
-import { IncomeHeader } from './IncomeHeader';
-import { SidebarCategory } from './SidebarCategory';
-import { SidebarGroup } from './SidebarGroup';
-import { separateGroups } from './util';
+import {ExpenseCategory} from './ExpenseCategory';
+import {ExpenseGroup} from './ExpenseGroup';
+import {IncomeCategory} from './IncomeCategory';
+import {IncomeGroup} from './IncomeGroup';
+import {IncomeHeader} from './IncomeHeader';
+import {SidebarCategory} from './SidebarCategory';
+import {SidebarGroup} from './SidebarGroup';
+import {separateGroups} from './util';
 
 type BudgetItem =
-  | { type: 'new-group' }
-  | { type: 'new-category' }
-  | { type: 'expense-group'; value: CategoryGroupEntity }
+  | {type: 'new-group'}
+  | {type: 'new-category'}
+  | {type: 'expense-group'; value: CategoryGroupEntity}
   | {
       type: 'expense-category';
       value: CategoryEntity;
       group: CategoryGroupEntity;
     }
-  | { type: 'income-separator' }
-  | { type: 'income-group'; value: CategoryGroupEntity }
-  | { type: 'income-category'; value: CategoryEntity };
+  | {type: 'income-separator'}
+  | {type: 'income-group'; value: CategoryGroupEntity}
+  | {type: 'income-category'; value: CategoryEntity};
 
-type LocalDragState =
-  | DragState<CategoryEntity>
-  | DragState<CategoryGroupEntity>
-  | null;
+type LocalDragState = DragState<CategoryEntity> | DragState<CategoryGroupEntity> | null;
 
 type BudgetCategoriesProps = {
   categoryGroups: CategoryGroupEntity[];
-  editingCell: { id: string; cell: string } | null;
+  editingCell: {id: string; cell: string} | null;
   onBudgetAction: (month: string, action: string, arg: unknown) => void;
   onShowActivity: (id: CategoryEntity['id'], month?: string) => void;
   onEditName: (id: CategoryEntity['id']) => void;
@@ -68,10 +62,7 @@ type BudgetCategoriesProps = {
   onDeleteCategory: (id: CategoryEntity['id']) => void;
   onDeleteGroup: (id: CategoryGroupEntity['id']) => void;
   onApplyBudgetTemplatesInGroup: (categoryIds: CategoryEntity['id'][]) => void;
-  onSortCategories?: (
-    groupId: CategoryGroupEntity['id'],
-    direction: 'asc' | 'desc',
-  ) => void;
+  onSortCategories?: (groupId: CategoryGroupEntity['id'], direction: 'asc' | 'desc') => void;
   onReorderCategory: OnDropCallback;
   onReorderGroup: OnDropCallback;
 };
@@ -93,17 +84,14 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
     onReorderCategory,
     onReorderGroup,
   }) => {
-    const [collapsedGroupIds = [], setCollapsedGroupIdsPref] =
-      useLocalPref('budget.collapsed');
+    const [collapsedGroupIds = [], setCollapsedGroupIdsPref] = useLocalPref('budget.collapsed');
     const [showHiddenCategories] = useLocalPref('budget.showHiddenCategories');
     function onCollapse(value: Array<CategoryGroupEntity['id']>) {
       setCollapsedGroupIdsPref(value);
     }
 
     const [isAddingGroup, setIsAddingGroup] = useState(false);
-    const [newCategoryForGroup, setNewCategoryForGroup] = useState<
-      string | null
-    >(null);
+    const [newCategoryForGroup, setNewCategoryForGroup] = useState<string | null>(null);
     const items: BudgetItem[] = useMemo(() => {
       const [expenseGroups, incomeGroup] = separateGroups(categoryGroups);
 
@@ -118,20 +106,15 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
             cat => showHiddenCategories || !cat.hidden,
           );
 
-          const items: BudgetItem[] = [
-            { type: 'expense-group', value: { ...group } },
-          ];
+          const items: BudgetItem[] = [{type: 'expense-group', value: {...group}}];
 
           if (newCategoryForGroup === group.id) {
-            items.push({ type: 'new-category' });
+            items.push({type: 'new-category'});
           }
 
           return [
             ...items,
-            ...(collapsedGroupIds.includes(group.id)
-              ? []
-              : groupCategories || []
-            ).map(
+            ...(collapsedGroupIds.includes(group.id) ? [] : groupCategories || []).map(
               (cat): BudgetItem => ({
                 type: 'expense-category',
                 value: cat,
@@ -143,25 +126,23 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
       );
 
       if (isAddingGroup) {
-        items.push({ type: 'new-group' });
+        items.push({type: 'new-group'});
       }
 
       if (incomeGroup) {
         const incomeCategoryItems: BudgetItem[] = [
-          { type: 'income-separator' },
-          { type: 'income-group', value: incomeGroup },
+          {type: 'income-separator'},
+          {type: 'income-group', value: incomeGroup},
         ];
 
         if (newCategoryForGroup === incomeGroup.id) {
-          incomeCategoryItems.push({ type: 'new-category' });
+          incomeCategoryItems.push({type: 'new-category'});
         }
 
         incomeCategoryItems.push(
           ...(collapsedGroupIds.includes(incomeGroup.id)
             ? []
-            : incomeGroup.categories?.filter(
-                cat => showHiddenCategories || !cat.hidden,
-              ) || []
+            : incomeGroup.categories?.filter(cat => showHiddenCategories || !cat.hidden) || []
           ).map(
             (cat): BudgetItem => ({
               type: 'income-category',
@@ -183,16 +164,16 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
     ]);
 
     const [dragState, setDragState] = useState<LocalDragState>(null);
-    const [savedCollapsed, setSavedCollapsed] = useState<Array<
-      CategoryGroupEntity['id']
-    > | null>(null);
+    const [savedCollapsed, setSavedCollapsed] = useState<Array<CategoryGroupEntity['id']> | null>(
+      null,
+    );
 
     // TODO: If we turn this into a reducer, we could probably memoize
     // each item in the list for better perf
     function onDragChange(
       newDragState: DragState<CategoryEntity> | DragState<CategoryGroupEntity>,
     ) {
-      const { state } = newDragState;
+      const {state} = newDragState;
 
       if (state === 'start-preview') {
         // @ts-expect-error fix me
@@ -270,11 +251,9 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
           switch (item.type) {
             case 'new-group':
               content = (
-                <Row
-                  style={{ backgroundColor: theme.budgetHeaderCurrentMonth }}
-                >
+                <Row style={{backgroundColor: theme.budgetHeaderCurrentMonth}}>
                   <SidebarGroup
-                    group={{ id: 'new', name: '' }}
+                    group={{id: 'new', name: ''}}
                     collapsed={false}
                     editing
                     onSave={_onSaveGroup}
@@ -292,9 +271,7 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
                     category={{
                       name: '',
                       group: newCategoryForGroup!,
-                      is_income:
-                        newCategoryForGroup ===
-                        categoryGroups.find(g => g.is_income)?.id,
+                      is_income: newCategoryForGroup === categoryGroups.find(g => g.is_income)?.id,
                       id: 'new',
                     }}
                     editing
@@ -392,8 +369,7 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
               throw new Error('Unknown item type: ' + item.type);
           }
 
-          const pos =
-            idx === 0 ? 'first' : idx === items.length - 1 ? 'last' : null;
+          const pos = idx === 0 ? 'first' : idx === items.length - 1 ? 'last' : null;
 
           return (
             <DropHighlightPosContext.Provider
@@ -411,7 +387,7 @@ export const BudgetCategories = memo<BudgetCategoriesProps>(
                   dragState
                     ? {}
                     : {
-                        ':hover': { backgroundColor: theme.budgetCurrentMonth },
+                        ':hover': {backgroundColor: theme.budgetCurrentMonth},
                       }
                 }
               >

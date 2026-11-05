@@ -14,33 +14,30 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { spacing } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
+import {spacing} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
 
 import * as bindings from '#spreadsheet/bindings';
 
-import { AccountSearchField } from './AccountSearchField';
-import { AccountsHeaderRow } from './AccountsHeaderRow';
-import { ClosedSection } from './ClosedSection';
-import { SideGroup } from './SideGroup';
-import {
-  filterSidebarTree,
-  useSidebarAccountTree,
-} from './useSidebarAccountTree';
-import { bucketKey, useSidebarCollapseState } from './useSidebarCollapseState';
+import {AccountSearchField} from './AccountSearchField';
+import {AccountsHeaderRow} from './AccountsHeaderRow';
+import {ClosedSection} from './ClosedSection';
+import {SideGroup} from './SideGroup';
+import {filterSidebarTree, useSidebarAccountTree} from './useSidebarAccountTree';
+import {bucketKey, useSidebarCollapseState} from './useSidebarCollapseState';
 
 export function AccountsSection() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const tree = useSidebarAccountTree();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const trimmedQuery = query.trim().toLowerCase();
   const isSearching = trimmedQuery !== '';
 
-  const collapse = useSidebarCollapseState({ tree, isSearching });
+  const collapse = useSidebarCollapseState({tree, isSearching});
 
   const onToggleSearch = () => {
     setIsSearchOpen(!isSearchOpen);
@@ -63,7 +60,7 @@ export function AccountsSection() {
         paddingInline: spacing.sm,
       }}
     >
-      <View style={{ flexShrink: 0 }}>
+      <View style={{flexShrink: 0}}>
         <AccountsHeaderRow
           allOpen={collapse.allOpen}
           onToggleAll={collapse.toggleAll}
@@ -72,11 +69,7 @@ export function AccountsSection() {
           onToggleSearch={onToggleSearch}
         />
         {isSearchOpen && (
-          <AccountSearchField
-            value={query}
-            onChange={setQuery}
-            onClose={onToggleSearch}
-          />
+          <AccountSearchField value={query} onChange={setQuery} onClose={onToggleSearch} />
         )}
         {tree.onBudget.buckets.length > 0 && (
           <SideGroup
@@ -114,7 +107,7 @@ export function AccountsSection() {
           onToggle={() => collapse.toggle('closed')}
           isDragDisabled={isSearching}
         />
-        <View style={{ height: spacing.md }} />
+        <View style={{height: spacing.md}} />
       </View>
     </View>
   );

@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-import { bootstrap, needsBootstrap } from '#account-db';
-import { changePassword } from '#accounts/password';
-import { promptPassword } from '#util/prompt';
+import {bootstrap, needsBootstrap} from '#account-db';
+import {changePassword} from '#accounts/password';
+import {promptPassword} from '#util/prompt';
 
 if (needsBootstrap()) {
-  console.log(
-    "It looks like you don't have a password set yet. Let's set one up now!",
-  );
+  console.log("It looks like you don't have a password set yet. Let's set one up now!");
 
   try {
     const password = await promptPassword();
-    const { error } = await bootstrap({ password });
+    const {error} = await bootstrap({password});
     if (error) {
       console.log('Error setting password:', error);
       console.log(
@@ -45,7 +43,7 @@ if (needsBootstrap()) {
   console.log("It looks like you already have a password set. Let's reset it!");
   try {
     const password = await promptPassword();
-    const { error } = await changePassword(password);
+    const {error} = await changePassword(password);
     if (error) {
       console.log('Error changing password:', error);
       console.log(

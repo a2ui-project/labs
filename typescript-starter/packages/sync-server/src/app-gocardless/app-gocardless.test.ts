@@ -16,15 +16,13 @@
 
 import express from 'express';
 import request from 'supertest';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 
-import type { GoCardlessRequisitionId } from './gocardless-node.types';
+import type {GoCardlessRequisitionId} from './gocardless-node.types';
 
 vi.mock('#util/middlewares', () => ({
-  requestLoggerMiddleware: (_req: unknown, _res: unknown, next: () => void) =>
-    next(),
-  validateSessionMiddleware: (_req: unknown, _res: unknown, next: () => void) =>
-    next(),
+  requestLoggerMiddleware: (_req: unknown, _res: unknown, next: () => void) => next(),
+  validateSessionMiddleware: (_req: unknown, _res: unknown, next: () => void) => next(),
 }));
 
 vi.mock('./services/gocardless-service', () => ({
@@ -33,8 +31,8 @@ vi.mock('./services/gocardless-service', () => ({
   },
 }));
 
-const { goCardlessService } = await import('./services/gocardless-service');
-const { handlers } = await import('./app-gocardless');
+const {goCardlessService} = await import('./services/gocardless-service');
+const {handlers} = await import('./app-gocardless');
 
 const app = express();
 app.use('/', handlers);
@@ -54,7 +52,7 @@ describe('/create-web-token', () => {
     const res = await request(app)
       .post('/create-web-token')
       .set('Origin', 'https://budget.example.com')
-      .send({ institutionId: 'SANDBOXFINANCE_SFIN0000' });
+      .send({institutionId: 'SANDBOXFINANCE_SFIN0000'});
 
     expect(res.body).toEqual({
       status: 'ok',
@@ -73,7 +71,7 @@ describe('/create-web-token', () => {
     const res = await request(app)
       .post('/create-web-token')
       .set('Origin', 'app://actual')
-      .send({ institutionId: 'SANDBOXFINANCE_SFIN0000' });
+      .send({institutionId: 'SANDBOXFINANCE_SFIN0000'});
 
     expect(res.body.status).toBe('ok');
     expect(res.body.data.link).toBe('https://gocardless.example/start');
@@ -86,7 +84,7 @@ describe('/create-web-token', () => {
   it('rejects a missing Origin header', async () => {
     const res = await request(app)
       .post('/create-web-token')
-      .send({ institutionId: 'SANDBOXFINANCE_SFIN0000' });
+      .send({institutionId: 'SANDBOXFINANCE_SFIN0000'});
 
     expect(res.body.data).toEqual({
       error_code: 'INTERNAL_ERROR',
@@ -99,7 +97,7 @@ describe('/create-web-token', () => {
     const res = await request(app)
       .post('/create-web-token')
       .set('Origin', 'file://actual')
-      .send({ institutionId: 'SANDBOXFINANCE_SFIN0000' });
+      .send({institutionId: 'SANDBOXFINANCE_SFIN0000'});
 
     expect(res.body.data).toEqual({
       error_code: 'INTERNAL_ERROR',

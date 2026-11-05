@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { ScheduleEntity } from '@actual-app/core/types/models';
-import type { Template } from '@actual-app/core/types/models/templates';
-import { describe, expect, it } from 'vitest';
+import type {ScheduleEntity} from '@actual-app/core/types/models';
+import type {Template} from '@actual-app/core/types/models/templates';
+import {describe, expect, it} from 'vitest';
 
 import {
   validateAutomation,
@@ -24,11 +24,7 @@ import {
   validateSchedulePriorities,
 } from './validateAutomation';
 
-function percent(
-  category: string,
-  percent: number,
-  previous = false,
-): Template {
+function percent(category: string, percent: number, previous = false): Template {
   return {
     type: 'percentage',
     percent,
@@ -45,12 +41,10 @@ describe('validatePercentageAllocation', () => {
   });
 
   it('flags a single source over 100%', () => {
-    expect(
-      validatePercentageAllocation([
-        percent('Salary', 60),
-        percent('Salary', 50),
-      ]),
-    ).toEqual({ kind: 'percent-over-100', total: 110 });
+    expect(validatePercentageAllocation([percent('Salary', 60), percent('Salary', 50)])).toEqual({
+      kind: 'percent-over-100',
+      total: 110,
+    });
   });
 
   it('does not sum across distinct income sources', () => {
@@ -64,10 +58,7 @@ describe('validatePercentageAllocation', () => {
 
   it('treats this-month and last-month income as different sources', () => {
     expect(
-      validatePercentageAllocation([
-        percent('Salary', 100, false),
-        percent('Salary', 100, true),
-      ]),
+      validatePercentageAllocation([percent('Salary', 100, false), percent('Salary', 100, true)]),
     ).toBeNull();
   });
 
@@ -80,19 +71,14 @@ describe('validatePercentageAllocation', () => {
   });
 
   it('matches sources case-insensitively', () => {
-    expect(
-      validatePercentageAllocation([
-        percent('Salary', 60),
-        percent('salary', 50),
-      ]),
-    ).toEqual({ kind: 'percent-over-100', total: 110 });
+    expect(validatePercentageAllocation([percent('Salary', 60), percent('salary', 50)])).toEqual({
+      kind: 'percent-over-100',
+      total: 110,
+    });
   });
 });
 
-function averageTemplate(
-  adjustment?: number,
-  adjustmentType?: 'percent' | 'fixed',
-): Template {
+function averageTemplate(adjustment?: number, adjustmentType?: 'percent' | 'fixed'): Template {
   return {
     type: 'average',
     numMonths: 3,
@@ -141,66 +127,34 @@ describe('validateAutomation adjustment range', () => {
   const today = new Date('2026-01-15');
 
   it('accepts an average with no adjustment', () => {
-    expect(
-      validateAutomation(averageTemplate(), 'historical', [], [], today),
-    ).toBeNull();
+    expect(validateAutomation(averageTemplate(), 'historical', [], [], today)).toBeNull();
   });
 
   it('accepts a percentage adjustment within range', () => {
     expect(
-      validateAutomation(
-        averageTemplate(10, 'percent'),
-        'historical',
-        [],
-        [],
-        today,
-      ),
+      validateAutomation(averageTemplate(10, 'percent'), 'historical', [], [], today),
     ).toBeNull();
     // 1000% increase is the inclusive upper bound
     expect(
-      validateAutomation(
-        averageTemplate(1000, 'percent'),
-        'historical',
-        [],
-        [],
-        today,
-      ),
+      validateAutomation(averageTemplate(1000, 'percent'), 'historical', [], [], today),
     ).toBeNull();
   });
 
   it('flags a percentage increase above 1000%', () => {
     expect(
-      validateAutomation(
-        averageTemplate(1001, 'percent'),
-        'historical',
-        [],
-        [],
-        today,
-      ),
-    ).toEqual({ kind: 'adjustment-out-of-range' });
+      validateAutomation(averageTemplate(1001, 'percent'), 'historical', [], [], today),
+    ).toEqual({kind: 'adjustment-out-of-range'});
   });
 
   it('flags a percentage decrease of 100% or more', () => {
     expect(
-      validateAutomation(
-        averageTemplate(-100, 'percent'),
-        'historical',
-        [],
-        [],
-        today,
-      ),
-    ).toEqual({ kind: 'adjustment-out-of-range' });
+      validateAutomation(averageTemplate(-100, 'percent'), 'historical', [], [], today),
+    ).toEqual({kind: 'adjustment-out-of-range'});
   });
 
   it('does not range-check fixed adjustments', () => {
     expect(
-      validateAutomation(
-        averageTemplate(999999, 'fixed'),
-        'historical',
-        [],
-        [],
-        today,
-      ),
+      validateAutomation(averageTemplate(999999, 'fixed'), 'historical', [], [], today),
     ).toBeNull();
   });
 
@@ -213,25 +167,19 @@ describe('validateAutomation adjustment range', () => {
         [schedule('Rent')],
         today,
       ),
-    ).toEqual({ kind: 'adjustment-out-of-range' });
+    ).toEqual({kind: 'adjustment-out-of-range'});
   });
 
   it('reports a missing schedule before checking the adjustment', () => {
     expect(
-      validateAutomation(
-        scheduleTemplate('Rent', 2000, 'percent'),
-        'schedule',
-        [],
-        [],
-        today,
-      ),
-    ).toEqual({ kind: 'schedule-not-found', name: 'Rent' });
+      validateAutomation(scheduleTemplate('Rent', 2000, 'percent'), 'schedule', [], [], today),
+    ).toEqual({kind: 'schedule-not-found', name: 'Rent'});
   });
 });
 
 describe('validateSchedulePriorities', () => {
   function scheduleAt(name: string, priority: number): Template {
-    return { type: 'schedule', name, directive: 'template', priority };
+    return {type: 'schedule', name, directive: 'template', priority};
   }
   function byAt(priority: number): Template {
     return {
@@ -252,29 +200,22 @@ describe('validateSchedulePriorities', () => {
   });
 
   it('returns null when all schedules share a priority', () => {
-    expect(
-      validateSchedulePriorities([scheduleAt('Rent', 2), scheduleAt('Gym', 2)]),
-    ).toBeNull();
+    expect(validateSchedulePriorities([scheduleAt('Rent', 2), scheduleAt('Gym', 2)])).toBeNull();
   });
 
   it('flags schedules with mismatched priorities', () => {
-    expect(
-      validateSchedulePriorities([scheduleAt('Rent', 1), scheduleAt('Gym', 2)]),
-    ).toEqual({ kind: 'schedule-priority-mismatch' });
+    expect(validateSchedulePriorities([scheduleAt('Rent', 1), scheduleAt('Gym', 2)])).toEqual({
+      kind: 'schedule-priority-mismatch',
+    });
   });
 
   it('flags a schedule and a by-date with mismatched priorities', () => {
-    expect(
-      validateSchedulePriorities([scheduleAt('Rent', 1), byAt(2)]),
-    ).toEqual({ kind: 'schedule-priority-mismatch' });
+    expect(validateSchedulePriorities([scheduleAt('Rent', 1), byAt(2)])).toEqual({
+      kind: 'schedule-priority-mismatch',
+    });
   });
 
   it('ignores priorities of other automation types', () => {
-    expect(
-      validateSchedulePriorities([
-        scheduleAt('Rent', 1),
-        percent('Salary', 10),
-      ]),
-    ).toBeNull();
+    expect(validateSchedulePriorities([scheduleAt('Rent', 1), percent('Salary', 10)])).toBeNull();
   });
 });

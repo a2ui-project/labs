@@ -17,13 +17,13 @@ description: Generate release documentation from release note files
 
 inputs:
   release-branch:
-    description: 'The release/X.Y.Z branch to read release notes from'
+    description: "The release/X.Y.Z branch to read release notes from"
     required: true
   notes-branch:
-    description: 'The release-notes/X.Y.Z branch to write generated docs to'
+    description: "The release-notes/X.Y.Z branch to write generated docs to"
     required: true
   version:
-    description: 'The release version (e.g. 26.5.0)'
+    description: "The release version (e.g. 26.5.0)"
     required: true
 
 runs:

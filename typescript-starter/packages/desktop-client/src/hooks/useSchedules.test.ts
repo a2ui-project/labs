@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { q } from '@actual-app/core/shared/query';
-import { renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {q} from '@actual-app/core/shared/query';
+import {renderHook} from '@testing-library/react';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { liveQuery } from '#queries/liveQuery';
-import type { LiveQuery } from '#queries/liveQuery';
+import {liveQuery} from '#queries/liveQuery';
+import type {LiveQuery} from '#queries/liveQuery';
 
-import { getSchedulesQuery, useSchedules } from './useSchedules';
+import {getSchedulesQuery, useSchedules} from './useSchedules';
 
 vi.mock('#queries/liveQuery', () => ({
   liveQuery: vi.fn(),
@@ -45,7 +45,7 @@ describe('useSchedules', () => {
 
     // `vi.mocked` keeps the mock bound to the real `liveQuery` signature, so a
     // change to how the hook calls it still fails typecheck.
-    vi.mocked(liveQuery).mockImplementation((_query, { onData }) => {
+    vi.mocked(liveQuery).mockImplementation((_query, {onData}) => {
       const handle = {
         onData: onData ?? vi.fn(),
         unsubscribe: vi.fn(),
@@ -64,7 +64,7 @@ describe('useSchedules', () => {
   });
 
   it('unsubscribes the previous status query when schedules refresh', () => {
-    renderHook(() => useSchedules({ query: q('schedules').select('*') }));
+    renderHook(() => useSchedules({query: q('schedules').select('*')}));
 
     // The schedules query is opened first; its onData opens the status query.
     expect(calls).toHaveLength(1);
@@ -83,9 +83,7 @@ describe('useSchedules', () => {
   });
 
   it('unsubscribes both queries on unmount', () => {
-    const { unmount } = renderHook(() =>
-      useSchedules({ query: q('schedules').select('*') }),
-    );
+    const {unmount} = renderHook(() => useSchedules({query: q('schedules').select('*')}));
 
     calls[0].onData([], []);
     expect(calls).toHaveLength(2);
@@ -102,11 +100,7 @@ describe('getSchedulesQuery', () => {
     const query = getSchedulesQuery('savings');
 
     expect(query.state.filterExpressions).toContainEqual({
-      $or: [
-        { _account: 'savings' },
-        { '_payee.transfer_acct': 'savings' },
-        { _has_splits: true },
-      ],
+      $or: [{_account: 'savings'}, {'_payee.transfer_acct': 'savings'}, {_has_splits: true}],
     });
   });
 });

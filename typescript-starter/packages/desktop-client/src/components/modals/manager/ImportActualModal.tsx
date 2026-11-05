@@ -15,23 +15,23 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { ButtonWithLoading } from '@actual-app/components/button';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Block} from '@actual-app/components/block';
+import {ButtonWithLoading} from '@actual-app/components/button';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { importBudget } from '#budgetfiles/budgetfilesSlice';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { useNavigate } from '#hooks/useNavigate';
-import { useDispatch } from '#redux';
+import {importBudget} from '#budgetfiles/budgetfilesSlice';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {useNavigate} from '#hooks/useNavigate';
+import {useDispatch} from '#redux';
 
 export function ImportActualModal() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [error, setError] = useState<string | null>(null);
@@ -40,17 +40,11 @@ export function ImportActualModal() {
   function getErrorMessage(error: string): string {
     switch (error) {
       case 'parse-error':
-        return t(
-          'Unable to parse file. Please select a JSON file exported from nYNAB.',
-        );
+        return t('Unable to parse file. Please select a JSON file exported from nYNAB.');
       case 'not-ynab5':
-        return t(
-          'This file is not valid. Please select a JSON file exported from nYNAB.',
-        );
+        return t('This file is not valid. Please select a JSON file exported from nYNAB.');
       case 'not-zip-file':
-        return t(
-          'This file is not valid. Please select an unencrypted archive of Actual data.',
-        );
+        return t('This file is not valid. Please select an unencrypted archive of Actual data.');
       case 'invalid-zip-file':
         return t('This archive is not a valid Actual export file.');
       case 'invalid-metadata-file':
@@ -69,13 +63,13 @@ export function ImportActualModal() {
   async function onImport() {
     const res = await window.Actual.openFileDialog({
       properties: ['openFile'],
-      filters: [{ name: 'actual', extensions: ['zip', 'blob'] }],
+      filters: [{name: 'actual', extensions: ['zip', 'blob']}],
     });
     if (res) {
       setImporting(true);
       setError(null);
       try {
-        await dispatch(importBudget({ filepath: res[0], type: 'actual' }));
+        await dispatch(importBudget({filepath: res[0], type: 'actual'}));
         void navigate('/budget');
       } catch (err) {
         setError(err.message);
@@ -86,38 +80,35 @@ export function ImportActualModal() {
   }
 
   return (
-    <Modal name="import-actual" containerProps={{ style: { width: 400 } }}>
-      {({ state }) => (
+    <Modal name="import-actual" containerProps={{style: {width: 400}}}>
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Import from Actual export')}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
-          <View style={{ ...styles.smallText, lineHeight: 1.5, marginTop: 20 }}>
+          <View style={{...styles.smallText, lineHeight: 1.5, marginTop: 20}}>
             {error && (
-              <Block style={{ color: theme.errorText, marginBottom: 15 }}>
+              <Block style={{color: theme.errorText, marginBottom: 15}}>
                 {getErrorMessage(error)}
               </Block>
             )}
 
-            <View style={{ '& > div': { lineHeight: '1.7em' } }}>
+            <View style={{'& > div': {lineHeight: '1.7em'}}}>
               <Paragraph>
                 <Trans>
-                  You can import data from another Actual account or instance.
-                  First export your data from a different account, and it will
-                  give you a compressed file. This file is a simple zip file
-                  that contains the <code>db.sqlite</code> and{' '}
+                  You can import data from another Actual account or instance. First export your
+                  data from a different account, and it will give you a compressed file. This file
+                  is a simple zip file that contains the <code>db.sqlite</code> and{' '}
                   <code>metadata.json</code> files.
                 </Trans>
               </Paragraph>
 
               <Paragraph>
-                <Trans>
-                  Select one of these compressed files and import it here.
-                </Trans>
+                <Trans>Select one of these compressed files and import it here.</Trans>
               </Paragraph>
 
-              <View style={{ alignSelf: 'center' }}>
+              <View style={{alignSelf: 'center'}}>
                 <ButtonWithLoading
                   variant="primary"
                   autoFocus

@@ -14,28 +14,13 @@
  * limitations under the License.
  */
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
-import type { Context, RefObject } from 'react';
-import {
-  useDrag as useReactAriaDrag,
-  useDrop as useReactAriaDrop,
-} from 'react-aria';
-import type {
-  DragPreviewRenderer,
-  DropPosition,
-  DropResult,
-  TextDropItem,
-} from 'react-aria';
+import {createContext, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import type {Context, RefObject} from 'react';
+import {useDrag as useReactAriaDrag, useDrop as useReactAriaDrop} from 'react-aria';
+import type {DragPreviewRenderer, DropPosition, DropResult, TextDropItem} from 'react-aria';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
 // ===========================================================================
 // Migration Notes
@@ -104,7 +89,7 @@ import { View } from '@actual-app/components/view';
 // ============================================================
 
 // Re-exported from react-aria for convenience
-export type { DropPosition };
+export type {DropPosition};
 
 /**
  * Check if a drop at a date boundary is valid.
@@ -164,9 +149,7 @@ export type DragState<T> = {
   preview?: boolean;
 };
 
-export type OnDragChangeCallback<T> = (
-  drag: DragState<T>,
-) => Promise<void> | void;
+export type OnDragChangeCallback<T> = (drag: DragState<T>) => Promise<void> | void;
 
 /**
  * MIGRATION: When using useDragAndDrop, use onReorder callback instead.
@@ -210,7 +193,7 @@ export type UseDragArgs<T> = {
  * MIGRATION: Replace with useDragAndDrop from react-aria-components
  * when the parent component uses ListBox, GridList, or Table.
  */
-export function useDrag<T extends { id: string }>({
+export function useDrag<T extends {id: string}>({
   item,
   type,
   canDrag,
@@ -219,9 +202,7 @@ export function useDrag<T extends { id: string }>({
 }: UseDragArgs<T>) {
   const _onDragChange = useRef(onDragChange);
   const dragRef = useRef<HTMLDivElement>(null);
-  const dragStartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const dragStartTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useLayoutEffect(() => {
     _onDragChange.current = onDragChange;
@@ -236,7 +217,7 @@ export function useDrag<T extends { id: string }>({
     };
   }, []);
 
-  const { dragProps, isDragging } = useReactAriaDrag({
+  const {dragProps, isDragging} = useReactAriaDrag({
     isDisabled: !canDrag,
     preview,
     getItems() {
@@ -248,7 +229,7 @@ export function useDrag<T extends { id: string }>({
       ];
     },
     onDragStart() {
-      void _onDragChange.current?.({ state: 'start-preview', type, item });
+      void _onDragChange.current?.({state: 'start-preview', type, item});
       // Clear any pending timeout before scheduling a new one
       if (dragStartTimeoutRef.current) {
         clearTimeout(dragStartTimeoutRef.current);
@@ -258,7 +239,7 @@ export function useDrag<T extends { id: string }>({
       // With useDragAndDrop, use onDragStart for immediate feedback
       // and renderDragPreview for the preview element.
       dragStartTimeoutRef.current = setTimeout(() => {
-        void _onDragChange.current?.({ state: 'start' });
+        void _onDragChange.current?.({state: 'start'});
         dragStartTimeoutRef.current = null;
       }, 0);
     },
@@ -268,11 +249,11 @@ export function useDrag<T extends { id: string }>({
         clearTimeout(dragStartTimeoutRef.current);
         dragStartTimeoutRef.current = null;
       }
-      void _onDragChange.current?.({ state: 'end', type, item });
+      void _onDragChange.current?.({state: 'end', type, item});
     },
   });
 
-  return { dragRef, dragProps, isDragging };
+  return {dragRef, dragProps, isDragging};
 }
 
 // ============================================================
@@ -302,7 +283,7 @@ export type UseDropArgs = {
  * The drop position calculation and cursor tracking will be handled
  * automatically by the collection component.
  */
-export function useDrop<T extends { id: string }>({
+export function useDrop<T extends {id: string}>({
   types,
   id,
   onDrop,
@@ -331,7 +312,7 @@ export function useDrop<T extends { id: string }>({
 
   const acceptedTypes = Array.isArray(types) ? types : [types];
 
-  const { dropProps, isDropTarget }: DropResult = useReactAriaDrop({
+  const {dropProps, isDropTarget}: DropResult = useReactAriaDrop({
     ref: dropRef as RefObject<HTMLDivElement | null>,
     getDropOperation(dragTypes) {
       // Check if any of our accepted types are in the drag types
@@ -357,17 +338,13 @@ export function useDrop<T extends { id: string }>({
 
       // Find the first matching type
       const matchingType = acceptedTypes.find(t =>
-        e.items.some(
-          (item): item is TextDropItem =>
-            item.kind === 'text' && item.types.has(t),
-        ),
+        e.items.some((item): item is TextDropItem => item.kind === 'text' && item.types.has(t)),
       );
 
       if (!matchingType) return;
 
       const textItem = e.items.find(
-        (item): item is TextDropItem =>
-          item.kind === 'text' && item.types.has(matchingType),
+        (item): item is TextDropItem => item.kind === 'text' && item.types.has(matchingType),
       );
 
       if (!textItem) return;
@@ -384,12 +361,7 @@ export function useDrop<T extends { id: string }>({
       }
 
       // Validate payload shape: must be an object with a non-empty string id
-      if (
-        !parsed ||
-        typeof parsed !== 'object' ||
-        typeof parsed.id !== 'string' ||
-        !parsed.id
-      ) {
+      if (!parsed || typeof parsed !== 'object' || typeof parsed.id !== 'string' || !parsed.id) {
         return;
       }
 
@@ -399,11 +371,8 @@ export function useDrop<T extends { id: string }>({
       const rect = dropRef.current.getBoundingClientRect();
       const hoverMiddleY = (rect.bottom - rect.top) / 2;
       const hoverClientY =
-        lastClientY.current != null
-          ? lastClientY.current - rect.top
-          : hoverMiddleY + 1;
-      const pos: DropPosition =
-        hoverClientY < hoverMiddleY ? 'before' : 'after';
+        lastClientY.current != null ? lastClientY.current - rect.top : hoverMiddleY + 1;
+      const pos: DropPosition = hoverClientY < hoverMiddleY ? 'before' : 'after';
 
       void onDrop(parsed.id, pos, id);
     },
@@ -418,7 +387,7 @@ export function useDrop<T extends { id: string }>({
       if (!dropRef.current) return;
 
       const rect = dropRef.current.getBoundingClientRect();
-      const { clientX, clientY } = e;
+      const {clientX, clientY} = e;
 
       // Check if cursor is actually within this element's bounds
       const cursorInBounds =
@@ -437,8 +406,7 @@ export function useDrop<T extends { id: string }>({
 
       const hoverMiddleY = (rect.bottom - rect.top) / 2;
       const hoverClientY = clientY - rect.top;
-      const newPos: DropPosition =
-        hoverClientY < hoverMiddleY ? 'before' : 'after';
+      const newPos: DropPosition = hoverClientY < hoverMiddleY ? 'before' : 'after';
 
       setDropPos(newPos);
     };
@@ -487,8 +455,7 @@ type ItemPosition = 'first' | 'last' | null;
  * MIGRATION: Not needed with useDragAndDrop - DropIndicator handles
  * positioning automatically based on the collection structure.
  */
-export const DropHighlightPosContext: Context<ItemPosition> =
-  createContext<ItemPosition>(null);
+export const DropHighlightPosContext: Context<ItemPosition> = createContext<ItemPosition>(null);
 
 type DropHighlightProps = {
   pos: DropPosition | null;
@@ -505,7 +472,7 @@ type DropHighlightProps = {
  * when using useDragAndDrop. The DropIndicator component automatically
  * positions itself between items based on the drop target.
  */
-export function DropHighlight({ pos, offset }: DropHighlightProps) {
+export function DropHighlight({pos, offset}: DropHighlightProps) {
   const itemPos = useContext(DropHighlightPosContext);
 
   // 'on' position is not supported for highlight (used for dropping onto items, not between)
@@ -516,8 +483,7 @@ export function DropHighlight({ pos, offset }: DropHighlightProps) {
   const topOffset = (itemPos === 'first' ? 2 : 0) + (offset?.top ?? 0);
   const bottomOffset = (itemPos === 'last' ? 2 : 0) + (offset?.bottom ?? 0);
 
-  const posStyle =
-    pos === 'before' ? { top: topOffset } : { bottom: bottomOffset };
+  const posStyle = pos === 'before' ? {top: topOffset} : {bottom: bottomOffset};
 
   return (
     <View

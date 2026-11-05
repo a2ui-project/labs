@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-import type { Completion } from '@codemirror/autocomplete';
-import { t } from 'i18next';
+import type {Completion} from '@codemirror/autocomplete';
+import {t} from 'i18next';
 
 export type FormulaMode = 'query' | 'transaction';
 
-export type FormulaFunctionCategory =
-  | 'math'
-  | 'logical'
-  | 'text'
-  | 'date'
-  | 'query'
-  | 'other';
+export type FormulaFunctionCategory = 'math' | 'logical' | 'text' | 'date' | 'query' | 'other';
 
 export type FormulaFunctionDef = {
   name: string;
   category: FormulaFunctionCategory;
   modes: FormulaMode[];
   description: string;
-  parameters: Array<{ name: string; description: string }>;
+  parameters: Array<{name: string; description: string}>;
 };
 
 export const budgetQueryDimensions = [
@@ -46,13 +40,7 @@ export const budgetQueryDimensions = [
 type FormulaFunctionCategoryConfig = {
   section: string;
   order: number;
-  tokenClass:
-    | 'keyword'
-    | 'className'
-    | 'namespace'
-    | 'typeName'
-    | 'propertyName'
-    | 'function';
+  tokenClass: 'keyword' | 'className' | 'namespace' | 'typeName' | 'propertyName' | 'function';
 };
 
 export function getFormulaFunctionCategoryConfig(): Record<
@@ -131,45 +119,42 @@ function getFormulaCompletionSectionOrder(): Record<string, number> {
   };
 }
 
-export function getFormulaFunctionCatalog(): Record<
-  string,
-  FormulaFunctionDef
-> {
+export function getFormulaFunctionCatalog(): Record<string, FormulaFunctionDef> {
   return {
     SUM: {
       name: 'SUM',
       category: 'math',
       modes: ['query', 'transaction'],
       description: t('Returns the sum of all numbers in a range.'),
-      parameters: [{ name: 'numbers', description: t('One or more numbers') }],
+      parameters: [{name: 'numbers', description: t('One or more numbers')}],
     },
     AVERAGE: {
       name: 'AVERAGE',
       category: 'math',
       modes: ['query'],
       description: t('Returns the average of all numbers in a range.'),
-      parameters: [{ name: 'numbers', description: t('One or more numbers') }],
+      parameters: [{name: 'numbers', description: t('One or more numbers')}],
     },
     MAX: {
       name: 'MAX',
       category: 'math',
       modes: ['query'],
       description: t('Returns the maximum value from numbers.'),
-      parameters: [{ name: 'numbers', description: t('One or more numbers') }],
+      parameters: [{name: 'numbers', description: t('One or more numbers')}],
     },
     MIN: {
       name: 'MIN',
       category: 'math',
       modes: ['query'],
       description: t('Returns the minimum value from numbers.'),
-      parameters: [{ name: 'numbers', description: t('One or more numbers') }],
+      parameters: [{name: 'numbers', description: t('One or more numbers')}],
     },
     ABS: {
       name: 'ABS',
       category: 'math',
       modes: ['query', 'transaction'],
       description: t('Returns the absolute value of a number.'),
-      parameters: [{ name: 'number', description: t('Number') }],
+      parameters: [{name: 'number', description: t('Number')}],
     },
     ROUND: {
       name: 'ROUND',
@@ -177,8 +162,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Rounds a number to specified decimals.'),
       parameters: [
-        { name: 'number', description: t('Number') },
-        { name: 'decimals', description: t('Decimals') },
+        {name: 'number', description: t('Number')},
+        {name: 'decimals', description: t('Decimals')},
       ],
     },
     ROUNDDOWN: {
@@ -187,8 +172,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Rounds down to specified decimals.'),
       parameters: [
-        { name: 'number', description: t('Number') },
-        { name: 'decimals', description: t('Decimals') },
+        {name: 'number', description: t('Number')},
+        {name: 'decimals', description: t('Decimals')},
       ],
     },
     ROUNDUP: {
@@ -197,8 +182,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Rounds up to specified decimals.'),
       parameters: [
-        { name: 'number', description: t('Number') },
-        { name: 'decimals', description: t('Decimals') },
+        {name: 'number', description: t('Number')},
+        {name: 'decimals', description: t('Decimals')},
       ],
     },
     BUDGET_QUERY: {
@@ -211,27 +196,19 @@ export function getFormulaFunctionCatalog(): Record<
       parameters: [
         {
           name: 'dimension',
-          description: t(
-            'One of: budgeted, spent, balance_start, balance_end, goal (string)',
-          ),
+          description: t('One of: budgeted, spent, balance_start, balance_end, goal (string)'),
         },
         {
           name: 'categories',
-          description: t(
-            'Categories result from QUERY_EXTRACT_CATEGORIES() (array)',
-          ),
+          description: t('Categories result from QUERY_EXTRACT_CATEGORIES() (array)'),
         },
         {
           name: 'timeframe_start',
-          description: t(
-            'Start month from QUERY_EXTRACT_TIMEFRAME_START() (string)',
-          ),
+          description: t('Start month from QUERY_EXTRACT_TIMEFRAME_START() (string)'),
         },
         {
           name: 'timeframe_end',
-          description: t(
-            'End month from QUERY_EXTRACT_TIMEFRAME_END() (string)',
-          ),
+          description: t('End month from QUERY_EXTRACT_TIMEFRAME_END() (string)'),
         },
       ],
     },
@@ -277,8 +254,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Rounds down to nearest multiple of significance.'),
       parameters: [
-        { name: 'number', description: t('Number') },
-        { name: 'significance', description: t('Significance') },
+        {name: 'number', description: t('Number')},
+        {name: 'significance', description: t('Significance')},
       ],
     },
     CEILING: {
@@ -287,8 +264,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Rounds up to nearest multiple of significance.'),
       parameters: [
-        { name: 'number', description: t('Number') },
-        { name: 'significance', description: t('Significance') },
+        {name: 'number', description: t('Number')},
+        {name: 'significance', description: t('Significance')},
       ],
     },
     POWER: {
@@ -297,8 +274,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns base raised to the power of exponent.'),
       parameters: [
-        { name: 'base', description: t('Base') },
-        { name: 'exponent', description: t('Exponent') },
+        {name: 'base', description: t('Base')},
+        {name: 'exponent', description: t('Exponent')},
       ],
     },
     SQRT: {
@@ -306,7 +283,7 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'math',
       modes: ['query', 'transaction'],
       description: t('Returns the square root.'),
-      parameters: [{ name: 'number', description: t('Number') }],
+      parameters: [{name: 'number', description: t('Number')}],
     },
     MOD: {
       name: 'MOD',
@@ -314,8 +291,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns the remainder of division.'),
       parameters: [
-        { name: 'dividend', description: t('Dividend') },
-        { name: 'divisor', description: t('Divisor') },
+        {name: 'dividend', description: t('Dividend')},
+        {name: 'divisor', description: t('Divisor')},
       ],
     },
     PI: {
@@ -330,28 +307,28 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'math',
       modes: ['query'],
       description: t('Returns the sine of an angle.'),
-      parameters: [{ name: 'angle', description: t('Angle') }],
+      parameters: [{name: 'angle', description: t('Angle')}],
     },
     COS: {
       name: 'COS',
       category: 'math',
       modes: ['query'],
       description: t('Returns the cosine of an angle.'),
-      parameters: [{ name: 'angle', description: t('Angle') }],
+      parameters: [{name: 'angle', description: t('Angle')}],
     },
     TAN: {
       name: 'TAN',
       category: 'math',
       modes: ['query'],
       description: t('Returns the tangent of an angle.'),
-      parameters: [{ name: 'angle', description: t('Angle') }],
+      parameters: [{name: 'angle', description: t('Angle')}],
     },
     LN: {
       name: 'LN',
       category: 'math',
       modes: ['query'],
       description: t('Returns the natural logarithm.'),
-      parameters: [{ name: 'number', description: t('Number') }],
+      parameters: [{name: 'number', description: t('Number')}],
     },
     LOG: {
       name: 'LOG',
@@ -359,8 +336,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query'],
       description: t('Returns the logarithm to specified base.'),
       parameters: [
-        { name: 'number', description: t('Number') },
-        { name: 'base', description: t('Base') },
+        {name: 'number', description: t('Number')},
+        {name: 'base', description: t('Base')},
       ],
     },
     LOG10: {
@@ -368,32 +345,30 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'math',
       modes: ['query'],
       description: t('Returns the base-10 logarithm.'),
-      parameters: [{ name: 'number', description: t('Number') }],
+      parameters: [{name: 'number', description: t('Number')}],
     },
     EXP: {
       name: 'EXP',
       category: 'math',
       modes: ['query'],
       description: t('Returns e raised to the power of number.'),
-      parameters: [{ name: 'number', description: t('Number') }],
+      parameters: [{name: 'number', description: t('Number')}],
     },
     PRODUCT: {
       name: 'PRODUCT',
       category: 'math',
       modes: ['query'],
       description: t('Returns the product of all numbers.'),
-      parameters: [{ name: 'numbers', description: t('One or more numbers') }],
+      parameters: [{name: 'numbers', description: t('One or more numbers')}],
     },
     IF: {
       name: 'IF',
       category: 'logical',
       modes: ['query', 'transaction'],
-      description: t(
-        'Returns one value if condition is TRUE, another if FALSE.',
-      ),
+      description: t('Returns one value if condition is TRUE, another if FALSE.'),
       parameters: [
-        { name: 'condition', description: t('Condition') },
-        { name: 'value_if_true', description: t('Value to return when true') },
+        {name: 'condition', description: t('Condition')},
+        {name: 'value_if_true', description: t('Value to return when true')},
         {
           name: 'value_if_false',
           description: t('Value to return when false'),
@@ -404,12 +379,10 @@ export function getFormulaFunctionCatalog(): Record<
       name: 'IFS',
       category: 'logical',
       modes: ['query', 'transaction'],
-      description: t(
-        'Checks multiple conditions and returns corresponding values.',
-      ),
+      description: t('Checks multiple conditions and returns corresponding values.'),
       parameters: [
-        { name: 'condition1', description: t('First condition') },
-        { name: 'value1', description: t('First value') },
+        {name: 'condition1', description: t('First condition')},
+        {name: 'value1', description: t('First value')},
       ],
     },
     AND: {
@@ -453,7 +426,7 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'logical',
       modes: ['query', 'transaction'],
       description: t('Reverses the logical value.'),
-      parameters: [{ name: 'condition', description: t('Condition') }],
+      parameters: [{name: 'condition', description: t('Condition')}],
     },
     TRUE: {
       name: 'TRUE',
@@ -473,11 +446,9 @@ export function getFormulaFunctionCatalog(): Record<
       name: 'IFERROR',
       category: 'logical',
       modes: ['query', 'transaction'],
-      description: t(
-        'Returns value if no error, otherwise returns alternative.',
-      ),
+      description: t('Returns value if no error, otherwise returns alternative.'),
       parameters: [
-        { name: 'value', description: t('Value') },
+        {name: 'value', description: t('Value')},
         {
           name: 'value_if_error',
           description: t('Value to return when there is an error'),
@@ -488,11 +459,9 @@ export function getFormulaFunctionCatalog(): Record<
       name: 'IFNA',
       category: 'logical',
       modes: ['query', 'transaction'],
-      description: t(
-        'Returns value if not #N/A error, otherwise returns alternative.',
-      ),
+      description: t('Returns value if not #N/A error, otherwise returns alternative.'),
       parameters: [
-        { name: 'value', description: t('Value') },
+        {name: 'value', description: t('Value')},
         {
           name: 'value_if_na',
           description: t('Value to return for #N/A errors'),
@@ -503,13 +472,11 @@ export function getFormulaFunctionCatalog(): Record<
       name: 'SWITCH',
       category: 'logical',
       modes: ['query', 'transaction'],
-      description: t(
-        'Matches expression against values and returns corresponding result.',
-      ),
+      description: t('Matches expression against values and returns corresponding result.'),
       parameters: [
-        { name: 'expression', description: t('Expression') },
-        { name: 'value1', description: t('First value') },
-        { name: 'result1', description: t('First result') },
+        {name: 'expression', description: t('Expression')},
+        {name: 'value1', description: t('First value')},
+        {name: 'result1', description: t('First result')},
       ],
     },
     CONCATENATE: {
@@ -517,19 +484,15 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'text',
       modes: ['query', 'transaction'],
       description: t('Combines several text strings into one.'),
-      parameters: [
-        { name: 'texts', description: t('One or more text values') },
-      ],
+      parameters: [{name: 'texts', description: t('One or more text values')}],
     },
     INTEGER_TO_AMOUNT: {
       name: 'INTEGER_TO_AMOUNT',
       category: 'other',
       modes: ['query', 'transaction'],
-      description: t(
-        'Converts integer amount to decimal amount (e.g., 1234 -> 12.34).',
-      ),
+      description: t('Converts integer amount to decimal amount (e.g., 1234 -> 12.34).'),
       parameters: [
-        { name: 'integer_amount', description: t('Integer amount in cents') },
+        {name: 'integer_amount', description: t('Integer amount in cents')},
         {
           name: 'decimal_places',
           description: t('Number of decimal places (default: 2)'),
@@ -541,21 +504,21 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'text',
       modes: ['query', 'transaction'],
       description: t('Converts text to uppercase.'),
-      parameters: [{ name: 'text', description: t('Text') }],
+      parameters: [{name: 'text', description: t('Text')}],
     },
     LOWER: {
       name: 'LOWER',
       category: 'text',
       modes: ['query', 'transaction'],
       description: t('Converts text to lowercase.'),
-      parameters: [{ name: 'text', description: t('Text') }],
+      parameters: [{name: 'text', description: t('Text')}],
     },
     PROPER: {
       name: 'PROPER',
       category: 'text',
       modes: ['query', 'transaction'],
       description: t('Capitalizes first letter of each word.'),
-      parameters: [{ name: 'text', description: t('Text') }],
+      parameters: [{name: 'text', description: t('Text')}],
     },
     LEFT: {
       name: 'LEFT',
@@ -563,8 +526,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns leftmost characters from text.'),
       parameters: [
-        { name: 'text', description: t('Text') },
-        { name: 'num_chars', description: t('Number of characters') },
+        {name: 'text', description: t('Text')},
+        {name: 'num_chars', description: t('Number of characters')},
       ],
     },
     RIGHT: {
@@ -573,8 +536,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns rightmost characters from text.'),
       parameters: [
-        { name: 'text', description: t('Text') },
-        { name: 'num_chars', description: t('Number of characters') },
+        {name: 'text', description: t('Text')},
+        {name: 'num_chars', description: t('Number of characters')},
       ],
     },
     MID: {
@@ -583,9 +546,9 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns substring from specified position.'),
       parameters: [
-        { name: 'text', description: t('Text') },
-        { name: 'start_pos', description: t('Starting position') },
-        { name: 'length', description: t('Length') },
+        {name: 'text', description: t('Text')},
+        {name: 'start_pos', description: t('Starting position')},
+        {name: 'length', description: t('Length')},
       ],
     },
     LEN: {
@@ -593,14 +556,14 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'text',
       modes: ['query', 'transaction'],
       description: t('Returns length of text.'),
-      parameters: [{ name: 'text', description: t('Text') }],
+      parameters: [{name: 'text', description: t('Text')}],
     },
     TRIM: {
       name: 'TRIM',
       category: 'text',
       modes: ['query', 'transaction'],
       description: t('Removes extra spaces from text.'),
-      parameters: [{ name: 'text', description: t('Text') }],
+      parameters: [{name: 'text', description: t('Text')}],
     },
     SUBSTITUTE: {
       name: 'SUBSTITUTE',
@@ -608,9 +571,9 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Replaces occurrences of text.'),
       parameters: [
-        { name: 'text', description: t('Text') },
-        { name: 'old_text', description: t('Text to replace') },
-        { name: 'new_text', description: t('Replacement text') },
+        {name: 'text', description: t('Text')},
+        {name: 'old_text', description: t('Text to replace')},
+        {name: 'new_text', description: t('Replacement text')},
       ],
     },
     REPLACE: {
@@ -619,10 +582,10 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Replaces substring at specified position.'),
       parameters: [
-        { name: 'text', description: t('Text') },
-        { name: 'start_pos', description: t('Starting position') },
-        { name: 'length', description: t('Length') },
-        { name: 'new_text', description: t('Replacement text') },
+        {name: 'text', description: t('Text')},
+        {name: 'start_pos', description: t('Starting position')},
+        {name: 'length', description: t('Length')},
+        {name: 'new_text', description: t('Replacement text')},
       ],
     },
     FIND: {
@@ -631,20 +594,18 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Finds text within text (case-sensitive).'),
       parameters: [
-        { name: 'find_text', description: t('Text to find') },
-        { name: 'within_text', description: t('Text to search within') },
+        {name: 'find_text', description: t('Text to find')},
+        {name: 'within_text', description: t('Text to search within')},
       ],
     },
     SEARCH: {
       name: 'SEARCH',
       category: 'text',
       modes: ['query', 'transaction'],
-      description: t(
-        'Finds text within text (case-insensitive, supports wildcards).',
-      ),
+      description: t('Finds text within text (case-insensitive, supports wildcards).'),
       parameters: [
-        { name: 'search_text', description: t('Text to search for') },
-        { name: 'text', description: t('Text') },
+        {name: 'search_text', description: t('Text to search for')},
+        {name: 'text', description: t('Text')},
       ],
     },
     TEXT: {
@@ -653,8 +614,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Converts number to text with format.'),
       parameters: [
-        { name: 'value', description: t('Number') },
-        { name: 'format', description: t('Format') },
+        {name: 'value', description: t('Number')},
+        {name: 'format', description: t('Format')},
       ],
     },
     FIXED: {
@@ -663,8 +624,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Formats a number to a fixed amount of decimal places.'),
       parameters: [
-        { name: 'number', description: t('Number') },
-        { name: 'decimals', description: t('Decimals') },
+        {name: 'number', description: t('Number')},
+        {name: 'decimals', description: t('Decimals')},
       ],
     },
     FORMATNUMBER: {
@@ -675,7 +636,7 @@ export function getFormulaFunctionCatalog(): Record<
         'Formats a number with thousands separators. Uses your app number format settings by default.',
       ),
       parameters: [
-        { name: 'value', description: t('Number to format') },
+        {name: 'value', description: t('Number to format')},
         {
           name: 'decimals',
           description: t('Decimal places (optional, uses app settings)'),
@@ -698,7 +659,7 @@ export function getFormulaFunctionCatalog(): Record<
         'Formats a number as currency. Uses your app currency and number format settings by default.',
       ),
       parameters: [
-        { name: 'value', description: t('Number to format') },
+        {name: 'value', description: t('Number to format')},
         {
           name: 'currencySymbol',
           description: t('Currency symbol (optional, uses app settings)'),
@@ -731,8 +692,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Repeats text specified number of times.'),
       parameters: [
-        { name: 'text', description: t('Text') },
-        { name: 'number', description: t('Number') },
+        {name: 'text', description: t('Text')},
+        {name: 'number', description: t('Number')},
       ],
     },
     CHAR: {
@@ -740,14 +701,14 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'text',
       modes: ['query', 'transaction'],
       description: t('Converts number to character.'),
-      parameters: [{ name: 'number', description: t('Number') }],
+      parameters: [{name: 'number', description: t('Number')}],
     },
     CODE: {
       name: 'CODE',
       category: 'text',
       modes: ['query', 'transaction'],
       description: t('Returns numeric code for first character.'),
-      parameters: [{ name: 'text', description: t('Text') }],
+      parameters: [{name: 'text', description: t('Text')}],
     },
     EXACT: {
       name: 'EXACT',
@@ -755,8 +716,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns TRUE if texts are exactly the same.'),
       parameters: [
-        { name: 'text1', description: t('First text value') },
-        { name: 'text2', description: t('Second text value') },
+        {name: 'text1', description: t('First text value')},
+        {name: 'text2', description: t('Second text value')},
       ],
     },
     DATE: {
@@ -765,9 +726,9 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns date as number of days since null date.'),
       parameters: [
-        { name: 'year', description: t('Year') },
-        { name: 'month', description: t('Month') },
-        { name: 'day', description: t('Day') },
+        {name: 'year', description: t('Year')},
+        {name: 'month', description: t('Month')},
+        {name: 'day', description: t('Day')},
       ],
     },
     TODAY: {
@@ -789,21 +750,21 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'date',
       modes: ['query', 'transaction'],
       description: t('Returns the year from a date.'),
-      parameters: [{ name: 'date', description: t('Date value') }],
+      parameters: [{name: 'date', description: t('Date value')}],
     },
     MONTH: {
       name: 'MONTH',
       category: 'date',
       modes: ['query', 'transaction'],
       description: t('Returns the month from a date.'),
-      parameters: [{ name: 'date', description: t('Date value') }],
+      parameters: [{name: 'date', description: t('Date value')}],
     },
     DAY: {
       name: 'DAY',
       category: 'date',
       modes: ['query', 'transaction'],
       description: t('Returns the day from a date.'),
-      parameters: [{ name: 'date', description: t('Date value') }],
+      parameters: [{name: 'date', description: t('Date value')}],
     },
     WEEKDAY: {
       name: 'WEEKDAY',
@@ -811,8 +772,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns day of week (1-7).'),
       parameters: [
-        { name: 'date', description: t('Date') },
-        { name: 'type', description: t('Return type') },
+        {name: 'date', description: t('Date')},
+        {name: 'type', description: t('Return type')},
       ],
     },
     EDATE: {
@@ -821,8 +782,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns date shifted by specified months.'),
       parameters: [
-        { name: 'start_date', description: t('Start date') },
-        { name: 'months', description: t('Months') },
+        {name: 'start_date', description: t('Start date')},
+        {name: 'months', description: t('Months')},
       ],
     },
     EOMONTH: {
@@ -831,8 +792,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns last day of month after specified months.'),
       parameters: [
-        { name: 'start_date', description: t('Start date') },
-        { name: 'months', description: t('Months') },
+        {name: 'start_date', description: t('Start date')},
+        {name: 'months', description: t('Months')},
       ],
     },
     DAYS: {
@@ -841,8 +802,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Calculates difference between dates in days.'),
       parameters: [
-        { name: 'end_date', description: t('End date') },
-        { name: 'start_date', description: t('Start date') },
+        {name: 'end_date', description: t('End date')},
+        {name: 'start_date', description: t('Start date')},
       ],
     },
     DATEDIF: {
@@ -851,9 +812,9 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Calculates distance between dates.'),
       parameters: [
-        { name: 'start_date', description: t('Start date') },
-        { name: 'end_date', description: t('End date') },
-        { name: 'unit', description: t('Unit') },
+        {name: 'start_date', description: t('Start date')},
+        {name: 'end_date', description: t('End date')},
+        {name: 'unit', description: t('Unit')},
       ],
     },
     NETWORKDAYS: {
@@ -862,8 +823,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query'],
       description: t('Returns number of working days between dates.'),
       parameters: [
-        { name: 'start_date', description: t('Start date') },
-        { name: 'end_date', description: t('End date') },
+        {name: 'start_date', description: t('Start date')},
+        {name: 'end_date', description: t('End date')},
       ],
     },
     WEEKNUM: {
@@ -872,8 +833,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query', 'transaction'],
       description: t('Returns week number of year.'),
       parameters: [
-        { name: 'date', description: t('Date') },
-        { name: 'type', description: t('Return type') },
+        {name: 'date', description: t('Date')},
+        {name: 'type', description: t('Return type')},
       ],
     },
     CHOOSE: {
@@ -882,9 +843,9 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query'],
       description: t('Returns value from list based on index.'),
       parameters: [
-        { name: 'index', description: t('Index (1-based)') },
-        { name: 'value1', description: t('First value') },
-        { name: 'value2', description: t('Additional values') },
+        {name: 'index', description: t('Index (1-based)')},
+        {name: 'value1', description: t('First value')},
+        {name: 'value2', description: t('Additional values')},
       ],
     },
     ISBLANK: {
@@ -892,49 +853,49 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'query',
       modes: ['query', 'transaction'],
       description: t('Returns TRUE if value is blank.'),
-      parameters: [{ name: 'value', description: t('Value') }],
+      parameters: [{name: 'value', description: t('Value')}],
     },
     ISERROR: {
       name: 'ISERROR',
       category: 'query',
       modes: ['query', 'transaction'],
       description: t('Returns TRUE if value is any error.'),
-      parameters: [{ name: 'value', description: t('Value') }],
+      parameters: [{name: 'value', description: t('Value')}],
     },
     ISNA: {
       name: 'ISNA',
       category: 'query',
       modes: ['query', 'transaction'],
       description: t('Returns TRUE if value is #N/A error.'),
-      parameters: [{ name: 'value', description: t('Value') }],
+      parameters: [{name: 'value', description: t('Value')}],
     },
     ISNUMBER: {
       name: 'ISNUMBER',
       category: 'query',
       modes: ['query', 'transaction'],
       description: t('Returns TRUE if value is a number.'),
-      parameters: [{ name: 'value', description: t('Value') }],
+      parameters: [{name: 'value', description: t('Value')}],
     },
     ISTEXT: {
       name: 'ISTEXT',
       category: 'query',
       modes: ['query', 'transaction'],
       description: t('Returns TRUE if value is text.'),
-      parameters: [{ name: 'value', description: t('Value') }],
+      parameters: [{name: 'value', description: t('Value')}],
     },
     ISLOGICAL: {
       name: 'ISLOGICAL',
       category: 'query',
       modes: ['query', 'transaction'],
       description: t('Returns TRUE if value is logical (TRUE/FALSE).'),
-      parameters: [{ name: 'value', description: t('Value') }],
+      parameters: [{name: 'value', description: t('Value')}],
     },
     ISREF: {
       name: 'ISREF',
       category: 'other',
       modes: ['query'],
       description: t('Returns TRUE if value is a reference.'),
-      parameters: [{ name: 'value', description: t('Value') }],
+      parameters: [{name: 'value', description: t('Value')}],
     },
     PMT: {
       name: 'PMT',
@@ -942,9 +903,9 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query'],
       description: t('Calculates payment for a loan.'),
       parameters: [
-        { name: 'rate', description: t('Interest rate') },
-        { name: 'nper', description: t('Number of periods') },
-        { name: 'pv', description: t('Present value') },
+        {name: 'rate', description: t('Interest rate')},
+        {name: 'nper', description: t('Number of periods')},
+        {name: 'pv', description: t('Present value')},
       ],
     },
     FV: {
@@ -953,9 +914,9 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query'],
       description: t('Calculates future value of investment.'),
       parameters: [
-        { name: 'rate', description: t('Interest rate') },
-        { name: 'nper', description: t('Number of periods') },
-        { name: 'pmt', description: t('Payment amount') },
+        {name: 'rate', description: t('Interest rate')},
+        {name: 'nper', description: t('Number of periods')},
+        {name: 'pmt', description: t('Payment amount')},
       ],
     },
     PV: {
@@ -964,9 +925,9 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query'],
       description: t('Calculates present value of investment.'),
       parameters: [
-        { name: 'rate', description: t('Interest rate') },
-        { name: 'nper', description: t('Number of periods') },
-        { name: 'pmt', description: t('Payment amount') },
+        {name: 'rate', description: t('Interest rate')},
+        {name: 'nper', description: t('Number of periods')},
+        {name: 'pmt', description: t('Payment amount')},
       ],
     },
     NPV: {
@@ -975,9 +936,9 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query'],
       description: t('Calculates net present value.'),
       parameters: [
-        { name: 'rate', description: t('Interest rate') },
-        { name: 'value1', description: t('First value') },
-        { name: 'value2', description: t('Second value') },
+        {name: 'rate', description: t('Interest rate')},
+        {name: 'value1', description: t('First value')},
+        {name: 'value2', description: t('Second value')},
       ],
     },
     IRR: {
@@ -985,7 +946,7 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'math',
       modes: ['query'],
       description: t('Calculates internal rate of return.'),
-      parameters: [{ name: 'values', description: t('Values') }],
+      parameters: [{name: 'values', description: t('Values')}],
     },
     RATE: {
       name: 'RATE',
@@ -993,65 +954,57 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['query'],
       description: t('Calculates interest rate per period.'),
       parameters: [
-        { name: 'nper', description: t('Number of periods') },
-        { name: 'pmt', description: t('Payment amount') },
-        { name: 'pv', description: t('Present value') },
+        {name: 'nper', description: t('Number of periods')},
+        {name: 'pmt', description: t('Payment amount')},
+        {name: 'pv', description: t('Present value')},
       ],
     },
     IPMT: {
       name: 'IPMT',
       category: 'math',
       modes: ['query', 'transaction'],
-      description: t(
-        'Calculates the interest portion of a loan payment for a given period.',
-      ),
+      description: t('Calculates the interest portion of a loan payment for a given period.'),
       parameters: [
-        { name: 'rate', description: t('Interest rate') },
-        { name: 'period', description: t('Period to calculate (1-based)') },
-        { name: 'nper', description: t('Number of periods') },
-        { name: 'pv', description: t('Present value') },
+        {name: 'rate', description: t('Interest rate')},
+        {name: 'period', description: t('Period to calculate (1-based)')},
+        {name: 'nper', description: t('Number of periods')},
+        {name: 'pv', description: t('Present value')},
       ],
     },
     PPMT: {
       name: 'PPMT',
       category: 'math',
       modes: ['query', 'transaction'],
-      description: t(
-        'Calculates the principal portion of a loan payment for a given period.',
-      ),
+      description: t('Calculates the principal portion of a loan payment for a given period.'),
       parameters: [
-        { name: 'rate', description: t('Interest rate') },
-        { name: 'period', description: t('Period to calculate (1-based)') },
-        { name: 'nper', description: t('Number of periods') },
-        { name: 'pv', description: t('Present value') },
+        {name: 'rate', description: t('Interest rate')},
+        {name: 'period', description: t('Period to calculate (1-based)')},
+        {name: 'nper', description: t('Number of periods')},
+        {name: 'pv', description: t('Present value')},
       ],
     },
     NPER: {
       name: 'NPER',
       category: 'math',
       modes: ['query', 'transaction'],
-      description: t(
-        'Calculates the number of payment periods for a loan or investment.',
-      ),
+      description: t('Calculates the number of payment periods for a loan or investment.'),
       parameters: [
-        { name: 'rate', description: t('Interest rate') },
-        { name: 'pmt', description: t('Payment amount') },
-        { name: 'pv', description: t('Present value') },
+        {name: 'rate', description: t('Interest rate')},
+        {name: 'pmt', description: t('Payment amount')},
+        {name: 'pv', description: t('Present value')},
       ],
     },
     CUMIPMT: {
       name: 'CUMIPMT',
       category: 'math',
       modes: ['query', 'transaction'],
-      description: t(
-        'Calculates cumulative interest paid between two periods.',
-      ),
+      description: t('Calculates cumulative interest paid between two periods.'),
       parameters: [
-        { name: 'rate', description: t('Interest rate') },
-        { name: 'nper', description: t('Number of periods') },
-        { name: 'pv', description: t('Present value') },
-        { name: 'start_period', description: t('First period (1-based)') },
-        { name: 'end_period', description: t('Last period (1-based)') },
+        {name: 'rate', description: t('Interest rate')},
+        {name: 'nper', description: t('Number of periods')},
+        {name: 'pv', description: t('Present value')},
+        {name: 'start_period', description: t('First period (1-based)')},
+        {name: 'end_period', description: t('Last period (1-based)')},
         {
           name: 'type',
           description: t('0 = end of period, 1 = start of period'),
@@ -1062,15 +1015,13 @@ export function getFormulaFunctionCatalog(): Record<
       name: 'CUMPRINC',
       category: 'math',
       modes: ['query', 'transaction'],
-      description: t(
-        'Calculates cumulative principal paid between two periods.',
-      ),
+      description: t('Calculates cumulative principal paid between two periods.'),
       parameters: [
-        { name: 'rate', description: t('Interest rate') },
-        { name: 'nper', description: t('Number of periods') },
-        { name: 'pv', description: t('Present value') },
-        { name: 'start_period', description: t('First period (1-based)') },
-        { name: 'end_period', description: t('Last period (1-based)') },
+        {name: 'rate', description: t('Interest rate')},
+        {name: 'nper', description: t('Number of periods')},
+        {name: 'pv', description: t('Present value')},
+        {name: 'start_period', description: t('First period (1-based)')},
+        {name: 'end_period', description: t('Last period (1-based)')},
         {
           name: 'type',
           description: t('0 = end of period, 1 = start of period'),
@@ -1081,11 +1032,9 @@ export function getFormulaFunctionCatalog(): Record<
       name: 'MIRR',
       category: 'math',
       modes: ['query'],
-      description: t(
-        'Calculates the modified internal rate of return for a series of cash flows.',
-      ),
+      description: t('Calculates the modified internal rate of return for a series of cash flows.'),
       parameters: [
-        { name: 'values', description: t('Range of cash flow values') },
+        {name: 'values', description: t('Range of cash flow values')},
         {
           name: 'finance_rate',
           description: t('Interest rate paid on financing'),
@@ -1100,12 +1049,10 @@ export function getFormulaFunctionCatalog(): Record<
       name: 'XNPV',
       category: 'math',
       modes: ['query'],
-      description: t(
-        'Calculates net present value for cash flows on irregular (dated) intervals.',
-      ),
+      description: t('Calculates net present value for cash flows on irregular (dated) intervals.'),
       parameters: [
-        { name: 'rate', description: t('Discount rate') },
-        { name: 'values', description: t('Range of cash flow values') },
+        {name: 'rate', description: t('Discount rate')},
+        {name: 'values', description: t('Range of cash flow values')},
         {
           name: 'dates',
           description: t('Range of dates matching each cash flow'),
@@ -1120,7 +1067,7 @@ export function getFormulaFunctionCatalog(): Record<
         'Calculates future value of a principal using a schedule of varying interest rates.',
       ),
       parameters: [
-        { name: 'principal', description: t('Starting principal amount') },
+        {name: 'principal', description: t('Starting principal amount')},
         {
           name: 'schedule',
           description: t('Range of interest rates to apply successively'),
@@ -1132,18 +1079,14 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'query',
       modes: ['query'],
       description: t('Execute a query and return the result.'),
-      parameters: [
-        { name: 'queryName', description: t('Name of the query to execute') },
-      ],
+      parameters: [{name: 'queryName', description: t('Name of the query to execute')}],
     },
     QUERY_COUNT: {
       name: 'QUERY_COUNT',
       category: 'query',
       modes: ['query'],
       description: t('Execute a query and return the number of matching rows.'),
-      parameters: [
-        { name: 'queryName', description: t('Name of the query to execute') },
-      ],
+      parameters: [{name: 'queryName', description: t('Name of the query to execute')}],
     },
     BALANCE_OF: {
       name: 'BALANCE_OF',
@@ -1164,7 +1107,7 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'text',
       modes: ['transaction'],
       description: t('Removes non-printable characters from text.'),
-      parameters: [{ name: 'text', description: t('Text') }],
+      parameters: [{name: 'text', description: t('Text')}],
     },
     SPLIT: {
       name: 'SPLIT',
@@ -1172,8 +1115,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['transaction'],
       description: t('Splits text by space and returns part at index.'),
       parameters: [
-        { name: 'text', description: t('Text') },
-        { name: 'index', description: t('Index') },
+        {name: 'text', description: t('Text')},
+        {name: 'index', description: t('Index')},
       ],
     },
     INT: {
@@ -1181,7 +1124,7 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'math',
       modes: ['transaction'],
       description: t('Rounds down to nearest integer.'),
-      parameters: [{ name: 'number', description: t('Number') }],
+      parameters: [{name: 'number', description: t('Number')}],
     },
     TRUNC: {
       name: 'TRUNC',
@@ -1189,8 +1132,8 @@ export function getFormulaFunctionCatalog(): Record<
       modes: ['transaction'],
       description: t('Truncates number to specified decimals.'),
       parameters: [
-        { name: 'number', description: t('Number') },
-        { name: 'decimals', description: t('Decimals') },
+        {name: 'number', description: t('Number')},
+        {name: 'decimals', description: t('Decimals')},
       ],
     },
     SIGN: {
@@ -1198,79 +1141,70 @@ export function getFormulaFunctionCatalog(): Record<
       category: 'math',
       modes: ['transaction'],
       description: t('Returns -1 for negative, 0 for zero, 1 for positive.'),
-      parameters: [{ name: 'number', description: t('Number') }],
+      parameters: [{name: 'number', description: t('Number')}],
     },
     DATEVALUE: {
       name: 'DATEVALUE',
       category: 'date',
       modes: ['transaction'],
       description: t('Parses a date string and returns it as a number.'),
-      parameters: [{ name: 'date_string', description: t('Date string') }],
+      parameters: [{name: 'date_string', description: t('Date string')}],
     },
     ISOWEEKNUM: {
       name: 'ISOWEEKNUM',
       category: 'date',
       modes: ['transaction'],
       description: t('Returns ISO week number.'),
-      parameters: [{ name: 'date', description: t('Date') }],
+      parameters: [{name: 'date', description: t('Date')}],
     },
     ISEVEN: {
       name: 'ISEVEN',
       category: 'query',
       modes: ['transaction'],
       description: t('Returns TRUE if number is even.'),
-      parameters: [{ name: 'number', description: t('Number') }],
+      parameters: [{name: 'number', description: t('Number')}],
     },
     ISODD: {
       name: 'ISODD',
       category: 'query',
       modes: ['transaction'],
       description: t('Returns TRUE if number is odd.'),
-      parameters: [{ name: 'number', description: t('Number') }],
+      parameters: [{name: 'number', description: t('Number')}],
     },
     VALUE: {
       name: 'VALUE',
       category: 'text',
       modes: ['transaction'],
       description: t('Converts text to a number.'),
-      parameters: [{ name: 'text', description: t('Text') }],
+      parameters: [{name: 'text', description: t('Text')}],
     },
     T: {
       name: 'T',
       category: 'text',
       modes: ['transaction'],
       description: t('Returns text if value is text, empty string otherwise.'),
-      parameters: [{ name: 'value', description: t('Value') }],
+      parameters: [{name: 'value', description: t('Value')}],
     },
     N: {
       name: 'N',
       category: 'text',
       modes: ['transaction'],
       description: t('Converts value to a number.'),
-      parameters: [{ name: 'value', description: t('Value') }],
+      parameters: [{name: 'value', description: t('Value')}],
     },
   };
 }
 
 function getCompletionSectionName(completion: Completion): string {
-  const { section } = completion;
+  const {section} = completion;
   return typeof section === 'string' ? section : section?.name || '';
 }
 
-let formulaFunctionCategoryByName: Record<
-  string,
-  FormulaFunctionCategory
-> | null = null;
+let formulaFunctionCategoryByName: Record<string, FormulaFunctionCategory> | null = null;
 
-function getFormulaFunctionCategoryByName(): Record<
-  string,
-  FormulaFunctionCategory
-> {
+function getFormulaFunctionCategoryByName(): Record<string, FormulaFunctionCategory> {
   formulaFunctionCategoryByName ??= Object.fromEntries(
-    Object.entries(getFormulaFunctionCatalog()).map(([name, func]) => [
-      name,
-      func.category,
-    ]),
+    Object.entries(getFormulaFunctionCatalog()).map(([name, func]) => [name, func.category]),
   );
 
   return formulaFunctionCategoryByName;
@@ -1291,9 +1225,7 @@ export function getFormulaFunctionsByMode(): Record<FormulaMode, string[]> {
   return functionsByMode;
 }
 
-export function getFormulaFunctionsForMode(
-  mode: FormulaMode,
-): Record<string, FormulaFunctionDef> {
+export function getFormulaFunctionsForMode(mode: FormulaMode): Record<string, FormulaFunctionDef> {
   const catalog = getFormulaFunctionCatalog();
 
   return Object.fromEntries(
@@ -1315,31 +1247,27 @@ export function getFormulaFunctionByName(
   return func;
 }
 
-export function getFormulaCategoryForName(
-  name: string,
-): FormulaFunctionCategory | undefined {
+export function getFormulaCategoryForName(name: string): FormulaFunctionCategory | undefined {
   return getFormulaFunctionCategoryByName()[name.toUpperCase()];
 }
 
 export function getFunctionCompletions(mode: FormulaMode): Completion[] {
   const categoryConfig = getFormulaFunctionCategoryConfig();
 
-  return Object.entries(getFormulaFunctionsForMode(mode)).map(
-    ([name, func]) => ({
-      label: name,
-      type: 'function',
-      section: categoryConfig[func.category].section,
-      info: [
-        func.description,
-        '',
-        `${t('Parameters:')} ${func.parameters.map(p => p.name).join(', ')}`,
-        '',
-        func.parameters.map(p => `- ${p.name}: ${p.description}`).join('\n'),
-      ].join('\n'),
-      apply: `${name}()`,
-      boost: 10,
-    }),
-  );
+  return Object.entries(getFormulaFunctionsForMode(mode)).map(([name, func]) => ({
+    label: name,
+    type: 'function',
+    section: categoryConfig[func.category].section,
+    info: [
+      func.description,
+      '',
+      `${t('Parameters:')} ${func.parameters.map(p => p.name).join(', ')}`,
+      '',
+      func.parameters.map(p => `- ${p.name}: ${p.description}`).join('\n'),
+    ].join('\n'),
+    apply: `${name}()`,
+    boost: 10,
+  }));
 }
 
 export function getRuleFieldCompletions(): Completion[] {
@@ -1450,9 +1378,7 @@ export function getRuleFieldCompletions(): Completion[] {
       type: 'variable',
       section: ruleFieldSection,
       boost: 5,
-      info: t(
-        'Boolean reconciled status. TRUE if transaction is reconciled, FALSE otherwise.',
-      ),
+      info: t('Boolean reconciled status. TRUE if transaction is reconciled, FALSE otherwise.'),
     },
     {
       label: 'balance',
@@ -1477,43 +1403,33 @@ export function getRuleFieldCompletions(): Completion[] {
       type: 'variable',
       section: ruleFieldSection,
       boost: 5,
-      info: t(
-        'Notes of the parent transaction in split rules. Empty when absent.',
-      ),
+      info: t('Notes of the parent transaction in split rules. Empty when absent.'),
     },
     {
       label: 'parent_imported_payee',
       type: 'variable',
       section: ruleFieldSection,
       boost: 5,
-      info: t(
-        'Imported payee text of the parent transaction in split rules. Empty when absent.',
-      ),
+      info: t('Imported payee text of the parent transaction in split rules. Empty when absent.'),
     },
     {
       label: 'parent_payee',
       type: 'variable',
       section: ruleFieldSection,
       boost: 5,
-      info: t(
-        'Payee ID of the parent transaction in split rules. Empty when absent.',
-      ),
+      info: t('Payee ID of the parent transaction in split rules. Empty when absent.'),
     },
     {
       label: 'parent_account',
       type: 'variable',
       section: ruleFieldSection,
       boost: 5,
-      info: t(
-        'Account ID of the parent transaction in split rules. Empty when absent.',
-      ),
+      info: t('Account ID of the parent transaction in split rules. Empty when absent.'),
     },
   ];
 }
 
-export function getDynamicReportQueryCompletions(
-  queries?: Record<string, unknown>,
-): Completion[] {
+export function getDynamicReportQueryCompletions(queries?: Record<string, unknown>): Completion[] {
   if (!queries) {
     return [];
   }
@@ -1535,12 +1451,9 @@ export function getDynamicReportQueryCompletions(
       label: `QUERY_COUNT("${queryName}")`,
       type: 'function',
       section: queryFunctionSection,
-      info: t(
-        'Execute the {{queryName}} query and return the number of matching rows.',
-        {
-          queryName,
-        },
-      ),
+      info: t('Execute the {{queryName}} query and return the number of matching rows.', {
+        queryName,
+      }),
       apply: `QUERY_COUNT("${queryName}")`,
       boost: 14,
     },
@@ -1548,10 +1461,7 @@ export function getDynamicReportQueryCompletions(
       label: `BUDGET_QUERY("budgeted", QUERY_EXTRACT_CATEGORIES("${queryName}"), QUERY_EXTRACT_TIMEFRAME_START("${queryName}"), QUERY_EXTRACT_TIMEFRAME_END("${queryName}"))`,
       type: 'function',
       section: queryFunctionSection,
-      info: t(
-        'Sum of budgeted amounts with extracted parameters from {{queryName}}.',
-        { queryName },
-      ),
+      info: t('Sum of budgeted amounts with extracted parameters from {{queryName}}.', {queryName}),
       apply: `BUDGET_QUERY("budgeted", QUERY_EXTRACT_CATEGORIES("${queryName}"), QUERY_EXTRACT_TIMEFRAME_START("${queryName}"), QUERY_EXTRACT_TIMEFRAME_END("${queryName}"))`,
       boost: 13,
     },
@@ -1608,9 +1518,7 @@ export function getNamedVariableCompletions(
   }));
 }
 
-export function sortFormulaCompletions(
-  completions: Completion[],
-): Completion[] {
+export function sortFormulaCompletions(completions: Completion[]): Completion[] {
   const sectionOrder = getFormulaCompletionSectionOrder();
 
   return [...completions].sort((a, b) => {

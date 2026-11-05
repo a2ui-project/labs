@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useMemo,
-  useReducer,
-  useRef,
-} from 'react';
-import type { Dispatch, ReactNode } from 'react';
+import React, {createContext, useContext, useEffect, useMemo, useReducer, useRef} from 'react';
+import type {Dispatch, ReactNode} from 'react';
 
 type SplitMode = 'collapse' | 'expand';
 type SplitState = {
@@ -95,9 +88,7 @@ export function useSplitsExpanded() {
     (): SplitsExpandedContextValue => ({
       ...data,
       isExpanded: (id: string) => {
-        return data.state.mode === 'collapse'
-          ? !data.state.ids.has(id)
-          : data.state.ids.has(id);
+        return data.state.mode === 'collapse' ? !data.state.ids.has(id) : data.state.ids.has(id);
       },
     }),
     [data],
@@ -120,23 +111,23 @@ export function SplitsExpandedProvider({
       switch (action.type) {
         case 'toggle-split': {
           const ids = new Set([...state.ids]);
-          const { id } = action;
+          const {id} = action;
           if (ids.has(id)) {
             ids.delete(id);
           } else {
             ids.add(id);
           }
-          return { ...state, ids };
+          return {...state, ids};
         }
         case 'open-split': {
           const ids = new Set([...state.ids]);
-          const { id } = action;
+          const {id} = action;
           if (state.mode === 'collapse') {
             ids.delete(id);
           } else {
             ids.add(id);
           }
-          return { ...state, ids };
+          return {...state, ids};
         }
         case 'close-splits': {
           const ids = new Set([...state.ids]);
@@ -147,7 +138,7 @@ export function SplitsExpandedProvider({
               ids.delete(id);
             }
           });
-          return { ...state, ids };
+          return {...state, ids};
         }
         case 'set-mode': {
           return {
@@ -170,7 +161,7 @@ export function SplitsExpandedProvider({
             ids: new Set<string>(),
           };
         case 'finish-switch-mode':
-          return { ...state, transitionId: null };
+          return {...state, transitionId: null};
         default:
           throw new Error('Unrecognized action');
       }
@@ -186,7 +177,7 @@ export function SplitsExpandedProvider({
     if (state.transitionId != null) {
       // This timeout allows animations to finish
       setTimeout(() => {
-        dispatch({ type: 'finish-switch-mode' });
+        dispatch({type: 'finish-switch-mode'});
       }, 250);
     }
   }, [state.transitionId]);
@@ -198,11 +189,7 @@ export function SplitsExpandedProvider({
     }
   }, [state]);
 
-  const value = useMemo(() => ({ state, dispatch }), [state, dispatch]);
+  const value = useMemo(() => ({state, dispatch}), [state, dispatch]);
 
-  return (
-    <SplitsExpandedContext.Provider value={value}>
-      {children}
-    </SplitsExpandedContext.Provider>
-  );
+  return <SplitsExpandedContext.Provider value={value}>{children}</SplitsExpandedContext.Provider>;
 }

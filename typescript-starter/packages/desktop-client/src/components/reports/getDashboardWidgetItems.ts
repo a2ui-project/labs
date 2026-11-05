@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Menu } from '@actual-app/components/menu';
-import type { MenuItem } from '@actual-app/components/menu';
+import {Menu} from '@actual-app/components/menu';
+import type {MenuItem} from '@actual-app/components/menu';
 
 type CustomReportSummary = {
   id: string;
@@ -47,13 +47,8 @@ type DashboardWidgetMenuName =
   | 'summary-card'
   | `custom-report-${string}`;
 
-function findItemIndex(
-  items: MenuItem<DashboardWidgetMenuName>[],
-  name: string,
-) {
-  const index = items.findIndex(
-    item => item !== Menu.line && item.name === name,
-  );
+function findItemIndex(items: MenuItem<DashboardWidgetMenuName>[], name: string) {
+  const index = items.findIndex(item => item !== Menu.line && item.name === name);
   return index === -1 ? items.length : index;
 }
 

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { q } from '@actual-app/core/shared/query';
+import {q} from '@actual-app/core/shared/query';
 import type {
   AccountEntity,
   AccountGroupEntity,
   CategoryEntity,
 } from '@actual-app/core/types/models';
 
-import { uncategorizedTransactions } from '#queries';
+import {uncategorizedTransactions} from '#queries';
 
-import { parametrizedField } from '.';
-import type { Binding, SheetFields, SheetNames } from '.';
+import {parametrizedField} from '.';
+import type {Binding, SheetFields, SheetNames} from '.';
 
 type BudgetType<SheetName extends SheetNames> = Record<
   string,
@@ -40,9 +40,9 @@ export function accountBalance(accountId: AccountEntity['id']) {
   return {
     name: accountParametrizedField('balance')(accountId),
     query: q('transactions')
-      .filter({ account: accountId })
-      .options({ splits: 'none' })
-      .calculate({ $sum: '$amount' }),
+      .filter({account: accountId})
+      .options({splits: 'none'})
+      .calculate({$sum: '$amount'}),
   } satisfies Binding<'account', 'balance'>;
 }
 
@@ -50,9 +50,9 @@ export function accountBalanceCleared(accountId: AccountEntity['id']) {
   return {
     name: accountParametrizedField('balanceCleared')(accountId),
     query: q('transactions')
-      .filter({ account: accountId, cleared: true })
-      .options({ splits: 'none' })
-      .calculate({ $sum: '$amount' }),
+      .filter({account: accountId, cleared: true})
+      .options({splits: 'none'})
+      .calculate({$sum: '$amount'}),
   } satisfies Binding<'account', 'balanceCleared'>;
 }
 
@@ -60,17 +60,15 @@ export function accountBalanceUncleared(accountId: AccountEntity['id']) {
   return {
     name: accountParametrizedField('balanceUncleared')(accountId),
     query: q('transactions')
-      .filter({ account: accountId, cleared: false })
-      .options({ splits: 'none' })
-      .calculate({ $sum: '$amount' }),
+      .filter({account: accountId, cleared: false})
+      .options({splits: 'none'})
+      .calculate({$sum: '$amount'}),
   } satisfies Binding<'account', 'balanceUncleared'>;
 }
 
 export function allAccountBalance() {
   return {
-    query: q('transactions')
-      .filter({ 'account.closed': false })
-      .calculate({ $sum: '$amount' }),
+    query: q('transactions').filter({'account.closed': false}).calculate({$sum: '$amount'}),
     name: 'accounts-balance',
   } satisfies Binding<'account', 'accounts-balance'>;
 }
@@ -79,8 +77,8 @@ export function onBudgetAccountBalance() {
   return {
     name: `onbudget-accounts-balance`,
     query: q('transactions')
-      .filter({ 'account.offbudget': false, 'account.closed': false })
-      .calculate({ $sum: '$amount' }),
+      .filter({'account.offbudget': false, 'account.closed': false})
+      .calculate({$sum: '$amount'}),
   } satisfies Binding<'account', 'onbudget-accounts-balance'>;
 }
 
@@ -88,24 +86,19 @@ export function offBudgetAccountBalance() {
   return {
     name: `offbudget-accounts-balance`,
     query: q('transactions')
-      .filter({ 'account.offbudget': true, 'account.closed': false })
-      .calculate({ $sum: '$amount' }),
+      .filter({'account.offbudget': true, 'account.closed': false})
+      .calculate({$sum: '$amount'}),
   } satisfies Binding<'account', 'offbudget-accounts-balance'>;
 }
 
 export function closedAccountBalance() {
   return {
     name: `closed-accounts-balance`,
-    query: q('transactions')
-      .filter({ 'account.closed': true })
-      .calculate({ $sum: '$amount' }),
+    query: q('transactions').filter({'account.closed': true}).calculate({$sum: '$amount'}),
   } satisfies Binding<'account', 'closed-accounts-balance'>;
 }
 
-export function accountGroupBalance(
-  groupId: AccountGroupEntity['id'],
-  offbudget: boolean,
-) {
+export function accountGroupBalance(groupId: AccountGroupEntity['id'], offbudget: boolean) {
   return {
     name: `account-group-balance-${groupId}-${offbudget ? 'off' : 'on'}`,
     query: q('transactions')
@@ -114,72 +107,63 @@ export function accountGroupBalance(
         'account.offbudget': offbudget,
         'account.closed': false,
       })
-      .options({ splits: 'none' })
-      .calculate({ $sum: '$amount' }),
+      .options({splits: 'none'})
+      .calculate({$sum: '$amount'}),
   } satisfies Binding<'account', `account-group-balance-${string}`>;
 }
 
-export function categoryBalance(
-  categoryId: CategoryEntity['id'],
-  month: string,
-) {
+export function categoryBalance(categoryId: CategoryEntity['id'], month: string) {
   return {
     name: categoryParametrizedField('balance')(categoryId),
     query: q('transactions')
       .filter({
         category: categoryId,
-        date: { $transform: '$month', $eq: month },
+        date: {$transform: '$month', $eq: month},
       })
-      .options({ splits: 'inline' })
-      .calculate({ $sum: '$amount' }),
+      .options({splits: 'inline'})
+      .calculate({$sum: '$amount'}),
   } satisfies Binding<'category', 'balance'>;
 }
 
-export function categoryBalanceCleared(
-  categoryId: CategoryEntity['id'],
-  month: string,
-) {
+export function categoryBalanceCleared(categoryId: CategoryEntity['id'], month: string) {
   return {
     name: categoryParametrizedField('balanceCleared')(categoryId),
     query: q('transactions')
       .filter({
         category: categoryId,
-        date: { $transform: '$month', $eq: month },
+        date: {$transform: '$month', $eq: month},
         cleared: true,
       })
-      .options({ splits: 'inline' })
-      .calculate({ $sum: '$amount' }),
+      .options({splits: 'inline'})
+      .calculate({$sum: '$amount'}),
   } satisfies Binding<'category', 'balanceCleared'>;
 }
 
-export function categoryBalanceUncleared(
-  categoryId: CategoryEntity['id'],
-  month: string,
-) {
+export function categoryBalanceUncleared(categoryId: CategoryEntity['id'], month: string) {
   return {
     name: categoryParametrizedField('balanceUncleared')(categoryId),
     query: q('transactions')
       .filter({
         category: categoryId,
-        date: { $transform: '$month', $eq: month },
+        date: {$transform: '$month', $eq: month},
         cleared: false,
       })
-      .options({ splits: 'inline' })
-      .calculate({ $sum: '$amount' }),
+      .options({splits: 'inline'})
+      .calculate({$sum: '$amount'}),
   } satisfies Binding<'category', 'balanceUncleared'>;
 }
 
 export function uncategorizedBalance<SheetName extends SheetNames>() {
   return {
     name: 'uncategorized-balance',
-    query: uncategorizedTransactions().calculate({ $sum: '$amount' }),
+    query: uncategorizedTransactions().calculate({$sum: '$amount'}),
   } satisfies Binding<SheetName, 'uncategorized-balance'>;
 }
 
 export function uncategorizedCount<SheetName extends SheetNames>() {
   return {
     name: 'uncategorized-amount',
-    query: uncategorizedTransactions().calculate({ $count: '$id' }),
+    query: uncategorizedTransactions().calculate({$count: '$id'}),
   } satisfies Binding<SheetName, 'uncategorized-amount'>;
 }
 

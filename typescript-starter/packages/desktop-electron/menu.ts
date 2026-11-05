@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { app, Menu } from 'electron';
-import type { BrowserWindow, MenuItemConstructorOptions } from 'electron';
+import {app, Menu} from 'electron';
+import type {BrowserWindow, MenuItemConstructorOptions} from 'electron';
 
 export function getMenu() {
   const template: MenuItemConstructorOptions[] = [
@@ -48,8 +48,7 @@ export function getMenu() {
         },
         {
           label: 'Toggle Developer Tools',
-          accelerator:
-            process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
+          accelerator: process.platform === 'darwin' ? 'Alt+Command+I' : 'Ctrl+Shift+I',
           click(_item, focusedWindow) {
             if (focusedWindow) {
               const browserWindow = focusedWindow as BrowserWindow;

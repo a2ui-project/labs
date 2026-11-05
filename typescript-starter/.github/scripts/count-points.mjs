@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { Octokit } from '@octokit/rest';
-import { minimatch } from 'minimatch';
+import {Octokit} from '@octokit/rest';
+import {minimatch} from 'minimatch';
 import pLimit from 'p-limit';
 
 const limit = pLimit(50);
@@ -25,24 +25,24 @@ const CONFIG = {
   POINTS_PER_ISSUE_CLOSING_ACTION: 1,
   POINTS_PER_RELEASE_PR: 4, // Awarded to whoever merges the release PR
   PR_CONTRIBUTION_POINTS: [
-    { categories: ['Features'], points: 2 },
-    { categories: ['Enhancements'], points: 2 },
-    { categories: ['Bugfixes', 'Bugfix'], points: 3 },
-    { categories: ['Maintenance'], points: 2 },
-    { categories: ['Unknown'], points: 2 },
+    {categories: ['Features'], points: 2},
+    {categories: ['Enhancements'], points: 2},
+    {categories: ['Bugfixes', 'Bugfix'], points: 3},
+    {categories: ['Maintenance'], points: 2},
+    {categories: ['Unknown'], points: 2},
   ],
   // Point tiers for code changes (non-docs)
   CODE_PR_REVIEW_POINT_TIERS: [
-    { minChanges: 500, points: 8 },
-    { minChanges: 100, points: 6 },
-    { minChanges: 10, points: 2 },
-    { minChanges: 0, points: 1 },
+    {minChanges: 500, points: 8},
+    {minChanges: 100, points: 6},
+    {minChanges: 10, points: 2},
+    {minChanges: 0, points: 1},
   ],
   // Point tiers for docs changes (packages/docs/**)
   DOCS_PR_REVIEW_POINT_TIERS: [
-    { minChanges: 2000, points: 6 },
-    { minChanges: 200, points: 4 },
-    { minChanges: 0, points: 2 },
+    {minChanges: 2000, points: 6},
+    {minChanges: 200, points: 4},
+    {minChanges: 0, points: 2},
   ],
   EXCLUDED_FILES: [
     'yarn.lock',
@@ -85,15 +85,10 @@ function parseReleaseNotesCategory(content) {
  * @param {string|null} releaseNoteBlobSha - The blob SHA of the release notes file, or null if not found.
  * @returns {Promise<Object>} Object with category and points.
  */
-async function getPRCategoryAndPoints(
-  octokit,
-  owner,
-  repo,
-  releaseNoteBlobSha,
-) {
+async function getPRCategoryAndPoints(octokit, owner, repo, releaseNoteBlobSha) {
   try {
     if (releaseNoteBlobSha) {
-      const { data: blob } = await octokit.git.getBlob({
+      const {data: blob} = await octokit.git.getBlob({
         owner,
         repo,
         file_sha: releaseNoteBlobSha,
@@ -101,9 +96,7 @@ async function getPRCategoryAndPoints(
 
       const content = Buffer.from(blob.content, 'base64').toString('utf-8');
       const category = parseReleaseNotesCategory(content);
-      const tier = CONFIG.PR_CONTRIBUTION_POINTS.find(e =>
-        e.categories.includes(category),
-      );
+      const tier = CONFIG.PR_CONTRIBUTION_POINTS.find(e => e.categories.includes(category));
 
       if (tier) {
         return {
@@ -116,9 +109,7 @@ async function getPRCategoryAndPoints(
     // Do nothing
   }
 
-  const unknownTier = CONFIG.PR_CONTRIBUTION_POINTS.find(e =>
-    e.categories.includes('Unknown'),
-  );
+  const unknownTier = CONFIG.PR_CONTRIBUTION_POINTS.find(e => e.categories.includes('Unknown'));
   return {
     category: 'Unknown',
     points: unknownTier.points,
@@ -142,18 +133,10 @@ function getLastMonthDates() {
 
   // Calculate the end of the month for the since date in UTC
   const until = new Date(
-    Date.UTC(
-      since.getUTCFullYear(),
-      since.getUTCMonth() + 1,
-      0,
-      23,
-      59,
-      59,
-      999,
-    ),
+    Date.UTC(since.getUTCFullYear(), since.getUTCMonth() + 1, 0, 23, 59, 59, 999),
   );
 
-  return { since, until };
+  return {since, until};
 }
 
 /**
@@ -168,10 +151,10 @@ async function countContributorPoints() {
   const owner = 'actualbudget';
   const repo = 'actual';
 
-  const { since, until } = getLastMonthDates();
+  const {since, until} = getLastMonthDates();
 
   // Get organization members
-  const { data: orgMembers } = await octokit.orgs.listMembers({
+  const {data: orgMembers} = await octokit.orgs.listMembers({
     org: owner,
   });
   const orgMemberLogins = new Set(orgMembers.map(member => member.login));
@@ -227,7 +210,7 @@ async function countContributorPoints() {
     recentPRs.map(pr =>
       limit(async () => {
         const [reviews, modifiedFiles] = await Promise.all([
-          octokit.pulls.listReviews({ owner, repo, pull_number: pr.number }),
+          octokit.pulls.listReviews({owner, repo, pull_number: pr.number}),
           octokit.paginate(
             octokit.pulls.listFiles,
             {
@@ -242,25 +225,15 @@ async function countContributorPoints() {
 
         const filteredFiles = modifiedFiles.filter(
           file =>
-            !CONFIG.EXCLUDED_FILES.some(pattern =>
-              minimatch(file.filename, pattern, { dot: true }),
-            ),
+            !CONFIG.EXCLUDED_FILES.some(pattern => minimatch(file.filename, pattern, {dot: true})),
         );
 
         const isDocsFile = file => {
-          const positivePatterns = CONFIG.DOCS_FILES_PATTERNS.filter(
-            p => !p.startsWith('!'),
-          );
-          const negativePatterns = CONFIG.DOCS_FILES_PATTERNS.filter(p =>
-            p.startsWith('!'),
-          );
+          const positivePatterns = CONFIG.DOCS_FILES_PATTERNS.filter(p => !p.startsWith('!'));
+          const negativePatterns = CONFIG.DOCS_FILES_PATTERNS.filter(p => p.startsWith('!'));
           return (
-            positivePatterns.some(p =>
-              minimatch(file.filename, p, { dot: true }),
-            ) &&
-            negativePatterns.every(p =>
-              minimatch(file.filename, p, { dot: true }),
-            )
+            positivePatterns.some(p => minimatch(file.filename, p, {dot: true})) &&
+            negativePatterns.every(p => minimatch(file.filename, p, {dot: true}))
           );
         };
 
@@ -278,22 +251,20 @@ async function countContributorPoints() {
 
         const docsPoints =
           docsChanges > 0
-            ? (CONFIG.DOCS_PR_REVIEW_POINT_TIERS.find(
-                t => docsChanges >= t.minChanges,
-              )?.points ?? 0)
+            ? (CONFIG.DOCS_PR_REVIEW_POINT_TIERS.find(t => docsChanges >= t.minChanges)?.points ??
+              0)
             : 0;
         const codePoints =
           codeChanges > 0 || docsChanges === 0
-            ? (CONFIG.CODE_PR_REVIEW_POINT_TIERS.find(
-                t => codeChanges >= t.minChanges,
-              )?.points ?? 0)
+            ? (CONFIG.CODE_PR_REVIEW_POINT_TIERS.find(t => codeChanges >= t.minChanges)?.points ??
+              0)
             : 0;
 
         const isReleasePR = pr.title.match(/🔖.*\d+\.\d+\.\d+/);
 
         if (isReleasePR) {
           // release PRs are created by the github-actions bot so we attribute points to the merger
-          const { data: prDetails } = await octokit.pulls.get({
+          const {data: prDetails} = await octokit.pulls.get({
             owner,
             repo,
             pull_number: pr.number,
@@ -321,10 +292,7 @@ async function countContributorPoints() {
                 file =>
                   file.filename === `upcoming-release-notes/${pr.number}.md` &&
                   file.status !== 'removed',
-              ) ??
-              modifiedFiles.find(
-                file => file.status === 'added' && isReleaseNoteFile(file),
-              );
+              ) ?? modifiedFiles.find(file => file.status === 'added' && isReleaseNoteFile(file));
             const categoryAndPoints = await getPRCategoryAndPoints(
               octokit,
               owner,
@@ -391,7 +359,7 @@ async function countContributorPoints() {
   await Promise.all(
     issues.map(issue =>
       limit(async () => {
-        const { data: events } = await octokit.issues.listEventsForTimeline({
+        const {data: events} = await octokit.issues.listEventsForTimeline({
           owner,
           repo,
           issue_number: issue.number,
@@ -407,10 +375,7 @@ async function countContributorPoints() {
             );
           })
           .forEach(event => {
-            if (
-              event.event === 'unlabeled' &&
-              event.label?.name.toLowerCase() === 'needs triage'
-            ) {
+            if (event.event === 'unlabeled' && event.label?.name.toLowerCase() === 'needs triage') {
               const remover = event.actor.login;
               const userStats = stats.get(remover);
               userStats.labelRemovals.push(issue.number.toString());
@@ -470,16 +435,13 @@ async function countContributorPoints() {
   printStats(
     '"Needs Triage" Label Removal Statistics',
     stats => stats.labelRemovals.length * CONFIG.POINTS_PER_ISSUE_TRIAGE_ACTION,
-    (user, count) =>
-      `${user}: ${count} (Issues: ${stats.get(user).labelRemovals.join(', ')})`,
+    (user, count) => `${user}: ${count} (Issues: ${stats.get(user).labelRemovals.join(', ')})`,
   );
 
   printStats(
     'Issue Closing Statistics',
-    stats =>
-      stats.issueClosings.length * CONFIG.POINTS_PER_ISSUE_CLOSING_ACTION,
-    (user, count) =>
-      `${user}: ${count} (Issues: ${stats.get(user).issueClosings.join(', ')})`,
+    stats => stats.issueClosings.length * CONFIG.POINTS_PER_ISSUE_CLOSING_ACTION,
+    (user, count) => `${user}: ${count} (Issues: ${stats.get(user).issueClosings.join(', ')})`,
   );
 
   // Print points summary
@@ -498,10 +460,7 @@ async function countContributorPoints() {
 
   // Return the points
   return new Map(
-    Array.from(stats.entries()).map(([login, userStats]) => [
-      login,
-      userStats.points,
-    ]),
+    Array.from(stats.entries()).map(([login, userStats]) => [login, userStats.points]),
   );
 }
 

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { admonitionsToBlockquotes, parseAdmonitionMarker } from './admonitions';
+import {admonitionsToBlockquotes, parseAdmonitionMarker} from './admonitions';
 
 describe('admonitionsToBlockquotes', () => {
   it('turns admonitions into marked blockquotes and leaves other text alone', () => {

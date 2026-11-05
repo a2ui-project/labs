@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { Tree } from 'react-aria-components';
-import type { Key } from 'react-aria-components';
+import {Tree} from 'react-aria-components';
+import type {Key} from 'react-aria-components';
 
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import { AccountGroupHeader } from './AccountGroupHeader';
-import { AccountRow } from './AccountRow';
-import { treeKeys } from './treeKeys';
-import { useAccountTreeDragAndDrop } from './useAccountTreeDragAndDrop';
-import type { AccountTreeSide } from './useAccountTreeDragAndDrop';
-import type { GroupBucket } from './useSidebarAccountTree';
+import {AccountGroupHeader} from './AccountGroupHeader';
+import {AccountRow} from './AccountRow';
+import {treeKeys} from './treeKeys';
+import {useAccountTreeDragAndDrop} from './useAccountTreeDragAndDrop';
+import type {AccountTreeSide} from './useAccountTreeDragAndDrop';
+import type {GroupBucket} from './useSidebarAccountTree';
 
 type AccountTreeProps = {
   label: string;
@@ -45,8 +45,11 @@ export function AccountTree({
   isBucketOpen,
   onToggleBucket,
 }: AccountTreeProps) {
-  const { dragAndDropHooks, isGroupDropZoneActive, isDraggingGroup } =
-    useAccountTreeDragAndDrop({ side, buckets, isDisabled: isDragDisabled });
+  const {dragAndDropHooks, isGroupDropZoneActive, isDraggingGroup} = useAccountTreeDragAndDrop({
+    side,
+    buckets,
+    isDisabled: isDragDisabled,
+  });
 
   const groupBuckets = buckets.filter(bucket => bucket.group != null);
   const expandedKeys = new Set<Key>(
@@ -71,7 +74,7 @@ export function AccountTree({
       expandedKeys={expandedKeys}
       onExpandedChange={onExpandedChange}
       dragAndDropHooks={dragAndDropHooks}
-      className={css({ outline: 'none' })}
+      className={css({outline: 'none'})}
     >
       {buckets.map(bucket =>
         bucket.group == null ? (

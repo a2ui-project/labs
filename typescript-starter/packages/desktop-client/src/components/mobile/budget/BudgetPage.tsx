@@ -15,39 +15,30 @@
  */
 
 // @ts-strict-ignore
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { GridList, GridListItem } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {GridList, GridListItem} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Card } from '@actual-app/components/card';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { SvgLogo } from '@actual-app/components/icons/logo';
+import {Button} from '@actual-app/components/button';
+import {Card} from '@actual-app/components/card';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {SvgLogo} from '@actual-app/components/icons/logo';
 import {
   SvgArrowThinLeft,
   SvgArrowThinRight,
   SvgCheveronRight,
 } from '@actual-app/components/icons/v1';
-import {
-  SvgArrowButtonDown1,
-  SvgCalendar,
-} from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {SvgArrowButtonDown1, SvgCalendar} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { groupById } from '@actual-app/core/shared/util';
-import type { TransObjectLiteral } from '@actual-app/core/types/util';
+import {groupById} from '@actual-app/core/shared/util';
+import type {TransObjectLiteral} from '@actual-app/core/types/util';
 
-import { sync } from '#app/appSlice';
+import {sync} from '#app/appSlice';
 import {
   useBudgetActions,
   useCreateCategoryGroupMutation,
@@ -58,40 +49,40 @@ import {
   useSaveCategoryMutation,
   useSortCategoriesMutation,
 } from '#budget';
-import { closeBudget } from '#budgetfiles/budgetfilesSlice';
-import { prewarmMonth } from '#components/budget/util';
-import { FinancialText } from '#components/FinancialText';
-import { MobilePageHeader, Page } from '#components/Page';
-import { SyncRefresh } from '#components/SyncRefresh';
-import { useCategories } from '#hooks/useCategories';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { useLocalPref } from '#hooks/useLocalPref';
-import { useNavigate } from '#hooks/useNavigate';
-import { useOverspentCategories } from '#hooks/useOverspentCategories';
-import { SheetNameProvider } from '#hooks/useSheetName';
-import { useSheetValue } from '#hooks/useSheetValue';
-import { useSpreadsheet } from '#hooks/useSpreadsheet';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { useTransactions } from '#hooks/useTransactions';
-import { useUndo } from '#hooks/useUndo';
-import { collapseModals, pushModal } from '#modals/modalsSlice';
-import { uncategorizedTransactions } from '#queries';
-import { useDispatch } from '#redux';
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {closeBudget} from '#budgetfiles/budgetfilesSlice';
+import {prewarmMonth} from '#components/budget/util';
+import {FinancialText} from '#components/FinancialText';
+import {MobilePageHeader, Page} from '#components/Page';
+import {SyncRefresh} from '#components/SyncRefresh';
+import {useCategories} from '#hooks/useCategories';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {useLocalPref} from '#hooks/useLocalPref';
+import {useNavigate} from '#hooks/useNavigate';
+import {useOverspentCategories} from '#hooks/useOverspentCategories';
+import {SheetNameProvider} from '#hooks/useSheetName';
+import {useSheetValue} from '#hooks/useSheetValue';
+import {useSpreadsheet} from '#hooks/useSpreadsheet';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {useTransactions} from '#hooks/useTransactions';
+import {useUndo} from '#hooks/useUndo';
+import {collapseModals, pushModal} from '#modals/modalsSlice';
+import {uncategorizedTransactions} from '#queries';
+import {useDispatch} from '#redux';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
-import { BudgetTable, PILL_STYLE } from './BudgetTable';
+import {BudgetTable, PILL_STYLE} from './BudgetTable';
 
 function isBudgetType(input?: string): input is 'envelope' | 'tracking' {
   return ['envelope', 'tracking'].includes(input);
 }
 
 export function BudgetPage() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const locale = useLocale();
   const {
-    data: { list: categories, grouped: categoryGroups } = {
+    data: {list: categories, grouped: categoryGroups} = {
       list: [],
       grouped: [],
     },
@@ -103,8 +94,7 @@ export function BudgetPage() {
   const spreadsheet = useSpreadsheet();
 
   const currMonth = monthUtils.currentMonth();
-  const [startMonth = currMonth, setStartMonthPref] =
-    useLocalPref('budget.startMonth');
+  const [startMonth = currMonth, setStartMonthPref] = useLocalPref('budget.startMonth');
   const [monthBounds, setMonthBounds] = useState({
     start: startMonth,
     end: startMonth,
@@ -126,8 +116,8 @@ export function BudgetPage() {
 
   useEffect(() => {
     async function init() {
-      const { start, end } = await send('get-budget-bounds');
-      setMonthBounds({ start, end });
+      const {start, end} = await send('get-budget-bounds');
+      setMonthBounds({start, end});
 
       await prewarmMonth(budgetType, spreadsheet, startMonth);
 
@@ -139,7 +129,7 @@ export function BudgetPage() {
 
   const onBudgetAction = useCallback(
     async (month, type, args) => {
-      applyBudgetAction.mutate({ month, type, args });
+      applyBudgetAction.mutate({month, type, args});
     },
     [applyBudgetAction],
   );
@@ -180,12 +170,10 @@ export function BudgetPage() {
             onValidate: name => (!name ? 'Name is required.' : null),
             onSubmit: async name => {
               createCategoryGroup.mutate(
-                { name },
+                {name},
                 {
                   onSettled: () => {
-                    dispatch(
-                      collapseModals({ rootModalName: 'budget-page-menu' }),
-                    );
+                    dispatch(collapseModals({rootModalName: 'budget-page-menu'}));
                   },
                 },
               );
@@ -233,7 +221,7 @@ export function BudgetPage() {
 
   const onSaveGroup = useCallback(
     group => {
-      saveCategoryGroup.mutate({ group });
+      saveCategoryGroup.mutate({group});
     },
     [saveCategoryGroup],
   );
@@ -253,8 +241,8 @@ export function BudgetPage() {
 
   const onDeleteGroup = useCallback(
     groupId => {
-      dispatch(collapseModals({ rootModalName: 'category-group-menu' }));
-      deleteCategoryGroup.mutate({ id: groupId });
+      dispatch(collapseModals({rootModalName: 'category-group-menu'}));
+      deleteCategoryGroup.mutate({id: groupId});
     },
     [deleteCategoryGroup, dispatch],
   );
@@ -266,22 +254,22 @@ export function BudgetPage() {
         ...group,
         hidden: group.hidden ? false : true,
       });
-      dispatch(collapseModals({ rootModalName: 'category-group-menu' }));
+      dispatch(collapseModals({rootModalName: 'category-group-menu'}));
     },
     [categoryGroups, dispatch, onSaveGroup],
   );
 
   const onSaveCategory = useCallback(
     category => {
-      saveCategory.mutate({ category });
+      saveCategory.mutate({category});
     },
     [saveCategory],
   );
 
   const onDeleteCategory = useCallback(
     categoryId => {
-      dispatch(collapseModals({ rootModalName: 'category-menu' }));
-      deleteCategory.mutate({ id: categoryId });
+      dispatch(collapseModals({rootModalName: 'category-menu'}));
+      deleteCategory.mutate({id: categoryId});
     },
     [deleteCategory, dispatch],
   );
@@ -293,7 +281,7 @@ export function BudgetPage() {
         ...category,
         hidden: category.hidden ? false : true,
       });
-      dispatch(collapseModals({ rootModalName: 'category-menu' }));
+      dispatch(collapseModals({rootModalName: 'category-menu'}));
     },
     [categories, dispatch, onSaveCategory],
   );
@@ -358,7 +346,7 @@ export function BudgetPage() {
   // };
 
   const onSaveNotes = useCallback(async (id, notes) => {
-    await send('notes-save', { id, note: notes });
+    await send('notes-save', {id, note: notes});
   }, []);
 
   const onOpenCategoryGroupNotesModal = useCallback(
@@ -415,7 +403,7 @@ export function BudgetPage() {
               onToggleVisibility: onToggleGroupVisibility,
               onApplyBudgetTemplatesInGroup,
               onSortCategories: (groupId, direction) => {
-                sortCategories.mutate({ groupId, direction });
+                sortCategories.mutate({groupId, direction});
               },
             },
           },
@@ -454,12 +442,12 @@ export function BudgetPage() {
               onToggleVisibility: onToggleCategoryVisibility,
               ...(canEditAutomations && {
                 onEditAutomations: (categoryId: string) => {
-                  dispatch(collapseModals({ rootModalName: 'category-menu' }));
+                  dispatch(collapseModals({rootModalName: 'category-menu'}));
                   dispatch(
                     pushModal({
                       modal: {
                         name: 'category-automations-edit',
-                        options: { categoryId, month: startMonth },
+                        options: {categoryId, month: startMonth},
                       },
                     }),
                   );
@@ -490,7 +478,7 @@ export function BudgetPage() {
 
   const onToggleHiddenCategories = useCallback(() => {
     setShowHiddenCategoriesPref(!showHiddenCategories);
-    dispatch(collapseModals({ rootModalName: 'budget-page-menu' }));
+    dispatch(collapseModals({rootModalName: 'budget-page-menu'}));
   }, [dispatch, setShowHiddenCategoriesPref, showHiddenCategories]);
 
   const onOpenBudgetMonthNotesModal = useCallback(
@@ -546,12 +534,7 @@ export function BudgetPage() {
         },
       }),
     );
-  }, [
-    dispatch,
-    onOpenNewCategoryGroupModal,
-    onSwitchBudgetFile,
-    onToggleHiddenCategories,
-  ]);
+  }, [dispatch, onOpenNewCategoryGroupModal, onSwitchBudgetFile, onToggleHiddenCategories]);
 
   if (!categoryGroups || !initialized) {
     return (
@@ -586,17 +569,13 @@ export function BudgetPage() {
           leftContent={
             <Button
               variant="bare"
-              style={{ margin: 10 }}
+              style={{margin: 10}}
               onPress={onOpenBudgetPageMenu}
               aria-label={t('Budget page menu')}
             >
-              <SvgLogo
-                style={{ color: theme.mobileHeaderText }}
-                width="20"
-                height="20"
-              />
+              <SvgLogo style={{color: theme.mobileHeaderText}} width="20" height="20" />
               <SvgCheveronRight
-                style={{ flexShrink: 0, color: theme.mobileHeaderTextSubdued }}
+                style={{flexShrink: 0, color: theme.mobileHeaderTextSubdued}}
                 width="14"
                 height="14"
               />
@@ -608,7 +587,7 @@ export function BudgetPage() {
                 variant="bare"
                 onPress={onCurrentMonth}
                 aria-label={t('Today')}
-                style={{ margin: 10 }}
+                style={{margin: 10}}
               >
                 <SvgCalendar width={20} height={20} />
               </Button>
@@ -623,7 +602,7 @@ export function BudgetPage() {
             void dispatch(sync());
           }}
         >
-          {({ onRefresh }) => (
+          {({onRefresh}) => (
             <>
               <Banners month={startMonth} onBudgetAction={onBudgetAction} />
               <BudgetTable
@@ -646,21 +625,14 @@ export function BudgetPage() {
   );
 }
 
-function Banners({ month, onBudgetAction }) {
-  const { t } = useTranslation();
+function Banners({month, onBudgetAction}) {
+  const {t} = useTranslation();
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
 
   return (
-    <GridList
-      aria-label={t('Banners')}
-      style={{ backgroundColor: theme.mobilePageBackground }}
-    >
+    <GridList aria-label={t('Banners')} style={{backgroundColor: theme.mobilePageBackground}}>
       <UncategorizedTransactionsBanner />
-      <OverspendingBanner
-        month={month}
-        onBudgetAction={onBudgetAction}
-        budgetType={budgetType}
-      />
+      <OverspendingBanner month={month} onBudgetAction={onBudgetAction} budgetType={budgetType} />
       {budgetType === 'envelope' && (
         <OverbudgetedBanner month={month} onBudgetAction={onBudgetAction} />
       )}
@@ -668,7 +640,7 @@ function Banners({ month, onBudgetAction }) {
   );
 }
 
-function Banner({ type = 'info', children }) {
+function Banner({type = 'info', children}) {
   return (
     <Card
       style={{
@@ -694,12 +666,9 @@ function UncategorizedTransactionsBanner(props) {
   const navigate = useNavigate();
   const format = useFormat();
 
-  const transactionsQuery = useMemo(
-    () => uncategorizedTransactions().select('*'),
-    [],
-  );
+  const transactionsQuery = useMemo(() => uncategorizedTransactions().select('*'), []);
 
-  const { transactions, isPending: isTransactionsLoading } = useTransactions({
+  const {transactions, isPending: isTransactionsLoading} = useTransactions({
     query: transactionsQuery,
     options: {
       pageSize: 1000,
@@ -710,10 +679,7 @@ function UncategorizedTransactionsBanner(props) {
     return null;
   }
 
-  const totalUncategorizedAmount = transactions.reduce(
-    (sum, t) => sum + (t.amount ?? 0),
-    0,
-  );
+  const totalUncategorizedAmount = transactions.reduce((sum, t) => sum + (t.amount ?? 0), 0);
 
   return (
     <GridListItem textValue="Uncategorized transactions banner" {...props}>
@@ -728,8 +694,7 @@ function UncategorizedTransactionsBanner(props) {
         >
           <Text>
             <Trans count={transactions.length}>
-              You have {{ count: transactions.length }} uncategorized
-              transactions (
+              You have {{count: transactions.length}} uncategorized transactions (
               <FinancialText>
                 {
                   {
@@ -740,10 +705,7 @@ function UncategorizedTransactionsBanner(props) {
               )
             </Trans>
           </Text>
-          <Button
-            onPress={() => navigate('/categories/uncategorized')}
-            style={PILL_STYLE}
-          >
+          <Button onPress={() => navigate('/categories/uncategorized')} style={PILL_STYLE}>
             <Text>
               <Trans>Categorize</Trans>
             </Text>
@@ -754,16 +716,15 @@ function UncategorizedTransactionsBanner(props) {
   );
 }
 
-function OverbudgetedBanner({ month, onBudgetAction, ...props }) {
-  const { t } = useTranslation();
+function OverbudgetedBanner({month, onBudgetAction, ...props}) {
+  const {t} = useTranslation();
   const format = useFormat();
-  const toBudgetAmount = useSheetValue<
-    'envelope-budget',
-    typeof envelopeBudget.toBudget
-  >(envelopeBudget.toBudget);
+  const toBudgetAmount = useSheetValue<'envelope-budget', typeof envelopeBudget.toBudget>(
+    envelopeBudget.toBudget,
+  );
   const dispatch = useDispatch();
-  const { showUndoNotification } = useUndo();
-  const { data: { list: categories } = { list: [] } } = useCategories();
+  const {showUndoNotification} = useUndo();
+  const {data: {list: categories} = {list: []}} = useCategories();
   const categoriesById = useMemo(() => groupById(categories), [categories]);
 
   const openCoverOverbudgetedModal = useCallback(() => {
@@ -825,7 +786,7 @@ function OverbudgetedBanner({ month, onBudgetAction, ...props }) {
                 gap: 10,
               }}
             >
-              <SvgArrowButtonDown1 style={{ width: 15, height: 15 }} />
+              <SvgArrowButtonDown1 style={{width: 15, height: 15}} />
               <Text>
                 <Trans>You have budgeted more than your available funds</Trans>
               </Text>
@@ -840,11 +801,11 @@ function OverbudgetedBanner({ month, onBudgetAction, ...props }) {
   );
 }
 
-function OverspendingBanner({ month, onBudgetAction, budgetType, ...props }) {
-  const { t } = useTranslation();
+function OverspendingBanner({month, onBudgetAction, budgetType, ...props}) {
+  const {t} = useTranslation();
 
   const {
-    data: { list: categories, grouped: categoryGroups } = {
+    data: {list: categories, grouped: categoryGroups} = {
       list: [],
       grouped: [],
     },
@@ -858,7 +819,7 @@ function OverspendingBanner({ month, onBudgetAction, budgetType, ...props }) {
     categories: overspentCategories,
     amountsByCategory,
     totalAmount: totalOverspending,
-  } = useOverspentCategories({ month });
+  } = useOverspentCategories({month});
 
   const amountsByCategoryRef = useRef(amountsByCategory);
   amountsByCategoryRef.current = amountsByCategory;
@@ -874,7 +835,7 @@ function OverspendingBanner({ month, onBudgetAction, budgetType, ...props }) {
     [categoryGroups, overspentCategories],
   );
 
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
 
   const onOpenCoverCategoryModal = useCallback(
     categoryId => {
@@ -896,16 +857,13 @@ function OverspendingBanner({ month, onBudgetAction, budgetType, ...props }) {
                   currencyCode: format.currency.code,
                 });
                 showUndoNotification({
-                  message: t(
-                    `Covered {{toCategoryName}} overspending from {{fromCategoryName}}.`,
-                    {
-                      toCategoryName: category.name,
-                      fromCategoryName:
-                        fromCategoryId === 'to-budget'
-                          ? t('To Budget')
-                          : categoriesById[fromCategoryId].name,
-                    },
-                  ),
+                  message: t(`Covered {{toCategoryName}} overspending from {{fromCategoryName}}.`, {
+                    toCategoryName: category.name,
+                    fromCategoryName:
+                      fromCategoryId === 'to-budget'
+                        ? t('To Budget')
+                        : categoriesById[fromCategoryId].name,
+                  }),
                 });
               },
             },
@@ -930,29 +888,18 @@ function OverspendingBanner({ month, onBudgetAction, budgetType, ...props }) {
         modal: {
           name: 'category-autocomplete',
           options: {
-            title:
-              budgetType === 'envelope'
-                ? t('Cover overspending')
-                : t('Overspent categories'),
+            title: budgetType === 'envelope' ? t('Cover overspending') : t('Overspent categories'),
             month,
             categoryGroups: categoryGroupsToShow,
             showHiddenCategories: true,
-            onSelect:
-              budgetType === 'envelope' ? onOpenCoverCategoryModal : null,
+            onSelect: budgetType === 'envelope' ? onOpenCoverCategoryModal : null,
             clearOnSelect: true,
             closeOnSelect: false,
           },
         },
       }),
     );
-  }, [
-    categoryGroupsToShow,
-    dispatch,
-    month,
-    onOpenCoverCategoryModal,
-    t,
-    budgetType,
-  ]);
+  }, [categoryGroupsToShow, dispatch, month, onOpenCoverCategoryModal, t, budgetType]);
 
   const numberOfOverspentCategories = overspentCategories.length;
   if (numberOfOverspentCategories === 0) {
@@ -971,8 +918,7 @@ function OverspendingBanner({ month, onBudgetAction, budgetType, ...props }) {
         >
           <Text>
             <Trans count={numberOfOverspentCategories}>
-              You have {{ count: numberOfOverspentCategories }} overspent
-              categories (
+              You have {{count: numberOfOverspentCategories}} overspent categories (
               <FinancialText>
                 {
                   {
@@ -993,15 +939,9 @@ function OverspendingBanner({ month, onBudgetAction, budgetType, ...props }) {
   );
 }
 
-function MonthSelector({
-  month,
-  monthBounds,
-  onOpenMonthMenu,
-  onPrevMonth,
-  onNextMonth,
-}) {
+function MonthSelector({month, monthBounds, onOpenMonthMenu, onPrevMonth, onNextMonth}) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const prevEnabled = month > monthBounds.start;
   const nextEnabled = month < monthUtils.subMonths(monthBounds.end, 1);
 
@@ -1024,7 +964,7 @@ function MonthSelector({
         variant="bare"
         isDisabled={!prevEnabled}
         onPress={onPrevMonth}
-        style={{ ...arrowButtonStyle, opacity: prevEnabled ? 1 : 0.6 }}
+        style={{...arrowButtonStyle, opacity: prevEnabled ? 1 : 0.6}}
       >
         <SvgArrowThinLeft width="15" height="15" />
       </Button>
@@ -1040,16 +980,14 @@ function MonthSelector({
         }}
         data-month={month}
       >
-        <Text style={styles.underlinedText}>
-          {monthUtils.format(month, "MMMM ''yy", locale)}
-        </Text>
+        <Text style={styles.underlinedText}>{monthUtils.format(month, "MMMM ''yy", locale)}</Text>
       </Button>
       <Button
         aria-label={t('Next month')}
         variant="bare"
         isDisabled={!nextEnabled}
         onPress={onNextMonth}
-        style={{ ...arrowButtonStyle, opacity: nextEnabled ? 1 : 0.6 }}
+        style={{...arrowButtonStyle, opacity: nextEnabled ? 1 : 0.6}}
       >
         <SvgArrowThinRight width="15" height="15" />
       </Button>

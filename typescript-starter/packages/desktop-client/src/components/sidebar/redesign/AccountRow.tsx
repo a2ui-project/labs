@@ -14,36 +14,36 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
-import { TreeItem, TreeItemContent } from 'react-aria-components';
-import { useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router';
+import {useState} from 'react';
+import {TreeItem, TreeItemContent} from 'react-aria-components';
+import {useTranslation} from 'react-i18next';
+import {useLocation} from 'react-router';
 
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { Input } from '@actual-app/components/input';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { radius, spacing } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {Input} from '@actual-app/components/input';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {radius, spacing} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import {css} from '@emotion/css';
 
-import { useReopenAccountMutation, useUpdateAccountMutation } from '#accounts';
-import { isAccountFailedSync } from '#accounts/syncStatus';
-import { useContextMenu } from '#hooks/useContextMenu';
-import { useUpdatedAccounts } from '#hooks/useUpdatedAccounts';
-import { openAccountCloseModal, pushModal } from '#modals/modalsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {useReopenAccountMutation, useUpdateAccountMutation} from '#accounts';
+import {isAccountFailedSync} from '#accounts/syncStatus';
+import {useContextMenu} from '#hooks/useContextMenu';
+import {useUpdatedAccounts} from '#hooks/useUpdatedAccounts';
+import {openAccountCloseModal, pushModal} from '#modals/modalsSlice';
+import {useDispatch, useSelector} from '#redux';
 import * as bindings from '#spreadsheet/bindings';
-import { isTouchDevice } from '#util/isTouchDevice';
+import {isTouchDevice} from '#util/isTouchDevice';
 
-import { AccountHoverCard } from './AccountHoverCard';
-import { DragHandle } from './DragHandle';
-import { SidebarBalance } from './SidebarBalance';
-import { SyncDot, useSyncDotLabel } from './SyncDot';
-import type { SyncDotStatus } from './SyncDot';
-import { treeKeys } from './treeKeys';
+import {AccountHoverCard} from './AccountHoverCard';
+import {DragHandle} from './DragHandle';
+import {SidebarBalance} from './SidebarBalance';
+import {SyncDot, useSyncDotLabel} from './SyncDot';
+import type {SyncDotStatus} from './SyncDot';
+import {treeKeys} from './treeKeys';
 
 type AccountRowProps = {
   account: AccountEntity;
@@ -51,12 +51,8 @@ type AccountRowProps = {
   showSyncDot?: boolean;
 };
 
-export function AccountRow({
-  account,
-  isClosed,
-  showSyncDot,
-}: AccountRowProps) {
-  const { t } = useTranslation();
+export function AccountRow({account, isClosed, showSyncDot}: AccountRowProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const location = useLocation();
   const syncingAccountIds = useSelector(state => state.account.accountsSyncing);
@@ -71,13 +67,12 @@ export function AccountRow({
 
   const isContextMenuOpen = useSelector(state =>
     state.contextMenu.items.some(
-      i =>
-        typeof i === 'object' && 'name' in i && i.name.startsWith('account-'),
+      i => typeof i === 'object' && 'name' in i && i.name.startsWith('account-'),
     ),
   );
   const [rowElement, setRowElement] = useState<HTMLDivElement | null>(null);
   useContextMenu({
-    triggerRef: { current: rowElement },
+    triggerRef: {current: rowElement},
     enabled: !isTouchDevice(),
     items: [
       {
@@ -89,13 +84,12 @@ export function AccountRow({
         ? {
             name: 'account-reopen',
             text: t('Reopen'),
-            onClick: () => reopenAccount.mutate({ id: account.id }),
+            onClick: () => reopenAccount.mutate({id: account.id}),
           }
         : {
             name: 'account-close',
             text: t('Close'),
-            onClick: () =>
-              dispatch(openAccountCloseModal({ accountId: account.id })),
+            onClick: () => dispatch(openAccountCloseModal({accountId: account.id})),
           },
       {
         name: 'account-group',
@@ -105,7 +99,7 @@ export function AccountRow({
             pushModal({
               modal: {
                 name: 'account-groups',
-                options: { accountId: account.id },
+                options: {accountId: account.id},
               },
             }),
           ),
@@ -155,15 +149,12 @@ export function AccountRow({
             ? theme.sidebarItemBackgroundSelected
             : theme.sidebarItemBackgroundHover,
         },
-        '&[data-dragging]': { opacity: 0.5 },
+        '&[data-dragging]': {opacity: 0.5},
       })}
     >
       <TreeItemContent>
-        {({ level }) => (
-          <AccountHoverCard
-            account={account}
-            isDisabled={isContextMenuOpen || isEditing}
-          >
+        {({level}) => (
+          <AccountHoverCard account={account} isDisabled={isContextMenuOpen || isEditing}>
             <View
               style={{
                 flexDirection: 'row',
@@ -189,13 +180,13 @@ export function AccountRow({
                 <InitialFocus>
                   <Input
                     aria-label={t('Account name')}
-                    style={{ flex: 1, padding: 0, fontSize: 13 }}
+                    style={{flex: 1, padding: 0, fontSize: 13}}
                     defaultValue={account.name}
                     onKeyDown={e => e.stopPropagation()}
                     onEnter={newAccountName => {
                       if (newAccountName.trim() !== '') {
                         updateAccount.mutate({
-                          account: { id: account.id, name: newAccountName },
+                          account: {id: account.id, name: newAccountName},
                         });
                       }
                       setIsEditing(false);
@@ -205,9 +196,7 @@ export function AccountRow({
                   />
                 </InitialFocus>
               ) : (
-                <Text style={{ flex: 1, ...styles.ellipsisText }}>
-                  {account.name}
-                </Text>
+                <Text style={{flex: 1, ...styles.ellipsisText}}>{account.name}</Text>
               )}
               <Text style={styles.visuallyHidden}>{statusLabel}</Text>
               <SidebarBalance

@@ -16,15 +16,15 @@
 
 import React from 'react';
 
-import type { ScheduleEntity } from '@actual-app/core/types/models';
-import { render, screen } from '@testing-library/react';
+import type {ScheduleEntity} from '@actual-app/core/types/models';
+import {render, screen} from '@testing-library/react';
 
-import { useCachedSchedules } from '#hooks/useCachedSchedules';
-import { useSelectedItems } from '#hooks/useSelected';
-import { useSheetValue } from '#hooks/useSheetValue';
-import { TestProviders } from '#mocks';
+import {useCachedSchedules} from '#hooks/useCachedSchedules';
+import {useSelectedItems} from '#hooks/useSelected';
+import {useSheetValue} from '#hooks/useSheetValue';
+import {TestProviders} from '#mocks';
 
-import { SelectedBalance } from './Balance';
+import {SelectedBalance} from './Balance';
 
 vi.mock('#hooks/useSelected', () => ({
   useSelectedItems: vi.fn(),
@@ -38,11 +38,7 @@ vi.mock('#hooks/useCachedSchedules', () => ({
   useCachedSchedules: vi.fn(),
 }));
 
-function makeSchedule(
-  id: string,
-  amount: number,
-  accountId: string,
-): ScheduleEntity {
+function makeSchedule(id: string, amount: number, accountId: string): ScheduleEntity {
   return {
     id,
     rule: 'rule-1',
@@ -76,9 +72,7 @@ describe('SelectedBalance – normal transactions', () => {
   });
 
   test('shows balance for selected normal transactions', () => {
-    vi.mocked(useSheetValue)
-      .mockReturnValueOnce(null)
-      .mockReturnValueOnce(-5000);
+    vi.mocked(useSheetValue).mockReturnValueOnce(null).mockReturnValueOnce(-5000);
 
     render(
       <TestProviders>
@@ -112,18 +106,14 @@ describe('SelectedBalance – preview (scheduled) transactions', () => {
   test('includes the schedule amount when a preview transaction is selected', () => {
     const scheduleId = 'schedule-abc';
 
-    vi.mocked(useSelectedItems).mockReturnValue(
-      new Set([`preview/${scheduleId}/2026-03-24`]),
-    );
+    vi.mocked(useSelectedItems).mockReturnValue(new Set([`preview/${scheduleId}/2026-03-24`]));
     vi.mocked(useCachedSchedules).mockReturnValue(
       mockedSchedules([makeSchedule(scheduleId, -5000, 'account-1')]),
     );
 
     render(
       <TestProviders>
-        <SelectedBalance
-          selectedItems={new Set([`preview/${scheduleId}/2026-03-24`])}
-        />
+        <SelectedBalance selectedItems={new Set([`preview/${scheduleId}/2026-03-24`])} />
       </TestProviders>,
     );
 

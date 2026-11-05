@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
-import { queryOptions } from '@tanstack/react-query';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
+import {queryOptions} from '@tanstack/react-query';
 import i18n from 'i18next';
 
 type CategoryViews = {
@@ -62,14 +59,10 @@ function translateStartingBalances(categories: {
 function translateStartingBalancesCategories(
   categories: CategoryEntity[] | undefined,
 ): CategoryEntity[] | undefined {
-  return categories
-    ? categories.map(cat => translateStartingBalancesCategory(cat))
-    : undefined;
+  return categories ? categories.map(cat => translateStartingBalancesCategory(cat)) : undefined;
 }
 
-function translateStartingBalancesCategory(
-  category: CategoryEntity,
-): CategoryEntity {
+function translateStartingBalancesCategory(category: CategoryEntity): CategoryEntity {
   return {
     ...category,
     name:

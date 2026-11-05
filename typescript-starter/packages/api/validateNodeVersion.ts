@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { satisfies } from 'compare-versions';
+import {satisfies} from 'compare-versions';
 
 import * as packageJson from './package.json';
 

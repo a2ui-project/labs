@@ -15,15 +15,15 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
+import type {CSSProperties} from 'react';
 
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { friendlyOp, mapField } from '#util/rule';
+import {friendlyOp, mapField} from '#util/rule';
 
-import { Value } from './Value';
+import {Value} from './Value';
 
 const valueStyle = {
   color: theme.pillTextHighlighted,
@@ -64,11 +64,8 @@ export function ConditionExpression({
       }}
     >
       {prefix && <Text>{prefix} </Text>}
-      <Text style={valueStyle}>{mapField(field, options)}</Text>{' '}
-      <Text>{friendlyOp(op)}</Text>{' '}
-      {!['onbudget', 'offbudget'].includes(
-        (op as string)?.toLocaleLowerCase(),
-      ) && (
+      <Text style={valueStyle}>{mapField(field, options)}</Text> <Text>{friendlyOp(op)}</Text>{' '}
+      {!['onbudget', 'offbudget'].includes((op as string)?.toLocaleLowerCase()) && (
         <Value style={valueStyle} value={value} field={field} inline={inline} />
       )}
     </View>

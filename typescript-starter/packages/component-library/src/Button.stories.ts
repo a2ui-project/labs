@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
+import type {Meta, StoryObj} from '@storybook/react-vite';
+import {fn} from 'storybook/test';
 
-import { Button } from './Button';
+import {Button} from './Button';
 
 const meta = {
   title: 'Components/Button',
@@ -27,9 +27,9 @@ const meta = {
   },
   tags: ['autodocs'],
   argTypes: {
-    onClick: { action: 'clicked' },
+    onClick: {action: 'clicked'},
   },
-  args: { onClick: fn() },
+  args: {onClick: fn()},
 } satisfies Meta<typeof Button>;
 
 export default meta;

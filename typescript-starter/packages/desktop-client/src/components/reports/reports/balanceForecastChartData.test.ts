@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
 import {
   buildBalanceForecastChartData,
@@ -72,8 +72,8 @@ describe('buildBalanceForecastChartData', () => {
     });
 
     expect(chartData).toEqual([
-      { date: '2024-03', balance: 1500 },
-      { date: '2024-04', balance: 1600 },
+      {date: '2024-03', balance: 1500},
+      {date: '2024-04', balance: 1600},
     ]);
   });
 
@@ -110,10 +110,10 @@ describe('buildBalanceForecastChartData', () => {
       granularity: 'Daily',
     });
 
-    expect(chartData[0]).toEqual({ date: '2024-03-01', balance: 1000 });
-    expect(chartData[30]).toEqual({ date: '2024-03-31', balance: 1000 });
-    expect(chartData[31]).toEqual({ date: '2024-04-01', balance: 1200 });
-    expect(chartData.at(-1)).toEqual({ date: '2024-04-30', balance: 1200 });
+    expect(chartData[0]).toEqual({date: '2024-03-01', balance: 1000});
+    expect(chartData[30]).toEqual({date: '2024-03-31', balance: 1000});
+    expect(chartData[31]).toEqual({date: '2024-04-01', balance: 1200});
+    expect(chartData.at(-1)).toEqual({date: '2024-04-30', balance: 1200});
     expect(chartData).toHaveLength(61);
   });
 
@@ -150,8 +150,8 @@ describe('buildBalanceForecastChartData', () => {
       granularity: 'Daily',
     });
 
-    expect(chartData[0]).toEqual({ date: '2024-03-10', balance: 1000 });
-    expect(chartData.at(-1)).toEqual({ date: '2024-03-20', balance: 900 });
+    expect(chartData[0]).toEqual({date: '2024-03-10', balance: 1000});
+    expect(chartData.at(-1)).toEqual({date: '2024-03-20', balance: 900});
     expect(chartData).toHaveLength(11);
   });
 
@@ -188,8 +188,8 @@ describe('buildBalanceForecastChartData', () => {
       granularity: 'Daily',
     });
 
-    expect(chartData[0]).toEqual({ date: '2024-03-10', balance: 1000 });
-    expect(chartData.at(-1)).toEqual({ date: '2024-03-20', balance: 800 });
+    expect(chartData[0]).toEqual({date: '2024-03-10', balance: 1000});
+    expect(chartData.at(-1)).toEqual({date: '2024-03-20', balance: 800});
     expect(chartData).toHaveLength(11);
   });
 
@@ -233,8 +233,8 @@ describe('buildBalanceForecastChartData', () => {
       granularity: 'Daily',
     });
 
-    expect(chartData[0]).toEqual({ date: '2024-03-01', balance: 1350 });
-    expect(chartData.at(-1)).toEqual({ date: '2024-03-31', balance: 1350 });
+    expect(chartData[0]).toEqual({date: '2024-03-01', balance: 1350});
+    expect(chartData.at(-1)).toEqual({date: '2024-03-31', balance: 1350});
   });
 
   it('uses the latest balance in each month for monthly data', () => {
@@ -285,8 +285,8 @@ describe('buildBalanceForecastChartData', () => {
     });
 
     expect(chartData).toEqual([
-      { date: '2024-03', balance: 900 },
-      { date: '2024-04', balance: 1100 },
+      {date: '2024-03', balance: 900},
+      {date: '2024-04', balance: 1100},
     ]);
   });
 });
@@ -424,8 +424,8 @@ describe('getZeroCrossingGradientOffset', () => {
   it('returns the zero threshold offset when balances cross zero', () => {
     expect(
       getZeroCrossingGradientOffset([
-        { date: '2024-03', balance: 100 },
-        { date: '2024-04', balance: -100 },
+        {date: '2024-03', balance: 100},
+        {date: '2024-04', balance: -100},
       ]),
     ).toBe(50);
   });
@@ -433,8 +433,8 @@ describe('getZeroCrossingGradientOffset', () => {
   it('returns null when balances do not cross zero', () => {
     expect(
       getZeroCrossingGradientOffset([
-        { date: '2024-03', balance: 100 },
-        { date: '2024-04', balance: 50 },
+        {date: '2024-03', balance: 100},
+        {date: '2024-04', balance: 50},
       ]),
     ).toBeNull();
   });
@@ -444,11 +444,11 @@ describe('getLowestChartDataPoint', () => {
   it('returns the lowest visible chart point', () => {
     expect(
       getLowestChartDataPoint([
-        { date: '2024-03', balance: 100 },
-        { date: '2024-04', balance: -50 },
-        { date: '2024-05', balance: 25 },
+        {date: '2024-03', balance: 100},
+        {date: '2024-04', balance: -50},
+        {date: '2024-05', balance: 25},
       ]),
-    ).toEqual({ date: '2024-04', balance: -50 });
+    ).toEqual({date: '2024-04', balance: -50});
   });
 
   it('returns undefined for empty chart data', () => {

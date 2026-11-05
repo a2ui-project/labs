@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-import React, { useMemo, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useMemo, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Menu } from '@actual-app/components/menu';
-import { ModeButton } from '@actual-app/components/mode-button';
-import { Popover } from '@actual-app/components/popover';
-import { Select } from '@actual-app/components/select';
-import type { SelectOption } from '@actual-app/components/select';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {Menu} from '@actual-app/components/menu';
+import {ModeButton} from '@actual-app/components/mode-button';
+import {Popover} from '@actual-app/components/popover';
+import {Select} from '@actual-app/components/select';
+import type {SelectOption} from '@actual-app/components/select';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
 import type {
   CategoryEntity,
@@ -38,26 +38,26 @@ import type {
   TimeFrame,
   TransactionEntity,
 } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 
-import { Information } from '#components/alerts';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useLocale } from '#hooks/useLocale';
+import {Information} from '#components/alerts';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useLocale} from '#hooks/useLocale';
 
-import { CategorySelector } from './CategorySelector';
-import { defaultsList, disabledList } from './disabledList';
-import { getLiveRange } from './getLiveRange';
-import { getIntervalFormat, ReportOptions } from './ReportOptions';
-import type { dateRangeProps } from './ReportOptions';
-import { validateEnd, validateStart } from './reportRanges';
-import { setSessionReport } from './setSessionReport';
+import {CategorySelector} from './CategorySelector';
+import {defaultsList, disabledList} from './disabledList';
+import {getLiveRange} from './getLiveRange';
+import {getIntervalFormat, ReportOptions} from './ReportOptions';
+import type {dateRangeProps} from './ReportOptions';
+import {validateEnd, validateStart} from './reportRanges';
+import {setSessionReport} from './setSessionReport';
 
 type ReportSidebarProps = {
   customReportItems: CustomReportEntity;
   selectedCategories: CategoryEntity[];
-  categories: { list: CategoryEntity[]; grouped: CategoryGroupEntity[] };
+  categories: {list: CategoryEntity[]; grouped: CategoryGroupEntity[]};
   dateRangeLine: number;
-  allIntervals: { name: string; pretty: string }[];
+  allIntervals: {name: string; pretty: string}[];
   setDateRange: (value: CustomReportEntity['dateRange']) => void;
   setGraphType: (value: CustomReportEntity['graphType']) => void;
   setGroupBy: (value: CustomReportEntity['groupBy']) => void;
@@ -68,24 +68,14 @@ type ReportSidebarProps = {
   setIsDateStatic: (value: CustomReportEntity['isDateStatic']) => void;
   setShowEmpty: (value: CustomReportEntity['showEmpty']) => void;
   setShowOffBudget: (value: CustomReportEntity['showOffBudget']) => void;
-  setShowHiddenCategories: (
-    value: CustomReportEntity['showHiddenCategories'],
-  ) => void;
-  setShowUncategorized: (
-    value: CustomReportEntity['showUncategorized'],
-  ) => void;
+  setShowHiddenCategories: (value: CustomReportEntity['showHiddenCategories']) => void;
+  setShowUncategorized: (value: CustomReportEntity['showUncategorized']) => void;
   setTrimIntervals: (value: CustomReportEntity['trimIntervals']) => void;
   setShowTrendLines: (value: CustomReportEntity['showTrendLines']) => void;
-  setIncludeCurrentInterval: (
-    value: CustomReportEntity['includeCurrentInterval'],
-  ) => void;
+  setIncludeCurrentInterval: (value: CustomReportEntity['includeCurrentInterval']) => void;
   setSelectedCategories: (value: CategoryEntity[]) => void;
-  onChangeDates: (
-    dateStart: string,
-    dateEnd: string,
-    mode: TimeFrame['mode'],
-  ) => void;
-  onReportChange: ({ type }: { type: 'modify' }) => void;
+  onChangeDates: (dateStart: string, dateEnd: string, mode: TimeFrame['mode']) => void;
+  onReportChange: ({type}: {type: 'modify'}) => void;
   disabledItems: (type: string) => string[];
   defaultItems: (item: string) => void;
   defaultModeItems: (graph: string, item: string) => void;
@@ -127,7 +117,7 @@ export function ReportSidebar({
   firstDayOfWeekIdx,
   isComplexCategoryCondition = false,
 }: ReportSidebarProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const locale = useLocale();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
 
@@ -136,7 +126,7 @@ export function ReportSidebar({
 
   const onSelectRange = (cond: string) => {
     setSessionReport('dateRange', cond);
-    onReportChange({ type: 'modify' });
+    onReportChange({type: 'modify'});
     setDateRange(cond);
     onChangeDates(
       ...getLiveRange(
@@ -149,29 +139,28 @@ export function ReportSidebar({
     );
   };
 
-  const [includeCurrentIntervalText, includeCurrentIntervalTooltip] =
-    useMemo(() => {
-      const rangeType = (
-        ReportOptions.dateRangeType.get(customReportItems.dateRange) || ''
-      ).toLowerCase();
+  const [includeCurrentIntervalText, includeCurrentIntervalTooltip] = useMemo(() => {
+    const rangeType = (
+      ReportOptions.dateRangeType.get(customReportItems.dateRange) || ''
+    ).toLowerCase();
 
-      let text = t('Include current period');
-      let tooltip = t('Include current period in live range');
+    let text = t('Include current period');
+    let tooltip = t('Include current period in live range');
 
-      if (rangeType === 'month') {
-        text = t('Include current Month');
-        tooltip = t('Include current Month in live range');
-      } else if (rangeType === 'year') {
-        text = t('Include current Year');
-        tooltip = t('Include current Year in live range');
-      }
+    if (rangeType === 'month') {
+      text = t('Include current Month');
+      tooltip = t('Include current Month in live range');
+    } else if (rangeType === 'year') {
+      text = t('Include current Year');
+      tooltip = t('Include current Year in live range');
+    }
 
-      return [text, tooltip];
-    }, [customReportItems.dateRange, t]);
+    return [text, tooltip];
+  }, [customReportItems.dateRange, t]);
 
   const onChangeMode = (cond: string) => {
     setSessionReport('mode', cond);
-    onReportChange({ type: 'modify' });
+    onReportChange({type: 'modify'});
     setMode(cond);
     let graph = '';
     if (cond === 'time') {
@@ -192,31 +181,25 @@ export function ReportSidebar({
 
   const onChangeSplit = (cond: string) => {
     setSessionReport('groupBy', cond);
-    onReportChange({ type: 'modify' });
+    onReportChange({type: 'modify'});
     setGroupBy(cond);
     defaultItems(cond);
   };
 
   const onChangeBalanceType = (cond: string) => {
     setSessionReport('balanceType', cond);
-    onReportChange({ type: 'modify' });
+    onReportChange({type: 'modify'});
     setBalanceType(cond);
 
     if (cond === 'Budgeted') {
       // Budgeted does not support Payee and Account splits
-      if (
-        customReportItems.groupBy === 'Payee' ||
-        customReportItems.groupBy === 'Account'
-      ) {
+      if (customReportItems.groupBy === 'Payee' || customReportItems.groupBy === 'Account') {
         setSessionReport('groupBy', 'Category');
         setGroupBy('Category');
         defaultItems('Category');
       }
       // Budgeted only supports Monthly and Yearly intervals
-      if (
-        customReportItems.interval === 'Daily' ||
-        customReportItems.interval === 'Weekly'
-      ) {
+      if (customReportItems.interval === 'Daily' || customReportItems.interval === 'Weekly') {
         setSessionReport('interval', 'Monthly');
         setInterval('Monthly');
         if (
@@ -234,7 +217,7 @@ export function ReportSidebar({
   const onChangeSortBy = (cond?: sortByOpType) => {
     cond ??= 'desc';
     setSessionReport('sortBy', cond);
-    onReportChange({ type: 'modify' });
+    onReportChange({type: 'modify'});
     setSortBy(cond);
   };
 
@@ -255,8 +238,7 @@ export function ReportSidebar({
     (customReportItems.groupBy === 'Interval' ||
       (disabledList?.mode
         ?.find(m => m.description === customReportItems.mode)
-        ?.graphs.find(g => g.description === customReportItems.graphType)
-        ?.disableSort ??
+        ?.graphs.find(g => g.description === customReportItems.graphType)?.disableSort ??
         false));
 
   return (
@@ -270,7 +252,7 @@ export function ReportSidebar({
         overflowY: 'auto',
       }}
     >
-      <View style={{ flexShrink: 0 }}>
+      <View style={{flexShrink: 0}}>
         <View
           style={{
             flexDirection: 'row',
@@ -290,7 +272,7 @@ export function ReportSidebar({
             padding: 5,
           }}
         >
-          <Text style={{ width: 50, textAlign: 'right' }}>
+          <Text style={{width: 50, textAlign: 'right'}}>
             <Trans>Mode:</Trans>
           </Text>
           <ModeButton
@@ -314,16 +296,13 @@ export function ReportSidebar({
             alignItems: 'center',
           }}
         >
-          <Text style={{ width: 50, textAlign: 'right', marginRight: 5 }}>
+          <Text style={{width: 50, textAlign: 'right', marginRight: 5}}>
             <Trans>Split:</Trans>
           </Text>
           <Select
             value={customReportItems.groupBy}
             onChange={e => onChangeSplit(e)}
-            options={ReportOptions.groupBy.map(option => [
-              option.key,
-              option.description,
-            ])}
+            options={ReportOptions.groupBy.map(option => [option.key, option.description])}
             disabledKeys={
               customReportItems.balanceType === 'Budgeted'
                 ? [...new Set([...disabledItems('split'), 'Payee', 'Account'])]
@@ -339,16 +318,13 @@ export function ReportSidebar({
             alignItems: 'center',
           }}
         >
-          <Text style={{ width: 50, textAlign: 'right', marginRight: 5 }}>
+          <Text style={{width: 50, textAlign: 'right', marginRight: 5}}>
             <Trans>Type:</Trans>
           </Text>
           <Select
             value={customReportItems.balanceType}
             onChange={e => onChangeBalanceType(e)}
-            options={ReportOptions.balanceType.map(option => [
-              option.key,
-              option.description,
-            ])}
+            options={ReportOptions.balanceType.map(option => [option.key, option.description])}
             disabledKeys={disabledItems('type')}
           />
         </View>
@@ -359,7 +335,7 @@ export function ReportSidebar({
             alignItems: 'center',
           }}
         >
-          <Text style={{ width: 50, textAlign: 'right', marginRight: 5 }}>
+          <Text style={{width: 50, textAlign: 'right', marginRight: 5}}>
             <Trans>Interval:</Trans>
           </Text>
           <Select
@@ -367,7 +343,7 @@ export function ReportSidebar({
             onChange={e => {
               setSessionReport('interval', e);
               setInterval(e);
-              onReportChange({ type: 'modify' });
+              onReportChange({type: 'modify'});
               if (
                 ReportOptions.dateRange
                   .filter(d => !d[e as keyof dateRangeProps])
@@ -377,15 +353,8 @@ export function ReportSidebar({
                 onSelectRange(defaultsList.intervalRange.get(e) || '');
               }
             }}
-            options={ReportOptions.interval.map(option => [
-              option.key,
-              option.description,
-            ])}
-            disabledKeys={
-              customReportItems.balanceType === 'Budgeted'
-                ? ['Daily', 'Weekly']
-                : []
-            }
+            options={ReportOptions.interval.map(option => [option.key, option.description])}
+            disabledKeys={customReportItems.balanceType === 'Budgeted' ? ['Daily', 'Weekly'] : []}
           />
         </View>
 
@@ -397,16 +366,13 @@ export function ReportSidebar({
               alignItems: 'center',
             }}
           >
-            <Text style={{ width: 50, textAlign: 'right', marginRight: 5 }}>
+            <Text style={{width: 50, textAlign: 'right', marginRight: 5}}>
               <Trans>Sort:</Trans>
             </Text>
             <Select
               value={customReportItems.sortBy}
               onChange={(e?: sortByOpType) => onChangeSortBy(e)}
-              options={ReportOptions.sortBy.map(option => [
-                option.format,
-                option.description,
-              ])}
+              options={ReportOptions.sortBy.map(option => [option.format, option.description])}
               disabledKeys={disabledItems('sort') as sortByOpType[]}
             />
           </View>
@@ -419,7 +385,7 @@ export function ReportSidebar({
             alignItems: 'center',
           }}
         >
-          <Text style={{ width: 50, textAlign: 'right', marginRight: 5 }} />
+          <Text style={{width: 50, textAlign: 'right', marginRight: 5}} />
           <Button
             ref={triggerRef}
             onPress={() => {
@@ -440,50 +406,31 @@ export function ReportSidebar({
           >
             <Menu
               onMenuSelect={type => {
-                onReportChange({ type: 'modify' });
+                onReportChange({type: 'modify'});
 
                 if (type === 'include-current-interval') {
                   setSessionReport(
                     'includeCurrentInterval',
                     !customReportItems.includeCurrentInterval,
                   );
-                  setIncludeCurrentInterval(
-                    !customReportItems.includeCurrentInterval,
-                  );
+                  setIncludeCurrentInterval(!customReportItems.includeCurrentInterval);
                 } else if (type === 'show-hidden-categories') {
-                  setSessionReport(
-                    'showHiddenCategories',
-                    !customReportItems.showHiddenCategories,
-                  );
-                  setShowHiddenCategories(
-                    !customReportItems.showHiddenCategories,
-                  );
+                  setSessionReport('showHiddenCategories', !customReportItems.showHiddenCategories);
+                  setShowHiddenCategories(!customReportItems.showHiddenCategories);
                 } else if (type === 'show-off-budget') {
-                  setSessionReport(
-                    'showOffBudget',
-                    !customReportItems.showOffBudget,
-                  );
+                  setSessionReport('showOffBudget', !customReportItems.showOffBudget);
                   setShowOffBudget(!customReportItems.showOffBudget);
                 } else if (type === 'show-empty-items') {
                   setSessionReport('showEmpty', !customReportItems.showEmpty);
                   setShowEmpty(!customReportItems.showEmpty);
                 } else if (type === 'show-uncategorized') {
-                  setSessionReport(
-                    'showUncategorized',
-                    !customReportItems.showUncategorized,
-                  );
+                  setSessionReport('showUncategorized', !customReportItems.showUncategorized);
                   setShowUncategorized(!customReportItems.showUncategorized);
                 } else if (type === 'trim-intervals') {
-                  setSessionReport(
-                    'trimIntervals',
-                    !customReportItems.trimIntervals,
-                  );
+                  setSessionReport('trimIntervals', !customReportItems.trimIntervals);
                   setTrimIntervals(!customReportItems.trimIntervals);
                 } else if (type === 'show-trend-lines') {
-                  setSessionReport(
-                    'showTrendLines',
-                    !customReportItems.showTrendLines,
-                  );
+                  setSessionReport('showTrendLines', !customReportItems.showTrendLines);
                   setShowTrendLines(!customReportItems.showTrendLines);
                 }
               }}
@@ -495,9 +442,7 @@ export function ReportSidebar({
                   toggle: customReportItems.includeCurrentInterval,
                   disabled:
                     customReportItems.isDateStatic ||
-                    disabledList.currentInterval.get(
-                      customReportItems.dateRange,
-                    ),
+                    disabledList.currentInterval.get(customReportItems.dateRange),
                 },
                 {
                   name: 'show-hidden-categories',
@@ -526,9 +471,7 @@ export function ReportSidebar({
                 {
                   name: 'trim-intervals',
                   text: t('Trim intervals'),
-                  tooltip: t(
-                    'Trim empty intervals at the start and end of the report',
-                  ),
+                  tooltip: t('Trim empty intervals at the start and end of the report'),
                   toggle: customReportItems.trimIntervals,
                 },
                 {
@@ -562,7 +505,7 @@ export function ReportSidebar({
               <Trans>Date filters</Trans>
             </strong>
           </Text>
-          <View style={{ flex: 1 }} />
+          <View style={{flex: 1}} />
           <ModeButton
             selected={!customReportItems.isDateStatic}
             onSelect={() => {
@@ -578,11 +521,7 @@ export function ReportSidebar({
             onSelect={() => {
               setSessionReport('isDateStatic', true);
               setIsDateStatic(true);
-              onChangeDates(
-                customReportItems.startDate,
-                customReportItems.endDate,
-                'static',
-              );
+              onChangeDates(customReportItems.startDate, customReportItems.endDate, 'static');
             }}
           >
             <Trans>Static</Trans>
@@ -596,7 +535,7 @@ export function ReportSidebar({
               alignItems: 'center',
             }}
           >
-            <Text style={{ width: 50, textAlign: 'right', marginRight: 5 }}>
+            <Text style={{width: 50, textAlign: 'right', marginRight: 5}}>
               <Trans>Range:</Trans>
             </Text>
             <Select
@@ -620,7 +559,7 @@ export function ReportSidebar({
                     marginTop: 5,
                   }}
                 >
-                  <Text style={{ marginLeft: 10 }}>+1</Text>
+                  <Text style={{marginLeft: 10}}>+1</Text>
                 </Tooltip>
               )}
           </View>
@@ -633,7 +572,7 @@ export function ReportSidebar({
                 alignItems: 'center',
               }}
             >
-              <Text style={{ width: 50, textAlign: 'right', marginRight: 5 }}>
+              <Text style={{width: 50, textAlign: 'right', marginRight: 5}}>
                 <Trans>From:</Trans>
               </Text>
               <Select
@@ -655,7 +594,7 @@ export function ReportSidebar({
                   getIntervalFormat(customReportItems.interval, dateFormat),
                   locale,
                 )}
-                options={allIntervals.map(({ name, pretty }) => [name, pretty])}
+                options={allIntervals.map(({name, pretty}) => [name, pretty])}
               />
             </View>
             <View
@@ -665,7 +604,7 @@ export function ReportSidebar({
                 alignItems: 'center',
               }}
             >
-              <Text style={{ width: 50, textAlign: 'right', marginRight: 5 }}>
+              <Text style={{width: 50, textAlign: 'right', marginRight: 5}}>
                 <Trans>To:</Trans>
               </Text>
               <Select
@@ -687,7 +626,7 @@ export function ReportSidebar({
                   getIntervalFormat(customReportItems.interval, dateFormat),
                   locale,
                 )}
-                options={allIntervals.map(({ name, pretty }) => [name, pretty])}
+                options={allIntervals.map(({name, pretty}) => [name, pretty])}
               />
             </View>
           </>
@@ -709,21 +648,17 @@ export function ReportSidebar({
       >
         {isComplexCategoryCondition ? (
           <Information>
-            <Trans>
-              Remove active category filters to show the category selector.
-            </Trans>
+            <Trans>Remove active category filters to show the category selector.</Trans>
           </Information>
         ) : (
           <CategorySelector
             categoryGroups={categories.grouped.filter(f => {
-              return customReportItems.showHiddenCategories || !f.hidden
-                ? true
-                : false;
+              return customReportItems.showHiddenCategories || !f.hidden ? true : false;
             })}
             selectedCategories={selectedCategories || []}
             setSelectedCategories={e => {
               setSelectedCategories(e);
-              onReportChange({ type: 'modify' });
+              onReportChange({type: 'modify'});
             }}
             showHiddenCategories={customReportItems.showHiddenCategories}
           />

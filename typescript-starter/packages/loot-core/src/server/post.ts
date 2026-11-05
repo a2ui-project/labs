@@ -15,11 +15,11 @@
  */
 
 // @ts-strict-ignore
-import { fetch } from '#platform/server/fetch';
-import { logger } from '#platform/server/log';
+import {fetch} from '#platform/server/fetch';
+import {logger} from '#platform/server/log';
 import * as Platform from '#shared/platform';
 
-import { PostError } from './errors';
+import {PostError} from './errors';
 
 export function getServerErrorReason(error) {
   return error.reason === 'unauthorized' && error.details === 'token-not-found'
@@ -41,9 +41,7 @@ function throwIfNot200(res: Response, text: string) {
 
     // Actual Sync Server may be exposed via a tunnel (e.g. ngrok). Tunnel errors should be treated as network errors.
     const tunnelErrorHeaders = ['ngrok-error-code'];
-    const tunnelError = tunnelErrorHeaders.some(header =>
-      res.headers.has(header),
-    );
+    const tunnelError = tunnelErrorHeaders.some(header => res.headers.has(header));
 
     if (tunnelError) {
       // Tunnel errors are present when the tunnel is active and the server is not reachable e.g. server is offline
@@ -68,8 +66,7 @@ export async function post(
   let res: Response;
 
   const controller = new AbortController();
-  const timeoutId =
-    timeout != null ? setTimeout(() => controller.abort(), timeout) : undefined;
+  const timeoutId = timeout != null ? setTimeout(() => controller.abort(), timeout) : undefined;
 
   // If an external signal is provided, abort our controller when it fires
   const onExternalAbort = () => controller.abort();
@@ -94,14 +91,10 @@ export async function post(
     });
     text = await res.text();
   } catch (err) {
-    if (
-      err instanceof Error &&
-      err.name === 'AbortError' &&
-      externalSignal?.aborted
-    ) {
+    if (err instanceof Error && err.name === 'AbortError' && externalSignal?.aborted) {
       throw new PostError('aborted');
     }
-    throw new PostError('network-failure', undefined, { cause: err });
+    throw new PostError('network-failure', undefined, {cause: err});
   } finally {
     if (timeoutId != null) clearTimeout(timeoutId);
     externalSignal?.removeEventListener('abort', onExternalAbort);
@@ -115,7 +108,7 @@ export async function post(
     responseData = JSON.parse(text);
   } catch {
     // Something seriously went wrong. TODO handle errors
-    throw new PostError('parse-json', { meta: text });
+    throw new PostError('parse-json', {meta: text});
   }
 
   if (responseData.status !== 'ok') {
@@ -128,9 +121,7 @@ export async function post(
         JSON.stringify(res, null, 2),
     );
 
-    throw new PostError(
-      responseData.description || responseData.reason || 'unknown',
-    );
+    throw new PostError(responseData.description || responseData.reason || 'unknown');
   }
 
   return responseData.data;
@@ -156,7 +147,7 @@ export async function del(url, data, headers = {}, timeout = null) {
     clearTimeout(timeoutId);
     text = await res.text();
   } catch (err) {
-    throw new PostError('network-failure', undefined, { cause: err });
+    throw new PostError('network-failure', undefined, {cause: err});
   }
 
   throwIfNot200(res, text);
@@ -165,7 +156,7 @@ export async function del(url, data, headers = {}, timeout = null) {
     res = JSON.parse(text);
   } catch {
     // Something seriously went wrong. TODO handle errors
-    throw new PostError('parse-json', { meta: text });
+    throw new PostError('parse-json', {meta: text});
   }
 
   if (res.status !== 'ok') {
@@ -204,7 +195,7 @@ export async function patch(url, data, headers = {}, timeout = null) {
     clearTimeout(timeoutId);
     text = await res.text();
   } catch (err) {
-    throw new PostError('network-failure', undefined, { cause: err });
+    throw new PostError('network-failure', undefined, {cause: err});
   }
 
   throwIfNot200(res, text);
@@ -213,7 +204,7 @@ export async function patch(url, data, headers = {}, timeout = null) {
     res = JSON.parse(text);
   } catch {
     // Something seriously went wrong. TODO handle errors
-    throw new PostError('parse-json', { meta: text });
+    throw new PostError('parse-json', {meta: text});
   }
 
   if (res.status !== 'ok') {
@@ -244,7 +235,7 @@ export async function postBinary(url, data, headers) {
       },
     });
   } catch (err) {
-    throw new PostError('network-failure', undefined, { cause: err });
+    throw new PostError('network-failure', undefined, {cause: err});
   }
 
   let buffer;

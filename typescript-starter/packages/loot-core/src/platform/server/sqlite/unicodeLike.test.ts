@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { unicodeLike } from './unicodeLike';
+import {unicodeLike} from './unicodeLike';
 
 describe('unicode LIKE functionality', () => {
   it('empty pattern should not match to a value', () => {

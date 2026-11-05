@@ -15,11 +15,8 @@
  */
 
 import SpkMarburgBiedenkopfHeladef1mar from '#app-gocardless/banks/spk_marburg_biedenkopf_heladef1mar';
-import type {
-  Balance,
-  Transaction,
-} from '#app-gocardless/gocardless-node.types';
-import type { DetailedAccountWithInstitution } from '#app-gocardless/gocardless.types';
+import type {Balance, Transaction} from '#app-gocardless/gocardless-node.types';
+import type {DetailedAccountWithInstitution} from '#app-gocardless/gocardless.types';
 
 describe('SpkMarburgBiedenkopfHeladef1mar', () => {
   describe('#normalizeAccount', () => {
@@ -48,19 +45,13 @@ describe('SpkMarburgBiedenkopfHeladef1mar', () => {
         supported_payments: {
           'single-payment': ['SCT', 'ISCT'],
         },
-        supported_features: [
-          'card_accounts',
-          'payments',
-          'pending_transactions',
-        ],
+        supported_features: ['card_accounts', 'payments', 'pending_transactions'],
         /*"identification_codes": []*/
       },
     } as DetailedAccountWithInstitution;
 
     it('returns normalized account data returned to Frontend', () => {
-      expect(
-        SpkMarburgBiedenkopfHeladef1mar.normalizeAccount(accountRaw),
-      ).toEqual({
+      expect(SpkMarburgBiedenkopfHeladef1mar.normalizeAccount(accountRaw)).toEqual({
         account_id: 'a787ba27-02ee-4fd6-be86-73831adc5498',
         iban: 'DE50533500000123456789',
         institution: {
@@ -69,11 +60,7 @@ describe('SpkMarburgBiedenkopfHeladef1mar', () => {
           id: 'SPK_MARBURG_BIEDENKOPF_HELADEF1MAR',
           logo: 'https://storage.googleapis.com/gc-prd-institution_icons-production/DE/PNG/sparkasse.png',
           name: 'Sparkasse Marburg-Biedenkopf',
-          supported_features: [
-            'card_accounts',
-            'payments',
-            'pending_transactions',
-          ],
+          supported_features: ['card_accounts', 'payments', 'pending_transactions'],
           supported_payments: {
             'single-payment': ['SCT', 'ISCT'],
           },
@@ -139,10 +126,7 @@ describe('SpkMarburgBiedenkopfHeladef1mar', () => {
         amount: '-8.00',
         currency: 'EUR',
       },
-      remittanceInformationStructuredArray: [
-        'Entgeltabrechnung',
-        'siehe Anlage',
-      ],
+      remittanceInformationStructuredArray: ['Entgeltabrechnung', 'siehe Anlage'],
       proprietaryBankTransactionCode: 'NSTO+333+3333+333-DD',
       internalTransactionId: '9c58c87c2d1644e4a5e149c837c16bbb',
       date: '2023-12-26',
@@ -167,8 +151,7 @@ describe('SpkMarburgBiedenkopfHeladef1mar', () => {
       };
 
       expect(
-        SpkMarburgBiedenkopfHeladef1mar.normalizeTransaction(transaction, true)
-          ?.notes,
+        SpkMarburgBiedenkopfHeladef1mar.normalizeTransaction(transaction, true)?.notes,
       ).toEqual('AUTORISATION  28.12. 18:30');
     });
 
@@ -181,18 +164,14 @@ describe('SpkMarburgBiedenkopfHeladef1mar', () => {
           amount: '-8.00',
           currency: 'EUR',
         },
-        remittanceInformationStructuredArray: [
-          'Entgeltabrechnung',
-          'siehe Anlage',
-        ],
+        remittanceInformationStructuredArray: ['Entgeltabrechnung', 'siehe Anlage'],
         proprietaryBankTransactionCode: 'NSTO+333+3333+333-DD',
         internalTransactionId: '9c58c87c2d1644e4a5e149c837c16bbb',
         date: '2023-12-26',
       };
 
       expect(
-        SpkMarburgBiedenkopfHeladef1mar.normalizeTransaction(transaction, true)
-          ?.notes,
+        SpkMarburgBiedenkopfHeladef1mar.normalizeTransaction(transaction, true)?.notes,
       ).toEqual('Entgeltabrechnung siehe Anlage');
     });
   });
@@ -200,14 +179,12 @@ describe('SpkMarburgBiedenkopfHeladef1mar', () => {
   describe('#sortTransactions', () => {
     it('handles empty arrays', () => {
       const transactions: Transaction[] = [];
-      const sortedTransactions =
-        SpkMarburgBiedenkopfHeladef1mar.sortTransactions(transactions);
+      const sortedTransactions = SpkMarburgBiedenkopfHeladef1mar.sortTransactions(transactions);
       expect(sortedTransactions).toEqual([]);
     });
 
     it('returns empty array for undefined input', () => {
-      const sortedTransactions =
-        SpkMarburgBiedenkopfHeladef1mar.sortTransactions(undefined);
+      const sortedTransactions = SpkMarburgBiedenkopfHeladef1mar.sortTransactions(undefined);
       expect(sortedTransactions).toEqual([]);
     });
 
@@ -223,10 +200,9 @@ describe('SpkMarburgBiedenkopfHeladef1mar', () => {
       };
       swap(1, 3);
       swap(0, 2);
-      const sortedTransactions =
-        SpkMarburgBiedenkopfHeladef1mar.sortTransactions(
-          normalizeTransactions.filter(tx => tx != null),
-        );
+      const sortedTransactions = SpkMarburgBiedenkopfHeladef1mar.sortTransactions(
+        normalizeTransactions.filter(tx => tx != null),
+      );
       expect(sortedTransactions).toEqual(originalOrder);
     });
   });
@@ -234,15 +210,14 @@ describe('SpkMarburgBiedenkopfHeladef1mar', () => {
   describe('#countStartingBalance', () => {
     const balances: Balance[] = [
       {
-        balanceAmount: { amount: '3596.87', currency: 'EUR' },
+        balanceAmount: {amount: '3596.87', currency: 'EUR'},
         balanceType: 'closingBooked',
         referenceDate: '2023-12-29',
       },
     ];
 
     it('should return 0 when no transactions or balances are provided', () => {
-      const startingBalance =
-        SpkMarburgBiedenkopfHeladef1mar.calculateStartingBalance([], []);
+      const startingBalance = SpkMarburgBiedenkopfHeladef1mar.calculateStartingBalance([], []);
       expect(startingBalance).toEqual(0);
     });
 
@@ -250,16 +225,14 @@ describe('SpkMarburgBiedenkopfHeladef1mar', () => {
       const normalizeTransactions = transactionsRaw.map(tx =>
         SpkMarburgBiedenkopfHeladef1mar.normalizeTransaction(tx, true),
       );
-      const sortedTransactions =
-        SpkMarburgBiedenkopfHeladef1mar.sortTransactions(
-          normalizeTransactions.filter(tx => tx != null),
-        );
+      const sortedTransactions = SpkMarburgBiedenkopfHeladef1mar.sortTransactions(
+        normalizeTransactions.filter(tx => tx != null),
+      );
 
-      const startingBalance =
-        SpkMarburgBiedenkopfHeladef1mar.calculateStartingBalance(
-          sortedTransactions,
-          balances,
-        );
+      const startingBalance = SpkMarburgBiedenkopfHeladef1mar.calculateStartingBalance(
+        sortedTransactions,
+        balances,
+      );
 
       expect(startingBalance).toEqual(334611);
     });
@@ -268,10 +241,7 @@ describe('SpkMarburgBiedenkopfHeladef1mar', () => {
       const transactions: Transaction[] = [];
 
       expect(
-        SpkMarburgBiedenkopfHeladef1mar.calculateStartingBalance(
-          transactions,
-          balances,
-        ),
+        SpkMarburgBiedenkopfHeladef1mar.calculateStartingBalance(transactions, balances),
       ).toEqual(359687);
     });
   });

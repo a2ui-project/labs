@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-import type { NextFunction, Request, Response } from 'express';
+import type {NextFunction, Request, Response} from 'express';
 import * as expressWinston from 'express-winston';
 import * as winston from 'winston';
 
-import { validateSession } from './validate-user';
+import {validateSession} from './validate-user';
 
-async function errorMiddleware(
-  err: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
+async function errorMiddleware(err: Error, req: Request, res: Response, next: NextFunction) {
   if (res.headersSent) {
     // If you call next() with an error after you have started writing the response
     // (for example, if you encounter an error while streaming the response
@@ -43,14 +38,10 @@ async function errorMiddleware(
     requestUrl: req.url,
     stacktrace: err.stack,
   });
-  res.status(500).send({ status: 'error', reason: 'internal-error' });
+  res.status(500).send({status: 'error', reason: 'internal-error'});
 }
 
-const validateSessionMiddleware = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+const validateSessionMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const session = await validateSession(req, res);
   if (!session) {
     return;
@@ -68,12 +59,12 @@ const requestLoggerMiddleware = expressWinston.logger({
       : [winston.format.colorize()]),
     winston.format.timestamp(),
     winston.format.printf(args => {
-      const { timestamp, level, meta } = args;
-      const { res, req } = meta as { res: Response; req: Request };
+      const {timestamp, level, meta} = args;
+      const {res, req} = meta as {res: Response; req: Request};
 
       return `${String(timestamp)} ${String(level)}: ${req.method} ${res.statusCode} ${req.url}`;
     }),
   ),
 });
 
-export { validateSessionMiddleware, errorMiddleware, requestLoggerMiddleware };
+export {validateSessionMiddleware, errorMiddleware, requestLoggerMiddleware};

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { runClassic } from 'eslint-vitest-rule-tester';
+import {runClassic} from 'eslint-vitest-rule-tester';
 
 import plugin from '../../index';
 const rule = plugin.rules['no-extraneous-dependencies'];
@@ -51,7 +51,7 @@ void runClassic(
         errors: [
           {
             messageId: 'extraneous',
-            data: { packageName: 'not-a-real-package' },
+            data: {packageName: 'not-a-real-package'},
           },
         ],
       },
@@ -60,7 +60,7 @@ void runClassic(
         errors: [
           {
             messageId: 'extraneous',
-            data: { packageName: '@not-real/package' },
+            data: {packageName: '@not-real/package'},
           },
         ],
       },
@@ -69,7 +69,7 @@ void runClassic(
         errors: [
           {
             messageId: 'extraneous',
-            data: { packageName: '@not-real/package' },
+            data: {packageName: '@not-real/package'},
           },
         ],
       },
@@ -78,7 +78,7 @@ void runClassic(
         errors: [
           {
             messageId: 'extraneous',
-            data: { packageName: 'not-a-real-package' },
+            data: {packageName: 'not-a-real-package'},
           },
         ],
       },
@@ -87,7 +87,7 @@ void runClassic(
         errors: [
           {
             messageId: 'extraneous',
-            data: { packageName: 'not-a-real-package' },
+            data: {packageName: 'not-a-real-package'},
           },
         ],
       },
@@ -96,7 +96,7 @@ void runClassic(
         errors: [
           {
             messageId: 'extraneous',
-            data: { packageName: 'not-a-real-package' },
+            data: {packageName: 'not-a-real-package'},
           },
         ],
       },

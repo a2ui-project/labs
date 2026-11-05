@@ -15,46 +15,41 @@
  */
 
 // @ts-strict-ignore
-import React, { memo, useRef, useState } from 'react';
-import type { ComponentProps, CSSProperties } from 'react';
-import { Trans } from 'react-i18next';
+import React, {memo, useRef, useState} from 'react';
+import type {ComponentProps, CSSProperties} from 'react';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgCheveronDown } from '@actual-app/components/icons/v1';
-import {
-  SvgArrowsSynchronize,
-  SvgCalendar3,
-} from '@actual-app/components/icons/v2';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgCheveronDown} from '@actual-app/components/icons/v1';
+import {SvgArrowsSynchronize, SvgCalendar3} from '@actual-app/components/icons/v2';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
-import { t } from 'i18next';
+import {css} from '@emotion/css';
+import {t} from 'i18next';
 
-import { BalanceWithCarryover } from '#components/budget/BalanceWithCarryover';
-import { makeAmountGrey } from '#components/budget/util';
-import { NotesButton } from '#components/NotesButton';
-import { CellValue, CellValueText } from '#components/spreadsheet/CellValue';
-import { Field, SheetCell } from '#components/table';
-import type { SheetCellProps } from '#components/table';
-import { useCategoryScheduleGoalTemplateIndicator } from '#hooks/useCategoryScheduleGoalTemplateIndicator';
-import { useFormat } from '#hooks/useFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { useSheetValue } from '#hooks/useSheetValue';
-import { useUndo } from '#hooks/useUndo';
-import type { Binding, SheetFields } from '#spreadsheet';
-import { trackingBudget } from '#spreadsheet/bindings';
-import type { CategoryGroupMonthProps, CategoryMonthProps } from '..';
+import {BalanceWithCarryover} from '#components/budget/BalanceWithCarryover';
+import {makeAmountGrey} from '#components/budget/util';
+import {NotesButton} from '#components/NotesButton';
+import {CellValue, CellValueText} from '#components/spreadsheet/CellValue';
+import {Field, SheetCell} from '#components/table';
+import type {SheetCellProps} from '#components/table';
+import {useCategoryScheduleGoalTemplateIndicator} from '#hooks/useCategoryScheduleGoalTemplateIndicator';
+import {useFormat} from '#hooks/useFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {useSheetValue} from '#hooks/useSheetValue';
+import {useUndo} from '#hooks/useUndo';
+import type {Binding, SheetFields} from '#spreadsheet';
+import {trackingBudget} from '#spreadsheet/bindings';
+import type {CategoryGroupMonthProps, CategoryMonthProps} from '..';
 
-import { BalanceMenu } from './BalanceMenu';
-import { BudgetMenu } from './BudgetMenu';
+import {BalanceMenu} from './BalanceMenu';
+import {BudgetMenu} from './BudgetMenu';
 
-export const useTrackingSheetValue = <
-  FieldName extends SheetFields<'tracking-budget'>,
->(
+export const useTrackingSheetValue = <FieldName extends SheetFields<'tracking-budget'>>(
   binding: Binding<'tracking-budget', FieldName>,
 ) => {
   return useSheetValue(binding);
@@ -95,18 +90,15 @@ export const BudgetTotalsMonth = memo(function BudgetTotalsMonth() {
       }}
     >
       <View style={headerLabelStyle}>
-        <Text style={{ color: theme.tableHeaderText }}>
+        <Text style={{color: theme.tableHeaderText}}>
           <Trans>Budgeted</Trans>
         </Text>
-        <TrackingCellValue
-          binding={trackingBudget.totalBudgetedExpense}
-          type="financial"
-        >
+        <TrackingCellValue binding={trackingBudget.totalBudgetedExpense} type="financial">
           {props => <CellValueText {...props} style={cellStyle} />}
         </TrackingCellValue>
       </View>
       <View style={headerLabelStyle}>
-        <Text style={{ color: theme.tableHeaderText }}>
+        <Text style={{color: theme.tableHeaderText}}>
           <Trans>Spent</Trans>
         </Text>
         <TrackingCellValue binding={trackingBudget.totalSpent} type="financial">
@@ -114,13 +106,10 @@ export const BudgetTotalsMonth = memo(function BudgetTotalsMonth() {
         </TrackingCellValue>
       </View>
       <View style={headerLabelStyle}>
-        <Text style={{ color: theme.tableHeaderText }}>
+        <Text style={{color: theme.tableHeaderText}}>
           <Trans>Balance</Trans>
         </Text>
-        <TrackingCellValue
-          binding={trackingBudget.totalLeftover}
-          type="financial"
-        >
+        <TrackingCellValue binding={trackingBudget.totalLeftover} type="financial">
           {props => <CellValueText {...props} style={cellStyle} />}
         </TrackingCellValue>
       </View>
@@ -138,12 +127,12 @@ export function IncomeHeaderMonth() {
       }}
     >
       <View style={headerLabelStyle}>
-        <Text style={{ color: theme.tableHeaderText }}>
+        <Text style={{color: theme.tableHeaderText}}>
           <Trans>Budgeted</Trans>
         </Text>
       </View>
       <View style={headerLabelStyle}>
-        <Text style={{ color: theme.tableHeaderText }}>
+        <Text style={{color: theme.tableHeaderText}}>
           <Trans>Received</Trans>
         </Text>
       </View>
@@ -151,11 +140,8 @@ export function IncomeHeaderMonth() {
   );
 }
 
-export const GroupMonth = memo(function GroupMonth({
-  month,
-  group,
-}: CategoryGroupMonthProps) {
-  const { id } = group;
+export const GroupMonth = memo(function GroupMonth({month, group}: CategoryGroupMonthProps) {
+  const {id} = group;
 
   return (
     <View
@@ -171,7 +157,7 @@ export const GroupMonth = memo(function GroupMonth({
         name="budgeted"
         width="flex"
         textAlign="right"
-        style={{ fontWeight: 600, ...styles.tnum }}
+        style={{fontWeight: 600, ...styles.tnum}}
         valueProps={{
           binding: trackingBudget.groupBudgeted(id),
           type: 'financial',
@@ -181,7 +167,7 @@ export const GroupMonth = memo(function GroupMonth({
         name="spent"
         width="flex"
         textAlign="right"
-        style={{ fontWeight: 600, ...styles.tnum }}
+        style={{fontWeight: 600, ...styles.tnum}}
         valueProps={{
           binding: trackingBudget.groupSumAmount(id),
           type: 'financial',
@@ -228,11 +214,11 @@ export const CategoryMonth = memo(function CategoryMonth({
     setMenuOpen(false);
   };
 
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
 
   const navigate = useNavigate();
 
-  const { schedule, scheduleStatus, isScheduleRecurring, description } =
+  const {schedule, scheduleStatus, isScheduleRecurring, description} =
     useCategoryScheduleGoalTemplateIndicator({
       category,
       month,
@@ -285,10 +271,7 @@ export const CategoryMonth = memo(function CategoryMonth({
                 borderColor: theme.tableBorder,
               }}
             >
-              <NotesButton
-                id={`${category.id}-${month}`}
-                defaultColor={theme.pageTextLight}
-              />
+              <NotesButton id={`${category.id}-${month}`} defaultColor={theme.pageTextLight} />
             </View>
             <View
               className={`hover-expand ${menuOpen ? 'force-visible' : ''}`}
@@ -311,11 +294,7 @@ export const CategoryMonth = memo(function CategoryMonth({
                   padding: 3,
                 }}
               >
-                <SvgCheveronDown
-                  width={14}
-                  height={14}
-                  className="hover-visible"
-                />
+                <SvgCheveronDown width={14} height={14} className="hover-visible" />
               </Button>
 
               <Popover
@@ -334,11 +313,7 @@ export const CategoryMonth = memo(function CategoryMonth({
                     });
                   }}
                   onSetMonthsAverage={numberOfMonths => {
-                    if (
-                      numberOfMonths !== 3 &&
-                      numberOfMonths !== 6 &&
-                      numberOfMonths !== 12
-                    ) {
+                    if (numberOfMonths !== 3 && numberOfMonths !== 6 && numberOfMonths !== 12) {
                       return;
                     }
 
@@ -346,10 +321,9 @@ export const CategoryMonth = memo(function CategoryMonth({
                       category: category.id,
                     });
                     showUndoNotification({
-                      message: t(
-                        'Budget set to {{numberOfMonths}}-month average.',
-                        { numberOfMonths },
-                      ),
+                      message: t('Budget set to {{numberOfMonths}}-month average.', {
+                        numberOfMonths,
+                      }),
                     });
                   }}
                   onApplyBudgetTemplate={() => {
@@ -379,7 +353,7 @@ export const CategoryMonth = memo(function CategoryMonth({
           focused={editing}
           width="flex"
           onExpose={() => onEdit(category.id, month)}
-          style={{ ...(editing && { zIndex: 100 }), ...styles.tnum }}
+          style={{...(editing && {zIndex: 100}), ...styles.tnum}}
           textAlign="right"
           valueStyle={{
             cursor: 'default',
@@ -414,16 +388,14 @@ export const CategoryMonth = memo(function CategoryMonth({
           }}
         />
       </View>
-      <Field name="spent" width="flex" style={{ textAlign: 'right' }}>
+      <Field name="spent" width="flex" style={{textAlign: 'right'}}>
         <View
           data-testid="category-month-spent"
           onClick={() => onShowActivity(category.id, month)}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: showScheduleIndicator
-              ? 'space-between'
-              : 'flex-end',
+            justifyContent: showScheduleIndicator ? 'space-between' : 'flex-end',
             gap: 2,
           }}
         >
@@ -446,17 +418,14 @@ export const CategoryMonth = memo(function CategoryMonth({
                 }
               >
                 {isScheduleRecurring ? (
-                  <SvgArrowsSynchronize style={{ width: 12, height: 12 }} />
+                  <SvgArrowsSynchronize style={{width: 12, height: 12}} />
                 ) : (
-                  <SvgCalendar3 style={{ width: 12, height: 12 }} />
+                  <SvgCalendar3 style={{width: 12, height: 12}} />
                 )}
               </Button>
             </View>
           )}
-          <TrackingCellValue
-            binding={trackingBudget.catSumAmount(category.id)}
-            type="financial"
-          >
+          <TrackingCellValue binding={trackingBudget.catSumAmount(category.id)} type="financial">
             {props => (
               <CellValueText
                 {...props}
@@ -477,7 +446,7 @@ export const CategoryMonth = memo(function CategoryMonth({
         <Field
           name="balance"
           width="flex"
-          style={{ paddingRight: styles.monthRightPadding, textAlign: 'right' }}
+          style={{paddingRight: styles.monthRightPadding, textAlign: 'right'}}
         >
           <Button
             variant="bare"
@@ -522,7 +491,7 @@ export const CategoryMonth = memo(function CategoryMonth({
   );
 });
 
-export { BudgetSummary } from './budgetsummary/BudgetSummary';
+export {BudgetSummary} from './budgetsummary/BudgetSummary';
 
 export const ExpenseGroupMonth = GroupMonth;
 export const ExpenseCategoryMonth = CategoryMonth;

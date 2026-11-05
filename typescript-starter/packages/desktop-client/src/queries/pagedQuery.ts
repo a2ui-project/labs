@@ -15,13 +15,13 @@
  */
 
 // @ts-strict-ignore
-import { once } from '@actual-app/core/shared/async';
-import { getPrimaryOrderBy } from '@actual-app/core/shared/query';
-import type { Query } from '@actual-app/core/shared/query';
+import {once} from '@actual-app/core/shared/async';
+import {getPrimaryOrderBy} from '@actual-app/core/shared/query';
+import type {Query} from '@actual-app/core/shared/query';
 
-import { aqlQuery } from './aqlQuery';
-import { LiveQuery } from './liveQuery';
-import type { LiveQueryOptions } from './liveQuery';
+import {aqlQuery} from './aqlQuery';
+import {LiveQuery} from './liveQuery';
+import type {LiveQueryOptions} from './liveQuery';
 
 export function pagedQuery<TResponse = unknown>(
   query: Query,
@@ -37,21 +37,12 @@ export function pagedQuery<TResponse = unknown>(
     options?: PagedQueryOptions;
   },
 ): PagedQuery<TResponse> {
-  return PagedQuery.runPagedQuery<TResponse>(
-    query,
-    onData,
-    onError,
-    onPageData,
-    options,
-  );
+  return PagedQuery.runPagedQuery<TResponse>(query, onData, onError, onPageData, options);
 }
 
 type Data<TResponse> = TResponse[];
 
-type Listener<TResponse = unknown> = (
-  data: Data<TResponse>,
-  previousData: Data<TResponse>,
-) => void;
+type Listener<TResponse = unknown> = (data: Data<TResponse>, previousData: Data<TResponse>) => void;
 
 type PagedQueryOptions = LiveQueryOptions & {
   pageCount?: number;
@@ -89,7 +80,7 @@ export class PagedQuery<TResponse = unknown> extends LiveQuery<TResponse> {
   }
 
   private fetchCount = () => {
-    return aqlQuery(this.query.calculate({ $count: '*' })).then(({ data }) => {
+    return aqlQuery(this.query.calculate({$count: '*'})).then(({data}) => {
       this._totalCount = data;
     });
   };
@@ -107,9 +98,7 @@ export class PagedQuery<TResponse = unknown> extends LiveQuery<TResponse> {
       // fetch the first page
       return aqlQuery(
         this.query.limit(
-          this.data == null
-            ? this._pageCount
-            : Math.max(this.data.length, this._pageCount),
+          this.data == null ? this._pageCount : Math.max(this.data.length, this._pageCount),
         ),
       );
     });
@@ -124,13 +113,7 @@ export class PagedQuery<TResponse = unknown> extends LiveQuery<TResponse> {
     onPageData?: (data: Data<TResponse>) => void,
     options: PagedQueryOptions = {},
   ) => {
-    const pagedQuery = new PagedQuery<TResponse>(
-      query,
-      onData,
-      onError,
-      onPageData,
-      options,
-    );
+    const pagedQuery = new PagedQuery<TResponse>(query, onData, onError, onPageData, options);
     void pagedQuery.run();
     return pagedQuery;
   };
@@ -147,9 +130,9 @@ export class PagedQuery<TResponse = unknown> extends LiveQuery<TResponse> {
         throw new Error(`refetchUpToRow requires a query with orderBy`);
       }
 
-      const { field, order } = orderDesc;
+      const {field, order} = orderDesc;
 
-      let result = await aqlQuery(this.query.filter({ id }).select(field));
+      let result = await aqlQuery(this.query.filter({id}).select(field));
       if (result.data.length === 0) {
         // This row is not part of this set anymore, we can't do
         // this. We stop early to avoid possibly pulling in a ton of
@@ -202,9 +185,7 @@ export class PagedQuery<TResponse = unknown> extends LiveQuery<TResponse> {
     const previousData = this.data;
 
     if (!this._hasReachedEnd) {
-      const { data } = await aqlQuery(
-        this.query.limit(this._pageCount).offset(previousData.length),
-      );
+      const {data} = await aqlQuery(this.query.limit(this._pageCount).offset(previousData.length));
 
       // If either there is an existing request in flight or the data
       // has already changed underneath it, we can't reliably concat

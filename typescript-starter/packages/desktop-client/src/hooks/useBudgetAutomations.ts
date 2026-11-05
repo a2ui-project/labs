@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { Template } from '@actual-app/core/types/models/templates';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {Template} from '@actual-app/core/types/models/templates';
 
 export function useBudgetAutomations({
   categoryId,
@@ -28,9 +28,7 @@ export function useBudgetAutomations({
   source: 'notes' | 'ui';
   onLoaded: (automations: Record<string, Template[]>) => void;
 }) {
-  const [automations, setAutomations] = useState<Record<string, Template[]>>(
-    {},
-  );
+  const [automations, setAutomations] = useState<Record<string, Template[]>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,5 +55,5 @@ export function useBudgetAutomations({
     };
   }, [categoryId, source, onLoaded]);
 
-  return { automations, loading };
+  return {automations, loading};
 }

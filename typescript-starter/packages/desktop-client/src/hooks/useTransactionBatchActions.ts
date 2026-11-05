@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
+import {q} from '@actual-app/core/shared/query';
 import {
   deleteTransaction,
   realizeTempTransactions,
@@ -26,9 +26,9 @@ import {
   ungroupTransactions,
   updateTransaction,
 } from '@actual-app/core/shared/transactions';
-import { validForTransfer } from '@actual-app/core/shared/transfer';
-import { applyChanges, applyFindReplace } from '@actual-app/core/shared/util';
-import type { Diff } from '@actual-app/core/shared/util';
+import {validForTransfer} from '@actual-app/core/shared/transfer';
+import {applyChanges, applyFindReplace} from '@actual-app/core/shared/util';
+import type {Diff} from '@actual-app/core/shared/util';
 import type {
   AccountEntity,
   PayeeEntity,
@@ -36,18 +36,12 @@ import type {
   TransactionEntity,
 } from '@actual-app/core/types/models';
 
-import { pushModal } from '#modals/modalsSlice';
-import type {
-  ConfirmTransactionEditReason,
-  Modal as ModalType,
-} from '#modals/modalsSlice';
-import { aqlQuery } from '#queries/aqlQuery';
-import { useDispatch } from '#redux';
+import {pushModal} from '#modals/modalsSlice';
+import type {ConfirmTransactionEditReason, Modal as ModalType} from '#modals/modalsSlice';
+import {aqlQuery} from '#queries/aqlQuery';
+import {useDispatch} from '#redux';
 
-type BatchReconciledReason = Extract<
-  ConfirmTransactionEditReason,
-  `batch${string}Reconciled`
->;
+type BatchReconciledReason = Extract<ConfirmTransactionEditReason, `batch${string}Reconciled`>;
 
 type BatchEditProps = {
   name: keyof TransactionEntity;
@@ -56,14 +50,10 @@ type BatchEditProps = {
     ids: Array<TransactionEntity['id']>,
     name: keyof TransactionEntity,
     value:
-      | Parameters<
-          Extract<ModalType, { name: 'edit-field' }>['options']['onSubmit']
-        >[1]
+      | Parameters<Extract<ModalType, {name: 'edit-field'}>['options']['onSubmit']>[1]
       | boolean
       | null,
-    mode: Parameters<
-      Extract<ModalType, { name: 'edit-field' }>['options']['onSubmit']
-    >[2],
+    mode: Parameters<Extract<ModalType, {name: 'edit-field'}>['options']['onSubmit']>[2],
   ) => void;
 };
 
@@ -80,10 +70,7 @@ type BatchDeleteProps = {
 type BatchLinkScheduleProps = {
   ids: Array<TransactionEntity['id']>;
   account?: AccountEntity | undefined;
-  onSuccess?: (
-    ids: Array<TransactionEntity['id']>,
-    schedule: ScheduleEntity,
-  ) => void;
+  onSuccess?: (ids: Array<TransactionEntity['id']>, schedule: ScheduleEntity) => void;
 };
 
 type BatchUnlinkScheduleProps = {
@@ -93,14 +80,14 @@ type BatchUnlinkScheduleProps = {
 
 export function useTransactionBatchActions() {
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
-  const onBatchEdit = async ({ name, ids, onSuccess }: BatchEditProps) => {
-    const { data } = await aqlQuery(
+  const onBatchEdit = async ({name, ids, onSuccess}: BatchEditProps) => {
+    const {data} = await aqlQuery(
       q('transactions')
-        .filter({ id: { $oneof: ids } })
+        .filter({id: {$oneof: ids}})
         .select('*')
-        .options({ splits: 'grouped' }),
+        .options({splits: 'grouped'}),
     );
     const transactions = ungroupTransactions(data as TransactionEntity[]);
 
@@ -143,11 +130,9 @@ export function useTransactionBatchActions() {
 
         if (name === 'notes') {
           if (mode === 'prepend') {
-            valueToSet =
-              trans.notes === null ? value : `${String(value)}${trans.notes}`;
+            valueToSet = trans.notes === null ? value : `${String(value)}${trans.notes}`;
           } else if (mode === 'append') {
-            valueToSet =
-              trans.notes === null ? value : `${trans.notes}${String(value)}`;
+            valueToSet = trans.notes === null ? value : `${trans.notes}${String(value)}`;
           } else if (mode === 'replace') {
             valueToSet = value;
           } else if (
@@ -155,12 +140,7 @@ export function useTransactionBatchActions() {
             typeof value === 'object' &&
             'useRegex' in value
           ) {
-            valueToSet = applyFindReplace(
-              trans.notes,
-              value.find,
-              value.replace,
-              value.useRegex,
-            );
+            valueToSet = applyFindReplace(trans.notes, value.find, value.replace, value.useRegex);
           }
         }
         const transaction = {
@@ -172,26 +152,17 @@ export function useTransactionBatchActions() {
           transaction.reconciled = false;
         }
 
-        const { diff } = updateTransaction(transactionsToChange, transaction);
+        const {diff} = updateTransaction(transactionsToChange, transaction);
 
         // TODO: We need to keep an updated list of transactions so
         // the logic in `updateTransaction`, particularly about
         // updating split transactions, works. This isn't ideal and we
         // should figure something else out
-        transactionsToChange = applyChanges<TransactionEntity>(
-          diff,
-          transactionsToChange,
-        );
+        transactionsToChange = applyChanges<TransactionEntity>(diff, transactionsToChange);
 
-        changes.deleted = changes.deleted
-          ? changes.deleted.concat(diff.deleted)
-          : diff.deleted;
-        changes.updated = changes.updated
-          ? changes.updated.concat(diff.updated)
-          : diff.updated;
-        changes.added = changes.added
-          ? changes.added.concat(diff.added)
-          : diff.added;
+        changes.deleted = changes.deleted ? changes.deleted.concat(diff.deleted) : diff.deleted;
+        changes.updated = changes.updated ? changes.updated.concat(diff.updated) : diff.updated;
+        changes.added = changes.added ? changes.added.concat(diff.added) : diff.added;
       });
 
       await send('transactions-batch-update', changes);
@@ -250,9 +221,7 @@ export function useTransactionBatchActions() {
         : null;
       const transactionsHaveSameMonth =
         transactionMonth &&
-        transactions.every(
-          t => monthUtils.monthFromDate(t.date) === transactionMonth,
-        );
+        transactions.every(t => monthUtils.monthFromDate(t.date) === transactionMonth);
       dispatch(
         pushModal({
           modal: {
@@ -283,29 +252,20 @@ export function useTransactionBatchActions() {
       }
     };
 
-    if (
-      name === 'amount' ||
-      name === 'payee' ||
-      name === 'account' ||
-      name === 'date'
-    ) {
-      await checkForReconciledTransactions(
-        ids,
-        'batchEditWithReconciled',
-        openFieldEditor,
-      );
+    if (name === 'amount' || name === 'payee' || name === 'account' || name === 'date') {
+      await checkForReconciledTransactions(ids, 'batchEditWithReconciled', openFieldEditor);
     } else {
       openFieldEditor();
     }
   };
 
-  const onBatchDuplicate = async ({ ids, onSuccess }: BatchDuplicateProps) => {
+  const onBatchDuplicate = async ({ids, onSuccess}: BatchDuplicateProps) => {
     const onConfirmDuplicate = async (ids: Array<TransactionEntity['id']>) => {
-      const { data } = await aqlQuery(
+      const {data} = await aqlQuery(
         q('transactions')
-          .filter({ id: { $oneof: ids } })
+          .filter({id: {$oneof: ids}})
           .select('*')
-          .options({ splits: 'grouped' }),
+          .options({splits: 'grouped'}),
       );
 
       const transactions = data as TransactionEntity[];
@@ -333,7 +293,7 @@ export function useTransactionBatchActions() {
     await onConfirmDuplicate(ids);
   };
 
-  const onBatchDelete = async ({ ids, onSuccess }: BatchDeleteProps) => {
+  const onBatchDelete = async ({ids, onSuccess}: BatchDeleteProps) => {
     const onConfirmDelete = (ids: Array<TransactionEntity['id']>) => {
       dispatch(
         pushModal({
@@ -342,21 +302,18 @@ export function useTransactionBatchActions() {
             options: {
               message:
                 ids.length > 1
-                  ? t(
-                      'Are you sure you want to delete these {{count}} transactions?',
-                      { count: ids.length },
-                    )
+                  ? t('Are you sure you want to delete these {{count}} transactions?', {
+                      count: ids.length,
+                    })
                   : t('Are you sure you want to delete the transaction?'),
               onConfirm: async () => {
-                const { data } = await aqlQuery(
+                const {data} = await aqlQuery(
                   q('transactions')
-                    .filter({ id: { $oneof: ids } })
+                    .filter({id: {$oneof: ids}})
                     .select('*')
-                    .options({ splits: 'grouped' }),
+                    .options({splits: 'grouped'}),
                 );
-                let transactions = ungroupTransactions(
-                  data as TransactionEntity[],
-                );
+                let transactions = ungroupTransactions(data as TransactionEntity[]);
 
                 const idSet = new Set(ids);
                 const changes: Diff<TransactionEntity> = {
@@ -371,23 +328,17 @@ export function useTransactionBatchActions() {
                   // First, check if we're actually deleting this transaction by
                   // checking `idSet`. Then, we don't need to do anything if it's
                   // a child transaction and the parent is already being deleted
-                  if (
-                    !idSet.has(trans.id) ||
-                    (parentId && idSet.has(parentId))
-                  ) {
+                  if (!idSet.has(trans.id) || (parentId && idSet.has(parentId))) {
                     return;
                   }
 
-                  const { diff } = deleteTransaction(transactions, trans.id);
+                  const {diff} = deleteTransaction(transactions, trans.id);
 
                   // TODO: We need to keep an updated list of transactions so
                   // the logic in `updateTransaction`, particularly about
                   // updating split transactions, works. This isn't ideal and we
                   // should figure something else out
-                  transactions = applyChanges<TransactionEntity>(
-                    diff,
-                    transactions,
-                  );
+                  transactions = applyChanges<TransactionEntity>(diff, transactions);
 
                   changes.deleted = diff.deleted
                     ? changes.deleted.concat(diff.deleted)
@@ -406,23 +357,15 @@ export function useTransactionBatchActions() {
       );
     };
 
-    await checkForReconciledTransactions(
-      ids,
-      'batchDeleteWithReconciled',
-      onConfirmDelete,
-    );
+    await checkForReconciledTransactions(ids, 'batchDeleteWithReconciled', onConfirmDelete);
   };
 
-  const onBatchLinkSchedule = async ({
-    ids,
-    account,
-    onSuccess,
-  }: BatchLinkScheduleProps) => {
-    const { data: transactions } = await aqlQuery(
+  const onBatchLinkSchedule = async ({ids, account, onSuccess}: BatchLinkScheduleProps) => {
+    const {data: transactions} = await aqlQuery(
       q('transactions')
-        .filter({ id: { $oneof: ids } })
+        .filter({id: {$oneof: ids}})
         .select('*')
-        .options({ splits: 'grouped' }),
+        .options({splits: 'grouped'}),
     );
 
     dispatch(
@@ -443,23 +386,15 @@ export function useTransactionBatchActions() {
     );
   };
 
-  const onBatchUnlinkSchedule = async ({
-    ids,
-    onSuccess,
-  }: BatchUnlinkScheduleProps) => {
+  const onBatchUnlinkSchedule = async ({ids, onSuccess}: BatchUnlinkScheduleProps) => {
     const changes = {
-      updated: ids.map(
-        id => ({ id, schedule: null }) as unknown as Partial<TransactionEntity>,
-      ),
+      updated: ids.map(id => ({id, schedule: null}) as unknown as Partial<TransactionEntity>),
     };
     await send('transactions-batch-update', changes);
     onSuccess?.(ids);
   };
 
-  const transferReasonMap: Record<
-    BatchReconciledReason,
-    ConfirmTransactionEditReason
-  > = {
+  const transferReasonMap: Record<BatchReconciledReason, ConfirmTransactionEditReason> = {
     batchDeleteWithReconciled: 'batchDeleteWithReconciledTransfer',
     batchEditWithReconciled: 'batchEditWithReconciledTransfer',
   };
@@ -469,11 +404,11 @@ export function useTransactionBatchActions() {
     confirmReason: BatchReconciledReason,
     onConfirm: (ids: Array<TransactionEntity['id']>) => void,
   ) => {
-    const { data } = await aqlQuery(
+    const {data} = await aqlQuery(
       q('transactions')
-        .filter({ id: { $oneof: ids }, reconciled: true })
+        .filter({id: {$oneof: ids}, reconciled: true})
         .select('*')
-        .options({ splits: 'grouped' }),
+        .options({splits: 'grouped'}),
     );
     const transactions = ungroupTransactions(data as TransactionEntity[]);
 
@@ -495,9 +430,9 @@ export function useTransactionBatchActions() {
     }
 
     // check paired transfer transactions
-    const { data: selectedData } = await aqlQuery(
+    const {data: selectedData} = await aqlQuery(
       q('transactions')
-        .filter({ id: { $oneof: ids } })
+        .filter({id: {$oneof: ids}})
         .select(['transfer_id']),
     );
 
@@ -506,9 +441,9 @@ export function useTransactionBatchActions() {
       .filter((id): id is string => id != null);
 
     if (transferIds.length > 0) {
-      const { data: reconciledTransfers } = await aqlQuery(
+      const {data: reconciledTransfers} = await aqlQuery(
         q('transactions')
-          .filter({ id: { $oneof: transferIds }, reconciled: true })
+          .filter({id: {$oneof: transferIds}, reconciled: true})
           .select('*'),
       );
 
@@ -539,17 +474,15 @@ export function useTransactionBatchActions() {
     onSuccess: (ids: string[]) => void,
   ) => {
     const onConfirmTransfer = async (ids: string[]) => {
-      const { data: transactions } = await aqlQuery(
+      const {data: transactions} = await aqlQuery(
         q('transactions')
-          .filter({ id: { $oneof: ids } })
+          .filter({id: {$oneof: ids}})
           .select('*'),
       );
       const [fromTrans, toTrans] = transactions;
 
       if (transactions.length === 2 && validForTransfer(fromTrans, toTrans)) {
-        const fromPayee = payees.find(
-          p => p.transfer_acct === fromTrans.account,
-        );
+        const fromPayee = payees.find(p => p.transfer_acct === fromTrans.account);
         const toPayee = payees.find(p => p.transfer_acct === toTrans.account);
 
         const changes = {
@@ -576,17 +509,13 @@ export function useTransactionBatchActions() {
       onSuccess?.(ids);
     };
 
-    await checkForReconciledTransactions(
-      ids,
-      'batchEditWithReconciled',
-      onConfirmTransfer,
-    );
+    await checkForReconciledTransactions(ids, 'batchEditWithReconciled', onConfirmTransfer);
   };
 
   const onMerge = async (ids: string[], onSuccess: () => void) => {
     await send(
       'transactions-merge',
-      ids.map(id => ({ id })),
+      ids.map(id => ({id})),
     );
     onSuccess();
   };

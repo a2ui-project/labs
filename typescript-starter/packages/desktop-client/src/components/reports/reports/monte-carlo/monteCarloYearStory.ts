@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { TFunction } from 'i18next';
+import type {TFunction} from 'i18next';
 
 import type {
   MonteCarloRuleExplanation,
@@ -60,12 +60,7 @@ export function buildMonteCarloYearStory({
 
   const ruleSentence =
     row.ruleExplanation != null
-      ? getRuleDecisionSentence(
-          row.ruleExplanation,
-          withdrawalRule,
-          format,
-          translate,
-        )
+      ? getRuleDecisionSentence(row.ruleExplanation, withdrawalRule, format, translate)
       : null;
   if (ruleSentence != null) {
     sentences.push(ruleSentence);
@@ -75,26 +70,16 @@ export function buildMonteCarloYearStory({
     const planned = format(row.plannedSpending, 'financial');
     sentences.push(
       ruleSentence != null
-        ? translate(
-            'The minimum spending floor then lifted it to {{planned}}.',
-            { planned },
-          )
-        : translate(
-            "The minimum spending floor set this year's spending at {{planned}}.",
-            { planned },
-          ),
+        ? translate('The minimum spending floor then lifted it to {{planned}}.', {planned})
+        : translate("The minimum spending floor set this year's spending at {{planned}}.", {
+            planned,
+          }),
     );
   }
 
   sentences.push(...getFundingSentences(row, format, translate));
 
-  const surplusSentence = getSurplusSentence(
-    row,
-    surplusPotName,
-    hasSurplusPot,
-    format,
-    translate,
-  );
+  const surplusSentence = getSurplusSentence(row, surplusPotName, hasSurplusPot, format, translate);
   if (surplusSentence != null) {
     sentences.push(surplusSentence);
   }
@@ -102,10 +87,7 @@ export function buildMonteCarloYearStory({
   return sentences;
 }
 
-function getRuleName(
-  rule: 'guardrails' | 'ratcheting' | 'boundaries',
-  translate: TFunction,
-) {
+function getRuleName(rule: 'guardrails' | 'ratcheting' | 'boundaries', translate: TFunction) {
   if (rule === 'guardrails') {
     return translate('Guardrails');
   }
@@ -131,9 +113,7 @@ function getRuleDecisionSentence(
   if (explanation.kind === 'floor-ceiling') {
     const values = {
       amount: format(
-        explanation.applied === 'floor'
-          ? explanation.floor
-          : explanation.ceiling,
+        explanation.applied === 'floor' ? explanation.floor : explanation.ceiling,
         'financial',
       ),
       unclamped: format(explanation.unclamped, 'financial'),
@@ -170,7 +150,7 @@ function getRuleDecisionSentence(
     }
     return translate(
       "{{rule}} cut this year's spending from {{planned}} to {{adjusted}} because the withdrawal rate had climbed too far above the plan.",
-      { rule, planned, adjusted },
+      {rule, planned, adjusted},
     );
   }
   if (explanation.action === 'raise') {
@@ -199,13 +179,13 @@ function getRuleDecisionSentence(
     }
     return translate(
       "{{rule}} raised this year's spending from {{planned}} to {{adjusted}} because the withdrawal rate had fallen well below the plan.",
-      { rule, planned, adjusted },
+      {rule, planned, adjusted},
     );
   }
   if (explanation.factor !== 1) {
     return translate(
       "Earlier {{rule}} changes still applied, so this year's spending was {{adjusted}} instead of the {{planned}} planned.",
-      { rule, planned, adjusted },
+      {rule, planned, adjusted},
     );
   }
   return null;
@@ -222,15 +202,14 @@ function getFundingSentences(
     const sentences = [
       translate(
         'Only {{spent}} of the {{planned}} planned could be funded - the plan ran out of accessible money here.',
-        { spent, planned: format(row.plannedSpending, 'financial') },
+        {spent, planned: format(row.plannedSpending, 'financial')},
       ),
     ];
     if (row.inaccessibleBalance != null) {
       sentences.push(
-        translate(
-          '{{amount}} was still locked in pots that had not reached their access age.',
-          { amount: format(row.inaccessibleBalance, 'financial') },
-        ),
+        translate('{{amount}} was still locked in pots that had not reached their access age.', {
+          amount: format(row.inaccessibleBalance, 'financial'),
+        }),
       );
     }
     return sentences;
@@ -242,7 +221,7 @@ function getFundingSentences(
       return [
         translate(
           'Income covered all of the {{spent}} spent, so nothing had to come from the pots.',
-          { spent },
+          {spent},
         ),
       ];
     }
@@ -255,7 +234,7 @@ function getFundingSentences(
       return [
         translate(
           'The {{netIncome}} income all went into contributions, so the {{spent}} spent came from the pots.',
-          { netIncome: format(netIncome, 'financial'), spent },
+          {netIncome: format(netIncome, 'financial'), spent},
         ),
       ];
     }
@@ -274,13 +253,11 @@ function getFundingSentences(
     return [
       translate(
         'Income covered {{fromIncome}} of the {{spent}} spent; withdrawals covered the rest.',
-        { fromIncome: format(fromIncome, 'financial'), spent },
+        {fromIncome: format(fromIncome, 'financial'), spent},
       ),
     ];
   }
-  return [
-    translate('Spent {{spent}} as planned, funded from the pots.', { spent }),
-  ];
+  return [translate('Spent {{spent}} as planned, funded from the pots.', {spent})];
 }
 
 // Where money the plan didn't spend ended up; null when there was none
@@ -292,16 +269,15 @@ function getSurplusSentence(
   translate: TFunction,
 ): string | null {
   if (hasSurplusPot && row.surplusSaved > 0) {
-    return translate(
-      '{{unspent}} of income beyond the plan was saved into {{pot}}.',
-      { pot: surplusPotName, unspent: format(row.surplusSaved, 'financial') },
-    );
+    return translate('{{unspent}} of income beyond the plan was saved into {{pot}}.', {
+      pot: surplusPotName,
+      unspent: format(row.surplusSaved, 'financial'),
+    });
   }
   if (row.unspentIncome > 0) {
-    return translate(
-      '{{unspent}} of income beyond the plan went unspent and left the plan.',
-      { unspent: format(row.unspentIncome, 'financial') },
-    );
+    return translate('{{unspent}} of income beyond the plan went unspent and left the plan.', {
+      unspent: format(row.unspentIncome, 'financial'),
+    });
   }
   return null;
 }

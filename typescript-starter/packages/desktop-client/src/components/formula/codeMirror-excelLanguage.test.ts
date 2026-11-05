@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { getFormulaStringCompletionEdit } from './codeMirror-excelLanguage';
+import {getFormulaStringCompletionEdit} from './codeMirror-excelLanguage';
 
 describe('getFormulaStringCompletionEdit', () => {
   it('completes formula string values with or without existing quotes', () => {
@@ -26,7 +26,7 @@ describe('getFormulaStringCompletionEdit', () => {
         hasOpeningQuote: false,
         hasClosingQuote: false,
       }),
-    ).toEqual({ text: '"spent"', offsetClosingQuote: 0 });
+    ).toEqual({text: '"spent"', offsetClosingQuote: 0});
 
     expect(
       getFormulaStringCompletionEdit({
@@ -34,7 +34,7 @@ describe('getFormulaStringCompletionEdit', () => {
         hasOpeningQuote: true,
         hasClosingQuote: false,
       }),
-    ).toEqual({ text: 'spent"', offsetClosingQuote: 0 });
+    ).toEqual({text: 'spent"', offsetClosingQuote: 0});
 
     expect(
       getFormulaStringCompletionEdit({
@@ -42,6 +42,6 @@ describe('getFormulaStringCompletionEdit', () => {
         hasOpeningQuote: true,
         hasClosingQuote: true,
       }),
-    ).toEqual({ text: 'spent"', offsetClosingQuote: 1 });
+    ).toEqual({text: 'spent"', offsetClosingQuote: 1});
   });
 });

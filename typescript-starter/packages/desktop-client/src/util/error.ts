@@ -14,51 +14,39 @@
  * limitations under the License.
  */
 
-import {
-  getUnsafeZipMeta,
-  isDatabaseSchemaMismatch,
-  toMB,
-} from '@actual-app/core/shared/errors';
-import type { UnsafeZipMeta } from '@actual-app/core/shared/errors';
-import { t } from 'i18next';
+import {getUnsafeZipMeta, isDatabaseSchemaMismatch, toMB} from '@actual-app/core/shared/errors';
+import type {UnsafeZipMeta} from '@actual-app/core/shared/errors';
+import {t} from 'i18next';
 
 type ErrorWithMeta = {
   reason: string;
   meta?: unknown;
 };
 
-export function getUnsafeZipError({
-  zipReason,
-  entryName,
-  maxSize,
-}: UnsafeZipMeta): string {
+export function getUnsafeZipError({zipReason, entryName, maxSize}: UnsafeZipMeta): string {
   const maxSizeMB = toMB(maxSize);
   switch (zipReason) {
     case 'archive-size':
       return t(
         'This file is larger than the maximum supported size of {{maxSizeMB}} MB, sorry! Visit https://actualbudget.org/contact/ for support.',
-        { maxSizeMB },
+        {maxSizeMB},
       );
     case 'entry-size':
       return t(
         'The file "{{entryName}}" in this archive is larger than the maximum supported size of {{maxSizeMB}} MB, sorry! Visit https://actualbudget.org/contact/ for support.',
-        { entryName, maxSizeMB },
+        {entryName, maxSizeMB},
       );
     case 'total-size':
       return t(
         'The uncompressed contents of this archive are larger than the maximum supported size of {{maxSizeMB}} MB, sorry! Visit https://actualbudget.org/contact/ for support.',
-        { maxSizeMB },
+        {maxSizeMB},
       );
     case 'unsafe-entry-name':
-      return t(
-        'This archive contains an entry with an unsafe file name: "{{entryName}}".',
-        { entryName },
-      );
+      return t('This archive contains an entry with an unsafe file name: "{{entryName}}".', {
+        entryName,
+      });
     case 'duplicate-entry':
-      return t(
-        'This archive contains more than one entry named "{{entryName}}".',
-        { entryName },
-      );
+      return t('This archive contains more than one entry named "{{entryName}}".', {entryName});
     default:
       return t(
         'This file could not be imported, sorry! Visit https://actualbudget.org/contact/ for support.',
@@ -66,17 +54,12 @@ export function getUnsafeZipError({
   }
 }
 
-export function getUploadError({ reason, meta }: ErrorWithMeta) {
+export function getUploadError({reason, meta}: ErrorWithMeta) {
   switch (reason) {
     case 'unauthorized':
       return t('You are not logged in.');
     case 'encrypt-failure':
-      if (
-        meta != null &&
-        typeof meta === 'object' &&
-        'isMissingKey' in meta &&
-        meta.isMissingKey
-      ) {
+      if (meta != null && typeof meta === 'object' && 'isMissingKey' in meta && meta.isMissingKey) {
         return t(
           'Encrypting your file failed because you are missing your encryption key. Create your key in the next step.',
         );
@@ -88,9 +71,7 @@ export function getUploadError({ reason, meta }: ErrorWithMeta) {
       // Something really weird happened - during reset a sanity
       // check on the server failed. The user just needs to
       // restart the whole process.
-      return t(
-        'Something went wrong while resetting your file. Please try again.',
-      );
+      return t('Something went wrong while resetting your file. Please try again.');
     case 'file-has-new-key':
       return t(
         'Unable to encrypt your data because you are missing the key. Create the latest key in the next step.',
@@ -100,7 +81,7 @@ export function getUploadError({ reason, meta }: ErrorWithMeta) {
     default:
       return t(
         'An internal error occurred, sorry! Visit https://actualbudget.org/contact/ for support. (ref: {{reason}})',
-        { reason },
+        {reason},
       );
   }
 }
@@ -146,7 +127,7 @@ export function getDownloadError({
     case 'decrypt-failure':
       return t(
         'Unable to decrypt file {{fileName}}. To change your key, first download this file with the proper password.',
-        { fileName: fileName || t('(unknown)') },
+        {fileName: fileName || t('(unknown)')},
       );
 
     case 'out-of-sync-migrations':
@@ -166,7 +147,7 @@ export function getDownloadError({
           : '';
       return t(
         'Something went wrong trying to download that file, sorry! Visit https://actualbudget.org/contact/ for support. reason: {{reason}}{{info}}',
-        { reason, info },
+        {reason, info},
       );
     }
   }
@@ -176,7 +157,7 @@ export function getCreateKeyError(error: ErrorWithMeta) {
   return getUploadError(error);
 }
 
-export function getTestKeyError({ reason }: ErrorWithMeta) {
+export function getTestKeyError({reason}: ErrorWithMeta) {
   switch (reason) {
     case 'network':
       return t(
@@ -201,14 +182,14 @@ export function getSyncError(error: string, id: string) {
   } else if (error === 'budget-not-found') {
     return t(
       'Budget "{{id}}" not found. Check the ID of your budget in the Advanced section of the settings page.',
-      { id },
+      {id},
     );
   } else if (error === 'clock-drift') {
     return t(
       'Failed to sync because your device time differs too much from the server. Please check your device time settings and ensure they are correct.',
     );
   } else {
-    return t('We had an unknown problem opening "{{id}}".', { id });
+    return t('We had an unknown problem opening "{{id}}".', {id});
   }
 }
 
@@ -229,7 +210,7 @@ export function getUserAccessErrors(reason: string) {
     default:
       return t(
         'An internal error occurred, sorry! Visit https://actualbudget.org/contact/ for support. (ref: {{reason}})',
-        { reason },
+        {reason},
       );
   }
 }
@@ -241,10 +222,9 @@ export function getSecretsError(error: string, reason: string) {
     case 'not-admin':
       return t('You have to be admin to set secrets');
     default:
-      return t(
-        'An error occurred while setting the secret. Please try again. (ref: {{error}})',
-        { error },
-      );
+      return t('An error occurred while setting the secret. Please try again. (ref: {{error}})', {
+        error,
+      });
   }
 }
 
@@ -255,13 +235,11 @@ export function getOpenIdErrors(reason: string) {
     case 'configuration-error':
       return t('This configuration is not valid. Please check it again.');
     case 'unable-to-change-file-config-enabled':
-      return t(
-        'Unable to enable OpenID. Please update the config.json file in this case.',
-      );
+      return t('Unable to enable OpenID. Please update the config.json file in this case.');
     default:
       return t(
         'An internal error occurred, sorry! Visit https://actualbudget.org/contact/ for support. (ref: {{reason}})',
-        { reason },
+        {reason},
       );
   }
 }

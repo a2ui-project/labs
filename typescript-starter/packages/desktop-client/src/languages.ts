@@ -14,7 +14,4 @@
  * limitations under the License.
  */
 
-export const languages = import.meta.glob([
-  '/locale/*.json',
-  '!/locale/*_old.json',
-]);
+export const languages = import.meta.glob(['/locale/*.json', '!/locale/*_old.json']);

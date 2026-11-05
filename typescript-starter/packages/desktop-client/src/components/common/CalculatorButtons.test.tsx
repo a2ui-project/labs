@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import React, { useRef, useState } from 'react';
+import React, {useRef, useState} from 'react';
 
-import { evalArithmetic } from '@actual-app/core/shared/arithmetic';
-import { fireEvent, render, screen } from '@testing-library/react';
+import {evalArithmetic} from '@actual-app/core/shared/arithmetic';
+import {fireEvent, render, screen} from '@testing-library/react';
 
-import { CalculatorButtons } from './CalculatorButtons';
+import {CalculatorButtons} from './CalculatorButtons';
 
-function TestCalculator({ initialValue = '' }: { initialValue?: string }) {
+function TestCalculator({initialValue = ''}: {initialValue?: string}) {
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -54,29 +54,29 @@ describe('CalculatorButtons', () => {
 
     input.focus();
 
-    fireEvent.click(screen.getByRole('button', { name: '1' }));
-    fireEvent.click(screen.getByRole('button', { name: '2' }));
-    fireEvent.click(screen.getByRole('button', { name: '+' }));
-    fireEvent.click(screen.getByRole('button', { name: '3' }));
+    fireEvent.click(screen.getByRole('button', {name: '1'}));
+    fireEvent.click(screen.getByRole('button', {name: '2'}));
+    fireEvent.click(screen.getByRole('button', {name: '+'}));
+    fireEvent.click(screen.getByRole('button', {name: '3'}));
     expect(input).toHaveValue('12+3');
     expect(input).toHaveFocus();
     expect(input).toHaveProperty('selectionStart', '12+3'.length);
     expect(input).toHaveProperty('selectionEnd', '12+3'.length);
 
-    fireEvent.click(screen.getByRole('button', { name: '\u232B' }));
+    fireEvent.click(screen.getByRole('button', {name: '\u232B'}));
     expect(input).toHaveValue('12+');
     expect(input).toHaveFocus();
     expect(input).toHaveProperty('selectionStart', '12+'.length);
     expect(input).toHaveProperty('selectionEnd', '12+'.length);
 
-    fireEvent.click(screen.getByRole('button', { name: '3' }));
-    fireEvent.click(screen.getByRole('button', { name: '=' }));
+    fireEvent.click(screen.getByRole('button', {name: '3'}));
+    fireEvent.click(screen.getByRole('button', {name: '='}));
     expect(input).toHaveValue('15');
     expect(input).toHaveFocus();
     expect(input).toHaveProperty('selectionStart', '15'.length);
     expect(input).toHaveProperty('selectionEnd', '15'.length);
 
-    fireEvent.click(screen.getByRole('button', { name: 'AC' }));
+    fireEvent.click(screen.getByRole('button', {name: 'AC'}));
     expect(input).toHaveValue('');
     expect(input).toHaveFocus();
     expect(input).toHaveProperty('selectionStart', 0);
@@ -95,20 +95,20 @@ describe('CalculatorButtons', () => {
     input.focus();
     input.setSelectionRange(1, 1);
 
-    fireEvent.click(screen.getByRole('button', { name: '0' }));
+    fireEvent.click(screen.getByRole('button', {name: '0'}));
     expect(input).toHaveValue('1023');
     expect(input).toHaveFocus();
     expect(input).toHaveProperty('selectionStart', 2);
     expect(input).toHaveProperty('selectionEnd', 2);
 
-    fireEvent.click(screen.getByRole('button', { name: '\u232B' }));
+    fireEvent.click(screen.getByRole('button', {name: '\u232B'}));
     expect(input).toHaveValue('123');
     expect(input).toHaveFocus();
     expect(input).toHaveProperty('selectionStart', 1);
     expect(input).toHaveProperty('selectionEnd', 1);
 
     input.setSelectionRange(1, 3);
-    fireEvent.click(screen.getByRole('button', { name: '9' }));
+    fireEvent.click(screen.getByRole('button', {name: '9'}));
     expect(input).toHaveValue('19');
     expect(input).toHaveFocus();
     expect(input).toHaveProperty('selectionStart', 2);
@@ -128,21 +128,21 @@ describe('CalculatorButtons', () => {
     input.setSelectionRange(input.value.length, input.value.length);
     input.blur();
 
-    fireEvent.click(screen.getByRole('button', { name: '3' }));
+    fireEvent.click(screen.getByRole('button', {name: '3'}));
 
     expect(input).toHaveValue('1+23');
     expect(input).toHaveFocus();
 
     input.blur();
 
-    fireEvent.click(screen.getByRole('button', { name: '=' }));
+    fireEvent.click(screen.getByRole('button', {name: '='}));
 
     expect(input).toHaveValue('24');
     expect(input).toHaveFocus();
 
     input.blur();
 
-    fireEvent.click(screen.getByRole('button', { name: 'AC' }));
+    fireEvent.click(screen.getByRole('button', {name: 'AC'}));
 
     expect(input).toHaveValue('');
     expect(input).toHaveFocus();

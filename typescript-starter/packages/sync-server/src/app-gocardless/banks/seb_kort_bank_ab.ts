@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { amountToInteger } from '#app-gocardless/utils';
+import {amountToInteger} from '#app-gocardless/utils';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -53,7 +53,7 @@ export default {
    * Sign of transaction amount needs to be flipped for SEB credit cards
    */
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     // Creditor name is stored in additionInformation for SEB
     editedTrans.creditorName = transaction.additionalInformation;
@@ -76,13 +76,9 @@ export default {
    *  holds the remaining credit limit.
    */
   calculateStartingBalance(sortedTransactions = [], balances = []) {
-    const currentBalance = balances.find(
-      balance => 'expected' === balance.balanceType,
-    );
+    const currentBalance = balances.find(balance => 'expected' === balance.balanceType);
 
-    const nonInvoiced = balances.find(
-      balance => 'nonInvoiced' === balance.balanceType,
-    );
+    const nonInvoiced = balances.find(balance => 'nonInvoiced' === balance.balanceType);
 
     return sortedTransactions.reduce(
       (total, trans) => {

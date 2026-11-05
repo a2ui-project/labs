@@ -15,33 +15,23 @@
  */
 
 // @ts-strict-ignore
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 import * as asyncStorage from '#platform/server/asyncStorage';
-import { fetch } from '#platform/server/fetch';
+import {fetch} from '#platform/server/fetch';
 import * as fs from '#platform/server/fs';
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 import * as memory from '#platform/server/memory';
 import * as sqlite from '#platform/server/sqlite';
 import * as monthUtils from '#shared/months';
 
 import * as encryption from './encryption';
-import {
-  FileDownloadError,
-  FileUploadError,
-  HTTPError,
-  PostError,
-} from './errors';
-import { runMutator } from './mutators';
-import { getServerErrorReason, post } from './post';
+import {FileDownloadError, FileUploadError, HTTPError, PostError} from './errors';
+import {runMutator} from './mutators';
+import {getServerErrorReason, post} from './post';
 import * as prefs from './prefs';
-import { getServer } from './server-config';
-import {
-  exceedsSafeUnzipLimits,
-  safeUnzip,
-  safeZip,
-  UnsafeZipError,
-} from './util/zip';
+import {getServer} from './server-config';
+import {exceedsSafeUnzipLimits, safeUnzip, safeZip, UnsafeZipError} from './util/zip';
 
 const UPLOAD_FREQUENCY_IN_DAYS = 7;
 
@@ -91,11 +81,11 @@ async function fetchJSON(...args: Parameters<typeof fetch>) {
 
 export async function checkKey(): Promise<{
   valid: boolean;
-  error?: { reason: string };
+  error?: {reason: string};
 }> {
   const userToken = await asyncStorage.getItem('user-token');
 
-  const { cloudFileId, encryptKeyId } = prefs.getPrefs();
+  const {cloudFileId, encryptKeyId} = prefs.getPrefs();
 
   let res;
   try {
@@ -105,22 +95,21 @@ export async function checkKey(): Promise<{
     });
   } catch (e) {
     logger.log(e);
-    return { valid: false, error: { reason: 'network' } };
+    return {valid: false, error: {reason: 'network'}};
   }
 
   return {
     valid:
       // This == comparison is important, they could be null or undefined
       // oxlint-disable-next-line eslint/eqeqeq
-      res.id == encryptKeyId &&
-      (encryptKeyId == null || encryption.hasKey(encryptKeyId)),
+      res.id == encryptKeyId && (encryptKeyId == null || encryption.hasKey(encryptKeyId)),
   };
 }
 
 export async function resetSyncState(newKeyState) {
   const userToken = await asyncStorage.getItem('user-token');
 
-  const { cloudFileId } = prefs.getPrefs();
+  const {cloudFileId} = prefs.getPrefs();
 
   try {
     await post(getServer().SYNC_SERVER + '/reset-user-file', {
@@ -135,7 +124,7 @@ export async function resetSyncState(newKeyState) {
         },
       };
     }
-    return { error: { reason: 'internal' } };
+    return {error: {reason: 'internal'}};
   }
 
   if (newKeyState) {
@@ -149,9 +138,9 @@ export async function resetSyncState(newKeyState) {
       });
     } catch (e) {
       if (e instanceof PostError) {
-        return { error: { reason: 'network' } };
+        return {error: {reason: 'network'}};
       }
-      return { error: { reason: 'internal' } };
+      return {error: {reason: 'internal'}};
     }
   }
 
@@ -159,7 +148,7 @@ export async function resetSyncState(newKeyState) {
 }
 
 export async function exportBuffer() {
-  const { id, budgetName } = prefs.getPrefs();
+  const {id, budgetName} = prefs.getPrefs();
   if (!budgetName) {
     return null;
   }
@@ -170,11 +159,8 @@ export async function exportBuffer() {
   // because we are reading the sqlite file from disk. We want to make
   // sure that we get a valid snapshot of it so we want this to be
   // serialized with all other mutations.
-  const { zipped, entries } = await runMutator(async () => {
-    const rawDbContent = await fs.readFile(
-      fs.join(budgetDir, 'db.sqlite'),
-      'binary',
-    );
+  const {zipped, entries} = await runMutator(async () => {
+    const rawDbContent = await fs.readFile(fs.join(budgetDir, 'db.sqlite'), 'binary');
 
     // Do some post-processing of the database. We NEVER upload the cache with
     // the database; this forces new downloads to always recompute everything
@@ -194,9 +180,7 @@ export async function exportBuffer() {
 
     // mark it as a file that needs a new clock so when a new client
     // downloads it, it'll get set to a unique node
-    const meta = JSON.parse(
-      await fs.readFile(fs.join(budgetDir, 'metadata.json')),
-    );
+    const meta = JSON.parse(await fs.readFile(fs.join(budgetDir, 'metadata.json')));
 
     meta.resetClock = true;
     const metaContent = Buffer.from(JSON.stringify(meta), 'utf8');
@@ -206,7 +190,7 @@ export async function exportBuffer() {
       'metadata.json': metaContent,
     };
 
-    return { zipped: safeZip(entries), entries };
+    return {zipped: safeZip(entries), entries};
   });
 
   const warnings: string[] = [];
@@ -215,14 +199,11 @@ export async function exportBuffer() {
   }
 
   const availableMemory = memory.getAvailableMemory();
-  if (
-    availableMemory != null &&
-    entries['db.sqlite'].length > availableMemory
-  ) {
+  if (availableMemory != null && entries['db.sqlite'].length > availableMemory) {
     warnings.push('may-exceed-available-memory');
   }
 
-  return { data: Buffer.from(zipped), warnings };
+  return {data: Buffer.from(zipped), warnings};
 }
 
 export async function importBuffer(fileData, buffer) {
@@ -246,11 +227,7 @@ export async function importBuffer(fileData, buffer) {
   // Both files must come from the same directory: prefer the archive root,
   // otherwise there must be exactly one directory containing both.
   const sharedDirs = dbDirs.filter(dir => metaDirs.includes(dir));
-  const dir = sharedDirs.includes('')
-    ? ''
-    : sharedDirs.length === 1
-      ? sharedDirs[0]
-      : null;
+  const dir = sharedDirs.includes('') ? '' : sharedDirs.length === 1 ? sharedDirs[0] : null;
 
   if (dir == null) {
     throw FileDownloadError('invalid-zip-file');
@@ -299,7 +276,7 @@ export async function importBuffer(fileData, buffer) {
   await fs.writeFile(fs.join(budgetDir, 'db.sqlite'), dbContent);
   await fs.writeFile(fs.join(budgetDir, 'metadata.json'), JSON.stringify(meta));
 
-  return { id: meta.id };
+  return {id: meta.id};
 }
 
 export async function upload() {
@@ -356,10 +333,8 @@ export async function upload() {
         'X-ACTUAL-FILE-ID': cloudFileId,
         'X-ACTUAL-NAME': encodeURIComponent(budgetName),
         'X-ACTUAL-FORMAT': '2',
-        ...(uploadMeta
-          ? { 'X-ACTUAL-ENCRYPT-META': JSON.stringify(uploadMeta) }
-          : null),
-        ...(groupId ? { 'X-ACTUAL-GROUP-ID': groupId } : null),
+        ...(uploadMeta ? {'X-ACTUAL-ENCRYPT-META': JSON.stringify(uploadMeta)} : null),
+        ...(groupId ? {'X-ACTUAL-GROUP-ID': groupId} : null),
         // TODO: fix me
         // oxlint-disable-next-line typescript/no-explicit-any
       },
@@ -370,9 +345,7 @@ export async function upload() {
 
     if (err instanceof PostError) {
       throw FileUploadError(
-        err.reason === 'unauthorized'
-          ? 'unauthorized'
-          : err.reason || 'network',
+        err.reason === 'unauthorized' ? 'unauthorized' : err.reason || 'network',
       );
     }
 
@@ -394,10 +367,9 @@ export async function upload() {
 }
 
 export async function possiblyUpload() {
-  const { cloudFileId, groupId, lastUploaded } = prefs.getPrefs();
+  const {cloudFileId, groupId, lastUploaded} = prefs.getPrefs();
 
-  const threshold =
-    lastUploaded && monthUtils.addDays(lastUploaded, UPLOAD_FREQUENCY_IN_DAYS);
+  const threshold = lastUploaded && monthUtils.addDays(lastUploaded, UPLOAD_FREQUENCY_IN_DAYS);
   const currentDay = monthUtils.currentDay();
 
   // We only want to try to upload every UPLOAD_FREQUENCY_IN_DAYS days
@@ -486,20 +458,17 @@ export async function download(cloudFileId) {
     },
   }).catch(err => {
     logger.log('Error fetching file info', err);
-    throw FileDownloadError('internal', { fileId: cloudFileId });
+    throw FileDownloadError('internal', {fileId: cloudFileId});
   });
 
-  const [userFileInfoRes, userFileRes] = await Promise.all([
-    userFileInfoFetch,
-    userFileFetch,
-  ]);
+  const [userFileInfoRes, userFileRes] = await Promise.all([userFileInfoFetch, userFileFetch]);
 
   if (userFileInfoRes.status !== 'ok') {
     logger.log(
       'Could not download file from the server. Are you sure you have the right file ID?',
       userFileInfoRes,
     );
-    throw FileDownloadError('internal', { fileId: cloudFileId });
+    throw FileDownloadError('internal', {fileId: cloudFileId});
   }
 
   const fileData = userFileInfoRes.data;

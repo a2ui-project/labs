@@ -15,15 +15,15 @@
  */
 
 // @ts-strict-ignore
-import { parse as csv2json } from 'csv-parse/sync';
+import {parse as csv2json} from 'csv-parse/sync';
 
 import * as fs from '#platform/server/fs';
-import { logger } from '#platform/server/log';
-import { looselyParseAmount } from '#shared/util';
+import {logger} from '#platform/server/log';
+import {looselyParseAmount} from '#shared/util';
 
-import { ofx2json } from './ofx2json';
-import { qif2json } from './qif2json';
-import { xmlCAMT2json } from './xmlcamt2json';
+import {ofx2json} from './ofx2json';
+import {qif2json} from './qif2json';
+import {xmlCAMT2json} from './xmlcamt2json';
 
 /**
  * Parse OFX amount strings to numbers.
@@ -100,7 +100,7 @@ type CsvTransaction = Record<string, string> | string[];
 
 type Transaction = StructuredTransaction | CsvTransaction;
 
-type ParseError = { message: string; internal: string };
+type ParseError = {message: string; internal: string};
 export type ParseFileResult = {
   errors: ParseError[];
   transactions?: Transaction[];
@@ -146,13 +146,10 @@ export async function parseFile(
     message: 'Invalid file type',
     internal: '',
   });
-  return { errors, transactions: [] };
+  return {errors, transactions: []};
 }
 
-async function parseCSV(
-  filepath: string,
-  options: ParseFileOptions,
-): Promise<ParseFileResult> {
+async function parseCSV(filepath: string, options: ParseFileOptions): Promise<ParseFileResult> {
   const errors = Array<ParseError>();
   const bytes = await fs.readFile(filepath, 'binary');
 
@@ -164,7 +161,7 @@ async function parseCSV(
       message: 'Failed parsing: ' + err.message,
       internal: err.message,
     });
-    return { errors, transactions: [] };
+    return {errors, transactions: []};
   }
 
   const skipStart = Math.max(0, options.skipStartLines || 0);
@@ -178,7 +175,7 @@ async function parseCSV(
         message: 'Cannot skip more lines than exist in the file',
         internal: `Attempted to skip ${skipStart} start + ${skipEnd} end lines from ${lines.length} total lines`,
       });
-      return { errors, transactions: [] };
+      return {errors, transactions: []};
     }
 
     const startLine = skipStart;
@@ -203,10 +200,10 @@ async function parseCSV(
       message: 'Failed parsing: ' + err.message,
       internal: err.message,
     });
-    return { errors, transactions: [] };
+    return {errors, transactions: []};
   }
 
-  return { errors, transactions: data };
+  return {errors, transactions: data};
 }
 
 async function parseQIF(
@@ -224,7 +221,7 @@ async function parseQIF(
       message: "Failed parsing: doesn't look like a valid QIF file.",
       internal: err.stack,
     });
-    return { errors, transactions: [] };
+    return {errors, transactions: []};
   }
 
   const swap = options.swapPayeeAndMemo;
@@ -238,24 +235,19 @@ async function parseQIF(
         const fallbackUsed = !payeeSource && swap;
 
         return {
-          amount:
-            trans.amount != null ? looselyParseAmount(trans.amount) : null,
+          amount: trans.amount != null ? looselyParseAmount(trans.amount) : null,
           date: trans.date,
           payee_name: payeeSource || (fallbackUsed ? memoSource : null),
           imported_payee: payeeSource || (fallbackUsed ? memoSource : null),
           category: trans.subcategory || trans.category || null,
-          notes:
-            options.importNotes && !fallbackUsed ? memoSource || null : null,
+          notes: options.importNotes && !fallbackUsed ? memoSource || null : null,
         };
       })
       .filter(trans => trans.date != null && trans.amount != null),
   };
 }
 
-async function parseOFX(
-  filepath: string,
-  options: ParseFileOptions,
-): Promise<ParseFileResult> {
+async function parseOFX(filepath: string, options: ParseFileOptions): Promise<ParseFileResult> {
   const errors = Array<ParseError>();
   const contents = await fs.readFile(filepath, 'binary');
 
@@ -267,7 +259,7 @@ async function parseOFX(
       message: 'Failed importing file',
       internal: err.stack,
     });
-    return { errors };
+    return {errors};
   }
 
   // Banks don't always implement the OFX standard properly
@@ -320,7 +312,7 @@ async function parseCAMT(
       message: 'Failed importing file',
       internal: err.stack,
     });
-    return { errors };
+    return {errors};
   }
 
   const swap = options.swapPayeeAndMemo;

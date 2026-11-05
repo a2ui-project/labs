@@ -17,12 +17,12 @@ name: API Browser Test
 on:
   pull_request:
     paths:
-      - 'packages/api/**'
-      - 'packages/loot-core/**'
-      - 'packages/crdt/**'
-      - 'package.json'
-      - 'yarn.lock'
-      - '.github/workflows/api-browser-test.yml'
+      - "packages/api/**"
+      - "packages/loot-core/**"
+      - "packages/crdt/**"
+      - "package.json"
+      - "yarn.lock"
+      - ".github/workflows/api-browser-test.yml"
   merge_group:
 
 permissions:
@@ -45,7 +45,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
       - name: Trust the repository directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Build API

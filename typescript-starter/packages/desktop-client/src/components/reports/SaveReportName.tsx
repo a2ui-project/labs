@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import React, { useEffect } from 'react';
-import type { RefObject } from 'react';
-import { Form } from 'react-aria-components';
-import { useTranslation } from 'react-i18next';
+import React, {useEffect} from 'react';
+import type {RefObject} from 'react';
+import {Form} from 'react-aria-components';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Input } from '@actual-app/components/input';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { CustomReportEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {Input} from '@actual-app/components/input';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {CustomReportEntity} from '@actual-app/core/types/models';
 
-import { FormField, FormLabel } from '#components/forms';
+import {FormField, FormLabel} from '#components/forms';
 
 type SaveReportNameProps = {
   menuItem: string;
@@ -54,7 +54,7 @@ export function SaveReportName({
   err,
   report,
 }: SaveReportNameProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   useEffect(() => {
     if (inputRef.current) {
@@ -81,29 +81,29 @@ export function SaveReportName({
               alignItems: 'center',
             }}
           >
-            <FormField style={{ flex: 1 }}>
+            <FormField style={{flex: 1}}>
               <FormLabel
                 title={t('Report Name')}
                 htmlFor="name-field"
-                style={{ userSelect: 'none' }}
+                style={{userSelect: 'none'}}
               />
               <Input
                 value={name}
                 id="name-field"
                 ref={inputRef}
                 onChangeValue={setName}
-                style={{ marginTop: 10 }}
+                style={{marginTop: 10}}
               />
             </FormField>
-            <Button variant="primary" type="submit" style={{ marginTop: 30 }}>
+            <Button variant="primary" type="submit" style={{marginTop: 30}}>
               {menuItem === 'save-report' ? t('Add') : t('Update')}
             </Button>
           </SpaceBetween>
         </Form>
       )}
       {err !== '' ? (
-        <View style={{ padding: 10, alignItems: 'center' }}>
-          <Text style={{ color: theme.errorText }}>{err}</Text>
+        <View style={{padding: 10, alignItems: 'center'}}>
+          <Text style={{color: theme.errorText}}>{err}</Text>
         </View>
       ) : (
         <View />

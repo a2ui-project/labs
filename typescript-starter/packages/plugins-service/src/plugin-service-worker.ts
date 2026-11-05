@@ -15,7 +15,7 @@
  */
 
 /// <reference lib="WebWorker" />
-import { precacheAndRoute } from 'workbox-precaching';
+import {precacheAndRoute} from 'workbox-precaching';
 
 // Service Worker Global Types
 declare const self: ServiceWorkerGlobalScope & {
@@ -75,9 +75,7 @@ self.addEventListener('fetch', (event: FetchEvent) => {
   if (pluginsIndex !== -1 && pathSegments[slugIndex]) {
     const slug = pathSegments[slugIndex];
     const fileName =
-      pathSegments.length > slugIndex + 1
-        ? pathSegments[slugIndex + 1].split('?')[0]
-        : '';
+      pathSegments.length > slugIndex + 1 ? pathSegments[slugIndex + 1].split('?')[0] : '';
     event.respondWith(handlePlugin(slug, fileName.replace('?import', '')));
   } else {
     event.respondWith(fetch(event.request));
@@ -91,7 +89,7 @@ async function handlePlugin(slug: string, fileName: string): Promise<Response> {
         const content = fileList.get(key);
         const contentType = getContentType(fileName);
         return new Response(content, {
-          headers: { 'Content-Type': contentType },
+          headers: {'Content-Type': contentType},
         });
       }
     }
@@ -99,13 +97,10 @@ async function handlePlugin(slug: string, fileName: string): Promise<Response> {
 
   const clientsList = await self.clients.matchAll();
   if (clientsList.length === 0) {
-    return new Response(
-      JSON.stringify({ error: 'No active clients to process' }),
-      {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      },
-    );
+    return new Response(JSON.stringify({error: 'No active clients to process'}), {
+      status: 404,
+      headers: {'Content-Type': 'application/json'},
+    });
   }
 
   const client = clientsList[0];
@@ -115,7 +110,7 @@ async function handlePlugin(slug: string, fileName: string): Promise<Response> {
       const responseData = messageEvent.data as PluginFile[];
 
       if (responseData && Array.isArray(responseData)) {
-        responseData.forEach(({ name, content }) => {
+        responseData.forEach(({name, content}) => {
           fileList.set(`${slug}/${encodeURIComponent(name)}`, content);
         });
       }
@@ -125,7 +120,7 @@ async function handlePlugin(slug: string, fileName: string): Promise<Response> {
       if (fileList.has(`${slug}/${fileToCheck}`)) {
         let content = fileList.get(`${slug}/${fileToCheck}`)!;
         const contentType = getContentType(fileToCheck);
-        const headers: Record<string, string> = { 'Content-Type': contentType };
+        const headers: Record<string, string> = {'Content-Type': contentType};
 
         if (fileToCheck === 'mf-manifest.json') {
           try {
@@ -135,10 +130,7 @@ async function handlePlugin(slug: string, fileName: string): Promise<Response> {
               content = JSON.stringify(manifest);
             }
           } catch (error) {
-            console.error(
-              'Failed to parse manifest for publicPath rewrite:',
-              error,
-            );
+            console.error('Failed to parse manifest for publicPath rewrite:', error);
           }
 
           headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
@@ -146,16 +138,13 @@ async function handlePlugin(slug: string, fileName: string): Promise<Response> {
           headers['Expires'] = '0';
         }
 
-        resolve(new Response(content, { headers }));
+        resolve(new Response(content, {headers}));
       } else {
-        resolve(new Response('File not found', { status: 404 }));
+        resolve(new Response('File not found', {status: 404}));
       }
     };
 
-    client.postMessage(
-      { type: 'plugin-files', eventData: { pluginUrl: slug } },
-      [channel.port2],
-    );
+    client.postMessage({type: 'plugin-files', eventData: {pluginUrl: slug}}, [channel.port2]);
   });
 }
 

@@ -14,44 +14,34 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useEffect, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import {
-  amountToInteger,
-  integerToAmount,
-  tsToRelativeTime,
-} from '@actual-app/core/shared/util';
-import { format as formatDate } from 'date-fns';
+import {Button} from '@actual-app/components/button';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {amountToInteger, integerToAmount, tsToRelativeTime} from '@actual-app/core/shared/util';
+import {format as formatDate} from 'date-fns';
 
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { FinancialText } from '#components/FinancialText';
-import { FieldLabel } from '#components/mobile/MobileForms';
-import { AmountInput } from '#components/mobile/transactions/AmountInput';
-import { useAccount } from '#hooks/useAccount';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { useSheetValue } from '#hooks/useSheetValue';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {FinancialText} from '#components/FinancialText';
+import {FieldLabel} from '#components/mobile/MobileForms';
+import {AmountInput} from '#components/mobile/transactions/AmountInput';
+import {useAccount} from '#hooks/useAccount';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {useSheetValue} from '#hooks/useSheetValue';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 import * as bindings from '#spreadsheet/bindings';
 
-type AccountReconcileModalProps = Extract<
-  ModalType,
-  { name: 'account-reconcile' }
->['options'];
+type AccountReconcileModalProps = Extract<ModalType, {name: 'account-reconcile'}>['options'];
 
-export function AccountReconcileModal({
-  accountId,
-  onReconcile,
-}: AccountReconcileModalProps) {
-  const { t } = useTranslation();
+export function AccountReconcileModal({accountId, onReconcile}: AccountReconcileModalProps) {
+  const {t} = useTranslation();
   const account = useAccount(accountId);
   const mobileCalculatorEnabled = useFeatureFlag('mobileCalculator');
   const clearedBalance = useSheetValue<'account', 'balanceCleared'>(
@@ -87,10 +77,10 @@ export function AccountReconcileModal({
     <Modal
       name="account-reconcile"
       wrapperProps={{
-        style: mobileCalculatorEnabled ? { paddingBottom: '30vh' } : undefined,
+        style: mobileCalculatorEnabled ? {paddingBottom: '30vh'} : undefined,
       }}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Reconcile')}
@@ -129,9 +119,7 @@ export function AccountReconcileModal({
             >
               <Text>
                 <Trans>Last Balance from Bank: </Trans>
-                <FinancialText>
-                  {format(lastSyncedBalance, 'financial')}
-                </FinancialText>
+                <FinancialText>{format(lastSyncedBalance, 'financial')}</FinancialText>
               </Text>
               <Button
                 style={{
@@ -181,14 +169,11 @@ export function AccountReconcileModal({
           >
             {account.last_reconciled
               ? t('Reconciled {{ relativeTimeAgo }} ({{ absoluteDate }})', {
-                  relativeTimeAgo: tsToRelativeTime(
-                    account.last_reconciled,
-                    locale,
-                  ),
+                  relativeTimeAgo: tsToRelativeTime(account.last_reconciled, locale),
                   absoluteDate: formatDate(
                     new Date(parseInt(account.last_reconciled, 10)),
                     dateFormat,
-                    { locale },
+                    {locale},
                   ),
                 })
               : t('Not yet reconciled')}

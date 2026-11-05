@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { createApp } from '#server/app';
+import {createApp} from '#server/app';
 
-import { repairSync as _repairSync } from './repair';
-import { resetSync as _resetSync } from './reset';
+import {repairSync as _repairSync} from './repair';
+import {resetSync as _resetSync} from './reset';
 
-import { fullSync } from '.';
+import {fullSync} from '.';
 
 export type SyncHandlers = {
   sync: typeof sync;

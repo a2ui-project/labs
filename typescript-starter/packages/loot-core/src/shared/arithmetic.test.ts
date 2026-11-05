@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { evalArithmetic } from './arithmetic';
-import { setNumberFormat } from './util';
+import {evalArithmetic} from './arithmetic';
+import {setNumberFormat} from './util';
 
 describe('arithmetic', () => {
   test('handles negative numbers', () => {
@@ -69,10 +69,10 @@ describe('arithmetic', () => {
   test('respects current number format', () => {
     expect(evalArithmetic('1,222.45')).toEqual(1222.45);
 
-    setNumberFormat({ format: 'space-comma', hideFraction: false });
+    setNumberFormat({format: 'space-comma', hideFraction: false});
     expect(evalArithmetic('1\u202F222,45')).toEqual(1222.45);
 
-    setNumberFormat({ format: 'apostrophe-dot', hideFraction: false });
+    setNumberFormat({format: 'apostrophe-dot', hideFraction: false});
     expect(evalArithmetic(`1\u2019222.45`)).toEqual(1222.45);
   });
 
@@ -85,7 +85,7 @@ describe('arithmetic', () => {
   });
 
   test('handles apostrophe-dot format with keyboard apostrophe (U+0027)', () => {
-    setNumberFormat({ format: 'apostrophe-dot', hideFraction: false });
+    setNumberFormat({format: 'apostrophe-dot', hideFraction: false});
 
     // Test with keyboard apostrophe (U+0027) - what users type
     const keyboardApostrophe = '12\u0027345.67';
@@ -100,7 +100,7 @@ describe('arithmetic', () => {
   });
 
   test('handles apostrophe-dot format with typographic apostrophe (U+2019)', () => {
-    setNumberFormat({ format: 'apostrophe-dot', hideFraction: false });
+    setNumberFormat({format: 'apostrophe-dot', hideFraction: false});
 
     // Test with right single quotation mark (U+2019) - what Intl.NumberFormat outputs
     const intlApostrophe = '12\u2019345.67';
@@ -113,7 +113,7 @@ describe('arithmetic', () => {
   });
 
   test('handles apostrophe-dot format in arithmetic expressions', () => {
-    setNumberFormat({ format: 'apostrophe-dot', hideFraction: false });
+    setNumberFormat({format: 'apostrophe-dot', hideFraction: false});
 
     // Test arithmetic operations with keyboard apostrophe
     expect(evalArithmetic('1\u0027000 + 2\u0027000')).toBe(3000);

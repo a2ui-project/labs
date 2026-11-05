@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
-import { SvgLogo } from '@actual-app/components/icons/logo';
-import { theme } from '@actual-app/components/theme';
-import { spacing } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
+import {SvgLogo} from '@actual-app/components/icons/logo';
+import {theme} from '@actual-app/components/theme';
+import {spacing} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
 
-import { hasMacOSWindowButtons } from '#components/sidebar/SidebarShell';
+import {hasMacOSWindowButtons} from '#components/sidebar/SidebarShell';
 
-import { SidebarBudgetName } from './SidebarBudgetName';
-import { SyncStatusLine } from './SyncStatusLine';
+import {SidebarBudgetName} from './SidebarBudgetName';
+import {SyncStatusLine} from './SyncStatusLine';
 
 const MAC_WINDOW_BUTTONS_INSET = spacing.xl + spacing.md;
 
@@ -32,7 +32,7 @@ type SidebarHeaderProps = {
   children?: ReactNode;
 };
 
-export function SidebarHeader({ children }: SidebarHeaderProps) {
+export function SidebarHeader({children}: SidebarHeaderProps) {
   return (
     <View
       style={{
@@ -40,20 +40,14 @@ export function SidebarHeader({ children }: SidebarHeaderProps) {
         alignItems: 'center',
         gap: spacing.sm,
         padding: `${spacing.md}px ${spacing.md}px ${spacing.sm}px`,
-        paddingTop: hasMacOSWindowButtons()
-          ? MAC_WINDOW_BUTTONS_INSET
-          : spacing.md,
+        paddingTop: hasMacOSWindowButtons() ? MAC_WINDOW_BUTTONS_INSET : spacing.md,
         borderBottom: `1px solid ${theme.sidebarBorder}`,
         userSelect: 'none',
         flexShrink: 0,
       }}
     >
-      <SvgLogo
-        width={28}
-        height={28}
-        style={{ flexShrink: 0, color: theme.sidebarBrand }}
-      />
-      <View style={{ minWidth: 0, flex: 1 }}>
+      <SvgLogo width={28} height={28} style={{flexShrink: 0, color: theme.sidebarBrand}} />
+      <View style={{minWidth: 0, flex: 1}}>
         <SidebarBudgetName />
         <SyncStatusLine />
       </View>

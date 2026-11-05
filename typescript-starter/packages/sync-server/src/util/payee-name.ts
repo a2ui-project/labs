@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Transaction } from '#app-gocardless/gocardless-node.types';
+import type {Transaction} from '#app-gocardless/gocardless-node.types';
 
-import { title } from './title/index';
+import {title} from './title/index';
 
 function formatPayeeIban(iban: string) {
   return '(' + iban.slice(0, 4) + ' XXX ' + iban.slice(-4) + ')';

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { RuleConditionEntity } from '@actual-app/core/types/models';
+import type {RuleConditionEntity} from '@actual-app/core/types/models';
 
 export function subfieldToOptions(field: string, subfield: string) {
   let setOptions: RuleConditionEntity['options'];
@@ -22,10 +22,10 @@ export function subfieldToOptions(field: string, subfield: string) {
     case 'amount':
       switch (subfield) {
         case 'amount-inflow':
-          setOptions = { inflow: true };
+          setOptions = {inflow: true};
           break;
         case 'amount-outflow':
-          setOptions = { outflow: true };
+          setOptions = {outflow: true};
           break;
         default:
           break;
@@ -34,10 +34,10 @@ export function subfieldToOptions(field: string, subfield: string) {
     case 'date':
       switch (subfield) {
         case 'month':
-          setOptions = { month: true };
+          setOptions = {month: true};
           break;
         case 'year':
-          setOptions = { year: true };
+          setOptions = {year: true};
           break;
         default:
           break;

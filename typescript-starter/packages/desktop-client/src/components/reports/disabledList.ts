@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import type { sortByOpType } from '@actual-app/core/types/models';
-import { t } from 'i18next';
+import type {sortByOpType} from '@actual-app/core/types/models';
+import {t} from 'i18next';
 
 const intervalOptions = [
   {
@@ -218,9 +218,7 @@ export function disabledLegendLabel(
     return false;
   }
 
-  const disableLegendLabel = graphList.graphs.find(
-    e => e.description === newGraph,
-  );
+  const disableLegendLabel = graphList.graphs.find(e => e.description === newGraph);
   if (!disableLegendLabel) {
     return false;
   }
@@ -248,9 +246,7 @@ export function defaultsGraphList(
 
 export const disabledList = {
   mode: modeOptions,
-  modeGraphsMap: new Map(
-    modeOptions.map(item => [item.description, item.disabledGraph]),
-  ),
+  modeGraphsMap: new Map(modeOptions.map(item => [item.description, item.disabledGraph])),
   currentInterval: new Map(
     currentIntervalOptions.map(item => [item.description, item.disableInclude]),
   ),
@@ -258,10 +254,6 @@ export const disabledList = {
 
 export const defaultsList = {
   mode: modeOptions,
-  modeGraphsMap: new Map(
-    modeOptions.map(item => [item.description, item.defaultGraph]),
-  ),
-  intervalRange: new Map(
-    intervalOptions.map(item => [item.key, item.defaultRange]),
-  ),
+  modeGraphsMap: new Map(modeOptions.map(item => [item.description, item.defaultGraph])),
+  intervalRange: new Map(intervalOptions.map(item => [item.key, item.defaultRange])),
 };

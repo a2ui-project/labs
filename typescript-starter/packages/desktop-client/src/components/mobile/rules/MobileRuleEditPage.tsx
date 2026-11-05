@@ -14,46 +14,44 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useLocation, useParams } from 'react-router';
+import React, {useEffect, useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useLocation, useParams} from 'react-router';
 
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import { q } from '@actual-app/core/shared/query';
-import type { NewRuleEntity, RuleEntity } from '@actual-app/core/types/models';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import {q} from '@actual-app/core/shared/query';
+import type {NewRuleEntity, RuleEntity} from '@actual-app/core/types/models';
 
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page } from '#components/Page';
-import { RuleEditor } from '#components/rules/RuleEditor';
-import { useNavigate } from '#hooks/useNavigate';
-import { useSchedules } from '#hooks/useSchedules';
-import { useUndo } from '#hooks/useUndo';
-import { pushModal } from '#modals/modalsSlice';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page} from '#components/Page';
+import {RuleEditor} from '#components/rules/RuleEditor';
+import {useNavigate} from '#hooks/useNavigate';
+import {useSchedules} from '#hooks/useSchedules';
+import {useUndo} from '#hooks/useUndo';
+import {pushModal} from '#modals/modalsSlice';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
 export function MobileRuleEditPage() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
-  const { id } = useParams<{ id?: string }>();
+  const {id} = useParams<{id?: string}>();
   const location = useLocation();
   const dispatch = useDispatch();
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
 
   const [rule, setRule] = useState<RuleEntity | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { schedules = [] } = useSchedules({
+  const {schedules = []} = useSchedules({
     query: useMemo(
       () =>
         rule?.id
-          ? q('schedules')
-              .filter({ rule: rule.id, completed: false })
-              .select('*')
-          : q('schedules').filter({ id: null }).select('*'), // Return empty result when no rule
+          ? q('schedules').filter({rule: rule.id, completed: false}).select('*')
+          : q('schedules').filter({id: null}).select('*'), // Return empty result when no rule
       [rule?.id],
     ),
   });
@@ -65,7 +63,7 @@ export function MobileRuleEditPage() {
   useEffect(() => {
     if (id && id !== 'new') {
       setIsLoading(true);
-      send('rule-get', { id })
+      send('rule-get', {id})
         .then(loadedRule => {
           if (loadedRule) {
             setRule(loadedRule);

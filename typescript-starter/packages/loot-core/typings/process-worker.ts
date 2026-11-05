@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { MessagePort } from 'worker_threads';
+import type {MessagePort} from 'worker_threads';
 
 declare global {
   namespace NodeJS {

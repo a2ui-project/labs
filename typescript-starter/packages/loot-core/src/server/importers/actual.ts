@@ -18,8 +18,8 @@
 import * as fs from '#platform/server/fs';
 import * as sqlite from '#platform/server/sqlite';
 import * as cloudStorage from '#server/cloud-storage';
-import { handlers } from '#server/main';
-import { waitOnSpreadsheet } from '#server/sheet';
+import {handlers} from '#server/main';
+import {waitOnSpreadsheet} from '#server/sheet';
 
 export async function importActual(_filepath: string, buffer: Buffer) {
   // Importing Actual files is a special case because we can directly
@@ -29,22 +29,17 @@ export async function importActual(_filepath: string, buffer: Buffer) {
 
   let id;
   try {
-    ({ id } = await cloudStorage.importBuffer(
-      { cloudFileId: null, groupId: null },
-      buffer,
-    ));
+    ({id} = await cloudStorage.importBuffer({cloudFileId: null, groupId: null}, buffer));
   } catch (e) {
     if (e.type === 'FileDownloadError') {
-      return { error: e.reason, meta: e.meta };
+      return {error: e.reason, meta: e.meta};
     }
     throw e;
   }
 
   // We never want to load cached data from imported files, so
   // delete the cache
-  const sqliteDb = await sqlite.openDatabase(
-    fs.join(fs.getBudgetDir(id), 'db.sqlite'),
-  );
+  const sqliteDb = await sqlite.openDatabase(fs.join(fs.getBudgetDir(id), 'db.sqlite'));
   sqlite.execQuery(
     sqliteDb,
     `
@@ -56,7 +51,7 @@ export async function importActual(_filepath: string, buffer: Buffer) {
 
   // Load the budget, force everything to be computed, and try
   // to upload it as a cloud file
-  await handlers['load-budget']({ id });
+  await handlers['load-budget']({id});
   await handlers['get-budget-bounds']();
   await waitOnSpreadsheet();
   await cloudStorage.upload().catch(() => {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { currencies, getDecimalPlaces } from './currencies';
+import {currencies, getDecimalPlaces} from './currencies';
 
 describe('getDecimalPlaces', () => {
   it('returns 2 for empty string (None)', () => {
@@ -39,19 +39,13 @@ describe('getDecimalPlaces', () => {
 });
 
 describe('currency metadata', () => {
-  it.each(currencies)(
-    '$name ($code) has a numeric decimalPlaces field',
-    currency => {
-      expect(typeof currency.decimalPlaces).toBe('number');
-    },
-  );
+  it.each(currencies)('$name ($code) has a numeric decimalPlaces field', currency => {
+    expect(typeof currency.decimalPlaces).toBe('number');
+  });
 
-  it.each(currencies)(
-    '$name ($code) has non-negative decimalPlaces',
-    currency => {
-      expect(currency.decimalPlaces).toBeGreaterThanOrEqual(0);
-    },
-  );
+  it.each(currencies)('$name ($code) has non-negative decimalPlaces', currency => {
+    expect(currency.decimalPlaces).toBeGreaterThanOrEqual(0);
+  });
 
   it('first entry is None with code empty string and decimalPlaces 2', () => {
     expect(currencies[0].code).toBe('');

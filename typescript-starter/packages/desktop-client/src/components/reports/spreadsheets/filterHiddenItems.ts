@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-import type {
-  QueryDataEntity,
-  UncategorizedEntity,
-} from '#components/reports/ReportOptions';
+import type {QueryDataEntity, UncategorizedEntity} from '#components/reports/ReportOptions';
 
 export function filterHiddenItems(
   item: UncategorizedEntity,
@@ -29,15 +26,10 @@ export function filterHiddenItems(
 ) {
   const showHide = data
     .filter(
-      e =>
-        showHiddenCategories ||
-        (e.categoryHidden === false && e.categoryGroupHidden === false),
+      e => showHiddenCategories || (e.categoryHidden === false && e.categoryGroupHidden === false),
     )
     .filter(e => showOffBudget || e.accountOffBudget === false)
-    .filter(
-      e =>
-        showUncategorized || e.category !== null || e.accountOffBudget === true,
-    );
+    .filter(e => showUncategorized || e.category !== null || e.accountOffBudget === true);
 
   return showHide.filter(query => {
     if (!groupByCategory) return true;

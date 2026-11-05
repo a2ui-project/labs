@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { memo, useEffect, useState } from 'react';
-import type { FocusEvent } from 'react';
+import {memo, useEffect, useState} from 'react';
+import type {FocusEvent} from 'react';
 
-import { styles } from '@actual-app/components/styles';
+import {styles} from '@actual-app/components/styles';
 import * as Platform from '@actual-app/core/shared/platform';
 
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
 
-import { CalculatorAmountInput } from './CalculatorAmountInput';
-import type { CalculatorAmountInputProps } from './CalculatorAmountInput';
-import { FocusableAmountInput } from './FocusableAmountInput';
+import {CalculatorAmountInput} from './CalculatorAmountInput';
+import type {CalculatorAmountInputProps} from './CalculatorAmountInput';
+import {FocusableAmountInput} from './FocusableAmountInput';
 
 export type AmountInputProps = Omit<CalculatorAmountInputProps, 'onFocus'> & {
   disableNativeAutoFocusOnIOS?: boolean;
@@ -46,8 +46,7 @@ export const AmountInput = memo(function AmountInput({
   ...props
 }: AmountInputProps) {
   const mobileCalculatorEnabled = useFeatureFlag('mobileCalculator');
-  const fallbackAutoFocus =
-    autoFocus && !(disableNativeAutoFocusOnIOS && Platform.isIOSAgent);
+  const fallbackAutoFocus = autoFocus && !(disableNativeAutoFocusOnIOS && Platform.isIOSAgent);
   const [focused, setFocused] = useState(fallbackAutoFocus);
 
   useEffect(() => {
@@ -104,11 +103,7 @@ export const AmountInput = memo(function AmountInput({
           : undefined
       }
       style={props.style}
-      textStyle={
-        variant === 'large'
-          ? { ...styles.veryLargeText, textAlign: 'center' }
-          : undefined
-      }
+      textStyle={variant === 'large' ? {...styles.veryLargeText, textAlign: 'center'} : undefined}
       value={value}
       zeroSign={negate ? '-' : '+'}
     />

@@ -14,60 +14,38 @@
  * limitations under the License.
  */
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
+import {useSearchParams} from 'react-router';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { Query } from '@actual-app/core/shared/query';
-import { isPreviewId } from '@actual-app/core/shared/transactions';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type {
-  AccountEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {Query} from '@actual-app/core/shared/query';
+import {isPreviewId} from '@actual-app/core/shared/transactions';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {AccountEntity, TransactionEntity} from '@actual-app/core/types/models';
 
-import {
-  useSyncAndDownloadMutation,
-  useUpdateAccountMutation,
-} from '#accounts';
-import { markAccountRead } from '#accounts/accountsSlice';
+import {useSyncAndDownloadMutation, useUpdateAccountMutation} from '#accounts';
+import {markAccountRead} from '#accounts/accountsSlice';
 import * as reconciliation from '#accounts/reconciliation';
-import { ReconcilingBanner } from '#components/mobile/accounts/ReconcilingBanner';
-import { TransactionListWithBalances } from '#components/mobile/transactions/TransactionListWithBalances';
-import { useAccountPreviewTransactions } from '#hooks/useAccountPreviewTransactions';
-import { SchedulesProvider } from '#hooks/useCachedSchedules';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { getSchedulesQuery } from '#hooks/useSchedules';
-import { useSheetValue } from '#hooks/useSheetValue';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { useTransactionBatchActions } from '#hooks/useTransactionBatchActions';
-import {
-  calculateRunningBalancesTopDown,
-  useTransactions,
-} from '#hooks/useTransactions';
-import { useTransactionsSearch } from '#hooks/useTransactionsSearch';
-import { collapseModals, pushModal } from '#modals/modalsSlice';
+import {ReconcilingBanner} from '#components/mobile/accounts/ReconcilingBanner';
+import {TransactionListWithBalances} from '#components/mobile/transactions/TransactionListWithBalances';
+import {useAccountPreviewTransactions} from '#hooks/useAccountPreviewTransactions';
+import {SchedulesProvider} from '#hooks/useCachedSchedules';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {getSchedulesQuery} from '#hooks/useSchedules';
+import {useSheetValue} from '#hooks/useSheetValue';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {useTransactionBatchActions} from '#hooks/useTransactionBatchActions';
+import {calculateRunningBalancesTopDown, useTransactions} from '#hooks/useTransactions';
+import {useTransactionsSearch} from '#hooks/useTransactionsSearch';
+import {collapseModals, pushModal} from '#modals/modalsSlice';
 import * as queries from '#queries';
-import { useDispatch } from '#redux';
+import {useDispatch} from '#redux';
 import * as bindings from '#spreadsheet/bindings';
 
-export function AccountTransactions({
-  account,
-}: {
-  readonly account: AccountEntity;
-}) {
-  const schedulesQuery = useMemo(
-    () => getSchedulesQuery(account.id),
-    [account.id],
-  );
+export function AccountTransactions({account}: {readonly account: AccountEntity}) {
+  const schedulesQuery = useMemo(() => getSchedulesQuery(account.id), [account.id]);
 
   return (
     <SchedulesProvider query={schedulesQuery}>
@@ -76,12 +54,8 @@ export function AccountTransactions({
   );
 }
 
-function TransactionListWithPreviews({
-  account,
-}: {
-  readonly account: AccountEntity;
-}) {
-  const { t } = useTranslation();
+function TransactionListWithPreviews({account}: {readonly account: AccountEntity}) {
+  const {t} = useTranslation();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -90,30 +64,20 @@ function TransactionListWithPreviews({
   const [hideReconciled] = useSyncedPref(`hide-reconciled-${account.id}`);
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const parsedReconcileAmount = parseInt(
-    searchParams.get('reconcile') ?? '',
-    10,
-  );
-  const reconcileAmount = Number.isNaN(parsedReconcileAmount)
-    ? null
-    : parsedReconcileAmount;
+  const parsedReconcileAmount = parseInt(searchParams.get('reconcile') ?? '', 10);
+  const reconcileAmount = Number.isNaN(parsedReconcileAmount) ? null : parsedReconcileAmount;
   const isReconciling = reconcileAmount != null;
 
   const baseTransactionsQuery = useCallback(() => {
-    let query = queries
-      .transactions(account.id)
-      .options({ splits: 'all' })
-      .select('*');
+    let query = queries.transactions(account.id).options({splits: 'all'}).select('*');
     if (hideReconciled === 'true' && !isReconciling) {
-      query = query.filter({ reconciled: { $eq: false } });
+      query = query.filter({reconciled: {$eq: false}});
     }
     return query;
   }, [account.id, hideReconciled, isReconciling]);
-  const [transactionsQuery, setTransactionsQuery] = useState<Query>(
-    baseTransactionsQuery(),
-  );
+  const [transactionsQuery, setTransactionsQuery] = useState<Query>(baseTransactionsQuery());
 
-  const { isSearching, search } = useTransactionsSearch({
+  const {isSearching, search} = useTransactionsSearch({
     updateQuery: setTransactionsQuery,
     resetQuery: () => setTransactionsQuery(baseTransactionsQuery()),
     dateFormat,
@@ -139,13 +103,8 @@ function TransactionListWithPreviews({
   const shouldCalculateRunningBalances =
     showRunningBalances === 'true' && !!account?.id && !isSearching;
 
-  const accountBalanceValue = useSheetValue<
-    'account',
-    'balance' | 'accounts-balance'
-  >(
-    account?.id
-      ? bindings.accountBalance(account?.id)
-      : bindings.allAccountBalance(),
+  const accountBalanceValue = useSheetValue<'account', 'balance' | 'accounts-balance'>(
+    account?.id ? bindings.accountBalance(account?.id) : bindings.allAccountBalance(),
   );
 
   const {
@@ -175,7 +134,7 @@ function TransactionListWithPreviews({
   const syncAndDownload = useSyncAndDownloadMutation();
   const onRefresh = useCallback(() => {
     if (account.id) {
-      syncAndDownload.mutate({ id: account.id });
+      syncAndDownload.mutate({id: account.id});
     }
   }, [account.id, syncAndDownload]);
 
@@ -190,7 +149,7 @@ function TransactionListWithPreviews({
 
   useEffect(() => {
     if (account.id) {
-      dispatch(markAccountRead({ id: account.id }));
+      dispatch(markAccountRead({id: account.id}));
     }
   }, [account.id, dispatch]);
 
@@ -219,7 +178,7 @@ function TransactionListWithPreviews({
                 },
                 onSkip: async transactionId => {
                   const parts = transactionId.split('/');
-                  await send('schedule/skip-next-date', { id: parts[1] });
+                  await send('schedule/skip-next-date', {id: parts[1]});
                   dispatch(
                     collapseModals({
                       rootModalName: 'scheduled-transaction-menu',
@@ -229,7 +188,7 @@ function TransactionListWithPreviews({
                 onComplete: async transactionId => {
                   const parts = transactionId.split('/');
                   await send('schedule/update', {
-                    schedule: { id: parts[1], completed: true },
+                    schedule: {id: parts[1], completed: true},
                   });
                   dispatch(
                     collapseModals({
@@ -246,8 +205,8 @@ function TransactionListWithPreviews({
     [dispatch, navigate],
   );
 
-  const { mutate: updateAccount } = useUpdateAccountMutation();
-  const { onBatchEdit } = useTransactionBatchActions();
+  const {mutate: updateAccount} = useUpdateAccountMutation();
+  const {onBatchEdit} = useTransactionBatchActions();
 
   const onDoneReconciling = useCallback(async () => {
     await reconciliation.finishReconciliation(account.id, reconcileAmount);
@@ -264,16 +223,13 @@ function TransactionListWithPreviews({
         prev.delete('reconcile');
         return prev;
       },
-      { replace: true },
+      {replace: true},
     );
   }, [account, reconcileAmount, setSearchParams, updateAccount]);
 
   const onCreateReconciliationTransaction = useCallback(
     async (targetDiff: number) => {
-      await reconciliation.createReconciliationTransaction(
-        account.id,
-        targetDiff,
-      );
+      await reconciliation.createReconciliationTransaction(account.id, targetDiff);
     },
     [account.id],
   );
@@ -299,7 +255,7 @@ function TransactionListWithPreviews({
           }),
         );
       } else {
-        void onBatchEdit({ name: 'cleared', ids: [transaction.id] });
+        void onBatchEdit({name: 'cleared', ids: [transaction.id]});
       }
     },
     [dispatch, onBatchEdit],

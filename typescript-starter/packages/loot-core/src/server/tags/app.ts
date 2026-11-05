@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { createApp } from '#server/app';
+import {createApp} from '#server/app';
 import * as db from '#server/db';
-import { mutator } from '#server/mutators';
-import { batchMessages } from '#server/sync';
-import { undoable } from '#server/undo';
-import { renameTagInNotes } from '#shared/tags';
-import type { TagEntity } from '#types/models';
+import {mutator} from '#server/mutators';
+import {batchMessages} from '#server/sync';
+import {undoable} from '#server/undo';
+import {renameTagInNotes} from '#shared/tags';
+import type {TagEntity} from '#types/models';
 
 export type TagsHandlers = {
   'tags-get': typeof getTags;
@@ -52,7 +52,7 @@ const collator = new Intl.Collator(undefined, {
 async function getTags(): Promise<TagEntity[]> {
   const tags = await db.getTags();
   tags.sort((a, b) => collator.compare(a.tag, b.tag));
-  return tags.map(tag => ({ ...tag, hidden: !!tag.hidden }));
+  return tags.map(tag => ({...tag, hidden: !!tag.hidden}));
 }
 
 async function createTag({
@@ -62,7 +62,7 @@ async function createTag({
 }: Omit<TagEntity, 'id'>): Promise<TagEntity> {
   const allTags = await db.getAllTags();
 
-  const { id: tagId = null } = allTags.find(t => t.tag === tag) || {};
+  const {id: tagId = null} = allTags.find(t => t.tag === tag) || {};
   if (tagId) {
     await db.updateTag({
       id: tagId,
@@ -71,7 +71,7 @@ async function createTag({
       description,
       tombstone: 0,
     });
-    return { id: tagId, tag, color, description };
+    return {id: tagId, tag, color, description};
   }
 
   const id = await db.insertTag({
@@ -80,7 +80,7 @@ async function createTag({
     description,
   });
 
-  return { id, tag, color, description };
+  return {id, tag, color, description};
 }
 
 async function deleteTag(tag: Pick<TagEntity, 'id'>): Promise<TagEntity['id']> {
@@ -88,12 +88,10 @@ async function deleteTag(tag: Pick<TagEntity, 'id'>): Promise<TagEntity['id']> {
   return tag.id;
 }
 
-async function deleteAllTags(
-  ids: Array<TagEntity['id']>,
-): Promise<Array<TagEntity['id']>> {
+async function deleteAllTags(ids: Array<TagEntity['id']>): Promise<Array<TagEntity['id']>> {
   await batchMessages(async () => {
     for (const id of ids) {
-      await db.deleteTag({ id });
+      await db.deleteTag({id});
     }
   });
   return ids;
@@ -102,7 +100,7 @@ async function deleteAllTags(
 async function hideAllTags(ids: Array<TagEntity['id']>) {
   await batchMessages(async () => {
     for (const id of ids) {
-      await db.updateTag({ id, hidden: 1 });
+      await db.updateTag({id, hidden: 1});
     }
   });
   return ids;
@@ -111,7 +109,7 @@ async function hideAllTags(ids: Array<TagEntity['id']>) {
 async function unhideAllTags(ids: Array<TagEntity['id']>) {
   await batchMessages(async () => {
     for (const id of ids) {
-      await db.updateTag({ id, hidden: 0 });
+      await db.updateTag({id, hidden: 0});
     }
   });
   return ids;
@@ -120,10 +118,10 @@ async function unhideAllTags(ids: Array<TagEntity['id']>) {
 async function updateTag(
   tag: Partial<TagEntity> & Pick<TagEntity, 'id'>,
 ): Promise<Partial<TagEntity>> {
-  const { hidden, ...rest } = tag;
+  const {hidden, ...rest} = tag;
   await db.updateTag({
     ...rest,
-    ...(hidden !== undefined ? { hidden: hidden ? 1 : 0 } : {}),
+    ...(hidden !== undefined ? {hidden: hidden ? 1 : 0} : {}),
   });
   return tag;
 }
@@ -152,12 +150,12 @@ async function renameTag({
   }
 
   await batchMessages(async () => {
-    await db.updateTag({ id, tag: name });
+    await db.updateTag({id, tag: name});
 
-    for (const { id: transactionId, notes } of await db.findTags()) {
+    for (const {id: transactionId, notes} of await db.findTags()) {
       const renamed = renameTagInNotes(notes, existing.tag, name);
       if (renamed !== notes) {
-        await db.updateTransaction({ id: transactionId, notes: renamed });
+        await db.updateTransaction({id: transactionId, notes: renamed});
       }
     }
   });
@@ -169,10 +167,10 @@ async function discoverTags(): Promise<TagEntity[]> {
   const taggedNotes = await db.findTags();
 
   const tags = await getTags();
-  for (const { notes } of taggedNotes) {
+  for (const {notes} of taggedNotes) {
     for (const [_, tag] of notes.matchAll(/(?<!#)#([^#\s]+)/g)) {
       if (!tags.find(t => t.tag === tag)) {
-        tags.push(await createTag({ tag }));
+        tags.push(await createTag({tag}));
       }
     }
   }

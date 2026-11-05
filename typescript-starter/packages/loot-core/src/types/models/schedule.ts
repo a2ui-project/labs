@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { AccountEntity } from './account';
-import type { PayeeEntity } from './payee';
-import type { RuleActionEntity, RuleConditionEntity, RuleEntity } from './rule';
+import type {AccountEntity} from './account';
+import type {PayeeEntity} from './payee';
+import type {RuleActionEntity, RuleConditionEntity, RuleEntity} from './rule';
 
 export type RecurPattern = {
   value: number;
@@ -50,7 +50,7 @@ export type ScheduleEntity = {
   // underlying rule
   _payee: PayeeEntity['id'];
   _account: AccountEntity['id'];
-  _amount: number | { num1: number; num2: number };
+  _amount: number | {num1: number; num2: number};
   _amountOp: string;
   _date: RecurConfig | string;
   _conditions: RuleConditionEntity[];

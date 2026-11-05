@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type { File } from '@actual-app/core/types/file';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {File} from '@actual-app/core/types/file';
 import type {
   AccountEntity,
   BankSyncCredentialSource,
@@ -33,17 +33,17 @@ import type {
   UserAccessEntity,
   UserEntity,
 } from '@actual-app/core/types/models';
-import type { CleanupTemplate } from '@actual-app/core/types/models/cleanup-templates';
-import type { Template } from '@actual-app/core/types/models/templates';
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import type {CleanupTemplate} from '@actual-app/core/types/models/cleanup-templates';
+import type {Template} from '@actual-app/core/types/models/templates';
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
 
-import { accountQueries } from '#accounts';
-import { resetApp, setAppState } from '#app/appSlice';
-import type { SelectLinkedAccountsModalProps } from '#components/modals/SelectLinkedAccountsModal';
-import type { TransactionTableColumn } from '#components/transactions/table/columns';
-import { createAppAsyncThunk } from '#redux';
-import { signOut } from '#users/usersSlice';
+import {accountQueries} from '#accounts';
+import {resetApp, setAppState} from '#app/appSlice';
+import type {SelectLinkedAccountsModalProps} from '#components/modals/SelectLinkedAccountsModal';
+import type {TransactionTableColumn} from '#components/transactions/table/columns';
+import {createAppAsyncThunk} from '#redux';
+import {signOut} from '#users/usersSlice';
 
 const sliceName = 'modals';
 
@@ -62,7 +62,7 @@ export type Modal =
       options: {
         accountId: string;
         filename: string;
-        categories?: { list: CategoryEntity[]; grouped: CategoryGroupEntity[] };
+        categories?: {list: CategoryEntity[]; grouped: CategoryGroupEntity[]};
         onImported: (didChange: boolean) => void;
       };
     }
@@ -119,7 +119,7 @@ export type Modal =
     }
   | {
       name: 'manage-rules';
-      options: { payeeId?: string };
+      options: {payeeId?: string};
     }
   | {
       name: 'edit-rule';
@@ -176,14 +176,12 @@ export type Modal =
           psuType?: 'personal' | 'business';
           onStateReady?: (state: string) => void;
         }) => Promise<
-          | { error: 'timeout' }
-          | { error: 'unknown'; message?: string }
-          | { data: { accounts: SyncServerEnableBankingAccount[] } }
+          | {error: 'timeout'}
+          | {error: 'unknown'; message?: string}
+          | {data: {accounts: SyncServerEnableBankingAccount[]}}
         >;
         onClose?: (() => void) | undefined;
-        onSuccess: (data: {
-          accounts: SyncServerEnableBankingAccount[];
-        }) => Promise<void>;
+        onSuccess: (data: {accounts: SyncServerEnableBankingAccount[]}) => Promise<void>;
       };
     }
   | {
@@ -192,9 +190,7 @@ export type Modal =
         onMoveExternal: (arg: {
           institutionId: string;
         }) => Promise<
-          | { error: 'timeout' }
-          | { error: 'unknown'; message?: string }
-          | { data: GoCardlessToken }
+          {error: 'timeout'} | {error: 'unknown'; message?: string} | {data: GoCardlessToken}
         >;
         onClose?: (() => void) | undefined;
         onSuccess: (data: GoCardlessToken) => Promise<void>;
@@ -202,7 +198,7 @@ export type Modal =
     }
   | {
       name: 'delete-budget';
-      options: { file: File };
+      options: {file: File};
     }
   | {
       name: 'duplicate-budget';
@@ -231,10 +227,7 @@ export type Modal =
          * 'canceled' if the DuplicateFileModal was canceled.
          * @returns
          */
-        onComplete?: (event: {
-          status: 'success' | 'failed' | 'canceled';
-          error?: Error;
-        }) => void;
+        onComplete?: (event: {status: 'success' | 'failed' | 'canceled'; error?: Error}) => void;
       };
     }
   | {
@@ -264,7 +257,7 @@ export type Modal =
     }
   | {
       name: 'create-encryption-key';
-      options: { recreate?: boolean };
+      options: {recreate?: boolean};
     }
   | {
       name: 'fix-encryption-key';
@@ -344,15 +337,13 @@ export type Modal =
     }
   | {
       name: 'schedule-edit';
-      options: { id?: string; transaction?: TransactionEntity } | null;
+      options: {id?: string; transaction?: TransactionEntity} | null;
     }
   | {
       name: 'schedule-link';
       options: {
         transactionIds: string[];
-        getTransaction: (
-          transactionId: TransactionEntity['id'],
-        ) => TransactionEntity;
+        getTransaction: (transactionId: TransactionEntity['id']) => TransactionEntity;
         accountName?: string;
         onScheduleLinked?: (schedule: ScheduleEntity) => void;
       };
@@ -440,13 +431,8 @@ export type Modal =
         onDelete: (groupId: CategoryGroupEntity['id']) => void;
         onToggleVisibility: (groupId: CategoryGroupEntity['id']) => void;
         onClose?: () => void;
-        onApplyBudgetTemplatesInGroup?: (
-          categories: Array<CategoryEntity['id']>,
-        ) => void;
-        onSortCategories?: (
-          groupId: CategoryGroupEntity['id'],
-          direction: 'asc' | 'desc',
-        ) => void;
+        onApplyBudgetTemplatesInGroup?: (categories: Array<CategoryEntity['id']>) => void;
+        onSortCategories?: (groupId: CategoryGroupEntity['id'], direction: 'asc' | 'desc') => void;
       };
     }
   | {
@@ -459,17 +445,13 @@ export type Modal =
     }
   | {
       name: 'tracking-budget-summary';
-      options: { month: string };
+      options: {month: string};
     }
   | {
       name: 'envelope-budget-summary';
       options: {
         month: string;
-        onBudgetAction: (
-          month: string,
-          type: string,
-          args?: unknown,
-        ) => Promise<void>;
+        onBudgetAction: (month: string, type: string, args?: unknown) => Promise<void>;
       };
     }
   | {
@@ -531,10 +513,7 @@ export type Modal =
         amount: IntegerAmount;
         categoryId?: CategoryEntity['id'];
         month: string;
-        onSubmit: (
-          amount: IntegerAmount,
-          toCategoryId: CategoryEntity['id'],
-        ) => void;
+        onSubmit: (amount: IntegerAmount, toCategoryId: CategoryEntity['id']) => void;
         showToBeBudgeted?: boolean;
       };
     }
@@ -546,10 +525,7 @@ export type Modal =
         categoryId?: CategoryEntity['id'];
         month: string;
         showToBeBudgeted?: boolean;
-        onSubmit: (
-          amount: IntegerAmount,
-          fromCategoryId: CategoryEntity['id'],
-        ) => void;
+        onSubmit: (amount: IntegerAmount, fromCategoryId: CategoryEntity['id']) => void;
       };
     }
   | {
@@ -563,10 +539,7 @@ export type Modal =
       name: 'scheduled-transaction-menu';
       options: {
         transactionId: TransactionEntity['id'];
-        onPost: (
-          transactionId: TransactionEntity['id'],
-          today?: boolean,
-        ) => void;
+        onPost: (transactionId: TransactionEntity['id'], today?: boolean) => void;
         onSkip: (transactionId: TransactionEntity['id']) => void;
         onComplete: (transactionId: TransactionEntity['id']) => void;
       };
@@ -607,10 +580,7 @@ export type Modal =
       name: 'transaction-table-columns';
       options: {
         columns: TransactionTableColumn[];
-        onSave: (
-          columns: TransactionTableColumn[],
-          applyToAll: boolean,
-        ) => void;
+        onSave: (columns: TransactionTableColumn[], applyToAll: boolean) => void;
       };
     }
   | {
@@ -709,11 +679,8 @@ type OpenAccountCloseModalPayload = {
 
 export const openAccountCloseModal = createAppAsyncThunk(
   `${sliceName}/openAccountCloseModal`,
-  async ({ accountId }: OpenAccountCloseModalPayload, { dispatch, extra }) => {
-    const {
-      balance,
-      numTransactions,
-    }: { balance: number; numTransactions: number } = await send(
+  async ({accountId}: OpenAccountCloseModalPayload, {dispatch, extra}) => {
+    const {balance, numTransactions}: {balance: number; numTransactions: number} = await send(
       'account-properties',
       {
         id: accountId,
@@ -774,9 +741,7 @@ const modalsSlice = createSlice({
       if (
         modal.name.endsWith('keyboard-shortcuts') &&
         (state.modalStack.length > 0 ||
-          window.document.querySelector(
-            'div[data-testid="filters-menu-tooltip"]',
-          ) !== null)
+          window.document.querySelector('div[data-testid="filters-menu-tooltip"]') !== null)
       ) {
         return state;
       }
@@ -793,11 +758,8 @@ const modalsSlice = createSlice({
       state.modalStack = [];
     },
     collapseModals(state, action: PayloadAction<CollapseModalPayload>) {
-      const idx = state.modalStack.findIndex(
-        m => m.name === action.payload.rootModalName,
-      );
-      state.modalStack =
-        idx < 0 ? state.modalStack : state.modalStack.slice(0, idx);
+      const idx = state.modalStack.findIndex(m => m.name === action.payload.rootModalName);
+      state.modalStack = idx < 0 ? state.modalStack : state.modalStack.slice(0, idx);
     },
   },
   extraReducers: builder => {
@@ -809,12 +771,11 @@ const modalsSlice = createSlice({
   },
 });
 
-export const { name, reducer, getInitialState } = modalsSlice;
+export const {name, reducer, getInitialState} = modalsSlice;
 
 export const actions = {
   ...modalsSlice.actions,
   openAccountCloseModal,
 };
 
-export const { pushModal, closeModal, collapseModals, popModal, replaceModal } =
-  actions;
+export const {pushModal, closeModal, collapseModals, popModal, replaceModal} = actions;

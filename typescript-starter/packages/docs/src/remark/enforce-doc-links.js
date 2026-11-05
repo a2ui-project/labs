@@ -19,16 +19,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const IMG_EXTENSIONS = new Set([
-  '.png',
-  '.jpg',
-  '.jpeg',
-  '.webp',
-  '.svg',
-  '.gif',
-  '.ico',
-  '.avif',
-]);
+const IMG_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.svg', '.gif', '.ico', '.avif']);
 const DOC_EXTENSIONS = new Set(['.md']);
 
 // ---------------------------------------------------------------------------
@@ -200,9 +191,7 @@ function remarkEnforceDocLinks() {
       // Blog→docs links must therefore use absolute URLs — don't flag them.
       if (inDocs && url.startsWith('/') && !url.startsWith('/img/')) {
         const pos = nodePos(node);
-        errors.push(
-          `${pos}: absolute link "${url}" — use a relative .md path instead`,
-        );
+        errors.push(`${pos}: absolute link "${url}" — use a relative .md path instead`);
         return;
       }
 
@@ -213,15 +202,12 @@ function remarkEnforceDocLinks() {
 
       // Blog posts cannot use file-path references into docs/ (Docusaurus constraint).
       // Those links are URL references; leave them to onBrokenLinks validation.
-      if (inBlog && docsContentDir && resolved.startsWith(docsContentDir))
-        return;
+      if (inBlog && docsContentDir && resolved.startsWith(docsContentDir)) return;
 
       // Rule 2a: resolves to a .md file directly (just missing the extension)
       if (fs.existsSync(resolved + '.md')) {
         const pos = nodePos(node);
-        errors.push(
-          `${pos}: link "${url}" is missing its extension — use "${base + '.md'}"`,
-        );
+        errors.push(`${pos}: link "${url}" is missing its extension — use "${base + '.md'}"`);
         return;
       }
 
@@ -229,13 +215,8 @@ function remarkEnforceDocLinks() {
       const indexFile = path.join(resolved, 'index.md');
       if (fs.existsSync(indexFile)) {
         const pos = nodePos(node);
-        const suggestion = path.posix.join(
-          base.replace(/\\/g, '/'),
-          'index.md',
-        );
-        errors.push(
-          `${pos}: link "${url}" points to a directory — use "${suggestion}" instead`,
-        );
+        const suggestion = path.posix.join(base.replace(/\\/g, '/'), 'index.md');
+        errors.push(`${pos}: link "${url}" points to a directory — use "${suggestion}" instead`);
         return;
       }
 
@@ -271,9 +252,7 @@ function remarkEnforceDocLinks() {
 }
 
 function nodePos(node) {
-  return node.position
-    ? `${node.position.start.line}:${node.position.start.column}`
-    : '?';
+  return node.position ? `${node.position.start.line}:${node.position.start.column}` : '?';
 }
 
 /** Relative path from fromDir to toFile, always using forward slashes. */

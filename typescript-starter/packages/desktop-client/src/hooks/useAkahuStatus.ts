@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { useSyncServerStatus } from './useSyncServerStatus';
+import {useSyncServerStatus} from './useSyncServerStatus';
 
 export function useAkahuStatus(enabled = true) {
   const [configuredAkahu, setConfiguredAkahu] = useState<boolean | null>(null);

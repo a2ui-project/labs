@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useMemo} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Card } from '@actual-app/components/card';
-import { SvgExpandArrow } from '@actual-app/components/icons/v0';
-import { SvgCheveronRight } from '@actual-app/components/icons/v1';
-import { Label } from '@actual-app/components/label';
-import { styles } from '@actual-app/components/styles';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {Card} from '@actual-app/components/card';
+import {SvgExpandArrow} from '@actual-app/components/icons/v0';
+import {SvgCheveronRight} from '@actual-app/components/icons/v1';
+import {Label} from '@actual-app/components/label';
+import {styles} from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { CategoryGroupEntity } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
-import { AutoTextSize } from 'auto-text-size';
+import type {CategoryGroupEntity} from '@actual-app/core/types/models';
+import {css} from '@emotion/css';
+import {AutoTextSize} from 'auto-text-size';
 
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { CellValue } from '#components/spreadsheet/CellValue';
-import { useFormat } from '#hooks/useFormat';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {CellValue} from '#components/spreadsheet/CellValue';
+import {useFormat} from '#hooks/useFormat';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {envelopeBudget, trackingBudget} from '#spreadsheet/bindings';
 
-import { getColumnWidth, ROW_HEIGHT } from './BudgetTable';
-import { IncomeCategoryList } from './IncomeCategoryList';
+import {getColumnWidth, ROW_HEIGHT} from './BudgetTable';
+import {IncomeCategoryList} from './IncomeCategoryList';
 
 type IncomeGroupProps = {
   categoryGroup: CategoryGroupEntity;
@@ -62,7 +62,7 @@ export function IncomeGroup({
   isCollapsed,
   onToggleCollapse,
 }: IncomeGroupProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const columnWidth = getColumnWidth();
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
 
@@ -70,15 +70,9 @@ export function IncomeGroup({
     () =>
       isCollapsed(categoryGroup.id)
         ? []
-        : (categoryGroup.categories?.filter(
-            category => !category.hidden || showHiddenCategories,
-          ) ?? []),
-    [
-      categoryGroup.categories,
-      categoryGroup.id,
-      isCollapsed,
-      showHiddenCategories,
-    ],
+        : (categoryGroup.categories?.filter(category => !category.hidden || showHiddenCategories) ??
+          []),
+    [categoryGroup.categories, categoryGroup.id, isCollapsed, showHiddenCategories],
   );
 
   return (
@@ -93,13 +87,11 @@ export function IncomeGroup({
           marginRight: 15,
         }}
       >
-        {budgetType === 'tracking' && (
-          <Label title={t('Budgeted')} style={{ width: columnWidth }} />
-        )}
-        <Label title={t('Received')} style={{ width: columnWidth }} />
+        {budgetType === 'tracking' && <Label title={t('Budgeted')} style={{width: columnWidth}} />}
+        <Label title={t('Received')} style={{width: columnWidth}} />
       </View>
 
-      <Card style={{ marginTop: 0 }}>
+      <Card style={{marginTop: 0}}>
         <IncomeGroupHeader
           group={categoryGroup}
           month={month}
@@ -173,12 +165,7 @@ type IncomeGroupNameProps = {
   onToggleCollapse: (id: CategoryGroupEntity['id']) => void;
 };
 
-function IncomeGroupName({
-  group,
-  onEdit,
-  isCollapsed,
-  onToggleCollapse,
-}: IncomeGroupNameProps) {
+function IncomeGroupName({group, onEdit, isCollapsed, onToggleCollapse}: IncomeGroupNameProps) {
   const sidebarColumnWidth = getColumnWidth({
     isSidebar: true,
     offset: -13.5,
@@ -240,7 +227,7 @@ function IncomeGroupName({
             {group.name}
           </Text>
           <SvgCheveronRight
-            style={{ flexShrink: 0, color: theme.tableTextSubdued }}
+            style={{flexShrink: 0, color: theme.tableTextSubdued}}
             width={14}
             height={14}
           />
@@ -254,12 +241,11 @@ type IncomeGroupCellsProps = {
   group: CategoryGroupEntity;
 };
 
-function IncomeGroupCells({ group }: IncomeGroupCellsProps) {
+function IncomeGroupCells({group}: IncomeGroupCellsProps) {
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
   const format = useFormat();
 
-  const budgeted =
-    budgetType === 'tracking' ? trackingBudget.groupBudgeted(group.id) : null;
+  const budgeted = budgetType === 'tracking' ? trackingBudget.groupBudgeted(group.id) : null;
 
   const balance =
     budgetType === 'tracking'
@@ -282,7 +268,7 @@ function IncomeGroupCells({ group }: IncomeGroupCellsProps) {
           binding={budgeted}
           type="financial"
         >
-          {({ type, value }) => (
+          {({type, value}) => (
             <View>
               <PrivacyFilter>
                 <AutoTextSize
@@ -313,7 +299,7 @@ function IncomeGroupCells({ group }: IncomeGroupCellsProps) {
         binding={balance}
         type="financial"
       >
-        {({ type, value }) => (
+        {({type, value}) => (
           <View>
             <PrivacyFilter>
               <AutoTextSize

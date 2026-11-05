@@ -5,15 +5,9 @@
  * This runs via the "prepack" lifecycle hook. The original package.json is
  * backed up and restored by restore-package-json.ts (postpack).
  */
-import {
-  constants,
-  copyFileSync,
-  existsSync,
-  readFileSync,
-  writeFileSync,
-} from 'node:fs';
-import { dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {constants, copyFileSync, existsSync, readFileSync, writeFileSync} from 'node:fs';
+import {dirname, resolve} from 'node:path';
+import {fileURLToPath} from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgPath = resolve(__dirname, '..', 'package.json');
@@ -24,14 +18,10 @@ type ExportMap = Record<string, ExportValue>;
 
 function toTypesPath(srcPath: string): string | null {
   if (srcPath.startsWith('./src/')) {
-    return srcPath
-      .replace(/^\.\/src\//, './@types/src/')
-      .replace(/\.tsx?$/, '.d.ts');
+    return srcPath.replace(/^\.\/src\//, './@types/src/').replace(/\.tsx?$/, '.d.ts');
   }
   if (srcPath.startsWith('./typings/')) {
-    return srcPath
-      .replace(/^\.\/typings\//, './@types/typings/')
-      .replace(/\.tsx?$/, '.d.ts');
+    return srcPath.replace(/^\.\/typings\//, './@types/typings/').replace(/\.tsx?$/, '.d.ts');
   }
   return null;
 }
@@ -46,7 +36,7 @@ function transformEntry(value: ExportValue): ExportValue {
     if (shouldSkip(value)) return value;
     const typesPath = toTypesPath(value);
     if (!typesPath) return value;
-    return { types: typesPath, default: value };
+    return {types: typesPath, default: value};
   }
 
   // Derive the types path from the "default" condition. Nested conditional
@@ -61,7 +51,7 @@ function transformEntry(value: ExportValue): ExportValue {
   const typesPath = toTypesPath(defaultValue);
   if (!typesPath) return value;
 
-  return { types: typesPath, ...value };
+  return {types: typesPath, ...value};
 }
 
 function transformMap(map: ExportMap): ExportMap {
@@ -74,9 +64,7 @@ function transformMap(map: ExportMap): ExportMap {
 
 // Backup and transform
 if (existsSync(backupPath)) {
-  throw new Error(
-    'prepack: package.json.bak already exists; run postpack cleanup first.',
-  );
+  throw new Error('prepack: package.json.bak already exists; run postpack cleanup first.');
 }
 copyFileSync(pkgPath, backupPath, constants.COPYFILE_EXCL);
 

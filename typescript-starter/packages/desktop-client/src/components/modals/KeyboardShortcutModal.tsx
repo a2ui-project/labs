@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import { useMemo, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useMemo, useState} from 'react';
+import type {CSSProperties, ReactNode} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgArrowLeft } from '@actual-app/components/icons/v1';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { styles as baseStyles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgArrowLeft} from '@actual-app/components/icons/v1';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {styles as baseStyles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as Platform from '@actual-app/core/shared/platform';
 
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { Search } from '#components/common/Search';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {Search} from '#components/common/Search';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
 
 type KeyIconProps = {
   shortcut: string;
@@ -44,7 +44,7 @@ type ShortcutListItemProps = {
   style?: CSSProperties;
 };
 
-function KeyIcon({ shortcut, style }: KeyIconProps) {
+function KeyIcon({shortcut, style}: KeyIconProps) {
   return (
     <div
       style={{
@@ -109,13 +109,7 @@ function ListItem({
   );
 }
 
-function ShortcutListItem({
-  shortcut,
-  description,
-  meta,
-  shift,
-  style,
-}: ShortcutListItemProps) {
+function ShortcutListItem({shortcut, description, meta, shift, style}: ShortcutListItemProps) {
   return (
     <ListItem>
       <Text>{description}</Text>
@@ -162,12 +156,10 @@ type ShortcutCategories = {
 };
 
 export function KeyboardShortcutModal() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const ctrl = Platform.OS === 'mac' ? '⌘' : 'Ctrl';
   const [searchText, setSearchText] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null,
-  );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const isGoalTemplatesEnabled = useFeatureFlag('goalTemplatesEnabled');
 
   // In future, we may move this to state and pull overrides from config/db
@@ -286,9 +278,7 @@ export function KeyboardShortcutModal() {
           {
             id: 'filter-menu',
             shortcut: 'F',
-            description: t(
-              'Show filter dropdown when no transactions are selected',
-            ),
+            description: t('Show filter dropdown when no transactions are selected'),
           },
         ],
       },
@@ -445,9 +435,7 @@ export function KeyboardShortcutModal() {
           {
             id: 'make-transfer-from-selected-transactions',
             shortcut: 'R',
-            description: t(
-              'Make a transfer from the two selected transactions',
-            ),
+            description: t('Make a transfer from the two selected transactions'),
           },
         ],
       },
@@ -455,53 +443,50 @@ export function KeyboardShortcutModal() {
     [t, ctrl, isGoalTemplatesEnabled],
   );
 
-  const { isSearching, isInCategory, currentCategory, itemsToShow } =
-    useMemo(() => {
-      const isSearching = Boolean(searchText);
-      const isInCategory = Boolean(selectedCategoryId);
+  const {isSearching, isInCategory, currentCategory, itemsToShow} = useMemo(() => {
+    const isSearching = Boolean(searchText);
+    const isInCategory = Boolean(selectedCategoryId);
 
-      if (isSearching) {
-        // Show all matching shortcuts across all categories
-        const allMatches = defaultShortcuts.flatMap(category =>
-          category.items.filter(item =>
-            item.description.toLowerCase().includes(searchText.toLowerCase()),
-          ),
-        );
-        return {
-          isSearching,
-          isInCategory: false,
-          currentCategory: null,
-          itemsToShow: allMatches,
-        };
-      }
-
-      if (isInCategory) {
-        // Show shortcuts for selected category
-        const category = defaultShortcuts.find(
-          s => s.id === selectedCategoryId,
-        );
-        return {
-          isSearching: false,
-          isInCategory: true,
-          currentCategory: category || null,
-          itemsToShow: category?.items || [],
-        };
-      }
-
-      // Show category list
+    if (isSearching) {
+      // Show all matching shortcuts across all categories
+      const allMatches = defaultShortcuts.flatMap(category =>
+        category.items.filter(item =>
+          item.description.toLowerCase().includes(searchText.toLowerCase()),
+        ),
+      );
       return {
-        isSearching: false,
+        isSearching,
         isInCategory: false,
         currentCategory: null,
-        itemsToShow: defaultShortcuts,
+        itemsToShow: allMatches,
       };
-    }, [searchText, selectedCategoryId, defaultShortcuts]);
+    }
+
+    if (isInCategory) {
+      // Show shortcuts for selected category
+      const category = defaultShortcuts.find(s => s.id === selectedCategoryId);
+      return {
+        isSearching: false,
+        isInCategory: true,
+        currentCategory: category || null,
+        itemsToShow: category?.items || [],
+      };
+    }
+
+    // Show category list
+    return {
+      isSearching: false,
+      isInCategory: false,
+      currentCategory: null,
+      itemsToShow: defaultShortcuts,
+    };
+  }, [searchText, selectedCategoryId, defaultShortcuts]);
 
   const showingShortcuts = isSearching || isInCategory;
 
   return (
-    <Modal name="keyboard-shortcuts" containerProps={{ style: { width: 700 } }}>
-      {({ state }) => (
+    <Modal name="keyboard-shortcuts" containerProps={{style: {width: 700}}}>
+      {({state}) => (
         <>
           <ModalHeader
             title={
@@ -521,12 +506,12 @@ export function KeyboardShortcutModal() {
                     setSearchText('');
                     setSelectedCategoryId(null);
                   }}
-                  style={{ marginRight: 10, marginLeft: 15, zIndex: 3000 }}
+                  style={{marginRight: 10, marginLeft: 15, zIndex: 3000}}
                 >
                   <SvgArrowLeft
                     width={10}
                     height={10}
-                    style={{ marginRight: 5, color: 'currentColor' }}
+                    style={{marginRight: 5, color: 'currentColor'}}
                   />
                   <Trans>Back</Trans>
                 </Button>
@@ -580,7 +565,7 @@ export function KeyboardShortcutModal() {
                     padding: 20,
                   }}
                 >
-                  <Text style={{ fontSize: 15 }}>
+                  <Text style={{fontSize: 15}}>
                     <Trans>
                       {isSearching
                         ? 'No matching shortcuts'
@@ -618,15 +603,10 @@ export function KeyboardShortcutModal() {
                         width: '100%',
                       }}
                     >
-                      <Text style={{ fontWeight: 'bold' }}>
-                        {category.name}
-                      </Text>
-                      <Text style={{ color: theme.pageTextLight }}>
+                      <Text style={{fontWeight: 'bold'}}>{category.name}</Text>
+                      <Text style={{color: theme.pageTextLight}}>
                         {category.items.length}{' '}
-                        {category.items.length === 1
-                          ? t('shortcut')
-                          : t('shortcuts')}{' '}
-                        ›
+                        {category.items.length === 1 ? t('shortcut') : t('shortcuts')} ›
                       </Text>
                     </View>
                   </ListItem>

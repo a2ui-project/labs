@@ -14,26 +14,20 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { GroupedEntity } from '@actual-app/core/types/models';
+import type {GroupedEntity} from '@actual-app/core/types/models';
 
-import {
-  categoryLists,
-  ReportOptions,
-} from '#components/reports/ReportOptions';
-import type { QueryDataEntity } from '#components/reports/ReportOptions';
-import type { useSpreadsheet } from '#hooks/useSpreadsheet';
+import {categoryLists, ReportOptions} from '#components/reports/ReportOptions';
+import type {QueryDataEntity} from '#components/reports/ReportOptions';
+import type {useSpreadsheet} from '#hooks/useSpreadsheet';
 
-import type { createCustomSpreadsheetProps } from './custom-spreadsheet';
-import { fetchSpreadsheetQueryData } from './fetchSpreadsheetQueryData';
-import { filterEmptyRows } from './filterEmptyRows';
-import { recalculate } from './recalculate';
-import { sortData } from './sortData';
-import {
-  determineIntervalRange,
-  trimGroupedDataIntervals,
-} from './trimIntervals';
+import type {createCustomSpreadsheetProps} from './custom-spreadsheet';
+import {fetchSpreadsheetQueryData} from './fetchSpreadsheetQueryData';
+import {filterEmptyRows} from './filterEmptyRows';
+import {recalculate} from './recalculate';
+import {sortData} from './sortData';
+import {determineIntervalRange, trimGroupedDataIntervals} from './trimIntervals';
 
 export function createGroupedSpreadsheet({
   startDate,
@@ -63,7 +57,7 @@ export function createGroupedSpreadsheet({
       return;
     }
 
-    const { filters } = await send('make-filters-from-conditions', {
+    const {filters} = await send('make-filters-from-conditions', {
       conditions: conditions.filter(cond => !cond.customName),
     });
     const conditionsOpKey = conditionsOp === 'or' ? '$or' : '$and';
@@ -71,7 +65,7 @@ export function createGroupedSpreadsheet({
     let assets: QueryDataEntity[];
     let debts: QueryDataEntity[];
 
-    ({ assets, debts } = await fetchSpreadsheetQueryData({
+    ({assets, debts} = await fetchSpreadsheetQueryData({
       balanceTypeOp,
       startDate,
       endDate,
@@ -103,9 +97,10 @@ export function createGroupedSpreadsheet({
     const intervals =
       interval === 'Weekly'
         ? monthUtils.weekRangeInclusive(startDate, endDate, firstDayOfWeekIdx)
-        : monthUtils[
-            ReportOptions.intervalRange.get(interval) || 'rangeInclusive'
-          ](startDate, endDate);
+        : monthUtils[ReportOptions.intervalRange.get(interval) || 'rangeInclusive'](
+            startDate,
+            endDate,
+          );
 
     const groupedData: GroupedEntity[] = categoryGroup.map(
       group => {
@@ -137,23 +132,21 @@ export function createGroupedSpreadsheet({
               startDate,
               endDate,
             });
-            return { ...calc };
+            return {...calc};
           });
 
         return {
           ...grouped,
           categories:
             stackedCategories &&
-            stackedCategories.filter(i =>
-              filterEmptyRows({ showEmpty, data: i, balanceTypeOp }),
-            ),
+            stackedCategories.filter(i => filterEmptyRows({showEmpty, data: i, balanceTypeOp})),
         };
       },
       [startDate, endDate],
     );
 
     const groupedDataFiltered = groupedData.filter(i =>
-      filterEmptyRows({ showEmpty, data: i, balanceTypeOp }),
+      filterEmptyRows({showEmpty, data: i, balanceTypeOp}),
     );
 
     // Determine interval range across all groups and their nested categories
@@ -165,7 +158,7 @@ export function createGroupedSpreadsheet({
       }
     });
 
-    const { startIndex, endIndex } = determineIntervalRange(
+    const {startIndex, endIndex} = determineIntervalRange(
       allGroupsForTrimming,
       groupedDataFiltered.length > 0 ? groupedDataFiltered[0].intervalData : [],
       trimIntervals,
@@ -176,11 +169,9 @@ export function createGroupedSpreadsheet({
     trimGroupedDataIntervals(groupedDataFiltered, startIndex, endIndex);
 
     const sortedGroupedDataFiltered = [...groupedDataFiltered]
-      .sort(sortData({ balanceTypeOp, sortByOp }))
+      .sort(sortData({balanceTypeOp, sortByOp}))
       .map(g => {
-        g.categories = [...(g.categories ?? [])].sort(
-          sortData({ balanceTypeOp, sortByOp }),
-        );
+        g.categories = [...(g.categories ?? [])].sort(sortData({balanceTypeOp, sortByOp}));
         return g;
       });
 

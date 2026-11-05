@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-export const createMutex = (): (<A>(
-  operation: () => Promise<A>,
-) => Promise<A>) => {
+export const createMutex = (): (<A>(operation: () => Promise<A>) => Promise<A>) => {
   let mutex = Promise.resolve();
 
   return <A>(operation: () => Promise<A>) =>

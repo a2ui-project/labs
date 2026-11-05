@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useCallback} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
 
-import { addNotification } from '#notifications/notificationsSlice';
-import type { Notification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { redo, undo } from '#undo';
+import {addNotification} from '#notifications/notificationsSlice';
+import type {Notification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {redo, undo} from '#undo';
 
 type UndoActions = {
   undo: () => void;
@@ -35,8 +35,8 @@ const timeout = 10000;
 
 export function useUndo(): UndoActions {
   const dispatch = useDispatch();
-  const { isNarrowWidth } = useResponsive();
-  const { t } = useTranslation();
+  const {isNarrowWidth} = useResponsive();
+  const {t} = useTranslation();
 
   const showUndoNotification = useCallback(
     (notification: Notification) => {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class PayeesPage {
   readonly page: Page;
@@ -31,10 +31,6 @@ export class PayeesPage {
   }
 
   async rightClickNthPayee(idx: number) {
-    await this.page
-      .getByTestId('table')
-      .getByTestId('row')
-      .nth(idx)
-      .click({ button: 'right' });
+    await this.page.getByTestId('table').getByTestId('row').nth(idx).click({button: 'right'});
   }
 }

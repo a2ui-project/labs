@@ -14,35 +14,32 @@
  * limitations under the License.
  */
 
-import { useCallback, useMemo } from 'react';
-import type { ComponentPropsWithoutRef } from 'react';
-import { GridListItem } from 'react-aria-components';
+import {useCallback, useMemo} from 'react';
+import type {ComponentPropsWithoutRef} from 'react';
+import {GridListItem} from 'react-aria-components';
 
-import { Button } from '@actual-app/components/button';
-import { Card } from '@actual-app/components/card';
-import { SvgExpandArrow } from '@actual-app/components/icons/v0';
-import { SvgCheveronRight } from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {Card} from '@actual-app/components/card';
+import {SvgExpandArrow} from '@actual-app/components/icons/v0';
+import {SvgCheveronRight} from '@actual-app/components/icons/v1';
+import {styles} from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
-import { AutoTextSize } from 'auto-text-size';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
+import {css} from '@emotion/css';
+import {AutoTextSize} from 'auto-text-size';
 
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { CellValue } from '#components/spreadsheet/CellValue';
-import { useFormat } from '#hooks/useFormat';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {CellValue} from '#components/spreadsheet/CellValue';
+import {useFormat} from '#hooks/useFormat';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {envelopeBudget, trackingBudget} from '#spreadsheet/bindings';
 
-import { getColumnWidth, ROW_HEIGHT } from './BudgetTable';
-import { ExpenseCategoryList } from './ExpenseCategoryList';
+import {getColumnWidth, ROW_HEIGHT} from './BudgetTable';
+import {ExpenseCategoryList} from './ExpenseCategoryList';
 
 type ExpenseGroupListItemProps = ComponentPropsWithoutRef<
   typeof GridListItem<CategoryGroupEntity>
@@ -72,15 +69,14 @@ export function ExpenseGroupListItem({
   isHidden,
   ...props
 }: ExpenseGroupListItemProps) {
-  const { value: categoryGroup } = props;
+  const {value: categoryGroup} = props;
 
   const categories = useMemo(
     () =>
       !categoryGroup || isCollapsed(categoryGroup.id)
         ? []
-        : (categoryGroup.categories?.filter(
-            category => !category.hidden || showHiddenCategories,
-          ) ?? []),
+        : (categoryGroup.categories?.filter(category => !category.hidden || showHiddenCategories) ??
+          []),
     [categoryGroup, isCollapsed, showHiddenCategories],
   );
 
@@ -274,7 +270,7 @@ function ExpenseGroupName({
             {group.name}
           </Text>
           <SvgCheveronRight
-            style={{ flexShrink: 0, color: theme.tableTextSubdued }}
+            style={{flexShrink: 0, color: theme.tableTextSubdued}}
             width={14}
             height={14}
           />
@@ -290,15 +286,11 @@ type ExpenseGroupCellsProps = {
   showBudgetedColumn: boolean;
 };
 
-function ExpenseGroupCells({
-  group,
-  show3Columns,
-  showBudgetedColumn,
-}: ExpenseGroupCellsProps) {
+function ExpenseGroupCells({group, show3Columns, showBudgetedColumn}: ExpenseGroupCellsProps) {
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
   const format = useFormat();
 
-  const columnWidth = getColumnWidth({ show3Columns });
+  const columnWidth = getColumnWidth({show3Columns});
 
   const amountStyle: CSSProperties = {
     ...styles.tnum,
@@ -335,14 +327,14 @@ function ExpenseGroupCells({
     >
       <View
         style={{
-          ...(!show3Columns && !showBudgetedColumn && { display: 'none' }),
+          ...(!show3Columns && !showBudgetedColumn && {display: 'none'}),
         }}
       >
         <CellValue<'envelope-budget' | 'tracking-budget', 'group-budget'>
           binding={budgeted}
           type="financial"
         >
-          {({ type, value }) => (
+          {({type, value}) => (
             <View>
               <PrivacyFilter>
                 <AutoTextSize
@@ -362,14 +354,14 @@ function ExpenseGroupCells({
       </View>
       <View
         style={{
-          ...(!show3Columns && showBudgetedColumn && { display: 'none' }),
+          ...(!show3Columns && showBudgetedColumn && {display: 'none'}),
         }}
       >
         <CellValue<'envelope-budget' | 'tracking-budget', 'group-sum-amount'>
           binding={spent}
           type="financial"
         >
-          {({ type, value }) => (
+          {({type, value}) => (
             <View>
               <PrivacyFilter>
                 <AutoTextSize
@@ -391,7 +383,7 @@ function ExpenseGroupCells({
         binding={balance}
         type="financial"
       >
-        {({ type, value }) => (
+        {({type, value}) => (
           <View>
             <PrivacyFilter>
               <AutoTextSize

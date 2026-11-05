@@ -23,8 +23,7 @@ module.exports = {
   meta: {
     type: 'suggestion',
     docs: {
-      description:
-        'Forbid usage of default React import (React.*) in favor of named exports',
+      description: 'Forbid usage of default React import (React.*) in favor of named exports',
     },
     fixable: null,
     schema: [],
@@ -47,9 +46,7 @@ module.exports = {
     function isReactDefaultImport(node) {
       // Check MemberExpression: React.Component, React.useState, etc.
       if (node.type === 'MemberExpression') {
-        return (
-          node.object.type === 'Identifier' && node.object.name === 'React'
-        );
+        return node.object.type === 'Identifier' && node.object.name === 'React';
       }
 
       // Check TSQualifiedName: React.FC, React.ComponentType, etc. (TypeScript)
@@ -77,10 +74,7 @@ module.exports = {
 
       // Catch React.* in JSX (e.g., <React.Fragment>)
       JSXMemberExpression(node) {
-        if (
-          node.object.type === 'JSXIdentifier' &&
-          node.object.name === 'React'
-        ) {
+        if (node.object.type === 'JSXIdentifier' && node.object.name === 'React') {
           context.report({
             node,
             messageId: 'useNamedExport',

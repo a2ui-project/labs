@@ -15,12 +15,12 @@
  */
 
 import * as api from '@actual-app/api';
-import { Command } from 'commander';
+import {Command} from 'commander';
 
-import { printOutput } from '#output';
+import {printOutput} from '#output';
 
-import { registerCategoriesCommand } from './categories';
-import { registerCategoryGroupsCommand } from './category-groups';
+import {registerCategoriesCommand} from './categories';
+import {registerCategoryGroupsCommand} from './category-groups';
 
 vi.mock('@actual-app/api', () => ({
   getCategories: vi.fn().mockResolvedValue([]),
@@ -67,12 +67,8 @@ describe('categories commands', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    stderrSpy = vi
-      .spyOn(process.stderr, 'write')
-      .mockImplementation(() => true);
-    stdoutSpy = vi
-      .spyOn(process.stdout, 'write')
-      .mockImplementation(() => true);
+    stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+    stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
   });
 
   afterEach(() => {
@@ -84,7 +80,7 @@ describe('categories commands', () => {
     it('asks the API to exclude hidden categories by default', async () => {
       await run(['categories', 'list']);
 
-      expect(api.getCategories).toHaveBeenCalledWith({ hidden: false });
+      expect(api.getCategories).toHaveBeenCalledWith({hidden: false});
     });
 
     it('asks the API for all categories when --include-hidden is passed', async () => {
@@ -120,7 +116,7 @@ describe('categories commands', () => {
     it('asks the API to exclude hidden groups by default', async () => {
       await run(['category-groups', 'list']);
 
-      expect(api.getCategoryGroups).toHaveBeenCalledWith({ hidden: false });
+      expect(api.getCategoryGroups).toHaveBeenCalledWith({hidden: false});
     });
 
     it('asks the API for all groups when --include-hidden is passed', async () => {
@@ -135,7 +131,7 @@ describe('categories commands', () => {
         name: 'Group',
         is_income: false,
         hidden: false,
-        categories: [{ id: 'c1', name: 'Cat', group_id: 'g1', hidden: false }],
+        categories: [{id: 'c1', name: 'Cat', group_id: 'g1', hidden: false}],
       };
       vi.mocked(api.getCategoryGroups).mockResolvedValue([group]);
 

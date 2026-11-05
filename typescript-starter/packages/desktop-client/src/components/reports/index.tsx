@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { View } from '@actual-app/components/view';
+import {View} from '@actual-app/components/view';
 
-import { LoadComponent } from '#components/util/LoadComponent';
+import {LoadComponent} from '#components/util/LoadComponent';
 
 export function Reports() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
-    <View style={{ flex: 1 }} data-testid="reports-page">
+    <View style={{flex: 1}} data-testid="reports-page">
       <LoadComponent
         name="ReportRouter"
         message={t('Loading reports...')}
-        importer={() =>
-          import(/* webpackChunkName: 'reports' */ './ReportRouter')
-        }
+        importer={() => import(/* webpackChunkName: 'reports' */ './ReportRouter')}
       />
     </View>
   );

@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useEffect, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { styles } from '@actual-app/components/styles';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {styles} from '@actual-app/components/styles';
+import {View} from '@actual-app/components/view';
 
-import { useEnvelopeSheetValue } from '#components/budget/envelope/EnvelopeBudgetComponents';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { FieldLabel } from '#components/mobile/MobileForms';
-import { AmountInput } from '#components/util/AmountInput';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {useEnvelopeSheetValue} from '#components/budget/envelope/EnvelopeBudgetComponents';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {FieldLabel} from '#components/mobile/MobileForms';
+import {AmountInput} from '#components/util/AmountInput';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
-type HoldBufferModalProps = Extract<
-  ModalType,
-  { name: 'hold-buffer' }
->['options'];
+type HoldBufferModalProps = Extract<ModalType, {name: 'hold-buffer'}>['options'];
 
-export function HoldBufferModal({ onSubmit }: HoldBufferModalProps) {
-  const { t } = useTranslation(); // Initialize i18next
+export function HoldBufferModal({onSubmit}: HoldBufferModalProps) {
+  const {t} = useTranslation(); // Initialize i18next
   const [hideFraction] = useSyncedPref('hideFraction');
   const available = useEnvelopeSheetValue(envelopeBudget.toBudget) ?? 0;
   const [amount, setAmount] = useState<number>(0);
@@ -53,7 +50,7 @@ export function HoldBufferModal({ onSubmit }: HoldBufferModalProps) {
 
   return (
     <Modal name="hold-buffer">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Hold for next month')}

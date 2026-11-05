@@ -15,18 +15,18 @@
  */
 
 // @ts-strict-ignore
-import { Timestamp } from '@actual-app/crdt';
+import {Timestamp} from '@actual-app/crdt';
 
 import * as connection from '#platform/server/connection';
-import { getIn } from '#shared/util';
-import type { HandlerFunctions } from '#types/handlers';
+import {getIn} from '#shared/util';
+import type {HandlerFunctions} from '#types/handlers';
 
-import { getMutatorContext, withMutatorContext } from './mutators';
-import { sendMessages } from './sync';
-import type { Message } from './sync';
+import {getMutatorContext, withMutatorContext} from './mutators';
+import {sendMessages} from './sync';
+import type {Message} from './sync';
 
 // A marker always sits as the first entry to simplify logic
-type MarkerMessage = { type: 'marker'; meta?: unknown };
+type MarkerMessage = {type: 'marker'; meta?: unknown};
 type MessagesMessage = {
   type: 'messages';
   messages: Message[];
@@ -34,9 +34,7 @@ type MessagesMessage = {
   oldData;
   undoTag;
 };
-let MESSAGE_HISTORY: Array<MarkerMessage | MessagesMessage> = [
-  { type: 'marker' },
-];
+let MESSAGE_HISTORY: Array<MarkerMessage | MessagesMessage> = [{type: 'marker'}];
 let CURSOR = 0;
 const HISTORY_SIZE = 20;
 
@@ -65,7 +63,7 @@ export function appendMessages(messages, oldData) {
   if (context.undoListening && messages.length > 0) {
     trimHistory();
 
-    const { undoTag } = context;
+    const {undoTag} = context;
 
     MESSAGE_HISTORY.push({
       type: 'messages',
@@ -78,14 +76,11 @@ export function appendMessages(messages, oldData) {
 }
 
 export function clearUndo() {
-  MESSAGE_HISTORY = [{ type: 'marker' }];
+  MESSAGE_HISTORY = [{type: 'marker'}];
   CURSOR = 0;
 }
 
-export function withUndo<T>(
-  func: () => Promise<T>,
-  meta?: unknown,
-): Promise<T> {
+export function withUndo<T>(func: () => Promise<T>, meta?: unknown): Promise<T> {
   const context = getMutatorContext();
   if (context.undoDisabled || context.undoListening) {
     return func();
@@ -93,7 +88,7 @@ export function withUndo<T>(
 
   MESSAGE_HISTORY = MESSAGE_HISTORY.slice(0, CURSOR + 1);
 
-  const marker: MarkerMessage = { type: 'marker', meta };
+  const marker: MarkerMessage = {type: 'marker', meta};
 
   if (MESSAGE_HISTORY[MESSAGE_HISTORY.length - 1].type === 'marker') {
     MESSAGE_HISTORY[MESSAGE_HISTORY.length - 1] = marker;
@@ -102,10 +97,7 @@ export function withUndo<T>(
     CURSOR++;
   }
 
-  return withMutatorContext(
-    { undoListening: true, undoTag: context.undoTag },
-    func,
-  );
+  return withMutatorContext({undoListening: true, undoTag: context.undoTag}, func);
 }
 
 export function undoable<T extends HandlerFunctions>(
@@ -123,10 +115,8 @@ export function undoable<T extends HandlerFunctions>(
 }
 
 async function applyUndoAction(messages, meta, undoTag) {
-  await withMutatorContext({ undoListening: false }, () => {
-    return sendMessages(
-      messages.map(msg => ({ ...msg, timestamp: Timestamp.send() })),
-    );
+  await withMutatorContext({undoListening: false}, () => {
+    return sendMessages(messages.map(msg => ({...msg, timestamp: Timestamp.send()})));
   });
 
   const tables = messages.reduce((acc, message) => {
@@ -163,9 +153,7 @@ export async function undo() {
     const toApply = entries
       .reduce((acc, entry) => {
         return acc.concat(
-          entry.messages
-            .map(message => undoMessage(message, entry.oldData))
-            .filter(x => x),
+          entry.messages.map(message => undoMessage(message, entry.oldData)).filter(x => x),
         );
       }, [])
       .reverse();
@@ -185,11 +173,11 @@ function undoMessage(message, oldData) {
       column = 'cachedValue';
     }
 
-    return { ...message, value: oldItem[column] };
+    return {...message, value: oldItem[column]};
   } else {
     if (message.dataset === 'spreadsheet_cells') {
       if (message.column === 'expr') {
-        return { ...message, value: null };
+        return {...message, value: null};
       }
       return message;
     } else if (
@@ -206,33 +194,27 @@ function undoMessage(message, oldData) {
       ) {
         // Only these fields are reversable
         if (['buffered', 'amount', 'carryover'].includes(message.column)) {
-          return { ...message, value: 0 };
+          return {...message, value: 0};
         }
         return null;
       } else if (message.dataset === 'notes') {
-        return { ...message, value: null };
+        return {...message, value: null};
       }
 
-      return { ...message, column: 'tombstone', value: 1 };
+      return {...message, column: 'tombstone', value: 1};
     }
   }
   return null;
 }
 
 export async function redo() {
-  const meta =
-    MESSAGE_HISTORY[CURSOR].type === 'marker'
-      ? MESSAGE_HISTORY[CURSOR].meta
-      : null;
+  const meta = MESSAGE_HISTORY[CURSOR].type === 'marker' ? MESSAGE_HISTORY[CURSOR].meta : null;
 
   const start = CURSOR;
   CURSOR = Math.min(CURSOR + 1, MESSAGE_HISTORY.length - 1);
 
   // Walk forward to the nearest marker
-  while (
-    CURSOR < MESSAGE_HISTORY.length - 1 &&
-    MESSAGE_HISTORY[CURSOR].type !== 'marker'
-  ) {
+  while (CURSOR < MESSAGE_HISTORY.length - 1 && MESSAGE_HISTORY[CURSOR].type !== 'marker') {
     CURSOR++;
   }
 
@@ -243,9 +225,7 @@ export async function redo() {
 
   if (entries.length > 0) {
     const toApply = entries.reduce((acc, entry) => {
-      return acc
-        .concat(entry.messages)
-        .concat(redoResurrections(entry.messages, entry.oldData));
+      return acc.concat(entry.messages).concat(redoResurrections(entry.messages, entry.oldData));
     }, []);
 
     await applyUndoAction(toApply, meta, entries[entries.length - 1].undoTag);

@@ -15,10 +15,10 @@
  */
 
 import * as api from '@actual-app/api';
-import type { Command } from 'commander';
+import type {Command} from 'commander';
 
-import { withConnection } from '#connection';
-import { printOutput } from '#output';
+import {withConnection} from '#connection';
+import {printOutput} from '#output';
 
 export function registerPayeesCommand(program: Command) {
   const payees = program.command('payees').description('Manage payees');
@@ -34,7 +34,7 @@ export function registerPayeesCommand(program: Command) {
           const result = await api.getPayees();
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -49,7 +49,7 @@ export function registerPayeesCommand(program: Command) {
           const result = await api.getCommonPayees();
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -62,10 +62,10 @@ export function registerPayeesCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const id = await api.createPayee({ name: cmdOpts.name });
-          printOutput({ id }, opts.format);
+          const id = await api.createPayee({name: cmdOpts.name});
+          printOutput({id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -77,18 +77,16 @@ export function registerPayeesCommand(program: Command) {
       const fields: Record<string, unknown> = {};
       if (cmdOpts.name) fields.name = cmdOpts.name;
       if (Object.keys(fields).length === 0) {
-        throw new Error(
-          'No fields to update. Use --name to specify a new name.',
-        );
+        throw new Error('No fields to update. Use --name to specify a new name.');
       }
       const opts = program.opts();
       await withConnection(
         opts,
         async () => {
           await api.updatePayee(id, fields);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -101,9 +99,9 @@ export function registerPayeesCommand(program: Command) {
         opts,
         async () => {
           await api.deletePayee(id);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -112,24 +110,22 @@ export function registerPayeesCommand(program: Command) {
     .description('Merge payees into a target payee')
     .requiredOption('--target <id>', 'Target payee ID')
     .requiredOption('--ids <ids>', 'Comma-separated payee IDs to merge')
-    .action(async (cmdOpts: { target: string; ids: string }) => {
+    .action(async (cmdOpts: {target: string; ids: string}) => {
       const mergeIds = cmdOpts.ids
         .split(',')
         .map(id => id.trim())
         .filter(id => id.length > 0);
       if (mergeIds.length === 0) {
-        throw new Error(
-          'No valid payee IDs provided in --ids. Provide comma-separated IDs.',
-        );
+        throw new Error('No valid payee IDs provided in --ids. Provide comma-separated IDs.');
       }
       const opts = program.opts();
       await withConnection(
         opts,
         async () => {
           await api.mergePayees(cmdOpts.target, mergeIds);
-          printOutput({ success: true }, opts.format);
+          printOutput({success: true}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 }

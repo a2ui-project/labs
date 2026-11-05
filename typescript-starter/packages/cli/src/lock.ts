@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { randomBytes } from 'node:crypto';
-import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import {randomBytes} from 'node:crypto';
+import {mkdirSync, readdirSync, rmSync, writeFileSync} from 'node:fs';
+import {join} from 'node:path';
 
 import lockfile from 'proper-lockfile';
 
@@ -39,7 +39,7 @@ function readersDir(dir: string): string {
 }
 
 function ensureDir(dir: string) {
-  mkdirSync(dir, { recursive: true });
+  mkdirSync(dir, {recursive: true});
 }
 
 function retriesForTimeout(timeoutMs: number) {
@@ -53,7 +53,7 @@ function retriesForTimeout(timeoutMs: number) {
 
 function errorCode(err: unknown): string | undefined {
   if (err instanceof Error && 'code' in err) {
-    const { code } = err as { code?: unknown };
+    const {code} = err as {code?: unknown};
     if (typeof code === 'string') return code;
   }
   return undefined;
@@ -93,7 +93,7 @@ function sweepStaleReaders(dir: string) {
   for (const name of readReaderNames(readers)) {
     const pid = Number(name.split('-')[0]);
     if (!Number.isFinite(pid) || !pidIsAlive(pid)) {
-      rmSync(join(readers, name), { force: true });
+      rmSync(join(readers, name), {force: true});
     }
   }
 }
@@ -109,10 +109,7 @@ async function waitForReadersEmpty(dir: string, timeoutMs: number) {
   throw new Error(lockedMessage(timeoutMs));
 }
 
-async function acquireGate(
-  dir: string,
-  timeoutMs: number,
-): Promise<() => Promise<void>> {
+async function acquireGate(dir: string, timeoutMs: number): Promise<() => Promise<void>> {
   ensureDir(dir);
   try {
     return await lockfile.lock(dir, {
@@ -126,10 +123,7 @@ async function acquireGate(
   }
 }
 
-export async function acquireExclusive(
-  dir: string,
-  { timeoutMs }: AcquireOptions,
-): Promise<Release> {
+export async function acquireExclusive(dir: string, {timeoutMs}: AcquireOptions): Promise<Release> {
   const start = Date.now();
   const release = await acquireGate(dir, timeoutMs);
   try {
@@ -142,10 +136,7 @@ export async function acquireExclusive(
   return () => release();
 }
 
-export async function acquireShared(
-  dir: string,
-  { timeoutMs }: AcquireOptions,
-): Promise<Release> {
+export async function acquireShared(dir: string, {timeoutMs}: AcquireOptions): Promise<Release> {
   const gate = await acquireGate(dir, timeoutMs);
   let markerPath: string;
   try {
@@ -160,6 +151,6 @@ export async function acquireShared(
   }
   await gate();
   return async () => {
-    rmSync(markerPath, { force: true });
+    rmSync(markerPath, {force: true});
   };
 }

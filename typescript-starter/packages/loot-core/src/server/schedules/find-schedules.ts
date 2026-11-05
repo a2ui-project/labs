@@ -16,50 +16,45 @@
 
 // @ts-strict-ignore
 import * as d from 'date-fns';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { aqlQuery } from '#server/aql';
+import {aqlQuery} from '#server/aql';
 import * as db from '#server/db';
-import { fromDateRepr } from '#server/models';
-import { conditionsToAQL } from '#server/transactions/transaction-rules';
-import { RSchedule } from '#server/util/rschedule';
-import { dayFromDate, parseDate } from '#shared/months';
-import { q } from '#shared/query';
-import { getApproxNumberThreshold } from '#shared/rules';
-import { recurConfigToRSchedule } from '#shared/schedules';
-import { groupBy } from '#shared/util';
+import {fromDateRepr} from '#server/models';
+import {conditionsToAQL} from '#server/transactions/transaction-rules';
+import {RSchedule} from '#server/util/rschedule';
+import {dayFromDate, parseDate} from '#shared/months';
+import {q} from '#shared/query';
+import {getApproxNumberThreshold} from '#shared/rules';
+import {recurConfigToRSchedule} from '#shared/schedules';
+import {groupBy} from '#shared/util';
 
 function takeDates(config) {
-  const schedule = new RSchedule({ rrules: recurConfigToRSchedule(config) });
+  const schedule = new RSchedule({rrules: recurConfigToRSchedule(config)});
   return schedule
-    .occurrences({ take: 3 })
+    .occurrences({take: 3})
     .toArray()
     .map(d => d.date);
 }
 
 async function getTransactions(date, account) {
-  const { data } = await aqlQuery(
+  const {data} = await aqlQuery(
     q('transactions')
       .filter({
         account,
         schedule: null,
         // Don't match transfers
         'payee.transfer_acct': null,
-        $and: [
-          { date: { $gte: d.subDays(date, 2) } },
-          { date: { $lte: d.addDays(date, 2) } },
-        ],
+        $and: [{date: {$gte: d.subDays(date, 2)}}, {date: {$lte: d.addDays(date, 2)}}],
       })
       .select('*')
-      .options({ splits: 'none' }),
+      .options({splits: 'none'}),
   );
   return data;
 }
 
 function getRank(day1, day2) {
-  const dayDiff = Math.abs(
-    d.differenceInDays(parseDate(day1), parseDate(day2)),
-  );
+  const dayDiff = Math.abs(d.differenceInDays(parseDate(day1), parseDate(day2)));
 
   // The amount of days off determines the rank: exact same day
   // is highest rank 1, 1 day off is .5, etc. This will find the
@@ -79,14 +74,12 @@ function matchSchedules(allOccurs, config) {
 
     const found = occurs.map(occur => {
       let matched = occur.transactions.find(
-        t =>
-          t.amount >= trans.amount - threshold &&
-          t.amount <= trans.amount + threshold,
+        t => t.amount >= trans.amount - threshold && t.amount <= trans.amount + threshold,
       );
       matched = matched && matched.payee === payee ? matched : null;
 
       if (matched) {
-        return { trans: matched, rank: getRank(occur.date, matched.date) };
+        return {trans: matched, rank: getRank(occur.date, matched.date)};
       }
       return null;
     });
@@ -135,7 +128,7 @@ async function schedulesForPattern(baseStart, numDays, baseConfig, accountId) {
         continue;
       }
     } else {
-      config = { ...baseConfig, start };
+      config = {...baseConfig, start};
     }
 
     // Our recur config expects a day string, not a native date format
@@ -159,7 +152,7 @@ async function weekly(startDate, accountId) {
   return schedulesForPattern(
     d.subWeeks(parseDate(startDate), 4),
     7 * 2,
-    { frequency: 'weekly' },
+    {frequency: 'weekly'},
     accountId,
   );
 }
@@ -170,7 +163,7 @@ async function every2weeks(startDate, accountId) {
     // week back
     d.subWeeks(parseDate(startDate), 7),
     7 * 2,
-    { frequency: 'weekly', interval: 2 },
+    {frequency: 'weekly', interval: 2},
     accountId,
   );
 }
@@ -188,7 +181,7 @@ async function monthly(startDate, accountId) {
       if (d.getDate(start) > 28) {
         return false;
       }
-      return { start, frequency: 'monthly' };
+      return {start, frequency: 'monthly'};
     },
     accountId,
   );
@@ -200,14 +193,14 @@ async function monthlyLastDay(startDate, accountId) {
   const s1 = await schedulesForPattern(
     d.subMonths(parseDate(startDate), 3),
     1,
-    { frequency: 'monthly', patterns: [{ type: 'day', value: -1 }] },
+    {frequency: 'monthly', patterns: [{type: 'day', value: -1}]},
     accountId,
   );
 
   const s2 = await schedulesForPattern(
     d.subMonths(parseDate(startDate), 4),
     1,
-    { frequency: 'monthly', patterns: [{ type: 'day', value: -1 }] },
+    {frequency: 'monthly', patterns: [{type: 'day', value: -1}]},
     accountId,
   );
 
@@ -226,8 +219,8 @@ async function monthly1stor3rd(startDate, accountId) {
         start,
         frequency: 'monthly',
         patterns: [
-          { type: dayValue, value: 1 },
-          { type: dayValue, value: 3 },
+          {type: dayValue, value: 1},
+          {type: dayValue, value: 3},
         ],
       };
     },
@@ -247,8 +240,8 @@ async function monthly2ndor4th(startDate, accountId) {
         start,
         frequency: 'monthly',
         patterns: [
-          { type: dayValue, value: 2 },
-          { type: dayValue, value: 4 },
+          {type: dayValue, value: 2},
+          {type: dayValue, value: 4},
         ],
       };
     },
@@ -263,32 +256,23 @@ async function findStartDate(schedule) {
 
   while (true) {
     const prevConfig = currentConfig;
-    currentConfig = { ...prevConfig };
+    currentConfig = {...prevConfig};
 
     switch (currentConfig.frequency) {
       case 'weekly':
         currentConfig.start = dayFromDate(
-          d.subWeeks(
-            parseDate(currentConfig.start),
-            currentConfig.interval || 1,
-          ),
+          d.subWeeks(parseDate(currentConfig.start), currentConfig.interval || 1),
         );
 
         break;
       case 'monthly':
         currentConfig.start = dayFromDate(
-          d.subMonths(
-            parseDate(currentConfig.start),
-            currentConfig.interval || 1,
-          ),
+          d.subMonths(parseDate(currentConfig.start), currentConfig.interval || 1),
         );
         break;
       case 'yearly':
         currentConfig.start = dayFromDate(
-          d.subYears(
-            parseDate(currentConfig.start),
-            currentConfig.interval || 1,
-          ),
+          d.subYears(parseDate(currentConfig.start), currentConfig.interval || 1),
         );
         break;
       default:
@@ -296,10 +280,10 @@ async function findStartDate(schedule) {
     }
 
     const newConditions = conditions.map(c =>
-      c.field === 'date' ? { ...c, value: currentConfig } : c,
+      c.field === 'date' ? {...c, value: currentConfig} : c,
     );
 
-    const { filters, errors } = conditionsToAQL(newConditions, {
+    const {filters, errors} = conditionsToAQL(newConditions, {
       recurDateBounds: 1,
     });
     if (errors.length > 0) {
@@ -309,9 +293,7 @@ async function findStartDate(schedule) {
       break;
     }
 
-    const { data } = await aqlQuery(
-      q('transactions').filter({ $and: filters }).select('*'),
-    );
+    const {data} = await aqlQuery(q('transactions').filter({$and: filters}).select('*'));
 
     if (data.length === 0) {
       // No data, revert back to the last valid value and stop
@@ -324,9 +306,7 @@ async function findStartDate(schedule) {
     return {
       ...schedule,
       date: currentConfig,
-      _conditions: conditions.map(c =>
-        c.field === 'date' ? { ...c, value: currentConfig } : c,
-      ),
+      _conditions: conditions.map(c => (c.field === 'date' ? {...c, value: currentConfig} : c)),
     };
   }
   return schedule;
@@ -343,9 +323,7 @@ export async function findSchedules() {
   // Search for them approx (+- 2 days) but track which transactions
   // and find the best one...
 
-  const { data: accounts } = await aqlQuery(
-    q('accounts').filter({ closed: false }).select('*'),
-  );
+  const {data: accounts} = await aqlQuery(q('accounts').filter({closed: false}).select('*'));
 
   let allSchedules = [];
 
@@ -369,35 +347,33 @@ export async function findSchedules() {
     }
   }
 
-  const schedules = [...groupBy(allSchedules, 'payee').entries()].map(
-    ([, schedules]) => {
-      schedules.sort((s1, s2) => s2.rank - s1.rank);
-      const winner = schedules[0];
+  const schedules = [...groupBy(allSchedules, 'payee').entries()].map(([, schedules]) => {
+    schedules.sort((s1, s2) => s2.rank - s1.rank);
+    const winner = schedules[0];
 
-      // Convert to schedule and return it
-      return {
-        id: uuidv4(),
-        account: winner.account,
-        payee: winner.payee,
-        date: winner.date,
-        amount: winner.amount,
-        _conditions: [
-          { op: 'is', field: 'account', value: winner.account },
-          { op: 'is', field: 'payee', value: winner.payee },
-          {
-            op: winner.exactDate ? 'is' : 'isapprox',
-            field: 'date',
-            value: winner.date,
-          },
-          {
-            op: winner.exactAmount ? 'is' : 'isapprox',
-            field: 'amount',
-            value: winner.amount,
-          },
-        ],
-      };
-    },
-  );
+    // Convert to schedule and return it
+    return {
+      id: uuidv4(),
+      account: winner.account,
+      payee: winner.payee,
+      date: winner.date,
+      amount: winner.amount,
+      _conditions: [
+        {op: 'is', field: 'account', value: winner.account},
+        {op: 'is', field: 'payee', value: winner.payee},
+        {
+          op: winner.exactDate ? 'is' : 'isapprox',
+          field: 'date',
+          value: winner.date,
+        },
+        {
+          op: winner.exactAmount ? 'is' : 'isapprox',
+          field: 'amount',
+          value: winner.amount,
+        },
+      ],
+    };
+  });
 
   const finalized: Awaited<ReturnType<typeof findStartDate>> = [];
   for (const schedule of schedules) {

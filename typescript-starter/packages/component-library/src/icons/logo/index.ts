@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { SvgLogo } from './Logo';
+export {SvgLogo} from './Logo';

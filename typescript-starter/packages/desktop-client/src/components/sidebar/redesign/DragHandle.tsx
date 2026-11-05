@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { Button } from 'react-aria-components';
+import {Button} from 'react-aria-components';
 
-import { SvgMenu } from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { radius } from '@actual-app/components/tokens';
-import { css } from '@emotion/css';
+import {SvgMenu} from '@actual-app/components/icons/v1';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {radius} from '@actual-app/components/tokens';
+import {css} from '@emotion/css';
 
 export function DragHandle() {
   return (
@@ -46,7 +46,7 @@ export function DragHandle() {
         },
       })}
     >
-      <SvgMenu style={{ width: 10, height: 10 }} />
+      <SvgMenu style={{width: 10, height: 10}} />
     </Button>
   );
 }

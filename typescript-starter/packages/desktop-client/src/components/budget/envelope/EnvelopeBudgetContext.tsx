@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import React, { createContext, useContext } from 'react';
-import type { ReactNode } from 'react';
+import React, {createContext, useContext} from 'react';
+import type {ReactNode} from 'react';
 
 import * as monthUtils from '@actual-app/core/shared/months';
 
@@ -32,17 +32,12 @@ const EnvelopeBudgetContext = createContext<EnvelopeBudgetContextDefinition>({
     throw new Error('Unitialised context method called: onBudgetAction');
   },
   onToggleSummaryCollapse: () => {
-    throw new Error(
-      'Unitialised context method called: onToggleSummaryCollapse',
-    );
+    throw new Error('Unitialised context method called: onToggleSummaryCollapse');
   },
   currentMonth: 'unknown',
 });
 
-type EnvelopeBudgetProviderProps = Omit<
-  EnvelopeBudgetContextDefinition,
-  'currentMonth'
-> & {
+type EnvelopeBudgetProviderProps = Omit<EnvelopeBudgetContextDefinition, 'currentMonth'> & {
   children: ReactNode;
 };
 export function EnvelopeBudgetProvider({

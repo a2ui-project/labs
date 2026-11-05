@@ -15,19 +15,19 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { trackingBudget } from '#spreadsheet/bindings';
+import {trackingBudget} from '#spreadsheet/bindings';
 
-import { BudgetTotal } from './BudgetTotal';
-import { IncomeProgress } from './IncomeProgress';
+import {BudgetTotal} from './BudgetTotal';
+import {IncomeProgress} from './IncomeProgress';
 
 type IncomeTotalProps = {
   style?: CSSProperties;
 };
-export function IncomeTotal({ style }: IncomeTotalProps) {
-  const { t } = useTranslation();
+export function IncomeTotal({style}: IncomeTotalProps) {
+  const {t} = useTranslation();
   return (
     <BudgetTotal
       title={t('Income')}

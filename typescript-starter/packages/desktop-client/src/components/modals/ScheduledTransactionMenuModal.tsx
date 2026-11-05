@@ -14,35 +14,27 @@
  * limitations under the License.
  */
 
-import React, { useMemo } from 'react';
-import type { ComponentPropsWithoutRef, CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useMemo} from 'react';
+import type {ComponentPropsWithoutRef, CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { format } from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import {
-  extractScheduleConds,
-  scheduleIsRecurring,
-} from '@actual-app/core/shared/schedules';
+import {Menu} from '@actual-app/components/menu';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {format} from '@actual-app/core/shared/months';
+import {q} from '@actual-app/core/shared/query';
+import {extractScheduleConds, scheduleIsRecurring} from '@actual-app/core/shared/schedules';
 
-import {
-  Modal,
-  ModalCloseButton,
-  ModalHeader,
-  ModalTitle,
-} from '#components/common/Modal';
-import { useLocale } from '#hooks/useLocale';
-import { useSchedules } from '#hooks/useSchedules';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {Modal, ModalCloseButton, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {useLocale} from '#hooks/useLocale';
+import {useSchedules} from '#hooks/useSchedules';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
 type ScheduledTransactionMenuModalProps = Extract<
   ModalType,
-  { name: 'scheduled-transaction-menu' }
+  {name: 'scheduled-transaction-menu'}
 >['options'];
 
 export function ScheduledTransactionMenuModal({
@@ -60,10 +52,10 @@ export function ScheduledTransactionMenuModal({
   };
   const scheduleId = transactionId?.split('/')?.[1];
   const schedulesQuery = useMemo(
-    () => q('schedules').filter({ id: scheduleId }).select('*'),
+    () => q('schedules').filter({id: scheduleId}).select('*'),
     [scheduleId],
   );
-  const { isLoading: isSchedulesLoading, schedules } = useSchedules({
+  const {isLoading: isSchedulesLoading, schedules} = useSchedules({
     query: schedulesQuery,
   });
 
@@ -72,14 +64,14 @@ export function ScheduledTransactionMenuModal({
   }
 
   const schedule = schedules?.[0];
-  const { date: dateCond } = extractScheduleConds(schedule._conditions);
+  const {date: dateCond} = extractScheduleConds(schedule._conditions);
 
   const canBeSkipped = scheduleIsRecurring(dateCond);
   const canBeCompleted = !scheduleIsRecurring(dateCond);
 
   return (
     <Modal name="scheduled-transaction-menu">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={<ModalTitle title={schedule?.name || ''} shrinkOnOverflow />}
@@ -92,10 +84,10 @@ export function ScheduledTransactionMenuModal({
               marginBottom: 20,
             }}
           >
-            <Text style={{ fontSize: 17, fontWeight: 400 }}>
+            <Text style={{fontSize: 17, fontWeight: 400}}>
               <Trans>Scheduled date</Trans>
             </Text>
-            <Text style={{ fontSize: 17, fontWeight: 700 }}>
+            <Text style={{fontSize: 17, fontWeight: 700}}>
               {format(schedule?.next_date || '', 'MMMM dd, yyyy', locale)}
             </Text>
           </View>
@@ -136,7 +128,7 @@ function ScheduledTransactionMenu({
   canBeCompleted: boolean;
   canBeSkipped: boolean;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <Menu
@@ -160,14 +152,10 @@ function ScheduledTransactionMenu({
         }
       }}
       items={[
-        { name: 'post', text: t('Post transaction') },
-        { name: 'post-today', text: t('Post transaction today') },
-        ...(canBeSkipped
-          ? [{ name: 'skip', text: t('Skip next scheduled date') }]
-          : []),
-        ...(canBeCompleted
-          ? [{ name: 'complete', text: t('Mark as completed') }]
-          : []),
+        {name: 'post', text: t('Post transaction')},
+        {name: 'post-today', text: t('Post transaction today')},
+        ...(canBeSkipped ? [{name: 'skip', text: t('Skip next scheduled date')}] : []),
+        ...(canBeCompleted ? [{name: 'complete', text: t('Mark as completed')}] : []),
       ]}
     />
   );

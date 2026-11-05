@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import type { AccountEntity } from '@actual-app/core/types/models';
-import { describe, expect, it } from 'vitest';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import {describe, expect, it} from 'vitest';
 
-import { getFailedSyncError, isAccountFailedSync } from './syncStatus';
+import {getFailedSyncError, isAccountFailedSync} from './syncStatus';
 
 function makeAccount(
   bank_sync_status: AccountEntity['bank_sync_status'],
   account_sync_source: AccountEntity['account_sync_source'] = null,
 ): Pick<AccountEntity, 'bank_sync_status' | 'account_sync_source'> {
-  return { bank_sync_status, account_sync_source };
+  return {bank_sync_status, account_sync_source};
 }
 
 describe('syncStatus', () => {
@@ -45,9 +45,7 @@ describe('syncStatus', () => {
       type: 'ITEM_ERROR',
       code: 'ITEM_LOGIN_REQUIRED',
     });
-    expect(
-      getFailedSyncError(makeAccount('reauth-required', 'simpleFin')),
-    ).toEqual({
+    expect(getFailedSyncError(makeAccount('reauth-required', 'simpleFin'))).toEqual({
       type: 'INVALID_ACCESS_TOKEN',
       code: 'INVALID_ACCESS_TOKEN',
     });

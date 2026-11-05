@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { computeSchedulePreviewTransactions } from '@actual-app/core/shared/schedules';
-import { ungroupTransactions } from '@actual-app/core/shared/transactions';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type {
-  ScheduleEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import {computeSchedulePreviewTransactions} from '@actual-app/core/shared/schedules';
+import {ungroupTransactions} from '@actual-app/core/shared/transactions';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {ScheduleEntity, TransactionEntity} from '@actual-app/core/types/models';
 
-import { useCachedSchedules } from './useCachedSchedules';
-import { useSyncedPref } from './useSyncedPref';
-import { calculateRunningBalancesBottomUp } from './useTransactions';
+import {useCachedSchedules} from './useCachedSchedules';
+import {useSyncedPref} from './useSyncedPref';
+import {calculateRunningBalancesBottomUp} from './useTransactions';
 
 type UsePreviewTransactionsProps = {
   filter?: (schedule: ScheduleEntity) => boolean;
@@ -60,9 +57,7 @@ export function comparePreviewTransactions(
     sort_order?: number | null;
   },
 ): number {
-  const dateDiff =
-    monthUtils.parseDate(b.date).getTime() -
-    monthUtils.parseDate(a.date).getTime();
+  const dateDiff = monthUtils.parseDate(b.date).getTime() - monthUtils.parseDate(a.date).getTime();
   if (dateDiff !== 0) return dateDiff;
 
   const sortOrderDiff = (b.sort_order ?? 0) - (a.sort_order ?? 0);
@@ -75,9 +70,7 @@ export function usePreviewTransactions({
   filter,
   options,
 }: UsePreviewTransactionsProps = {}): UsePreviewTransactionsResult {
-  const [previewTransactions, setPreviewTransactions] = useState<
-    TransactionEntity[]
-  >([]);
+  const [previewTransactions, setPreviewTransactions] = useState<TransactionEntity[]>([]);
   const {
     isLoading: isSchedulesLoading,
     error: scheduleQueryError,
@@ -94,12 +87,7 @@ export function usePreviewTransactions({
       return [];
     }
 
-    return computeSchedulePreviewTransactions(
-      schedules,
-      statuses,
-      upcomingLength,
-      filter,
-    );
+    return computeSchedulePreviewTransactions(schedules, statuses, upcomingLength, filter);
   }, [filter, isSchedulesLoading, schedules, statuses, upcomingLength]);
 
   useEffect(() => {
@@ -118,7 +106,7 @@ export function usePreviewTransactions({
     Promise.all(
       scheduleTransactions.map(transaction =>
         // Kick off an async rules application
-        send('rules-run', { transaction }),
+        send('rules-run', {transaction}),
       ),
     )
       .then(newTrans => {
@@ -128,17 +116,12 @@ export function usePreviewTransactions({
             ...t,
             category: t.schedule != null ? statuses.get(t.schedule) : undefined,
             schedule: t.schedule,
-            sort_order:
-              t.schedule != null
-                ? scheduleById.get(t.schedule)?.sort_order
-                : undefined,
-            subtransactions: t.subtransactions?.map(
-              (st: TransactionEntity) => ({
-                ...st,
-                id: 'preview/' + st.id,
-                schedule: t.schedule,
-              }),
-            ),
+            sort_order: t.schedule != null ? scheduleById.get(t.schedule)?.sort_order : undefined,
+            subtransactions: t.subtransactions?.map((st: TransactionEntity) => ({
+              ...st,
+              id: 'preview/' + st.id,
+              schedule: t.schedule,
+            })),
           }));
 
           // re-sort in case rule actions have changed the dates
@@ -169,22 +152,14 @@ export function usePreviewTransactions({
 
     // We always use the bottom up calculation for preview transactions
     // because the hook controls the order of the transactions.
-    return calculateRunningBalancesBottomUp(
-      previewTransactions,
-      'all',
-      options?.startingBalance,
-    );
-  }, [
-    previewTransactions,
-    options?.calculateRunningBalances,
-    options?.startingBalance,
-  ]);
+    return calculateRunningBalancesBottomUp(previewTransactions, 'all', options?.startingBalance);
+  }, [previewTransactions, options?.calculateRunningBalances, options?.startingBalance]);
 
   const returnError = error || scheduleQueryError;
   return {
     previewTransactions,
     runningBalances,
     isLoading: isLoading || isSchedulesLoading,
-    ...(returnError && { error: returnError }),
+    ...(returnError && {error: returnError}),
   };
 }

@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { queryOptions } from '@tanstack/react-query';
+import {queryOptions} from '@tanstack/react-query';
 
-import { fetchNewsFeed } from './fetchNewsFeed';
-import type { NewsFeed } from './types';
+import {fetchNewsFeed} from './fetchNewsFeed';
+import type {NewsFeed} from './types';
 
 const SIX_HOURS = 6 * 60 * 60 * 1000;
 

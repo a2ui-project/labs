@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-
 /**
  * Updates (or creates) a bundle stats comment on a pull request.
  * Requires the following environment variables to be set:
@@ -24,11 +23,11 @@
  *  - PR_NUMBER
  */
 
-import { readFile } from 'node:fs/promises';
+import {readFile} from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
 
-import { Octokit } from '@octokit/rest';
+import {Octokit} from '@octokit/rest';
 
 const BOT_BOUNDARY_MARKER = '<!--- actual-bot-sections --->';
 const BOT_BOUNDARY_TEXT = `${BOT_BOUNDARY_MARKER}\n<hr />`;
@@ -45,9 +44,7 @@ function parseArgs(argv) {
     const value = argv[i + 1];
 
     if (!key?.startsWith('--')) {
-      throw new Error(
-        `Unexpected argument "${key ?? ''}". Use --key value pairs.`,
-      );
+      throw new Error(`Unexpected argument "${key ?? ''}". Use --key value pairs.`);
     }
 
     if (typeof value === 'undefined') {
@@ -78,9 +75,7 @@ function parseArgs(argv) {
   }
 
   if (!['comment', 'pr-body'].includes(args.target)) {
-    throw new Error(
-      `Invalid value "${args.target}" for "--target". Use "comment" or "pr-body".`,
-    );
+    throw new Error(`Invalid value "${args.target}" for "--target". Use "comment" or "pr-body".`);
   }
 
   return args;
@@ -102,7 +97,7 @@ function getRepoInfo() {
     throw new Error(`Invalid GITHUB_REPOSITORY value "${repository}".`);
   }
 
-  return { owner, repo };
+  return {owner, repo};
 }
 
 function getPullRequestNumber() {
@@ -110,9 +105,7 @@ function getPullRequestNumber() {
   const prNumber = Number.parseInt(rawNumber, 10);
 
   if (!Number.isInteger(prNumber) || prNumber <= 0) {
-    throw new Error(
-      'PR_NUMBER environment variable must be a positive integer.',
-    );
+    throw new Error('PR_NUMBER environment variable must be a positive integer.');
   }
 
   return prNumber;
@@ -177,21 +170,12 @@ function upsertBlock(existingBody, block, markers) {
   }
 
   const separator = body.endsWith('\n') ? '\n' : '\n\n';
-  const boundary = body.includes(BOT_BOUNDARY_MARKER)
-    ? ''
-    : `${BOT_BOUNDARY_TEXT}\n\n`;
+  const boundary = body.includes(BOT_BOUNDARY_MARKER) ? '' : `${BOT_BOUNDARY_TEXT}\n\n`;
   return `${body}${separator}${boundary}${block.trim()}`;
 }
 
-async function updatePullRequestBody(
-  octokit,
-  owner,
-  repo,
-  pullNumber,
-  block,
-  markers,
-) {
-  const { data } = await octokit.rest.pulls.get({
+async function updatePullRequestBody(octokit, owner, repo, pullNumber, block, markers) {
+  const {data} = await octokit.rest.pulls.get({
     owner,
     repo,
     pull_number: pullNumber,
@@ -206,17 +190,10 @@ async function updatePullRequestBody(
   });
 }
 
-async function deleteExistingComment(
-  octokit,
-  owner,
-  repo,
-  issueNumber,
-  markers,
-) {
+async function deleteExistingComment(octokit, owner, repo, issueNumber, markers) {
   const comments = await listComments(octokit, owner, repo, issueNumber);
   const existingComment = comments.find(
-    comment =>
-      isGitHubActionsBot(comment) && comment.body?.includes(markers.start),
+    comment => isGitHubActionsBot(comment) && comment.body?.includes(markers.start),
   );
 
   if (existingComment) {
@@ -229,24 +206,17 @@ async function deleteExistingComment(
 }
 
 async function main() {
-  const { commentFile, identifier, target } = parseArgs(process.argv);
+  const {commentFile, identifier, target} = parseArgs(process.argv);
   const commentBody = await loadCommentBody(commentFile);
   const token = assertGitHubToken();
-  const { owner, repo } = getRepoInfo();
+  const {owner, repo} = getRepoInfo();
   const issueNumber = getPullRequestNumber();
   const markers = getIdentifierMarkers(identifier);
 
-  const octokit = new Octokit({ auth: token });
+  const octokit = new Octokit({auth: token});
 
   if (target === 'pr-body') {
-    await updatePullRequestBody(
-      octokit,
-      owner,
-      repo,
-      issueNumber,
-      commentBody,
-      markers,
-    );
+    await updatePullRequestBody(octokit, owner, repo, issueNumber, commentBody, markers);
     await deleteExistingComment(octokit, owner, repo, issueNumber, markers);
     console.log('Updated pull request body with bundle stats.');
     return;
@@ -254,8 +224,7 @@ async function main() {
 
   const comments = await listComments(octokit, owner, repo, issueNumber);
   const existingComment = comments.find(
-    comment =>
-      isGitHubActionsBot(comment) && comment.body?.includes(markers.start),
+    comment => isGitHubActionsBot(comment) && comment.body?.includes(markers.start),
   );
 
   if (existingComment) {

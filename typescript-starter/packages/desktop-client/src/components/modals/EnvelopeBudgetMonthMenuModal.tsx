@@ -15,33 +15,30 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import {
-  SvgCheveronDown,
-  SvgCheveronUp,
-} from '@actual-app/components/icons/v1';
-import { SvgNotesPaper } from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgCheveronDown, SvgCheveronUp} from '@actual-app/components/icons/v1';
+import {SvgNotesPaper} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import { BudgetMonthMenu } from '#components/budget/envelope/budgetsummary/BudgetMonthMenu';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { Notes } from '#components/Notes';
-import { useLocale } from '#hooks/useLocale';
-import { useNotes } from '#hooks/useNotes';
-import { useUndo } from '#hooks/useUndo';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {BudgetMonthMenu} from '#components/budget/envelope/budgetsummary/BudgetMonthMenu';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {Notes} from '#components/Notes';
+import {useLocale} from '#hooks/useLocale';
+import {useNotes} from '#hooks/useNotes';
+import {useUndo} from '#hooks/useUndo';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
 type EnvelopeBudgetMonthMenuModalProps = Extract<
   ModalType,
-  { name: 'envelope-budget-month-menu' }
+  {name: 'envelope-budget-month-menu'}
 >['options'];
 
 export function EnvelopeBudgetMonthMenuModal({
@@ -51,7 +48,7 @@ export function EnvelopeBudgetMonthMenuModal({
 }: EnvelopeBudgetMonthMenuModalProps) {
   const locale = useLocale();
   const originalNotes = useNotes(`budget-${month}`);
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
 
   const _onEditNotes = () => {
     onEditNotes?.(month);
@@ -79,16 +76,16 @@ export function EnvelopeBudgetMonthMenuModal({
   };
 
   const displayMonth = monthUtils.format(month, "MMMM ''yy", locale);
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <Modal
       name="envelope-budget-month-menu"
       containerProps={{
-        style: { height: '50vh' },
+        style: {height: '50vh'},
       }}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={displayMonth}
@@ -108,9 +105,7 @@ export function EnvelopeBudgetMonthMenuModal({
               }}
             >
               <Notes
-                notes={
-                  originalNotes?.length > 0 ? originalNotes : t('No notes')
-                }
+                notes={originalNotes?.length > 0 ? originalNotes : t('No notes')}
                 editable={false}
                 focused={false}
                 getStyle={() => ({
@@ -123,7 +118,7 @@ export function EnvelopeBudgetMonthMenuModal({
                 })}
               />
             </View>
-            <View style={{ paddingTop: 10, gap: 5 }}>
+            <View style={{paddingTop: 10, gap: 5}}>
               <View
                 style={{
                   display: showMore ? 'none' : undefined,
@@ -134,11 +129,7 @@ export function EnvelopeBudgetMonthMenuModal({
                 }}
               >
                 <Button style={buttonStyle} onPress={_onEditNotes}>
-                  <SvgNotesPaper
-                    width={20}
-                    height={20}
-                    style={{ paddingRight: 5 }}
-                  />
+                  <SvgNotesPaper width={20} height={20} style={{paddingRight: 5}} />
                   <Trans>Edit notes</Trans>
                 </Button>
               </View>
@@ -157,17 +148,9 @@ export function EnvelopeBudgetMonthMenuModal({
                   onPress={onShowMore}
                 >
                   {!showMore ? (
-                    <SvgCheveronUp
-                      width={30}
-                      height={30}
-                      style={{ paddingRight: 5 }}
-                    />
+                    <SvgCheveronUp width={30} height={30} style={{paddingRight: 5}} />
                   ) : (
-                    <SvgCheveronDown
-                      width={30}
-                      height={30}
-                      style={{ paddingRight: 5 }}
-                    />
+                    <SvgCheveronDown width={30} height={30} style={{paddingRight: 5}} />
                   )}
                   <Trans>Actions</Trans>
                 </Button>
@@ -175,7 +158,7 @@ export function EnvelopeBudgetMonthMenuModal({
             </View>
             {showMore && (
               <BudgetMonthMenu
-                style={{ overflowY: 'auto', paddingTop: 10 }}
+                style={{overflowY: 'auto', paddingTop: 10}}
                 getItemStyle={() => defaultMenuItemStyle}
                 onCopyLastMonthBudget={() => {
                   onBudgetAction(month, 'copy-last');
@@ -183,7 +166,7 @@ export function EnvelopeBudgetMonthMenuModal({
                   showUndoNotification({
                     message: t(
                       "{{displayMonth}} budgets have all been set to last month's budgeted amounts.",
-                      { displayMonth },
+                      {displayMonth},
                     ),
                   });
                 }}
@@ -191,10 +174,9 @@ export function EnvelopeBudgetMonthMenuModal({
                   onBudgetAction(month, 'set-zero');
                   state.close();
                   showUndoNotification({
-                    message: t(
-                      '{{displayMonth}} budgets have all been set to zero.',
-                      { displayMonth },
-                    ),
+                    message: t('{{displayMonth}} budgets have all been set to zero.', {
+                      displayMonth,
+                    }),
                   });
                 }}
                 onSetMonthsAverage={numberOfMonths => {
@@ -212,20 +194,18 @@ export function EnvelopeBudgetMonthMenuModal({
                   onBudgetAction(month, 'apply-goal-template');
                   state.close();
                   showUndoNotification({
-                    message: t(
-                      '{{displayMonth}} budget templates have been applied.',
-                      { displayMonth },
-                    ),
+                    message: t('{{displayMonth}} budget templates have been applied.', {
+                      displayMonth,
+                    }),
                   });
                 }}
                 onOverwriteWithBudgetTemplates={() => {
                   onBudgetAction(month, 'overwrite-goal-template');
                   state.close();
                   showUndoNotification({
-                    message: t(
-                      '{{displayMonth}} budget templates have been overwritten.',
-                      { displayMonth },
-                    ),
+                    message: t('{{displayMonth}} budget templates have been overwritten.', {
+                      displayMonth,
+                    }),
                   });
                 }}
                 onEndOfMonthCleanup={() => {
@@ -234,7 +214,7 @@ export function EnvelopeBudgetMonthMenuModal({
                   showUndoNotification({
                     message: t(
                       '{{displayMonth}} end-of-month cleanup templates have been applied.',
-                      { displayMonth },
+                      {displayMonth},
                     ),
                   });
                 }}

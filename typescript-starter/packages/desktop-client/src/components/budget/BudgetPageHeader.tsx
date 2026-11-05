@@ -15,15 +15,15 @@
  */
 
 // @ts-strict-ignore
-import React, { memo } from 'react';
-import type { ComponentProps } from 'react';
+import React, {memo} from 'react';
+import type {ComponentProps} from 'react';
 
-import { View } from '@actual-app/components/view';
+import {View} from '@actual-app/components/view';
 
-import { useGlobalPref } from '#hooks/useGlobalPref';
+import {useGlobalPref} from '#hooks/useGlobalPref';
 
-import { MonthPicker } from './MonthPicker';
-import { getScrollbarWidth } from './util';
+import {MonthPicker} from './MonthPicker';
+import {getScrollbarWidth} from './util';
 
 type BudgetPageHeaderProps = {
   startMonth: string;
@@ -33,7 +33,7 @@ type BudgetPageHeaderProps = {
 };
 
 export const BudgetPageHeader = memo<BudgetPageHeaderProps>(
-  ({ startMonth, onMonthSelect, numMonths, monthBounds }) => {
+  ({startMonth, onMonthSelect, numMonths, monthBounds}) => {
     const [categoryExpandedStatePref] = useGlobalPref('categoryExpandedState');
     const categoryExpandedState = categoryExpandedStatePref ?? 0;
     const offsetMultipleMonths = numMonths === 1 ? 4 : 0;
@@ -41,8 +41,7 @@ export const BudgetPageHeader = memo<BudgetPageHeaderProps>(
     return (
       <View
         style={{
-          marginLeft:
-            200 + 100 * categoryExpandedState + 5 - offsetMultipleMonths,
+          marginLeft: 200 + 100 * categoryExpandedState + 5 - offsetMultipleMonths,
           flexShrink: 0,
         }}
       >
@@ -55,7 +54,7 @@ export const BudgetPageHeader = memo<BudgetPageHeaderProps>(
             startMonth={startMonth}
             numDisplayed={numMonths}
             monthBounds={monthBounds}
-            style={{ paddingTop: 5 }}
+            style={{paddingTop: 5}}
             onSelect={month => onMonthSelect(month)}
           />
         </View>

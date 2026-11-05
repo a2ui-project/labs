@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 
-import { accountQueries } from '#accounts';
+import {accountQueries} from '#accounts';
 
 export function useOffBudgetAccounts() {
   return useQuery(accountQueries.listOffBudget());

@@ -14,5 +14,5 @@
  * limitations under the License.
  */
 
-export { BudgetAutomationsModal } from './BudgetAutomationsModal';
-export { migrateTemplatesToAutomations } from './migrateTemplatesToAutomations';
+export {BudgetAutomationsModal} from './BudgetAutomationsModal';
+export {migrateTemplatesToAutomations} from './migrateTemplatesToAutomations';

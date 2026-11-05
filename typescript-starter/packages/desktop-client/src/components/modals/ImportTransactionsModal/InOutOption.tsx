@@ -15,12 +15,12 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Input } from '@actual-app/components/input';
-import { View } from '@actual-app/components/view';
+import {Input} from '@actual-app/components/input';
+import {View} from '@actual-app/components/view';
 
-import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
+import {LabeledCheckbox} from '#components/forms/LabeledCheckbox';
 
 type InOutOptionProps = {
   inOutMode: boolean;
@@ -37,16 +37,11 @@ export function InOutOption({
   onToggle,
   onChangeText,
 }: InOutOptionProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
-    <View style={{ flexDirection: 'row', gap: 10, height: 28 }}>
-      <LabeledCheckbox
-        id="form_inOut"
-        checked={inOutMode}
-        disabled={disabled}
-        onChange={onToggle}
-      >
+    <View style={{flexDirection: 'row', gap: 10, height: 28}}>
+      <LabeledCheckbox id="form_inOut" checked={inOutMode} disabled={disabled} onChange={onToggle}>
         {inOutMode
           ? t('In/Out outflow value')
           : t('Select column to specify if amount goes in/out')}

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-import { useSpreadsheet } from '#hooks/useSpreadsheet';
+import {useSpreadsheet} from '#hooks/useSpreadsheet';
 
 export function useReport<T>(
   sheetName: string,

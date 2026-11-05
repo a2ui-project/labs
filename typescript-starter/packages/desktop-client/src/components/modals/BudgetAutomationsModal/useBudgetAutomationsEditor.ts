@@ -14,55 +14,45 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useState} from 'react';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type {
-  CategoryGroupEntity,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
-import type { CleanupTemplate } from '@actual-app/core/types/models/cleanup-templates';
-import { debounce } from 'es-toolkit/compat';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {CategoryGroupEntity, ScheduleEntity} from '@actual-app/core/types/models';
+import type {CleanupTemplate} from '@actual-app/core/types/models/cleanup-templates';
+import {debounce} from 'es-toolkit/compat';
 
 import {
   createAutomationEntry,
   getAutomationExamples,
 } from '#components/budget/goals/automationExamples';
-import type { AutomationEntry } from '#components/budget/goals/automationExamples';
+import type {AutomationEntry} from '#components/budget/goals/automationExamples';
 import {
   cleanupDefToEditor,
   editorToCleanupDef,
   emptyCleanupConfig,
   isCleanupConfigured,
 } from '#components/budget/goals/cleanupModel';
-import type { CleanupConfig } from '#components/budget/goals/cleanupModel';
+import type {CleanupConfig} from '#components/budget/goals/cleanupModel';
 import {
   validateAutomation,
   validatePercentageAllocation,
   validateSchedulePriorities,
 } from '#components/budget/goals/validateAutomation';
-import { useCleanupGroups } from '#hooks/useCleanupGroups';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {useCleanupGroups} from '#hooks/useCleanupGroups';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
-import { NON_CONTRIBUTION_TYPES } from './TypePicker';
+import {NON_CONTRIBUTION_TYPES} from './TypePicker';
 
-export type ActiveSelection =
-  | { kind: 'entry'; idx: number }
-  | { kind: 'cleanup' };
+export type ActiveSelection = {kind: 'entry'; idx: number} | {kind: 'cleanup'};
 
-function pickInitialSelection(
-  entries: AutomationEntry[],
-  cleanup: CleanupConfig,
-): ActiveSelection {
+function pickInitialSelection(entries: AutomationEntry[], cleanup: CleanupConfig): ActiveSelection {
   if (entries.length > 0) {
-    const idx = entries.findIndex(
-      e => !NON_CONTRIBUTION_TYPES.has(e.displayType),
-    );
-    return { kind: 'entry', idx: idx >= 0 ? idx : 0 };
+    const idx = entries.findIndex(e => !NON_CONTRIBUTION_TYPES.has(e.displayType));
+    return {kind: 'entry', idx: idx >= 0 ? idx : 0};
   }
-  if (isCleanupConfigured(cleanup)) return { kind: 'cleanup' };
-  return { kind: 'entry', idx: 0 };
+  if (isCleanupConfigured(cleanup)) return {kind: 'cleanup'};
+  return {kind: 'entry', idx: 0};
 }
 
 type UseBudgetAutomationsEditorArgs = {
@@ -85,8 +75,7 @@ export function useBudgetAutomationsEditor({
   onClose,
 }: UseBudgetAutomationsEditorArgs) {
   const dispatch = useDispatch();
-  const { groups: cleanupGroups, createGroup: createCleanupGroup } =
-    useCleanupGroups();
+  const {groups: cleanupGroups, createGroup: createCleanupGroup} = useCleanupGroups();
 
   const [entries, setEntries] = useState<AutomationEntry[]>(initialEntries);
   const initialCleanupConfig = cleanupDefToEditor(initialCleanup);
@@ -101,14 +90,12 @@ export function useBudgetAutomationsEditor({
   } | null>(null);
 
   const onAddAutomation = (create?: () => AutomationEntry) => {
-    const fallback = getAutomationExamples().find(
-      e => e.displayType === 'fixed',
-    );
+    const fallback = getAutomationExamples().find(e => e.displayType === 'fixed');
     const entry = (create ?? fallback?.create)?.();
     if (!entry) return;
     setEntries(prev => {
       const next = [...prev, entry];
-      setActive({ kind: 'entry', idx: next.length - 1 });
+      setActive({kind: 'entry', idx: next.length - 1});
       return next;
     });
   };
@@ -127,7 +114,7 @@ export function useBudgetAutomationsEditor({
     );
     setEntries(prev => {
       const next = [...prev, entry];
-      setActive({ kind: 'entry', idx: next.length - 1 });
+      setActive({kind: 'entry', idx: next.length - 1});
       return next;
     });
   };
@@ -143,19 +130,19 @@ export function useBudgetAutomationsEditor({
     );
     setEntries(prev => {
       const next = [...prev, entry];
-      setActive({ kind: 'entry', idx: next.length - 1 });
+      setActive({kind: 'entry', idx: next.length - 1});
       return next;
     });
   };
 
   const onAddCleanup = () => {
     if (!isCleanupConfigured(cleanup)) setCleanup(emptyCleanupConfig());
-    setActive({ kind: 'cleanup' });
+    setActive({kind: 'cleanup'});
   };
 
   const onDeleteCleanup = () => {
     setCleanup(emptyCleanupConfig());
-    setActive({ kind: 'entry', idx: 0 });
+    setActive({kind: 'entry', idx: 0});
   };
 
   const onDelete = (index: number) => {
@@ -163,10 +150,10 @@ export function useBudgetAutomationsEditor({
       const next = prev.filter((_, i) => i !== index);
       setActive(currentActive => {
         if (currentActive.kind !== 'entry') return currentActive;
-        if (next.length === 0) return { kind: 'entry', idx: 0 };
+        if (next.length === 0) return {kind: 'entry', idx: 0};
         const idx = currentActive.idx;
-        if (idx >= next.length) return { kind: 'entry', idx: next.length - 1 };
-        if (idx > index) return { kind: 'entry', idx: idx - 1 };
+        if (idx >= next.length) return {kind: 'entry', idx: next.length - 1};
+        if (idx > index) return {kind: 'entry', idx: idx - 1};
         return currentActive;
       });
       return next;
@@ -177,7 +164,7 @@ export function useBudgetAutomationsEditor({
     if (saving) return;
     setSaving(true);
     try {
-      const templatesToSave = entries.map(({ template }) => template);
+      const templatesToSave = entries.map(({template}) => template);
       await send('budget/set-category-automations', {
         categoriesWithTemplates: [
           {
@@ -201,7 +188,7 @@ export function useBudgetAutomationsEditor({
           name: 'category-automations-unmigrate',
           options: {
             categoryId,
-            templates: entries.map(({ template }) => template),
+            templates: entries.map(({template}) => template),
             cleanup: editorToCleanupDef(cleanup),
           },
         },
@@ -213,10 +200,7 @@ export function useBudgetAutomationsEditor({
   // re-renders
   const templates = useMemo(() => entries.map(e => e.template), [entries]);
 
-  const validPercentageSources = new Set<string>([
-    'all income',
-    'available funds',
-  ]);
+  const validPercentageSources = new Set<string>(['all income', 'available funds']);
   for (const group of categories) {
     for (const cat of group.categories ?? []) {
       if (!cat.is_income) continue;
@@ -238,7 +222,7 @@ export function useBudgetAutomationsEditor({
 
   useEffect(() => {
     if (templates.length === 0) {
-      setDryRun({ budgeted: 0, perTemplate: [] });
+      setDryRun({budgeted: 0, perTemplate: []});
       return;
     }
     let cancelled = false;
@@ -283,16 +267,12 @@ export function useBudgetAutomationsEditor({
 
   const isOption = (entry: AutomationEntry) =>
     entry.displayType === 'limit' || entry.displayType === 'goal';
-  const indexedEntries = entries.map((entry, idx) => ({ entry, idx }));
-  const contributionEntries = indexedEntries.filter(
-    ({ entry }) => !isOption(entry),
-  );
-  const optionEntries = indexedEntries.filter(({ entry }) => isOption(entry));
+  const indexedEntries = entries.map((entry, idx) => ({entry, idx}));
+  const contributionEntries = indexedEntries.filter(({entry}) => !isOption(entry));
+  const optionEntries = indexedEntries.filter(({entry}) => isOption(entry));
 
   const safeActiveIdx =
-    active.kind === 'entry'
-      ? Math.min(active.idx, Math.max(0, entries.length - 1))
-      : -1;
+    active.kind === 'entry' ? Math.min(active.idx, Math.max(0, entries.length - 1)) : -1;
   const cleanupActive = active.kind === 'cleanup';
 
   return {

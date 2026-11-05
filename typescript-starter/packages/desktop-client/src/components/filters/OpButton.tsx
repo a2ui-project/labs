@@ -15,13 +15,13 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
+import type {CSSProperties} from 'react';
 
-import { Button } from '@actual-app/components/button';
-import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {theme} from '@actual-app/components/theme';
+import {css} from '@emotion/css';
 
-import { friendlyOp } from '#util/rule';
+import {friendlyOp} from '#util/rule';
 
 type OpButtonProps = {
   op: string;
@@ -30,7 +30,7 @@ type OpButtonProps = {
   style?: CSSProperties;
 };
 
-export function OpButton({ op, isSelected, style, onPress }: OpButtonProps) {
+export function OpButton({op, isSelected, style, onPress}: OpButtonProps) {
   return (
     <Button
       variant="bare"

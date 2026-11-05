@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { useRef, useState } from 'react';
+import {useRef, useState} from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Button } from './Button';
-import { Menu } from './Menu';
-import { Popover } from './Popover';
-import { View } from './View';
+import {Button} from './Button';
+import {Menu} from './Menu';
+import {Popover} from './Popover';
+import {View} from './View';
 
 const meta = {
   title: 'Components/Popover',
@@ -46,12 +46,8 @@ export const Default: Story = {
         <Button ref={triggerRef} onPress={() => setIsOpen(!isOpen)}>
           Toggle Popover
         </Button>
-        <Popover
-          triggerRef={triggerRef}
-          isOpen={isOpen}
-          onOpenChange={setIsOpen}
-        >
-          <View style={{ padding: 10 }}>Popover content</View>
+        <Popover triggerRef={triggerRef} isOpen={isOpen} onOpenChange={setIsOpen}>
+          <View style={{padding: 10}}>Popover content</View>
         </Popover>
       </>
     );
@@ -75,18 +71,14 @@ export const WithMenu: Story = {
         <Button ref={triggerRef} onPress={() => setIsOpen(!isOpen)}>
           Open Menu
         </Button>
-        <Popover
-          triggerRef={triggerRef}
-          isOpen={isOpen}
-          onOpenChange={setIsOpen}
-        >
+        <Popover triggerRef={triggerRef} isOpen={isOpen} onOpenChange={setIsOpen}>
           <Menu
             onMenuSelect={() => setIsOpen(false)}
             items={[
-              { name: 'edit', text: 'Edit' },
-              { name: 'duplicate', text: 'Duplicate' },
+              {name: 'edit', text: 'Edit'},
+              {name: 'duplicate', text: 'Duplicate'},
               Menu.line,
-              { name: 'delete', text: 'Delete' },
+              {name: 'delete', text: 'Delete'},
             ]}
           />
         </Popover>
@@ -96,8 +88,7 @@ export const WithMenu: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'Popover containing a menu, a common pattern for dropdown menus.',
+        story: 'Popover containing a menu, a common pattern for dropdown menus.',
       },
     },
   },
@@ -119,9 +110,7 @@ export const CustomPlacement: Story = {
           isOpen={isOpen}
           onOpenChange={setIsOpen}
         >
-          <View style={{ padding: 10 }}>
-            This popover is placed at bottom start.
-          </View>
+          <View style={{padding: 10}}>This popover is placed at bottom start.</View>
         </Popover>
       </>
     );
@@ -149,11 +138,10 @@ export const CustomStyle: Story = {
           triggerRef={triggerRef}
           isOpen={isOpen}
           onOpenChange={setIsOpen}
-          style={{ padding: 15, maxWidth: 250 }}
+          style={{padding: 15, maxWidth: 250}}
         >
           <View>
-            This popover has custom padding and a constrained max width for
-            longer content.
+            This popover has custom padding and a constrained max width for longer content.
           </View>
         </Popover>
       </>

@@ -6,6 +6,11 @@
 *.bak
 *~
 
+# Secrets
+.env
+.env.*
+!.env.example
+
 # Node.js
 node_modules/
 dist/
@@ -28,6 +33,7 @@ venv/
 ENV/
 *.egg-info/
 .pytest_cache/
+.ruff_cache/
 .coverage
 htmlcov/
 

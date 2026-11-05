@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
-import { Button } from '#Button';
-import { theme } from '#theme';
+import {Button} from '#Button';
+import {theme} from '#theme';
 
-import type { RangePosition } from './util';
+import type {RangePosition} from './util';
 
 type GridButtonProps = {
   selected: boolean;
@@ -62,22 +62,18 @@ export function GridButton({
         minWidth: 0,
         // Match the selected (primary) variant's 1px border so selecting a
         // cell doesn't resize the grid.
-        ...(!selected && { border: '1px solid transparent' }),
+        ...(!selected && {border: '1px solid transparent'}),
         ...(isToday && {
           fontWeight: 'bold',
           // Inset ring marks the current period without shifting layout.
           boxShadow: `inset 0 0 0 1px ${theme.pageTextPositive}`,
-          ...(!selected && { color: theme.pageTextPositive }),
+          ...(!selected && {color: theme.pageTextPositive}),
         }),
         ...(inRange &&
           !selected && {
             backgroundColor: theme.datePickerRangeBackground,
             borderRadius:
-              rangeEdge === 'start'
-                ? '4px 0 0 4px'
-                : rangeEdge === 'end'
-                  ? '0 4px 4px 0'
-                  : 0,
+              rangeEdge === 'start' ? '4px 0 0 4px' : rangeEdge === 'end' ? '0 4px 4px 0' : 0,
           }),
       }}
     >

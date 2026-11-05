@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { displayTemplateTypes } from '#components/budget/goals/constants';
-import type { DisplayTemplateType } from '#components/budget/goals/constants';
-import { getDisplayTemplateMeta } from '#components/budget/goals/displayTemplateMeta';
+import {displayTemplateTypes} from '#components/budget/goals/constants';
+import type {DisplayTemplateType} from '#components/budget/goals/constants';
+import {getDisplayTemplateMeta} from '#components/budget/goals/displayTemplateMeta';
 
 // Types managed in the Options sidebar section, not as contribution-type
 // swaps.
-export const NON_CONTRIBUTION_TYPES: ReadonlySet<DisplayTemplateType> = new Set(
-  ['limit', 'goal'],
-);
+export const NON_CONTRIBUTION_TYPES: ReadonlySet<DisplayTemplateType> = new Set(['limit', 'goal']);
 
 type TypePickerProps = {
   active: DisplayTemplateType;
@@ -36,8 +34,8 @@ type TypePickerProps = {
   onPick: (type: DisplayTemplateType) => void;
 };
 
-export function TypePicker({ active, disabledTypes, onPick }: TypePickerProps) {
-  const { t } = useTranslation();
+export function TypePicker({active, disabledTypes, onPick}: TypePickerProps) {
+  const {t} = useTranslation();
   const entries = displayTemplateTypes
     .filter(id => !NON_CONTRIBUTION_TYPES.has(id))
     .map(id => [id, getDisplayTemplateMeta(id)] as const);
@@ -76,9 +74,7 @@ export function TypePicker({ active, disabledTypes, onPick }: TypePickerProps) {
             style={{
               padding: '10px 10px 8px',
               borderRadius: 6,
-              backgroundColor: isActive
-                ? theme.upcomingBackground
-                : theme.cardBackground,
+              backgroundColor: isActive ? theme.upcomingBackground : theme.cardBackground,
               border: `1px solid ${isActive ? theme.pageTextPositive : theme.tableBorder}`,
               gap: 6,
               cursor: isDisabled ? 'not-allowed' : 'pointer',

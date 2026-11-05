@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { execFileSync } from 'node:child_process';
+import {execFileSync} from 'node:child_process';
 
 // Electron >= 42 downloads its binary on the first launch instead of at
 // install time. Fetch it before the test workers start, otherwise parallel

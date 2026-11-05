@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Block} from '@actual-app/components/block';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { AgeOfMoneyWidget } from '@actual-app/core/types/models';
+import type {AgeOfMoneyWidget} from '@actual-app/core/types/models';
 
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { DateRange } from '#components/reports/DateRange';
-import { AgeOfMoneyGraph } from '#components/reports/graphs/AgeOfMoneyGraph';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { createAgeOfMoneySpreadsheet } from '#components/reports/spreadsheets/age-of-money-spreadsheet';
-import { useReport } from '#components/reports/useReport';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {DateRange} from '#components/reports/DateRange';
+import {AgeOfMoneyGraph} from '#components/reports/graphs/AgeOfMoneyGraph';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {createAgeOfMoneySpreadsheet} from '#components/reports/spreadsheets/age-of-money-spreadsheet';
+import {useReport} from '#components/reports/useReport';
 
 // Determine status color based on age
 export function getAgeColor(age: number | null) {
@@ -69,8 +69,8 @@ export function AgeOfMoneyCard({
   meta = {},
   onMetaChange,
 }: AgeOfMoneyCardProps) {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
 
   const [latestTransaction, setLatestTransaction] = useState<string>('');
   const [nameMenuOpen, setNameMenuOpen] = useState(false);
@@ -79,18 +79,12 @@ export function AgeOfMoneyCard({
   useEffect(() => {
     async function fetchLatestTransaction() {
       const latestTrans = await send('get-latest-transaction');
-      setLatestTransaction(
-        latestTrans ? latestTrans.date : monthUtils.currentDay(),
-      );
+      setLatestTransaction(latestTrans ? latestTrans.date : monthUtils.currentDay());
     }
     void fetchLatestTransaction();
   }, []);
 
-  const [start, end] = calculateTimeRange(
-    meta?.timeFrame,
-    undefined,
-    latestTransaction,
-  );
+  const [start, end] = calculateTimeRange(meta?.timeFrame, undefined, latestTransaction);
 
   const onCardHover = useCallback(() => setIsCardHovered(true), []);
   const onCardHoverEnd = useCallback(() => setIsCardHovered(false), []);
@@ -116,13 +110,9 @@ export function AgeOfMoneyCard({
       to={`/reports/age-of-money/${widgetId}`}
       onRename={() => setNameMenuOpen(true)}
     >
-      <View
-        style={{ flex: 1 }}
-        onPointerEnter={onCardHover}
-        onPointerLeave={onCardHoverEnd}
-      >
-        <View style={{ flexDirection: 'row', padding: 20 }}>
-          <View style={{ flex: 1 }}>
+      <View style={{flex: 1}} onPointerEnter={onCardHover} onPointerLeave={onCardHoverEnd}>
+        <View style={{flexDirection: 'row', padding: 20}}>
+          <View style={{flex: 1}}>
             <ReportCardName
               name={meta?.name || t('Age of Money')}
               isEditing={nameMenuOpen}
@@ -138,7 +128,7 @@ export function AgeOfMoneyCard({
             <DateRange start={start} end={end} />
           </View>
           {data && (
-            <View style={{ textAlign: 'right' }}>
+            <View style={{textAlign: 'right'}}>
               <Block
                 style={{
                   ...styles.largeText,
@@ -149,7 +139,7 @@ export function AgeOfMoneyCard({
               >
                 <PrivacyFilter activationFilters={[!isCardHovered]}>
                   {data.currentAge !== null
-                    ? t('{{days}} days', { days: data.currentAge })
+                    ? t('{{days}} days', {days: data.currentAge})
                     : t('N/A')}
                 </PrivacyFilter>
               </Block>
@@ -188,7 +178,7 @@ export function AgeOfMoneyCard({
             data={data.graphData}
             compact
             showTooltip={!isEditing && !isNarrowWidth}
-            style={{ height: 'auto', flex: 1 }}
+            style={{height: 'auto', flex: 1}}
           />
         ) : (
           <LoadingIndicator />

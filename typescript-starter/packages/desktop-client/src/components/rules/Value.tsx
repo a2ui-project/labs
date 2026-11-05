@@ -15,24 +15,24 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { getMonthYearFormat } from '@actual-app/core/shared/months';
-import { format as formatDate, parseISO } from 'date-fns';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {getMonthYearFormat} from '@actual-app/core/shared/months';
+import {format as formatDate, parseISO} from 'date-fns';
 
-import { Link } from '#components/common/Link';
-import { FinancialText } from '#components/FinancialText';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { usePayees } from '#hooks/usePayees';
-import { getRecurringDescription } from '#util/schedule';
+import {Link} from '#components/common/Link';
+import {FinancialText} from '#components/FinancialText';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {usePayees} from '#hooks/usePayees';
+import {getRecurringDescription} from '#util/schedule';
 
 type ValueProps<T> = {
   value: T;
@@ -54,17 +54,17 @@ export function Value<T>({
   describe = x => x.name,
   style,
 }: ValueProps<T>) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
-  const { data: payees } = usePayees();
+  const {data: payees} = usePayees();
   const {
-    data: { list: categories, grouped: categoryGroups } = {
+    data: {list: categories, grouped: categoryGroups} = {
       list: [],
       grouped: [],
     },
   } = useCategories();
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const valueStyle = {
     color: theme.pageTextPositive,
     ...style,
@@ -124,9 +124,7 @@ export function Value<T>({
           }
           return null;
         case 'month':
-          return value
-            ? formatDate(parseISO(value), getMonthYearFormat(dateFormat))
-            : null;
+          return value ? formatDate(parseISO(value), getMonthYearFormat(dateFormat)) : null;
         case 'year':
           return value ? formatDate(parseISO(value), 'yyyy') : null;
         case 'notes':
@@ -174,12 +172,10 @@ export function Value<T>({
     }
     const numHidden = value.length - displayed.length;
     return (
-      <Text style={{ color: theme.tableText }}>
+      <Text style={{color: theme.tableText}}>
         [
         {displayed.map((v, i) => {
-          const text = (
-            <ValueText style={valueStyle}>{formatValue(v)}</ValueText>
-          );
+          const text = <ValueText style={valueStyle}>{formatValue(v)}</ValueText>;
           let spacing;
           if (inline) {
             spacing = i !== 0 ? ' ' : '';
@@ -205,7 +201,7 @@ export function Value<T>({
           <Text style={valueStyle}>
             &nbsp;&nbsp;
             <Link variant="text" onClick={onExpand} style={valueStyle}>
-              {t('{{num}} more items...', { num: numHidden })}
+              {t('{{num}} more items...', {num: numHidden})}
             </Link>
             {!inline && <br />}
           </Text>
@@ -217,7 +213,7 @@ export function Value<T>({
   } else if (value && value.num1 != null && value.num2 != null) {
     // An "in between" type
     // @ts-expect-error Fix typechecker here
-    const { num1, num2 } = value;
+    const {num1, num2} = value;
     return (
       <Text>
         <ValueText style={valueStyle}>{formatValue(num1)}</ValueText> {t('and')}{' '}

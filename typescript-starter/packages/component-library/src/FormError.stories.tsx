@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { FormError } from './FormError';
-import { Input } from './Input';
-import { View } from './View';
+import {FormError} from './FormError';
+import {Input} from './Input';
+import {View} from './View';
 
 const meta = {
   title: 'Components/FormError',
@@ -48,18 +48,15 @@ export const Default: Story = {
 
 export const InFormContext: Story = {
   render: () => (
-    <View
-      style={{ display: 'flex', flexDirection: 'column', gap: 5, width: 250 }}
-    >
-      <Input placeholder="Email address" style={{ borderColor: 'red' }} />
+    <View style={{display: 'flex', flexDirection: 'column', gap: 5, width: 250}}>
+      <Input placeholder="Email address" style={{borderColor: 'red'}} />
       <FormError>Please enter a valid email address</FormError>
     </View>
   ),
   parameters: {
     docs: {
       description: {
-        story:
-          'FormError displayed below an input field with validation error.',
+        story: 'FormError displayed below an input field with validation error.',
       },
     },
   },
@@ -67,7 +64,7 @@ export const InFormContext: Story = {
 
 export const MultipleErrors: Story = {
   render: () => (
-    <View style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <View style={{display: 'flex', flexDirection: 'column', gap: 3}}>
       <FormError>Password must be at least 8 characters</FormError>
       <FormError>Password must contain a number</FormError>
       <FormError>Password must contain a special character</FormError>
@@ -76,8 +73,7 @@ export const MultipleErrors: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'Multiple FormError components for displaying several validation errors.',
+        story: 'Multiple FormError components for displaying several validation errors.',
       },
     },
   },
@@ -101,6 +97,6 @@ export const LongErrorMessage: Story = {
   args: {
     children:
       'This is a longer error message that explains the validation issue in more detail. Please correct the input and try again.',
-    style: { maxWidth: 300 },
+    style: {maxWidth: 300},
   },
 };

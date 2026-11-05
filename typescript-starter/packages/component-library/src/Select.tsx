@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-import { useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
+import {useRef, useState} from 'react';
+import type {CSSProperties} from 'react';
 
-import { Button } from './Button';
-import { SvgExpandArrow } from './icons/v0';
-import { Menu } from './Menu';
-import type { MenuItem } from './Menu';
-import { Popover } from './Popover';
-import { View } from './View';
+import {Button} from './Button';
+import {SvgExpandArrow} from './icons/v0';
+import {Menu} from './Menu';
+import type {MenuItem} from './Menu';
+import {Popover} from './Popover';
+import {View} from './View';
 
 /** A non-selectable heading above the options that follow it */
 export type SelectHeading = readonly [typeof Menu.label, string];
 
-export type SelectOption<Value = string> =
-  | [Value, string]
-  | SelectHeading
-  | typeof Menu.line;
+export type SelectOption<Value = string> = [Value, string] | SelectHeading | typeof Menu.line;
 
 function isHeading<Value>(
   option: readonly [Value, string] | SelectHeading,
@@ -86,9 +83,7 @@ export function Select<const Value = string>({
   popoverStyle = {},
   className,
 }: SelectProps<Value>) {
-  const targetOption = options
-    .filter(isValueOption)
-    .find(option => option[0] === value);
+  const targetOption = options.filter(isValueOption).find(option => option[0] === value);
 
   const triggerRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -154,7 +149,7 @@ export function Select<const Value = string>({
             }
             if (isHeading(item)) {
               // Menu shows a label item's name as the heading text
-              return { type: Menu.label, name: item[1], text: item[1] };
+              return {type: Menu.label, name: item[1], text: item[1]};
             }
             return {
               name: item[0],
@@ -164,7 +159,7 @@ export function Select<const Value = string>({
           })}
           getItemStyle={option => {
             if (targetOption && targetOption[0] === option.name) {
-              return { fontWeight: 'bold' };
+              return {fontWeight: 'bold'};
             }
             return {};
           }}

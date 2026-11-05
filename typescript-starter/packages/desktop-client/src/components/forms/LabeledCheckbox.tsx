@@ -15,12 +15,12 @@
  */
 
 import React from 'react';
-import type { ComponentProps, CSSProperties, ReactNode } from 'react';
+import type {ComponentProps, CSSProperties, ReactNode} from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { Checkbox } from './index';
+import {Checkbox} from './index';
 
 type LabeledCheckboxProps = {
   id: string;
@@ -53,12 +53,7 @@ export function LabeledCheckbox({
         ...style,
       }}
     >
-      <Checkbox
-        id={id}
-        checked={checked}
-        disabled={disabled}
-        onChange={onChange}
-      />
+      <Checkbox id={id} checked={checked} disabled={disabled} onChange={onChange} />
       <label
         htmlFor={id}
         style={{

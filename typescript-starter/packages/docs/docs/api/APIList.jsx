@@ -16,7 +16,7 @@
 
 import React from 'react';
 
-export default function APIList({ title, sections }) {
+export default function APIList({title, sections}) {
   return (
     <div className="mt-4">
       <div className="">{title}</div>

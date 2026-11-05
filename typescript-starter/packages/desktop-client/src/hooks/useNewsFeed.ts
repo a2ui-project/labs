@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { useQuery } from '@tanstack/react-query';
+import {useQuery} from '@tanstack/react-query';
 
-import { newsQueries } from '#news/queries';
-import type { NewsEntry } from '#news/types';
-import { getNewestDate, getUnseenEntries } from '#news/utils';
+import {newsQueries} from '#news/queries';
+import type {NewsEntry} from '#news/types';
+import {getNewestDate, getUnseenEntries} from '#news/utils';
 
-import { useGlobalPref } from './useGlobalPref';
+import {useGlobalPref} from './useGlobalPref';
 
 const EMPTY_ENTRIES: NewsEntry[] = [];
 
@@ -29,11 +29,10 @@ export function useNewsFeed() {
   // request it makes to GitHub.
   const [showNewsFeed] = useGlobalPref('showNewsFeed');
   const isEnabled = Boolean(showNewsFeed);
-  const [lastSeenNewsDate, setLastSeenNewsDate] =
-    useGlobalPref('lastSeenNewsDate');
+  const [lastSeenNewsDate, setLastSeenNewsDate] = useGlobalPref('lastSeenNewsDate');
 
   // `enabled: false` means no request is ever made while the feature is off.
-  const query = useQuery({ ...newsQueries.feed(), enabled: isEnabled });
+  const query = useQuery({...newsQueries.feed(), enabled: isEnabled});
   const entries = query.data?.entries ?? EMPTY_ENTRIES;
   const unseenCount = getUnseenEntries(entries, lastSeenNewsDate).length;
 

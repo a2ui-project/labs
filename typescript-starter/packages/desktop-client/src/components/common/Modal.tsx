@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {
   ComponentPropsWithoutRef,
   ComponentPropsWithRef,
@@ -26,27 +26,27 @@ import {
   Modal as ReactAriaModal,
   ModalOverlay as ReactAriaModalOverlay,
 } from 'react-aria-components';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useHotkeysContext } from 'react-hotkeys-hook';
-import { useTranslation } from 'react-i18next';
+import {ErrorBoundary} from 'react-error-boundary';
+import {useHotkeysContext} from 'react-hotkeys-hook';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { SvgLogo } from '@actual-app/components/icons/logo';
-import { SvgDelete } from '@actual-app/components/icons/v0';
-import { Input } from '@actual-app/components/input';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { TextOneLine } from '@actual-app/components/text-one-line';
-import { theme } from '@actual-app/components/theme';
-import { tokens } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
-import { AutoTextSize } from 'auto-text-size';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {SvgLogo} from '@actual-app/components/icons/logo';
+import {SvgDelete} from '@actual-app/components/icons/v0';
+import {Input} from '@actual-app/components/input';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {TextOneLine} from '@actual-app/components/text-one-line';
+import {theme} from '@actual-app/components/theme';
+import {tokens} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
+import {AutoTextSize} from 'auto-text-size';
 
-import { FeatureErrorFallback } from '#components/FeatureErrorFallback';
-import { useModalState } from '#hooks/useModalState';
+import {FeatureErrorFallback} from '#components/FeatureErrorFallback';
+import {useModalState} from '#hooks/useModalState';
 
 export const MODAL_Z_INDEX = 3000;
 
@@ -75,9 +75,9 @@ export const Modal = ({
   containerProps,
   ...props
 }: ModalProps) => {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
-  const { enableScope, disableScope } = useHotkeysContext();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
+  const {enableScope, disableScope} = useHotkeysContext();
 
   // This deactivates any key handlers in the "app" scope
   useEffect(() => {
@@ -85,7 +85,7 @@ export const Modal = ({
     return () => disableScope(name);
   }, [enableScope, disableScope, name]);
 
-  const { isHidden, isActive, onClose: closeModal } = useModalState();
+  const {isHidden, isActive, onClose: closeModal} = useModalState();
 
   const handleOnClose = () => {
     closeModal();
@@ -161,11 +161,9 @@ export const Modal = ({
                     ...containerProps?.style,
                   }}
                 >
-                  <View style={{ paddingTop: 0, flex: 1, flexShrink: 0 }}>
+                  <View style={{paddingTop: 0, flex: 1, flexShrink: 0}}>
                     <ErrorBoundary FallbackComponent={FeatureErrorFallback}>
-                      {typeof children === 'function'
-                        ? children(modalProps)
-                        : children}
+                      {typeof children === 'function' ? children(modalProps) : children}
                     </ErrorBoundary>
                   </View>
                   {isLoading && (
@@ -182,10 +180,7 @@ export const Modal = ({
                         zIndex: 1000,
                       }}
                     >
-                      <AnimatedLoading
-                        style={{ width: 20, height: 20 }}
-                        color={theme.pageText}
-                      />
+                      <AnimatedLoading style={{width: 20, height: 20}} color={theme.pageText} />
                     </View>
                   )}
                 </ModalContentContainer>
@@ -270,7 +265,7 @@ const ModalContentContainer = ({
       innerRef={contentRef}
       style={{
         ...style,
-        ...(noAnimation && !isActive && { display: 'none' }),
+        ...(noAnimation && !isActive && {display: 'none'}),
       }}
     >
       {children}
@@ -315,7 +310,7 @@ export const ModalButtons = ({
       }}
     >
       {leftContent}
-      <View style={{ flex: 1 }} />
+      <View style={{flex: 1}} />
       {children}
     </View>
   );
@@ -328,13 +323,8 @@ type ModalHeaderProps = {
   rightContent?: ReactNode;
 };
 
-export function ModalHeader({
-  leftContent,
-  showLogo,
-  title,
-  rightContent,
-}: ModalHeaderProps) {
-  const { t } = useTranslation();
+export function ModalHeader({leftContent, showLogo, title, rightContent}: ModalHeaderProps) {
+  const {t} = useTranslation();
   return (
     <h1
       style={{
@@ -371,7 +361,7 @@ export function ModalHeader({
               aria-label={t('Modal logo')}
               width={30}
               height={30}
-              style={{ justifyContent: 'center', alignSelf: 'center' }}
+              style={{justifyContent: 'center', alignSelf: 'center'}}
             />
           )}
           {title &&
@@ -502,15 +492,10 @@ type ModalCloseButtonProps = {
   style?: CSSProperties;
 };
 
-export function ModalCloseButton({ onPress, style }: ModalCloseButtonProps) {
-  const { t } = useTranslation();
+export function ModalCloseButton({onPress, style}: ModalCloseButtonProps) {
+  const {t} = useTranslation();
   return (
-    <Button
-      variant="bare"
-      onPress={onPress}
-      style={{ padding: '10px 10px' }}
-      aria-label={t('Close')}
-    >
+    <Button variant="bare" onPress={onPress} style={{padding: '10px 10px'}} aria-label={t('Close')}>
       <SvgDelete width={10} style={style} />
     </Button>
   );

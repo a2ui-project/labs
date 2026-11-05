@@ -15,16 +15,14 @@
  */
 
 import * as api from '@actual-app/api';
-import type { Command } from 'commander';
+import type {Command} from 'commander';
 
-import { withConnection } from '#connection';
-import { readJsonInput } from '#input';
-import { printOutput } from '#output';
+import {withConnection} from '#connection';
+import {readJsonInput} from '#input';
+import {printOutput} from '#output';
 
 export function registerRulesCommand(program: Command) {
-  const rules = program
-    .command('rules')
-    .description('Manage transaction rules');
+  const rules = program.command('rules').description('Manage transaction rules');
 
   rules
     .command('list')
@@ -37,7 +35,7 @@ export function registerRulesCommand(program: Command) {
           const result = await api.getRules();
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -52,7 +50,7 @@ export function registerRulesCommand(program: Command) {
           const result = await api.getPayeeRules(payeeId);
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -66,13 +64,11 @@ export function registerRulesCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const rule = readJsonInput(cmdOpts) as Parameters<
-            typeof api.createRule
-          >[0];
+          const rule = readJsonInput(cmdOpts) as Parameters<typeof api.createRule>[0];
           const id = await api.createRule(rule);
-          printOutput({ id }, opts.format);
+          printOutput({id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -86,13 +82,11 @@ export function registerRulesCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const rule = readJsonInput(cmdOpts) as Parameters<
-            typeof api.updateRule
-          >[0];
+          const rule = readJsonInput(cmdOpts) as Parameters<typeof api.updateRule>[0];
           await api.updateRule(rule);
-          printOutput({ success: true }, opts.format);
+          printOutput({success: true}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -105,9 +99,9 @@ export function registerRulesCommand(program: Command) {
         opts,
         async () => {
           await api.deleteRule(id);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 }

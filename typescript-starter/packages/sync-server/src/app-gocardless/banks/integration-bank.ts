@@ -16,14 +16,10 @@
 
 import * as d from 'date-fns';
 
-import {
-  amountToInteger,
-  printIban,
-  sortByBookingDateOrValueDate,
-} from '#app-gocardless/utils';
-import { formatPayeeName } from '#util/payee-name';
+import {amountToInteger, printIban, sortByBookingDateOrValueDate} from '#app-gocardless/utils';
+import {formatPayeeName} from '#util/payee-name';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 
 const SORTED_BALANCE_TYPE_LIST = [
   'closingBooked',

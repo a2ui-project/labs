@@ -15,40 +15,37 @@
  */
 
 // @ts-strict-ignore
-import React, { useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgDotsHorizontalTriple } from '@actual-app/components/icons/v1';
-import {
-  SvgArrowButtonDown1,
-  SvgArrowButtonUp1,
-} from '@actual-app/components/icons/v2';
-import { Popover } from '@actual-app/components/popover';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgDotsHorizontalTriple} from '@actual-app/components/icons/v1';
+import {SvgArrowButtonDown1, SvgArrowButtonUp1} from '@actual-app/components/icons/v2';
+import {Popover} from '@actual-app/components/popover';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import { useTrackingBudget } from '#components/budget/tracking/TrackingBudgetContext';
-import { NotesButton } from '#components/NotesButton';
-import { useLocale } from '#hooks/useLocale';
-import { SheetNameProvider } from '#hooks/useSheetName';
-import { useUndo } from '#hooks/useUndo';
+import {useTrackingBudget} from '#components/budget/tracking/TrackingBudgetContext';
+import {NotesButton} from '#components/NotesButton';
+import {useLocale} from '#hooks/useLocale';
+import {SheetNameProvider} from '#hooks/useSheetName';
+import {useUndo} from '#hooks/useUndo';
 
-import { BudgetMonthMenu } from './BudgetMonthMenu';
-import { ExpenseTotal } from './ExpenseTotal';
-import { IncomeTotal } from './IncomeTotal';
-import { Saved } from './Saved';
+import {BudgetMonthMenu} from './BudgetMonthMenu';
+import {ExpenseTotal} from './ExpenseTotal';
+import {IncomeTotal} from './IncomeTotal';
+import {Saved} from './Saved';
 
 type BudgetSummaryProps = {
   month: string;
 };
-export function BudgetSummary({ month }: BudgetSummaryProps) {
+export function BudgetSummary({month}: BudgetSummaryProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const {
     currentMonth,
     summaryCollapsed: collapsed,
@@ -58,7 +55,7 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef(null);
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
 
   function onMenuOpen() {
     setMenuOpen(true);
@@ -68,9 +65,7 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
     setMenuOpen(false);
   }
 
-  const ExpandOrCollapseIcon = collapsed
-    ? SvgArrowButtonDown1
-    : SvgArrowButtonUp1;
+  const ExpandOrCollapseIcon = collapsed ? SvgArrowButtonDown1 : SvgArrowButtonUp1;
 
   const displayMonth = monthUtils.format(month, "MMMM ''yy", locale);
 
@@ -79,10 +74,7 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
       data-testid="budget-summary"
       data-month={month}
       style={{
-        backgroundColor:
-          month === currentMonth
-            ? theme.budgetCurrentMonth
-            : theme.budgetOtherMonth,
+        backgroundColor: month === currentMonth ? theme.budgetCurrentMonth : theme.budgetOtherMonth,
         boxShadow: styles.cardShadow,
         borderRadius: 6,
         marginLeft: 0,
@@ -105,7 +97,7 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
         <View
           style={{
             padding: '0 13px',
-            ...(collapsed ? { margin: '10px 0' } : { marginTop: 16 }),
+            ...(collapsed ? {margin: '10px 0'} : {marginTop: 16}),
           }}
         >
           <View
@@ -117,11 +109,7 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
           >
             <Button
               variant="bare"
-              aria-label={
-                collapsed
-                  ? t('Expand month summary')
-                  : t('Collapse month summary')
-              }
+              aria-label={collapsed ? t('Expand month summary') : t('Collapse month summary')}
               className="hover-visible"
               onPress={onToggleSummaryCollapse}
             >
@@ -129,7 +117,7 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
                 width={13}
                 height={13}
                 // The margin is to make it the exact same size as the dots button
-                style={{ color: theme.pageTextLight, margin: 1 }}
+                style={{color: theme.pageTextLight, margin: 1}}
               />
             </Button>
           </View>
@@ -164,25 +152,16 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
                 defaultColor={theme.pageTextLight}
               />
             </View>
-            <View style={{ userSelect: 'none' }}>
-              <Button
-                ref={triggerRef}
-                variant="bare"
-                aria-label={t('Menu')}
-                onPress={onMenuOpen}
-              >
+            <View style={{userSelect: 'none'}}>
+              <Button ref={triggerRef} variant="bare" aria-label={t('Menu')} onPress={onMenuOpen}>
                 <SvgDotsHorizontalTriple
                   width={15}
                   height={15}
-                  style={{ color: theme.pageTextLight }}
+                  style={{color: theme.pageTextLight}}
                 />
               </Button>
 
-              <Popover
-                triggerRef={triggerRef}
-                isOpen={menuOpen}
-                onOpenChange={onMenuClose}
-              >
+              <Popover triggerRef={triggerRef} isOpen={menuOpen} onOpenChange={onMenuClose}>
                 <BudgetMonthMenu
                   onCopyLastMonthBudget={() => {
                     onBudgetAction(month, 'copy-last');
@@ -190,7 +169,7 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
                     showUndoNotification({
                       message: t(
                         "{{displayMonth}} budgets have all been set to last month's budgeted amounts.",
-                        { displayMonth },
+                        {displayMonth},
                       ),
                     });
                   }}
@@ -198,10 +177,9 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
                     onBudgetAction(month, 'set-zero');
                     onMenuClose();
                     showUndoNotification({
-                      message: t(
-                        '{{displayMonth}} budgets have all been set to zero.',
-                        { displayMonth },
-                      ),
+                      message: t('{{displayMonth}} budgets have all been set to zero.', {
+                        displayMonth,
+                      }),
                     });
                   }}
                   onSetMonthsAverage={numberOfMonths => {
@@ -210,9 +188,7 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
                     showUndoNotification({
                       message:
                         numberOfMonths === 12
-                          ? t(
-                              `${displayMonth} budgets have all been set to yearly average.`,
-                            )
+                          ? t(`${displayMonth} budgets have all been set to yearly average.`)
                           : t(
                               `${displayMonth} budgets have all been set to ${numberOfMonths} month average.`,
                             ),
@@ -226,20 +202,18 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
                     onBudgetAction(month, 'apply-goal-template');
                     onMenuClose();
                     showUndoNotification({
-                      message: t(
-                        '{{displayMonth}} budget templates have been applied.',
-                        { displayMonth },
-                      ),
+                      message: t('{{displayMonth}} budget templates have been applied.', {
+                        displayMonth,
+                      }),
                     });
                   }}
                   onOverwriteWithBudgetTemplates={() => {
                     onBudgetAction(month, 'overwrite-goal-template');
                     onMenuClose();
                     showUndoNotification({
-                      message: t(
-                        '{{displayMonth}} budget templates have been overwritten.',
-                        { displayMonth },
-                      ),
+                      message: t('{{displayMonth}} budget templates have been overwritten.', {
+                        displayMonth,
+                      }),
                     });
                   }}
                 />
@@ -279,10 +253,7 @@ export function BudgetSummary({ month }: BudgetSummaryProps) {
             <Saved projected={month >= currentMonth} />
           </View>
         ) : (
-          <Saved
-            projected={month >= currentMonth}
-            style={{ marginTop: 13, marginBottom: 20 }}
-          />
+          <Saved projected={month >= currentMonth} style={{marginTop: 13, marginBottom: 20}} />
         )}
       </SheetNameProvider>
     </View>

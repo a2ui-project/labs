@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-import React, { useRef, useState } from 'react';
-import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useRef, useState} from 'react';
+import type {ReactNode} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgExpandArrow } from '@actual-app/components/icons/v0';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { Input } from '@actual-app/components/input';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { isElectron } from '@actual-app/core/shared/environment';
+import {Button} from '@actual-app/components/button';
+import {SvgExpandArrow} from '@actual-app/components/icons/v0';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {Input} from '@actual-app/components/input';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {isElectron} from '@actual-app/core/shared/environment';
 import * as Platform from '@actual-app/core/shared/platform';
 
-import { closeBudget } from '#budgetfiles/budgetfilesSlice';
-import { useContextMenu } from '#hooks/useContextMenu';
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { useNavigate } from '#hooks/useNavigate';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {closeBudget} from '#budgetfiles/budgetfilesSlice';
+import {useContextMenu} from '#hooks/useContextMenu';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {useNavigate} from '#hooks/useNavigate';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
 type BudgetNameProps = {
   children?: ReactNode;
 };
 
-export function BudgetName({ children }: BudgetNameProps) {
+export function BudgetName({children}: BudgetNameProps) {
   const hasWindowButtons = !Platform.isBrowser && Platform.OS === 'mac';
 
   return (
@@ -62,7 +62,7 @@ export function BudgetName({ children }: BudgetNameProps) {
     >
       <EditableBudgetName />
 
-      <View style={{ flex: 1, flexDirection: 'row' }} />
+      <View style={{flex: 1, flexDirection: 'row'}} />
 
       {children}
     </View>
@@ -70,13 +70,13 @@ export function BudgetName({ children }: BudgetNameProps) {
 }
 
 function EditableBudgetName() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [budgetName, setBudgetNamePref] = useMetadataPref('budgetName');
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [editing, setEditing] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const { handleContextMenu } = useContextMenu({
+  const {handleContextMenu} = useContextMenu({
     triggerRef,
     items: [
       {
@@ -92,8 +92,7 @@ function EditableBudgetName() {
       isElectron() && {
         name: 'loadBackup',
         text: t('Load Backup…'),
-        onClick: () =>
-          dispatch(pushModal({ modal: { name: 'load-backup', options: {} } })),
+        onClick: () => dispatch(pushModal({modal: {name: 'load-backup', options: {}}})),
       },
       {
         name: 'close',
@@ -139,14 +138,8 @@ function EditableBudgetName() {
       }}
       onClick={handleContextMenu}
     >
-      <Text style={{ whiteSpace: 'nowrap', overflow: 'hidden' }}>
-        {budgetName || t('Unnamed')}
-      </Text>
-      <SvgExpandArrow
-        width={7}
-        height={7}
-        style={{ flexShrink: 0, marginLeft: 5 }}
-      />
+      <Text style={{whiteSpace: 'nowrap', overflow: 'hidden'}}>{budgetName || t('Unnamed')}</Text>
+      <SvgExpandArrow width={7} height={7} style={{flexShrink: 0, marginLeft: 5}} />
     </Button>
   );
 }

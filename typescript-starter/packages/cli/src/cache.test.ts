@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-import {
-  existsSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import {existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
-import {
-  CACHE_FILE_NAME,
-  decideSyncAction,
-  readCacheState,
-  writeCacheState,
-} from './cache';
+import {CACHE_FILE_NAME, decideSyncAction, readCacheState, writeCacheState} from './cache';
 
 describe('readCacheState', () => {
   let dir: string;
@@ -39,7 +28,7 @@ describe('readCacheState', () => {
   });
 
   afterEach(() => {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, {recursive: true, force: true});
   });
 
   it('returns null when the file does not exist', () => {
@@ -97,7 +86,7 @@ describe('writeCacheState', () => {
   });
 
   afterEach(() => {
-    rmSync(dir, { recursive: true, force: true });
+    rmSync(dir, {recursive: true, force: true});
   });
 
   it('writes the state to the cache file', () => {
@@ -153,7 +142,7 @@ describe('decideSyncAction', () => {
       lastSyncedAt: 1_000_000,
       lastDownloadedAt: 1_000_000,
     },
-    config: { syncId: 'sync-1', serverUrl: 'http://s' },
+    config: {syncId: 'sync-1', serverUrl: 'http://s'},
     now: 1_000_000,
     ttlMs: 60_000,
     mutates: false,
@@ -162,14 +151,14 @@ describe('decideSyncAction', () => {
   };
 
   it('returns "download" when state is null', () => {
-    expect(decideSyncAction({ ...base, state: null }).action).toBe('download');
+    expect(decideSyncAction({...base, state: null}).action).toBe('download');
   });
 
   it('returns "download" when syncId changed', () => {
     expect(
       decideSyncAction({
         ...base,
-        config: { ...base.config, syncId: 'other' },
+        config: {...base.config, syncId: 'other'},
       }).action,
     ).toBe('download');
   });
@@ -178,45 +167,41 @@ describe('decideSyncAction', () => {
     expect(
       decideSyncAction({
         ...base,
-        config: { ...base.config, serverUrl: 'http://other' },
+        config: {...base.config, serverUrl: 'http://other'},
       }).action,
     ).toBe('download');
   });
 
   it('returns "skip" for a read within the TTL', () => {
-    expect(decideSyncAction({ ...base, now: 1_000_000 + 30_000 }).action).toBe(
-      'skip',
-    );
+    expect(decideSyncAction({...base, now: 1_000_000 + 30_000}).action).toBe('skip');
   });
 
   it('returns "sync" for a read past the TTL', () => {
-    expect(decideSyncAction({ ...base, now: 1_000_000 + 61_000 }).action).toBe(
-      'sync',
-    );
+    expect(decideSyncAction({...base, now: 1_000_000 + 61_000}).action).toBe('sync');
   });
 
   it('returns "sync" for a write even when fresh', () => {
-    expect(decideSyncAction({ ...base, mutates: true }).action).toBe('sync');
+    expect(decideSyncAction({...base, mutates: true}).action).toBe('sync');
   });
 
   it('returns "sync" when refresh is true', () => {
-    expect(decideSyncAction({ ...base, refresh: true }).action).toBe('sync');
+    expect(decideSyncAction({...base, refresh: true}).action).toBe('sync');
   });
 
   it('returns "sync" when ttlMs is 0', () => {
-    expect(decideSyncAction({ ...base, ttlMs: 0 }).action).toBe('sync');
+    expect(decideSyncAction({...base, ttlMs: 0}).action).toBe('sync');
   });
 
   it('returns "sync" for encrypted budgets within the TTL', () => {
-    expect(decideSyncAction({ ...base, encrypted: true }).action).toBe('sync');
+    expect(decideSyncAction({...base, encrypted: true}).action).toBe('sync');
   });
 
   it('treats clock skew (negative age) as stale', () => {
-    expect(decideSyncAction({ ...base, now: 999_999 }).action).toBe('sync');
+    expect(decideSyncAction({...base, now: 999_999}).action).toBe('sync');
   });
 
   it('carries cached state on non-download actions', () => {
-    const decision = decideSyncAction({ ...base, mutates: true });
-    expect(decision).toEqual({ action: 'sync', state: base.state });
+    const decision = decideSyncAction({...base, mutates: true});
+    expect(decision).toEqual({action: 'sync', state: base.state});
   });
 });

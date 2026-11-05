@@ -15,7 +15,7 @@
  */
 
 import * as fs from '#platform/server/fs';
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 
 type ServerConfig = {
   BASE_SERVER: string;
@@ -67,11 +67,7 @@ export function getServer(url?: string): ServerConfig | null {
         ENABLEBANKING_SERVER: joinURL(url, '/enablebanking'),
       };
     } catch (error) {
-      logger.warn(
-        'Unable to parse server URL - using the global config.',
-        { config },
-        error,
-      );
+      logger.warn('Unable to parse server URL - using the global config.', {config}, error);
       return config;
     }
   }

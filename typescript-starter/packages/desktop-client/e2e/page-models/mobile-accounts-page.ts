@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { MobileAccountPage } from './mobile-account-page';
+import {MobileAccountPage} from './mobile-account-page';
 
 export class MobileAccountsPage {
   readonly page: Page;

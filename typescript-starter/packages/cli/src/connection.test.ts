@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import {mkdtempSync, rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
 import * as api from '@actual-app/api';
 
-import { getMetaDir, writeCacheState } from './cache';
-import { resolveConfig } from './config';
-import { withConnection } from './connection';
+import {getMetaDir, writeCacheState} from './cache';
+import {resolveConfig} from './config';
+import {withConnection} from './connection';
 
 vi.mock('@actual-app/api', () => ({
   init: vi.fn().mockResolvedValue(undefined),
@@ -30,9 +30,7 @@ vi.mock('@actual-app/api', () => ({
   loadBudget: vi.fn().mockResolvedValue(undefined),
   sync: vi.fn().mockResolvedValue(undefined),
   shutdown: vi.fn().mockResolvedValue(undefined),
-  getBudgets: vi
-    .fn()
-    .mockResolvedValue([{ id: 'bud-disk-1', groupId: 'sync-1' }]),
+  getBudgets: vi.fn().mockResolvedValue([{id: 'bud-disk-1', groupId: 'sync-1'}]),
 }));
 
 vi.mock('./config', () => ({
@@ -64,20 +62,18 @@ describe('withConnection', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    stderrSpy = vi
-      .spyOn(process.stderr, 'write')
-      .mockImplementation(() => true);
+    stderrSpy = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
     dataDir = mkdtempSync(join(tmpdir(), 'actual-cli-conn-'));
     setConfig();
   });
 
   afterEach(() => {
     stderrSpy.mockRestore();
-    rmSync(dataDir, { recursive: true, force: true });
+    rmSync(dataDir, {recursive: true, force: true});
   });
 
   it('calls api.init with password when no sessionToken', async () => {
-    await withConnection({}, async () => 'ok', { mutates: false });
+    await withConnection({}, async () => 'ok', {mutates: false});
     expect(api.init).toHaveBeenCalledWith({
       serverURL: 'http://test',
       password: 'pw',
@@ -87,8 +83,8 @@ describe('withConnection', () => {
   });
 
   it('calls api.init with sessionToken when present', async () => {
-    setConfig({ sessionToken: 'tok', password: undefined });
-    await withConnection({}, async () => 'ok', { mutates: false });
+    setConfig({sessionToken: 'tok', password: undefined});
+    await withConnection({}, async () => 'ok', {mutates: false});
     expect(api.init).toHaveBeenCalledWith({
       serverURL: 'http://test',
       sessionToken: 'tok',
@@ -98,7 +94,7 @@ describe('withConnection', () => {
   });
 
   it('first run: calls downloadBudget and writes cache state', async () => {
-    await withConnection({}, async () => 'ok', { mutates: false });
+    await withConnection({}, async () => 'ok', {mutates: false});
     expect(api.downloadBudget).toHaveBeenCalledWith('sync-1', {
       password: undefined,
     });
@@ -114,7 +110,7 @@ describe('withConnection', () => {
       lastSyncedAt: Date.now(),
       lastDownloadedAt: Date.now(),
     });
-    await withConnection({}, async () => 'ok', { mutates: false });
+    await withConnection({}, async () => 'ok', {mutates: false});
     expect(api.loadBudget).toHaveBeenCalledWith('bud-disk-1');
     expect(api.sync).not.toHaveBeenCalled();
     expect(api.downloadBudget).not.toHaveBeenCalled();
@@ -129,7 +125,7 @@ describe('withConnection', () => {
       lastSyncedAt: Date.now() - 10 * 60_000,
       lastDownloadedAt: Date.now() - 10 * 60_000,
     });
-    await withConnection({}, async () => 'ok', { mutates: false });
+    await withConnection({}, async () => 'ok', {mutates: false});
     expect(api.loadBudget).toHaveBeenCalled();
     expect(api.sync).toHaveBeenCalledTimes(1);
   });
@@ -143,13 +139,13 @@ describe('withConnection', () => {
       lastSyncedAt: Date.now(),
       lastDownloadedAt: Date.now(),
     });
-    await withConnection({}, async () => 'ok', { mutates: true });
+    await withConnection({}, async () => 'ok', {mutates: true});
     expect(api.loadBudget).toHaveBeenCalled();
     expect(api.sync).toHaveBeenCalledTimes(2);
   });
 
   it('--refresh forces a sync on a read inside the TTL', async () => {
-    setConfig({ refresh: true });
+    setConfig({refresh: true});
     writeCacheState(metaDirFor('sync-1'), {
       version: 1,
       syncId: 'sync-1',
@@ -158,12 +154,12 @@ describe('withConnection', () => {
       lastSyncedAt: Date.now(),
       lastDownloadedAt: Date.now(),
     });
-    await withConnection({}, async () => 'ok', { mutates: false });
+    await withConnection({}, async () => 'ok', {mutates: false});
     expect(api.sync).toHaveBeenCalledTimes(1);
   });
 
   it('encrypted budget syncs through downloadBudget on a read inside the TTL', async () => {
-    setConfig({ encryptionPassword: 'secret' });
+    setConfig({encryptionPassword: 'secret'});
     writeCacheState(metaDirFor('sync-1'), {
       version: 1,
       syncId: 'sync-1',
@@ -172,7 +168,7 @@ describe('withConnection', () => {
       lastSyncedAt: Date.now(),
       lastDownloadedAt: Date.now(),
     });
-    await withConnection({}, async () => 'ok', { mutates: false });
+    await withConnection({}, async () => 'ok', {mutates: false});
     expect(api.downloadBudget).toHaveBeenCalledWith('sync-1', {
       password: 'secret',
     });
@@ -180,7 +176,7 @@ describe('withConnection', () => {
   });
 
   it('encrypted budget registers the encryption key before a write pushes', async () => {
-    setConfig({ encryptionPassword: 'secret' });
+    setConfig({encryptionPassword: 'secret'});
     writeCacheState(metaDirFor('sync-1'), {
       version: 1,
       syncId: 'sync-1',
@@ -189,7 +185,7 @@ describe('withConnection', () => {
       lastSyncedAt: Date.now(),
       lastDownloadedAt: Date.now(),
     });
-    await withConnection({}, async () => 'ok', { mutates: true });
+    await withConnection({}, async () => 'ok', {mutates: true});
     // `loadBudget` would leave the key unregistered and the push below would
     // fail with `encrypt-failure`.
     expect(api.downloadBudget).toHaveBeenCalledWith('sync-1', {
@@ -208,7 +204,7 @@ describe('withConnection', () => {
       lastSyncedAt: Date.now(),
       lastDownloadedAt: Date.now(),
     });
-    await withConnection({}, async () => 'ok', { mutates: true });
+    await withConnection({}, async () => 'ok', {mutates: true});
     expect(api.loadBudget).toHaveBeenCalledWith('bud-disk-1');
     expect(api.downloadBudget).not.toHaveBeenCalled();
   });
@@ -222,7 +218,7 @@ describe('withConnection', () => {
       lastSyncedAt: Date.now(),
       lastDownloadedAt: Date.now(),
     });
-    await withConnection({}, async () => 'ok', { mutates: false });
+    await withConnection({}, async () => 'ok', {mutates: false});
     expect(api.downloadBudget).toHaveBeenCalled();
   });
 
@@ -237,10 +233,10 @@ describe('withConnection', () => {
   });
 
   it('throws when syncId is missing and skipBudget is false', async () => {
-    setConfig({ syncId: undefined });
-    await expect(
-      withConnection({}, async () => 'ok', { mutates: false }),
-    ).rejects.toThrow('Sync ID is required');
+    setConfig({syncId: undefined});
+    await expect(withConnection({}, async () => 'ok', {mutates: false})).rejects.toThrow(
+      'Sync ID is required',
+    );
   });
 
   it('returns the callback result', async () => {
@@ -251,7 +247,7 @@ describe('withConnection', () => {
   });
 
   it('calls api.shutdown on success', async () => {
-    await withConnection({}, async () => 'ok', { mutates: false });
+    await withConnection({}, async () => 'ok', {mutates: false});
     expect(api.shutdown).toHaveBeenCalled();
   });
 
@@ -262,7 +258,7 @@ describe('withConnection', () => {
         async () => {
           throw new Error('boom');
         },
-        { mutates: false },
+        {mutates: false},
       ),
     ).rejects.toThrow('boom');
     expect(api.shutdown).toHaveBeenCalled();
@@ -278,8 +274,6 @@ describe('withConnection', () => {
       lastDownloadedAt: Date.now() - 10 * 60_000,
     });
     vi.mocked(api.sync).mockRejectedValueOnce(new Error('network'));
-    await expect(
-      withConnection({}, async () => 'ok', { mutates: false }),
-    ).rejects.toThrow('network');
+    await expect(withConnection({}, async () => 'ok', {mutates: false})).rejects.toThrow('network');
   });
 });

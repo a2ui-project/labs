@@ -15,16 +15,16 @@
  */
 
 import React from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import type {CSSProperties, ReactNode} from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { DataEntity, GroupedEntity } from '@actual-app/core/types/models';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {DataEntity, GroupedEntity} from '@actual-app/core/types/models';
 
-import { Row } from '#components/table';
+import {Row} from '#components/table';
 
-import { RenderTableRow } from './RenderTableRow';
-import type { renderRowProps } from './ReportTable';
+import {RenderTableRow} from './RenderTableRow';
+import type {renderRowProps} from './ReportTable';
 
 type ReportTableListProps = {
   data: DataEntity;
@@ -34,13 +34,7 @@ type ReportTableListProps = {
   style?: CSSProperties;
 };
 
-export function ReportTableList({
-  data,
-  mode,
-  groupBy,
-  renderRow,
-  style,
-}: ReportTableListProps) {
+export function ReportTableList({data, mode, groupBy, renderRow, style}: ReportTableListProps) {
   const metadata: GroupedEntity[] | undefined =
     groupBy === 'Category'
       ? data.groupedData || []
@@ -86,21 +80,19 @@ export function ReportTableList({
                 {item.categories && (
                   <>
                     <View>
-                      {item.categories.map(
-                        (category: GroupedEntity, i: number) => {
-                          return (
-                            <RenderTableRow
-                              key={category.id}
-                              index={i}
-                              renderRow={renderRow}
-                              mode={mode}
-                              metadata={metadata}
-                              parent_index={index}
-                              style={style}
-                            />
-                          );
-                        },
-                      )}
+                      {item.categories.map((category: GroupedEntity, i: number) => {
+                        return (
+                          <RenderTableRow
+                            key={category.id}
+                            index={i}
+                            renderRow={renderRow}
+                            mode={mode}
+                            metadata={metadata}
+                            parent_index={index}
+                            style={style}
+                          />
+                        );
+                      })}
                     </View>
                     <Row height={20} />
                   </>

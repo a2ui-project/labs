@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type {
-  RuleConditionEntity,
-  SummaryContent,
-} from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import type {RuleConditionEntity, SummaryContent} from '@actual-app/core/types/models';
 import * as d from 'date-fns';
-import type { Locale } from 'date-fns';
+import type {Locale} from 'date-fns';
 
-import type { useSpreadsheet } from '#hooks/useSpreadsheet';
-import { aqlQuery } from '#queries/aqlQuery';
+import type {useSpreadsheet} from '#hooks/useSpreadsheet';
+import {aqlQuery} from '#queries/aqlQuery';
 
 export function summarySpreadsheet(
   start: string,
@@ -59,15 +56,10 @@ export function summarySpreadsheet(
     let startDay: Date;
     let endDay: Date;
     try {
-      startDay = d.parse(
-        monthUtils.firstDayOfMonth(start),
-        'yyyy-MM-dd',
-        new Date(),
-      );
+      startDay = d.parse(monthUtils.firstDayOfMonth(start), 'yyyy-MM-dd', new Date());
 
       endDay = d.parse(
-        monthUtils.getMonth(end) ===
-          monthUtils.getMonth(monthUtils.currentDay())
+        monthUtils.getMonth(end) === monthUtils.getMonth(monthUtils.currentDay())
           ? monthUtils.currentDay()
           : monthUtils.lastDayOfMonth(end),
         'yyyy-MM-dd',
@@ -118,18 +110,11 @@ export function summarySpreadsheet(
         .filter({
           [conditionsOpKey]: filters,
         })
-        .select([
-          'date',
-          { amount: { $sum: '$amount' } },
-          { count: { $count: '*' } },
-        ]);
+        .select(['date', {amount: {$sum: '$amount'}}, {count: {$count: '*'}}]);
 
     let query = makeRootQuery();
 
-    if (
-      summaryContent.type === 'avgPerMonth' ||
-      summaryContent.type === 'avgPerYear'
-    ) {
+    if (summaryContent.type === 'avgPerMonth' || summaryContent.type === 'avgPerYear') {
       query = query.groupBy(['date']);
     }
 
@@ -142,8 +127,8 @@ export function summarySpreadsheet(
     }
 
     const dateRanges = {
-      fromRange: d.format(startDay, 'MMM yy', { locale }),
-      toRange: d.format(endDay, 'MMM yy', { locale }),
+      fromRange: d.format(startDay, 'MMM yy', {locale}),
+      toRange: d.format(endDay, 'MMM yy', {locale}),
     };
 
     switch (summaryContent.type) {
@@ -159,10 +144,7 @@ export function summarySpreadsheet(
       case 'avgPerTransact':
         setData({
           ...dateRanges,
-          total:
-            (data.data[0]?.count ?? 0)
-              ? (data.data[0]?.amount ?? 0) / data.data[0].count
-              : 0,
+          total: (data.data[0]?.count ?? 0) ? (data.data[0]?.amount ?? 0) / data.data[0].count : 0,
           dividend: data.data[0]?.amount ?? 0,
           divisor: data.data[0].count,
         });
@@ -170,7 +152,7 @@ export function summarySpreadsheet(
 
       case 'avgPerMonth': {
         const months = getOneDatePerMonth(startDay, endDay);
-        setData({ ...dateRanges, ...calculatePerMonth(data.data, months) });
+        setData({...dateRanges, ...calculatePerMonth(data.data, months)});
         break;
       }
 
@@ -185,12 +167,7 @@ export function summarySpreadsheet(
       case 'percentage':
         setData({
           ...dateRanges,
-          ...(await calculatePercentage(
-            data.data,
-            summaryContent,
-            startDay,
-            endDay,
-          )),
+          ...(await calculatePercentage(data.data, summaryContent, startDay, endDay)),
         });
         break;
 
@@ -209,15 +186,12 @@ function calculatePerMonth(
   months: Date[],
 ) {
   if (!data.length || !months.length) {
-    return { total: 0, dividend: 0, divisor: 0 };
+    return {total: 0, dividend: 0, divisor: 0};
   }
 
   const monthlyData = data.reduce(
     (acc, day) => {
-      const monthKey = d.format(
-        d.parse(day.date, 'yyyy-MM-dd', new Date()),
-        'yyyy-MM',
-      );
+      const monthKey = d.format(d.parse(day.date, 'yyyy-MM-dd', new Date()), 'yyyy-MM');
       acc[monthKey] = (acc[monthKey] || 0) + day.amount;
       return acc;
     },
@@ -253,7 +227,7 @@ function calculatePerYear(
   endDate: Date,
 ) {
   if (!data.length) {
-    return { total: 0, dividend: 0, divisor: 0 };
+    return {total: 0, dividend: 0, divisor: 0};
   }
 
   const totalAmount = data.reduce((sum, day) => sum + day.amount, 0);
@@ -285,14 +259,11 @@ async function calculatePercentage(
     };
   }
 
-  const conditionsOpKey =
-    summaryContent.divisorConditionsOp === 'or' ? '$or' : '$and';
+  const conditionsOpKey = summaryContent.divisorConditionsOp === 'or' ? '$or' : '$and';
   let filters = [];
   try {
     const response = await send('make-filters-from-conditions', {
-      conditions: summaryContent?.divisorConditions?.filter(
-        cond => !cond.customName,
-      ),
+      conditions: summaryContent?.divisorConditions?.filter(cond => !cond.customName),
     });
     filters = response.filters;
   } catch (error) {
@@ -309,7 +280,7 @@ async function calculatePercentage(
       .filter({
         [conditionsOpKey]: filters,
       })
-      .select([{ amount: { $sum: '$amount' } }]);
+      .select([{amount: {$sum: '$amount'}}]);
 
   let query = makeDivisorQuery();
 
@@ -332,7 +303,7 @@ async function calculatePercentage(
 
   let divisorData;
   try {
-    divisorData = (await aqlQuery(query)) as { data: { amount: number }[] };
+    divisorData = (await aqlQuery(query)) as {data: {amount: number}[]};
   } catch (error) {
     console.error('Error executing divisor query:', error);
     return {

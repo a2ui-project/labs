@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import type { ComponentPropsWithoutRef, CSSProperties } from 'react';
-import { GridList, GridListItem } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {ComponentPropsWithoutRef, CSSProperties} from 'react';
+import {GridList, GridListItem} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
 import {
   SvgCloudCheck,
   SvgCloudDownload,
@@ -31,23 +31,16 @@ import {
   SvgUser,
   SvgUserGroup,
 } from '@actual-app/components/icons/v1';
-import {
-  SvgCloudUnknown,
-  SvgKey,
-  SvgRefreshArrow,
-} from '@actual-app/components/icons/v2';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { tokens } from '@actual-app/components/tokens';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import {
-  isElectron,
-  isNonProductionEnvironment,
-} from '@actual-app/core/shared/environment';
+import {SvgCloudUnknown, SvgKey, SvgRefreshArrow} from '@actual-app/components/icons/v2';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {tokens} from '@actual-app/components/tokens';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {isElectron, isNonProductionEnvironment} from '@actual-app/core/shared/environment';
 import type {
   File,
   LocalFile,
@@ -55,7 +48,7 @@ import type {
   SyncableLocalFile,
   SyncedLocalFile,
 } from '@actual-app/core/types/file';
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
 import {
   closeAndDownloadBudget,
@@ -65,20 +58,17 @@ import {
   loadAllFiles,
   loadBudget,
 } from '#budgetfiles/budgetfilesSlice';
-import { useMultiuserEnabled } from '#components/ServerContext';
-import { useInitialMount } from '#hooks/useInitialMount';
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { useSyncServerStatus } from '#hooks/useSyncServerStatus';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch, useSelector } from '#redux';
-import { getUserData } from '#users/usersSlice';
+import {useMultiuserEnabled} from '#components/ServerContext';
+import {useInitialMount} from '#hooks/useInitialMount';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {useSyncServerStatus} from '#hooks/useSyncServerStatus';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch, useSelector} from '#redux';
+import {getUserData} from '#users/usersSlice';
 
 function getFileDescription(file: File, t: (key: string) => string) {
   if (file.state === 'unknown') {
-    return t(
-      'This is a cloud-based file but its state is unknown because you ' +
-        'are offline.',
-    );
+    return t('This is a cloud-based file but its state is unknown because you ' + 'are offline.');
   }
 
   if (file.encryptKeyId) {
@@ -101,11 +91,7 @@ type BudgetFileMenuProps = {
   onDuplicate?: () => void;
 };
 
-function BudgetFileMenu({
-  onDelete,
-  onClose,
-  onDuplicate,
-}: BudgetFileMenuProps) {
+function BudgetFileMenu({onDelete, onClose, onDuplicate}: BudgetFileMenuProps) {
   function onMenuSelect(type: string) {
     onClose();
 
@@ -120,11 +106,11 @@ function BudgetFileMenu({
     }
   }
 
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const items = [
-    ...(onDuplicate ? [{ name: 'duplicate', text: t('Duplicate') }] : []),
-    { name: 'delete', text: t('Delete') },
+    ...(onDuplicate ? [{name: 'duplicate', text: t('Duplicate')}] : []),
+    {name: 'delete', text: t('Delete')},
   ];
 
   return <Menu onMenuSelect={onMenuSelect} items={items} />;
@@ -135,11 +121,8 @@ type BudgetFileMenuButtonProps = {
   onDuplicate?: () => void;
 };
 
-function BudgetFileMenuButton({
-  onDelete,
-  onDuplicate,
-}: BudgetFileMenuButtonProps) {
-  const { t } = useTranslation();
+function BudgetFileMenuButton({onDelete, onDuplicate}: BudgetFileMenuButtonProps) {
+  const {t} = useTranslation();
 
   const triggerRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -154,14 +137,10 @@ function BudgetFileMenuButton({
           setMenuOpen(true);
         }}
       >
-        <SvgDotsHorizontalTriple style={{ width: 16, height: 16 }} />
+        <SvgDotsHorizontalTriple style={{width: 16, height: 16}} />
       </Button>
 
-      <Popover
-        triggerRef={triggerRef}
-        isOpen={menuOpen}
-        onOpenChange={() => setMenuOpen(false)}
-      >
+      <Popover triggerRef={triggerRef} isOpen={menuOpen} onOpenChange={() => setMenuOpen(false)}>
         <BudgetFileMenu
           onDelete={onDelete}
           onClose={() => setMenuOpen(false)}
@@ -177,8 +156,8 @@ type BudgetFileStateProps = {
   currentUserId: string;
 };
 
-function BudgetFileState({ file, currentUserId }: BudgetFileStateProps) {
-  const { t } = useTranslation();
+function BudgetFileState({file, currentUserId}: BudgetFileStateProps) {
+  const {t} = useTranslation();
   const multiuserEnabled = useMultiuserEnabled();
 
   let Icon;
@@ -232,7 +211,7 @@ function BudgetFileState({ file, currentUserId }: BudgetFileStateProps) {
   const showOwnerContent = multiuserEnabled && file.owner !== currentUserId;
 
   return (
-    <View style={{ width: '100%' }}>
+    <View style={{width: '100%'}}>
       <View
         style={{
           color,
@@ -249,12 +228,12 @@ function BudgetFileState({ file, currentUserId }: BudgetFileStateProps) {
           }}
         />
 
-        <Text style={{ marginLeft: 5 }}>{status}</Text>
+        <Text style={{marginLeft: 5}}>{status}</Text>
       </View>
 
-      <View style={{ paddingTop: 10, flexDirection: 'row', width: '100%' }}>
+      <View style={{paddingTop: 10, flexDirection: 'row', width: '100%'}}>
         {showOwnerContent && (
-          <View style={{ flexDirection: 'row' }}>
+          <View style={{flexDirection: 'row'}}>
             <Text
               style={{
                 ...styles.altMenuHeaderText,
@@ -280,9 +259,7 @@ function BudgetFileState({ file, currentUserId }: BudgetFileStateProps) {
   );
 }
 
-type BudgetFileListItemProps = ComponentPropsWithoutRef<
-  typeof GridListItem<File>
-> & {
+type BudgetFileListItemProps = ComponentPropsWithoutRef<typeof GridListItem<File>> & {
   quickSwitchMode: boolean;
   onSelect: (file: File) => Promise<void>;
   onDelete: (file: File) => void;
@@ -298,7 +275,7 @@ function BudgetFileListItem({
   currentUserId,
   ...props
 }: BudgetFileListItemProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const multiuserEnabled = useMultiuserEnabled();
 
   const selecting = useRef(false);
@@ -313,18 +290,14 @@ function BudgetFileListItem({
     }
   }
 
-  const { value: file } = props;
+  const {value: file} = props;
 
   if (!file) {
     return null;
   }
 
   return (
-    <GridListItem
-      textValue={file.name}
-      onAction={() => _onSelect(file)}
-      {...props}
-    >
+    <GridListItem textValue={file.name} onAction={() => _onSelect(file)} {...props}>
       <View
         className={css({
           ...styles.shadow,
@@ -343,15 +316,12 @@ function BudgetFileListItem({
       >
         <View
           title={getFileDescription(file, t) || ''}
-          style={{ alignItems: 'flex-start', width: '100%' }}
+          style={{alignItems: 'flex-start', width: '100%'}}
         >
-          <View style={{ flexDirection: 'row', width: '100%' }}>
-            <Text style={{ fontSize: 16, fontWeight: 700 }}>{file.name}</Text>
+          <View style={{flexDirection: 'row', width: '100%'}}>
+            <Text style={{fontSize: 16, fontWeight: 700}}>{file.name}</Text>
             {multiuserEnabled && 'cloudFileId' in file && (
-              <UserAccessForFile
-                fileId={file.cloudFileId}
-                currentUserId={currentUserId}
-              />
+              <UserAccessForFile fileId={file.cloudFileId} currentUserId={currentUserId} />
             )}
           </View>
 
@@ -371,9 +341,7 @@ function BudgetFileListItem({
                 width: 13,
                 height: 13,
                 marginRight: 8,
-                color: file.hasKey
-                  ? theme.formLabelText
-                  : theme.buttonNormalDisabledText,
+                color: file.hasKey ? theme.formLabelText : theme.buttonNormalDisabledText,
               }}
             />
           )}
@@ -407,7 +375,7 @@ function BudgetFileList({
   onDuplicate,
   currentUserId,
 }: BudgetFileListProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   return (
     <GridList
       aria-label={t('Budget files')}
@@ -454,8 +422,8 @@ type RefreshButtonProps = {
   onRefresh: () => void;
 };
 
-function RefreshButton({ style, onRefresh }: RefreshButtonProps) {
-  const { t } = useTranslation();
+function RefreshButton({style, onRefresh}: RefreshButtonProps) {
+  const {t} = useTranslation();
 
   const [loading, setLoading] = useState(false);
 
@@ -471,10 +439,10 @@ function RefreshButton({ style, onRefresh }: RefreshButtonProps) {
     <Button
       variant="bare"
       aria-label={t('Refresh')}
-      style={{ padding: 10, ...style }}
+      style={{padding: 10, ...style}}
       onPress={_onRefresh}
     >
-      <Icon style={{ width: 18, height: 18 }} />
+      <Icon style={{width: 18, height: 18}} />
     </Button>
   );
 }
@@ -483,8 +451,8 @@ type SettingsButtonProps = {
   onOpenSettings: () => void;
 };
 
-function SettingsButton({ onOpenSettings }: SettingsButtonProps) {
-  const { t } = useTranslation();
+function SettingsButton({onOpenSettings}: SettingsButtonProps) {
+  const {t} = useTranslation();
 
   return (
     <View>
@@ -494,9 +462,9 @@ function SettingsButton({ onOpenSettings }: SettingsButtonProps) {
         onPress={() => {
           onOpenSettings();
         }}
-        style={{ padding: 10 }}
+        style={{padding: 10}}
       >
-        <SvgCog style={{ width: 18, height: 18 }} />
+        <SvgCog style={{width: 18, height: 18}} />
       </Button>
     </View>
   );
@@ -575,29 +543,25 @@ export function BudgetFileSelection({
   }, [multiuserEnabled, userData?.offline, fetchUsers]);
 
   // Remote files do not have the 'id' field
-  function isNonRemoteFile(
-    file: File,
-  ): file is LocalFile | SyncableLocalFile | SyncedLocalFile {
+  function isNonRemoteFile(file: File): file is LocalFile | SyncableLocalFile | SyncedLocalFile {
     return file.state !== 'remote';
   }
 
   // Filter out the open file
-  const files = id
-    ? allFiles.filter(file => !isNonRemoteFile(file) || file.id !== id)
-    : allFiles;
+  const files = id ? allFiles.filter(file => !isNonRemoteFile(file) || file.id !== id) : allFiles;
 
   const [creating, setCreating] = useState(false);
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const narrowButtonStyle = isNarrowWidth
     ? {
         height: styles.mobileMinHeight,
       }
     : {};
 
-  const onCreate = ({ testMode = false } = {}) => {
+  const onCreate = ({testMode = false} = {}) => {
     if (!creating) {
       setCreating(true);
-      void dispatch(createBudget({ testMode }));
+      void dispatch(createBudget({testMode}));
     }
   };
 
@@ -616,14 +580,14 @@ export function BudgetFileSelection({
 
     if (!id) {
       if (isRemoteFile) {
-        await dispatch(downloadBudget({ cloudFileId: file.cloudFileId }));
+        await dispatch(downloadBudget({cloudFileId: file.cloudFileId}));
       } else {
-        await dispatch(loadBudget({ id: file.id }));
+        await dispatch(loadBudget({id: file.id}));
       }
     } else if (!isRemoteFile && file.id !== id) {
-      await dispatch(closeAndLoadBudget({ fileId: file.id }));
+      await dispatch(closeAndLoadBudget({fileId: file.id}));
     } else if (isRemoteFile) {
-      await dispatch(closeAndDownloadBudget({ cloudFileId: file.cloudFileId }));
+      await dispatch(closeAndDownloadBudget({cloudFileId: file.cloudFileId}));
     }
   };
 
@@ -638,7 +602,7 @@ export function BudgetFileSelection({
               marginTop: 20,
               width: '100vw',
             }
-          : { marginBottom: 20 }),
+          : {marginBottom: 20}),
         [`@media (min-width: ${tokens.breakpoint_small})`]: {
           maxWidth: tokens.breakpoint_small,
           width: '100%',
@@ -649,9 +613,7 @@ export function BudgetFileSelection({
         <BudgetFileSelectionHeader
           quickSwitchMode={quickSwitchMode}
           onRefresh={serverStatus === 'online' ? refresh : undefined}
-          onOpenSettings={() =>
-            dispatch(pushModal({ modal: { name: 'files-settings' } }))
-          }
+          onOpenSettings={() => dispatch(pushModal({modal: {name: 'files-settings'}}))}
         />
       )}
       <BudgetFileList
@@ -660,9 +622,7 @@ export function BudgetFileSelection({
         quickSwitchMode={quickSwitchMode}
         onSelect={onSelect}
         onDelete={(file: File) =>
-          dispatch(
-            pushModal({ modal: { name: 'delete-budget', options: { file } } }),
-          )
+          dispatch(pushModal({modal: {name: 'delete-budget', options: {file}}}))
         }
         onDuplicate={(file: File) => {
           if (file && 'id' in file) {
@@ -670,7 +630,7 @@ export function BudgetFileSelection({
               pushModal({
                 modal: {
                   name: 'duplicate-budget',
-                  options: { file, managePage: true },
+                  options: {file, managePage: true},
                 },
               }),
             );
@@ -700,7 +660,7 @@ export function BudgetFileSelection({
               color: theme.pageTextLight,
             }}
             onPress={() => {
-              dispatch(pushModal({ modal: { name: 'import' } }));
+              dispatch(pushModal({modal: {name: 'import'}}));
             }}
           >
             <Trans>Import file</Trans>
@@ -720,7 +680,7 @@ export function BudgetFileSelection({
           {isNonProductionEnvironment() && (
             <Button
               variant="primary"
-              onPress={() => onCreate({ testMode: true })}
+              onPress={() => onCreate({testMode: true})}
               style={{
                 ...narrowButtonStyle,
                 marginLeft: 10,
@@ -740,8 +700,8 @@ type UserAccessForFileProps = {
   currentUserId: string;
 };
 
-function UserAccessForFile({ fileId, currentUserId }: UserAccessForFileProps) {
-  const { t } = useTranslation();
+function UserAccessForFile({fileId, currentUserId}: UserAccessForFileProps) {
+  const {t} = useTranslation();
 
   const allFiles = useSelector(state => state.budgetfiles.allFiles || []);
   const remoteFiles = allFiles.filter(
@@ -754,10 +714,8 @@ function UserAccessForFile({ fileId, currentUserId }: UserAccessForFileProps) {
   usersAccess = usersAccess?.filter(user => user.userName !== '') ?? [];
 
   const sortedUsersAccess = [...usersAccess].sort((a, b) => {
-    const textA =
-      a.userId === currentUserId ? t('You') : (a.displayName ?? a.userName);
-    const textB =
-      b.userId === currentUserId ? t('You') : (b.displayName ?? b.userName);
+    const textA = a.userId === currentUserId ? t('You') : (a.displayName ?? a.userName);
+    const textB = b.userId === currentUserId ? t('You') : (b.displayName ?? b.userName);
     return textA.localeCompare(textB);
   });
 
@@ -794,7 +752,7 @@ function UserAccessForFile({ fileId, currentUserId }: UserAccessForFileProps) {
                     }}
                   >
                     {sortedUsersAccess.map(user => (
-                      <View key={user.userId} style={{ flexDirection: 'row' }}>
+                      <View key={user.userId} style={{flexDirection: 'row'}}>
                         <SvgUser
                           style={{
                             width: 10,

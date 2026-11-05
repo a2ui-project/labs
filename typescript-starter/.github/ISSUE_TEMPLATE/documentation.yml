@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: 'Documentation'
+name: "Documentation"
 description: Report documentation issues, request new documentation, or suggest improvements to existing docs.
-title: '[Docs] - <title>'
-labels: ['documentation']
+title: "[Docs] - <title>"
+labels: ["documentation"]
 body:
   - type: dropdown
     id: issue-type
     attributes:
-      label: 'Issue Type'
+      label: "Issue Type"
       description: What type of documentation issue is this?
       options:
         - New Documentation Request
@@ -32,7 +32,7 @@ body:
   - type: textarea
     id: description
     attributes:
-      label: 'Description'
+      label: "Description"
       description: Please describe the documentation issue, request, or improvement
       placeholder: Provide a clear and detailed description...
     validations:
@@ -40,7 +40,7 @@ body:
   - type: input
     id: doc-url
     attributes:
-      label: 'Documentation URL'
+      label: "Documentation URL"
       description: If this relates to existing documentation, please provide the URL
       placeholder: ex. https://actualbudget.org/docs/budgeting/categories or https://github.com/actualbudget/actual/blob/master/packages/docs/...
     validations:
@@ -48,7 +48,7 @@ body:
   - type: dropdown
     id: category
     attributes:
-      label: 'Documentation Category'
+      label: "Documentation Category"
       description: What category does this relate to?
       multiple: true
       options:
@@ -66,7 +66,7 @@ body:
   - type: textarea
     id: expected-behavior
     attributes:
-      label: 'Expected/Desired Content'
+      label: "Expected/Desired Content"
       description: If applicable, describe what you expect to see or what should be documented
       placeholder: What should the documentation say or include?
     validations:
@@ -74,7 +74,7 @@ body:
   - type: textarea
     id: screenshot
     attributes:
-      label: 'Screenshots or Examples'
+      label: "Screenshots or Examples"
       description: If applicable, add screenshots or examples to help explain your request
       value: |
         ![DESCRIPTION](LINK.png)

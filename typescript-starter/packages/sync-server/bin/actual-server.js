@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { parseArgs } from 'node:util';
+import {existsSync, readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {parseArgs} from 'node:util';
 
 const args = process.argv;
 
@@ -38,7 +38,7 @@ const options = {
   },
 };
 
-const { values } = parseArgs({
+const {values} = parseArgs({
   args,
   options,
   allowPositionals: true,
@@ -87,9 +87,7 @@ const setupDataDir = dataDir => {
       console.info('Found existing data directory');
       process.env.ACTUAL_DATA_DIR = resolve('./data');
     } else {
-      console.info(
-        'Using default data directory. You can specify a custom config with --config',
-      );
+      console.info('Using default data directory. You can specify a custom config with --config');
       process.env.ACTUAL_DATA_DIR = resolve('./');
     }
 

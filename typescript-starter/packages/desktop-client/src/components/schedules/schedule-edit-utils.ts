@@ -14,36 +14,34 @@
  * limitations under the License.
  */
 
-import { extractScheduleConds } from '@actual-app/core/shared/schedules';
+import {extractScheduleConds} from '@actual-app/core/shared/schedules';
 import type {
   RuleConditionEntity,
   RuleConditionOp,
   ScheduleEntity,
 } from '@actual-app/core/types/models';
-import { t } from 'i18next';
+import {t} from 'i18next';
 
-import type { ScheduleFormFields } from './ScheduleEditForm';
+import type {ScheduleFormFields} from './ScheduleEditForm';
 
 export function updateScheduleConditions(
   schedule: Partial<ScheduleEntity>,
   fields: ScheduleFormFields,
-): { error?: string; conditions?: RuleConditionEntity[] } {
+): {error?: string; conditions?: RuleConditionEntity[]} {
   const conds = extractScheduleConds(schedule._conditions);
 
   const updateCond = (
-    cond: ReturnType<typeof extractScheduleConds>[keyof ReturnType<
-      typeof extractScheduleConds
-    >],
+    cond: ReturnType<typeof extractScheduleConds>[keyof ReturnType<typeof extractScheduleConds>],
     op: RuleConditionOp,
     field: string,
     value: (typeof fields)[keyof typeof fields],
   ) => {
     if (cond) {
-      return { ...cond, value };
+      return {...cond, value};
     }
 
     if (value != null || field === 'payee') {
-      return { op, field, value };
+      return {op, field, value};
     }
 
     return null;
@@ -51,11 +49,11 @@ export function updateScheduleConditions(
 
   // Validate
   if (fields.date == null) {
-    return { error: t('Date is required'), conditions: [] };
+    return {error: t('Date is required'), conditions: []};
   }
 
   if (fields.amount == null) {
-    return { error: t('A valid amount is required'), conditions: [] };
+    return {error: t('A valid amount is required'), conditions: []};
   }
 
   return {

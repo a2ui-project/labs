@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 
-import { Button } from '@actual-app/components/button';
-import { SvgPencil1 } from '@actual-app/components/icons/v2';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { Input } from '@actual-app/components/input';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgPencil1} from '@actual-app/components/icons/v2';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {Input} from '@actual-app/components/input';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
 type EditablePageHeaderTitleProps = {
   title: string;
@@ -86,11 +86,7 @@ export function EditablePageHeaderTitle({
     >
       {title}
 
-      <Button
-        variant="bare"
-        className="hover-visible"
-        onPress={() => setIsEditing(true)}
-      >
+      <Button variant="bare" className="hover-visible" onPress={() => setIsEditing(true)}>
         <SvgPencil1
           style={{
             width: 11,

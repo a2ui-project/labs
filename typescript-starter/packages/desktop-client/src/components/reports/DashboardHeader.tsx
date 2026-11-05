@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgPencil1 } from '@actual-app/components/icons/v2';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { Input } from '@actual-app/components/input';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { DashboardPageEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgPencil1} from '@actual-app/components/icons/v2';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {Input} from '@actual-app/components/input';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {DashboardPageEntity} from '@actual-app/core/types/models';
 
-import { useRenameDashboardPageMutation } from '#reports/mutations';
+import {useRenameDashboardPageMutation} from '#reports/mutations';
 
 type DashboardHeaderProps = {
   dashboard: DashboardPageEntity;
 };
 
-export function DashboardHeader({ dashboard }: DashboardHeaderProps) {
-  const { t } = useTranslation();
+export function DashboardHeader({dashboard}: DashboardHeaderProps) {
+  const {t} = useTranslation();
   const [editingName, setEditingName] = useState(false);
 
   const renameDashboardPageMutation = useRenameDashboardPageMutation();
@@ -45,7 +45,7 @@ export function DashboardHeader({ dashboard }: DashboardHeaderProps) {
     }
 
     renameDashboardPageMutation.mutate(
-      { id: dashboard.id, name: trimmedName },
+      {id: dashboard.id, name: trimmedName},
       {
         onSuccess: () => {
           setEditingName(false);

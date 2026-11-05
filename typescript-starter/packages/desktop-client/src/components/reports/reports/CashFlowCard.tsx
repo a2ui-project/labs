@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import type { SVGAttributes } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {SVGAttributes} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { CashFlowWidget } from '@actual-app/core/types/models';
-import { Bar, BarChart, LabelList } from 'recharts';
+import type {CashFlowWidget} from '@actual-app/core/types/models';
+import {Bar, BarChart, LabelList} from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { Change } from '#components/reports/Change';
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { DateRange } from '#components/reports/DateRange';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { simpleCashFlow } from '#components/reports/spreadsheets/cash-flow-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useFormat } from '#hooks/useFormat';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {Change} from '#components/reports/Change';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {DateRange} from '#components/reports/DateRange';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {simpleCashFlow} from '#components/reports/spreadsheets/cash-flow-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useFormat} from '#hooks/useFormat';
 
-import { defaultTimeFrame } from './CashFlow';
+import {defaultTimeFrame} from './CashFlow';
 
 type CustomLabelProps = {
   value?: number;
@@ -114,13 +114,8 @@ type CashFlowCardProps = {
   onMetaChange: (newMeta: CashFlowWidget['meta']) => void;
 };
 
-export function CashFlowCard({
-  widgetId,
-  isEditing,
-  meta = {},
-  onMetaChange,
-}: CashFlowCardProps) {
-  const { t } = useTranslation();
+export function CashFlowCard({widgetId, isEditing, meta = {}, onMetaChange}: CashFlowCardProps) {
+  const {t} = useTranslation();
   const animationProps = useRechartsAnimation();
   const [latestTransaction, setLatestTransaction] = useState<string>('');
   const [nameMenuOpen, setNameMenuOpen] = useState(false);
@@ -128,18 +123,12 @@ export function CashFlowCard({
   useEffect(() => {
     async function fetchLatestTransaction() {
       const latestTrans = await send('get-latest-transaction');
-      setLatestTransaction(
-        latestTrans ? latestTrans.date : monthUtils.currentDay(),
-      );
+      setLatestTransaction(latestTrans ? latestTrans.date : monthUtils.currentDay());
     }
     void fetchLatestTransaction();
   }, []);
 
-  const [start, end] = calculateTimeRange(
-    meta?.timeFrame,
-    defaultTimeFrame,
-    latestTransaction,
-  );
+  const [start, end] = calculateTimeRange(meta?.timeFrame, defaultTimeFrame, latestTransaction);
 
   const params = useMemo(
     () => simpleCashFlow(start, end, meta?.conditions, meta?.conditionsOp),
@@ -151,7 +140,7 @@ export function CashFlowCard({
   const onCardHover = useCallback(() => setIsCardHovered(true), []);
   const onCardHoverEnd = useCallback(() => setIsCardHovered(false), []);
 
-  const { graphData } = data || {};
+  const {graphData} = data || {};
   const expenses = -(graphData?.expense || 0);
   const income = graphData?.income || 0;
 
@@ -163,13 +152,9 @@ export function CashFlowCard({
       to={`/reports/cash-flow/${widgetId}`}
       onRename={() => setNameMenuOpen(true)}
     >
-      <View
-        style={{ flex: 1 }}
-        onPointerEnter={onCardHover}
-        onPointerLeave={onCardHoverEnd}
-      >
-        <View style={{ flexDirection: 'row', padding: 20 }}>
-          <View style={{ flex: 1 }}>
+      <View style={{flex: 1}} onPointerEnter={onCardHover} onPointerLeave={onCardHoverEnd}>
+        <View style={{flexDirection: 'row', padding: 20}}>
+          <View style={{flex: 1}}>
             <ReportCardName
               name={meta?.name || t('Cash Flow')}
               isEditing={nameMenuOpen}
@@ -185,7 +170,7 @@ export function CashFlowCard({
             <DateRange start={start} end={end} />
           </View>
           {data && (
-            <View style={{ textAlign: 'right' }}>
+            <View style={{textAlign: 'right'}}>
               <PrivacyFilter activationFilters={[!isCardHovered]}>
                 <Change amount={income - expenses} />
               </PrivacyFilter>
@@ -194,7 +179,7 @@ export function CashFlowCard({
         </View>
 
         {data ? (
-          <Container style={{ height: 'auto', flex: 1 }}>
+          <Container style={{height: 'auto', flex: 1}}>
             {(width, height) => (
               <BarChart
                 responsive

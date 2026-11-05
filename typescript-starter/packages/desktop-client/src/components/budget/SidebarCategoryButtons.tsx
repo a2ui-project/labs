@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { CategoryEntity } from '@actual-app/core/types/models/category';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {CategoryEntity} from '@actual-app/core/types/models/category';
 
-import { NotesButton } from '#components/NotesButton';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useNotes } from '#hooks/useNotes';
+import {NotesButton} from '#components/NotesButton';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useNotes} from '#hooks/useNotes';
 
-import { CategoryAutomationButton } from './goals/CategoryAutomationButton';
+import {CategoryAutomationButton} from './goals/CategoryAutomationButton';
 
 type SidebarCategoryButtonsProps = {
   category: CategoryEntity;
@@ -40,21 +40,21 @@ export const SidebarCategoryButtons = ({
 
   return (
     <>
-      <View style={{ flex: 1 }} />
+      <View style={{flex: 1}} />
       {!goalsShown && isGoalTemplatesUIEnabled && (
-        <View style={{ flexShrink: 0 }}>
+        <View style={{flexShrink: 0}}>
           <CategoryAutomationButton
             category={category}
-            style={dragging ? { color: 'currentColor' } : undefined}
+            style={dragging ? {color: 'currentColor'} : undefined}
             defaultColor={theme.pageTextLight}
             showPlaceholder={!!notes}
           />
         </View>
       )}
-      <View style={{ flexShrink: 0 }}>
+      <View style={{flexShrink: 0}}>
         <NotesButton
           id={category.id}
-          style={dragging ? { color: 'currentColor' } : undefined}
+          style={dragging ? {color: 'currentColor'} : undefined}
           defaultColor={theme.pageTextLight}
           showPlaceholder={
             !goalsShown &&

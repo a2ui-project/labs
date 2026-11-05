@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { act, renderHook, waitFor } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {act, renderHook, waitFor} from '@testing-library/react';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { resetTestProviders, TestProviders } from '#mocks';
-import { mergeGlobalPrefs } from '#prefs/prefsSlice';
-import { useStore } from '#redux';
-import { usePreferredDarkTheme, useTheme } from '#style/theme';
+import {resetTestProviders, TestProviders} from '#mocks';
+import {mergeGlobalPrefs} from '#prefs/prefsSlice';
+import {useStore} from '#redux';
+import {usePreferredDarkTheme, useTheme} from '#style/theme';
 
-import { useMetaThemeColor } from './useMetaThemeColor';
+import {useMetaThemeColor} from './useMetaThemeColor';
 
 const DEFAULT_THEME_COLOR = '#5c3dbb';
 const originalMatchMedia = window.matchMedia;
@@ -33,7 +33,7 @@ function renderThemeColor(color?: string) {
       useMetaThemeColor(color);
       return useStore();
     },
-    { wrapper: TestProviders },
+    {wrapper: TestProviders},
   );
 }
 
@@ -113,9 +113,7 @@ describe('useMetaThemeColor', () => {
 
       renderThemeColor('var(--color-mobileViewTheme)');
 
-      expect(getComputedStyleSpy).toHaveBeenCalledWith(
-        document.documentElement,
-      );
+      expect(getComputedStyleSpy).toHaveBeenCalledWith(document.documentElement);
       expect(getThemeColorMeta()).toBe('#fedcba');
       expect(document.body.style.backgroundColor).toBe('rgb(254, 220, 186)');
     });
@@ -131,7 +129,7 @@ describe('useMetaThemeColor', () => {
   describe('theme reactivity', () => {
     it('re-runs effect when activeTheme changes', () => {
       setCssVar('--color-mobileViewTheme', '#111');
-      const { rerender } = renderThemeColor('var(--color-mobileViewTheme)');
+      const {rerender} = renderThemeColor('var(--color-mobileViewTheme)');
       expect(document.body.style.backgroundColor).toBe('rgb(17, 17, 17)');
 
       setCssVar('--color-mobileViewTheme', '#222');
@@ -142,7 +140,7 @@ describe('useMetaThemeColor', () => {
 
     it('re-runs effect when darkThemePreference changes', () => {
       setCssVar('--color-mobileViewTheme', '#aaa');
-      const { rerender } = renderThemeColor('var(--color-mobileViewTheme)');
+      const {rerender} = renderThemeColor('var(--color-mobileViewTheme)');
       expect(document.body.style.backgroundColor).toBe('rgb(170, 170, 170)');
 
       setCssVar('--color-mobileViewTheme', '#bbb');
@@ -153,7 +151,7 @@ describe('useMetaThemeColor', () => {
 
     it('refreshes meta colour and body background when customCssOverride changes while mounted', () => {
       setCssVar('--color-mobileViewTheme', '#111');
-      const { result } = renderThemeColor('var(--color-mobileViewTheme)');
+      const {result} = renderThemeColor('var(--color-mobileViewTheme)');
       expect(getThemeColorMeta()).toBe('#111');
       expect(document.body.style.backgroundColor).toBe('rgb(17, 17, 17)');
 
@@ -171,7 +169,7 @@ describe('useMetaThemeColor', () => {
       expect({
         meta: getThemeColorMeta(),
         background: document.body.style.backgroundColor,
-      }).toEqual({ meta: '#222', background: 'rgb(34, 34, 34)' });
+      }).toEqual({meta: '#222', background: 'rgb(34, 34, 34)'});
     });
 
     it('re-runs effect when system color scheme changes', async () => {

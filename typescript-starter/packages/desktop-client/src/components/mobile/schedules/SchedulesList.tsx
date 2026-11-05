@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import { GridList, ListLayout, Virtualizer } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import {GridList, ListLayout, Virtualizer} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { ScheduleStatusType } from '@actual-app/core/shared/schedules';
-import type { ScheduleEntity } from '@actual-app/core/types/models';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {ScheduleStatusType} from '@actual-app/core/shared/schedules';
+import type {ScheduleEntity} from '@actual-app/core/types/models';
 
-import { ActionableGridListItem } from '#components/mobile/ActionableGridListItem';
-import { MOBILE_NAV_HEIGHT } from '#components/mobile/MobileNavTabs';
+import {ActionableGridListItem} from '#components/mobile/ActionableGridListItem';
+import {MOBILE_NAV_HEIGHT} from '#components/mobile/MobileNavTabs';
 
-import { SchedulesListItem } from './SchedulesListItem';
+import {SchedulesListItem} from './SchedulesListItem';
 
-type CompletedSchedulesItem = { id: 'show-completed' };
+type CompletedSchedulesItem = {id: 'show-completed'};
 type SchedulesListEntry = ScheduleEntity | CompletedSchedulesItem;
 
 type SchedulesListProps = {
@@ -53,11 +53,10 @@ export function SchedulesList({
   showCompleted = false,
   onShowCompleted,
 }: SchedulesListProps) {
-  const { t } = useTranslation();
-  const shouldShowCompletedItem =
-    hasCompletedSchedules && !showCompleted && onShowCompleted;
+  const {t} = useTranslation();
+  const shouldShowCompletedItem = hasCompletedSchedules && !showCompleted && onShowCompleted;
   const listItems: readonly SchedulesListEntry[] = shouldShowCompletedItem
-    ? [...schedules, { id: 'show-completed' }]
+    ? [...schedules, {id: 'show-completed'}]
     : schedules;
   const showCompletedLabel = t('Show completed schedules');
 
@@ -71,7 +70,7 @@ export function SchedulesList({
           paddingTop: 100,
         }}
       >
-        <AnimatedLoading style={{ width: 25, height: 25 }} />
+        <AnimatedLoading style={{width: 25, height: 25}} />
       </View>
     );
   }
@@ -102,7 +101,7 @@ export function SchedulesList({
   }
 
   return (
-    <View style={{ flex: 1, overflow: 'auto' }}>
+    <View style={{flex: 1, overflow: 'auto'}}>
       <Virtualizer
         layout={ListLayout}
         layoutOptions={{
@@ -126,7 +125,7 @@ export function SchedulesList({
                 textValue={showCompletedLabel}
                 onAction={onShowCompleted}
               >
-                <View style={{ width: '100%', alignItems: 'center' }}>
+                <View style={{width: '100%', alignItems: 'center'}}>
                   <Text
                     style={{
                       fontStyle: 'italic',
@@ -155,7 +154,7 @@ export function SchedulesList({
             paddingTop: 20,
           }}
         >
-          <AnimatedLoading style={{ width: 20, height: 20 }} />
+          <AnimatedLoading style={{width: 20, height: 20}} />
         </View>
       )}
     </View>

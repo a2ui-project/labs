@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import { quoteAlias } from './compiler';
+import {quoteAlias} from './compiler';
 
 function selectFields(fields) {
   return Object.keys(fields)
@@ -37,20 +37,18 @@ export function makeViews(schema, schemaConfig) {
   const viewStrs = [];
 
   Object.keys(views).forEach(table => {
-    const { fields: fieldMappings = {}, ...tableViews } = views[table];
+    const {fields: fieldMappings = {}, ...tableViews} = views[table];
 
-    const publicFields = Object.fromEntries(
-      Object.keys(schema[table]).map(name => [name, name]),
-    );
-    const internalFields = { ...publicFields, ...fieldMappings };
+    const publicFields = Object.fromEntries(Object.keys(schema[table]).map(name => [name, name]));
+    const internalFields = {...publicFields, ...fieldMappings};
 
     Object.keys(tableViews).forEach(viewName => {
       const publicMaker = overrides => {
-        const fields = { ...publicFields, ...overrides };
+        const fields = {...publicFields, ...overrides};
         return selectFields(fields);
       };
       const internalMaker = overrides => {
-        const fields = { ...internalFields, ...overrides };
+        const fields = {...internalFields, ...overrides};
         return selectFields(fields);
       };
 

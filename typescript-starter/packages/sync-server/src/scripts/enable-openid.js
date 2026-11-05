@@ -14,12 +14,8 @@
  * limitations under the License.
  */
 
-import {
-  enableOpenID,
-  getActiveLoginMethod,
-  needsBootstrap,
-} from '#account-db';
-import { config } from '#load-config';
+import {enableOpenID, getActiveLoginMethod, needsBootstrap} from '#account-db';
+import {config} from '#load-config';
 
 if (needsBootstrap()) {
   console.log(
@@ -37,7 +33,7 @@ if (needsBootstrap()) {
       console.log('OpenID already enabled.');
       process.exit(0);
     }
-    const { error } = (await enableOpenID(config.getProperties())) || {};
+    const {error} = (await enableOpenID(config.getProperties())) || {};
 
     if (error) {
       console.log('Error enabling openid:', error);
@@ -56,9 +52,7 @@ if (needsBootstrap()) {
       }
     }
     console.log('OpenID enabled!');
-    console.log(
-      'Note: The first user to login with OpenID will be the owner of the server.',
-    );
+    console.log('Note: The first user to login with OpenID will be the owner of the server.');
   } catch (err) {
     console.log('Unexpected error:', err);
     console.log(

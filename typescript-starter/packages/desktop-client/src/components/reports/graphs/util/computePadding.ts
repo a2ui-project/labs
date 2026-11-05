@@ -20,10 +20,7 @@
  * @param formatter Function to format numbers to strings
  * @returns Padding amount in pixels
  */
-export function computePadding(
-  values: number[],
-  formatter: (value: number) => string,
-) {
+export function computePadding(values: number[], formatter: (value: number) => string) {
   if (values.length === 0) {
     return 0;
   }

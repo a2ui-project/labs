@@ -14,56 +14,52 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgQuestion } from '@actual-app/components/icons/v1';
-import { SvgViewHide, SvgViewShow } from '@actual-app/components/icons/v2';
-import { Input } from '@actual-app/components/input';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { Select } from '@actual-app/components/select';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgQuestion} from '@actual-app/components/icons/v1';
+import {SvgViewHide, SvgViewShow} from '@actual-app/components/icons/v2';
+import {Input} from '@actual-app/components/input';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {Select} from '@actual-app/components/select';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  CategoryEntity,
-  CrossoverWidget,
-  TimeFrame,
-} from '@actual-app/core/types/models';
+import type {CategoryEntity, CrossoverWidget, TimeFrame} from '@actual-app/core/types/models';
 
-import { Link } from '#components/common/Link';
-import { EditablePageHeaderTitle } from '#components/EditablePageHeaderTitle';
-import { FinancialText } from '#components/FinancialText';
-import { Checkbox } from '#components/forms';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page, PageHeader } from '#components/Page';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { AccountSelector } from '#components/reports/AccountSelector';
-import { CategorySelector } from '#components/reports/CategorySelector';
-import { CrossoverGraph } from '#components/reports/graphs/CrossoverGraph';
-import { Header } from '#components/reports/Header';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { createCrossoverSpreadsheet } from '#components/reports/spreadsheets/crossover-spreadsheet';
-import type { CrossoverData } from '#components/reports/spreadsheets/crossover-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useDashboardWidget } from '#hooks/useDashboardWidget';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { useNavigate } from '#hooks/useNavigate';
-import type { useSpreadsheet } from '#hooks/useSpreadsheet';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { useUpdateDashboardWidgetMutation } from '#reports/mutations';
+import {Link} from '#components/common/Link';
+import {EditablePageHeaderTitle} from '#components/EditablePageHeaderTitle';
+import {FinancialText} from '#components/FinancialText';
+import {Checkbox} from '#components/forms';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page, PageHeader} from '#components/Page';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {AccountSelector} from '#components/reports/AccountSelector';
+import {CategorySelector} from '#components/reports/CategorySelector';
+import {CrossoverGraph} from '#components/reports/graphs/CrossoverGraph';
+import {Header} from '#components/reports/Header';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {createCrossoverSpreadsheet} from '#components/reports/spreadsheets/crossover-spreadsheet';
+import type {CrossoverData} from '#components/reports/spreadsheets/crossover-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useDashboardWidget} from '#hooks/useDashboardWidget';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {useNavigate} from '#hooks/useNavigate';
+import type {useSpreadsheet} from '#hooks/useSpreadsheet';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {useUpdateDashboardWidgetMutation} from '#reports/mutations';
 
 export const defaultTimeFrame = {
   start: monthUtils.subMonths(monthUtils.currentMonth(), 120),
@@ -73,7 +69,7 @@ export const defaultTimeFrame = {
 
 export function Crossover() {
   const params = useParams();
-  const { data: widget, isPending } = useDashboardWidget<CrossoverWidget>({
+  const {data: widget, isPending} = useDashboardWidget<CrossoverWidget>({
     id: params.id,
     type: 'crossover-card',
   });
@@ -85,22 +81,18 @@ export function Crossover() {
   return <CrossoverInner widget={widget} />;
 }
 
-type CrossoverInnerProps = { widget?: CrossoverWidget };
+type CrossoverInnerProps = {widget?: CrossoverWidget};
 
-function CrossoverInner({ widget }: CrossoverInnerProps) {
+function CrossoverInner({widget}: CrossoverInnerProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
-  const { data: accounts = [] } = useAccounts();
-  const {
-    data: categories = { grouped: [], list: [] },
-    isPending: isCategoriesLoading,
-  } = useCategories();
+  const {data: accounts = []} = useAccounts();
+  const {data: categories = {grouped: [], list: []}, isPending: isCategoriesLoading} =
+    useCategories();
   const format = useFormat();
 
-  const expenseCategoryGroups = categories.grouped.filter(
-    group => !group.is_income,
-  );
+  const expenseCategoryGroups = categories.grouped.filter(group => !group.is_income);
   const expenseCategories = categories.list.filter(c => !c.is_income);
 
   const [allMonths, setAllMonths] = useState<Array<{
@@ -117,19 +109,15 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
 
   const [selectedExpenseCategories, setSelectedExpenseCategories] =
     useState<Array<CategoryEntity>>(expenseCategories);
-  const [selectedIncomeAccountIds, setSelectedIncomeAccountIds] = useState<
-    string[]
-  >(accounts.map(a => a.id));
+  const [selectedIncomeAccountIds, setSelectedIncomeAccountIds] = useState<string[]>(
+    accounts.map(a => a.id),
+  );
 
   const [swr, setSwr] = useState(0.04);
   const [useCustomGrowth, setUseCustomGrowth] = useState(false);
   const [estimatedReturn, setEstimatedReturn] = useState<number | null>(null);
-  const [expectedContribution, setExpectedContribution] = useState<
-    number | null
-  >(null);
-  const [projectionType, setProjectionType] = useState<
-    'hampel' | 'median' | 'mean'
-  >('hampel');
+  const [expectedContribution, setExpectedContribution] = useState<number | null>(null);
+  const [projectionType, setProjectionType] = useState<'hampel' | 'median' | 'mean'>('hampel');
   const [expenseAdjustmentFactor, setExpenseAdjustmentFactor] = useState(1.0);
   const [showHiddenCategories, setShowHiddenCategories] = useState(false);
   const [selectionsInitialized, setSelectionsInitialized] = useState(false);
@@ -147,9 +135,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
 
     const initialExpenseCategories =
       widget?.meta?.expenseCategoryIds !== undefined
-        ? categories.list.filter(c =>
-            widget.meta!.expenseCategoryIds!.includes(c.id),
-          )
+        ? categories.list.filter(c => widget.meta!.expenseCategoryIds!.includes(c.id))
         : categories.list.filter(c => !c.is_income);
 
     const initialIncomeAccountIds =
@@ -162,10 +148,8 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
     setSwr(widget?.meta?.safeWithdrawalRate ?? 0.04);
 
     const initialEstimatedReturn = widget?.meta?.estimatedReturn ?? null;
-    const initialExpectedContribution =
-      widget?.meta?.expectedContribution ?? null;
-    const hasCustomGrowth =
-      initialEstimatedReturn != null || initialExpectedContribution != null;
+    const initialExpectedContribution = widget?.meta?.expectedContribution ?? null;
+    const hasCustomGrowth = initialEstimatedReturn != null || initialExpectedContribution != null;
 
     setUseCustomGrowth(hasCustomGrowth);
     setEstimatedReturn(initialEstimatedReturn);
@@ -175,13 +159,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
     setShowHiddenCategories(widget?.meta?.showHiddenCategories ?? false);
 
     setSelectionsInitialized(true);
-  }, [
-    selectionsInitialized,
-    accounts,
-    categories.list,
-    isCategoriesLoading,
-    widget?.meta,
-  ]);
+  }, [selectionsInitialized, accounts, categories.list, isCategoriesLoading, widget?.meta]);
 
   useEffect(() => {
     async function run() {
@@ -310,13 +288,11 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
             incomeAccountIds: selectedIncomeAccountIds,
             safeWithdrawalRate: swr,
             estimatedReturn: useCustomGrowth ? (estimatedReturn ?? 0) : null,
-            expectedContribution: useCustomGrowth
-              ? (expectedContribution ?? 0)
-              : null,
+            expectedContribution: useCustomGrowth ? (expectedContribution ?? 0) : null,
             projectionType,
             expenseAdjustmentFactor,
             showHiddenCategories,
-            timeFrame: { start, end, mode },
+            timeFrame: {start, end, mode},
           },
         },
       },
@@ -337,10 +313,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
 
   // Memoize the derived values to avoid recreating them on every render
   const expenseCategoryIds = useMemo(
-    () =>
-      selectedExpenseCategories
-        .filter(c => showHiddenCategories || !c.hidden)
-        .map(c => c.id),
+    () => selectedExpenseCategories.filter(c => showHiddenCategories || !c.hidden).map(c => c.id),
     [selectedExpenseCategories, showHiddenCategories],
   );
 
@@ -361,9 +334,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
         incomeAccountIds: selectedIncomeAccountIds,
         safeWithdrawalRate: swr,
         estimatedReturn: useCustomGrowth ? (estimatedReturn ?? 0) : null,
-        expectedContribution: useCustomGrowth
-          ? (expectedContribution ?? 0)
-          : null,
+        expectedContribution: useCustomGrowth ? (expectedContribution ?? 0) : null,
         projectionType,
         expenseAdjustmentFactor,
       });
@@ -407,7 +378,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
   const targetNestEgg = displayData?.targetNestEgg ?? null;
 
   const navigate = useNavigate();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   const title = widget?.meta?.name || t('Crossover Point');
   const onSaveWidgetName = async (newName: string) => {
@@ -445,21 +416,12 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
         isNarrowWidth ? (
           <MobilePageHeader
             title={title}
-            leftContent={
-              <MobileBackButton onPress={() => navigate('/reports')} />
-            }
+            leftContent={<MobileBackButton onPress={() => navigate('/reports')} />}
           />
         ) : (
           <PageHeader
             title={
-              widget ? (
-                <EditablePageHeaderTitle
-                  title={title}
-                  onSave={onSaveWidgetName}
-                />
-              ) : (
-                title
-              )
+              widget ? <EditablePageHeaderTitle title={title} onSave={onSaveWidgetName} /> : title
             }
           />
         )
@@ -501,8 +463,8 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
               overflowY: 'auto',
             }}
           >
-            <View style={{ flexShrink: 0 }}>
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>
+            <View style={{flexShrink: 0}}>
+              <div style={{fontWeight: 600, marginBottom: 8}}>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -515,20 +477,19 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                   </Text>
                   <Tooltip
                     content={
-                      <View style={{ maxWidth: 300 }}>
+                      <View style={{maxWidth: 300}}>
                         <Text>
                           <Trans>
                             Used to estimate your future expenses.
                             <br />
                             <br />
-                            Select the budget categories that reflect your
-                            living expenses in retirement.
+                            Select the budget categories that reflect your living expenses in
+                            retirement.
                             <br />
                             Ex: Food, Utilities, Entertainment, Medical
                             <br />
                             <br />
-                            Exclude categories that will not continue in
-                            retirement.
+                            Exclude categories that will not continue in retirement.
                             <br />
                             Ex: Retirement Savings
                           </Trans>
@@ -555,18 +516,12 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                 <Button
                   variant="bare"
                   onPress={() => setShowHiddenCategories(!showHiddenCategories)}
-                  style={{ padding: 8 }}
+                  style={{padding: 8}}
                 >
                   <View>
                     {showHiddenCategories ? (
-                      <View
-                        style={{ flexDirection: 'row', alignItems: 'center' }}
-                      >
-                        <SvgViewHide
-                          width={15}
-                          height={15}
-                          style={{ marginRight: 5 }}
-                        />
+                      <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                        <SvgViewHide width={15} height={15} style={{marginRight: 5}} />
                         <Text>
                           <Trans>Hide hidden</Trans>
                         </Text>
@@ -578,11 +533,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                           alignItems: 'center',
                         }}
                       >
-                        <SvgViewShow
-                          width={15}
-                          height={15}
-                          style={{ marginRight: 5 }}
-                        />
+                        <SvgViewShow width={15} height={15} style={{marginRight: 5}} />
                         <Text
                           style={{
                             maxWidth: 100,
@@ -597,11 +548,9 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                     )}
                   </View>
                 </Button>
-                <View style={{ flex: 1 }} />
+                <View style={{flex: 1}} />
               </View>
-              <div
-                style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 12 }}
-              >
+              <div style={{maxHeight: 220, overflowY: 'auto', marginBottom: 12}}>
                 <CategorySelector
                   categoryGroups={expenseCategoryGroups}
                   selectedCategories={selectedExpenseCategories}
@@ -610,7 +559,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                 />
               </div>
 
-              <div style={{ fontWeight: 600, marginBottom: 8 }}>
+              <div style={{fontWeight: 600, marginBottom: 8}}>
                 <View
                   style={{
                     flexDirection: 'row',
@@ -623,14 +572,13 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                   </Text>
                   <Tooltip
                     content={
-                      <View style={{ maxWidth: 300 }}>
+                      <View style={{maxWidth: 300}}>
                         <Text>
                           <Trans>
                             Used to estimate your future income.
                             <br />
                             <br />
-                            Select the accounts that will be used to fund your
-                            retirement.
+                            Select the accounts that will be used to fund your retirement.
                             <br />
                             Ex: Retirement Accounts, Savings Accounts
                             <br />
@@ -651,9 +599,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                   </Tooltip>
                 </View>
               </div>
-              <div
-                style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 12 }}
-              >
+              <div style={{maxHeight: 220, overflowY: 'auto', marginBottom: 12}}>
                 <AccountSelector
                   accounts={accounts}
                   selectedAccountIds={selectedIncomeAccountIds}
@@ -661,8 +607,8 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                 />
               </div>
 
-              <View style={{ marginBottom: 12 }}>
-                <div style={{ fontWeight: 600, marginBottom: 8 }}>
+              <View style={{marginBottom: 12}}>
+                <div style={{fontWeight: 600, marginBottom: 8}}>
                   <View
                     style={{
                       flexDirection: 'row',
@@ -673,11 +619,11 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                     <Text>{t('Safe withdrawal rate (%)')}</Text>
                     <Tooltip
                       content={
-                        <View style={{ maxWidth: 300 }}>
+                        <View style={{maxWidth: 300}}>
                           <Text>
                             <Trans>
-                              The amount you plan to withdraw from your Income
-                              Accounts each year to fund your living expenses.
+                              The amount you plan to withdraw from your Income Accounts each year to
+                              fund your living expenses.
                               <br />
                               <Link
                                 variant="external"
@@ -705,18 +651,14 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                   step={0.1}
                   value={swr == null ? '' : Number((swr * 100).toFixed(2))}
                   onChange={e =>
-                    setSwr(
-                      isNaN(e.target.valueAsNumber)
-                        ? 0
-                        : e.target.valueAsNumber / 100,
-                    )
+                    setSwr(isNaN(e.target.valueAsNumber) ? 0 : e.target.valueAsNumber / 100)
                   }
-                  style={{ width: 120, marginBottom: 12 }}
+                  style={{width: 120, marginBottom: 12}}
                 />
               </View>
 
-              <View style={{ marginBottom: 12 }}>
-                <div style={{ fontWeight: 600, marginBottom: 8 }}>
+              <View style={{marginBottom: 12}}>
+                <div style={{fontWeight: 600, marginBottom: 8}}>
                   <View
                     style={{
                       flexDirection: 'row',
@@ -727,18 +669,17 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                     <Text>{t('Expense Projection Type')}</Text>
                     <Tooltip
                       content={
-                        <View style={{ maxWidth: 300 }}>
+                        <View style={{maxWidth: 300}}>
                           <Text>
                             <Trans>
                               How past expenses are projected into the future.
                               <br />
                               <br />
-                              Hampel Filtered Median: Filters out outliers
-                              before calculating the median expense.
+                              Hampel Filtered Median: Filters out outliers before calculating the
+                              median expense.
                               <br />
                               <br />
-                              Median: Uses the median of all historical expenses
-                              without filtering.
+                              Median: Uses the median of all historical expenses without filtering.
                               <br />
                               <br />
                               Mean: Uses the average of all historical expenses.
@@ -757,20 +698,18 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                 </div>
                 <Select
                   value={projectionType}
-                  onChange={value =>
-                    setProjectionType(value as 'hampel' | 'median' | 'mean')
-                  }
+                  onChange={value => setProjectionType(value as 'hampel' | 'median' | 'mean')}
                   options={[
                     ['hampel', t('Hampel Filtered Median')],
                     ['median', t('Median')],
                     ['mean', t('Mean')],
                   ]}
-                  style={{ width: 200, marginBottom: 12 }}
+                  style={{width: 200, marginBottom: 12}}
                 />
               </View>
 
-              <View style={{ marginBottom: 12 }}>
-                <div style={{ fontWeight: 600, marginBottom: 8 }}>
+              <View style={{marginBottom: 12}}>
+                <div style={{fontWeight: 600, marginBottom: 8}}>
                   <View
                     style={{
                       flexDirection: 'row',
@@ -781,26 +720,22 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                     <Text>{t('Target Income (% of expenses)')}</Text>
                     <Tooltip
                       content={
-                        <View style={{ maxWidth: 300 }}>
+                        <View style={{maxWidth: 300}}>
                           <Text>
                             <Trans>
-                              Your target retirement income as a percentage of
-                              projected expenses.
+                              Your target retirement income as a percentage of projected expenses.
                               <br />
                               <br />
-                              100% means you need retirement income equal to
-                              your current projected expenses.
+                              100% means you need retirement income equal to your current projected
+                              expenses.
                               <br />
-                              Values above 100% mean you plan to spend more in
-                              retirement.
+                              Values above 100% mean you plan to spend more in retirement.
                               <br />
-                              Values below 100% mean you plan to spend less in
-                              retirement.
+                              Values below 100% mean you plan to spend less in retirement.
                               <br />
                               <br />
-                              The graph shows both the projected expenses (solid
-                              red line) and your target income (dashed red
-                              line).
+                              The graph shows both the projected expenses (solid red line) and your
+                              target income (dashed red line).
                             </Trans>
                           </Text>
                         </View>
@@ -826,16 +761,14 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                   }
                   onChange={e =>
                     setExpenseAdjustmentFactor(
-                      isNaN(e.target.valueAsNumber)
-                        ? 1.0
-                        : e.target.valueAsNumber / 100,
+                      isNaN(e.target.valueAsNumber) ? 1.0 : e.target.valueAsNumber / 100,
                     )
                   }
-                  style={{ width: 120, marginBottom: 12 }}
+                  style={{width: 120, marginBottom: 12}}
                 />
               </View>
 
-              <View style={{ marginBottom: 12 }}>
+              <View style={{marginBottom: 12}}>
                 <label
                   htmlFor="custom-growth"
                   style={{
@@ -857,24 +790,23 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                         setEstimatedReturn(0.06);
                       }
                     }}
-                    style={{ marginRight: 8 }}
+                    style={{marginRight: 8}}
                   />
-                  <Text style={{ fontWeight: 600 }}>
+                  <Text style={{fontWeight: 600}}>
                     <Trans>Use custom growth projections</Trans>
                   </Text>
                   <Tooltip
                     content={
-                      <View style={{ maxWidth: 300 }}>
+                      <View style={{maxWidth: 300}}>
                         <Text>
                           <Trans>
-                            Enable this to specify custom monthly contribution
-                            amounts and investment returns that will be used to
-                            project your investments into the future.
+                            Enable this to specify custom monthly contribution amounts and
+                            investment returns that will be used to project your investments into
+                            the future.
                             <br />
                             <br />
-                            When disabled, uses historical performance from your
-                            Income Accounts (which includes both past
-                            contributions and investment growth).
+                            When disabled, uses historical performance from your Income Accounts
+                            (which includes both past contributions and investment growth).
                           </Trans>
                         </Text>
                       </View>
@@ -884,12 +816,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                       ...styles.tooltip,
                     }}
                   >
-                    <SvgQuestion
-                      height={12}
-                      width={12}
-                      cursor="pointer"
-                      style={{ marginLeft: 4 }}
-                    />
+                    <SvgQuestion height={12} width={12} cursor="pointer" style={{marginLeft: 4}} />
                   </Tooltip>
                 </label>
 
@@ -901,8 +828,8 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                       borderLeft: `3px solid ${theme.tableBorder}`,
                     }}
                   >
-                    <View style={{ marginBottom: 12 }}>
-                      <div style={{ fontWeight: 600, marginBottom: 8 }}>
+                    <View style={{marginBottom: 12}}>
+                      <div style={{fontWeight: 600, marginBottom: 8}}>
                         <View
                           style={{
                             flexDirection: 'row',
@@ -913,12 +840,11 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                           <Text>{t('Expected return (annual %)')}</Text>
                           <Tooltip
                             content={
-                              <View style={{ maxWidth: 300 }}>
+                              <View style={{maxWidth: 300}}>
                                 <Text>
                                   <Trans>
-                                    The expected annual return rate for your
-                                    investments, used to project growth of
-                                    Income Accounts.
+                                    The expected annual return rate for your investments, used to
+                                    project growth of Income Accounts.
                                   </Trans>
                                 </Text>
                               </View>
@@ -928,11 +854,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                               ...styles.tooltip,
                             }}
                           >
-                            <SvgQuestion
-                              height={12}
-                              width={12}
-                              cursor="pointer"
-                            />
+                            <SvgQuestion height={12} width={12} cursor="pointer" />
                           </Tooltip>
                         </View>
                       </div>
@@ -942,15 +864,11 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                         max={100}
                         step={0.1}
                         value={
-                          estimatedReturn === null
-                            ? ''
-                            : Number((estimatedReturn * 100).toFixed(2))
+                          estimatedReturn === null ? '' : Number((estimatedReturn * 100).toFixed(2))
                         }
                         onChange={e =>
                           setEstimatedReturn(
-                            isNaN(e.target.valueAsNumber)
-                              ? null
-                              : e.target.valueAsNumber / 100,
+                            isNaN(e.target.valueAsNumber) ? null : e.target.valueAsNumber / 100,
                           )
                         }
                         onBlur={() => {
@@ -958,12 +876,12 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                             setEstimatedReturn(0);
                           }
                         }}
-                        style={{ width: 120 }}
+                        style={{width: 120}}
                       />
                     </View>
 
-                    <View style={{ marginBottom: 12 }}>
-                      <div style={{ fontWeight: 600, marginBottom: 8 }}>
+                    <View style={{marginBottom: 12}}>
+                      <div style={{fontWeight: 600, marginBottom: 8}}>
                         <View
                           style={{
                             flexDirection: 'row',
@@ -976,12 +894,11 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                           </Text>
                           <Tooltip
                             content={
-                              <View style={{ maxWidth: 300 }}>
+                              <View style={{maxWidth: 300}}>
                                 <Text>
                                   <Trans>
-                                    The amount you plan to contribute to your
-                                    Income Accounts each month. This amount is
-                                    added to your balance each month before
+                                    The amount you plan to contribute to your Income Accounts each
+                                    month. This amount is added to your balance each month before
                                     applying the investment return.
                                   </Trans>
                                 </Text>
@@ -992,11 +909,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                               ...styles.tooltip,
                             }}
                           >
-                            <SvgQuestion
-                              height={12}
-                              width={12}
-                              cursor="pointer"
-                            />
+                            <SvgQuestion height={12} width={12} cursor="pointer" />
                           </Tooltip>
                         </View>
                       </div>
@@ -1004,16 +917,10 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                         type="number"
                         min={0}
                         step={100}
-                        value={
-                          expectedContribution === null
-                            ? ''
-                            : expectedContribution / 100
-                        }
+                        value={expectedContribution === null ? '' : expectedContribution / 100}
                         onChange={e =>
                           setExpectedContribution(
-                            isNaN(e.target.valueAsNumber)
-                              ? null
-                              : e.target.valueAsNumber * 100,
+                            isNaN(e.target.valueAsNumber) ? null : e.target.valueAsNumber * 100,
                           )
                         }
                         onBlur={() => {
@@ -1021,7 +928,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                             setExpectedContribution(0);
                           }
                         }}
-                        style={{ width: 120 }}
+                        style={{width: 120}}
                       />
                     </View>
                   </View>
@@ -1036,8 +943,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                     }}
                   >
                     <Trans>
-                      Using calculated historical return of{' '}
-                      {(historicalReturn * 100).toFixed(1)}%
+                      Using calculated historical return of {(historicalReturn * 100).toFixed(1)}%
                     </Trans>
                   </div>
                 )}
@@ -1061,7 +967,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
               marginBottom: 10,
             }}
           >
-            <View style={{ textAlign: 'right' }}>
+            <View style={{textAlign: 'right'}}>
               <View
                 style={{
                   ...styles.largeText,
@@ -1089,11 +995,8 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                 <span>
                   <Trans>Target Monthly Income</Trans>:{' '}
                   <PrivacyFilter>
-                    {targetMonthlyIncome != null &&
-                    !isNaN(targetMonthlyIncome) ? (
-                      <FinancialText>
-                        {format(targetMonthlyIncome, 'financial')}
-                      </FinancialText>
+                    {targetMonthlyIncome != null && !isNaN(targetMonthlyIncome) ? (
+                      <FinancialText>{format(targetMonthlyIncome, 'financial')}</FinancialText>
                     ) : (
                       t('N/A')
                     )}
@@ -1109,9 +1012,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                   <Trans>Target Life Savings</Trans>:{' '}
                   <PrivacyFilter>
                     {targetNestEgg != null && !isNaN(targetNestEgg) ? (
-                      <FinancialText>
-                        {format(targetNestEgg, 'financial')}
-                      </FinancialText>
+                      <FinancialText>{format(targetNestEgg, 'financial')}</FinancialText>
                     ) : (
                       t('N/A')
                     )}
@@ -1137,10 +1038,7 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
                 height: '100%',
               }}
             >
-              <CrossoverGraph
-                graphData={displayData.graphData}
-                style={{ height: '100%', flex: 1 }}
-              />
+              <CrossoverGraph graphData={displayData.graphData} style={{height: '100%', flex: 1}} />
             </View>
           </View>
 
@@ -1160,10 +1058,9 @@ function CrossoverInner({ widget }: CrossoverInnerProps) {
             </Paragraph>
             <Paragraph>
               <Trans>
-                The crossover point is when your monthly investment income (from
-                selected accounts using the safe withdrawal rate) meets or
-                exceeds your total monthly expenses (from selected categories).
-                The chart projects into the future using your estimated return
+                The crossover point is when your monthly investment income (from selected accounts
+                using the safe withdrawal rate) meets or exceeds your total monthly expenses (from
+                selected categories). The chart projects into the future using your estimated return
                 until the lines cross.
               </Trans>
             </Paragraph>

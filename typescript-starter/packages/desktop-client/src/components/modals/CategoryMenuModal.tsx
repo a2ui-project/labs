@@ -15,43 +15,27 @@
  */
 
 // @ts-strict-ignore
-import React, { useRef, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useRef, useState} from 'react';
+import type {CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import {
-  SvgChartPie,
-  SvgDotsHorizontalTriple,
-  SvgTrash,
-} from '@actual-app/components/icons/v1';
-import {
-  SvgNotesPaper,
-  SvgViewHide,
-  SvgViewShow,
-} from '@actual-app/components/icons/v2';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgChartPie, SvgDotsHorizontalTriple, SvgTrash} from '@actual-app/components/icons/v1';
+import {SvgNotesPaper, SvgViewHide, SvgViewShow} from '@actual-app/components/icons/v2';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import {
-  Modal,
-  ModalCloseButton,
-  ModalHeader,
-  ModalTitle,
-} from '#components/common/Modal';
-import { Notes } from '#components/Notes';
-import { useCategory } from '#hooks/useCategory';
-import { useCategoryGroup } from '#hooks/useCategoryGroup';
-import { useNotes } from '#hooks/useNotes';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {Modal, ModalCloseButton, ModalHeader, ModalTitle} from '#components/common/Modal';
+import {Notes} from '#components/Notes';
+import {useCategory} from '#hooks/useCategory';
+import {useCategoryGroup} from '#hooks/useCategoryGroup';
+import {useNotes} from '#hooks/useNotes';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
-type CategoryMenuModalProps = Extract<
-  ModalType,
-  { name: 'category-menu' }
->['options'];
+type CategoryMenuModalProps = Extract<ModalType, {name: 'category-menu'}>['options'];
 
 export function CategoryMenuModal({
   categoryId,
@@ -62,9 +46,9 @@ export function CategoryMenuModal({
   onEditAutomations,
   onClose,
 }: CategoryMenuModalProps) {
-  const { t } = useTranslation();
-  const { data: category } = useCategory(categoryId);
-  const { data: categoryGroup } = useCategoryGroup(category?.group);
+  const {t} = useTranslation();
+  const {data: category} = useCategory(categoryId);
+  const {data: categoryGroup} = useCategoryGroup(category?.group);
   const originalNotes = useNotes(category.id);
 
   const onRename = newName => {
@@ -105,10 +89,10 @@ export function CategoryMenuModal({
       name="category-menu"
       onClose={onClose}
       containerProps={{
-        style: { height: '45vh' },
+        style: {height: '45vh'},
       }}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             leftContent={
@@ -119,13 +103,7 @@ export function CategoryMenuModal({
                 onToggleVisibility={_onToggleVisibility}
               />
             }
-            title={
-              <ModalTitle
-                isEditable
-                title={category.name}
-                onTitleUpdate={onRename}
-              />
-            }
+            title={<ModalTitle isEditable title={category.name} onTitleUpdate={onRename} />}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
           <View
@@ -141,9 +119,7 @@ export function CategoryMenuModal({
               }}
             >
               <Notes
-                notes={
-                  originalNotes?.length > 0 ? originalNotes : t('No notes')
-                }
+                notes={originalNotes?.length > 0 ? originalNotes : t('No notes')}
                 editable={false}
                 focused={false}
                 getStyle={() => ({
@@ -167,20 +143,12 @@ export function CategoryMenuModal({
               }}
             >
               <Button style={buttonStyle} onPress={_onEditNotes}>
-                <SvgNotesPaper
-                  width={20}
-                  height={20}
-                  style={{ paddingRight: 5 }}
-                />
+                <SvgNotesPaper width={20} height={20} style={{paddingRight: 5}} />
                 <Trans>Edit notes</Trans>
               </Button>
               {onEditAutomations && (
                 <Button style={buttonStyle} onPress={_onEditAutomations}>
-                  <SvgChartPie
-                    width={20}
-                    height={20}
-                    style={{ paddingRight: 5 }}
-                  />
+                  <SvgChartPie width={20} height={20} style={{paddingRight: 5}} />
                   <Trans>Budget automations</Trans>
                 </Button>
               )}
@@ -192,13 +160,8 @@ export function CategoryMenuModal({
   );
 }
 
-function AdditionalCategoryMenu({
-  category,
-  categoryGroup,
-  onDelete,
-  onToggleVisibility,
-}) {
-  const { t } = useTranslation();
+function AdditionalCategoryMenu({category, categoryGroup, onDelete, onToggleVisibility}) {
+  const {t} = useTranslation();
   const triggerRef = useRef(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const itemStyle: CSSProperties = {
@@ -208,7 +171,7 @@ function AdditionalCategoryMenu({
 
   const getItemStyle = item => ({
     ...itemStyle,
-    ...(item.name === 'delete' && { color: theme.errorTextMenu }),
+    ...(item.name === 'delete' && {color: theme.errorTextMenu}),
   });
 
   return (
@@ -221,11 +184,7 @@ function AdditionalCategoryMenu({
           setMenuOpen(true);
         }}
       >
-        <SvgDotsHorizontalTriple
-          width={17}
-          height={17}
-          style={{ color: 'currentColor' }}
-        />
+        <SvgDotsHorizontalTriple width={17} height={17} style={{color: 'currentColor'}} />
         <Popover
           triggerRef={triggerRef}
           isOpen={menuOpen}

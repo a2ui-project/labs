@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { acceptCompletion, completionStatus } from '@codemirror/autocomplete';
-import { Prec } from '@codemirror/state';
-import { keymap } from '@codemirror/view';
+import {acceptCompletion, completionStatus} from '@codemirror/autocomplete';
+import {Prec} from '@codemirror/state';
+import {keymap} from '@codemirror/view';
 
 export const autocompleteTabAccept = keymap.of([
   {

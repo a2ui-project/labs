@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-import { evalArithmetic } from '@actual-app/core/shared/arithmetic';
-import { currentDay } from '@actual-app/core/shared/months';
-import {
-  amountToInteger,
-  integerToCurrencyWithDecimal,
-} from '@actual-app/core/shared/util';
-import type { CurrencyAmount } from '@actual-app/core/shared/util';
-import type {
-  AccountEntity,
-  CategoryEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
-import { isValid as isDateValid, parseISO } from 'date-fns';
+import {evalArithmetic} from '@actual-app/core/shared/arithmetic';
+import {currentDay} from '@actual-app/core/shared/months';
+import {amountToInteger, integerToCurrencyWithDecimal} from '@actual-app/core/shared/util';
+import type {CurrencyAmount} from '@actual-app/core/shared/util';
+import type {AccountEntity, CategoryEntity, TransactionEntity} from '@actual-app/core/types/models';
+import {isValid as isDateValid, parseISO} from 'date-fns';
 
 export type SerializedTransaction = Omit<TransactionEntity, 'date'> & {
   date: string;
@@ -34,10 +27,7 @@ export type SerializedTransaction = Omit<TransactionEntity, 'date'> & {
   credit: CurrencyAmount;
 };
 
-export type TransactionEditFunction = (
-  id: TransactionEntity['id'],
-  name: string,
-) => void;
+export type TransactionEditFunction = (id: TransactionEntity['id'], name: string) => void;
 
 export type TransactionUpdateFunction = <T extends keyof SerializedTransaction>(
   name: T,
@@ -48,7 +38,7 @@ export function serializeTransaction(
   transaction: TransactionEntity,
   showZeroInDeposit?: boolean,
 ): SerializedTransaction {
-  const { amount, date: originalDate } = transaction;
+  const {amount, date: originalDate} = transaction;
 
   let debit = amount < 0 ? -amount : null;
   let credit = amount > 0 ? amount : null;
@@ -86,7 +76,7 @@ export function deserializeTransaction(
   transaction: SerializedTransaction,
   originalTransaction: TransactionEntity,
 ) {
-  const { debit, credit, date: originalDate, ...realTransaction } = transaction;
+  const {debit, credit, date: originalDate, ...realTransaction} = transaction;
 
   let amount: number | null;
   if (debit !== '') {
@@ -105,19 +95,15 @@ export function deserializeTransaction(
     date = originalTransaction.date || currentDay();
   }
 
-  return { ...realTransaction, date, amount };
+  return {...realTransaction, date, amount};
 }
 
-export function isLastChild(
-  transactions: readonly TransactionEntity[],
-  index: number,
-) {
+export function isLastChild(transactions: readonly TransactionEntity[], index: number) {
   const trans = transactions[index];
   return (
     trans &&
     trans.is_child &&
-    (transactions[index + 1] == null ||
-      transactions[index + 1].parent_id !== trans.parent_id)
+    (transactions[index + 1] == null || transactions[index + 1].parent_id !== trans.parent_id)
   );
 }
 
@@ -127,11 +113,7 @@ export function selectAscDesc(
   clicked: string,
   defaultAscDesc: 'asc' | 'desc' = 'asc',
 ) {
-  return field === clicked
-    ? ascDesc === 'asc'
-      ? 'desc'
-      : 'asc'
-    : defaultAscDesc;
+  return field === clicked ? (ascDesc === 'asc' ? 'desc' : 'asc') : defaultAscDesc;
 }
 
 // Decides whether a rule result should be applied to a field while the user is
@@ -141,17 +123,8 @@ export function selectAscDesc(
 // add text before or after it, so we allow those through. The check stays
 // idempotent — rules are re-run on every keystroke during entry, so we must not
 // re-add text that the previous run already applied.
-export function shouldApplyRuleChange(
-  field: string,
-  currentValue: unknown,
-  nextValue: unknown,
-) {
-  if (
-    currentValue == null ||
-    currentValue === '' ||
-    currentValue === 0 ||
-    currentValue === false
-  ) {
+export function shouldApplyRuleChange(field: string, currentValue: unknown, nextValue: unknown) {
+  if (currentValue == null || currentValue === '' || currentValue === 0 || currentValue === false) {
     return true;
   }
 

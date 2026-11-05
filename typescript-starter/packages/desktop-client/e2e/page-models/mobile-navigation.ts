@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { expect } from '@playwright/test';
-import type { Locator, Page } from '@playwright/test';
+import {expect} from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { MobileAccountPage } from './mobile-account-page';
-import { MobileAccountsPage } from './mobile-accounts-page';
-import { MobileBankSyncPage } from './mobile-bank-sync-page';
-import { MobileBudgetPage } from './mobile-budget-page';
-import { MobilePayeesPage } from './mobile-payees-page';
-import { MobileReportsPage } from './mobile-reports-page';
-import { MobileRulesPage } from './mobile-rules-page';
-import { MobileSchedulesPage } from './mobile-schedules-page';
-import { MobileTransactionEntryPage } from './mobile-transaction-entry-page';
-import { SettingsPage } from './settings-page';
+import {MobileAccountPage} from './mobile-account-page';
+import {MobileAccountsPage} from './mobile-accounts-page';
+import {MobileBankSyncPage} from './mobile-bank-sync-page';
+import {MobileBudgetPage} from './mobile-budget-page';
+import {MobilePayeesPage} from './mobile-payees-page';
+import {MobileReportsPage} from './mobile-reports-page';
+import {MobileRulesPage} from './mobile-rules-page';
+import {MobileSchedulesPage} from './mobile-schedules-page';
+import {MobileTransactionEntryPage} from './mobile-transaction-entry-page';
+import {SettingsPage} from './settings-page';
 
 const NAVBAR_ROWS = 3;
 const NAV_LINKS_HIDDEN_BY_DEFAULT = [
@@ -65,24 +65,20 @@ export class MobileNavigation {
   }
 
   async dragNavbarUp() {
-    const mainContentBoundingBox = await this.page
-      .locator(this.mainContentSelector)
-      .boundingBox();
+    const mainContentBoundingBox = await this.page.locator(this.mainContentSelector).boundingBox();
 
     if (!mainContentBoundingBox) {
       throw new Error('Unable to get bounding box of main content.');
     }
 
-    const navbarBoundingBox = await this.page
-      .locator(this.navbarSelector)
-      .boundingBox();
+    const navbarBoundingBox = await this.page.locator(this.navbarSelector).boundingBox();
 
     if (!navbarBoundingBox) {
       throw new Error('Unable to get bounding box of navbar.');
     }
 
     await this.page.dragAndDrop(this.navbarSelector, this.mainContentSelector, {
-      sourcePosition: { x: 1, y: 0 },
+      sourcePosition: {x: 1, y: 0},
       targetPosition: {
         x: 1,
         y: mainContentBoundingBox.height - navbarBoundingBox.height,
@@ -91,16 +87,14 @@ export class MobileNavigation {
   }
 
   async dragNavbarDown() {
-    const boundingBox = await this.page
-      .locator(this.navbarSelector)
-      .boundingBox();
+    const boundingBox = await this.page.locator(this.navbarSelector).boundingBox();
 
     if (!boundingBox) {
       throw new Error('Unable to get bounding box of navbar.');
     }
 
     await this.page.dragAndDrop(this.navbarSelector, this.navbarSelector, {
-      sourcePosition: { x: 1, y: 0 },
+      sourcePosition: {x: 1, y: 0},
       targetPosition: {
         x: 1,
         // Only scroll until bottom of screen i.e. bottom of first navbar row.
@@ -124,7 +118,7 @@ export class MobileNavigation {
     return states.includes(dataNavbarState);
   }
 
-  async navigateToPage<T extends { waitFor: Locator['waitFor'] }>(
+  async navigateToPage<T extends {waitFor: Locator['waitFor']}>(
     pageName: keyof typeof ROUTES_BY_PAGE,
     pageModelFactory: () => T,
   ): Promise<T> {
@@ -145,7 +139,7 @@ export class MobileNavigation {
       await this.dragNavbarUp();
     }
 
-    const link = this.navbar.getByRole('link', { name: pageName });
+    const link = this.navbar.getByRole('link', {name: pageName});
     // Click via evaluate: the navbar uses react-spring transforms, so
     // Playwright's viewport-stability check rejects mid-animation clicks.
     await link.evaluate(el => (el as HTMLElement).click());
@@ -160,21 +154,15 @@ export class MobileNavigation {
   }
 
   async goToBudgetPage() {
-    return await this.navigateToPage(
-      'Budget',
-      () => new MobileBudgetPage(this.page),
-    );
+    return await this.navigateToPage('Budget', () => new MobileBudgetPage(this.page));
   }
 
   async goToAccountsPage() {
-    return await this.navigateToPage(
-      'Accounts',
-      () => new MobileAccountsPage(this.page),
-    );
+    return await this.navigateToPage('Accounts', () => new MobileAccountsPage(this.page));
   }
 
   async goToUncategorizedPage() {
-    const button = this.page.getByRole('button', { name: 'Categorize' });
+    const button = this.page.getByRole('button', {name: 'Categorize'});
     await button.click();
 
     return new MobileAccountPage(this.page);
@@ -188,44 +176,26 @@ export class MobileNavigation {
   }
 
   async goToReportsPage() {
-    return await this.navigateToPage(
-      'Reports',
-      () => new MobileReportsPage(this.page),
-    );
+    return await this.navigateToPage('Reports', () => new MobileReportsPage(this.page));
   }
 
   async goToPayeesPage() {
-    return await this.navigateToPage(
-      'Payees',
-      () => new MobilePayeesPage(this.page),
-    );
+    return await this.navigateToPage('Payees', () => new MobilePayeesPage(this.page));
   }
 
   async goToSchedulesPage() {
-    return this.navigateToPage(
-      'Schedules',
-      () => new MobileSchedulesPage(this.page),
-    );
+    return this.navigateToPage('Schedules', () => new MobileSchedulesPage(this.page));
   }
 
   async goToRulesPage() {
-    return await this.navigateToPage(
-      'Rules',
-      () => new MobileRulesPage(this.page),
-    );
+    return await this.navigateToPage('Rules', () => new MobileRulesPage(this.page));
   }
 
   async goToBankSyncPage() {
-    return await this.navigateToPage(
-      'Bank Sync',
-      () => new MobileBankSyncPage(this.page),
-    );
+    return await this.navigateToPage('Bank Sync', () => new MobileBankSyncPage(this.page));
   }
 
   async goToSettingsPage() {
-    return await this.navigateToPage(
-      'Settings',
-      () => new SettingsPage(this.page),
-    );
+    return await this.navigateToPage('Settings', () => new SettingsPage(this.page));
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useSyncedPref } from './useSyncedPref';
+import {useSyncedPref} from './useSyncedPref';
 
 export function usePrivacyMode() {
   const [isPrivacyEnabled] = useSyncedPref('isPrivacyEnabled');

@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import { styles } from '@actual-app/components/styles';
+import {styles} from '@actual-app/components/styles';
 import * as Platform from '@actual-app/core/shared/platform';
 
 let hiddenScrollbars = false;

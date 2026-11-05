@@ -23,7 +23,7 @@
 // * Need to check to make sure if account exists when handling
 // * transaction changes in syncing
 
-import type { Timestamp } from './timestamp';
+import type {Timestamp} from './timestamp';
 
 /**
  * Represents a node within a trinary radix trie.
@@ -38,7 +38,7 @@ export type TrieNode = {
 type NumberTrieNodeKey = keyof Omit<TrieNode, 'hash'>;
 
 export function emptyTrie(): TrieNode {
-  return { hash: 0 };
+  return {hash: 0};
 }
 
 function isNumberTrieNodeKey(input: string): input is NumberTrieNodeKey {
@@ -65,7 +65,7 @@ export function insert(trie: TrieNode, timestamp: Timestamp) {
   const hash = timestamp.hash();
   const key = Number(Math.floor(timestamp.millis() / 1000 / 60)).toString(3);
 
-  trie = Object.assign({}, trie, { hash: (trie.hash || 0) ^ hash });
+  trie = Object.assign({}, trie, {hash: (trie.hash || 0) ^ hash});
   return insertKey(trie, key, hash);
 }
 
@@ -163,7 +163,7 @@ export function prune(trie: TrieNode, n = 2): TrieNode {
   const keys = getKeys(trie);
   keys.sort((a, b) => a.localeCompare(b));
 
-  const next: TrieNode = { hash: trie.hash };
+  const next: TrieNode = {hash: trie.hash};
 
   // Prune child nodes.
   for (const k of keys.slice(-n)) {
@@ -181,9 +181,7 @@ export function prune(trie: TrieNode, n = 2): TrieNode {
 
 export function debug(trie: TrieNode, k = '', indent = 0): string {
   const str =
-    ' '.repeat(indent) +
-    (k !== '' ? `k: ${k} ` : '') +
-    `hash: ${trie.hash || '(empty)'}\n`;
+    ' '.repeat(indent) + (k !== '' ? `k: ${k} ` : '') + `hash: ${trie.hash || '(empty)'}\n`;
   return (
     str +
     getKeys(trie)

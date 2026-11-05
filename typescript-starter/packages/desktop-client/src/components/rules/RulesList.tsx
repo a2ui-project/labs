@@ -17,10 +17,10 @@
 // @ts-strict-ignore
 import React from 'react';
 
-import { View } from '@actual-app/components/view';
-import type { RuleEntity } from '@actual-app/core/types/models';
+import {View} from '@actual-app/components/view';
+import type {RuleEntity} from '@actual-app/core/types/models';
 
-import { RuleRow } from './RuleRow';
+import {RuleRow} from './RuleRow';
 
 type RulesListProps = {
   rules: RuleEntity[];

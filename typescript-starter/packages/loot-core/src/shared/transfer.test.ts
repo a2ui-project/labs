@@ -22,10 +22,10 @@ import * as transfer from './transfer';
 beforeEach(global.emptyDatabase());
 
 async function prepareDatabase() {
-  await db.insertAccount({ id: 'one', name: 'one' });
-  await db.insertAccount({ id: 'two', name: 'two' });
-  await db.insertPayee({ name: '', transfer_acct: 'one' });
-  await db.insertPayee({ name: '', transfer_acct: 'two' });
+  await db.insertAccount({id: 'one', name: 'one'});
+  await db.insertAccount({id: 'two', name: 'two'});
+  await db.insertPayee({name: '', transfer_acct: 'one'});
+  await db.insertPayee({name: '', transfer_acct: 'two'});
 }
 
 async function createTransaction(account: string, amount: number, extra = {}) {
@@ -33,7 +33,7 @@ async function createTransaction(account: string, amount: number, extra = {}) {
     id: null,
     account,
     amount,
-    payee: await db.insertPayee({ name: 'Non-transfer ' + account }),
+    payee: await db.insertPayee({name: 'Non-transfer ' + account}),
     date: '2017-01-01',
     ...extra,
   };

@@ -15,17 +15,14 @@
  */
 
 // @ts-strict-ignore
-import React, { useEffect, useEffectEvent, useMemo, useState } from 'react';
-import type { ComponentType } from 'react';
+import React, {useEffect, useEffectEvent, useMemo, useState} from 'react';
+import type {ComponentType} from 'react';
 
-import { styles } from '@actual-app/components/styles';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {styles} from '@actual-app/components/styles';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
 
 import {
   useBudgetActions,
@@ -37,28 +34,26 @@ import {
   useSaveCategoryMutation,
   useSortCategoriesMutation,
 } from '#budget';
-import { useCategories } from '#hooks/useCategories';
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import { useLocalPref } from '#hooks/useLocalPref';
-import { useNavigate } from '#hooks/useNavigate';
-import { SheetNameProvider } from '#hooks/useSheetName';
-import { useSpreadsheet } from '#hooks/useSpreadsheet';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {useCategories} from '#hooks/useCategories';
+import {useGlobalPref} from '#hooks/useGlobalPref';
+import {useLocalPref} from '#hooks/useLocalPref';
+import {useNavigate} from '#hooks/useNavigate';
+import {SheetNameProvider} from '#hooks/useSheetName';
+import {useSpreadsheet} from '#hooks/useSpreadsheet';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
-import { AutoSizingBudgetTable } from './DynamicBudgetTable';
+import {AutoSizingBudgetTable} from './DynamicBudgetTable';
 import * as envelopeBudget from './envelope/EnvelopeBudgetComponents';
-import { EnvelopeBudgetProvider } from './envelope/EnvelopeBudgetContext';
+import {EnvelopeBudgetProvider} from './envelope/EnvelopeBudgetContext';
 import * as trackingBudget from './tracking/TrackingBudgetComponents';
-import { TrackingBudgetProvider } from './tracking/TrackingBudgetContext';
-import { prewarmAllMonths, prewarmMonth } from './util';
+import {TrackingBudgetProvider} from './tracking/TrackingBudgetContext';
+import {prewarmAllMonths, prewarmMonth} from './util';
 
 export function Budget() {
   const currentMonth = monthUtils.currentMonth();
   const spreadsheet = useSpreadsheet();
   const navigate = useNavigate();
-  const [summaryCollapsed, setSummaryCollapsedPref] = useLocalPref(
-    'budget.summaryCollapsed',
-  );
+  const [summaryCollapsed, setSummaryCollapsedPref] = useLocalPref('budget.summaryCollapsed');
   const [startMonthPref, setStartMonthPref] = useLocalPref('budget.startMonth');
   const startMonth = startMonthPref || currentMonth;
   const [bounds, setBounds] = useState({
@@ -69,20 +64,14 @@ export function Budget() {
   const [maxMonthsPref] = useGlobalPref('maxMonths');
   const maxMonths = maxMonthsPref || 1;
   const [initialized, setInitialized] = useState(false);
-  const { data: { grouped: categoryGroups } = { grouped: [] } } =
-    useCategories();
+  const {data: {grouped: categoryGroups} = {grouped: []}} = useCategories();
 
   const init = useEffectEvent(() => {
     async function run() {
-      const { start, end } = await send('get-budget-bounds');
-      setBounds({ start, end });
+      const {start, end} = await send('get-budget-bounds');
+      setBounds({start, end});
 
-      await prewarmAllMonths(
-        budgetType,
-        spreadsheet,
-        { start, end },
-        startMonth,
-      );
+      await prewarmAllMonths(budgetType, spreadsheet, {start, end}, startMonth);
 
       setInitialized(true);
     }
@@ -92,9 +81,9 @@ export function Budget() {
   useEffect(() => init(), []);
 
   const loadBoundBudgets = useEffectEvent(() => {
-    void send('get-budget-bounds').then(({ start, end }) => {
+    void send('get-budget-bounds').then(({start, end}) => {
       if (bounds.start !== start || bounds.end !== end) {
-        setBounds({ start, end });
+        setBounds({start, end});
       }
     });
   });
@@ -113,18 +102,10 @@ export function Budget() {
     // but it will just load in some unnecessary data.
     if (month < startMonth) {
       // pre-warm prev month
-      await prewarmMonth(
-        budgetType,
-        spreadsheet,
-        monthUtils.subMonths(month, 1),
-      );
+      await prewarmMonth(budgetType, spreadsheet, monthUtils.subMonths(month, 1));
     } else if (month > startMonth) {
       // pre-warm next month
-      await prewarmMonth(
-        budgetType,
-        spreadsheet,
-        monthUtils.addMonths(month, numDisplayed),
-      );
+      await prewarmMonth(budgetType, spreadsheet, monthUtils.addMonths(month, numDisplayed));
     }
 
     if (warmingMonth === month) {
@@ -148,12 +129,12 @@ export function Budget() {
 
   const onShowActivity = (categoryId, month) => {
     const filterConditions = [
-      { field: 'category', op: 'is', value: categoryId, type: 'id' },
+      {field: 'category', op: 'is', value: categoryId, type: 'id'},
       {
         field: 'date',
         op: 'is',
         value: month,
-        options: { month: true },
+        options: {month: true},
         type: 'date',
       },
     ];
@@ -168,27 +149,27 @@ export function Budget() {
 
   const saveCategory = useSaveCategoryMutation();
   const onSaveCategory = category => {
-    saveCategory.mutate({ category });
+    saveCategory.mutate({category});
   };
   const deleteCategory = useDeleteCategoryMutation();
   const onDeleteCategory = id => {
-    deleteCategory.mutate({ id });
+    deleteCategory.mutate({id});
   };
   const reorderCategory = useReorderCategoryMutation();
   const saveCategoryGroup = useSaveCategoryGroupMutation();
   const onSaveCategoryGroup = group => {
-    saveCategoryGroup.mutate({ group });
+    saveCategoryGroup.mutate({group});
   };
   const deleteCategoryGroup = useDeleteCategoryGroupMutation();
   const onDeleteCategoryGroup = id => {
-    deleteCategoryGroup.mutate({ id });
+    deleteCategoryGroup.mutate({id});
   };
   const reorderCategoryGroup = useReorderCategoryGroupMutation();
   const sortCategories = useSortCategoriesMutation();
   const applyBudgetAction = useBudgetActions();
 
   const onBudgetAction = (month, type, args) => {
-    applyBudgetAction.mutate({ month, type, args });
+    applyBudgetAction.mutate({month, type, args});
   };
 
   if (!initialized || !categoryGroups) {
@@ -219,9 +200,7 @@ export function Budget() {
           onReorderCategory={reorderCategory.mutate}
           onReorderGroup={reorderCategoryGroup.mutate}
           onApplyBudgetTemplatesInGroup={onApplyBudgetTemplatesInGroup}
-          onSortCategories={(groupId, direction) =>
-            sortCategories.mutate({ groupId, direction })
-          }
+          onSortCategories={(groupId, direction) => sortCategories.mutate({groupId, direction})}
         />
       </TrackingBudgetProvider>
     );
@@ -248,9 +227,7 @@ export function Budget() {
           onReorderCategory={reorderCategory.mutate}
           onReorderGroup={reorderCategoryGroup.mutate}
           onApplyBudgetTemplatesInGroup={onApplyBudgetTemplatesInGroup}
-          onSortCategories={(groupId, direction) =>
-            sortCategories.mutate({ groupId, direction })
-          }
+          onSortCategories={(groupId, direction) => sortCategories.mutate({groupId, direction})}
         />
       </EnvelopeBudgetProvider>
     );
@@ -272,7 +249,7 @@ export function Budget() {
           overflow: 'hidden',
         }}
       >
-        <View style={{ flex: 1 }}>{table}</View>
+        <View style={{flex: 1}}>{table}</View>
       </View>
     </SheetNameProvider>
   );

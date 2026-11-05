@@ -15,27 +15,23 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import type { ChangeEvent, ReactNode } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import type {ChangeEvent, ReactNode} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { ButtonWithLoading } from '@actual-app/components/button';
-import { BigInput } from '@actual-app/components/input';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import {ButtonWithLoading} from '@actual-app/components/button';
+import {BigInput} from '@actual-app/components/input';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
 
 type ConfirmPasswordFormProps = {
   buttons: ReactNode;
   onSetPassword: (password: string) => Promise<void>;
   onError: (error: string) => void;
 };
-export function ConfirmPasswordForm({
-  buttons,
-  onSetPassword,
-  onError,
-}: ConfirmPasswordFormProps) {
-  const { t } = useTranslation();
+export function ConfirmPasswordForm({buttons, onSetPassword, onError}: ConfirmPasswordFormProps) {
+  const {t} = useTranslation();
 
   const [password1, setPassword1] = useState('');
   const [password2, setPassword2] = useState('');
@@ -82,7 +78,7 @@ export function ConfirmPasswordForm({
         type={showPassword ? 'text' : 'password'}
         value={password2}
         onChangeValue={setPassword2}
-        style={{ marginTop: 10 }}
+        style={{marginTop: 10}}
         onEnter={onSubmit}
       />
 
@@ -94,17 +90,12 @@ export function ConfirmPasswordForm({
           marginTop: 20,
         }}
       >
-        <label style={{ userSelect: 'none' }}>
-          <input type="checkbox" onChange={onShowPassword} />{' '}
-          <Trans>Show password</Trans>
+        <label style={{userSelect: 'none'}}>
+          <input type="checkbox" onChange={onShowPassword} /> <Trans>Show password</Trans>
         </label>
-        <View style={{ flex: 1 }} />
+        <View style={{flex: 1}} />
         {buttons}
-        <ButtonWithLoading
-          variant="primary"
-          isLoading={loading}
-          onPress={onSubmit}
-        >
+        <ButtonWithLoading variant="primary" isLoading={loading} onPress={onSubmit}>
           <Trans>OK</Trans>
         </ButtonWithLoading>
       </View>
@@ -112,15 +103,11 @@ export function ConfirmPasswordForm({
   );
 }
 
-export function ConfirmOldPasswordForm({
-  buttons,
-  onSetPassword,
-  style = null,
-}) {
+export function ConfirmOldPasswordForm({buttons, onSetPassword, style = null}) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   async function onSubmit() {
     if (loading) {
@@ -151,9 +138,7 @@ export function ConfirmOldPasswordForm({
         placeholder={t('Password')}
         type={showPassword ? 'text' : 'password'}
         value={password}
-        onChange={(e: ChangeEvent<HTMLInputElement>) =>
-          setPassword(e.target.value)
-        }
+        onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
         onEnter={onSubmit}
         className={css({
           borderColor: theme.buttonMenuBorder,
@@ -171,17 +156,12 @@ export function ConfirmOldPasswordForm({
           marginTop: 20,
         }}
       >
-        <label style={{ userSelect: 'none' }}>
-          <input type="checkbox" onChange={onShowPassword} />{' '}
-          <Trans>Show password</Trans>
+        <label style={{userSelect: 'none'}}>
+          <input type="checkbox" onChange={onShowPassword} /> <Trans>Show password</Trans>
         </label>
-        <View style={{ flex: 1 }} />
+        <View style={{flex: 1}} />
         {buttons}
-        <ButtonWithLoading
-          variant="primary"
-          isLoading={loading}
-          onPress={onSubmit}
-        >
+        <ButtonWithLoading variant="primary" isLoading={loading} onPress={onSubmit}>
           <Trans>OK</Trans>
         </ButtonWithLoading>
       </View>

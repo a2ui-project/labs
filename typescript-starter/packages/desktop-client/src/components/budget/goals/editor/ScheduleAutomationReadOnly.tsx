@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import type { ScheduleTemplate } from '@actual-app/core/types/models/templates';
+import type {ScheduleTemplate} from '@actual-app/core/types/models/templates';
 
-import { AmountAdjustmentSummary } from './AmountAdjustmentSummary';
+import {AmountAdjustmentSummary} from './AmountAdjustmentSummary';
 
 type ScheduleAutomationReadOnlyProps = {
   template: ScheduleTemplate;
 };
 
-export const ScheduleAutomationReadOnly = ({
-  template,
-}: ScheduleAutomationReadOnlyProps) => {
+export const ScheduleAutomationReadOnly = ({template}: ScheduleAutomationReadOnlyProps) => {
   if (!template.name) {
     return <Trans>Budget for a schedule</Trans>;
   }
@@ -34,13 +32,13 @@ export const ScheduleAutomationReadOnly = ({
   const base = template.full ? (
     <Trans>
       Cover the occurrences of the schedule &lsquo;
-      {{ name: template.name }}
+      {{name: template.name}}
       &rsquo; this month
     </Trans>
   ) : (
     <Trans>
       Save up for the schedule &lsquo;
-      {{ name: template.name }}
+      {{name: template.name}}
       &rsquo;
     </Trans>
   );

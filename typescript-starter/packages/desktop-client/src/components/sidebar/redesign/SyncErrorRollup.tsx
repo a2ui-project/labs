@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { radius, spacing } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {radius, spacing} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
 
 type SyncErrorRollupProps = {
   count: number;
 };
 
-export function SyncErrorRollup({ count }: SyncErrorRollupProps) {
-  const { t } = useTranslation();
+export function SyncErrorRollup({count}: SyncErrorRollupProps) {
+  const {t} = useTranslation();
 
   if (count === 0) {
     return null;
@@ -37,7 +37,7 @@ export function SyncErrorRollup({ count }: SyncErrorRollupProps) {
       title={
         count === 1
           ? t('1 account needs attention')
-          : t('{{count}} accounts need attention', { count })
+          : t('{{count}} accounts need attention', {count})
       }
       style={{
         flexDirection: 'row',

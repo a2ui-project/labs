@@ -15,9 +15,9 @@
  */
 
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import {fileURLToPath} from 'node:url';
 
-import { build } from 'vite';
+import {build} from 'vite';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -34,7 +34,7 @@ export default async function globalSetup() {
     logLevel: 'warn',
     // The workspace package keeps a dev-only `development` export condition; a
     // published consumer has none. Drop it so `browser` (dist/browser.js) wins.
-    resolve: { conditions: ['browser', 'module', 'default'] },
-    build: { outDir: path.join(here, 'consumer', 'dist'), emptyOutDir: true },
+    resolve: {conditions: ['browser', 'module', 'default']},
+    build: {outDir: path.join(here, 'consumer', 'dist'), emptyOutDir: true},
   });
 }

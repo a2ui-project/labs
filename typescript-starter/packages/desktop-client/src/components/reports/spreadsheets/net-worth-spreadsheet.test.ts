@@ -14,24 +14,16 @@
  * limitations under the License.
  */
 
-import {
-  clearServer,
-  initServer,
-} from '@actual-app/core/platform/client/connection';
-import type { AccountEntity } from '@actual-app/core/types/models';
-import { enUS } from 'date-fns/locale';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import {clearServer, initServer} from '@actual-app/core/platform/client/connection';
+import type {AccountEntity} from '@actual-app/core/types/models';
+import {enUS} from 'date-fns/locale';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 
-import { createSpreadsheet } from './net-worth-spreadsheet';
+import {createSpreadsheet} from './net-worth-spreadsheet';
 
-vi.mock(
-  '@actual-app/core/platform/client/connection',
-  () => import('#mocks/connection'),
-);
+vi.mock('@actual-app/core/platform/client/connection', () => import('#mocks/connection'));
 
-type SpreadsheetData = Parameters<
-  Parameters<ReturnType<typeof createSpreadsheet>>[1]
->[0];
+type SpreadsheetData = Parameters<Parameters<ReturnType<typeof createSpreadsheet>>[1]>[0];
 
 type LinkedTransfer = {
   id: string;
@@ -41,7 +33,7 @@ type LinkedTransfer = {
   transfer_id: string;
 };
 
-type AccountQueryResult = number | Array<{ date: string; amount: number }>;
+type AccountQueryResult = number | Array<{date: string; amount: number}>;
 
 const accounts = [
   createAccount('checking', 'Checking'),
@@ -93,7 +85,7 @@ async function runReport({
   const remainingAccountResults = [...accountQueryResults];
 
   initServer({
-    'make-filters-from-conditions': async () => ({ filters: [] }),
+    'make-filters-from-conditions': async () => ({filters: []}),
     'get-earliest-transaction': async () => ({
       date: earliestTransactionDate,
     }),
@@ -110,8 +102,7 @@ async function runReport({
           data: linkedTransfers.filter(
             leg =>
               (accountIds.length === 0 || accountIds.includes(leg.account)) &&
-              (transactionIds.length === 0 ||
-                transactionIds.includes(leg.id)) &&
+              (transactionIds.length === 0 || transactionIds.includes(leg.id)) &&
               (!endDate || leg.date <= endDate),
           ),
           dependencies: [],
@@ -122,7 +113,7 @@ async function runReport({
       if (data === undefined) {
         throw new Error('Unexpected account query');
       }
-      return { data, dependencies: [] };
+      return {data, dependencies: []};
     },
   });
 
@@ -184,9 +175,9 @@ describe('net worth transfers', () => {
       accounts,
       accountQueryResults: [
         100_000,
-        [{ date: '2026-07', amount: -10_000 }],
+        [{date: '2026-07', amount: -10_000}],
         0,
-        [{ date: '2026-08', amount: 10_000 }],
+        [{date: '2026-08', amount: 10_000}],
       ],
       linkedTransfers: [
         {
@@ -206,26 +197,22 @@ describe('net worth transfers', () => {
       ],
     });
 
-    expect(report.graphData.data.map(point => point.y)).toEqual([
-      100_000, 100_000,
-    ]);
+    expect(report.graphData.data.map(point => point.y)).toEqual([100_000, 100_000]);
   });
 
   it('preserves a real expense as a net worth loss', async () => {
     const report = await runReport({
       accounts: [accounts[0]],
-      accountQueryResults: [100_000, [{ date: '2026-07', amount: -10_000 }]],
+      accountQueryResults: [100_000, [{date: '2026-07', amount: -10_000}]],
     });
 
-    expect(report.graphData.data.map(point => point.y)).toEqual([
-      90_000, 90_000,
-    ]);
+    expect(report.graphData.data.map(point => point.y)).toEqual([90_000, 90_000]);
   });
 
   it('preserves a transfer out of the selected account set as a loss', async () => {
     const report = await runReport({
       accounts: [accounts[0]],
-      accountQueryResults: [100_000, [{ date: '2026-07', amount: -10_000 }]],
+      accountQueryResults: [100_000, [{date: '2026-07', amount: -10_000}]],
       linkedTransfers: [
         {
           id: 'checking-transfer',
@@ -244,20 +231,13 @@ describe('net worth transfers', () => {
       ],
     });
 
-    expect(report.graphData.data.map(point => point.y)).toEqual([
-      90_000, 90_000,
-    ]);
+    expect(report.graphData.data.map(point => point.y)).toEqual([90_000, 90_000]);
   });
 
   it('keeps funds in the source account until a later counterpart arrives', async () => {
     const report = await runReport({
       accounts,
-      accountQueryResults: [
-        100_000,
-        [{ date: '2026-08', amount: -10_000 }],
-        0,
-        [],
-      ],
+      accountQueryResults: [100_000, [{date: '2026-08', amount: -10_000}], 0, []],
       linkedTransfers: [
         {
           id: 'checking-transfer',
@@ -276,10 +256,8 @@ describe('net worth transfers', () => {
       ],
     });
 
-    expect(report.graphData.data.map(point => point.y)).toEqual([
-      100_000, 100_000,
-    ]);
-    expect(report.graphData.data.at(-1)).toMatchObject({ checking: 100_000 });
+    expect(report.graphData.data.map(point => point.y)).toEqual([100_000, 100_000]);
+    expect(report.graphData.data.at(-1)).toMatchObject({checking: 100_000});
   });
 
   it('keeps a transfer neutral when it spans the entire report range', async () => {
@@ -307,9 +285,7 @@ describe('net worth transfers', () => {
       earliestTransactionDate: '2026-06-30',
     });
 
-    expect(report.graphData.data.map(point => point.y)).toEqual([
-      100_000, 100_000,
-    ]);
+    expect(report.graphData.data.map(point => point.y)).toEqual([100_000, 100_000]);
   });
 
   it.each([
@@ -359,9 +335,9 @@ describe('net worth transfers', () => {
         accounts,
         accountQueryResults: [
           100_000,
-          [{ date: earlierBalanceDate, amount: -10_000 }],
+          [{date: earlierBalanceDate, amount: -10_000}],
           0,
-          [{ date: laterBalanceDate, amount: 10_000 }],
+          [{date: laterBalanceDate, amount: 10_000}],
         ],
         linkedTransfers: [
           {

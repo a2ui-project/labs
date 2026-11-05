@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { MobileNavigation } from './page-models/mobile-navigation';
-import type { MobilePayeesPage } from './page-models/mobile-payees-page';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {MobileNavigation} from './page-models/mobile-navigation';
+import type {MobilePayeesPage} from './page-models/mobile-payees-page';
 
 test.describe('Mobile Payees', () => {
   let page: Page;
@@ -27,7 +27,7 @@ test.describe('Mobile Payees', () => {
   let payeesPage: MobilePayeesPage;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new MobileNavigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -53,14 +53,11 @@ test.describe('Mobile Payees', () => {
     await payeesPage.waitForLoadingToComplete();
 
     // Check that the header is present
-    await expect(page.getByRole('heading', { name: 'Payees' })).toBeVisible();
+    await expect(page.getByRole('heading', {name: 'Payees'})).toBeVisible();
 
     // Check that the search box is present with proper placeholder
     await expect(payeesPage.searchBox).toBeVisible();
-    await expect(payeesPage.searchBox).toHaveAttribute(
-      'placeholder',
-      'Filter payees…',
-    );
+    await expect(payeesPage.searchBox).toHaveAttribute('placeholder', 'Filter payees…');
 
     const payeeCount = await payeesPage.getPayeeCount();
     expect(payeeCount).toBeGreaterThan(0);
@@ -90,11 +87,9 @@ test.describe('Mobile Payees', () => {
     await expect(page).toHaveURL(/\/payees\/.+/);
 
     // Check that the edit page elements are visible
-    await expect(
-      page.getByRole('heading', { name: 'Edit Payee' }),
-    ).toBeVisible();
+    await expect(page.getByRole('heading', {name: 'Edit Payee'})).toBeVisible();
     await expect(page.getByPlaceholder('Payee name')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Save' })).toBeVisible();
+    await expect(page.getByRole('button', {name: 'Save'})).toBeVisible();
 
     await expect(page).toMatchThemeScreenshots();
   });

@@ -15,18 +15,18 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
+import type {CSSProperties} from 'react';
 
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
 
-import { ToBudgetMenu } from '#components/budget/envelope/budgetsummary/ToBudgetMenu';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {ToBudgetMenu} from '#components/budget/envelope/budgetsummary/ToBudgetMenu';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
 type EnvelopeToBudgetMenuModalProps = Extract<
   ModalType,
-  { name: 'envelope-summary-to-budget-menu' }
+  {name: 'envelope-summary-to-budget-menu'}
 >['options'];
 
 export function EnvelopeToBudgetMenuModal({
@@ -46,12 +46,9 @@ export function EnvelopeToBudgetMenuModal({
 
   return (
     <Modal name="envelope-summary-to-budget-menu">
-      {({ state }) => (
+      {({state}) => (
         <>
-          <ModalHeader
-            showLogo
-            rightContent={<ModalCloseButton onPress={() => state.close()} />}
-          />
+          <ModalHeader showLogo rightContent={<ModalCloseButton onPress={() => state.close()} />} />
           <ToBudgetMenu
             getItemStyle={() => defaultMenuItemStyle}
             onTransfer={onTransfer}

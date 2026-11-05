@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgViewList = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -26,9 +26,6 @@ export const SvgViewList = (props: SVGProps<SVGSVGElement>) => (
       ...props.style,
     }}
   >
-    <path
-      d="M0 3h20v2H0zm0 4h20v2H0zm0 4h20v2H0zm0 4h20v2H0z"
-      fill="currentColor"
-    />
+    <path d="M0 3h20v2H0zm0 4h20v2H0zm0 4h20v2H0zm0 4h20v2H0z" fill="currentColor" />
   </svg>
 );

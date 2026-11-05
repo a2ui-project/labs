@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
-import type { ReactElement } from 'react';
-import { Trans } from 'react-i18next';
+import {useEffect, useState} from 'react';
+import type {ReactElement} from 'react';
+import {Trans} from 'react-i18next';
 
-import { View } from '@actual-app/components/view';
-import type { RemoteFile, SyncedLocalFile } from '@actual-app/core/types/file';
+import {View} from '@actual-app/components/view';
+import type {RemoteFile, SyncedLocalFile} from '@actual-app/core/types/file';
 
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { useSelector } from '#redux';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {useSelector} from '#redux';
 
-import { useAuth } from './AuthProvider';
-import type { Permissions } from './types';
+import {useAuth} from './AuthProvider';
+import type {Permissions} from './types';
 
 type ProtectedRouteProps = {
   permission: Permissions;
@@ -33,12 +33,8 @@ type ProtectedRouteProps = {
   validateOwner?: boolean;
 };
 
-export const ProtectedRoute = ({
-  element,
-  permission,
-  validateOwner,
-}: ProtectedRouteProps) => {
-  const { hasPermission } = useAuth();
+export const ProtectedRoute = ({element, permission, validateOwner}: ProtectedRouteProps) => {
+  const {hasPermission} = useAuth();
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [cloudFileId] = useMetadataPref('cloudFileId');
   const allFiles = useSelector(state => state.budgetfiles.allFiles || []);
@@ -55,19 +51,10 @@ export const ProtectedRoute = ({
 
     if (!hasRequiredPermission && validateOwner) {
       if (currentFile) {
-        setPermissionGranted(
-          currentFile.usersWithAccess.some(u => u.userId === userData?.userId),
-        );
+        setPermissionGranted(currentFile.usersWithAccess.some(u => u.userId === userData?.userId));
       }
     }
-  }, [
-    cloudFileId,
-    permission,
-    validateOwner,
-    hasPermission,
-    currentFile,
-    userData,
-  ]);
+  }, [cloudFileId, permission, validateOwner, hasPermission, currentFile, userData]);
 
   return permissionGranted ? (
     element

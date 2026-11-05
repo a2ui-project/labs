@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
-import type { RefObject } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useMemo} from 'react';
+import type {RefObject} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { q } from '@actual-app/core/shared/query';
-import {
-  extractScheduleConds,
-  scheduleIsRecurring,
-} from '@actual-app/core/shared/schedules';
-import { isPreviewId } from '@actual-app/core/shared/transactions';
-import type { TransactionEntity } from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import {extractScheduleConds, scheduleIsRecurring} from '@actual-app/core/shared/schedules';
+import {isPreviewId} from '@actual-app/core/shared/transactions';
+import type {TransactionEntity} from '@actual-app/core/types/models';
 
-import type { ContextMenuItem } from '#contextmenu/types';
-import { useContextMenu } from '#hooks/useContextMenu';
-import { useSchedules } from '#hooks/useSchedules';
-import { useSelectedItems } from '#hooks/useSelected';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import type {ContextMenuItem} from '#contextmenu/types';
+import {useContextMenu} from '#hooks/useContextMenu';
+import {useSchedules} from '#hooks/useSchedules';
+import {useSelectedItems} from '#hooks/useSelected';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
 type TransactionRowContextMenuProps = {
   rowRef: RefObject<HTMLElement | null>;
@@ -61,22 +58,17 @@ export function useTransactionRowContextActions({
   onScheduleAction,
   onMakeAsNonSplitTransactions,
 }: TransactionRowContextMenuProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const selectedItems = useSelectedItems();
 
   const selectedIds = useMemo(() => {
-    const ids =
-      selectedItems && selectedItems.size > 0
-        ? selectedItems
-        : [transaction.id];
+    const ids = selectedItems && selectedItems.size > 0 ? selectedItems : [transaction.id];
     return Array.from(new Set(ids));
   }, [transaction, selectedItems]);
 
   const scheduleIds = useMemo(() => {
-    return selectedIds
-      .filter(id => isPreviewId(id))
-      .map(id => id.split('/')[1]);
+    return selectedIds.filter(id => isPreviewId(id)).map(id => id.split('/')[1]);
   }, [selectedIds]);
 
   const scheduleQuery = useMemo(() => {
@@ -84,11 +76,11 @@ export function useTransactionRowContextActions({
       return undefined;
     }
     return q('schedules')
-      .filter({ id: { $oneof: scheduleIds } })
+      .filter({id: {$oneof: scheduleIds}})
       .select('*');
   }, [scheduleIds]);
 
-  const { schedules: selectedSchedules } = useSchedules({
+  const {schedules: selectedSchedules} = useSchedules({
     query: scheduleQuery,
   });
 
@@ -118,7 +110,7 @@ export function useTransactionRowContextActions({
 
   const canBeSkipped = useMemo(() => {
     const recurringSchedules = selectedSchedules.filter(s => {
-      const { date: dateCond } = extractScheduleConds(s._conditions);
+      const {date: dateCond} = extractScheduleConds(s._conditions);
       return scheduleIsRecurring(dateCond);
     });
 
@@ -127,7 +119,7 @@ export function useTransactionRowContextActions({
 
   const canBeCompleted = useMemo(() => {
     const singleSchedules = selectedSchedules.filter(s => {
-      const { date: dateCond } = extractScheduleConds(s._conditions);
+      const {date: dateCond} = extractScheduleConds(s._conditions);
       return !scheduleIsRecurring(dateCond);
     });
 
@@ -141,12 +133,8 @@ export function useTransactionRowContextActions({
 
     const transactions = selectedIds.map(id => getTransaction(id));
 
-    const areNoReconciledTransactions = transactions.every(
-      tx => tx && !tx.reconciled,
-    );
-    const areAllSplitTransactions = transactions.every(
-      tx => tx && (tx.is_parent || tx.is_child),
-    );
+    const areNoReconciledTransactions = transactions.every(tx => tx && !tx.reconciled);
+    const areAllSplitTransactions = transactions.every(tx => tx && (tx.is_parent || tx.is_child));
     return areNoReconciledTransactions && areAllSplitTransactions;
   }, [selectedIds, types, getTransaction]);
 
@@ -164,7 +152,7 @@ export function useTransactionRowContextActions({
     if (scheduleId) {
       dispatch(
         pushModal({
-          modal: { name: 'schedule-edit', options: { id: scheduleId } },
+          modal: {name: 'schedule-edit', options: {id: scheduleId}},
         }),
       );
     }

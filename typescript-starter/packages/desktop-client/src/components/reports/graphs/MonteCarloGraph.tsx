@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import {
-  Area,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {Area, CartesianGrid, ComposedChart, Line, Tooltip, XAxis, YAxis} from 'recharts';
 
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
 import type {
   FanChartDataPoint,
   MonteCarloGraphView,
@@ -36,10 +28,10 @@ import {
   MonteCarloGraphTooltip,
   VIEW_DATA_KEYS,
 } from '#components/reports/graphs/MonteCarloGraphTooltip';
-import { computePadding } from '#components/reports/graphs/util/computePadding';
-import { useMonteCarloTickFormatter } from '#components/reports/graphs/util/useMonteCarloTickFormatter';
-import type { MonteCarloPercentileBand } from '#components/reports/reports/monte-carlo/monteCarloSimulation';
-import { useFormat } from '#hooks/useFormat';
+import {computePadding} from '#components/reports/graphs/util/computePadding';
+import {useMonteCarloTickFormatter} from '#components/reports/graphs/util/useMonteCarloTickFormatter';
+import type {MonteCarloPercentileBand} from '#components/reports/reports/monte-carlo/monteCarloSimulation';
+import {useFormat} from '#hooks/useFormat';
 
 type MonteCarloGraphProps = {
   style?: CSSProperties;
@@ -63,7 +55,7 @@ export function MonteCarloGraph({
 }: MonteCarloGraphProps) {
   const format = useFormat();
   const tickFormatter = useMonteCarloTickFormatter();
-  const animationProps = useRechartsAnimation({ animationDuration: 1000 });
+  const animationProps = useRechartsAnimation({animationDuration: 1000});
 
   const data: FanChartDataPoint[] = percentileBands.map(band => ({
     year: band.year,
@@ -85,7 +77,7 @@ export function MonteCarloGraph({
     <Container
       style={{
         ...style,
-        ...(compact && { height: 'auto' }),
+        ...(compact && {height: 'auto'}),
       }}
     >
       {(width, height) => (
@@ -109,20 +101,17 @@ export function MonteCarloGraph({
           <XAxis
             dataKey="age"
             hide={compact}
-            tick={{ fill: theme.pageText }}
-            tickLine={{ stroke: theme.pageText }}
+            tick={{fill: theme.pageText}}
+            tickLine={{stroke: theme.pageText}}
           />
           <YAxis
             hide={compact}
             tickFormatter={tickFormatter}
-            tick={{ fill: theme.pageText }}
-            tickLine={{ stroke: theme.pageText }}
+            tick={{fill: theme.pageText}}
+            tickLine={{stroke: theme.pageText}}
           />
           {showTooltip && (
-            <Tooltip
-              content={<MonteCarloGraphTooltip view={view} />}
-              isAnimationActive={false}
-            />
+            <Tooltip content={<MonteCarloGraphTooltip view={view} />} isAnimationActive={false} />
           )}
           {view === 'all' ? (
             <>

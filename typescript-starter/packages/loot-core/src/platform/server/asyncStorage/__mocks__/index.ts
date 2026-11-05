@@ -16,7 +16,7 @@
 
 import type * as T from '#platform/server/asyncStorage/index-types';
 // @ts-strict-ignore
-import type { GlobalPrefsJson } from '#types/prefs';
+import type {GlobalPrefsJson} from '#types/prefs';
 
 const store: GlobalPrefsJson = {};
 
@@ -38,7 +38,7 @@ export const removeItem: T.RemoveItem = async function (key) {
 
 export async function multiGet<K extends readonly (keyof GlobalPrefsJson)[]>(
   keys: K,
-): Promise<{ [P in K[number]]: GlobalPrefsJson[P] }> {
+): Promise<{[P in K[number]]: GlobalPrefsJson[P]}> {
   const results = keys.map(key => [key, store[key]]) as {
     [P in keyof K]: [K[P], GlobalPrefsJson[K[P]]];
   };
@@ -49,7 +49,7 @@ export async function multiGet<K extends readonly (keyof GlobalPrefsJson)[]>(
       acc[key] = value;
       return acc;
     },
-    {} as { [P in K[number]]: GlobalPrefsJson[P] },
+    {} as {[P in K[number]]: GlobalPrefsJson[P]},
   );
 }
 

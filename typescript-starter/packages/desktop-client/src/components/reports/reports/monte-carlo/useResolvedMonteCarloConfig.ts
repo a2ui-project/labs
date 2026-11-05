@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
+import {useMemo} from 'react';
 
-import type { MonteCarloConfig } from '#components/reports/reports/monte-carlo/monteCarloSimulation';
-import { useAccountBalances } from '#hooks/useAccountBalances';
+import type {MonteCarloConfig} from '#components/reports/reports/monte-carlo/monteCarloSimulation';
+import {useAccountBalances} from '#hooks/useAccountBalances';
 
 /**
  * Resolves account-linked pots to their live balances: a linked pot takes
@@ -25,13 +25,9 @@ import { useAccountBalances } from '#hooks/useAccountBalances';
  * balance until the live value arrives. Shared by the report page and the
  * dashboard card so both simulate the same portfolio.
  */
-export function useResolvedMonteCarloConfig(
-  config: MonteCarloConfig,
-): MonteCarloConfig {
+export function useResolvedMonteCarloConfig(config: MonteCarloConfig): MonteCarloConfig {
   const accountBalances = useAccountBalances(
-    config.pots
-      .map(pot => pot.accountId)
-      .filter((id): id is string => id != null),
+    config.pots.map(pot => pot.accountId).filter((id): id is string => id != null),
   );
 
   // Memoized by hand: this plain .ts file sits outside the React
@@ -42,11 +38,8 @@ export function useResolvedMonteCarloConfig(
     () => ({
       ...config,
       pots: config.pots.map(pot => {
-        const balance =
-          pot.accountId != null ? accountBalances[pot.accountId] : null;
-        return balance != null
-          ? { ...pot, startingBalance: Math.max(0, balance) }
-          : pot;
+        const balance = pot.accountId != null ? accountBalances[pot.accountId] : null;
+        return balance != null ? {...pot, startingBalance: Math.max(0, balance)} : pot;
       }),
     }),
     [config, accountBalances],

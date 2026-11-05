@@ -15,17 +15,11 @@
  */
 
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  GroupedEntity,
-  IntervalEntity,
-} from '@actual-app/core/types/models';
+import type {GroupedEntity, IntervalEntity} from '@actual-app/core/types/models';
 
-import type {
-  QueryDataEntity,
-  UncategorizedEntity,
-} from '#components/reports/ReportOptions';
+import type {QueryDataEntity, UncategorizedEntity} from '#components/reports/ReportOptions';
 
-import { filterHiddenItems } from './filterHiddenItems';
+import {filterHiddenItems} from './filterHiddenItems';
 
 type recalculateProps = {
   item: UncategorizedEntity;
@@ -54,70 +48,63 @@ export function recalculate({
 }: recalculateProps): GroupedEntity {
   let totalAssets = 0;
   let totalDebts = 0;
-  const intervalData = intervals.reduce(
-    (arr: IntervalEntity[], intervalItem, index) => {
-      const last = arr.length === 0 ? null : arr[arr.length - 1];
+  const intervalData = intervals.reduce((arr: IntervalEntity[], intervalItem, index) => {
+    const last = arr.length === 0 ? null : arr[arr.length - 1];
 
-      const groupsByCategory =
-        groupByLabel === 'category' || groupByLabel === 'categoryGroup';
-      const intervalAssets = filterHiddenItems(
-        item,
-        assets,
-        showOffBudget,
-        showHiddenCategories,
-        showUncategorized,
-        groupsByCategory,
+    const groupsByCategory = groupByLabel === 'category' || groupByLabel === 'categoryGroup';
+    const intervalAssets = filterHiddenItems(
+      item,
+      assets,
+      showOffBudget,
+      showHiddenCategories,
+      showUncategorized,
+      groupsByCategory,
+    )
+      .filter(
+        asset =>
+          asset.date === intervalItem &&
+          (asset[groupByLabel] === (item.id ?? null) ||
+            (item.uncategorized_id && groupsByCategory)),
       )
-        .filter(
-          asset =>
-            asset.date === intervalItem &&
-            (asset[groupByLabel] === (item.id ?? null) ||
-              (item.uncategorized_id && groupsByCategory)),
-        )
-        .reduce((a, v) => a + v.amount, 0);
-      totalAssets += intervalAssets;
+      .reduce((a, v) => a + v.amount, 0);
+    totalAssets += intervalAssets;
 
-      const intervalDebts = filterHiddenItems(
-        item,
-        debts,
-        showOffBudget,
-        showHiddenCategories,
-        showUncategorized,
-        groupsByCategory,
+    const intervalDebts = filterHiddenItems(
+      item,
+      debts,
+      showOffBudget,
+      showHiddenCategories,
+      showUncategorized,
+      groupsByCategory,
+    )
+      .filter(
+        debt =>
+          debt.date === intervalItem &&
+          (debt[groupByLabel] === (item.id ?? null) || (item.uncategorized_id && groupsByCategory)),
       )
-        .filter(
-          debt =>
-            debt.date === intervalItem &&
-            (debt[groupByLabel] === (item.id ?? null) ||
-              (item.uncategorized_id && groupsByCategory)),
-        )
-        .reduce((a, v) => a + v.amount, 0);
-      totalDebts += intervalDebts;
+      .reduce((a, v) => a + v.amount, 0);
+    totalDebts += intervalDebts;
 
-      const intervalTotals = intervalAssets + intervalDebts;
+    const intervalTotals = intervalAssets + intervalDebts;
 
-      const change = last ? intervalTotals - last.totalTotals : 0;
+    const change = last ? intervalTotals - last.totalTotals : 0;
 
-      arr.push({
-        date: intervalItem,
-        totalAssets: intervalAssets,
-        totalDebts: intervalDebts,
-        netAssets: intervalTotals > 0 ? intervalTotals : 0,
-        netDebts: intervalTotals < 0 ? intervalTotals : 0,
-        totalTotals: intervalTotals,
-        totalBudgeted: intervalTotals,
-        change,
-        intervalStartDate: index === 0 ? startDate : intervalItem,
-        intervalEndDate:
-          index + 1 === intervals.length
-            ? endDate
-            : monthUtils.subDays(intervals[index + 1], 1),
-      });
+    arr.push({
+      date: intervalItem,
+      totalAssets: intervalAssets,
+      totalDebts: intervalDebts,
+      netAssets: intervalTotals > 0 ? intervalTotals : 0,
+      netDebts: intervalTotals < 0 ? intervalTotals : 0,
+      totalTotals: intervalTotals,
+      totalBudgeted: intervalTotals,
+      change,
+      intervalStartDate: index === 0 ? startDate : intervalItem,
+      intervalEndDate:
+        index + 1 === intervals.length ? endDate : monthUtils.subDays(intervals[index + 1], 1),
+    });
 
-      return arr;
-    },
-    [],
-  );
+    return arr;
+  }, []);
 
   const totalTotals = totalAssets + totalDebts;
 

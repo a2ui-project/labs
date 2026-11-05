@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgReplyAll = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}

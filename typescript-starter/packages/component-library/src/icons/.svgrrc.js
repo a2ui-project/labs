@@ -24,7 +24,7 @@ module.exports = {
       {
         name: 'preset-default',
         params: {
-          overrides: { removeUnknownsAndDefaults: false },
+          overrides: {removeUnknownsAndDefaults: false},
         },
       },
       'removeDimensions',

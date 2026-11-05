@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
+import {useState} from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
-import { fn } from 'storybook/test';
+import type {Meta, StoryObj} from '@storybook/react-vite';
+import {fn} from 'storybook/test';
 
-import type { DateRangePickerLabels } from './date-range-picker/util';
-import { DateRangePicker } from './DateRangePicker';
+import type {DateRangePickerLabels} from './date-range-picker/util';
+import {DateRangePicker} from './DateRangePicker';
 
 const labels: DateRangePickerLabels = {
   selectBy: 'Select by',
@@ -67,7 +67,7 @@ export const WithDayGranularity: Story = {
 
 export const WithPresets: Story = {
   render: args => {
-    const [range, setRange] = useState({ start: args.start, end: args.end });
+    const [range, setRange] = useState({start: args.start, end: args.end});
     return (
       <DateRangePicker
         {...args}
@@ -79,16 +79,16 @@ export const WithPresets: Story = {
             key: '3-months',
             label: '3 months',
             getRange: () => ['2024-04', '2024-06'],
-            onSelect: () => setRange({ start: '2024-04', end: '2024-06' }),
+            onSelect: () => setRange({start: '2024-04', end: '2024-06'}),
           },
           {
             key: '1-year',
             label: '1 year',
             getRange: () => ['2023-07', '2024-06'],
-            onSelect: () => setRange({ start: '2023-07', end: '2024-06' }),
+            onSelect: () => setRange({start: '2023-07', end: '2024-06'}),
           },
         ]}
-        onChangeDates={(start, end) => setRange({ start, end })}
+        onChangeDates={(start, end) => setRange({start, end})}
       />
     );
   },

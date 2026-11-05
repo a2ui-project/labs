@@ -15,36 +15,25 @@
  */
 
 import React from 'react';
-import type { CSSProperties, SVGAttributes } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {CSSProperties, SVGAttributes} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { theme } from '@actual-app/components/theme';
-import type {
-  balanceTypeOpType,
-  DataEntity,
-} from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  LabelList,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import type { LabelProps } from 'recharts';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {theme} from '@actual-app/components/theme';
+import type {balanceTypeOpType, DataEntity} from '@actual-app/core/types/models';
+import {css} from '@emotion/css';
+import {Area, AreaChart, CartesianGrid, LabelList, Tooltip, XAxis, YAxis} from 'recharts';
+import type {LabelProps} from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {FinancialText} from '#components/FinancialText';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
-import { adjustTextSize } from './adjustTextSize';
-import { renderCustomLabel } from './renderCustomLabel';
+import {adjustTextSize} from './adjustTextSize';
+import {renderCustomLabel} from './renderCustomLabel';
 
 type PayloadItem = {
   payload: {
@@ -65,13 +54,8 @@ type CustomTooltipProps = {
   format: (value: unknown, type: FormatType) => string;
 };
 
-const CustomTooltip = ({
-  active,
-  payload,
-  balanceTypeOp,
-  format,
-}: CustomTooltipProps) => {
-  const { t } = useTranslation();
+const CustomTooltip = ({active, payload, balanceTypeOp, format}: CustomTooltipProps) => {
+  const {t} = useTranslation();
 
   if (active && payload && payload.length) {
     return (
@@ -87,13 +71,11 @@ const CustomTooltip = ({
         })}
       >
         <div>
-          <div style={{ marginBottom: 10 }}>
+          <div style={{marginBottom: 10}}>
             <strong>{payload[0].payload.date}</strong>
           </div>
-          <div style={{ lineHeight: 1.5 }}>
-            {['totalAssets', 'totalTotals', 'totalBudgeted'].includes(
-              balanceTypeOp,
-            ) && (
+          <div style={{lineHeight: 1.5}}>
+            {['totalAssets', 'totalTotals', 'totalBudgeted'].includes(balanceTypeOp) && (
               <AlignedText
                 left={t('Assets:')}
                 right={
@@ -103,9 +85,7 @@ const CustomTooltip = ({
                 }
               />
             )}
-            {['totalDebts', 'totalTotals', 'totalBudgeted'].includes(
-              balanceTypeOp,
-            ) && (
+            {['totalDebts', 'totalTotals', 'totalBudgeted'].includes(balanceTypeOp) && (
               <AlignedText
                 left={t('Debts:')}
                 right={
@@ -119,9 +99,7 @@ const CustomTooltip = ({
               <AlignedText
                 left={t('Net Assets:')}
                 right={
-                  <FinancialText>
-                    {format(payload[0].payload.netAssets, 'financial')}
-                  </FinancialText>
+                  <FinancialText>{format(payload[0].payload.netAssets, 'financial')}</FinancialText>
                 }
               />
             )}
@@ -129,17 +107,13 @@ const CustomTooltip = ({
               <AlignedText
                 left={t('Net Debts:')}
                 right={
-                  <FinancialText>
-                    {format(payload[0].payload.netDebts, 'financial')}
-                  </FinancialText>
+                  <FinancialText>{format(payload[0].payload.netDebts, 'financial')}</FinancialText>
                 }
               />
             )}
             {['totalTotals', 'totalBudgeted'].includes(balanceTypeOp) && (
               <AlignedText
-                left={
-                  balanceTypeOp === 'totalBudgeted' ? t('Budgeted:') : t('Net:')
-                }
+                left={balanceTypeOp === 'totalBudgeted' ? t('Budgeted:') : t('Net:')}
                 right={
                   <FinancialText as="strong">
                     {format(
@@ -185,7 +159,7 @@ const customLabel = ({
     typeof props.value === 'number' && props.value !== 0
       ? `${format(props.value, 'financial-no-decimals')}`
       : '';
-  const textSize = adjustTextSize({ sized: width, type: 'area' });
+  const textSize = adjustTextSize({sized: width, type: 'area'});
 
   return renderCustomLabel(calcX, calcY, textAnchor, display, textSize);
 };
@@ -208,7 +182,7 @@ export function AreaGraph({
   showTooltip = true,
 }: AreaGraphProps) {
   const format = useFormat();
-  const animationProps = useRechartsAnimation({ animationDuration: 1000 });
+  const animationProps = useRechartsAnimation({animationDuration: 1000});
 
   const privacyMode = usePrivacyMode();
   const dataMax = Math.max(...data.intervalData.map(i => i[balanceTypeOp]));
@@ -255,13 +229,13 @@ export function AreaGraph({
     <Container
       style={{
         ...style,
-        ...(compact && { height: 'auto' }),
+        ...(compact && {height: 'auto'}),
       }}
     >
       {(width, height) =>
         data.intervalData && (
           <div>
-            {!compact && <div style={{ marginTop: '15px' }} />}
+            {!compact && <div style={{marginTop: '15px'}} />}
             <AreaChart
               responsive
               width={width}
@@ -274,76 +248,38 @@ export function AreaGraph({
                 bottom: 10,
               }}
             >
-              {compact ? null : (
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              )}
+              {compact ? null : <CartesianGrid strokeDasharray="3 3" vertical={false} />}
               {compact ? null : (
                 <XAxis
                   dataKey="date"
-                  tick={{ fill: theme.pageText }}
-                  tickLine={{ stroke: theme.pageText }}
+                  tick={{fill: theme.pageText}}
+                  tickLine={{stroke: theme.pageText}}
                 />
               )}
               {compact ? null : (
                 <YAxis
                   dataKey={balanceTypeOp}
-                  domain={[
-                    viewLabels ? labelsMin : 'auto',
-                    viewLabels ? labelsMax : 'auto',
-                  ]}
+                  domain={[viewLabels ? labelsMin : 'auto', viewLabels ? labelsMax : 'auto']}
                   tickFormatter={tickFormatter}
-                  tick={{ fill: theme.pageText }}
-                  tickLine={{ stroke: theme.pageText }}
+                  tick={{fill: theme.pageText}}
+                  tickLine={{stroke: theme.pageText}}
                   tickSize={0}
                 />
               )}
               {showTooltip && (
                 <Tooltip
-                  content={
-                    <CustomTooltip
-                      balanceTypeOp={balanceTypeOp}
-                      format={format}
-                    />
-                  }
+                  content={<CustomTooltip balanceTypeOp={balanceTypeOp} format={format} />}
                   isAnimationActive={false}
                 />
               )}
               <defs>
-                <linearGradient
-                  id={`fill${balanceTypeOp}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset={off}
-                    stopColor={theme.reportsNumberPositive}
-                    stopOpacity={0.2}
-                  />
-                  <stop
-                    offset={off}
-                    stopColor={theme.reportsNumberNegative}
-                    stopOpacity={0.2}
-                  />
+                <linearGradient id={`fill${balanceTypeOp}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset={off} stopColor={theme.reportsNumberPositive} stopOpacity={0.2} />
+                  <stop offset={off} stopColor={theme.reportsNumberNegative} stopOpacity={0.2} />
                 </linearGradient>
-                <linearGradient
-                  id={`stroke${balanceTypeOp}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset={off}
-                    stopColor={theme.reportsNumberPositive}
-                    stopOpacity={1}
-                  />
-                  <stop
-                    offset={off}
-                    stopColor={theme.reportsNumberNegative}
-                    stopOpacity={1}
-                  />
+                <linearGradient id={`stroke${balanceTypeOp}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset={off} stopColor={theme.reportsNumberPositive} stopOpacity={1} />
+                  <stop offset={off} stopColor={theme.reportsNumberNegative} stopOpacity={1} />
                 </linearGradient>
               </defs>
 

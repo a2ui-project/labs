@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { Navigation } from './page-models/navigation';
-import type { SchedulesPage } from './page-models/schedules-page';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {Navigation} from './page-models/navigation';
+import type {SchedulesPage} from './page-models/schedules-page';
 
 test.describe('Schedules', () => {
   let page: Page;
@@ -27,7 +27,7 @@ test.describe('Schedules', () => {
   let schedulesPage: SchedulesPage;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new Navigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -82,9 +82,7 @@ test.describe('Schedules', () => {
     const rulesPage = await navigation.goToRulesPage();
     await rulesPage.searchFor('Home Depot');
     const rule = rulesPage.getNthRule(0);
-    await expect(rule.actions).toHaveText([
-      'link schedule Home Depot (2017-01-01)',
-    ]);
+    await expect(rule.actions).toHaveText(['link schedule Home Depot (2017-01-01)']);
     await expect(rule.conditions).toHaveText([
       'payee is Home Depot',
       'and account is HSBC',
@@ -95,9 +93,7 @@ test.describe('Schedules', () => {
     // Go back to schedules page
     await navigation.goToSchedulesPage();
     await schedulesPage.completeNthSchedule(2);
-    await expect(schedulesPage.getNthScheduleRow(4)).toHaveText(
-      'Show completed schedules',
-    );
+    await expect(schedulesPage.getNthScheduleRow(4)).toHaveText('Show completed schedules');
     await expect(page).toMatchThemeScreenshots();
   });
 
@@ -108,12 +104,8 @@ test.describe('Schedules', () => {
           $send: <T>(type: string, args?: unknown) => Promise<T>;
         }
       ).$send;
-      const query = <T>(
-        table: string,
-        filterExpressions: unknown[],
-        selectExpressions: string[],
-      ) =>
-        $send<{ data: T[] }>('query', {
+      const query = <T>(table: string, filterExpressions: unknown[], selectExpressions: string[]) =>
+        $send<{data: T[]}>('query', {
           table,
           tableOptions: {},
           filterExpressions,
@@ -130,32 +122,20 @@ test.describe('Schedules', () => {
 
       const {
         data: [destinationAccount],
-      } = await query<{ id: string }>(
-        'accounts',
-        [{ name: 'Ally Savings' }],
-        ['id'],
-      );
+      } = await query<{id: string}>('accounts', [{name: 'Ally Savings'}], ['id']);
       const {
         data: [destinationPayee],
-      } = await query<{ id: string }>(
-        'payees',
-        [{ transfer_acct: destinationAccount.id }],
-        ['id'],
-      );
+      } = await query<{id: string}>('payees', [{transfer_acct: destinationAccount.id}], ['id']);
       const {
         data: [schedule],
-      } = await query<{ rule: string }>(
-        'schedules',
-        [{ name: 'Phone bills' }],
-        ['rule'],
-      );
+      } = await query<{rule: string}>('schedules', [{name: 'Phone bills'}], ['rule']);
       const rule = await $send<{
         actions: unknown[];
         conditions: unknown[];
         conditionsOp: 'and' | 'or';
         id: string;
         stage: 'pre' | 'post' | null;
-      }>('rule-get', { id: schedule.rule });
+      }>('rule-get', {id: schedule.rule});
 
       await $send('rule-update', {
         ...rule,
@@ -164,25 +144,24 @@ test.describe('Schedules', () => {
           {
             op: 'set-split-amount',
             value: -7_000,
-            options: { splitIndex: 1, method: 'fixed-amount' },
+            options: {splitIndex: 1, method: 'fixed-amount'},
           },
           {
             op: 'set-split-amount',
             value: null,
-            options: { splitIndex: 2, method: 'remainder' },
+            options: {splitIndex: 2, method: 'remainder'},
           },
           {
             op: 'set',
             field: 'payee',
             value: destinationPayee.id,
-            options: { splitIndex: 2 },
+            options: {splitIndex: 2},
           },
         ],
       });
     });
 
-    const destinationAccountPage =
-      await navigation.goToAccountPage('Ally Savings');
+    const destinationAccountPage = await navigation.goToAccountPage('Ally Savings');
     const previewTransfer = destinationAccountPage.transactionTableRow.filter({
       has: page.getByTestId('schedule-icon'),
       hasText: 'Bank of America',
@@ -286,6 +265,6 @@ test.describe('Schedules', () => {
     await schedulesPage.rightClickNthSchedule(2);
     const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
-    await expect(menu.getByRole('button', { name: 'Complete' })).toBeVisible();
+    await expect(menu.getByRole('button', {name: 'Complete'})).toBeVisible();
   });
 });

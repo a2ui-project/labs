@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
+import {useMemo} from 'react';
 
-import type { TagEntity } from '@actual-app/core/types/models';
-import { useQuery } from '@tanstack/react-query';
-import { byLengthAsc, byStartAsc, Fzf } from 'fzf';
+import type {TagEntity} from '@actual-app/core/types/models';
+import {useQuery} from '@tanstack/react-query';
+import {byLengthAsc, byStartAsc, Fzf} from 'fzf';
 
-import { tagQueries } from '#tags/queries';
+import {tagQueries} from '#tags/queries';
 
-import { useSyncedPref } from './useSyncedPref';
+import {useSyncedPref} from './useSyncedPref';
 
 export function useTags() {
   const [showHiddenTags] = useSyncedPref('show-hidden-tags');
@@ -34,10 +34,7 @@ export function useTags() {
   });
 }
 
-export function filterTags<T extends TagEntity>(
-  tags: T[],
-  filterStr: string,
-): T[] {
+export function filterTags<T extends TagEntity>(tags: T[], filterStr: string): T[] {
   return new Fzf(tags as TagEntity[], {
     selector: tag => tag.tag,
     limit: 100,
@@ -47,11 +44,8 @@ export function filterTags<T extends TagEntity>(
     .map(item => item.item as T);
 }
 
-export function useFilteredTags(
-  filterStr: string,
-  requireHashInFilter?: boolean,
-) {
-  const { data: tags, ...rest } = useTags();
+export function useFilteredTags(filterStr: string, requireHashInFilter?: boolean) {
+  const {data: tags, ...rest} = useTags();
   const filteredTags = useMemo(() => {
     if (!filterStr || !tags) return [];
     if (requireHashInFilter && !filterStr.startsWith('#')) return [];

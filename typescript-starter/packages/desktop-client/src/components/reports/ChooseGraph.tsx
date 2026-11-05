@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-import React, { useRef } from 'react';
-import type { CSSProperties, UIEvent } from 'react';
+import React, {useRef} from 'react';
+import type {CSSProperties, UIEvent} from 'react';
 
-import { styles } from '@actual-app/components/styles';
-import type {
-  DataEntity,
-  RuleConditionEntity,
-} from '@actual-app/core/types/models';
+import {styles} from '@actual-app/components/styles';
+import type {DataEntity, RuleConditionEntity} from '@actual-app/core/types/models';
 
-import { AreaGraph } from './graphs/AreaGraph';
-import { BarGraph } from './graphs/BarGraph';
-import { BarLineGraph } from './graphs/BarLineGraph';
-import { DonutGraph } from './graphs/DonutGraph';
-import { LineGraph } from './graphs/LineGraph';
-import { StackedBarGraph } from './graphs/StackedBarGraph';
-import { ReportTable } from './graphs/tableGraph/ReportTable';
-import { ReportOptions } from './ReportOptions';
+import {AreaGraph} from './graphs/AreaGraph';
+import {BarGraph} from './graphs/BarGraph';
+import {BarLineGraph} from './graphs/BarLineGraph';
+import {DonutGraph} from './graphs/DonutGraph';
+import {LineGraph} from './graphs/LineGraph';
+import {StackedBarGraph} from './graphs/StackedBarGraph';
+import {ReportTable} from './graphs/tableGraph/ReportTable';
+import {ReportOptions} from './ReportOptions';
 
 type ChooseGraphProps = {
   data: DataEntity;
@@ -69,47 +66,30 @@ export function ChooseGraph({
   showTooltip = true,
   intervalsCount,
 }: ChooseGraphProps) {
-  const graphStyle = compact
-    ? { ...style }
-    : { flexGrow: 1, overflow: 'hidden' };
-  const balanceTypeOp =
-    ReportOptions.balanceTypeMap.get(balanceType) || 'totalDebts';
+  const graphStyle = compact ? {...style} : {flexGrow: 1, overflow: 'hidden'};
+  const balanceTypeOp = ReportOptions.balanceTypeMap.get(balanceType) || 'totalDebts';
 
   const saveScrollWidth = (value: number) => {
     setScrollWidth?.(value || 0);
   };
 
-  const rowStyle: CSSProperties = compact
-    ? { flex: '0 0 20px', height: 20 }
-    : {};
-  const compactStyle: CSSProperties = compact ? { ...styles.tinyText } : {};
+  const rowStyle: CSSProperties = compact ? {flex: '0 0 20px', height: 20} : {};
+  const compactStyle: CSSProperties = compact ? {...styles.tinyText} : {};
 
   const headerScrollRef = useRef<HTMLDivElement>(null);
   const listScrollRef = useRef<HTMLDivElement>(null);
   const totalScrollRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = (scroll: UIEvent<HTMLDivElement>) => {
-    if (
-      scroll.currentTarget.id === 'header' &&
-      totalScrollRef.current &&
-      listScrollRef.current
-    ) {
+    if (scroll.currentTarget.id === 'header' && totalScrollRef.current && listScrollRef.current) {
       totalScrollRef.current.scrollLeft = scroll.currentTarget.scrollLeft;
       listScrollRef.current.scrollLeft = scroll.currentTarget.scrollLeft;
     }
-    if (
-      scroll.currentTarget.id === 'total' &&
-      headerScrollRef.current &&
-      listScrollRef.current
-    ) {
+    if (scroll.currentTarget.id === 'total' && headerScrollRef.current && listScrollRef.current) {
       headerScrollRef.current.scrollLeft = scroll.currentTarget.scrollLeft;
       listScrollRef.current.scrollLeft = scroll.currentTarget.scrollLeft;
     }
-    if (
-      scroll.currentTarget.id === 'list' &&
-      totalScrollRef.current &&
-      headerScrollRef.current
-    ) {
+    if (scroll.currentTarget.id === 'list' && totalScrollRef.current && headerScrollRef.current) {
       headerScrollRef.current.scrollLeft = scroll.currentTarget.scrollLeft;
       totalScrollRef.current.scrollLeft = scroll.currentTarget.scrollLeft;
     }
@@ -145,12 +125,7 @@ export function ChooseGraph({
   }
   if (graphType === 'BarLineGraph') {
     return (
-      <BarLineGraph
-        style={graphStyle}
-        compact={compact}
-        data={data}
-        showTooltip={showTooltip}
-      />
+      <BarLineGraph style={graphStyle} compact={compact} data={data} showTooltip={showTooltip} />
     );
   }
   if (graphType === 'DonutGraph') {

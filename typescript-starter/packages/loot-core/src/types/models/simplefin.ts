@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import type { AccountEntity } from './account';
-import type { BankSyncResponse } from './bank-sync';
+import type {AccountEntity} from './account';
+import type {BankSyncResponse} from './bank-sync';
 
 export type SimpleFinOrganization = {
   id: string;

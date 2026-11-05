@@ -22,13 +22,10 @@ describe('cbc_cregbebb', () => {
       const transaction = {
         remittanceInformationUnstructured:
           'ONKART FR Viry Paiement Maestro par Carte de débit CBC 05-09-2024 à 15.43 heures 6703 19XX XXXX X201 5 JOHN DOE',
-        transactionAmount: { amount: '-45.00', currency: 'EUR' },
+        transactionAmount: {amount: '-45.00', currency: 'EUR'},
         date: new Date().toISOString(),
       };
-      const normalizedTransaction = CBCcregbebb.normalizeTransaction(
-        transaction,
-        true,
-      );
+      const normalizedTransaction = CBCcregbebb.normalizeTransaction(transaction, true);
       expect(normalizedTransaction?.payeeName).toEqual('ONKART FR Viry');
     });
 
@@ -37,13 +34,10 @@ describe('cbc_cregbebb', () => {
         debtorName: 'ONKART FR Viry',
         remittanceInformationUnstructured:
           'ONKART FR Viry Paiement Maestro par Carte de débit CBC 05-09-2024 à 15.43 heures 6703 19XX XXXX X201 5 JOHN DOE',
-        transactionAmount: { amount: '10.99', currency: 'EUR' },
+        transactionAmount: {amount: '10.99', currency: 'EUR'},
         date: new Date().toISOString(),
       };
-      const normalizedTransaction = CBCcregbebb.normalizeTransaction(
-        transaction,
-        true,
-      );
+      const normalizedTransaction = CBCcregbebb.normalizeTransaction(transaction, true);
       expect(normalizedTransaction?.payeeName).toEqual('ONKART FR Viry');
     });
   });

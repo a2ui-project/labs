@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgAlignRight = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}
@@ -26,9 +26,6 @@ export const SvgAlignRight = (props: SVGProps<SVGSVGElement>) => (
       ...props.style,
     }}
   >
-    <path
-      d="M1 1h18v2H1zm0 8h18v2H1zm0 8h18v2H1zM7 5h12v2H7zm0 8h12v2H7z"
-      fill="currentColor"
-    />
+    <path d="M1 1h18v2H1zm0 8h18v2H1zm0 8h18v2H1zM7 5h12v2H7zm0 8h12v2H7z" fill="currentColor" />
   </svg>
 );

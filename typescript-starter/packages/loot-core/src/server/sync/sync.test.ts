@@ -15,24 +15,18 @@
  */
 
 // @ts-strict-ignore
-import { getClock, Timestamp } from '@actual-app/crdt';
+import {getClock, Timestamp} from '@actual-app/crdt';
 
 import * as db from '#server/db';
 import * as prefs from '#server/prefs';
 import * as sheet from '#server/sheet';
 import * as mockSyncServer from '#server/tests/mockSyncServer';
-import { q } from '#shared/query';
+import {q} from '#shared/query';
 
 import * as encoder from './encoder';
-import { isError } from './utils';
+import {isError} from './utils';
 
-import {
-  applyMessages,
-  fullSync,
-  receiveMessages,
-  sendMessages,
-  setSyncingMode,
-} from './index';
+import {applyMessages, fullSync, receiveMessages, sendMessages, setSyncingMode} from './index';
 
 beforeEach(() => {
   mockSyncServer.reset();
@@ -48,7 +42,7 @@ afterEach(() => {
 describe('Sync', () => {
   it('should send messages to the server', async () => {
     void prefs.loadPrefs();
-    void prefs.savePrefs({ groupId: 'group' });
+    void prefs.savePrefs({groupId: 'group'});
 
     let timestamp = Timestamp.send();
     await sendMessages([
@@ -77,17 +71,13 @@ describe('Sync', () => {
     expect(getClock().timestamp.toString()).toEqual(timestamp.toString());
     expect(mockSyncServer.getClock().merkle).toEqual(getClock().merkle);
 
-    expect(
-      await db.all<db.DbCrdtMessage>('SELECT * FROM messages_crdt'),
-    ).toMatchSnapshot();
-    expect(
-      await db.all<db.DbClockMessage>('SELECT * FROM messages_clock'),
-    ).toMatchSnapshot();
+    expect(await db.all<db.DbCrdtMessage>('SELECT * FROM messages_crdt')).toMatchSnapshot();
+    expect(await db.all<db.DbClockMessage>('SELECT * FROM messages_clock')).toMatchSnapshot();
   });
 
   it('should resend old messages to the server', async () => {
     void prefs.loadPrefs();
-    void prefs.savePrefs({ groupId: 'group' });
+    void prefs.savePrefs({groupId: 'group'});
 
     global.stepForwardInTime(Date.parse('2018-11-13T13:20:00.000Z'));
 
@@ -141,18 +131,14 @@ describe('Sync', () => {
             row: 'foo',
             column: 'amount',
             value: 'N:3200',
-            timestamp: Timestamp.parse(
-              '1970-01-02T05:17:36.789Z-0000-0000testinguuid2',
-            ),
+            timestamp: Timestamp.parse('1970-01-02T05:17:36.789Z-0000-0000testinguuid2'),
           },
           {
             dataset: 'transactions',
             row: 'foo',
             column: 'amount',
             value: 'N:4200',
-            timestamp: Timestamp.parse(
-              '1970-01-02T10:17:36.999Z-0000-0000testinguuid2',
-            ),
+            timestamp: Timestamp.parse('1970-01-02T10:17:36.999Z-0000-0000testinguuid2'),
           },
         ],
       ),
@@ -189,9 +175,7 @@ describe('Sync', () => {
         row: 'foo',
         column: 'amount',
         value: 'N:1',
-        timestamp: Timestamp.parse(
-          `${new Date(base + i).toISOString()}-0000-${node}`,
-        ),
+        timestamp: Timestamp.parse(`${new Date(base + i).toISOString()}-0000-${node}`),
       });
     }
 
@@ -213,17 +197,12 @@ describe('Sync', () => {
       row: 'foo',
       column: 'amount',
       value: 'N:1',
-      timestamp: Timestamp.parse(
-        `${new Date(millis).toISOString()}-0000-0000testinguuid2`,
-      ),
+      timestamp: Timestamp.parse(`${new Date(millis).toISOString()}-0000-0000testinguuid2`),
     });
 
     expect(() =>
-      receiveMessages([
-        message(Date.parse('1970-01-02T00:00:00.000Z')),
-        message(253402300800000),
-      ]),
-    ).toThrow(expect.objectContaining({ reason: 'clock-drift' }));
+      receiveMessages([message(Date.parse('1970-01-02T00:00:00.000Z')), message(253402300800000)]),
+    ).toThrow(expect.objectContaining({reason: 'clock-drift'}));
   });
 });
 
@@ -266,9 +245,9 @@ describe('Sync projections', () => {
     let groupId, fooId, barId;
     await asSecondClient(async () => {
       await sheet.loadSpreadsheet(db);
-      groupId = await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
-      fooId = await db.insertCategory({ name: 'foo', cat_group: 'group1' });
-      barId = await db.insertCategory({ name: 'bar', cat_group: 'group1' });
+      groupId = await db.insertCategoryGroup({id: 'group1', name: 'group1'});
+      fooId = await db.insertCategory({name: 'foo', cat_group: 'group1'});
+      barId = await db.insertCategory({name: 'bar', cat_group: 'group1'});
     });
 
     await sheet.loadSpreadsheet(db);
@@ -294,9 +273,9 @@ describe('Sync projections', () => {
     let fooId;
     await asSecondClient(async () => {
       await sheet.loadSpreadsheet(db);
-      await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
-      fooId = await db.insertCategory({ name: 'foo', cat_group: 'group1' });
-      await db.deleteCategory({ id: fooId });
+      await db.insertCategoryGroup({id: 'group1', name: 'group1'});
+      fooId = await db.insertCategory({name: 'foo', cat_group: 'group1'});
+      await db.deleteCategory({id: fooId});
     });
 
     await sheet.loadSpreadsheet(db);
@@ -314,8 +293,8 @@ describe('Sync projections', () => {
         id: 'group1',
         name: 'group1',
       });
-      fooId = await db.insertCategory({ name: 'foo', cat_group: 'group1' });
-      await db.deleteCategory({ id: fooId });
+      fooId = await db.insertCategory({name: 'foo', cat_group: 'group1'});
+      await db.deleteCategory({id: fooId});
     });
 
     await sheet.loadSpreadsheet(db);
@@ -342,8 +321,8 @@ describe('Sync projections', () => {
     let groupId;
     await asSecondClient(async () => {
       await sheet.loadSpreadsheet(db);
-      groupId = await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
-      await db.deleteCategoryGroup({ id: groupId });
+      groupId = await db.insertCategoryGroup({id: 'group1', name: 'group1'});
+      await db.deleteCategoryGroup({id: groupId});
     });
 
     await sheet.loadSpreadsheet(db);
@@ -364,9 +343,9 @@ describe('Sync projections', () => {
         id: 'group1',
         name: 'group1',
       });
-      fooId = await db.insertCategory({ name: 'foo', cat_group: 'group1' });
-      await db.deleteCategory({ id: fooId });
-      await db.deleteCategoryGroup({ id: groupId });
+      fooId = await db.insertCategory({name: 'foo', cat_group: 'group1'});
+      await db.deleteCategory({id: fooId});
+      await db.deleteCategoryGroup({id: groupId});
     });
 
     await sheet.loadSpreadsheet(db);
@@ -397,9 +376,9 @@ describe('Sync projections', () => {
     let groupId, fooId;
     await asSecondClient(async () => {
       await sheet.loadSpreadsheet(db);
-      groupId = await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
-      await db.insertCategoryGroup({ id: 'group2', name: 'group2' });
-      fooId = await db.insertCategory({ name: 'foo', cat_group: 'group1' });
+      groupId = await db.insertCategoryGroup({id: 'group1', name: 'group1'});
+      await db.insertCategoryGroup({id: 'group2', name: 'group2'});
+      fooId = await db.insertCategory({name: 'foo', cat_group: 'group1'});
       await db.moveCategory(fooId, 'group2', null);
     });
 
@@ -426,31 +405,24 @@ describe('Sync projections', () => {
 describe('Sync account balance cells', () => {
   test('recomputes account totals and group subtotals when transactions sync', async () => {
     void prefs.loadPrefs();
-    void prefs.savePrefs({ groupId: 'group' });
+    void prefs.savePrefs({groupId: 'group'});
     await sheet.loadSpreadsheet(db);
 
     const spreadsheet = sheet.get();
     function sumOf(filter: Record<string, unknown>) {
-      return q('transactions')
-        .filter(filter)
-        .calculate({ $sum: '$amount' })
-        .serialize();
+      return q('transactions').filter(filter).calculate({$sum: '$amount'}).serialize();
     }
     spreadsheet.createQuery(
       '__global',
       'onbudget-accounts-balance',
-      sumOf({ 'account.offbudget': false }),
+      sumOf({'account.offbudget': false}),
     );
     spreadsheet.createQuery(
       '__global',
       'account-group-balance-g1-on',
-      sumOf({ 'account.account_group_id': 'g1', 'account.offbudget': false }),
+      sumOf({'account.account_group_id': 'g1', 'account.offbudget': false}),
     );
-    spreadsheet.createQuery(
-      '__global',
-      'balance-acct1',
-      sumOf({ account: 'acct1' }),
-    );
+    spreadsheet.createQuery('__global', 'balance-acct1', sumOf({account: 'acct1'}));
     await sheet.waitOnSpreadsheet();
 
     const recompute = vi.spyOn(spreadsheet, 'recompute');

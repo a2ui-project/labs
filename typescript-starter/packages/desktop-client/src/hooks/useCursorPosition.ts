@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { useEffect, useRef, useState } from 'react';
-import type { RefObject } from 'react';
+import {useEffect, useRef, useState} from 'react';
+import type {RefObject} from 'react';
 
-import { useRefEventListener } from './useRefEventListener';
+import {useRefEventListener} from './useRefEventListener';
 
 export function useCursorPosition(
   ref: RefObject<HTMLInputElement | null>,
@@ -27,11 +27,7 @@ export function useCursorPosition(
 
   const update = () => {
     if (!ref.current || !document.hasFocus()) return;
-    setCursorPosition(
-      document.activeElement === ref.current
-        ? ref.current.selectionStart
-        : null,
-    );
+    setCursorPosition(document.activeElement === ref.current ? ref.current.selectionStart : null);
   };
   useRefEventListener(ref, 'focusin', update);
   useRefEventListener(ref, 'keyup', update);

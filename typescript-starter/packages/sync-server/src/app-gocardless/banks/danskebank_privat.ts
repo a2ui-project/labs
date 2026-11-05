@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { amountToInteger } from '#app-gocardless/utils';
+import {amountToInteger} from '#app-gocardless/utils';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -27,7 +27,7 @@ export default {
   institutionIds: ['DANSKEBANK_DABADKKK', 'DANSKEBANK_DABANO22'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     /**
      * Danske Bank appends the EndToEndID: NOTPROVIDED to
@@ -44,9 +44,7 @@ export default {
   },
 
   calculateStartingBalance(sortedTransactions = [], balances = []) {
-    const currentBalance = balances.find(
-      balance => balance.balanceType === 'interimAvailable',
-    );
+    const currentBalance = balances.find(balance => balance.balanceType === 'interimAvailable');
 
     return sortedTransactions.reduce(
       (total, trans) => {

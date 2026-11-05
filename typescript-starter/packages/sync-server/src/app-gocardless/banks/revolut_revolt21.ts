@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -23,7 +23,7 @@ export default {
   institutionIds: ['REVOLUT_REVOLT21'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     const infoArray = transaction.remittanceInformationUnstructuredArray ?? [];
 

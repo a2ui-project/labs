@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import type { CustomReportPage } from './page-models/custom-report-page';
-import { Navigation } from './page-models/navigation';
-import type { ReportsPage } from './page-models/reports-page';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import type {CustomReportPage} from './page-models/custom-report-page';
+import {Navigation} from './page-models/navigation';
+import type {ReportsPage} from './page-models/reports-page';
 
 test.describe('Reports', () => {
-  test.describe.configure({ mode: 'serial' });
+  test.describe.configure({mode: 'serial'});
 
   let page: Page;
   let navigation: Navigation;
   let reportsPage: ReportsPage;
   let configurationPage: ConfigurationPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new Navigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -67,7 +67,7 @@ test.describe('Reports', () => {
     await reportsPage.rightClickReportCard('Net Worth');
     const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
-    await expect(menu.getByRole('button', { name: 'Rename' })).toBeVisible();
+    await expect(menu.getByRole('button', {name: 'Rename'})).toBeVisible();
   });
 
   test('loads net worth graph and checks visuals', async () => {
@@ -88,7 +88,7 @@ test.describe('Reports', () => {
     await expect(picker).toMatchThemeScreenshots();
 
     // Switch to day granularity
-    await picker.getByRole('button', { name: 'Day', exact: true }).click();
+    await picker.getByRole('button', {name: 'Day', exact: true}).click();
     await expect(picker).toMatchThemeScreenshots();
   });
 
@@ -184,15 +184,11 @@ test.describe('Reports', () => {
 
     ['Bar Graph', 'Line Graph'].forEach(graph => {
       test(`${graph} keeps its height when the legend needs scrolling`, async () => {
-        await page.setViewportSize({ width: 1280, height: 700 });
+        await page.setViewportSize({width: 1280, height: 700});
         await customReportPage.selectMode('time');
         await customReportPage.selectViz(graph);
-        await page
-          .getByRole('button', { name: 'Options', exact: true })
-          .click();
-        await page
-          .getByRole('button', { name: 'Show empty rows', exact: true })
-          .click();
+        await page.getByRole('button', {name: 'Options', exact: true}).click();
+        await page.getByRole('button', {name: 'Show empty rows', exact: true}).click();
         await page.keyboard.press('Escape');
 
         const content = page.locator('#custom-report-content');
@@ -203,23 +199,15 @@ test.describe('Reports', () => {
         await customReportPage.showSummaryButton.click();
         await customReportPage.showLegendButton.click();
 
-        await expect
-          .poll(() => chart.evaluate(el => el.clientHeight))
-          .toBe(originalHeight);
-        const legend = content
-          .getByText('Category', { exact: true })
-          .locator('..');
+        await expect.poll(() => chart.evaluate(el => el.clientHeight)).toBe(originalHeight);
+        const legend = content.getByText('Category', {exact: true}).locator('..');
         await expect
           .poll(() => legend.evaluate(el => el.scrollHeight > el.clientHeight))
           .toBe(true);
         await legend.hover();
         await page.mouse.wheel(0, 500);
-        await expect
-          .poll(() => legend.evaluate(el => el.scrollTop))
-          .toBeGreaterThan(0);
-        await expect
-          .poll(() => chart.evaluate(el => el.clientHeight))
-          .toBe(originalHeight);
+        await expect.poll(() => legend.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+        await expect.poll(() => chart.evaluate(el => el.clientHeight)).toBe(originalHeight);
       });
     });
 
@@ -244,7 +232,7 @@ test.describe('Reports', () => {
 test.describe('Reports without transactions', () => {
   let page: Page;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
   });
 

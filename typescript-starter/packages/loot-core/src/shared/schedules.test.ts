@@ -16,7 +16,7 @@
 
 import MockDate from 'mockdate';
 
-import type { RuleConditionEntity, ScheduleEntity } from '#types/models';
+import type {RuleConditionEntity, ScheduleEntity} from '#types/models';
 
 import * as monthUtils from './months';
 import {
@@ -34,7 +34,7 @@ import {
   UPCOMING_LENGTH_PRESET_OPTIONS,
   UPCOMING_LENGTH_PRESET_VALUES,
 } from './schedules';
-import type { ScheduleStatuses } from './schedules';
+import type {ScheduleStatuses} from './schedules';
 
 describe('schedules', () => {
   const today = new Date(2017, 0, 1); // Global date when testing is set to 2017-01-01 per monthUtils.currentDay()
@@ -68,28 +68,18 @@ describe('schedules', () => {
         const tomorrow = monthUtils.addDays(today, 1);
         const upcomingDate = monthUtils.addDays(today, daysOut);
         const scheduledDate = monthUtils.addDays(today, daysOut + 1);
-        expect(
-          getStatus(tomorrow, false, false, upcomingLength.toString()),
-        ).toBe('upcoming');
-        expect(
-          getStatus(upcomingDate, false, false, upcomingLength.toString()),
-        ).toBe('upcoming');
-        expect(
-          getStatus(scheduledDate, false, false, upcomingLength.toString()),
-        ).toBe('scheduled');
+        expect(getStatus(tomorrow, false, false, upcomingLength.toString())).toBe('upcoming');
+        expect(getStatus(upcomingDate, false, false, upcomingLength.toString())).toBe('upcoming');
+        expect(getStatus(scheduledDate, false, false, upcomingLength.toString())).toBe('scheduled');
       },
     );
 
     it('returns missed if past', () => {
-      expect(getStatus(monthUtils.addDays(today, -1), false, false, '7')).toBe(
-        'missed',
-      );
+      expect(getStatus(monthUtils.addDays(today, -1), false, false, '7')).toBe('missed');
     });
 
     it('returns scheduled if not due, upcoming, or missed', () => {
-      expect(getStatus(monthUtils.addDays(today, 8), false, false, '7')).toBe(
-        'scheduled',
-      );
+      expect(getStatus(monthUtils.addDays(today, 8), false, false, '7')).toBe('scheduled');
     });
   });
 
@@ -114,12 +104,9 @@ describe('schedules', () => {
       ['1-year', 366, '2017-06-15'], // Test year from mid-year (Jun 1, 2017 to Jun 1, 2018 + 1)
       ['1-year', 367, '2019-06-15'], // Test year from mid-year with leap year 2020
       ['2-year', 731, '2017-06-15'], // Test 2 years from mid-year (Jun 1, 2017 to Jun 1, 2019 + 1)
-    ])(
-      'value of %s on returns %i days on %s',
-      (value: string, expected: number, date: string) => {
-        expect(getUpcomingDays(value, date)).toEqual(expected);
-      },
-    );
+    ])('value of %s on returns %i days on %s', (value: string, expected: number, date: string) => {
+      expect(getUpcomingDays(value, date)).toEqual(expected);
+    });
   });
 
   describe('computeSchedulePreviewTransactions', () => {
@@ -151,17 +138,13 @@ describe('schedules', () => {
             {
               field: 'date',
               op: 'isapprox',
-              value: { start: '2016-12-01', frequency: 'weekly' },
+              value: {start: '2016-12-01', frequency: 'weekly'},
             },
           ],
         });
 
         const statuses: ScheduleStatuses = new Map([['sched-1', 'missed']]);
-        const result = computeSchedulePreviewTransactions(
-          [schedule],
-          statuses,
-          '7',
-        );
+        const result = computeSchedulePreviewTransactions([schedule], statuses, '7');
 
         const pastEntries = result.filter(r => r.date < '2017-01-01');
         expect(pastEntries.length).toBeGreaterThan(0);
@@ -176,17 +159,13 @@ describe('schedules', () => {
             {
               field: 'date',
               op: 'isapprox',
-              value: { start: '2016-12-01', frequency: 'weekly' },
+              value: {start: '2016-12-01', frequency: 'weekly'},
             },
           ],
         });
 
         const statuses: ScheduleStatuses = new Map([['sched-1', 'missed']]);
-        const result = computeSchedulePreviewTransactions(
-          [schedule],
-          statuses,
-          '7',
-        );
+        const result = computeSchedulePreviewTransactions([schedule], statuses, '7');
 
         const futureEntries = result.filter(r => r.date > '2017-01-01');
         expect(futureEntries.length).toBeGreaterThan(0);
@@ -197,15 +176,11 @@ describe('schedules', () => {
         const schedule = makeSchedule({
           id: 'sched-1',
           next_date: '2017-01-03',
-          _conditions: [{ field: 'date', op: 'is', value: '2017-01-03' }],
+          _conditions: [{field: 'date', op: 'is', value: '2017-01-03'}],
         });
 
         const statuses: ScheduleStatuses = new Map([['sched-1', 'upcoming']]);
-        const result = computeSchedulePreviewTransactions(
-          [schedule],
-          statuses,
-          '7',
-        );
+        const result = computeSchedulePreviewTransactions([schedule], statuses, '7');
 
         expect(result).toHaveLength(1);
         expect(result[0].forceUpcoming).toBe(false);
@@ -219,23 +194,17 @@ describe('schedules', () => {
             {
               field: 'date',
               op: 'isapprox',
-              value: { start: '2016-12-01', frequency: 'weekly' },
+              value: {start: '2016-12-01', frequency: 'weekly'},
             },
           ],
         });
 
         const statuses: ScheduleStatuses = new Map([['sched-1', 'paid']]);
-        const result = computeSchedulePreviewTransactions(
-          [schedule],
-          statuses,
-          '7',
-        );
+        const result = computeSchedulePreviewTransactions([schedule], statuses, '7');
 
         expect(result.find(r => r.date === '2017-01-02')).toBeUndefined();
         expect(
-          result
-            .filter(r => r.date >= '2017-01-01')
-            .every(r => r.forceUpcoming === true),
+          result.filter(r => r.date >= '2017-01-01').every(r => r.forceUpcoming === true),
         ).toBe(true);
       });
     });
@@ -280,11 +249,7 @@ describe('schedules', () => {
       });
 
       const statuses: ScheduleStatuses = new Map([['sched-expired', 'missed']]);
-      const result = computeSchedulePreviewTransactions(
-        [schedule],
-        statuses,
-        '7',
-      );
+      const result = computeSchedulePreviewTransactions([schedule], statuses, '7');
 
       // Should not crash; schedule with past end date produces its next_date entry only
       expect(result).toBeDefined();
@@ -297,7 +262,7 @@ describe('schedules', () => {
       // this scan every transaction in the budget. It must never do that.
       const filters = getHasTransactionsQuery([]).serialize().filterExpressions;
 
-      expect(filters).toEqual([{ id: null }]);
+      expect(filters).toEqual([{id: null}]);
       expect(filters[0]).not.toHaveProperty('$or');
     });
 
@@ -306,15 +271,13 @@ describe('schedules', () => {
         {
           id: 'schedule-1',
           next_date: '2024-03-10',
-          _conditions: [{ op: 'is', field: 'date', value: '2024-03-10' }],
+          _conditions: [{op: 'is', field: 'date', value: '2024-03-10'}],
         },
       ]).serialize().filterExpressions;
 
       expect(filters).toEqual([
         {
-          $or: [
-            { $and: { schedule: 'schedule-1', date: { $gte: '2024-03-10' } } },
-          ],
+          $or: [{$and: {schedule: 'schedule-1', date: {$gte: '2024-03-10'}}}],
         },
       ]);
     });
@@ -327,7 +290,7 @@ describe('schedules', () => {
       expect(
         getScheduleOccurrenceMatchStartDate(
           {
-            _conditions: [{ op: 'is', field: 'date', value: occurrenceDate }],
+            _conditions: [{op: 'is', field: 'date', value: occurrenceDate}],
           },
           occurrenceDate,
         ),
@@ -335,21 +298,15 @@ describe('schedules', () => {
     });
 
     it('uses exact date for auto-posted recurring schedules', () => {
-      expect(
-        getScheduleOccurrenceMatchStartDate(
-          { posts_transaction: true },
-          occurrenceDate,
-        ),
-      ).toBe(occurrenceDate);
+      expect(getScheduleOccurrenceMatchStartDate({posts_transaction: true}, occurrenceDate)).toBe(
+        occurrenceDate,
+      );
     });
 
     it('uses a 2-day lookback for manual recurring schedules', () => {
-      expect(
-        getScheduleOccurrenceMatchStartDate(
-          { posts_transaction: false },
-          occurrenceDate,
-        ),
-      ).toBe('2024-03-08');
+      expect(getScheduleOccurrenceMatchStartDate({posts_transaction: false}, occurrenceDate)).toBe(
+        '2024-03-08',
+      );
     });
 
     it('uses exact date for recurring schedules with op is', () => {
@@ -361,7 +318,7 @@ describe('schedules', () => {
               {
                 op: 'is',
                 field: 'date',
-                value: { start: occurrenceDate, frequency: 'monthly' },
+                value: {start: occurrenceDate, frequency: 'monthly'},
               },
             ],
           },
@@ -379,7 +336,7 @@ describe('schedules', () => {
               {
                 op: 'is',
                 field: 'date',
-                value: { start: occurrenceDate, frequency: 'daily' },
+                value: {start: occurrenceDate, frequency: 'daily'},
               },
             ],
           },
@@ -392,19 +349,17 @@ describe('schedules', () => {
   describe('indexPostedScheduleTransactions', () => {
     it('groups schedule-linked transactions by schedule id', () => {
       const indexed = indexPostedScheduleTransactions([
-        { schedule: 'sched-1', date: '2024-03-09' },
-        { schedule: 'sched-2', date: '2024-03-10' },
-        { schedule: 'sched-1', date: '2024-04-10' },
-        { date: '2024-03-11' },
+        {schedule: 'sched-1', date: '2024-03-09'},
+        {schedule: 'sched-2', date: '2024-03-10'},
+        {schedule: 'sched-1', date: '2024-04-10'},
+        {date: '2024-03-11'},
       ]);
 
       expect(indexed.get('sched-1')).toEqual([
-        { schedule: 'sched-1', date: '2024-03-09' },
-        { schedule: 'sched-1', date: '2024-04-10' },
+        {schedule: 'sched-1', date: '2024-03-09'},
+        {schedule: 'sched-1', date: '2024-04-10'},
       ]);
-      expect(indexed.get('sched-2')).toEqual([
-        { schedule: 'sched-2', date: '2024-03-10' },
-      ]);
+      expect(indexed.get('sched-2')).toEqual([{schedule: 'sched-2', date: '2024-03-10'}]);
       expect(indexed.has('missing')).toBe(false);
     });
   });
@@ -412,12 +367,10 @@ describe('schedules', () => {
   describe('isScheduleOccurrencePosted', () => {
     const scheduleId = 'sched-1';
     const occurrenceDate = '2024-03-10';
-    const manualRecurringSchedule = { posts_transaction: false };
-    const autoPostSchedule = { posts_transaction: true };
+    const manualRecurringSchedule = {posts_transaction: false};
+    const autoPostSchedule = {posts_transaction: true};
     const oneTimeSchedule = {
-      _conditions: [
-        { op: 'is', field: 'date', value: occurrenceDate } as const,
-      ],
+      _conditions: [{op: 'is', field: 'date', value: occurrenceDate} as const],
     };
     const manualRecurringWithIsOp = {
       posts_transaction: false,
@@ -425,7 +378,7 @@ describe('schedules', () => {
         {
           op: 'is',
           field: 'date',
-          value: { start: occurrenceDate, frequency: 'monthly' },
+          value: {start: occurrenceDate, frequency: 'monthly'},
         },
       ] satisfies RuleConditionEntity[],
     };
@@ -440,18 +393,13 @@ describe('schedules', () => {
           schedule,
           scheduleId,
           occurrenceDate,
-          postedTransactions: [{ schedule: scheduleId, date: txDate }],
+          postedTransactions: [{schedule: scheduleId, date: txDate}],
         }),
       ).toBe(expected);
     }
 
     it.each([
-      [
-        'same-day manual recurring',
-        manualRecurringSchedule,
-        occurrenceDate,
-        true,
-      ],
+      ['same-day manual recurring', manualRecurringSchedule, occurrenceDate, true],
       [
         'early pay day before due for recurring date cond',
         manualRecurringWithIsOp,
@@ -459,12 +407,7 @@ describe('schedules', () => {
         false,
       ],
       ['early pay within 2 days', manualRecurringSchedule, '2024-03-09', true],
-      [
-        'early pay outside window',
-        manualRecurringSchedule,
-        '2024-03-07',
-        false,
-      ],
+      ['early pay outside window', manualRecurringSchedule, '2024-03-07', false],
       ['auto-post day before due', autoPostSchedule, '2024-03-09', false],
       ['auto-post on due date', autoPostSchedule, occurrenceDate, true],
       ['one-time on due date', oneTimeSchedule, occurrenceDate, true],
@@ -537,9 +480,7 @@ describe('schedules', () => {
     }
 
     it('returns the next occurrence after the given date', () => {
-      expect(getNextDateAfter(weeklyOnSaturday(), '2020-12-05')).toBe(
-        '2020-12-12',
-      );
+      expect(getNextDateAfter(weeklyOnSaturday(), '2020-12-05')).toBe('2020-12-12');
     });
 
     it('returns the next occurrence when moving `after` the weekend', () => {
@@ -632,12 +573,8 @@ describe('schedules', () => {
 
   describe('shared presets', () => {
     it('preset values and options align', () => {
-      const valuesFromOptions = UPCOMING_LENGTH_PRESET_OPTIONS.map(
-        o => o.value,
-      );
-      expect(valuesFromOptions).toEqual(
-        UPCOMING_LENGTH_PRESET_VALUES as readonly string[],
-      );
+      const valuesFromOptions = UPCOMING_LENGTH_PRESET_OPTIONS.map(o => o.value);
+      expect(valuesFromOptions).toEqual(UPCOMING_LENGTH_PRESET_VALUES as readonly string[]);
     });
 
     it('every preset has a label entry', () => {

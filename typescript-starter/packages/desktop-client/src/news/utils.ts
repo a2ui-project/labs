@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { cmpSemanticVersion } from '#util/versions';
+import {cmpSemanticVersion} from '#util/versions';
 
-import type { NewsEntry } from './types';
+import type {NewsEntry} from './types';
 
-type ReleaseEntry = NewsEntry & { type: 'release'; version: string };
+type ReleaseEntry = NewsEntry & {type: 'release'; version: string};
 
 function isRelease(entry: NewsEntry): entry is ReleaseEntry {
   return entry.type === 'release' && entry.version !== undefined;
@@ -41,8 +41,7 @@ export function getUnseenEntries(
 
 export function getNewestDate(entries: NewsEntry[]): string | undefined {
   return entries.reduce<string | undefined>(
-    (newest, entry) =>
-      newest === undefined || entry.date > newest ? entry.date : newest,
+    (newest, entry) => (newest === undefined || entry.date > newest ? entry.date : newest),
     undefined,
   );
 }

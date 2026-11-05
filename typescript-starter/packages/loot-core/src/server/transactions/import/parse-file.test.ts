@@ -17,12 +17,12 @@
 // @ts-strict-ignore
 import * as d from 'date-fns';
 
-import { reconcileTransactions } from '#server/accounts/sync';
+import {reconcileTransactions} from '#server/accounts/sync';
 import * as db from '#server/db';
 import * as prefs from '#server/prefs';
-import { amountToInteger } from '#shared/util';
+import {amountToInteger} from '#shared/util';
 
-import { parseFile } from './parse-file';
+import {parseFile} from './parse-file';
 
 beforeEach(global.emptyDatabase());
 
@@ -48,25 +48,18 @@ type Transaction = {
 };
 
 async function getTransactions(accountId: string): Promise<Transaction[]> {
-  return db.runQuery(
-    'SELECT * FROM transactions WHERE acct = ?',
-    [accountId],
-    true,
-  );
+  return db.runQuery('SELECT * FROM transactions WHERE acct = ?', [accountId], true);
 }
 
 async function importFileWithRealTime(
   accountId,
   filepath,
   dateFormat?: string,
-  options?: { importNotes: boolean },
+  options?: {importNotes: boolean},
 ) {
   // Emscripten requires a real Date.now!
   global.restoreDateNow();
-  const { errors, transactions: originalTransactions } = await parseFile(
-    filepath,
-    options,
-  );
+  const {errors, transactions: originalTransactions} = await parseFile(filepath, options);
   global.restoreFakeDateNow();
 
   let transactions = originalTransactions;
@@ -81,48 +74,48 @@ async function importFileWithRealTime(
     }));
   }
   if (errors.length > 0) {
-    return { errors, added: [] };
+    return {errors, added: []};
   }
 
-  const { added } = await reconcileTransactions(accountId, transactions);
-  return { errors, added };
+  const {added} = await reconcileTransactions(accountId, transactions);
+  return {errors, added};
 }
 
 describe('File import', () => {
   test('qif import works', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
-    const { errors } = await importFileWithRealTime(
+    await db.insertAccount({id: 'one', name: 'one'});
+    const {errors} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/data.qif',
       'MM/dd/yy',
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errors.length).toBe(0);
     expect(await getTransactions('one')).toMatchSnapshot();
   });
 
   test('qif import preserves categories', async () => {
-    const { errors, transactions } = await parseFile(
+    const {errors, transactions} = await parseFile(
       __dirname + '/../../../mocks/files/qif-category.qif',
     );
 
     expect(errors.length).toBe(0);
     expect(transactions).toMatchObject([
-      { payee_name: 'Outlet', category: 'Shopping' },
-      { payee_name: 'GroceriesYou', category: 'Groceries' },
+      {payee_name: 'Outlet', category: 'Shopping'},
+      {payee_name: 'GroceriesYou', category: 'Groceries'},
     ]);
   });
 
   test('ofx import works', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
+    await db.insertAccount({id: 'one', name: 'one'});
 
-    const { errors } = await importFileWithRealTime(
+    const {errors} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/data.ofx',
       null,
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errors.length).toBe(0);
     expect(await getTransactions('one')).toMatchSnapshot();
@@ -130,13 +123,13 @@ describe('File import', () => {
 
   test('ofx import works (credit card)', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
+    await db.insertAccount({id: 'one', name: 'one'});
 
-    const { errors } = await importFileWithRealTime(
+    const {errors} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/credit-card.ofx',
       null,
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errors.length).toBe(0);
     expect(await getTransactions('one')).toMatchSnapshot();
@@ -144,13 +137,13 @@ describe('File import', () => {
 
   test('qfx import works', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
+    await db.insertAccount({id: 'one', name: 'one'});
 
-    const { errors } = await importFileWithRealTime(
+    const {errors} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/data.qfx',
       null,
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errors.length).toBe(0);
     expect(await getTransactions('one')).toMatchSnapshot();
@@ -158,29 +151,27 @@ describe('File import', () => {
 
   test('import notes are respected when importing', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
+    await db.insertAccount({id: 'one', name: 'one'});
 
     // Test with importNotes enabled
-    const { errors: errorsWithNotes } = await importFileWithRealTime(
+    const {errors: errorsWithNotes} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/data.ofx',
       null,
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errorsWithNotes.length).toBe(0);
-    expect(await getTransactions('one')).toMatchSnapshot(
-      'transactions with notes',
-    );
+    expect(await getTransactions('one')).toMatchSnapshot('transactions with notes');
 
     // Clear transactions
     db.runQuery('DELETE FROM transactions WHERE acct = ?', ['one']);
 
     // Test with importNotes disabled
-    const { errors: errorsWithoutNotes } = await importFileWithRealTime(
+    const {errors: errorsWithoutNotes} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/data.ofx',
       null,
-      { importNotes: false },
+      {importNotes: false},
     );
     expect(errorsWithoutNotes.length).toBe(0);
     const transactionsWithoutNotes = await getTransactions('one');
@@ -189,7 +180,7 @@ describe('File import', () => {
 
   test('matches extensions correctly (case-insensitive, etc)', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
+    await db.insertAccount({id: 'one', name: 'one'});
 
     let res = await importFileWithRealTime(
       'one',
@@ -211,13 +202,13 @@ describe('File import', () => {
 
   test('handles non-ASCII characters', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
+    await db.insertAccount({id: 'one', name: 'one'});
 
-    const { errors } = await importFileWithRealTime(
+    const {errors} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/8859-1.qfx',
       'yyyy-MM-dd',
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errors.length).toBe(0);
     expect(await getTransactions('one')).toMatchSnapshot();
@@ -225,13 +216,13 @@ describe('File import', () => {
 
   test('handles windows-1252 charset', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
+    await db.insertAccount({id: 'one', name: 'one'});
 
-    const { errors } = await importFileWithRealTime(
+    const {errors} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/1252.qfx',
       'yyyy-MM-dd',
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errors.length).toBe(0);
     expect(await getTransactions('one')).toMatchSnapshot();
@@ -239,13 +230,13 @@ describe('File import', () => {
 
   test('handles UTF-8 encoding', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
+    await db.insertAccount({id: 'one', name: 'one'});
 
-    const { errors } = await importFileWithRealTime(
+    const {errors} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/utf-8.qfx',
       'yyyy-MM-dd',
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errors.length).toBe(0);
     expect(await getTransactions('one')).toMatchSnapshot();
@@ -253,13 +244,13 @@ describe('File import', () => {
 
   test('handles html escaped plaintext', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
+    await db.insertAccount({id: 'one', name: 'one'});
 
-    const { errors } = await importFileWithRealTime(
+    const {errors} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/html-vals.qfx',
       'yyyy-MM-dd',
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errors.length).toBe(0);
     expect(await getTransactions('one')).toMatchSnapshot();
@@ -267,22 +258,22 @@ describe('File import', () => {
 
   test('CAMT.053 import works', async () => {
     await prefs.loadPrefs();
-    await db.insertAccount({ id: 'one', name: 'one' });
+    await db.insertAccount({id: 'one', name: 'one'});
 
-    const { errors } = await importFileWithRealTime(
+    const {errors} = await importFileWithRealTime(
       'one',
       __dirname + '/../../../mocks/files/camt/camt.053.xml',
       null,
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errors.length).toBe(0);
     expect(await getTransactions('one')).toMatchSnapshot();
   });
 
   test('csv import works (utf-16le bank export)', async () => {
-    const { errors, transactions } = await parseFile(
+    const {errors, transactions} = await parseFile(
       __dirname + '/../../../mocks/files/utf-16le.csv',
-      { hasHeaderRow: true },
+      {hasHeaderRow: true},
     );
 
     expect(errors.length).toBe(0);
@@ -295,9 +286,9 @@ describe('File import', () => {
   });
 
   test('csv import works (utf-16be)', async () => {
-    const { errors, transactions } = await parseFile(
+    const {errors, transactions} = await parseFile(
       __dirname + '/../../../mocks/files/utf-16be.csv',
-      { hasHeaderRow: true },
+      {hasHeaderRow: true},
     );
 
     expect(errors.length).toBe(0);
@@ -310,9 +301,9 @@ describe('File import', () => {
   });
 
   test('csv import works (utf-8 with bom)', async () => {
-    const { errors, transactions } = await parseFile(
+    const {errors, transactions} = await parseFile(
       __dirname + '/../../../mocks/files/utf-8-bom.csv',
-      { hasHeaderRow: true },
+      {hasHeaderRow: true},
     );
 
     expect(errors.length).toBe(0);
@@ -325,9 +316,9 @@ describe('File import', () => {
   });
 
   test('csv import skips start lines on utf-16le files', async () => {
-    const { errors, transactions } = await parseFile(
+    const {errors, transactions} = await parseFile(
       __dirname + '/../../../mocks/files/utf-16le.csv',
-      { hasHeaderRow: false, skipStartLines: 1 },
+      {hasHeaderRow: false, skipStartLines: 1},
     );
 
     expect(errors.length).toBe(0);
@@ -337,9 +328,9 @@ describe('File import', () => {
   });
 
   test('csv import respects manual encoding override', async () => {
-    const { errors, transactions } = await parseFile(
+    const {errors, transactions} = await parseFile(
       __dirname + '/../../../mocks/files/windows-1252.csv',
-      { hasHeaderRow: true, encoding: 'windows-1252' },
+      {hasHeaderRow: true, encoding: 'windows-1252'},
     );
 
     expect(errors.length).toBe(0);
@@ -360,9 +351,9 @@ describe('File import', () => {
     // TextDecoder resolves the iso-8859-1 label to windows-1252 per the
     // WHATWG encoding spec. The € byte (0x80) proves it: windows-1252 decodes
     // it as €, while a true ISO-8859-1 decoder would yield a C1 control char.
-    const { errors, transactions } = await parseFile(
+    const {errors, transactions} = await parseFile(
       __dirname + '/../../../mocks/files/windows-1252-euro.csv',
-      { hasHeaderRow: true, encoding: 'iso-8859-1' },
+      {hasHeaderRow: true, encoding: 'iso-8859-1'},
     );
 
     expect(errors.length).toBe(0);
@@ -375,9 +366,9 @@ describe('File import', () => {
   });
 
   test('csv import treats explicit auto encoding as detection', async () => {
-    const { errors, transactions } = await parseFile(
+    const {errors, transactions} = await parseFile(
       __dirname + '/../../../mocks/files/utf-16le.csv',
-      { hasHeaderRow: true, encoding: 'auto' },
+      {hasHeaderRow: true, encoding: 'auto'},
     );
 
     expect(errors.length).toBe(0);
@@ -390,9 +381,9 @@ describe('File import', () => {
   });
 
   test('csv import rejects an invalid encoding', async () => {
-    const { errors, transactions } = await parseFile(
+    const {errors, transactions} = await parseFile(
       __dirname + '/../../../mocks/files/utf-8-bom.csv',
-      { hasHeaderRow: true, encoding: 'not-an-encoding' },
+      {hasHeaderRow: true, encoding: 'not-an-encoding'},
     );
 
     expect(errors.length).toBe(1);
@@ -401,13 +392,13 @@ describe('File import', () => {
   });
 
   test('CAMT import respects ISO-8859-1 encoding', async () => {
-    const { errors, transactions } = await parseFile(
+    const {errors, transactions} = await parseFile(
       __dirname + '/../../../mocks/files/camt/camt.latin1.xml',
-      { importNotes: true },
+      {importNotes: true},
     );
     expect(errors.length).toBe(0);
     expect(transactions).toMatchObject([
-      { notes: 'M-Überschusssparen' },
+      {notes: 'M-Überschusssparen'},
       {
         payee_name: 'Grüße aus München',
         notes: 'Restaurant Schrödingers Katze und Café Ünique',

@@ -16,9 +16,9 @@
 
 import * as Platform from '@actual-app/core/shared/platform';
 
-import { newsFeedFixture } from './fixtures';
-import { NEWS_FEED_SCHEMA_VERSION } from './types';
-import type { NewsEntry, NewsFeed } from './types';
+import {newsFeedFixture} from './fixtures';
+import {NEWS_FEED_SCHEMA_VERSION} from './types';
+import type {NewsEntry, NewsFeed} from './types';
 
 // Released builds read the file committed on `master`, the same way the custom
 // theme catalog is fetched (hooks/useThemeCatalog.ts).
@@ -43,7 +43,7 @@ export async function getNewsFeedUrl(): Promise<string> {
 
   if (import.meta.env.REACT_APP_REVIEW_ID) {
     // `?url` makes Vite emit the file as a static asset and hand back its URL.
-    const { default: bundledUrl } = await import('../data/news.json?url');
+    const {default: bundledUrl} = await import('../data/news.json?url');
     return bundledUrl;
   }
 

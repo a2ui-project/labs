@@ -21,10 +21,7 @@
 const SYNC_FORMAT_VERSION = 2;
 
 const validateSyncedFile = (groupId, keyId, currentFile) => {
-  if (
-    currentFile.syncVersion == null ||
-    currentFile.syncVersion < SYNC_FORMAT_VERSION
-  ) {
+  if (currentFile.syncVersion == null || currentFile.syncVersion < SYNC_FORMAT_VERSION) {
     return 'file-old-version';
   }
 
@@ -38,9 +35,7 @@ const validateSyncedFile = (groupId, keyId, currentFile) => {
   // encrypted with the same key it is registered with (this might
   // be wrong if there was an error during the key creation
   // process)
-  const uploadedKeyId = currentFile.encryptMeta
-    ? JSON.parse(currentFile.encryptMeta).keyId
-    : null;
+  const uploadedKeyId = currentFile.encryptMeta ? JSON.parse(currentFile.encryptMeta).keyId : null;
   if (uploadedKeyId !== currentFile.encryptKeyId) {
     return 'file-key-mismatch';
   }
@@ -90,4 +85,4 @@ const validateUploadedFile = (groupId, keyId, currentFile) => {
   return null;
 };
 
-export { validateSyncedFile, validateUploadedFile };
+export {validateSyncedFile, validateUploadedFile};

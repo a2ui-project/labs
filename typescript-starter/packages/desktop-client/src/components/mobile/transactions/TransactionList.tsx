@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import type { CSSProperties } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {CSSProperties} from 'react';
 import {
   Collection,
   Header,
@@ -31,44 +25,41 @@ import {
   ListLayout,
   Virtualizer,
 } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { SvgDelete } from '@actual-app/components/icons/v0';
-import { SvgDotsHorizontalTriple } from '@actual-app/components/icons/v1';
-import { Menu } from '@actual-app/components/menu';
-import type { MenuItem, MenuItemObject } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { validForMerge } from '@actual-app/core/shared/merge';
+import {Button} from '@actual-app/components/button';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {SvgDelete} from '@actual-app/components/icons/v0';
+import {SvgDotsHorizontalTriple} from '@actual-app/components/icons/v1';
+import {Menu} from '@actual-app/components/menu';
+import type {MenuItem, MenuItemObject} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {validForMerge} from '@actual-app/core/shared/merge';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { isPreviewId } from '@actual-app/core/shared/transactions';
-import { validForTransfer } from '@actual-app/core/shared/transfer';
-import { groupById, integerToCurrency } from '@actual-app/core/shared/util';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type {
-  CategoryEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import {isPreviewId} from '@actual-app/core/shared/transactions';
+import {validForTransfer} from '@actual-app/core/shared/transfer';
+import {groupById, integerToCurrency} from '@actual-app/core/shared/util';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {CategoryEntity, TransactionEntity} from '@actual-app/core/types/models';
 
-import { FloatingActionBar } from '#components/mobile/FloatingActionBar';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategoriesById } from '#hooks/useCategories';
-import { useLocale } from '#hooks/useLocale';
-import { useNavigate } from '#hooks/useNavigate';
-import { usePayees } from '#hooks/usePayees';
-import { useScrollListener } from '#hooks/useScrollListener';
-import { useSelectedDispatch, useSelectedItems } from '#hooks/useSelected';
-import { useTransactionBatchActions } from '#hooks/useTransactionBatchActions';
-import { useUndo } from '#hooks/useUndo';
-import { setNotificationInset } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {FloatingActionBar} from '#components/mobile/FloatingActionBar';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategoriesById} from '#hooks/useCategories';
+import {useLocale} from '#hooks/useLocale';
+import {useNavigate} from '#hooks/useNavigate';
+import {usePayees} from '#hooks/usePayees';
+import {useScrollListener} from '#hooks/useScrollListener';
+import {useSelectedDispatch, useSelectedItems} from '#hooks/useSelected';
+import {useTransactionBatchActions} from '#hooks/useTransactionBatchActions';
+import {useUndo} from '#hooks/useUndo';
+import {setNotificationInset} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
-import { ROW_HEIGHT, TransactionListItem } from './TransactionListItem';
+import {ROW_HEIGHT, TransactionListItem} from './TransactionListItem';
 
 const NOTIFICATION_BOTTOM_INSET = 75;
 
@@ -77,8 +68,8 @@ type LoadingProps = {
   'aria-label': string;
 };
 
-function Loading({ style, 'aria-label': ariaLabel }: LoadingProps) {
-  const { t } = useTranslation();
+function Loading({style, 'aria-label': ariaLabel}: LoadingProps) {
+  const {t} = useTranslation();
   return (
     <View
       aria-label={ariaLabel || t('Loading...')}
@@ -121,7 +112,7 @@ export function TransactionList({
   onToggleTransactionCleared,
 }: TransactionListProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const sections = useMemo(() => {
     // Group by date. We can assume transactions is ordered
     const sections: {
@@ -130,10 +121,7 @@ export function TransactionList({
       transactions: TransactionEntity[];
     }[] = [];
     transactions.forEach(transaction => {
-      if (
-        sections.length === 0 ||
-        transaction.date !== sections[sections.length - 1].date
-      ) {
+      if (sections.length === 0 || transaction.date !== sections[sections.length - 1].date) {
         sections.push({
           id: `${isPreviewId(transaction.id) ? 'preview/' : ''}${transaction.date}`,
           date: transaction.date,
@@ -149,24 +137,22 @@ export function TransactionList({
   const dispatchSelected = useSelectedDispatch();
   const selectedTransactions = useSelectedItems();
 
-  const onTransactionPress: (
-    transaction: TransactionEntity,
-    isLongPress?: boolean,
-  ) => void = useCallback(
-    (transaction, isLongPress = false) => {
-      const isPreview = isPreviewId(transaction.id);
-      if (!isPreview && (isLongPress || selectedTransactions.size > 0)) {
-        dispatchSelected({ type: 'select', id: transaction.id });
-      } else {
-        onOpenTransaction?.(transaction);
-      }
-    },
-    [dispatchSelected, onOpenTransaction, selectedTransactions],
-  );
+  const onTransactionPress: (transaction: TransactionEntity, isLongPress?: boolean) => void =
+    useCallback(
+      (transaction, isLongPress = false) => {
+        const isPreview = isPreviewId(transaction.id);
+        if (!isPreview && (isLongPress || selectedTransactions.size > 0)) {
+          dispatchSelected({type: 'select', id: transaction.id});
+        } else {
+          onOpenTransaction?.(transaction);
+        }
+      },
+      [dispatchSelected, onOpenTransaction, selectedTransactions],
+    );
 
   useScrollListener(
     useCallback(
-      ({ hasScrolledToEnd }) => {
+      ({hasScrolledToEnd}) => {
         if (hasScrolledToEnd('down', 100)) {
           onLoadMore?.();
         }
@@ -176,14 +162,14 @@ export function TransactionList({
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{flex: 1}}>
       {isLoading && (
         <Loading
-          style={{ flex: 'none', paddingBottom: 8 }}
+          style={{flex: 'none', paddingBottom: 8}}
           aria-label={t('Loading transactions...')}
         />
       )}
-      <View style={{ flex: 1 }}>
+      <View style={{flex: 1}}>
         <Virtualizer
           layout={ListLayout}
           layoutOptions={{
@@ -193,10 +179,8 @@ export function TransactionList({
         >
           <ListBox
             aria-label={t('Transaction list')}
-            selectionMode={
-              selectedTransactions.size > 0 ? 'multiple' : 'single'
-            }
-            style={{ flex: 1, overflow: 'auto' }}
+            selectionMode={selectedTransactions.size > 0 ? 'multiple' : 'single'}
+            style={{flex: 1, overflow: 'auto'}}
             selectedKeys={selectedTransactions}
             dependencies={[
               selectedTransactions,
@@ -217,7 +201,7 @@ export function TransactionList({
                     backgroundColor: theme.mobilePageBackground,
                   }}
                 >
-                  <Text style={{ fontSize: 15 }}>
+                  <Text style={{fontSize: 15}}>
                     <Trans>No transactions</Trans>
                   </Text>
                 </View>
@@ -245,9 +229,7 @@ export function TransactionList({
                   {monthUtils.format(section.date, 'MMMM dd, yyyy', locale)}
                 </Header>
                 <Collection
-                  items={section.transactions.filter(
-                    t => !isPreviewId(t.id) || !t.is_child,
-                  )}
+                  items={section.transactions.filter(t => !isPreviewId(t.id) || !t.is_child)}
                 >
                   {transaction => (
                     <ListBoxItem textValue={transaction.id} value={transaction}>
@@ -303,7 +285,7 @@ function SelectedTransactionsFloatingActionBar({
   style = {},
   showMakeTransfer,
 }: SelectedTransactionsFloatingActionBarProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const editMenuTriggerRef = useRef(null);
   const [isEditMenuOpen, setIsEditMenuOpen] = useState(false);
   const moreOptionsMenuTriggerRef = useRef(null);
@@ -312,8 +294,8 @@ function SelectedTransactionsFloatingActionBar({
     <T extends string>(item: MenuItemObject<T>) => ({
       ...styles.mobileMenuItem,
       color: theme.mobileHeaderText,
-      ...(item.disabled === true && { color: theme.buttonBareDisabledText }),
-      ...(item.name === 'delete' && { color: theme.errorTextMenu }),
+      ...(item.disabled === true && {color: theme.buttonBareDisabledText}),
+      ...(item.name === 'delete' && {color: theme.errorTextMenu}),
     }),
     [],
   );
@@ -339,14 +321,12 @@ function SelectedTransactionsFloatingActionBar({
   );
 
   const allTransactionsAreLinked = useMemo(() => {
-    return transactions
-      .filter(t => selectedTransactions.has(t.id))
-      .every(t => t.schedule);
+    return transactions.filter(t => selectedTransactions.has(t.id)).every(t => t.schedule);
   }, [transactions, selectedTransactions]);
 
   const isMoreThanOne = selectedTransactions.size > 1;
 
-  const { showUndoNotification } = useUndo();
+  const {showUndoNotification} = useUndo();
   const {
     onBatchEdit,
     onBatchDuplicate,
@@ -358,44 +338,39 @@ function SelectedTransactionsFloatingActionBar({
   } = useTransactionBatchActions();
 
   const navigate = useNavigate();
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const accountsById = useMemo(() => groupById(accounts), [accounts]);
 
-  const { data: payees = [] } = usePayees();
+  const {data: payees = []} = usePayees();
   const payeesById = useMemo(() => groupById(payees), [payees]);
 
   const {
-    data: { list: categoriesById } = {
+    data: {list: categoriesById} = {
       list: {} as Record<string, CategoryEntity>,
     },
   } = useCategoriesById();
 
   const dispatch = useDispatch();
   useEffect(() => {
-    dispatch(
-      setNotificationInset({ inset: { bottom: NOTIFICATION_BOTTOM_INSET } }),
-    );
+    dispatch(setNotificationInset({inset: {bottom: NOTIFICATION_BOTTOM_INSET}}));
     return () => {
       dispatch(setNotificationInset(null));
     };
   }, [dispatch]);
 
-  const twoTransactions: [TransactionEntity, TransactionEntity] | undefined =
-    useMemo(() => {
-      // only two selected
-      if (selectedTransactionsArray.length !== 2) {
-        return undefined;
-      }
+  const twoTransactions: [TransactionEntity, TransactionEntity] | undefined = useMemo(() => {
+    // only two selected
+    if (selectedTransactionsArray.length !== 2) {
+      return undefined;
+    }
 
-      const [a, b] = selectedTransactionsArray.map(id =>
-        transactions.find(t => t.id === id),
-      );
-      if (!a || !b) {
-        return undefined;
-      }
+    const [a, b] = selectedTransactionsArray.map(id => transactions.find(t => t.id === id));
+    if (!a || !b) {
+      return undefined;
+    }
 
-      return [a, b];
-    }, [selectedTransactionsArray, transactions]);
+    return [a, b];
+  }, [selectedTransactionsArray, transactions]);
 
   const canBeTransfer = useMemo(() => {
     if (!twoTransactions) {
@@ -406,9 +381,7 @@ function SelectedTransactionsFloatingActionBar({
   }, [twoTransactions]);
 
   const canMerge = useMemo(() => {
-    return Boolean(
-      twoTransactions && validForMerge(twoTransactions[0], twoTransactions[1]),
-    );
+    return Boolean(twoTransactions && validForMerge(twoTransactions[0], twoTransactions[1]));
   }, [twoTransactions]);
 
   const moreOptionsMenuItems: MenuItem<string>[] = [
@@ -418,9 +391,7 @@ function SelectedTransactionsFloatingActionBar({
     },
     {
       name: allTransactionsAreLinked ? 'unlink-schedule' : 'link-schedule',
-      text: allTransactionsAreLinked
-        ? t('Unlink schedule')
-        : t('Link schedule'),
+      text: allTransactionsAreLinked ? t('Unlink schedule') : t('Link schedule'),
     },
     {
       name: 'delete',
@@ -462,18 +433,17 @@ function SelectedTransactionsFloatingActionBar({
           <Button
             variant="bare"
             {...buttonProps}
-            style={{ ...buttonProps.style, marginRight: 4 }}
+            style={{...buttonProps.style, marginRight: 4}}
             onPress={() => {
               if (selectedTransactions.size > 0) {
-                dispatchSelected({ type: 'select-none' });
+                dispatchSelected({type: 'select-none'});
               }
             }}
           >
             <SvgDelete width={10} height={10} />
           </Button>
           <Text style={styles.mediumText}>
-            {selectedTransactions.size}{' '}
-            {isMoreThanOne ? 'transactions' : 'transaction'} selected
+            {selectedTransactions.size} {isMoreThanOne ? 'transactions' : 'transaction'} selected
           </Text>
         </View>
         <View
@@ -500,11 +470,11 @@ function SelectedTransactionsFloatingActionBar({
             triggerRef={editMenuTriggerRef}
             isOpen={isEditMenuOpen}
             onOpenChange={() => setIsEditMenuOpen(false)}
-            style={{ width: 200 }}
+            style={{width: 200}}
           >
             <Menu
               getItemStyle={getMenuItemStyle}
-              style={{ backgroundColor: theme.floatingActionBarBackground }}
+              style={{backgroundColor: theme.floatingActionBarBackground}}
               onMenuSelect={name => {
                 void onBatchEdit?.({
                   name,
@@ -513,12 +483,10 @@ function SelectedTransactionsFloatingActionBar({
                     let displayValue;
                     switch (name) {
                       case 'account':
-                        displayValue =
-                          accountsById[String(value)]?.name ?? value;
+                        displayValue = accountsById[String(value)]?.name ?? value;
                         break;
                       case 'category':
-                        displayValue =
-                          categoriesById[String(value)]?.name ?? value;
+                        displayValue = categoriesById[String(value)]?.name ?? value;
                         break;
                       case 'payee':
                         displayValue = payeesById[String(value)]?.name ?? value;
@@ -604,32 +572,27 @@ function SelectedTransactionsFloatingActionBar({
             }}
             {...buttonProps}
           >
-            <SvgDotsHorizontalTriple
-              width={16}
-              height={16}
-              style={{ color: 'currentColor' }}
-            />
+            <SvgDotsHorizontalTriple width={16} height={16} style={{color: 'currentColor'}} />
           </Button>
 
           <Popover
             triggerRef={moreOptionsMenuTriggerRef}
             isOpen={isMoreOptionsMenuOpen}
             onOpenChange={() => setIsMoreOptionsMenuOpen(false)}
-            style={{ width: 200 }}
+            style={{width: 200}}
           >
             <Menu
               getItemStyle={getMenuItemStyle}
-              style={{ backgroundColor: theme.floatingActionBarBackground }}
+              style={{backgroundColor: theme.floatingActionBarBackground}}
               onMenuSelect={type => {
                 if (type === 'duplicate') {
                   void onBatchDuplicate?.({
                     ids: selectedTransactionsArray,
                     onSuccess: ids => {
                       showUndoNotification({
-                        message: t(
-                          'Successfully duplicated {{count}} transactions.',
-                          { count: ids.length },
-                        ),
+                        message: t('Successfully duplicated {{count}} transactions.', {
+                          count: ids.length,
+                        }),
                       });
                     },
                   });
@@ -640,10 +603,10 @@ function SelectedTransactionsFloatingActionBar({
                       // TODO: When schedule becomes available in mobile, update undo notification message
                       // with `messageActions` to open the schedule when the schedule name is clicked.
                       showUndoNotification({
-                        message: t(
-                          'Successfully linked {{count}} transactions to {{schedule}}.',
-                          { count: ids.length, schedule: schedule.name },
-                        ),
+                        message: t('Successfully linked {{count}} transactions to {{schedule}}.', {
+                          count: ids.length,
+                          schedule: schedule.name,
+                        }),
                       });
                     },
                   });
@@ -654,7 +617,7 @@ function SelectedTransactionsFloatingActionBar({
                       showUndoNotification({
                         message: t(
                           'Successfully unlinked {{count}} transactions from their respective schedules.',
-                          { count: ids.length },
+                          {count: ids.length},
                         ),
                       });
                     },
@@ -665,22 +628,18 @@ function SelectedTransactionsFloatingActionBar({
                     onSuccess: ids => {
                       showUndoNotification({
                         type: 'warning',
-                        message: t(
-                          'Successfully deleted {{count}} transactions.',
-                          { count: ids.length },
-                        ),
+                        message: t('Successfully deleted {{count}} transactions.', {
+                          count: ids.length,
+                        }),
                       });
                     },
                   });
                 } else if (type === 'transfer') {
                   void onSetTransfer?.(selectedTransactionsArray, payees, ids =>
                     showUndoNotification({
-                      message: t(
-                        'Successfully marked {{count}} transactions as transfer.',
-                        {
-                          count: ids.length,
-                        },
-                      ),
+                      message: t('Successfully marked {{count}} transactions as transfer.', {
+                        count: ids.length,
+                      }),
                     }),
                   );
                 } else if (type === 'merge') {

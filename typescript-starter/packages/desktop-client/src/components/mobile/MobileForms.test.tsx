@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { render, screen } from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { InputField } from './MobileForms';
+import {InputField} from './MobileForms';
 
 describe('InputField', () => {
   const showPicker = vi.fn();
@@ -35,12 +35,7 @@ describe('InputField', () => {
 
   it('opens the native picker when a date field with an icon is clicked', async () => {
     render(
-      <InputField
-        type="date"
-        iconStart={<span />}
-        defaultValue="2026-02-10"
-        data-testid="field"
-      />,
+      <InputField type="date" iconStart={<span />} defaultValue="2026-02-10" data-testid="field" />,
     );
 
     await userEvent.click(screen.getByTestId('field'));
@@ -49,9 +44,7 @@ describe('InputField', () => {
   });
 
   it('opens the native picker when a month field without an icon is clicked', async () => {
-    render(
-      <InputField type="month" defaultValue="2026-02" data-testid="field" />,
-    );
+    render(<InputField type="month" defaultValue="2026-02" data-testid="field" />);
 
     await userEvent.click(screen.getByTestId('field'));
 

@@ -23,14 +23,12 @@ module.exports = {
   meta: {
     type: 'suggestion',
     docs: {
-      description:
-        'Forbid TypeScript enum declarations in favor of objects or maps',
+      description: 'Forbid TypeScript enum declarations in favor of objects or maps',
     },
     fixable: null,
     schema: [],
     messages: {
-      noEnum:
-        'Avoid `enum` — use an object or a map instead (see contributing/code-style.md).',
+      noEnum: 'Avoid `enum` — use an object or a map instead (see contributing/code-style.md).',
     },
   },
 

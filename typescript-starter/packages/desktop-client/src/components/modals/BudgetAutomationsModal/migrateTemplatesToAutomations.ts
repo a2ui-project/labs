@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-import {
-  currentDate,
-  dayFromDate,
-  firstDayOfMonth,
-} from '@actual-app/core/shared/months';
-import type { ScheduleEntity } from '@actual-app/core/types/models';
-import type {
-  ScheduleTemplate,
-  Template,
-} from '@actual-app/core/types/models/templates';
+import {currentDate, dayFromDate, firstDayOfMonth} from '@actual-app/core/shared/months';
+import type {ScheduleEntity} from '@actual-app/core/types/models';
+import type {ScheduleTemplate, Template} from '@actual-app/core/types/models/templates';
 
-import { createAutomationEntry } from '#components/budget/goals/automationExamples';
-import type { AutomationEntry } from '#components/budget/goals/automationExamples';
-import type { DisplayTemplateType } from '#components/budget/goals/constants';
+import {createAutomationEntry} from '#components/budget/goals/automationExamples';
+import type {AutomationEntry} from '#components/budget/goals/automationExamples';
+import type {DisplayTemplateType} from '#components/budget/goals/constants';
 
 function getDisplayTypeFromTemplate(template: Template): DisplayTemplateType {
   switch (template.type) {
@@ -90,19 +83,14 @@ export function migrateTemplatesToAutomations(
 
   templates.forEach(template => {
     if (template.type === 'schedule') {
-      entries.push(
-        createAutomationEntry(
-          hydrateScheduleTemplate(template, schedules),
-          'schedule',
-        ),
-      );
+      entries.push(createAutomationEntry(hydrateScheduleTemplate(template, schedules), 'schedule'));
       return;
     }
 
     if (template.type === 'simple') {
       const monthly = template.monthly;
       const hasMonthly = monthly != null && monthly !== 0;
-      const { description } = template;
+      const {description} = template;
 
       if (template.limit) {
         entries.push(
@@ -117,7 +105,7 @@ export function migrateTemplatesToAutomations(
               priority: null,
               // a description on a limit-only simple template belongs to the
               // limit; with a monthly amount it goes on that instead
-              ...(description && !hasMonthly ? { description } : {}),
+              ...(description && !hasMonthly ? {description} : {}),
             },
             'limit',
           ),
@@ -137,10 +125,7 @@ export function migrateTemplatesToAutomations(
         }
       }
 
-      const contribution =
-        hasMonthly || (monthly === 0 && template.limit == null)
-          ? monthly
-          : null;
+      const contribution = hasMonthly || (monthly === 0 && template.limit == null) ? monthly : null;
 
       if (contribution != null) {
         entries.push(
@@ -148,11 +133,11 @@ export function migrateTemplatesToAutomations(
             {
               type: 'periodic',
               amount: contribution,
-              period: { period: 'month', amount: 1 },
+              period: {period: 'month', amount: 1},
               starting: dayFromDate(firstDayOfMonth(currentDate())),
               directive: 'template',
               priority: template.priority,
-              ...(description ? { description } : {}),
+              ...(description ? {description} : {}),
             },
             'fixed',
           ),
@@ -165,14 +150,9 @@ export function migrateTemplatesToAutomations(
       return;
     }
 
-    if (
-      (template.type === 'periodic' || template.type === 'remainder') &&
-      template.limit
-    ) {
-      const { limit, ...base } = template;
-      entries.push(
-        createAutomationEntry(base, getDisplayTypeFromTemplate(base)),
-      );
+    if ((template.type === 'periodic' || template.type === 'remainder') && template.limit) {
+      const {limit, ...base} = template;
+      entries.push(createAutomationEntry(base, getDisplayTypeFromTemplate(base)));
       entries.push(
         createAutomationEntry(
           {
@@ -190,9 +170,7 @@ export function migrateTemplatesToAutomations(
       return;
     }
 
-    entries.push(
-      createAutomationEntry(template, getDisplayTypeFromTemplate(template)),
-    );
+    entries.push(createAutomationEntry(template, getDisplayTypeFromTemplate(template)));
   });
 
   return entries;

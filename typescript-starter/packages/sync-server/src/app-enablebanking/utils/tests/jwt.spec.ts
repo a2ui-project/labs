@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { sign } from 'jws';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {sign} from 'jws';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { getJWT } from '#app-enablebanking/utils/jwt';
+import {getJWT} from '#app-enablebanking/utils/jwt';
 
 // Mock jws to avoid needing real RSA keys
 vi.mock('jws', () => ({
-  sign: vi.fn(({ header, payload }) => {
+  sign: vi.fn(({header, payload}) => {
     return `${JSON.stringify(header)}.${JSON.stringify(payload)}.mock-signature`;
   }),
 }));
@@ -49,7 +49,7 @@ describe('getJWT', () => {
 
     const callArgs = vi.mocked(sign).mock.calls[0][0];
     const rawPayload = callArgs.payload;
-    const payload: { iss: string; aud: string; iat: number; exp: number } =
+    const payload: {iss: string; aud: string; iat: number; exp: number} =
       typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
 
     expect(payload.iss).toBe('enablebanking.com');
@@ -64,7 +64,7 @@ describe('getJWT', () => {
 
     const callArgs = vi.mocked(sign).mock.calls[0][0];
     const rawPayload = callArgs.payload;
-    const payload: { iat: number; exp: number } =
+    const payload: {iat: number; exp: number} =
       typeof rawPayload === 'string' ? JSON.parse(rawPayload) : rawPayload;
 
     expect(payload.exp - payload.iat).toBe(7200);

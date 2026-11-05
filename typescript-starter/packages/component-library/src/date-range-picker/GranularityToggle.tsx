@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { ModeButton } from '#ModeButton';
-import { theme } from '#theme';
-import { View } from '#View';
+import {ModeButton} from '#ModeButton';
+import {theme} from '#theme';
+import {View} from '#View';
 
-import type { DateRangeGranularity } from './util';
+import type {DateRangeGranularity} from './util';
 
-const segmentStyle = { borderRadius: 0, fontSize: 12, padding: '4px 12px' };
+const segmentStyle = {borderRadius: 0, fontSize: 12, padding: '4px 12px'};
 
 type GranularityToggleProps = {
   value: DateRangeGranularity;
@@ -29,12 +29,7 @@ type GranularityToggleProps = {
   onChange: (value: DateRangeGranularity) => void;
 };
 
-export function GranularityToggle({
-  value,
-  monthLabel,
-  dayLabel,
-  onChange,
-}: GranularityToggleProps) {
+export function GranularityToggle({value, monthLabel, dayLabel, onChange}: GranularityToggleProps) {
   return (
     <View
       style={{
@@ -52,11 +47,7 @@ export function GranularityToggle({
       >
         {monthLabel}
       </ModeButton>
-      <ModeButton
-        selected={value === 'day'}
-        onSelect={() => onChange('day')}
-        style={segmentStyle}
-      >
+      <ModeButton selected={value === 'day'} onSelect={() => onChange('day')} style={segmentStyle}>
         {dayLabel}
       </ModeButton>
     </View>

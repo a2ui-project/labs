@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
+import {useEffect, useState} from 'react';
 
-import type { CatalogTheme } from '#style/customThemes';
+import type {CatalogTheme} from '#style/customThemes';
 
 const CATALOG_URL = `https://raw.githubusercontent.com/actualbudget/actual/${import.meta.env.REACT_APP_BRANCH || 'master'}/packages/desktop-client/src/data/customThemeCatalog.json`;
 
@@ -49,9 +49,7 @@ export function useThemeCatalog() {
 
         setData(data);
       } catch (err) {
-        setError(
-          err instanceof Error ? err.message : 'Failed to load theme catalog',
-        );
+        setError(err instanceof Error ? err.message : 'Failed to load theme catalog');
       } finally {
         setIsLoading(false);
       }

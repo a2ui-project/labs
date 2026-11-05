@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { keyframes } from '@emotion/css';
+import {keyframes} from '@emotion/css';
 
-import { theme } from './theme';
-import { tokens } from './tokens';
+import {theme} from './theme';
+import {tokens} from './tokens';
 
 // oxlint-disable-next-line typescript/no-explicit-any
 export type CSSProperties = Record<string, any>;
@@ -111,15 +111,15 @@ export const styles: CSSProperties = {
     // ss04: Disambiguation w/o zero
     fontFeatureSettings: '"tnum", "ss01", "ss04"',
   },
-  notFixed: { fontFeatureSettings: '' },
+  notFixed: {fontFeatureSettings: ''},
   text: {
     fontSize: 16,
     // lineHeight: 22.4 // TODO: This seems like trouble, but what's the right value?
   },
   delayedFadeIn: {
     animationName: keyframes({
-      '0%': { opacity: 0 },
-      '100%': { opacity: 1 },
+      '0%': {opacity: 0},
+      '100%': {opacity: 1},
     }),
     animationDuration: '1s',
     animationFillMode: 'both',

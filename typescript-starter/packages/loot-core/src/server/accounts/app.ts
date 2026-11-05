@@ -14,32 +14,27 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { captureException } from '#platform/exceptions';
+import {captureException} from '#platform/exceptions';
 import * as asyncStorage from '#platform/server/asyncStorage';
 import * as connection from '#platform/server/connection';
-import { logger } from '#platform/server/log';
-import { createApp } from '#server/app';
+import {logger} from '#platform/server/log';
+import {createApp} from '#server/app';
 import * as db from '#server/db';
-import {
-  APIError,
-  BankSyncError,
-  PostError,
-  TransactionError,
-} from '#server/errors';
-import { app as mainApp } from '#server/main-app';
-import { mutator } from '#server/mutators';
-import { del, get, post } from '#server/post';
-import { getPrefs } from '#server/prefs';
-import { getServer } from '#server/server-config';
-import { batchMessages } from '#server/sync';
-import { undoable, withUndo } from '#server/undo';
-import { isNonProductionEnvironment } from '#shared/environment';
-import { dayFromDate } from '#shared/months';
+import {APIError, BankSyncError, PostError, TransactionError} from '#server/errors';
+import {app as mainApp} from '#server/main-app';
+import {mutator} from '#server/mutators';
+import {del, get, post} from '#server/post';
+import {getPrefs} from '#server/prefs';
+import {getServer} from '#server/server-config';
+import {batchMessages} from '#server/sync';
+import {undoable, withUndo} from '#server/undo';
+import {isNonProductionEnvironment} from '#shared/environment';
+import {dayFromDate} from '#shared/months';
 import * as monthUtils from '#shared/months';
-import { amountToInteger } from '#shared/util';
-import type { ImportTransactionsOpts } from '#types/api-handlers';
+import {amountToInteger} from '#shared/util';
+import type {ImportTransactionsOpts} from '#types/api-handlers';
 import type {
   AccountEntity,
   AccountGroupEntity,
@@ -57,7 +52,7 @@ import type {
 } from '#types/models';
 
 import * as link from './link';
-import { getStartingBalancePayee } from './payees';
+import {getStartingBalancePayee} from './payees';
 import * as bankSync from './sync';
 
 // Shared base type for link account parameters
@@ -114,14 +109,12 @@ async function updateAccount({
   last_reconciled,
   account_group_id,
 }: Pick<AccountEntity, 'id'> &
-  Partial<
-    Pick<AccountEntity, 'name' | 'last_reconciled' | 'account_group_id'>
-  >) {
+  Partial<Pick<AccountEntity, 'name' | 'last_reconciled' | 'account_group_id'>>) {
   await db.update('accounts', {
     id,
-    ...(name !== undefined && { name }),
-    ...(last_reconciled && { last_reconciled }),
-    ...(account_group_id !== undefined && { account_group_id }),
+    ...(name !== undefined && {name}),
+    ...(last_reconciled && {last_reconciled}),
+    ...(account_group_id !== undefined && {account_group_id}),
   });
   return {};
 }
@@ -155,26 +148,20 @@ async function getAccounts(): Promise<AccountEntity[]> {
   );
 }
 
-async function getAccountBalance({
-  id,
-  cutoff,
-}: {
-  id: string;
-  cutoff: string | Date;
-}) {
-  const result = await db.first<{ balance: number }>(
+async function getAccountBalance({id, cutoff}: {id: string; cutoff: string | Date}) {
+  const result = await db.first<{balance: number}>(
     'SELECT sum(amount) as balance FROM transactions WHERE acct = ? AND isParent = 0 AND tombstone = 0 AND date <= ?',
     [id, db.toDateRepr(dayFromDate(cutoff))],
   );
   return result?.balance ? result.balance : 0;
 }
 
-async function getAccountProperties({ id }: { id: AccountEntity['id'] }) {
-  const balanceResult = await db.first<{ balance: number }>(
+async function getAccountProperties({id}: {id: AccountEntity['id']}) {
+  const balanceResult = await db.first<{balance: number}>(
     'SELECT sum(amount) as balance FROM transactions WHERE acct = ? AND isParent = 0 AND tombstone = 0',
     [id],
   );
-  const countResult = await db.first<{ count: number }>(
+  const countResult = await db.first<{count: number}>(
     'SELECT count(id) as count FROM transactions WHERE acct = ? AND tombstone = 0',
     [id],
   );
@@ -200,10 +187,9 @@ async function linkGoCardlessAccount({
   const bank = await link.findOrCreateBank(account.institution, requisitionId);
 
   if (upgradingId) {
-    const accRow = await db.first<db.DbAccount>(
-      'SELECT * FROM accounts WHERE id = ?',
-      [upgradingId],
-    );
+    const accRow = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', [
+      upgradingId,
+    ]);
 
     if (!accRow) {
       throw new Error(`Account with ID ${upgradingId} not found.`);
@@ -278,10 +264,9 @@ async function linkSimpleFinAccount({
   );
 
   if (upgradingId) {
-    const accRow = await db.first<db.DbAccount>(
-      'SELECT * FROM accounts WHERE id = ?',
-      [upgradingId],
-    );
+    const accRow = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', [
+      upgradingId,
+    ]);
 
     if (!accRow) {
       throw new Error(`Account with ID ${upgradingId} not found.`);
@@ -356,10 +341,9 @@ async function linkPluggyAiAccount({
   );
 
   if (upgradingId) {
-    const accRow = await db.first<db.DbAccount>(
-      'SELECT * FROM accounts WHERE id = ?',
-      [upgradingId],
-    );
+    const accRow = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', [
+      upgradingId,
+    ]);
 
     if (!accRow) {
       throw new Error(`Account with ID ${upgradingId} not found.`);
@@ -431,10 +415,9 @@ async function linkAkahuAccount({
   );
 
   if (upgradingId) {
-    const accRow = await db.first<db.DbAccount>(
-      'SELECT * FROM accounts WHERE id = ?',
-      [upgradingId],
-    );
+    const accRow = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', [
+      upgradingId,
+    ]);
 
     if (!accRow) {
       throw new Error(`Account with ID ${upgradingId} not found.`);
@@ -506,16 +489,12 @@ async function linkEnableBankingAccount({
   // account-level identifier (account_id) rather than institution-level
   // IDs. This creates one bank entry per Enable Banking account, unlike
   // GoCardless (requisitionId) or SimpleFin/PluggyAi (orgDomain/orgId).
-  const bank = await link.findOrCreateBank(
-    institution,
-    externalAccount.account_id,
-  );
+  const bank = await link.findOrCreateBank(institution, externalAccount.account_id);
 
   if (upgradingId) {
-    const accRow = await db.first<db.DbAccount>(
-      'SELECT * FROM accounts WHERE id = ?',
-      [upgradingId],
-    );
+    const accRow = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', [
+      upgradingId,
+    ]);
 
     if (!accRow) {
       throw new Error(`Account with ID ${upgradingId} not found.`);
@@ -622,7 +601,7 @@ async function closeAccount({
   // Unlink the account if it's linked. This makes sure to remove it from
   // bank-sync providers. (This should not be undo-able, as it mutates the
   // remote server and the user will have to link the account again)
-  await unlinkAccount({ id });
+  await unlinkAccount({id});
 
   return withUndo(async () => {
     const account = await db.first<db.DbAccount>(
@@ -636,15 +615,13 @@ async function closeAccount({
       return;
     }
 
-    const { balance, numTransactions } = await getAccountProperties({ id });
+    const {balance, numTransactions} = await getAccountProperties({id});
 
     // If there are no transactions, we can simply delete the account
     if (numTransactions === 0) {
-      await db.deleteAccount({ id });
+      await db.deleteAccount({id});
     } else if (forced) {
-      const rows = db.runQuery<
-        Pick<db.DbViewTransaction, 'id' | 'transfer_id'>
-      >(
+      const rows = db.runQuery<Pick<db.DbViewTransaction, 'id' | 'transfer_id'>>(
         'SELECT id, transfer_id FROM v_transactions WHERE account = ?',
         [id],
         true,
@@ -675,11 +652,11 @@ async function closeAccount({
             });
           }
 
-          void db.deleteTransaction({ id: row.id });
+          void db.deleteTransaction({id: row.id});
         });
 
-        void db.deleteAccount({ id });
-        void db.deleteTransferPayee({ id: transferPayee.id });
+        void db.deleteAccount({id});
+        void db.deleteTransferPayee({id: transferPayee.id});
       });
     } else {
       if (balance !== 0 && transferAccountId == null) {
@@ -690,7 +667,7 @@ async function closeAccount({
         throw APIError('transfer account can not be the account being closed');
       }
 
-      await db.update('accounts', { id, closed: 1 });
+      await db.update('accounts', {id, closed: 1});
 
       // If there is a balance we need to transfer it to the specified
       // account (and possibly categorize it)
@@ -701,9 +678,7 @@ async function closeAccount({
         );
 
         if (!transferPayee) {
-          throw new Error(
-            `Transfer payee with account ID ${transferAccountId} not found.`,
-          );
+          throw new Error(`Transfer payee with account ID ${transferAccountId} not found.`);
         }
 
         await mainApp.handlers['transaction-add']({
@@ -720,8 +695,8 @@ async function closeAccount({
   });
 }
 
-async function reopenAccount({ id }: { id: AccountEntity['id'] }) {
-  await db.update('accounts', { id, closed: 0 });
+async function reopenAccount({id}: {id: AccountEntity['id']}) {
+  await db.update('accounts', {id, closed: 0});
 }
 
 async function moveAccount({
@@ -748,7 +723,7 @@ async function setSecret({
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -758,16 +733,12 @@ async function setSecret({
 
   const headers = {
     'X-ACTUAL-TOKEN': userToken,
-    ...(fileId ? { 'X-Actual-File-Id': fileId } : {}),
+    ...(fileId ? {'X-Actual-File-Id': fileId} : {}),
   };
 
   try {
     if (value === null) {
-      return await del(
-        serverConfig.BASE_SERVER + '/secret/' + name,
-        {},
-        headers,
-      );
+      return await del(serverConfig.BASE_SERVER + '/secret/' + name, {}, headers);
     }
 
     return await post(
@@ -789,7 +760,7 @@ async function checkSecret(name: string) {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -803,19 +774,15 @@ async function checkSecret(name: string) {
     });
   } catch (error) {
     logger.error(error);
-    return { error: 'failed' };
+    return {error: 'failed'};
   }
 }
 
 let stopPolling = false;
 
-async function pollGoCardlessWebToken({
-  requisitionId,
-}: {
-  requisitionId: string;
-}) {
+async function pollGoCardlessWebToken({requisitionId}: {requisitionId: string}) {
   const userToken = await asyncStorage.getItem('user-token');
-  if (!userToken) return { error: 'unknown' };
+  if (!userToken) return {error: 'unknown'};
 
   const startTime = Date.now();
   stopPolling = false;
@@ -823,9 +790,9 @@ async function pollGoCardlessWebToken({
   async function getData(
     cb: (
       data:
-        | { status: 'timeout' }
-        | { status: 'unknown'; message?: string }
-        | { status: 'success'; data: GoCardlessToken },
+        | {status: 'timeout'}
+        | {status: 'unknown'; message?: string}
+        | {status: 'success'; data: GoCardlessToken},
     ) => void,
   ) {
     if (stopPolling) {
@@ -833,7 +800,7 @@ async function pollGoCardlessWebToken({
     }
 
     if (Date.now() - startTime >= 1000 * 60 * 10) {
-      cb({ status: 'timeout' });
+      cb({status: 'timeout'});
       return;
     }
 
@@ -855,9 +822,9 @@ async function pollGoCardlessWebToken({
     if (data) {
       if (data.error_code) {
         logger.error('Failed linking gocardless account:', data);
-        cb({ status: 'unknown', message: data.error_type });
+        cb({status: 'unknown', message: data.error_type});
       } else {
-        cb({ status: 'success', data });
+        cb({status: 'success', data});
       }
     } else {
       setTimeout(() => getData(cb), 3000);
@@ -867,12 +834,12 @@ async function pollGoCardlessWebToken({
   return new Promise(resolve => {
     void getData(data => {
       if (data.status === 'success') {
-        resolve({ data: data.data });
+        resolve({data: data.data});
         return;
       }
 
       if (data.status === 'timeout') {
-        resolve({ error: data.status });
+        resolve({error: data.status});
         return;
       }
 
@@ -893,7 +860,7 @@ async function goCardlessStatus() {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -914,7 +881,7 @@ async function simpleFinStatus() {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -935,7 +902,7 @@ async function pluggyAiStatus(): Promise<BankSyncProviderStatus> {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -949,7 +916,7 @@ async function pluggyAiStatus(): Promise<BankSyncProviderStatus> {
     {},
     {
       'X-ACTUAL-TOKEN': userToken,
-      ...(fileId ? { 'X-Actual-File-Id': fileId } : {}),
+      ...(fileId ? {'X-Actual-File-Id': fileId} : {}),
     },
   );
 }
@@ -958,7 +925,7 @@ async function akahuStatus() {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -979,7 +946,7 @@ async function simpleFinAccounts() {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -997,7 +964,7 @@ async function simpleFinAccounts() {
       60000,
     );
   } catch {
-    return { error_code: 'TIMED_OUT' };
+    return {error_code: 'TIMED_OUT'};
   }
 }
 
@@ -1005,7 +972,7 @@ async function pluggyAiAccounts() {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -1020,12 +987,12 @@ async function pluggyAiAccounts() {
       {},
       {
         'X-ACTUAL-TOKEN': userToken,
-        ...(fileId ? { 'X-Actual-File-Id': fileId } : {}),
+        ...(fileId ? {'X-Actual-File-Id': fileId} : {}),
       },
       60000,
     );
   } catch {
-    return { error_code: 'TIMED_OUT' };
+    return {error_code: 'TIMED_OUT'};
   }
 }
 
@@ -1033,7 +1000,7 @@ async function akahuAccounts() {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -1051,7 +1018,7 @@ async function akahuAccounts() {
       60000,
     );
   } catch {
-    return { error_code: 'TIMED_OUT' };
+    return {error_code: 'TIMED_OUT'};
   }
 }
 
@@ -1059,7 +1026,7 @@ async function enableBankingStatus() {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -1080,7 +1047,7 @@ async function enableBankingAspsps(country: string) {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -1090,7 +1057,7 @@ async function enableBankingAspsps(country: string) {
 
   return post(
     serverConfig.ENABLEBANKING_SERVER + '/aspsps',
-    { country },
+    {country},
     {
       'X-ACTUAL-TOKEN': userToken,
     },
@@ -1113,7 +1080,7 @@ async function enableBankingStartAuth({
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   if (
@@ -1123,7 +1090,7 @@ async function enableBankingStartAuth({
       maxConsentValidity <= 0 ||
       maxConsentValidity > 315_360_000)
   ) {
-    return { error: 'invalid_max_consent_validity' };
+    return {error: 'invalid_max_consent_validity'};
   }
 
   const serverConfig = getServer();
@@ -1134,7 +1101,7 @@ async function enableBankingStartAuth({
   return post(
     serverConfig.ENABLEBANKING_SERVER + '/start-auth',
     {
-      aspsp: { name: aspspId, country },
+      aspsp: {name: aspspId, country},
       redirectUrl,
       maxConsentValidity,
       psuType,
@@ -1145,21 +1112,15 @@ async function enableBankingStartAuth({
   );
 }
 
-async function enableBankingCompleteAuth({
-  code,
-  state,
-}: {
-  code: string;
-  state: string;
-}) {
+async function enableBankingCompleteAuth({code, state}: {code: string; state: string}) {
   if (!state) {
-    return { error: 'missing-state' };
+    return {error: 'missing-state'};
   }
 
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -1169,7 +1130,7 @@ async function enableBankingCompleteAuth({
 
   return post(
     serverConfig.ENABLEBANKING_SERVER + '/complete-auth',
-    { code, state },
+    {code, state},
     {
       'X-ACTUAL-TOKEN': userToken,
     },
@@ -1178,11 +1139,11 @@ async function enableBankingCompleteAuth({
 
 const enableBankingPollControllers = new Map<string, AbortController>();
 
-async function enableBankingPollAuth({ state }: { state: string }) {
+async function enableBankingPollAuth({state}: {state: string}) {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -1196,7 +1157,7 @@ async function enableBankingPollAuth({ state }: { state: string }) {
   try {
     return await post(
       serverConfig.ENABLEBANKING_SERVER + '/poll-auth',
-      { state },
+      {state},
       {
         'X-ACTUAL-TOKEN': userToken,
       },
@@ -1210,7 +1171,7 @@ async function enableBankingPollAuth({ state }: { state: string }) {
   }
 }
 
-async function stopEnableBankingPollAuth({ state }: { state: string }) {
+async function stopEnableBankingPollAuth({state}: {state: string}) {
   const controller = enableBankingPollControllers.get(state);
   if (controller) {
     controller.abort();
@@ -1219,14 +1180,11 @@ async function stopEnableBankingPollAuth({ state }: { state: string }) {
   return 'ok';
 }
 
-async function enableBankingConfigure(config: {
-  applicationId: string;
-  secretKey: string;
-}) {
+async function enableBankingConfigure(config: {applicationId: string; secretKey: string}) {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -1243,7 +1201,7 @@ async function getGoCardlessBanks(country: string) {
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -1253,7 +1211,7 @@ async function getGoCardlessBanks(country: string) {
 
   return post(
     serverConfig.GOCARDLESS_SERVER + '/get-banks',
-    { country, showDemo: isNonProductionEnvironment() },
+    {country, showDemo: isNonProductionEnvironment()},
     {
       'X-ACTUAL-TOKEN': userToken,
     },
@@ -1270,7 +1228,7 @@ async function createGoCardlessWebToken({
   const userToken = await asyncStorage.getItem('user-token');
 
   if (!userToken) {
-    return { error: 'unauthorized' };
+    return {error: 'unauthorized'};
   }
 
   const serverConfig = getServer();
@@ -1291,7 +1249,7 @@ async function createGoCardlessWebToken({
     );
   } catch (error) {
     logger.error(error);
-    return { error: 'failed' };
+    return {error: 'failed'};
   }
 }
 
@@ -1308,7 +1266,7 @@ async function handleSyncResponse(
   },
   acctId: string,
 ): Promise<SyncResponse> {
-  const { added, updated } = res;
+  const {added, updated} = res;
   const newTransactions: Array<TransactionEntity['id']> = [];
   const matchedTransactions: Array<TransactionEntity['id']> = [];
   const updatedAccounts: Array<AccountEntity['id']> = [];
@@ -1355,20 +1313,14 @@ type SyncError =
 function isBankSyncError(err: unknown): err is BankSyncError {
   return (
     err instanceof BankSyncError ||
-    (typeof err === 'object' &&
-      err !== null &&
-      'type' in err &&
-      err.type === 'BankSyncError')
+    (typeof err === 'object' && err !== null && 'type' in err && err.type === 'BankSyncError')
   );
 }
 
 /**
  * Converts a sync error into a standardized SyncError response object.
  */
-function handleSyncError(
-  err: Error | PostError | BankSyncError,
-  acct: db.DbAccount,
-): SyncError {
+function handleSyncError(err: Error | PostError | BankSyncError, acct: db.DbAccount): SyncError {
   if (isBankSyncError(err)) {
     const syncError = {
       type: 'SyncError',
@@ -1405,14 +1357,11 @@ function handleSyncError(
   };
 }
 
-function getBankSyncStatusFromError(
-  err: Error | PostError | BankSyncError,
-): BankSyncStatus {
+function getBankSyncStatusFromError(err: Error | PostError | BankSyncError): BankSyncStatus {
   if (isBankSyncError(err)) {
     if (
       (err.category === 'ITEM_ERROR' && err.code === 'ITEM_LOGIN_REQUIRED') ||
-      (err.category === 'INVALID_INPUT' &&
-        err.code === 'INVALID_ACCESS_TOKEN') ||
+      (err.category === 'INVALID_INPUT' && err.code === 'INVALID_ACCESS_TOKEN') ||
       err.category === 'INVALID_ACCESS_TOKEN'
     ) {
       return 'reauth-required';
@@ -1457,10 +1406,12 @@ async function accountsBankSync({
 }: {
   ids: Array<AccountEntity['id']>;
 }): Promise<SyncResponseWithErrors> {
-  const { 'user-id': userId, 'user-key': userKey } =
-    await asyncStorage.multiGet(['user-id', 'user-key']);
+  const {'user-id': userId, 'user-key': userKey} = await asyncStorage.multiGet([
+    'user-id',
+    'user-key',
+  ]);
 
-  const accounts = db.runQuery<db.DbAccount & { bankId: db.DbBank['bank_id'] }>(
+  const accounts = db.runQuery<db.DbAccount & {bankId: db.DbBank['bank_id']}>(
     `
     SELECT a.*, b.bank_id as bankId
     FROM accounts a
@@ -1494,10 +1445,7 @@ async function accountsBankSync({
           fileId,
         );
 
-        const syncResponseData = await handleSyncResponse(
-          syncResponse,
-          acct.id,
-        );
+        const syncResponseData = await handleSyncResponse(syncResponse, acct.id);
 
         newTransactions.push(...syncResponseData.newTransactions);
         matchedTransactions.push(...syncResponseData.matchedTransactions);
@@ -1523,17 +1471,15 @@ async function accountsBankSync({
     });
   }
 
-  return { errors, newTransactions, matchedTransactions, updatedAccounts };
+  return {errors, newTransactions, matchedTransactions, updatedAccounts};
 }
 
 async function simpleFinBatchSync({
   ids = [],
 }: {
   ids: Array<AccountEntity['id']>;
-}): Promise<
-  Array<{ accountId: AccountEntity['id']; res: SyncResponseWithErrors }>
-> {
-  const accounts = db.runQuery<db.DbAccount & { bankId: db.DbBank['bank_id'] }>(
+}): Promise<Array<{accountId: AccountEntity['id']; res: SyncResponseWithErrors}>> {
+  const accounts = db.runQuery<db.DbAccount & {bankId: db.DbBank['bank_id']}>(
     `SELECT a.*, b.bank_id as bankId FROM accounts a
          LEFT JOIN banks b ON a.bank = b.id
          WHERE
@@ -1597,10 +1543,7 @@ async function simpleFinBatchSync({
         await persistBankSyncError(account.id, bankSyncError);
         errors.push(handleSyncError(bankSyncError, account));
       } else if (syncResponse.res) {
-        const syncResponseData = await handleSyncResponse(
-          syncResponse.res,
-          account.id,
-        );
+        const syncResponseData = await handleSyncResponse(syncResponse.res, account.id);
 
         newTransactions.push(...syncResponseData.newTransactions);
         matchedTransactions.push(...syncResponseData.matchedTransactions);
@@ -1615,7 +1558,7 @@ async function simpleFinBatchSync({
 
       retVal.push({
         accountId: syncResponse.accountId,
-        res: { errors, newTransactions, matchedTransactions, updatedAccounts },
+        res: {errors, newTransactions, matchedTransactions, updatedAccounts},
       });
     }
   } catch (err) {
@@ -1677,16 +1620,12 @@ async function importTransactions({
   }
 
   try {
-    const reconciled = await bankSync.reconcileTransactions(
-      accountId,
-      transactions,
-      {
-        isPreview,
-        defaultCleared: opts?.defaultCleared,
-        reimportDeleted: opts?.reimportDeleted,
-        payeeNameNormalization,
-      },
-    );
+    const reconciled = await bankSync.reconcileTransactions(accountId, transactions, {
+      isPreview,
+      defaultCleared: opts?.defaultCleared,
+      reimportDeleted: opts?.reimportDeleted,
+      payeeNameNormalization,
+    });
     return {
       errors: [],
       added: reconciled.added,
@@ -1696,7 +1635,7 @@ async function importTransactions({
   } catch (err) {
     if (err instanceof TransactionError) {
       return {
-        errors: [{ message: err.message }],
+        errors: [{message: err.message}],
         added: [],
         updated: [],
         updatedPreview: [],
@@ -1707,11 +1646,8 @@ async function importTransactions({
   }
 }
 
-async function unlinkAccount({ id }: { id: AccountEntity['id'] }) {
-  const accRow = await db.first<db.DbAccount>(
-    'SELECT * FROM accounts WHERE id = ?',
-    [id],
-  );
+async function unlinkAccount({id}: {id: AccountEntity['id']}) {
+  const accRow = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', [id]);
 
   if (!accRow) {
     throw new Error(`Account with ID ${id} not found.`);
@@ -1740,7 +1676,7 @@ async function unlinkAccount({ id }: { id: AccountEntity['id'] }) {
     return;
   }
 
-  const accountWithBankResult = await db.first<{ count: number }>(
+  const accountWithBankResult = await db.first<{count: number}>(
     'SELECT COUNT(*) as count FROM accounts WHERE bank = ?',
     [bankId],
   );
@@ -1780,7 +1716,7 @@ async function unlinkAccount({ id }: { id: AccountEntity['id'] }) {
         },
       );
     } catch (error) {
-      logger.log({ error });
+      logger.log({error});
     }
   }
 

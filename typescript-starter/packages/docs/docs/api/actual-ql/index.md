@@ -26,9 +26,9 @@ Until we have better docs, here are few things you can do with ActualQL.
 You construct a query with `q` and run it with `runQuery`. The result is an object with a `data` prop. An example:
 
 ```js
-let { q, runQuery } = require('@actual-app/api');
+let {q, runQuery} = require('@actual-app/api');
 
-let { data } = await runQuery(q('transactions').select('*'));
+let {data} = await runQuery(q('transactions').select('*'));
 ```
 
 `data` will be an array of all the transactions in the system.
@@ -40,7 +40,7 @@ Split transactions complicate things: when you sum transaction amounts, do you s
 The `transactions` table provides two different interfaces for transaction data to help with this. You can configure the type of data to return using `options` and passing a `splits` option:
 
 ```js
-q('transactions').select('*').options({ splits: 'inline' });
+q('transactions').select('*').options({splits: 'inline'});
 ```
 
 There are two different options for `splits`: `inline` or `grouped`<super>\*</super>. **`inline` is the default**, and will not return the "parent" transaction of a split transaction. It will only show you subtransactions of split transaction, and the result is a flat array of transactions. This lets you sum all the amounts of transactions and by default it will ignore the "parent" transaction.
@@ -61,7 +61,7 @@ The keys of a filter object are the names of the fields (see [Transaction](../re
 q('transactions')
   .filter({
     'category.name': 'Food',
-    date: { $gte: '2021-01-01' },
+    date: {$gte: '2021-01-01'},
   })
   .select('*');
 ```
@@ -73,7 +73,7 @@ If you pass an array to a field, it will combine the conditions with `$and`:
 ```js
 q('transactions')
   .filter({
-    date: [{ $gte: '2021-01-01' }, { $lte: '2021-12-31' }],
+    date: [{$gte: '2021-01-01'}, {$lte: '2021-12-31'}],
   })
   .select('*');
 ```
@@ -83,7 +83,7 @@ This is the same query but restricts it to transactions between `2021-01-01` and
 ```js
 q('transactions')
   .filter({
-    $and: [{ date: { $gte: '2021-01-01' } }, { date: { $lte: '2021-12-31' } }],
+    $and: [{date: {$gte: '2021-01-01'}}, {date: {$lte: '2021-12-31'}}],
   })
   .select('*');
 ```
@@ -93,7 +93,7 @@ q('transactions')
 ```js
 q('transactions')
   .filter({
-    $or: [{ date: '2021-01-01' }, { date: '2021-01-02' }],
+    $or: [{date: '2021-01-01'}, {date: '2021-01-02'}],
   })
   .select('*');
 ```

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useMemo } from 'react';
+import {useMemo} from 'react';
 
-import { theme } from '@actual-app/components/theme';
+import {theme} from '@actual-app/components/theme';
 
 const VAR_STRING_REGEX = /^var\((--.*)\)$/;
 
@@ -24,10 +24,7 @@ function getPropertyValueFromVarString(varString: string): string {
   if (VAR_STRING_REGEX.test(varString)) {
     const match = varString.match(VAR_STRING_REGEX);
     if (match) {
-      return window
-        .getComputedStyle(document.documentElement)
-        .getPropertyValue(match[1])
-        .trim();
+      return window.getComputedStyle(document.documentElement).getPropertyValue(match[1]).trim();
     }
   }
   return varString;

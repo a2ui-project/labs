@@ -15,25 +15,22 @@
  */
 
 // @ts-strict-ignore
-import React, { useRef } from 'react';
-import type { CSSProperties, Ref } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useRef} from 'react';
+import type {CSSProperties, Ref} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgCheveronDown } from '@actual-app/components/icons/v1';
-import { TextOneLine } from '@actual-app/components/text-one-line';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgCheveronDown} from '@actual-app/components/icons/v1';
+import {TextOneLine} from '@actual-app/components/text-one-line';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
 
-import { InputCell } from '#components/table';
-import { useContextMenu } from '#hooks/useContextMenu';
-import { useGlobalPref } from '#hooks/useGlobalPref';
+import {InputCell} from '#components/table';
+import {useContextMenu} from '#hooks/useContextMenu';
+import {useGlobalPref} from '#hooks/useGlobalPref';
 
-import { SidebarCategoryButtons } from './SidebarCategoryButtons';
+import {SidebarCategoryButtons} from './SidebarCategoryButtons';
 
 type SidebarCategoryProps = {
   innerRef: Ref<HTMLDivElement>;
@@ -74,13 +71,13 @@ export function SidebarCategory({
   onDelete,
   onHideNewCategory,
 }: SidebarCategoryProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [categoryExpandedStatePref] = useGlobalPref('categoryExpandedState');
   const categoryExpandedState = categoryExpandedStatePref ?? 0;
 
   const temporary = category.id === 'new';
   const triggerRef = useRef(null);
-  const { handleContextMenu } = useContextMenu({
+  const {handleContextMenu} = useContextMenu({
     triggerRef,
     items: [
       {
@@ -91,7 +88,7 @@ export function SidebarCategory({
       !categoryGroup?.hidden && {
         name: 'toggle-visibility',
         text: category.hidden ? t('Show') : t('Hide'),
-        onClick: () => onSave({ ...category, hidden: !category.hidden }),
+        onClick: () => onSave({...category, hidden: !category.hidden}),
       },
       {
         name: 'delete',
@@ -115,25 +112,17 @@ export function SidebarCategory({
       ref={triggerRef}
     >
       <TextOneLine data-testid="category-name">{category.name}</TextOneLine>
-      <View style={{ flexShrink: 0, marginLeft: 5 }}>
+      <View style={{flexShrink: 0, marginLeft: 5}}>
         <Button
           variant="bare"
           className="hover-visible"
-          style={{ color: 'currentColor', padding: 3 }}
+          style={{color: 'currentColor', padding: 3}}
           onPress={handleContextMenu}
         >
-          <SvgCheveronDown
-            width={14}
-            height={14}
-            style={{ color: 'currentColor' }}
-          />
+          <SvgCheveronDown width={14} height={14} style={{color: 'currentColor'}} />
         </Button>
       </View>
-      <SidebarCategoryButtons
-        category={category}
-        dragging={dragging}
-        goalsShown={goalsShown}
-      />
+      <SidebarCategoryButtons category={category} dragging={dragging} goalsShown={goalsShown} />
     </View>
   );
 
@@ -152,7 +141,7 @@ export function SidebarCategory({
               display: 'flex',
             },
           }),
-        ...(dragging && { color: theme.pageTextSubdued }), //always visible color
+        ...(dragging && {color: theme.pageTextSubdued}), //always visible color
         // The zIndex here forces the the view on top of a row below
         // it that may be "collapsed" and show a border on top
         ...(dragPreview && {
@@ -180,16 +169,16 @@ export function SidebarCategory({
             if (value === '') {
               onHideNewCategory();
             } else if (value !== '') {
-              onSave({ ...category, name: value });
+              onSave({...category, name: value});
             }
           } else {
             if (value !== category.name) {
-              onSave({ ...category, name: value });
+              onSave({...category, name: value});
             }
           }
         }}
         onBlur={() => onEditName(null)}
-        style={{ paddingLeft: 13, ...(isLast && { borderBottomWidth: 0 }) }}
+        style={{paddingLeft: 13, ...(isLast && {borderBottomWidth: 0})}}
         inputProps={{
           placeholder: temporary ? t('New category name') : '',
         }}

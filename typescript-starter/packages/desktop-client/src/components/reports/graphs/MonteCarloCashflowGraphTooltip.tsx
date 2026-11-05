@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
 
-import { FinancialText } from '#components/FinancialText';
-import { MonteCarloCashflowSwatch } from '#components/reports/graphs/MonteCarloCashflowSwatch';
+import {FinancialText} from '#components/FinancialText';
+import {MonteCarloCashflowSwatch} from '#components/reports/graphs/MonteCarloCashflowSwatch';
 import type {
   MonteCarloCashflowDataPoint,
   MonteCarloCashflowTooltipGroup,
 } from '#components/reports/graphs/util/monteCarloCashflowChart';
-import { useFormat } from '#hooks/useFormat';
+import {useFormat} from '#hooks/useFormat';
 
 type PayloadItem = {
   payload: MonteCarloCashflowDataPoint;
@@ -58,7 +58,7 @@ export function MonteCarloCashflowGraphTooltip({
   payload,
   groups,
 }: MonteCarloCashflowGraphTooltipProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
   if (!active || !payload || payload.length === 0) {
@@ -69,7 +69,7 @@ export function MonteCarloCashflowGraphTooltip({
   const sections = groups
     .map(group => {
       const members = group.series
-        .map(series => ({ ...series, value: point.amounts[series.key] ?? 0 }))
+        .map(series => ({...series, value: point.amounts[series.key] ?? 0}))
         .filter(series => series.value !== 0);
       return {
         ...group,
@@ -91,18 +91,16 @@ export function MonteCarloCashflowGraphTooltip({
         padding: 10,
       })}
     >
-      <div style={{ marginBottom: 10 }}>
-        <strong>{t('Age {{age}}', { age: point.age })}</strong>
+      <div style={{marginBottom: 10}}>
+        <strong>{t('Age {{age}}', {age: point.age})}</strong>
       </div>
       {point.afterDepletion && (
-        <div
-          style={{ marginBottom: 10, maxWidth: 220, color: theme.errorText }}
-        >
+        <div style={{marginBottom: 10, maxWidth: 220, color: theme.errorText}}>
           {t('The pots had already run out - this spending went unfunded.')}
         </div>
       )}
       {point.unspentIncome > 0 && (
-        <div style={{ marginBottom: 10, maxWidth: 220 }}>
+        <div style={{marginBottom: 10, maxWidth: 220}}>
           <FinancialText as="span">
             {t('Unspent income: {{amount}} - it leaves the plan.', {
               amount: format(point.unspentIncome, 'financial'),
@@ -110,37 +108,27 @@ export function MonteCarloCashflowGraphTooltip({
           </FinancialText>
         </div>
       )}
-      <div style={{ lineHeight: 1.5 }}>
+      <div style={{lineHeight: 1.5}}>
         {sections.map(group => (
           <View key={group.key}>
             <View className={VALUE_ROW_STYLE}>
               <View className={LABEL_STYLE}>
-                {!group.listMembers && (
-                  <MonteCarloCashflowSwatch color={group.members[0].color} />
-                )}
+                {!group.listMembers && <MonteCarloCashflowSwatch color={group.members[0].color} />}
                 <strong>{group.heading}</strong>
               </View>
               <strong>
-                <FinancialText>
-                  {format(group.total, 'financial')}
-                </FinancialText>
+                <FinancialText>{format(group.total, 'financial')}</FinancialText>
               </strong>
             </View>
             {group.listMembers &&
               group.members.map(member => (
-                <View
-                  key={member.key}
-                  className={VALUE_ROW_STYLE}
-                  style={{ paddingLeft: 16 }}
-                >
+                <View key={member.key} className={VALUE_ROW_STYLE} style={{paddingLeft: 16}}>
                   <View className={LABEL_STYLE}>
                     <MonteCarloCashflowSwatch color={member.color} />
                     <div>{member.label}</div>
                   </View>
                   <div>
-                    <FinancialText>
-                      {format(member.value, 'financial')}
-                    </FinancialText>
+                    <FinancialText>{format(member.value, 'financial')}</FinancialText>
                   </div>
                 </View>
               ))}

@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import { useRef } from 'react';
+import {useRef} from 'react';
 
-import { Menu } from '@actual-app/components/menu';
-import type { MenuItem } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { theme } from '@actual-app/components/theme';
+import {Menu} from '@actual-app/components/menu';
+import type {MenuItem} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {theme} from '@actual-app/components/theme';
 
-import { closeContextMenu } from '#contextmenu/contextMenuSlice';
-import { useRefEventListener } from '#hooks/useRefEventListener';
-import { useDispatch, useSelector } from '#redux';
+import {closeContextMenu} from '#contextmenu/contextMenuSlice';
+import {useRefEventListener} from '#hooks/useRefEventListener';
+import {useDispatch, useSelector} from '#redux';
 
 export function ContextMenu() {
   const dispatch = useDispatch();
-  const { isOpen, position, items } = useSelector(state => state.contextMenu);
+  const {isOpen, position, items} = useSelector(state => state.contextMenu);
 
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLDivElement | null>(null);
@@ -41,11 +41,7 @@ export function ContextMenu() {
   // Handle left-clicks and right-clicks to DISMISS the menu
   useRefEventListener(document, 'pointerdown', (e: PointerEvent) => {
     // Close the menu if we click anywhere outside the popover DOM element
-    if (
-      isOpen &&
-      popoverRef.current &&
-      !popoverRef.current.contains(e.target as Node)
-    ) {
+    if (isOpen && popoverRef.current && !popoverRef.current.contains(e.target as Node)) {
       handleOpenChange(false);
     }
   });
@@ -83,12 +79,12 @@ export function ContextMenu() {
         onOpenChange={handleOpenChange}
         placement="bottom start"
         isNonModal
-        style={{ width: 200, margin: 1 }}
+        style={{width: 200, margin: 1}}
       >
         <Menu
           onMenuSelect={handleMenuSelect}
           items={items as MenuItem[]}
-          style={{ backgroundColor: theme.menuBackground }}
+          style={{backgroundColor: theme.menuBackground}}
         />
       </Popover>
     </>

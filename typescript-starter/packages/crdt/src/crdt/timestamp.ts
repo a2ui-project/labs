@@ -15,9 +15,9 @@
  */
 
 import murmurhash from 'murmurhash';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import type { TrieNode } from './merkle';
+import type {TrieNode} from './merkle';
 
 /**
  * Hybrid Unique Logical Clock (HULC) timestamp generator
@@ -59,7 +59,7 @@ export function getClock(): Clock {
 }
 
 export function makeClock(timestamp: Timestamp, merkle: TrieNode = {}) {
-  return { timestamp: MutableTimestamp.from(timestamp), merkle };
+  return {timestamp: MutableTimestamp.from(timestamp), merkle};
 }
 
 export function serializeClock(clock: Clock): string {
@@ -108,7 +108,7 @@ const MAX_NODE_LENGTH = 16;
  * timestamp instance class
  */
 export class Timestamp {
-  _state: { millis: number; counter: number; node: string };
+  _state: {millis: number; counter: number; node: string};
 
   constructor(millis: number, counter: number, node: string) {
     this._state = {
@@ -149,7 +149,7 @@ export class Timestamp {
   // Timestamp generator initialization
   // * sets the node ID to an arbitrary value
   // * useful for mocking/unit testing
-  static init(options: { maxDrift?: number; node?: string } = {}) {
+  static init(options: {maxDrift?: number; node?: string} = {}) {
     if (options.maxDrift) {
       config.maxDrift = options.maxDrift;
     }
@@ -159,9 +159,7 @@ export class Timestamp {
         new Timestamp(
           0,
           0,
-          options.node
-            ? ('0000000000000000' + options.node).toString().slice(-16)
-            : '',
+          options.node ? ('0000000000000000' + options.node).toString().slice(-16) : '',
         ),
       ),
     );
@@ -171,9 +169,7 @@ export class Timestamp {
    * maximum timestamp
    */
 
-  static max = Timestamp.parse(
-    '9999-12-31T23:59:59.999Z-FFFF-FFFFFFFFFFFFFFFF',
-  )!;
+  static max = Timestamp.parse('9999-12-31T23:59:59.999Z-FFFF-FFFFFFFFFFFFFFFF')!;
 
   /**
    * timestamp parsing
@@ -311,9 +307,7 @@ export class Timestamp {
    * zero/minimum timestamp
    */
 
-  static zero = Timestamp.parse(
-    '1970-01-01T00:00:00.000Z-0000-0000000000000000',
-  )!;
+  static zero = Timestamp.parse('1970-01-01T00:00:00.000Z-0000-0000000000000000')!;
 
   static since = (isoString: string) => isoString + '-0000-0000000000000000';
 
@@ -351,11 +345,7 @@ export class Timestamp {
 
 class MutableTimestamp extends Timestamp {
   static from(timestamp: Timestamp) {
-    return new MutableTimestamp(
-      timestamp.millis(),
-      timestamp.counter(),
-      timestamp.node(),
-    );
+    return new MutableTimestamp(timestamp.millis(), timestamp.counter(), timestamp.node());
   }
 
   setMillis(n: number) {

@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-import React, { memo } from 'react';
-import type { CSSProperties, RefObject, UIEventHandler } from 'react';
+import React, {memo} from 'react';
+import type {CSSProperties, RefObject, UIEventHandler} from 'react';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import type {
   balanceTypeOpType,
   GroupedEntity,
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
 
-import { FinancialText } from '#components/FinancialText';
-import { showActivity } from '#components/reports/graphs/showActivity';
-import { Cell, Row } from '#components/table';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useFormat } from '#hooks/useFormat';
-import { useNavigate } from '#hooks/useNavigate';
+import {FinancialText} from '#components/FinancialText';
+import {showActivity} from '#components/reports/graphs/showActivity';
+import {Cell, Row} from '#components/table';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useFormat} from '#hooks/useFormat';
+import {useNavigate} from '#hooks/useNavigate';
 
 type ReportTableRowProps = {
   item: GroupedEntity;
@@ -88,23 +88,21 @@ export const ReportTableRow = memo(
     const format = useFormat();
 
     const navigate = useNavigate();
-    const { isNarrowWidth } = useResponsive();
-    const { data: categories = { grouped: [], list: [] } } = useCategories();
-    const { data: accounts = [] } = useAccounts();
+    const {isNarrowWidth} = useResponsive();
+    const {data: categories = {grouped: [], list: []}} = useCategories();
+    const {data: accounts = []} = useAccounts();
 
     const isGroupRow =
-      item.uncategorizedId === 'all' ||
-      categories.grouped.some(g => g.id === item.id);
+      item.uncategorizedId === 'all' || categories.grouped.some(g => g.id === item.id);
     const drilldownField = isGroupRow ? 'group' : groupBy.toLowerCase();
-    const canShowActivity =
-      !isNarrowWidth && groupBy !== 'Interval' && !compact;
+    const canShowActivity = !isNarrowWidth && groupBy !== 'Interval' && !compact;
 
     const pointer = canShowActivity ? 'pointer' : 'inherit';
 
     const hoverUnderline = canShowActivity
       ? {
           cursor: pointer,
-          ':hover': { textDecoration: 'underline' },
+          ':hover': {textDecoration: 'underline'},
           flexGrow: 0,
         }
       : {};
@@ -155,7 +153,7 @@ export const ReportTableRow = memo(
                         color: getAmountColor(intervalItem[balanceTypeOp]),
                       }),
                     }}
-                    unexposedContent={({ value }) => (
+                    unexposedContent={({value}) => (
                       <FinancialText
                         style={{
                           ...hoverUnderline,
@@ -216,7 +214,7 @@ export const ReportTableRow = memo(
                         color: getAmountColor(item.totalAssets),
                       }),
                     }}
-                    unexposedContent={({ value }) => (
+                    unexposedContent={({value}) => (
                       <FinancialText
                         style={{
                           ...hoverUnderline,
@@ -264,7 +262,7 @@ export const ReportTableRow = memo(
                         color: getAmountColor(item.totalDebts),
                       }),
                     }}
-                    unexposedContent={({ value }) => (
+                    unexposedContent={({value}) => (
                       <FinancialText
                         style={{
                           ...hoverUnderline,
@@ -309,9 +307,9 @@ export const ReportTableRow = memo(
               fontWeight: 600,
               minWidth: compact ? 50 : 85,
               backgroundColor: style?.backgroundColor,
-              ...(colorized && { color: getAmountColor(item[balanceTypeOp]) }),
+              ...(colorized && {color: getAmountColor(item[balanceTypeOp])}),
             }}
-            unexposedContent={({ value }) => (
+            unexposedContent={({value}) => (
               <FinancialText
                 style={{
                   ...hoverUnderline,
@@ -346,22 +344,16 @@ export const ReportTableRow = memo(
           />
           <Cell
             value={format(average, 'financial')}
-            title={
-              Math.abs(average / 100) > 100000
-                ? format(average, 'financial')
-                : undefined
-            }
+            title={Math.abs(average / 100) > 100000 ? format(average, 'financial') : undefined}
             textAlign="right"
             style={{
               fontWeight: 600,
               minWidth: compact ? 50 : 85,
               backgroundColor: style?.backgroundColor,
-              ...(colorized && { color: getAmountColor(average) }),
+              ...(colorized && {color: getAmountColor(average)}),
             }}
-            unexposedContent={({ value }) => (
-              <FinancialText style={{ textAlign: 'right', flexGrow: 1 }}>
-                {value}
-              </FinancialText>
+            unexposedContent={({value}) => (
+              <FinancialText style={{textAlign: 'right', flexGrow: 1}}>{value}</FinancialText>
             )}
             valueStyle={compactStyle}
             width="flex"

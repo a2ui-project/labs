@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { retry as promiseRetry } from './retry';
+import {retry as promiseRetry} from './retry';
 
 const BACKEND_IMPORT_MAX_RETRIES = 30;
 
@@ -88,9 +88,7 @@ const lazyLoadBackend = async (isDev: boolean) => {
         try {
           return await import(process.env.lootCoreScript!);
         } catch (error) {
-          console.info(
-            `Loading server bundle: Attempt ${number} of ${BACKEND_IMPORT_MAX_RETRIES}`,
-          );
+          console.info(`Loading server bundle: Attempt ${number} of ${BACKEND_IMPORT_MAX_RETRIES}`);
 
           retry(error);
         }
@@ -104,9 +102,7 @@ const lazyLoadBackend = async (isDev: boolean) => {
     );
   } catch (error) {
     reportInitFailure(
-      new Error(
-        `Failed to init the server bundle after all retries: ${String(error)}`,
-      ),
+      new Error(`Failed to init the server bundle after all retries: ${String(error)}`),
     );
     return;
   }

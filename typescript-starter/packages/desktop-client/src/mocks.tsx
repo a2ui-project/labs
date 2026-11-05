@@ -15,13 +15,13 @@
  */
 
 import React from 'react';
-import type { ReactNode } from 'react';
-import { Provider } from 'react-redux';
+import type {ReactNode} from 'react';
+import {Provider} from 'react-redux';
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 
-import { configureAppStore } from './redux/store';
-import type { AppStore } from './redux/store';
+import {configureAppStore} from './redux/store';
+import type {AppStore} from './redux/store';
 
 export function createTestQueryClient() {
   return new QueryClient({
@@ -33,9 +33,7 @@ export function createTestQueryClient() {
   });
 }
 
-export function configureTestAppStore(
-  ...args: Parameters<typeof configureAppStore>
-) {
+export function configureTestAppStore(...args: Parameters<typeof configureAppStore>) {
   return configureAppStore(...args);
 }
 
@@ -46,7 +44,7 @@ let testStore = configureTestAppStore({
 
 export function resetTestProviders() {
   testQueryClient = createTestQueryClient();
-  testStore = configureTestAppStore({ queryClient: testQueryClient });
+  testStore = configureTestAppStore({queryClient: testQueryClient});
 }
 
 export function createTestAppStore() {

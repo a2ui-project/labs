@@ -15,25 +15,22 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import {
-  SvgCheveronLeft,
-  SvgCheveronRight,
-} from '@actual-app/components/icons/v1';
-import { SvgCalendar } from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {SvgCheveronLeft, SvgCheveronRight} from '@actual-app/components/icons/v1';
+import {SvgCalendar} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
 
-import { Link } from '#components/common/Link';
-import { useLocale } from '#hooks/useLocale';
-import { useResizeObserver } from '#hooks/useResizeObserver';
+import {Link} from '#components/common/Link';
+import {useLocale} from '#hooks/useLocale';
+import {useResizeObserver} from '#hooks/useResizeObserver';
 
-import type { MonthBounds } from './MonthsContext';
+import type {MonthBounds} from './MonthsContext';
 
 type MonthPickerProps = {
   startMonth: string;
@@ -51,39 +48,27 @@ export const MonthPicker = ({
   onSelect,
 }: MonthPickerProps) => {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [hoverId, setHoverId] = useState(null);
   const [targetMonthCount, setTargetMonthCount] = useState(12);
 
   const currentMonth = monthUtils.currentMonth();
   const firstSelectedMonth = startMonth;
 
-  const lastSelectedMonth = monthUtils.addMonths(
-    firstSelectedMonth,
-    numDisplayed - 1,
-  );
+  const lastSelectedMonth = monthUtils.addMonths(firstSelectedMonth, numDisplayed - 1);
 
   const range = monthUtils.rangeInclusive(
-    monthUtils.subMonths(
-      firstSelectedMonth,
-      Math.floor(targetMonthCount / 2 - numDisplayed / 2),
-    ),
-    monthUtils.addMonths(
-      lastSelectedMonth,
-      Math.floor(targetMonthCount / 2 - numDisplayed / 2),
-    ),
+    monthUtils.subMonths(firstSelectedMonth, Math.floor(targetMonthCount / 2 - numDisplayed / 2)),
+    monthUtils.addMonths(lastSelectedMonth, Math.floor(targetMonthCount / 2 - numDisplayed / 2)),
   );
 
-  const firstSelectedIndex =
-    Math.floor(range.length / 2) - Math.floor(numDisplayed / 2);
+  const firstSelectedIndex = Math.floor(range.length / 2) - Math.floor(numDisplayed / 2);
   const lastSelectedIndex = firstSelectedIndex + numDisplayed - 1;
 
   const [size, setSize] = useState('small');
   const containerRef = useResizeObserver(rect => {
     setSize(rect.width <= 400 ? 'small' : 'big');
-    setTargetMonthCount(
-      Math.min(Math.max(Math.floor(rect.width / 50), 12), 24),
-    );
+    setTargetMonthCount(Math.min(Math.max(Math.floor(rect.width / 50), 12), 24));
   });
 
   const yearHeadersShown = [];
@@ -144,12 +129,10 @@ export const MonthPicker = ({
         </Link>
         {range.map((month, idx) => {
           const monthName = monthUtils.format(month, 'MMM', locale);
-          const selected =
-            idx >= firstSelectedIndex && idx <= lastSelectedIndex;
+          const selected = idx >= firstSelectedIndex && idx <= lastSelectedIndex;
 
           const lastHoverId = hoverId + numDisplayed - 1;
-          const hovered =
-            hoverId === null ? false : idx >= hoverId && idx <= lastHoverId;
+          const hovered = hoverId === null ? false : idx >= hoverId && idx <= lastHoverId;
 
           const current = currentMonth === month;
           const year = monthUtils.getYear(month);
@@ -161,8 +144,7 @@ export const MonthPicker = ({
             showYearHeader = true;
           }
 
-          const isMonthBudgeted =
-            month >= monthBounds.start && month <= monthBounds.end;
+          const isMonthBudgeted = month >= monthBounds.start && month <= monthBounds.end;
 
           return (
             <View
@@ -215,17 +197,15 @@ export const MonthPicker = ({
                   selected && {
                     backgroundColor: theme.buttonPrimaryBackground,
                   }),
-                ...((idx === firstSelectedIndex ||
-                  (idx === hoverId && !selected)) && {
+                ...((idx === firstSelectedIndex || (idx === hoverId && !selected)) && {
                   borderTopLeftRadius: 2,
                   borderBottomLeftRadius: 2,
                 }),
-                ...((idx === lastSelectedIndex ||
-                  (idx === lastHoverId && !selected)) && {
+                ...((idx === lastSelectedIndex || (idx === lastHoverId && !selected)) && {
                   borderTopRightRadius: 2,
                   borderBottomRightRadius: 2,
                 }),
-                ...(current && { fontWeight: 'bold' }),
+                ...(current && {fontWeight: 'bold'}),
               }}
               onClick={() => onSelect(month)}
               onMouseEnter={() => setHoverId(idx)}
@@ -241,9 +221,7 @@ export const MonthPicker = ({
                       left: 0,
                       fontSize: 10,
                       fontWeight: 'bold',
-                      color: isMonthBudgeted
-                        ? theme.pageText
-                        : theme.pageTextSubdued,
+                      color: isMonthBudgeted ? theme.pageText : theme.pageTextSubdued,
                     }}
                   >
                     {year}

@@ -15,10 +15,10 @@
  */
 
 // @ts-strict-ignore
-import React, { useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
+import React, {useMemo, useState} from 'react';
+import type {CSSProperties} from 'react';
 
-import { theme } from '@actual-app/components/theme';
+import {theme} from '@actual-app/components/theme';
 import type {
   balanceTypeOpType,
   DataEntity,
@@ -27,27 +27,26 @@ import type {
   LegendEntity,
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
-import { Pie, PieChart, Sector } from 'recharts';
-import type { PieSectorDataItem, PieSectorShapeProps } from 'recharts';
+import {Pie, PieChart, Sector} from 'recharts';
+import type {PieSectorDataItem, PieSectorShapeProps} from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useFormat } from '#hooks/useFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { isTouchDevice } from '#util/isTouchDevice';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useFormat} from '#hooks/useFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {isTouchDevice} from '#util/isTouchDevice';
 
-import { adjustTextSize } from './adjustTextSize';
-import { renderCustomLabel } from './renderCustomLabel';
-import { showActivity } from './showActivity';
+import {adjustTextSize} from './adjustTextSize';
+import {renderCustomLabel} from './renderCustomLabel';
+import {showActivity} from './showActivity';
 
 const RADIAN = Math.PI / 180;
 
-type ClickablePieItem = PieSectorDataItem &
-  Partial<Pick<GroupedEntity, 'id' | 'uncategorizedId'>>;
+type ClickablePieItem = PieSectorDataItem & Partial<Pick<GroupedEntity, 'id' | 'uncategorizedId'>>;
 
 // ---------------------------------------------------------------------------
 // Dimension helpers
@@ -60,11 +59,7 @@ type DonutDimensions = {
   compact: boolean;
 };
 
-const getDonutDimensions = (
-  width: number,
-  height: number,
-  twoRings: boolean,
-): DonutDimensions => {
+const getDonutDimensions = (width: number, height: number, twoRings: boolean): DonutDimensions => {
   const minDim = Math.min(width, height);
   const compact = height <= 300 || width <= 300;
   return {
@@ -83,9 +78,7 @@ const resolveCSSVariable = (color: string): string => {
   if (!color.startsWith('var(')) return color;
   const inner = color.slice(4, -1).trim();
   const varName = inner.split(',')[0].trim();
-  return getComputedStyle(document.documentElement)
-    .getPropertyValue(varName)
-    .trim();
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 };
 
 const hexToRgb = (hex: string) => {
@@ -96,13 +89,12 @@ const hexToRgb = (hex: string) => {
         g: parseInt(result[2], 16),
         b: parseInt(result[3], 16),
       }
-    : { r: 0, g: 0, b: 0 };
+    : {r: 0, g: 0, b: 0};
 };
 
 const shadeColor = (resolvedHex: string, percent: number): string => {
-  const { r, g, b } = hexToRgb(resolvedHex);
-  const adjust = (c: number) =>
-    Math.min(255, Math.max(0, Math.round(c + (255 - c) * percent)));
+  const {r, g, b} = hexToRgb(resolvedHex);
+  const adjust = (c: number) => Math.min(255, Math.max(0, Math.round(c + (255 - c) * percent)));
   return `rgb(${adjust(r)}, ${adjust(g)}, ${adjust(b)})`;
 };
 
@@ -111,9 +103,7 @@ const buildColorMap = (
   legend: LegendEntity[],
 ): Map<string, string> => {
   const legendById = new Map(
-    legend
-      .filter(l => l.id != null)
-      .map(l => [l.id, resolveCSSVariable(l.color)]),
+    legend.filter(l => l.id != null).map(l => [l.id, resolveCSSVariable(l.color)]),
   );
 
   return groupedData.reduce((acc, group) => {
@@ -149,7 +139,7 @@ type ActiveShapeProps = {
   startAngle: number;
   endAngle: number;
   fill: string;
-  payload: { name?: string; date?: string };
+  payload: {name?: string; date?: string};
   percent: number;
   value: number;
   expandInward: boolean;
@@ -256,9 +246,7 @@ const ActiveShapeDesktop = ({
   const expansionInner = expandInward ? chartInnerRadius - 10 : outerRadius + 6;
   const expansionOuter = expandInward ? chartInnerRadius - 6 : outerRadius + 10;
 
-  const lineStart = expandInward
-    ? chartInnerRadius - 20
-    : chartInnerRadius - 10;
+  const lineStart = expandInward ? chartInnerRadius - 20 : chartInnerRadius - 10;
   const lineMid = chartInnerRadius * 0.7;
   const sx = cx + lineStart * cos;
   const sy = cy + lineStart * sin;
@@ -289,24 +277,13 @@ const ActiveShapeDesktop = ({
         outerRadius={expansionOuter}
         fill={fill}
       />
-      <path
-        d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`}
-        stroke={fill}
-        fill="none"
-      />
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
       <circle cx={ex} cy={ey} r={3} fill={fill} stroke="none" />
       <text x={labelX} y={ey} textAnchor={textAnchor} fill={fill}>
         {yAxis}
       </text>
       <PrivacyFilter>
-        <FinancialText
-          as="text"
-          x={labelX}
-          y={ey}
-          dy={18}
-          textAnchor={textAnchor}
-          fill={fill}
-        >
+        <FinancialText as="text" x={labelX} y={ey} dy={18} textAnchor={textAnchor} fill={fill}>
           {format(value, 'financial')}
         </FinancialText>
         <text x={labelX} y={ey} dy={36} textAnchor={textAnchor} fill="#999">
@@ -322,14 +299,13 @@ const ActiveShapeDesktop = ({
 // ---------------------------------------------------------------------------
 
 const customLabel = props => {
-  const radius =
-    props.innerRadius + (props.outerRadius - props.innerRadius) * 0.5;
+  const radius = props.innerRadius + (props.outerRadius - props.innerRadius) * 0.5;
   const size = props.cx > props.cy ? props.cy : props.cx;
   const calcX = props.cx + radius * Math.cos(-props.midAngle * RADIAN);
   const calcY = props.cy + radius * Math.sin(-props.midAngle * RADIAN);
   const textAnchor = calcX > props.cx ? 'start' : 'end';
   const display = props.value !== 0 && `${(props.percent * 100).toFixed(0)}%`;
-  const textSize = adjustTextSize({ sized: size, type: 'donut' });
+  const textSize = adjustTextSize({sized: size, type: 'donut'});
   const showLabel = props.percent;
   const showLabelThreshold = 0.05;
   const fill = theme.reportsInnerLabel;
@@ -372,14 +348,14 @@ export function DonutGraph({
   showOffBudget,
   showTooltip = true,
 }: DonutGraphProps) {
-  const animationProps = useRechartsAnimation({ animationDuration: 500 });
+  const animationProps = useRechartsAnimation({animationDuration: 500});
 
   const yAxis = groupBy === 'Interval' ? 'date' : 'name';
   const splitData = groupBy === 'Interval' ? 'intervalData' : 'data';
 
   const navigate = useNavigate();
-  const { data: categories = { grouped: [], list: [] } } = useCategories();
-  const { data: accounts = [] } = useAccounts();
+  const {data: categories = {grouped: [], list: []}} = useCategories();
+  const {data: accounts = []} = useAccounts();
   const [pointer, setPointer] = useState('');
 
   const getVal = (obj: GroupedEntity | IntervalEntity) => {
@@ -392,16 +368,13 @@ export function DonutGraph({
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeGroupIndex, setActiveGroupIndex] = useState(0);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
-  const [activeRing, setActiveRing] = useState<'group' | 'category'>(
-    'category',
-  );
+  const [activeRing, setActiveRing] = useState<'group' | 'category'>('category');
 
-  const isCategoryGroup =
-    groupBy === 'CategoryGroup' && !!data.groupedData?.length;
+  const isCategoryGroup = groupBy === 'CategoryGroup' && !!data.groupedData?.length;
 
-  const { adjustedGroupData, flatCategories } = useMemo(() => {
+  const {adjustedGroupData, flatCategories} = useMemo(() => {
     if (!isCategoryGroup || !data.groupedData) {
-      return { adjustedGroupData: [], flatCategories: [] };
+      return {adjustedGroupData: [], flatCategories: []};
     }
 
     const adjustedGroups = data.groupedData
@@ -439,8 +412,11 @@ export function DonutGraph({
   return (
     <Container style={style}>
       {(width, height) => {
-        const { chartInnerRadius, chartMidRadius, chartOuterRadius, compact } =
-          getDonutDimensions(width, height, isCategoryGroup);
+        const {chartInnerRadius, chartMidRadius, chartOuterRadius, compact} = getDonutDimensions(
+          width,
+          height,
+          isCategoryGroup,
+        );
 
         const showActiveShape = width >= 220 && height >= 130;
 
@@ -451,13 +427,8 @@ export function DonutGraph({
           return (
             data.groupedData && (
               <div>
-                {!compact && <div style={{ marginTop: '15px' }} />}
-                <PieChart
-                  responsive
-                  width={width}
-                  height={height}
-                  style={{ cursor: pointer }}
-                >
+                {!compact && <div style={{marginTop: '15px'}} />}
+                <PieChart responsive width={width} height={height} style={{cursor: pointer}}>
                   {/* Inner ring — Category Groups */}
                   <Pie
                     dataKey={val => getVal(val)}
@@ -470,13 +441,10 @@ export function DonutGraph({
                     startAngle={90}
                     endAngle={-270}
                     shape={(props: PieSectorShapeProps) => {
-                      const { index } = props;
+                      const {index} = props;
                       const item = adjustedGroupData[index];
-                      const fill =
-                        colorMap.get(item?.id ?? item?.name ?? '') ??
-                        props.fill;
-                      const isActive =
-                        activeRing === 'group' && index === activeGroupIndex;
+                      const fill = colorMap.get(item?.id ?? item?.name ?? '') ?? props.fill;
+                      const isActive = activeRing === 'group' && index === activeGroupIndex;
                       if (isActive && showActiveShape) {
                         return compact ? (
                           <ActiveShapeMobile
@@ -547,18 +515,12 @@ export function DonutGraph({
                     startAngle={90}
                     endAngle={-270}
                     labelLine={false}
-                    label={e =>
-                      viewLabels && !compact ? customLabel(e) : null
-                    }
+                    label={e => (viewLabels && !compact ? customLabel(e) : null)}
                     shape={(props: PieSectorShapeProps) => {
-                      const { index } = props;
+                      const {index} = props;
                       const item = flatCategories[index];
-                      const fill =
-                        colorMap.get(item?.id ?? item?.name ?? '') ??
-                        props.fill;
-                      const isActive =
-                        activeRing === 'category' &&
-                        index === activeCategoryIndex;
+                      const fill = colorMap.get(item?.id ?? item?.name ?? '') ?? props.fill;
+                      const isActive = activeRing === 'category' && index === activeCategoryIndex;
                       if (isActive && showActiveShape) {
                         return compact ? (
                           <ActiveShapeMobile
@@ -629,28 +591,21 @@ export function DonutGraph({
         return (
           data[splitData] && (
             <div>
-              {!compact && <div style={{ marginTop: '15px' }} />}
-              <PieChart
-                responsive
-                width={width}
-                height={height}
-                style={{ cursor: pointer }}
-              >
+              {!compact && <div style={{marginTop: '15px'}} />}
+              <PieChart responsive width={width} height={height} style={{cursor: pointer}}>
                 <Pie
                   dataKey={val => getVal(val)}
                   nameKey={yAxis}
                   {...animationProps}
                   animationBegin={100}
-                  data={data[splitData]?.map(item => ({ ...item })) ?? []}
+                  data={data[splitData]?.map(item => ({...item})) ?? []}
                   innerRadius={chartInnerRadius}
                   labelLine={false}
-                  label={e =>
-                    viewLabels && !compact ? customLabel(e) : <div />
-                  }
+                  label={e => (viewLabels && !compact ? customLabel(e) : <div />)}
                   startAngle={90}
                   endAngle={-270}
                   shape={(props: PieSectorShapeProps) => {
-                    const { index } = props;
+                    const {index} = props;
                     // Fix 3: optional chain data.legend to guard against undefined
                     const fill = data.legend?.[index]?.color ?? props.fill;
                     const isActive = index === activeIndex;

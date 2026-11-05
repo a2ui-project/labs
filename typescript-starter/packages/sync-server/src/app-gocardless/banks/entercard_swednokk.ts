@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { amountToInteger } from '#app-gocardless/utils';
+import {amountToInteger} from '#app-gocardless/utils';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -25,14 +25,13 @@ export default {
   institutionIds: ['ENTERCARD_SWEDNOKK'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     // GoCardless's Entercard integration returns forex transactions with the
     // foreign amount in `transactionAmount`, but at least the amount actually
     // billed to the account is now available in
     // `remittanceInformationUnstructured`.
-    const remittanceInformationUnstructured =
-      transaction.remittanceInformationUnstructured ?? '';
+    const remittanceInformationUnstructured = transaction.remittanceInformationUnstructured ?? '';
     if (remittanceInformationUnstructured.startsWith('billingAmount: ')) {
       transaction.transactionAmount = {
         amount: remittanceInformationUnstructured.substring(15),

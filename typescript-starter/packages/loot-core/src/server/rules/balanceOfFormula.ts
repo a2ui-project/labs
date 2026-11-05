@@ -18,7 +18,7 @@ import type * as db from '#server/db';
 
 /** Collect formula strings from serialized or live rule actions. */
 export function collectFormulasFromActions(
-  actions: Array<{ options?: { formula?: string } }>,
+  actions: Array<{options?: {formula?: string}}>,
 ): string[] {
   const out: string[] = [];
   for (const action of actions) {

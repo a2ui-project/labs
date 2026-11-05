@@ -15,14 +15,14 @@
  */
 
 // @ts-strict-ignore
-import { Children, useLayoutEffect, useRef } from 'react';
-import type { ComponentPropsWithRef, ReactNode } from 'react';
+import {Children, useLayoutEffect, useRef} from 'react';
+import type {ComponentPropsWithRef, ReactNode} from 'react';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
 
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
 type ConditionalPrivacyFilterProps = {
   children: ReactNode;
@@ -43,10 +43,7 @@ export function ConditionalPrivacyFilter({
     ) : (
       renderPrivacyFilter(
         children,
-        mergeConditionalPrivacyFilterProps(
-          defaultPrivacyFilterProps,
-          privacyFilter,
-        ),
+        mergeConditionalPrivacyFilterProps(defaultPrivacyFilterProps, privacyFilter),
       )
     )
   ) : (
@@ -57,21 +54,15 @@ export function ConditionalPrivacyFilter({
 type PrivacyFilterProps = ComponentPropsWithRef<typeof View> & {
   activationFilters?: (boolean | (() => boolean))[];
 };
-export function PrivacyFilter({
-  activationFilters,
-  children,
-  ...props
-}: PrivacyFilterProps) {
+export function PrivacyFilter({activationFilters, children, ...props}: PrivacyFilterProps) {
   const privacyMode = usePrivacyMode();
   // Limit mobile support for now.
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const activate =
     privacyMode &&
     !isNarrowWidth &&
     (!activationFilters ||
-      activationFilters.every(value =>
-        typeof value === 'boolean' ? value : value(),
-      ));
+      activationFilters.every(value => (typeof value === 'boolean' ? value : value())));
 
   return !activate ? (
     <>{Children.toArray(children)}</>
@@ -86,17 +77,13 @@ type RedactedContentProps = {
 
 // Component that filters text content to remove non-alphanumeric characters
 // This works by intercepting the actual rendered text via a ref and modifying it
-function RedactedContent({ children }: RedactedContentProps) {
+function RedactedContent({children}: RedactedContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
     if (containerRef.current) {
       // Walk all text nodes and replace non-alphanumeric characters
-      const walker = document.createTreeWalker(
-        containerRef.current,
-        NodeFilter.SHOW_TEXT,
-        null,
-      );
+      const walker = document.createTreeWalker(containerRef.current, NodeFilter.SHOW_TEXT, null);
 
       let node: Text | null;
       while ((node = walker.nextNode() as Text | null)) {
@@ -110,8 +97,8 @@ function RedactedContent({ children }: RedactedContentProps) {
   return <div ref={containerRef}>{children}</div>;
 }
 
-function PrivacyOverlay({ children, ...props }) {
-  const { style, ...restProps } = props;
+function PrivacyOverlay({children, ...props}) {
+  const {style, ...restProps} = props;
 
   return (
     <View

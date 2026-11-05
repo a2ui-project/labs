@@ -61,7 +61,7 @@ Unit tests are located alongside source files or in `__tests__` directories. Tes
 ### Writing Unit Tests
 
 ```typescript
-import { describe, it, expect, beforeEach } from 'vitest';
+import {describe, it, expect, beforeEach} from 'vitest';
 // ... other imports
 
 describe('ComponentName', () => {

@@ -15,10 +15,10 @@
  */
 
 // @ts-strict-ignore
-import { listen } from '@actual-app/core/platform/client/connection';
-import type { Query } from '@actual-app/core/shared/query';
+import {listen} from '@actual-app/core/platform/client/connection';
+import type {Query} from '@actual-app/core/shared/query';
 
-import { aqlQuery } from './aqlQuery';
+import {aqlQuery} from './aqlQuery';
 
 export function liveQuery<TResponse = unknown>(
   query: Query,
@@ -37,10 +37,7 @@ export function liveQuery<TResponse = unknown>(
 
 type Data<TResponse> = TResponse[];
 
-type Listener<TResponse = unknown> = (
-  data: Data<TResponse>,
-  previousData: Data<TResponse>,
-) => void;
+type Listener<TResponse = unknown> = (data: Data<TResponse>, previousData: Data<TResponse>) => void;
 
 export type LiveQueryOptions = {
   onlySync?: boolean;
@@ -126,10 +123,7 @@ export class LiveQuery<TResponse = unknown> {
   protected onUpdate = (tables: string[]) => {
     // We might not know the dependencies if the first query result
     // hasn't come back yet
-    if (
-      this._dependencies == null ||
-      tables.find(table => this._dependencies.has(table))
-    ) {
+    if (this._dependencies == null || tables.find(table => this._dependencies.has(table))) {
       void this.run();
     }
   };
@@ -176,9 +170,7 @@ export class LiveQuery<TResponse = unknown> {
     }
   };
 
-  protected _optimisticUpdate = (
-    updateFn: (data: Data<TResponse>) => Data<TResponse>,
-  ) => {
+  protected _optimisticUpdate = (updateFn: (data: Data<TResponse>) => Data<TResponse>) => {
     const previousData = this.data;
     this.updateData(updateFn);
     this.onData(this.data, previousData);
@@ -188,9 +180,7 @@ export class LiveQuery<TResponse = unknown> {
     this._optimisticUpdate(dataFunc);
   };
 
-  protected updateData = (
-    updateFn: (data: Data<TResponse>) => Data<TResponse>,
-  ) => {
+  protected updateData = (updateFn: (data: Data<TResponse>) => Data<TResponse>) => {
     this.data = updateFn(this.data);
   };
 
@@ -208,7 +198,7 @@ export class LiveQuery<TResponse = unknown> {
     this.inflightRequestId = reqId;
 
     try {
-      const { data, dependencies } = await runQuery();
+      const {data, dependencies} = await runQuery();
 
       // Regardless if this request was cancelled or not, save the
       // dependencies. The query can't change so all requests will

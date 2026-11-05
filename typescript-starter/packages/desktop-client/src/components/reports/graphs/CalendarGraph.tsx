@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
-import type { Ref } from 'react';
-import { Trans } from 'react-i18next';
+import {useEffect, useState} from 'react';
+import type {Ref} from 'react';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import {Button} from '@actual-app/components/button';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 import {
   addDays,
   format as formatDate,
@@ -33,10 +33,10 @@ import {
   startOfWeek,
 } from 'date-fns';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { useFormat } from '#hooks/useFormat';
-import { useResizeObserver } from '#hooks/useResizeObserver';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {useFormat} from '#hooks/useFormat';
+import {useResizeObserver} from '#hooks/useResizeObserver';
 
 type CalendarGraphProps = {
   data: {
@@ -92,7 +92,7 @@ export function CalendarGraph({
         }}
         onClick={() => onDayClick(null)}
       >
-        {Array.from({ length: 7 }, (_, index) => (
+        {Array.from({length: 7}, (_, index) => (
           <View
             key={index}
             style={{
@@ -123,19 +123,16 @@ export function CalendarGraph({
       >
         {data.map((day, index) =>
           !isSameMonth(day.date, startOfMonth(start)) ? (
-            <View
-              key={`empty-${day.date.getTime()}`}
-              onClick={() => onDayClick(null)}
-            />
+            <View key={`empty-${day.date.getTime()}`} onClick={() => onDayClick(null)} />
           ) : day.incomeValue !== 0 || day.expenseValue !== 0 ? (
             <Tooltip
               key={day.date.getTime()}
               content={
                 <View>
-                  <View style={{ marginBottom: 10 }}>
+                  <View style={{marginBottom: 10}}>
                     <strong>{formatDate(day.date, 'MMM dd')}</strong>
                   </View>
-                  <View style={{ lineHeight: 1.5 }}>
+                  <View style={{lineHeight: 1.5}}>
                     <View
                       style={{
                         display: 'grid',
@@ -159,15 +156,13 @@ export function CalendarGraph({
                       >
                         {day.incomeValue !== 0 ? (
                           <PrivacyFilter>
-                            <FinancialText>
-                              {format(day.incomeValue, 'financial')}
-                            </FinancialText>
+                            <FinancialText>{format(day.incomeValue, 'financial')}</FinancialText>
                           </PrivacyFilter>
                         ) : (
                           ''
                         )}
                       </View>
-                      <View style={{ marginLeft: 4, flexDirection: 'row' }}>
+                      <View style={{marginLeft: 4, flexDirection: 'row'}}>
                         (
                         <PrivacyFilter>
                           {Math.round(day.incomeSize * 100) / 100 + '%'}
@@ -190,15 +185,13 @@ export function CalendarGraph({
                       >
                         {day.expenseValue !== 0 ? (
                           <PrivacyFilter>
-                            <FinancialText>
-                              {format(day.expenseValue, 'financial')}
-                            </FinancialText>
+                            <FinancialText>{format(day.expenseValue, 'financial')}</FinancialText>
                           </PrivacyFilter>
                         ) : (
                           ''
                         )}
                       </View>
-                      <View style={{ marginLeft: 4, flexDirection: 'row' }}>
+                      <View style={{marginLeft: 4, flexDirection: 'row'}}>
                         (
                         <PrivacyFilter>
                           {Math.round(day.expenseSize * 100) / 100 + '%'}
@@ -257,7 +250,7 @@ type DayButtonProps = {
   };
   onPress: () => void;
 };
-function DayButton({ day, onPress, fontSize, resizeRef }: DayButtonProps) {
+function DayButton({day, onPress, fontSize, resizeRef}: DayButtonProps) {
   const [currentFontSize, setCurrentFontSize] = useState(fontSize);
 
   useEffect(() => {

@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-import React, { useMemo, useState } from 'react';
-import { Form } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useMemo, useState} from 'react';
+import {Form} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { View } from '@actual-app/components/view';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type { CategoryEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {View} from '@actual-app/components/view';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {CategoryEntity} from '@actual-app/core/types/models';
 
-import { CategoryAutocomplete } from '#components/autocomplete/CategoryAutocomplete';
-import {
-  addToBeBudgetedGroup,
-  removeCategoriesFromGroups,
-} from '#components/budget/util';
-import { FinancialInput } from '#components/util/FinancialInput';
-import { useCategories } from '#hooks/useCategories';
+import {CategoryAutocomplete} from '#components/autocomplete/CategoryAutocomplete';
+import {addToBeBudgetedGroup, removeCategoriesFromGroups} from '#components/budget/util';
+import {FinancialInput} from '#components/util/FinancialInput';
+import {useCategories} from '#hooks/useCategories';
 
 type TransferMenuProps = {
   categoryId?: CategoryEntity['id'];
@@ -47,25 +44,18 @@ export function TransferMenu({
   onSubmit,
   onClose,
 }: TransferMenuProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
-  const { data: { grouped: originalCategoryGroups } = { grouped: [] } } =
-    useCategories();
+  const {data: {grouped: originalCategoryGroups} = {grouped: []}} = useCategories();
   const filteredCategoryGroups = useMemo(() => {
-    const expenseCategoryGroups = originalCategoryGroups.filter(
-      g => !g.is_income,
-    );
+    const expenseCategoryGroups = originalCategoryGroups.filter(g => !g.is_income);
     const categoryGroups = showToBeBudgeted
       ? addToBeBudgetedGroup(expenseCategoryGroups)
       : expenseCategoryGroups;
-    return categoryId
-      ? removeCategoriesFromGroups(categoryGroups, categoryId)
-      : categoryGroups;
+    return categoryId ? removeCategoriesFromGroups(categoryGroups, categoryId) : categoryGroups;
   }, [originalCategoryGroups, categoryId, showToBeBudgeted]);
 
-  const [amount, setAmount] = useState<IntegerAmount>(
-    Math.max(initialAmount ?? 0, 0),
-  );
+  const [amount, setAmount] = useState<IntegerAmount>(Math.max(initialAmount ?? 0, 0));
   const [toCategoryId, setToCategoryId] = useState<string | null>(null);
 
   const _onSubmit = () => {
@@ -82,8 +72,8 @@ export function TransferMenu({
         _onSubmit();
       }}
     >
-      <View style={{ padding: 10 }}>
-        <View style={{ marginBottom: 5 }}>
+      <View style={{padding: 10}}>
+        <View style={{marginBottom: 5}}>
           <Trans>Transfer this amount:</Trans>
         </View>
         <View>
@@ -91,7 +81,7 @@ export function TransferMenu({
             <FinancialInput value={amount} onUpdate={setAmount} />
           </InitialFocus>
         </View>
-        <View style={{ margin: '10px 0 5px 0' }}>
+        <View style={{margin: '10px 0 5px 0'}}>
           <Trans>To:</Trans>
         </View>
 

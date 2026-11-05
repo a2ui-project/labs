@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
 import Admonition from '@theme/Admonition';
 
@@ -23,17 +23,13 @@ type ExperimentalFeatureWarningProps = {
   children?: ReactNode;
 };
 
-export function ExperimentalFeatureWarning({
-  issueId,
-  children,
-}: ExperimentalFeatureWarningProps) {
+export function ExperimentalFeatureWarning({issueId, children}: ExperimentalFeatureWarningProps) {
   return (
     <Admonition type="warning">
       <p>
-        This is an <strong>experimental feature</strong>. That means we're still
-        working on finishing it. There may be bugs, missing functionality or
-        incomplete documentation, and we may decide to remove the feature in a
-        future release. If you have any feedback, please{' '}
+        This is an <strong>experimental feature</strong>. That means we're still working on
+        finishing it. There may be bugs, missing functionality or incomplete documentation, and we
+        may decide to remove the feature in a future release. If you have any feedback, please{' '}
         {issueId ? (
           <>
             comment on the{' '}
@@ -45,10 +41,7 @@ export function ExperimentalFeatureWarning({
             </a>
           </>
         ) : (
-          <a
-            href="https://github.com/actualbudget/actual/issues"
-            rel="noopener noreferrer"
-          >
+          <a href="https://github.com/actualbudget/actual/issues" rel="noopener noreferrer">
             open an issue
           </a>
         )}{' '}

@@ -15,7 +15,7 @@
  */
 
 import Belfius from '#app-gocardless/banks/belfius_gkccbebb';
-import { mockTransactionAmount } from '#app-gocardless/services/tests/fixtures';
+import {mockTransactionAmount} from '#app-gocardless/services/tests/fixtures';
 
 describe('Belfius', () => {
   describe('#normalizeTransaction', () => {
@@ -26,13 +26,8 @@ describe('Belfius', () => {
         transactionAmount: mockTransactionAmount,
         date: new Date().toISOString(),
       };
-      const normalizedTransaction = Belfius.normalizeTransaction(
-        transaction,
-        true,
-      );
-      expect(normalizedTransaction?.transactionId).toEqual(
-        transaction.internalTransactionId,
-      );
+      const normalizedTransaction = Belfius.normalizeTransaction(transaction, true);
+      expect(normalizedTransaction?.transactionId).toEqual(transaction.internalTransactionId);
     });
   });
 });

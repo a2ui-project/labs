@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useSelector } from '#redux';
+import {useSelector} from '#redux';
 
 export function useUpdatedAccounts() {
   return useSelector(state => state.account.updatedAccounts);

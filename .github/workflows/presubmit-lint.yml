@@ -27,25 +27,74 @@ permissions:
   contents: read
 
 jobs:
-  license-check:
-    name: License & Copyright Check
+  static-checks:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+      - name: Check out the latest A2UI main
+        run: git submodule update --init --remote --depth 1 third_party/a2ui
+
+      - name: Check for private index URL in uv.lock files
+        # git grep searches only this repository's files, not the submodule's.
+        run: |
+          FORBIDDEN_URL="us-python.pkg.dev"
+          if git grep -n "$FORBIDDEN_URL" -- '*uv.lock'; then
+            echo "::error::Found private index URL ($FORBIDDEN_URL) in the uv.lock files above."
+            exit 1
+          fi
+          echo "No private index URLs found in uv.lock files."
 
       - name: Set up Go
         uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
         with:
-          go-version: "1.22"
+          go-version: "1.21"
 
       - name: Install addlicense
         run: go install github.com/google/addlicense@v1.1.1
 
-      - name: Run fix_licenses unit tests
-        run: python3 -m unittest scripts.test_fix_licenses
-
       - name: Check license headers
-        run: python3 ./scripts/fix_licenses.py --check
+        run: ./scripts/fix_licenses.py --check
+
+  format-check:
+    runs-on: ubuntu-24.04 # setup-swift does not support Ubuntu 26.04 yet
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check out the latest A2UI main
+        run: git submodule update --init --remote --depth 1 third_party/a2ui
+      - name: Find the languages that need a formatter
+        id: languages
+        run: |
+          for pair in python:'*.py' dart:'*.dart' swift:'*.swift' kotlin:'*.gradle.kts'; do
+            if [ -n "$(git ls-files -- "${pair#*:}")" ]; then
+              echo "${pair%%:*}=true" >> "$GITHUB_OUTPUT"
+            fi
+          done
+      - uses: ./third_party/a2ui/.github/actions/setup-node
+        with:
+          install: false
+      - uses: ./third_party/a2ui/.github/actions/setup-python
+        if: steps.languages.outputs.python == 'true'
+      - name: Set up Dart (Lightweight)
+        if: steps.languages.outputs.dart == 'true'
+        uses: dart-lang/setup-dart@65eb853c7ba17dde3be364c3d2858773e7144260 # v1.7.2
+        with:
+          sdk: stable
+      - name: Set up Swift
+        if: steps.languages.outputs.swift == 'true'
+        uses: swift-actions/setup-swift@7ca6abe6b3b0e8b5421b88be48feee39cbf52c6a # v2
+        with:
+          swift-version: "6.0"
+      - name: Set up JDK 21
+        if: steps.languages.outputs.kotlin == 'true'
+        uses: actions/setup-java@ad2b38190b15e4d6bdf0c97fb4fca8412226d287 # v5.3.0
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "gradle"
+      - name: Check formatting
+        run: ./scripts/fix_format.sh --check

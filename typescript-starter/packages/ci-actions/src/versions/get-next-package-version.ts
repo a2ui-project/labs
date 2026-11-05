@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-export const versionTypeArray = [
-  'auto',
-  'hotfix',
-  'monthly',
-  'nightly',
-] as const;
+export const versionTypeArray = ['auto', 'hotfix', 'monthly', 'nightly'] as const;
 export type VersionType = (typeof versionTypeArray)[number];
 
 type ParsedVersion = {
@@ -45,17 +40,13 @@ function parseVersion(version: string): ParsedVersion {
 
 function computeNextMonth(versionYear: number, versionMonth: number) {
   const versionDate = new Date(2000 + versionYear, versionMonth - 1, 1);
-  const nextVersionMonthDate = new Date(
-    versionDate.getFullYear(),
-    versionDate.getMonth() + 1,
-    1,
-  );
+  const nextVersionMonthDate = new Date(versionDate.getFullYear(), versionDate.getMonth() + 1, 1);
 
   const fullYear = nextVersionMonthDate.getFullYear();
   const nextVersionYear = fullYear.toString().slice(fullYear < 2100 ? -2 : -3);
   const nextVersionMonth = nextVersionMonthDate.getMonth() + 1;
 
-  return { nextVersionYear, nextVersionMonth };
+  return {nextVersionYear, nextVersionMonth};
 }
 
 export function isValidVersionType(value: string): value is VersionType {
@@ -73,8 +64,7 @@ function resolveType(
   }
 
   const inPatchMonth =
-    currentDate.getFullYear() === 2000 + versionYear &&
-    currentDate.getMonth() + 1 === versionMonth;
+    currentDate.getFullYear() === 2000 + versionYear && currentDate.getMonth() + 1 === versionMonth;
 
   if (inPatchMonth && currentDate.getDate() < 25) {
     return 'hotfix';
@@ -88,23 +78,11 @@ export function getNextVersion({
   type,
   currentDate = new Date(),
 }: GetNextVersionOptions) {
-  const { versionYear, versionMonth, versionHotfix } =
-    parseVersion(currentVersion);
-  const { nextVersionYear, nextVersionMonth } = computeNextMonth(
-    versionYear,
-    versionMonth,
-  );
-  const resolvedType = resolveType(
-    type,
-    currentDate,
-    versionYear,
-    versionMonth,
-  );
+  const {versionYear, versionMonth, versionHotfix} = parseVersion(currentVersion);
+  const {nextVersionYear, nextVersionMonth} = computeNextMonth(versionYear, versionMonth);
+  const resolvedType = resolveType(type, currentDate, versionYear, versionMonth);
 
-  const currentDateString = currentDate
-    .toISOString()
-    .split('T')[0]
-    .replace(/-/g, '');
+  const currentDateString = currentDate.toISOString().split('T')[0].replace(/-/g, '');
 
   switch (resolvedType) {
     case 'nightly':

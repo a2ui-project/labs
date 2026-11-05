@@ -14,34 +14,31 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Block} from '@actual-app/components/block';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  AccountEntity,
-  CrossoverWidget,
-} from '@actual-app/core/types/models';
+import type {AccountEntity, CrossoverWidget} from '@actual-app/core/types/models';
 
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { CrossoverGraph } from '#components/reports/graphs/CrossoverGraph';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { defaultTimeFrame } from '#components/reports/reports/Crossover';
-import { createCrossoverSpreadsheet } from '#components/reports/spreadsheets/crossover-spreadsheet';
-import type { CrossoverData } from '#components/reports/spreadsheets/crossover-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useCategories } from '#hooks/useCategories';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {CrossoverGraph} from '#components/reports/graphs/CrossoverGraph';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {defaultTimeFrame} from '#components/reports/reports/Crossover';
+import {createCrossoverSpreadsheet} from '#components/reports/spreadsheets/crossover-spreadsheet';
+import type {CrossoverData} from '#components/reports/spreadsheets/crossover-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useCategories} from '#hooks/useCategories';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
 
 type CrossoverCardProps = {
   widgetId: string;
@@ -59,9 +56,9 @@ export function CrossoverCard({
   onMetaChange,
 }: CrossoverCardProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
-  const { data: categories = { grouped: [], list: [] } } = useCategories();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {data: categories = {grouped: [], list: []}} = useCategories();
+  const {isNarrowWidth} = useResponsive();
 
   const [nameMenuOpen, setNameMenuOpen] = useState(false);
 
@@ -167,8 +164,7 @@ export function CrossoverCard({
   const swr = meta?.safeWithdrawalRate ?? 0.04;
   const estimatedReturn = meta?.estimatedReturn ?? null;
   const expectedContribution = meta?.expectedContribution ?? null;
-  const projectionType: 'hampel' | 'median' | 'mean' =
-    meta?.projectionType ?? 'hampel';
+  const projectionType: 'hampel' | 'median' | 'mean' = meta?.projectionType ?? 'hampel';
   const expenseAdjustmentFactor = meta?.expenseAdjustmentFactor ?? 1.0;
 
   const params = useMemo(
@@ -210,13 +206,9 @@ export function CrossoverCard({
       to={`/reports/crossover/${widgetId}`}
       onRename={() => setNameMenuOpen(true)}
     >
-      <View
-        style={{ flex: 1 }}
-        onPointerEnter={onCardHover}
-        onPointerLeave={onCardHoverEnd}
-      >
-        <View style={{ flexDirection: 'row', padding: 20 }}>
-          <View style={{ flex: 1 }}>
+      <View style={{flex: 1}} onPointerEnter={onCardHover} onPointerLeave={onCardHoverEnd}>
+        <View style={{flexDirection: 'row', padding: 20}}>
+          <View style={{flex: 1}}>
             <ReportCardName
               name={meta?.name || t('Crossover Point')}
               isEditing={nameMenuOpen}
@@ -232,7 +224,7 @@ export function CrossoverCard({
             {/* Date range is now fixed and not configurable */}
           </View>
           {data && (
-            <View style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+            <View style={{textAlign: 'right', whiteSpace: 'nowrap'}}>
               <Block
                 style={{
                   ...styles.mediumText,
@@ -265,7 +257,7 @@ export function CrossoverCard({
             graphData={data.graphData}
             compact
             showTooltip={!isEditing && !isNarrowWidth}
-            style={{ height: 'auto', flex: 1 }}
+            style={{height: 'auto', flex: 1}}
           />
         ) : (
           <LoadingIndicator />

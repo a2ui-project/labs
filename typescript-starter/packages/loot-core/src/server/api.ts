@@ -15,33 +15,20 @@
  */
 
 // @ts-strict-ignore
-import { getClock } from '@actual-app/crdt';
+import {getClock} from '@actual-app/crdt';
 
 import * as connection from '#platform/server/connection';
-import { logger } from '#platform/server/log';
-import {
-  getBankSyncError,
-  getDownloadError,
-  getSyncError,
-  getTestKeyError,
-} from '#shared/errors';
+import {logger} from '#platform/server/log';
+import {getBankSyncError, getDownloadError, getSyncError, getTestKeyError} from '#shared/errors';
 import * as monthUtils from '#shared/months';
-import { q } from '#shared/query';
-import {
-  deleteTransaction,
-  ungroupTransactions,
-  updateTransaction,
-} from '#shared/transactions';
-import { integerToAmount } from '#shared/util';
-import type { Handlers } from '#types/handlers';
-import type {
-  AccountEntity,
-  CategoryGroupEntity,
-  ScheduleEntity,
-} from '#types/models';
-import type { ServerHandlers } from '#types/server-handlers';
+import {q} from '#shared/query';
+import {deleteTransaction, ungroupTransactions, updateTransaction} from '#shared/transactions';
+import {integerToAmount} from '#shared/util';
+import type {Handlers} from '#types/handlers';
+import type {AccountEntity, CategoryGroupEntity, ScheduleEntity} from '#types/models';
+import type {ServerHandlers} from '#types/server-handlers';
 
-import { addTransactions } from './accounts/sync';
+import {addTransactions} from './accounts/sync';
 import {
   accountGroupModel,
   accountModel,
@@ -54,17 +41,17 @@ import {
   scheduleModel,
   tagModel,
 } from './api-models';
-import type { AmountOPType, APIScheduleEntity } from './api-models';
-import { aqlQuery } from './aql';
-import { isTrackingBudget } from './budget/actions';
+import type {AmountOPType, APIScheduleEntity} from './api-models';
+import {aqlQuery} from './aql';
+import {isTrackingBudget} from './budget/actions';
 import * as cloudStorage from './cloud-storage';
-import type { RemoteFile } from './cloud-storage';
+import type {RemoteFile} from './cloud-storage';
 import * as db from './db';
-import { APIError, withErrorCode } from './errors';
-import { runMutator } from './mutators';
+import {APIError, withErrorCode} from './errors';
+import {runMutator} from './mutators';
 import * as prefs from './prefs';
 import * as sheet from './sheet';
-import { batchMessages, setSyncingMode } from './sync';
+import {batchMessages, setSyncingMode} from './sync';
 
 let IMPORT_MODE = false;
 
@@ -96,7 +83,7 @@ function withMutation<Params extends Array<unknown>, ReturnType>(
 
         return result;
       },
-      { undoDisabled: true },
+      {undoDisabled: true},
     );
   };
 }
@@ -109,7 +96,7 @@ async function validateMonth(month) {
   }
 
   if (!IMPORT_MODE) {
-    const { start, end } = await handlers['get-budget-bounds']();
+    const {start, end} = await handlers['get-budget-bounds']();
     const range = monthUtils.range(start, end);
     if (!range.includes(month)) {
       throw APIError('No budget exists for month: ' + month);
@@ -155,13 +142,13 @@ handlers['api/batch-budget-start'] = async function () {
   if (IMPORT_MODE) {
     void db.asyncTransaction(() => {
       return new Promise((resolve, reject) => {
-        batchPromise = { resolve, reject };
+        batchPromise = {resolve, reject};
       });
     });
   } else {
     void batchMessages(() => {
       return new Promise((resolve, reject) => {
-        batchPromise = { resolve, reject };
+        batchPromise = {resolve, reject};
       });
     });
   }
@@ -176,12 +163,12 @@ handlers['api/batch-budget-end'] = async function () {
   batchPromise = null;
 };
 
-handlers['api/load-budget'] = async function ({ id }) {
-  const { id: currentId } = prefs.getPrefs() || {};
+handlers['api/load-budget'] = async function ({id}) {
+  const {id: currentId} = prefs.getPrefs() || {};
 
   if (currentId !== id) {
     connection.send('start-load');
-    const { error } = await handlers['load-budget']({ id });
+    const {error} = await handlers['load-budget']({id});
 
     if (!error) {
       connection.send('finish-load');
@@ -193,8 +180,8 @@ handlers['api/load-budget'] = async function ({ id }) {
   }
 };
 
-handlers['api/download-budget'] = async function ({ syncId, password }) {
-  const { id: currentId } = prefs.getPrefs() || {};
+handlers['api/download-budget'] = async function ({syncId, password}) {
+  const {id: currentId} = prefs.getPrefs() || {};
   if (currentId) {
     await handlers['close-budget']();
   }
@@ -207,10 +194,7 @@ handlers['api/download-budget'] = async function ({ syncId, password }) {
   if (!localBudget) {
     const files = await handlers['get-remote-files']();
     if (!files) {
-      throw withErrorCode(
-        new Error('Could not get remote files'),
-        'network-failure',
-      );
+      throw withErrorCode(new Error('Could not get remote files'), 'network-failure');
     }
     const file = files.find(f => f.groupId === syncId);
     if (!file) {
@@ -231,9 +215,7 @@ handlers['api/download-budget'] = async function ({ syncId, password }) {
   if (activeFile.encryptKeyId) {
     if (!password) {
       throw withErrorCode(
-        new Error(
-          `File ${activeFile.name} is encrypted. Please provide a password.`,
-        ),
+        new Error(`File ${activeFile.name} is encrypted. Please provide a password.`),
         'missing-key',
       );
     }
@@ -243,22 +225,17 @@ handlers['api/download-budget'] = async function ({ syncId, password }) {
       password,
     });
     if (result.error) {
-      throw withErrorCode(
-        new Error(getTestKeyError(result.error)),
-        result.error.reason,
-      );
+      throw withErrorCode(new Error(getTestKeyError(result.error)), result.error.reason);
     }
   }
 
   // Sync the local budget file
   if (localBudget) {
-    await handlers['load-budget']({ id: localBudget.id });
+    await handlers['load-budget']({id: localBudget.id});
     const result = await handlers['sync-budget']();
     if (result.error) {
       throw withErrorCode(
-        new Error(
-          getSyncError(result.error.reason, localBudget.id, result.error.meta),
-        ),
+        new Error(getSyncError(result.error.reason, localBudget.id, result.error.meta)),
         result.error.reason,
       );
     }
@@ -271,12 +248,9 @@ handlers['api/download-budget'] = async function ({ syncId, password }) {
   });
   if (result.error) {
     logger.log('Full error details', result.error);
-    throw withErrorCode(
-      new Error(getDownloadError(result.error)),
-      result.error.reason,
-    );
+    throw withErrorCode(new Error(getDownloadError(result.error)), result.error.reason);
   }
-  await handlers['load-budget']({ id: result.id });
+  await handlers['load-budget']({id: result.id});
 };
 
 handlers['api/get-budgets'] = async function () {
@@ -289,7 +263,7 @@ handlers['api/get-budgets'] = async function () {
 };
 
 handlers['api/sync'] = async function () {
-  const { id } = prefs.getPrefs();
+  const {id} = prefs.getPrefs();
   const result = await handlers['sync-budget']();
   if (result.error) {
     throw withErrorCode(
@@ -304,7 +278,7 @@ handlers['api/bank-sync'] = async function (args) {
   const allErrors = [];
 
   if (!batchSync) {
-    const { errors } = await handlers['accounts-bank-sync']({
+    const {errors} = await handlers['accounts-bank-sync']({
       ids: [args.accountId],
     });
 
@@ -312,9 +286,7 @@ handlers['api/bank-sync'] = async function (args) {
   } else {
     const accountsData = await handlers['accounts-get']();
     const accountIdsToSync = accountsData.map(a => a.id);
-    const simpleFinAccounts = accountsData.filter(
-      a => a.account_sync_source === 'simpleFin',
-    );
+    const simpleFinAccounts = accountsData.filter(a => a.account_sync_source === 'simpleFin');
     const simpleFinAccountIds = simpleFinAccounts.map(a => a.id);
 
     if (simpleFinAccounts.length >= 1) {
@@ -325,7 +297,7 @@ handlers['api/bank-sync'] = async function (args) {
       res.forEach(a => allErrors.push(...a.res.errors));
     }
 
-    const { errors } = await handlers['accounts-bank-sync']({
+    const {errors} = await handlers['accounts-bank-sync']({
       ids: accountIdsToSync.filter(a => !simpleFinAccountIds.includes(a)),
     });
 
@@ -338,12 +310,12 @@ handlers['api/bank-sync'] = async function (args) {
   }
 };
 
-handlers['api/start-import'] = async function ({ budgetName }) {
+handlers['api/start-import'] = async function ({budgetName}) {
   // Notify UI to close budget
   await handlers['close-budget']();
 
   // Create the budget
-  await handlers['create-budget']({ budgetName, avoidUpload: true });
+  await handlers['create-budget']({budgetName, avoidUpload: true});
 
   // Clear out the default expense categories
   db.runQuery('DELETE FROM categories WHERE is_income = 0');
@@ -364,9 +336,9 @@ handlers['api/finish-import'] = async function () {
   // We always need to fully reload the app. Importing doesn't touch
   // the spreadsheet, but we can't just recreate the spreadsheet
   // either; there is other internal state that isn't created
-  const { id } = prefs.getPrefs();
+  const {id} = prefs.getPrefs();
   await handlers['close-budget']();
-  await handlers['load-budget']({ id });
+  await handlers['load-budget']({id});
 
   await handlers['get-budget-bounds']();
   await sheet.waitOnSpreadsheet();
@@ -383,32 +355,32 @@ handlers['api/abort-import'] = async function () {
   if (IMPORT_MODE) {
     checkFileOpen();
 
-    const { id } = prefs.getPrefs();
+    const {id} = prefs.getPrefs();
 
     await handlers['close-budget']();
-    await handlers['delete-budget']({ id });
+    await handlers['delete-budget']({id});
     connection.send('show-budgets');
   }
 
   IMPORT_MODE = false;
 };
 
-handlers['api/query'] = async function ({ query }) {
+handlers['api/query'] = async function ({query}) {
   checkFileOpen();
   return aqlQuery(query);
 };
 
 handlers['api/budget-months'] = async function () {
   checkFileOpen();
-  const { start, end } = await handlers['get-budget-bounds']();
+  const {start, end} = await handlers['get-budget-bounds']();
   return monthUtils.range(start, end);
 };
 
-handlers['api/budget-month'] = async function ({ month }) {
+handlers['api/budget-month'] = async function ({month}) {
   checkFileOpen();
   await validateMonth(month);
 
-  const { data: groups }: { data: CategoryGroupEntity[] } = await aqlQuery(
+  const {data: groups}: {data: CategoryGroupEntity[]} = await aqlQuery(
     q('category_groups').select('*'),
   );
   const sheetName = monthUtils.sheetForMonth(month);
@@ -481,11 +453,7 @@ handlers['api/budget-month'] = async function ({ month }) {
   };
 };
 
-handlers['api/budget-set-amount'] = withMutation(async function ({
-  month,
-  categoryId,
-  amount,
-}) {
+handlers['api/budget-set-amount'] = withMutation(async function ({month, categoryId, amount}) {
   checkFileOpen();
   return handlers['budget/budget-amount']({
     month,
@@ -494,11 +462,7 @@ handlers['api/budget-set-amount'] = withMutation(async function ({
   });
 });
 
-handlers['api/budget-set-carryover'] = withMutation(async function ({
-  month,
-  categoryId,
-  flag,
-}) {
+handlers['api/budget-set-carryover'] = withMutation(async function ({month, categoryId, flag}) {
   checkFileOpen();
   await validateMonth(month);
   await validateExpenseCategory('budget-set-carryover', categoryId);
@@ -509,10 +473,7 @@ handlers['api/budget-set-carryover'] = withMutation(async function ({
   });
 });
 
-handlers['api/budget-hold-for-next-month'] = withMutation(async function ({
-  month,
-  amount,
-}) {
+handlers['api/budget-hold-for-next-month'] = withMutation(async function ({month, amount}) {
   checkFileOpen();
   await validateMonth(month);
   if (amount <= 0) {
@@ -524,10 +485,10 @@ handlers['api/budget-hold-for-next-month'] = withMutation(async function ({
   });
 });
 
-handlers['api/budget-reset-hold'] = withMutation(async function ({ month }) {
+handlers['api/budget-reset-hold'] = withMutation(async function ({month}) {
   checkFileOpen();
   await validateMonth(month);
-  return handlers['budget/reset-hold']({ month });
+  return handlers['budget/reset-hold']({month});
 });
 
 handlers['api/transactions-export'] = async function ({
@@ -574,34 +535,27 @@ handlers['api/transactions-add'] = withMutation(async function ({
   return 'ok' as const;
 });
 
-handlers['api/transactions-get'] = async function ({
-  accountId,
-  startDate,
-  endDate,
-}) {
+handlers['api/transactions-get'] = async function ({accountId, startDate, endDate}) {
   checkFileOpen();
-  const { data } = await aqlQuery(
+  const {data} = await aqlQuery(
     q('transactions')
       .filter({
         $and: [
-          accountId && { account: accountId },
-          startDate && { date: { $gte: startDate } },
-          endDate && { date: { $lte: endDate } },
+          accountId && {account: accountId},
+          startDate && {date: {$gte: startDate}},
+          endDate && {date: {$lte: endDate}},
         ].filter(Boolean),
       })
       .select('*')
-      .options({ splits: 'grouped' }),
+      .options({splits: 'grouped'}),
   );
   return data;
 };
 
-handlers['api/transaction-update'] = withMutation(async function ({
-  id,
-  fields,
-}) {
+handlers['api/transaction-update'] = withMutation(async function ({id, fields}) {
   checkFileOpen();
-  const { data } = await aqlQuery(
-    q('transactions').filter({ id }).select('*').options({ splits: 'grouped' }),
+  const {data} = await aqlQuery(
+    q('transactions').filter({id}).select('*').options({splits: 'grouped'}),
   );
   const transactions = ungroupTransactions(data);
 
@@ -610,14 +564,14 @@ handlers['api/transaction-update'] = withMutation(async function ({
   }
 
   // @ts-expect-error - fix me
-  const { diff } = updateTransaction(transactions, { id, ...fields });
+  const {diff} = updateTransaction(transactions, {id, ...fields});
   return handlers['transactions-batch-update'](diff)['updated'];
 });
 
-handlers['api/transaction-delete'] = withMutation(async function ({ id }) {
+handlers['api/transaction-delete'] = withMutation(async function ({id}) {
   checkFileOpen();
-  const { data } = await aqlQuery(
-    q('transactions').filter({ id }).select('*').options({ splits: 'grouped' }),
+  const {data} = await aqlQuery(
+    q('transactions').filter({id}).select('*').options({splits: 'grouped'}),
   );
   const transactions = ungroupTransactions(data);
 
@@ -625,13 +579,13 @@ handlers['api/transaction-delete'] = withMutation(async function ({ id }) {
     return [];
   }
 
-  const { diff } = deleteTransaction(transactions, id);
+  const {diff} = deleteTransaction(transactions, id);
   return handlers['transactions-batch-update'](diff)['deleted'];
 });
 
-handlers['api/transactions-merge'] = withMutation(async function ({ ids }) {
+handlers['api/transactions-merge'] = withMutation(async function ({ids}) {
   checkFileOpen();
-  return handlers['transactions-merge'](ids.map(id => ({ id })));
+  return handlers['transactions-merge'](ids.map(id => ({id})));
 });
 
 handlers['api/accounts-get'] = async function () {
@@ -640,10 +594,7 @@ handlers['api/accounts-get'] = async function () {
   return accounts.map(account => accountModel.toExternal(account));
 };
 
-handlers['api/account-create'] = withMutation(async function ({
-  account,
-  initialBalance = null,
-}) {
+handlers['api/account-create'] = withMutation(async function ({account, initialBalance = null}) {
   checkFileOpen();
   return handlers['account-create']({
     name: account.name,
@@ -655,10 +606,10 @@ handlers['api/account-create'] = withMutation(async function ({
   });
 });
 
-handlers['api/account-update'] = withMutation(async function ({ id, fields }) {
+handlers['api/account-update'] = withMutation(async function ({id, fields}) {
   checkFileOpen();
   // @ts-expect-error - fix me
-  return db.updateAccount({ id, ...accountModel.fromExternal(fields) });
+  return db.updateAccount({id, ...accountModel.fromExternal(fields)});
 });
 
 handlers['api/account-close'] = withMutation(async function ({
@@ -674,22 +625,19 @@ handlers['api/account-close'] = withMutation(async function ({
   });
 });
 
-handlers['api/account-reopen'] = withMutation(async function ({ id }) {
+handlers['api/account-reopen'] = withMutation(async function ({id}) {
   checkFileOpen();
-  return handlers['account-reopen']({ id });
+  return handlers['account-reopen']({id});
 });
 
-handlers['api/account-delete'] = withMutation(async function ({ id }) {
+handlers['api/account-delete'] = withMutation(async function ({id}) {
   checkFileOpen();
-  return handlers['account-close']({ id, forced: true });
+  return handlers['account-close']({id, forced: true});
 });
 
-handlers['api/account-balance'] = withMutation(async function ({
-  id,
-  cutoff = new Date(),
-}) {
+handlers['api/account-balance'] = withMutation(async function ({id, cutoff = new Date()}) {
   checkFileOpen();
-  return handlers['account-balance']({ id, cutoff });
+  return handlers['account-balance']({id, cutoff});
 });
 
 handlers['api/account-groups-get'] = async function () {
@@ -698,47 +646,38 @@ handlers['api/account-groups-get'] = async function () {
   return groups.map(group => accountGroupModel.toExternal(group));
 };
 
-handlers['api/account-group-create'] = withMutation(async function ({ group }) {
+handlers['api/account-group-create'] = withMutation(async function ({group}) {
   checkFileOpen();
-  return handlers['account-group-create']({ name: group.name });
+  return handlers['account-group-create']({name: group.name});
 });
 
-handlers['api/account-group-update'] = withMutation(async function ({
-  id,
-  fields,
-}) {
+handlers['api/account-group-update'] = withMutation(async function ({id, fields}) {
   checkFileOpen();
   const group = accountGroupModel.fromExternal(fields);
   if (group.name == null) {
     throw APIError('Account group name is required');
   }
-  return handlers['account-group-update']({ id, name: group.name });
+  return handlers['account-group-update']({id, name: group.name});
 });
 
-handlers['api/account-group-delete'] = withMutation(async function ({ id }) {
+handlers['api/account-group-delete'] = withMutation(async function ({id}) {
   checkFileOpen();
-  await handlers['account-group-delete']({ id });
+  await handlers['account-group-delete']({id});
 });
 
-handlers['api/categories-get'] = async function ({
-  hidden,
-}: { hidden?: boolean } = {}) {
+handlers['api/categories-get'] = async function ({hidden}: {hidden?: boolean} = {}) {
   checkFileOpen();
-  const result = await handlers['get-categories']({ hidden });
+  const result = await handlers['get-categories']({hidden});
   return result.list.map(category => categoryModel.toExternal(category));
 };
 
-handlers['api/category-groups-get'] = async function ({
-  hidden,
-}: { hidden?: boolean } = {}) {
+handlers['api/category-groups-get'] = async function ({hidden}: {hidden?: boolean} = {}) {
   checkFileOpen();
-  const groups = await handlers['get-category-groups']({ hidden });
+  const groups = await handlers['get-category-groups']({hidden});
   return groups.map(group => categoryGroupModel.toExternal(group));
 };
 
-handlers['api/category-group-create'] = withMutation(async function ({
-  group,
-}) {
+handlers['api/category-group-create'] = withMutation(async function ({group}) {
   checkFileOpen();
   return handlers['category-group-create']({
     name: group.name,
@@ -746,10 +685,7 @@ handlers['api/category-group-create'] = withMutation(async function ({
   });
 });
 
-handlers['api/category-group-update'] = withMutation(async function ({
-  id,
-  fields,
-}) {
+handlers['api/category-group-update'] = withMutation(async function ({id, fields}) {
   checkFileOpen();
   return handlers['category-group-update']({
     id,
@@ -758,10 +694,7 @@ handlers['api/category-group-update'] = withMutation(async function ({
   });
 });
 
-handlers['api/category-group-delete'] = withMutation(async function ({
-  id,
-  transferCategoryId,
-}) {
+handlers['api/category-group-delete'] = withMutation(async function ({id, transferCategoryId}) {
   checkFileOpen();
   return handlers['category-group-delete']({
     id,
@@ -769,7 +702,7 @@ handlers['api/category-group-delete'] = withMutation(async function ({
   });
 });
 
-handlers['api/category-create'] = withMutation(async function ({ category }) {
+handlers['api/category-create'] = withMutation(async function ({category}) {
   checkFileOpen();
   return handlers['category-create']({
     name: category.name,
@@ -779,7 +712,7 @@ handlers['api/category-create'] = withMutation(async function ({ category }) {
   });
 });
 
-handlers['api/category-update'] = withMutation(async function ({ id, fields }) {
+handlers['api/category-update'] = withMutation(async function ({id, fields}) {
   checkFileOpen();
   return handlers['category-update']({
     id,
@@ -788,10 +721,7 @@ handlers['api/category-update'] = withMutation(async function ({ id, fields }) {
   });
 });
 
-handlers['api/category-delete'] = withMutation(async function ({
-  id,
-  transferCategoryId,
-}) {
+handlers['api/category-delete'] = withMutation(async function ({id, transferCategoryId}) {
   checkFileOpen();
   return handlers['category-delete']({
     id,
@@ -799,14 +729,14 @@ handlers['api/category-delete'] = withMutation(async function ({
   });
 });
 
-handlers['api/note-get'] = async function ({ id }) {
+handlers['api/note-get'] = async function ({id}) {
   checkFileOpen();
-  return handlers['notes-get']({ id });
+  return handlers['notes-get']({id});
 };
 
-handlers['api/note-update'] = withMutation(async function ({ id, note }) {
+handlers['api/note-update'] = withMutation(async function ({id, note}) {
   checkFileOpen();
-  return handlers['notes-save']({ id, note });
+  return handlers['notes-save']({id, note});
 });
 
 handlers['api/common-payees-get'] = async function () {
@@ -821,30 +751,27 @@ handlers['api/payees-get'] = async function () {
   return payees.map(payee => payeeModel.toExternal(payee));
 };
 
-handlers['api/payee-create'] = withMutation(async function ({ payee }) {
+handlers['api/payee-create'] = withMutation(async function ({payee}) {
   checkFileOpen();
-  return handlers['payee-create']({ name: payee.name });
+  return handlers['payee-create']({name: payee.name});
 });
 
-handlers['api/payee-update'] = withMutation(async function ({ id, fields }) {
+handlers['api/payee-update'] = withMutation(async function ({id, fields}) {
   checkFileOpen();
   return handlers['payees-batch-change']({
     // @ts-expect-error - fix me
-    updated: [{ id, ...payeeModel.fromExternal(fields) }],
+    updated: [{id, ...payeeModel.fromExternal(fields)}],
   });
 });
 
-handlers['api/payee-delete'] = withMutation(async function ({ id }) {
+handlers['api/payee-delete'] = withMutation(async function ({id}) {
   checkFileOpen();
-  return handlers['payees-batch-change']({ deleted: [{ id }] });
+  return handlers['payees-batch-change']({deleted: [{id}]});
 });
 
-handlers['api/payees-merge'] = withMutation(async function ({
-  targetId,
-  mergeIds,
-}) {
+handlers['api/payees-merge'] = withMutation(async function ({targetId, mergeIds}) {
   checkFileOpen();
-  return handlers['payees-merge']({ targetId, mergeIds });
+  return handlers['payees-merge']({targetId, mergeIds});
 });
 
 handlers['api/tags-get'] = async function () {
@@ -853,7 +780,7 @@ handlers['api/tags-get'] = async function () {
   return tags.map(tag => tagModel.toExternal(tag));
 };
 
-handlers['api/tag-create'] = withMutation(async function ({ tag }) {
+handlers['api/tag-create'] = withMutation(async function ({tag}) {
   checkFileOpen();
   const result = await handlers['tags-create']({
     tag: tag.tag,
@@ -863,14 +790,14 @@ handlers['api/tag-create'] = withMutation(async function ({ tag }) {
   return result.id;
 });
 
-handlers['api/tag-update'] = withMutation(async function ({ id, fields }) {
+handlers['api/tag-update'] = withMutation(async function ({id, fields}) {
   checkFileOpen();
-  await handlers['tags-update']({ id, ...tagModel.fromExternal(fields) });
+  await handlers['tags-update']({id, ...tagModel.fromExternal(fields)});
 });
 
-handlers['api/tag-delete'] = withMutation(async function ({ id }) {
+handlers['api/tag-delete'] = withMutation(async function ({id}) {
   checkFileOpen();
-  await handlers['tags-delete']({ id });
+  await handlers['tags-delete']({id});
 });
 
 handlers['api/payee-location-create'] = withMutation(async function ({
@@ -879,26 +806,22 @@ handlers['api/payee-location-create'] = withMutation(async function ({
   longitude,
 }) {
   checkFileOpen();
-  return handlers['payee-location-create']({ payeeId, latitude, longitude });
+  return handlers['payee-location-create']({payeeId, latitude, longitude});
 });
 
-handlers['api/payee-locations-get'] = async function ({ payeeId }) {
+handlers['api/payee-locations-get'] = async function ({payeeId}) {
   checkFileOpen();
-  return handlers['payee-locations-get']({ payeeId });
+  return handlers['payee-locations-get']({payeeId});
 };
 
-handlers['api/payee-location-delete'] = withMutation(async function ({ id }) {
+handlers['api/payee-location-delete'] = withMutation(async function ({id}) {
   checkFileOpen();
-  return handlers['payee-location-delete']({ id });
+  return handlers['payee-location-delete']({id});
 });
 
-handlers['api/payees-get-nearby'] = async function ({
-  latitude,
-  longitude,
-  maxDistance,
-}) {
+handlers['api/payees-get-nearby'] = async function ({latitude, longitude, maxDistance}) {
   checkFileOpen();
-  return handlers['payees-get-nearby']({ latitude, longitude, maxDistance });
+  return handlers['payees-get-nearby']({latitude, longitude, maxDistance});
 };
 
 handlers['api/rules-get'] = async function () {
@@ -906,12 +829,12 @@ handlers['api/rules-get'] = async function () {
   return handlers['rules-get']();
 };
 
-handlers['api/payee-rules-get'] = async function ({ id }) {
+handlers['api/payee-rules-get'] = async function ({id}) {
   checkFileOpen();
-  return handlers['payees-get-rules']({ id });
+  return handlers['payees-get-rules']({id});
 };
 
-handlers['api/rule-create'] = withMutation(async function ({ rule }) {
+handlers['api/rule-create'] = withMutation(async function ({rule}) {
   checkFileOpen();
   const addedRule = await handlers['rule-add'](ruleModel.fromExternal(rule));
 
@@ -922,11 +845,9 @@ handlers['api/rule-create'] = withMutation(async function ({ rule }) {
   return addedRule;
 });
 
-handlers['api/rule-update'] = withMutation(async function ({ rule }) {
+handlers['api/rule-update'] = withMutation(async function ({rule}) {
   checkFileOpen();
-  const updatedRule = await handlers['rule-update'](
-    ruleModel.fromExternal(rule),
-  );
+  const updatedRule = await handlers['rule-update'](ruleModel.fromExternal(rule));
 
   if ('error' in updatedRule) {
     throw APIError('Failed updating the rule', updatedRule.error);
@@ -942,7 +863,7 @@ handlers['api/rule-delete'] = withMutation(async function (id) {
 
 handlers['api/schedules-get'] = async function () {
   checkFileOpen();
-  const { data } = await aqlQuery(q('schedules').select('*'));
+  const {data} = await aqlQuery(q('schedules').select('*'));
   const schedules = data as ScheduleEntity[];
   return schedules.map(schedule => scheduleModel.toExternal(schedule));
 };
@@ -951,7 +872,7 @@ handlers['api/schedule-create'] = withMutation(async function (
   schedule: Omit<APIScheduleEntity, 'id'>,
 ) {
   checkFileOpen();
-  const internalSchedule = scheduleModel.fromExternal({ ...schedule, id: '' });
+  const internalSchedule = scheduleModel.fromExternal({...schedule, id: ''});
   const partialSchedule = {
     name: internalSchedule.name,
     posts_transaction: internalSchedule.posts_transaction,
@@ -962,13 +883,9 @@ handlers['api/schedule-create'] = withMutation(async function (
   });
 });
 
-handlers['api/schedule-update'] = withMutation(async function ({
-  id,
-  fields,
-  resetNextDate,
-}) {
+handlers['api/schedule-update'] = withMutation(async function ({id, fields, resetNextDate}) {
   checkFileOpen();
-  const { data } = await aqlQuery(q('schedules').filter({ id }).select('*'));
+  const {data} = await aqlQuery(q('schedules').filter({id}).select('*'));
   if (!data || data.length === 0) {
     throw APIError(`Schedule ${id} not found`);
   }
@@ -988,9 +905,7 @@ handlers['api/schedule-update'] = withMutation(async function ({
     switch (typedKey) {
       case 'name': {
         const newName = String(value);
-        const { data: existing } = await aqlQuery(
-          q('schedules').filter({ name: newName }).select('*'),
-        );
+        const {data: existing} = await aqlQuery(q('schedules').filter({name: newName}).select('*'));
         if (!existing || existing.length === 0 || existing[0].id === sched.id) {
           sched.name = newName;
           conditionsUpdated = true;
@@ -1001,9 +916,7 @@ handlers['api/schedule-update'] = withMutation(async function ({
       }
       case 'next_date':
       case 'completed': {
-        throw APIError(
-          `Field ${typedKey} is system-managed and not user-editable.`,
-        );
+        throw APIError(`Field ${typedKey} is system-managed and not user-editable.`);
       }
       case 'posts_transaction': {
         sched.posts_transaction = Boolean(value);
@@ -1106,10 +1019,10 @@ handlers['api/schedule-update'] = withMutation(async function ({
 
 handlers['api/schedule-delete'] = withMutation(async function (id: string) {
   checkFileOpen();
-  return handlers['schedule/delete']({ id });
+  return handlers['schedule/delete']({id});
 });
 
-handlers['api/get-id-by-name'] = async function ({ type, name }) {
+handlers['api/get-id-by-name'] = async function ({type, name}) {
   checkFileOpen();
 
   const allowedTypes = ['payees', 'categories', 'schedules', 'accounts'];
@@ -1118,7 +1031,7 @@ handlers['api/get-id-by-name'] = async function ({ type, name }) {
     throw APIError('Provide a valid type');
   }
 
-  const { data } = await aqlQuery(q(type).filter({ name }).select('*'));
+  const {data} = await aqlQuery(q(type).filter({name}).select('*'));
 
   if (!data || data.length === 0) {
     throw APIError(`Not found: ${type} with name ${name}`);

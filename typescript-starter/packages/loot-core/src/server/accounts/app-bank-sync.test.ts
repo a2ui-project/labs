@@ -17,10 +17,10 @@
 // @ts-strict-ignore
 import * as asyncStorage from '#platform/server/asyncStorage';
 import * as db from '#server/db';
-import { loadMappings } from '#server/db/mappings';
-import { isMutating, runHandler, runMutator } from '#server/mutators';
+import {loadMappings} from '#server/db/mappings';
+import {isMutating, runHandler, runMutator} from '#server/mutators';
 
-import { app } from './app';
+import {app} from './app';
 import * as bankSync from './sync';
 
 vi.mock('./sync', async () => ({
@@ -32,11 +32,12 @@ vi.mock('./sync', async () => ({
 const simpleFinBatchSyncHandler = app.handlers['simplefin-batch-sync'];
 const accountsBankSyncHandler = app.handlers['accounts-bank-sync'];
 
-function insertBank(bank: { id: string; bank_id: string; name: string }) {
-  db.runQuery(
-    'INSERT INTO banks (id, bank_id, name, tombstone) VALUES (?, ?, ?, 0)',
-    [bank.id, bank.bank_id, bank.name],
-  );
+function insertBank(bank: {id: string; bank_id: string; name: string}) {
+  db.runQuery('INSERT INTO banks (id, bank_id, name, tombstone) VALUES (?, ?, ?, 0)', [
+    bank.id,
+    bank.bank_id,
+    bank.name,
+  ]);
 }
 
 async function setupSimpleFinAccounts(
@@ -46,7 +47,7 @@ async function setupSimpleFinAccounts(
     accountId: string;
   }>,
 ) {
-  insertBank({ id: 'bank1', bank_id: 'sfin-bank', name: 'SimpleFin' });
+  insertBank({id: 'bank1', bank_id: 'sfin-bank', name: 'SimpleFin'});
   for (const acct of accounts) {
     await db.insertAccount({
       id: acct.id,
@@ -72,16 +73,14 @@ describe('simpleFinBatchSync', () => {
   describe('when batch sync throws an error', () => {
     it('each account gets its own isolated errors array', async () => {
       await setupSimpleFinAccounts([
-        { id: 'acct1', name: 'Checking', accountId: 'ext-1' },
-        { id: 'acct2', name: 'Savings', accountId: 'ext-2' },
-        { id: 'acct3', name: 'Credit Card', accountId: 'ext-3' },
+        {id: 'acct1', name: 'Checking', accountId: 'ext-1'},
+        {id: 'acct2', name: 'Savings', accountId: 'ext-2'},
+        {id: 'acct3', name: 'Credit Card', accountId: 'ext-3'},
       ]);
 
-      vi.mocked(bankSync.simpleFinBatchSync).mockRejectedValue(
-        new Error('connection timeout'),
-      );
+      vi.mocked(bankSync.simpleFinBatchSync).mockRejectedValue(new Error('connection timeout'));
 
-      const result = await simpleFinBatchSyncHandler({ ids: [] });
+      const result = await simpleFinBatchSyncHandler({ids: []});
 
       expect(result).toHaveLength(3);
 
@@ -98,15 +97,13 @@ describe('simpleFinBatchSync', () => {
 
     it('each error references its own account', async () => {
       await setupSimpleFinAccounts([
-        { id: 'acct1', name: 'Checking', accountId: 'ext-1' },
-        { id: 'acct2', name: 'Savings', accountId: 'ext-2' },
+        {id: 'acct1', name: 'Checking', accountId: 'ext-1'},
+        {id: 'acct2', name: 'Savings', accountId: 'ext-2'},
       ]);
 
-      vi.mocked(bankSync.simpleFinBatchSync).mockRejectedValue(
-        new Error('server error'),
-      );
+      vi.mocked(bankSync.simpleFinBatchSync).mockRejectedValue(new Error('server error'));
 
-      const result = await simpleFinBatchSyncHandler({ ids: [] });
+      const result = await simpleFinBatchSyncHandler({ids: []});
 
       expect(result).toHaveLength(2);
 
@@ -122,8 +119,8 @@ describe('simpleFinBatchSync', () => {
   describe('when individual accounts have errors in the response', () => {
     it('per-account error_code only affects that account', async () => {
       await setupSimpleFinAccounts([
-        { id: 'acct1', name: 'Checking', accountId: 'ext-1' },
-        { id: 'acct2', name: 'Savings', accountId: 'ext-2' },
+        {id: 'acct1', name: 'Checking', accountId: 'ext-1'},
+        {id: 'acct2', name: 'Savings', accountId: 'ext-2'},
       ]);
 
       vi.mocked(bankSync.simpleFinBatchSync).mockResolvedValue([
@@ -143,7 +140,7 @@ describe('simpleFinBatchSync', () => {
         },
       ]);
 
-      const result = await simpleFinBatchSyncHandler({ ids: [] });
+      const result = await simpleFinBatchSyncHandler({ids: []});
 
       expect(result).toHaveLength(2);
 
@@ -161,7 +158,7 @@ describe('simpleFinBatchSync', () => {
 
 describe('accountsBankSync', () => {
   it('persists ok status after a successful sync', async () => {
-    insertBank({ id: 'bank1', bank_id: 'gc-bank', name: 'GoCardless' });
+    insertBank({id: 'bank1', bank_id: 'gc-bank', name: 'GoCardless'});
     await db.insertAccount({
       id: 'acct1',
       name: 'Checking',
@@ -176,19 +173,16 @@ describe('accountsBankSync', () => {
       updatedPreview: [],
     });
 
-    const result = await accountsBankSyncHandler({ ids: ['acct1'] });
+    const result = await accountsBankSyncHandler({ids: ['acct1']});
 
     expect(result.errors).toEqual([]);
 
-    const account = await db.first<db.DbAccount>(
-      'SELECT * FROM accounts WHERE id = ?',
-      ['acct1'],
-    );
+    const account = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', ['acct1']);
     expect(account!.bank_sync_status).toBe('ok');
   });
 
   it('persists reauth-required status after a reauth error', async () => {
-    insertBank({ id: 'bank1', bank_id: 'gc-bank', name: 'GoCardless' });
+    insertBank({id: 'bank1', bank_id: 'gc-bank', name: 'GoCardless'});
     await db.insertAccount({
       id: 'acct1',
       name: 'Checking',
@@ -205,17 +199,14 @@ describe('accountsBankSync', () => {
       message: 'login required',
     });
 
-    await accountsBankSyncHandler({ ids: ['acct1'] });
+    await accountsBankSyncHandler({ids: ['acct1']});
 
-    const account = await db.first<db.DbAccount>(
-      'SELECT * FROM accounts WHERE id = ?',
-      ['acct1'],
-    );
+    const account = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', ['acct1']);
     expect(account!.bank_sync_status).toBe('reauth-required');
   });
 
   it('persists rate-limit-exceeded status after a rate limit error', async () => {
-    insertBank({ id: 'bank1', bank_id: 'gc-bank', name: 'GoCardless' });
+    insertBank({id: 'bank1', bank_id: 'gc-bank', name: 'GoCardless'});
     await db.insertAccount({
       id: 'acct1',
       name: 'Checking',
@@ -232,17 +223,14 @@ describe('accountsBankSync', () => {
       message: 'rate limit exceeded',
     });
 
-    await accountsBankSyncHandler({ ids: ['acct1'] });
+    await accountsBankSyncHandler({ids: ['acct1']});
 
-    const account = await db.first<db.DbAccount>(
-      'SELECT * FROM accounts WHERE id = ?',
-      ['acct1'],
-    );
+    const account = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', ['acct1']);
     expect(account!.bank_sync_status).toBe('rate-limit-exceeded');
   });
 
   it('persists timed-out status after a timeout error', async () => {
-    insertBank({ id: 'bank1', bank_id: 'sfin-bank', name: 'SimpleFin' });
+    insertBank({id: 'bank1', bank_id: 'sfin-bank', name: 'SimpleFin'});
     await db.insertAccount({
       id: 'acct1',
       name: 'Checking',
@@ -259,17 +247,14 @@ describe('accountsBankSync', () => {
       message: 'timed out',
     });
 
-    await accountsBankSyncHandler({ ids: ['acct1'] });
+    await accountsBankSyncHandler({ids: ['acct1']});
 
-    const account = await db.first<db.DbAccount>(
-      'SELECT * FROM accounts WHERE id = ?',
-      ['acct1'],
-    );
+    const account = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', ['acct1']);
     expect(account!.bank_sync_status).toBe('timed-out');
   });
 
   it('persists failed status after an operational sync error', async () => {
-    insertBank({ id: 'bank1', bank_id: 'gc-bank', name: 'GoCardless' });
+    insertBank({id: 'bank1', bank_id: 'gc-bank', name: 'GoCardless'});
     await db.insertAccount({
       id: 'acct1',
       name: 'Checking',
@@ -278,16 +263,11 @@ describe('accountsBankSync', () => {
       account_sync_source: 'goCardless',
     });
 
-    vi.mocked(bankSync.syncAccount).mockRejectedValue(
-      new Error('connection timeout'),
-    );
+    vi.mocked(bankSync.syncAccount).mockRejectedValue(new Error('connection timeout'));
 
-    await accountsBankSyncHandler({ ids: ['acct1'] });
+    await accountsBankSyncHandler({ids: ['acct1']});
 
-    const account = await db.first<db.DbAccount>(
-      'SELECT * FROM accounts WHERE id = ?',
-      ['acct1'],
-    );
+    const account = await db.first<db.DbAccount>('SELECT * FROM accounts WHERE id = ?', ['acct1']);
     expect(account!.bank_sync_status).toBe('failed');
   });
 });
@@ -299,7 +279,7 @@ describe('bank sync handlers must not nest mutators', () => {
   });
 
   it('completes when run through runHandler even though the sync runs its own mutator', async () => {
-    insertBank({ id: 'bank1', bank_id: 'gc-bank', name: 'GoCardless' });
+    insertBank({id: 'bank1', bank_id: 'gc-bank', name: 'GoCardless'});
     await db.insertAccount({
       id: 'acct1',
       name: 'Checking',
@@ -310,17 +290,14 @@ describe('bank sync handlers must not nest mutators', () => {
 
     vi.mocked(bankSync.syncAccount).mockImplementation(async () => {
       await runMutator(async () => undefined);
-      return { added: [], updated: [], updatedPreview: [] };
+      return {added: [], updated: [], updatedPreview: []};
     });
 
     let timer: ReturnType<typeof setTimeout> | undefined;
     const result = await Promise.race([
-      runHandler(app.handlers['accounts-bank-sync'], { ids: ['acct1'] }),
+      runHandler(app.handlers['accounts-bank-sync'], {ids: ['acct1']}),
       new Promise<never>((_, reject) => {
-        timer = setTimeout(
-          () => reject(new Error('bank sync deadlocked')),
-          2000,
-        );
+        timer = setTimeout(() => reject(new Error('bank sync deadlocked')), 2000);
       }),
     ]);
     clearTimeout(timer);

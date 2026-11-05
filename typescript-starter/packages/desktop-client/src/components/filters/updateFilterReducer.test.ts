@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { updateFilterReducer } from './updateFilterReducer';
+import {updateFilterReducer} from './updateFilterReducer';
 
 describe('updateFilterReducer', () => {
   describe('when changing operators', () => {

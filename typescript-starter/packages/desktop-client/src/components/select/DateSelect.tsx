@@ -23,13 +23,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import type {
-  ChangeEvent,
-  ComponentProps,
-  JSX,
-  KeyboardEvent,
-  Ref,
-} from 'react';
+import type {ChangeEvent, ComponentProps, JSX, KeyboardEvent, Ref} from 'react';
 import {
   Calendar,
   CalendarCell,
@@ -40,19 +34,16 @@ import {
   Heading,
   I18nProvider,
 } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import {
-  SvgCheveronLeft,
-  SvgCheveronRight,
-} from '@actual-app/components/icons/v1';
-import { Input } from '@actual-app/components/input';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgCheveronLeft, SvgCheveronRight} from '@actual-app/components/icons/v1';
+import {Input} from '@actual-app/components/input';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import {
   currentDate,
   getDayMonthFormat,
@@ -60,25 +51,21 @@ import {
   getShortYearFormat,
   getShortYearRegex,
 } from '@actual-app/core/shared/months';
-import { css } from '@emotion/css';
-import { CalendarDate } from '@internationalized/date';
-import { addDays, format, isValid, parse, parseISO, subDays } from 'date-fns';
+import {css} from '@emotion/css';
+import {CalendarDate} from '@internationalized/date';
+import {addDays, format, isValid, parse, parseISO, subDays} from 'date-fns';
 
-import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
-import { InputField } from '#components/mobile/MobileForms';
-import { useLanguage } from '#hooks/useLocale';
-import { useMergedRefs } from '#hooks/useMergedRefs';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {LabeledCheckbox} from '#components/forms/LabeledCheckbox';
+import {InputField} from '#components/mobile/MobileForms';
+import {useLanguage} from '#hooks/useLocale';
+import {useMergedRefs} from '#hooks/useMergedRefs';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
-import { getFirstDayOfWeek } from './getFirstDayOfWeek';
-import type { FirstDayOfWeek } from './getFirstDayOfWeek';
+import {getFirstDayOfWeek} from './getFirstDayOfWeek';
+import type {FirstDayOfWeek} from './getFirstDayOfWeek';
 
 function toCalendarDate(date: Date): CalendarDate {
-  return new CalendarDate(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    date.getDate(),
-  );
+  return new CalendarDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
 }
 
 function fromCalendarDate(date: CalendarDate): Date {
@@ -109,7 +96,7 @@ const pickerStyles: CSSProperties = {
       padding: 5,
       cursor: 'pointer',
       display: 'flex',
-      '&:hover': { backgroundColor: theme.calendarItemBackground },
+      '&:hover': {backgroundColor: theme.calendarItemBackground},
     },
   },
   '& .calendar-header-title': {
@@ -171,20 +158,8 @@ type DatePickerForwardedRef = {
   handleInputKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
 };
 const DatePicker = forwardRef<DatePickerForwardedRef, DatePickerProps>(
-  (
-    {
-      value,
-      dateFormat,
-      locale,
-      firstDayOfWeek,
-      onUpdate,
-      onSelect,
-      attached,
-      embedded,
-    },
-    ref,
-  ) => {
-    const { t } = useTranslation();
+  ({value, dateFormat, locale, firstDayOfWeek, onUpdate, onSelect, attached, embedded}, ref) => {
+    const {t} = useTranslation();
     const parsedValue = value ? parse(value, dateFormat, currentDate()) : null;
     const focusedCalendarDate = toCalendarDate(
       parsedValue && isValid(parsedValue) ? parsedValue : currentDate(),
@@ -251,14 +226,14 @@ const DatePicker = forwardRef<DatePickerForwardedRef, DatePickerProps>(
           // (same technique as DayRangeCalendar). The container must have a
           // definite width — a 100%-wide table blows up shrink-to-fit boxes.
           embedded && {
-            '& .react-aria-Calendar': { width: '100%' },
+            '& .react-aria-Calendar': {width: '100%'},
             '& .react-aria-CalendarGrid': {
               width: '100%',
               tableLayout: 'fixed',
             },
-            '& .react-aria-CalendarCell': { width: 'auto' },
+            '& .react-aria-CalendarCell': {width: 'auto'},
           },
-          { flex: 1 },
+          {flex: 1},
         ])}
         data-date-picker
         onMouseDown={e => e.preventDefault()}
@@ -276,7 +251,7 @@ const DatePicker = forwardRef<DatePickerForwardedRef, DatePickerProps>(
                 type="button"
                 tabIndex={-1}
                 aria-label={t('Previous month')}
-                onClick={() => setFocusedDate(d => d.subtract({ months: 1 }))}
+                onClick={() => setFocusedDate(d => d.subtract({months: 1}))}
               >
                 <SvgCheveronLeft width={16} height={16} />
               </button>
@@ -285,20 +260,16 @@ const DatePicker = forwardRef<DatePickerForwardedRef, DatePickerProps>(
                 type="button"
                 tabIndex={-1}
                 aria-label={t('Next month')}
-                onClick={() => setFocusedDate(d => d.add({ months: 1 }))}
+                onClick={() => setFocusedDate(d => d.add({months: 1}))}
               >
                 <SvgCheveronRight width={16} height={16} />
               </button>
             </View>
             <CalendarGrid>
               <CalendarGridHeader>
-                {day => (
-                  <CalendarHeaderCell>{day.slice(0, 2)}</CalendarHeaderCell>
-                )}
+                {day => <CalendarHeaderCell>{day.slice(0, 2)}</CalendarHeaderCell>}
               </CalendarGridHeader>
-              <CalendarGridBody>
-                {date => <CalendarCell date={date} />}
-              </CalendarGridBody>
+              <CalendarGridBody>{date => <CalendarCell date={date} />}</CalendarGridBody>
             </CalendarGrid>
           </Calendar>
         </I18nProvider>
@@ -444,7 +415,7 @@ function DateSelectDesktop({
         e.preventDefault();
       }
 
-      const { onKeyDown } = inputProps || {};
+      const {onKeyDown} = inputProps || {};
       onKeyDown?.(e);
     } else if (!open) {
       setOpen(true);
@@ -502,10 +473,7 @@ function DateSelectDesktop({
         onBlur={e => {
           // react-aria moves focus into the calendar when it's clicked; keep
           // the picker open and pull focus back so keyboard entry still works.
-          if (
-            e.relatedTarget instanceof Element &&
-            e.relatedTarget.closest('[data-date-picker]')
-          ) {
+          if (e.relatedTarget instanceof Element && e.relatedTarget.closest('[data-date-picker]')) {
             innerRef.current?.focus();
             return;
           }
@@ -539,9 +507,7 @@ function DateSelectDesktop({
       {maybeWrapTooltip(
         <View
           style={
-            onTransferDateSyncChange
-              ? { borderRadius: 4, boxShadow: calendarShadow }
-              : undefined
+            onTransferDateSyncChange ? {borderRadius: 4, boxShadow: calendarShadow} : undefined
           }
         >
           <DatePicker
@@ -586,7 +552,7 @@ function DateSelectDesktop({
 }
 
 function DateSelectMobile(props: DateSelectProps) {
-  const { style: inputStyle, ...restInputProps } = props.inputProps ?? {};
+  const {style: inputStyle, ...restInputProps} = props.inputProps ?? {};
   return (
     <View>
       <InputField
@@ -596,7 +562,7 @@ function DateSelectMobile(props: DateSelectProps) {
         onChange={event => {
           props.onSelect(event.target.value);
         }}
-        style={{ height: 28, ...inputStyle }}
+        style={{height: 28, ...inputStyle}}
         {...restInputProps}
       />
     </View>
@@ -604,7 +570,7 @@ function DateSelectMobile(props: DateSelectProps) {
 }
 
 export function DateSelect(props: DateSelectProps) {
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   if (isNarrowWidth) {
     return <DateSelectMobile {...props} />;

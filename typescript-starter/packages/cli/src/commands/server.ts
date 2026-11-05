@@ -15,11 +15,11 @@
  */
 
 import * as api from '@actual-app/api';
-import { Option } from 'commander';
-import type { Command } from 'commander';
+import {Option} from 'commander';
+import type {Command} from 'commander';
 
-import { withConnection } from '#connection';
-import { printOutput } from '#output';
+import {withConnection} from '#connection';
+import {printOutput} from '#output';
 
 export function registerServerCommand(program: Command) {
   const server = program.command('server').description('Server utilities');
@@ -33,9 +33,9 @@ export function registerServerCommand(program: Command) {
         opts,
         async () => {
           const version = await api.getServerVersion();
-          printOutput({ version }, opts.format);
+          printOutput({version}, opts.format);
         },
-        { mutates: false, skipBudget: true },
+        {mutates: false, skipBudget: true},
       );
     });
 
@@ -54,12 +54,9 @@ export function registerServerCommand(program: Command) {
         opts,
         async () => {
           const id = await api.getIDByName(cmdOpts.type, cmdOpts.name);
-          printOutput(
-            { id, type: cmdOpts.type, name: cmdOpts.name },
-            opts.format,
-          );
+          printOutput({id, type: cmdOpts.type, name: cmdOpts.name}, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -72,13 +69,11 @@ export function registerServerCommand(program: Command) {
       await withConnection(
         opts,
         async () => {
-          const args = cmdOpts.account
-            ? { accountId: cmdOpts.account }
-            : undefined;
+          const args = cmdOpts.account ? {accountId: cmdOpts.account} : undefined;
           await api.runBankSync(args);
-          printOutput({ success: true }, opts.format);
+          printOutput({success: true}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 }

@@ -17,42 +17,34 @@
 // @ts-strict-ignore
 import * as CRDT from '@actual-app/crdt';
 
-import { createTestBudget } from '#mocks/budget';
-import { captureBreadcrumb, captureException } from '#platform/exceptions';
+import {createTestBudget} from '#mocks/budget';
+import {captureBreadcrumb, captureException} from '#platform/exceptions';
 import * as asyncStorage from '#platform/server/asyncStorage';
 import * as connection from '#platform/server/connection';
 import * as fs from '#platform/server/fs';
-import { logger } from '#platform/server/log';
-import { createApp } from '#server/app';
+import {logger} from '#platform/server/log';
+import {createApp} from '#server/app';
 import * as budget from '#server/budget/base';
 import * as cloudStorage from '#server/cloud-storage';
 import * as db from '#server/db';
 import * as mappings from '#server/db/mappings';
-import { resetFormulaPreferencesCache } from '#server/formulas/bootstrap';
-import { handleBudgetImport } from '#server/importers';
-import type { ImportableBudgetType } from '#server/importers';
-import { app as mainApp } from '#server/main-app';
-import { mutator } from '#server/mutators';
+import {resetFormulaPreferencesCache} from '#server/formulas/bootstrap';
+import {handleBudgetImport} from '#server/importers';
+import type {ImportableBudgetType} from '#server/importers';
+import {app as mainApp} from '#server/main-app';
+import {mutator} from '#server/mutators';
 import * as prefs from '#server/prefs';
-import { getServer } from '#server/server-config';
+import {getServer} from '#server/server-config';
 import * as sheet from '#server/sheet';
-import {
-  clearFullSyncTimeout,
-  initialFullSync,
-  setSyncingMode,
-} from '#server/sync';
+import {clearFullSyncTimeout, initialFullSync, setSyncingMode} from '#server/sync';
 import * as syncMigrations from '#server/sync/migrate';
-import { replayPendingMessages } from '#server/sync/replay';
+import {replayPendingMessages} from '#server/sync/replay';
 import * as rules from '#server/transactions/transaction-rules';
-import { clearUndo } from '#server/undo';
-import { updateVersion } from '#server/update';
-import {
-  idFromBudgetName,
-  uniqueBudgetName,
-  validateBudgetName,
-} from '#server/util/budget-name';
+import {clearUndo} from '#server/undo';
+import {updateVersion} from '#server/update';
+import {idFromBudgetName, uniqueBudgetName, validateBudgetName} from '#server/util/budget-name';
 import * as Platform from '#shared/platform';
-import type { Budget } from '#types/budget';
+import type {Budget} from '#types/budget';
 
 import {
   loadBackup as _loadBackup,
@@ -112,11 +104,11 @@ app.method('backup-load', loadBackup);
 app.method('backup-make', makeBackup);
 app.method('get-last-opened-backup', getLastOpenedBackup);
 
-async function handleValidateBudgetName({ name }: { name: string }) {
+async function handleValidateBudgetName({name}: {name: string}) {
   return validateBudgetName(name);
 }
 
-async function handleUniqueBudgetName({ name }: { name: string }) {
+async function handleUniqueBudgetName({name}: {name: string}) {
   return uniqueBudgetName(name);
 }
 
@@ -141,10 +133,10 @@ async function getBudgets() {
         if (name !== DEMO_BUDGET_ID) {
           return {
             id: name,
-            ...(prefs.cloudFileId ? { cloudFileId: prefs.cloudFileId } : {}),
-            ...(prefs.encryptKeyId ? { encryptKeyId: prefs.encryptKeyId } : {}),
-            ...(prefs.groupId ? { groupId: prefs.groupId } : {}),
-            ...(prefs.owner ? { owner: prefs.owner } : {}),
+            ...(prefs.cloudFileId ? {cloudFileId: prefs.cloudFileId} : {}),
+            ...(prefs.encryptKeyId ? {encryptKeyId: prefs.encryptKeyId} : {}),
+            ...(prefs.groupId ? {groupId: prefs.groupId} : {}),
+            ...(prefs.owner ? {owner: prefs.owner} : {}),
             name: prefs.budgetName || '(no name)',
           } satisfies Budget;
         }
@@ -168,8 +160,8 @@ async function resetBudgetCache() {
   await sheet.waitOnSpreadsheet();
 }
 
-async function uploadBudget({ id }: { id?: Budget['id'] } = {}): Promise<{
-  error?: { reason: string };
+async function uploadBudget({id}: {id?: Budget['id']} = {}): Promise<{
+  error?: {reason: string};
 }> {
   if (id) {
     if (prefs.getPrefs()) {
@@ -184,10 +176,10 @@ async function uploadBudget({ id }: { id?: Budget['id'] } = {}): Promise<{
   } catch (e) {
     logger.log(e);
     if (e.type === 'FileUploadError') {
-      return { error: e };
+      return {error: e};
     }
     captureException(e);
-    return { error: { reason: 'internal' } };
+    return {error: {reason: 'internal'}};
   } finally {
     if (id) {
       prefs.unloadPrefs();
@@ -201,7 +193,7 @@ async function downloadBudget({
   cloudFileId,
 }: {
   cloudFileId: Budget['cloudFileId'];
-}): Promise<{ id?: Budget['id']; error?: { reason: string; meta?: unknown } }> {
+}): Promise<{id?: Budget['id']; error?: {reason: string; meta?: unknown}}> {
   let result;
   try {
     result = await cloudStorage.download(cloudFileId);
@@ -212,25 +204,25 @@ async function downloadBudget({
         const name = prefs.getPrefs().budgetName;
         prefs.unloadPrefs();
 
-        e.meta = { ...e.meta, name };
+        e.meta = {...e.meta, name};
       }
 
-      return { error: e };
+      return {error: e};
     } else {
       captureException(e);
-      return { error: { reason: 'internal' } };
+      return {error: {reason: 'internal'}};
     }
   }
 
   const id = result.id;
   await closeBudget();
-  await loadBudget({ id });
+  await loadBudget({id});
   result = await syncBudget();
 
   if (result.error) {
     return result;
   }
-  return { id };
+  return {id};
 }
 
 // open and sync, but don't close
@@ -241,7 +233,7 @@ async function syncBudget() {
   return result;
 }
 
-async function loadBudget({ id }: { id: Budget['id'] }) {
+async function loadBudget({id}: {id: Budget['id']}) {
   const currentPrefs = prefs.getPrefs();
 
   if (currentPrefs) {
@@ -273,7 +265,7 @@ async function createDemoBudget() {
 }
 
 async function closeBudget() {
-  captureBreadcrumb({ message: 'Closing budget' });
+  captureBreadcrumb({message: 'Closing budget'});
   resetFormulaPreferencesCache();
 
   // The spreadsheet may be running, wait for it to complete
@@ -342,7 +334,7 @@ async function duplicateBudget({
   cloudSync: boolean;
   open: 'none' | 'original' | 'copy';
 }): Promise<Budget['id']> {
-  const { valid, message } = await validateBudgetName(newName);
+  const {valid, message} = await validateBudgetName(newName);
   if (!valid) throw new Error(message);
 
   const budgetDir = fs.getBudgetDir(id);
@@ -355,30 +347,20 @@ async function duplicateBudget({
   const metadata = JSON.parse(metadataText);
   metadata.id = newId;
   metadata.budgetName = newName;
-  [
-    'cloudFileId',
-    'groupId',
-    'lastUploaded',
-    'encryptKeyId',
-    'lastSyncedTimestamp',
-  ].forEach(item => {
-    if (metadata[item]) delete metadata[item];
-  });
+  ['cloudFileId', 'groupId', 'lastUploaded', 'encryptKeyId', 'lastSyncedTimestamp'].forEach(
+    item => {
+      if (metadata[item]) delete metadata[item];
+    },
+  );
 
   try {
     const newBudgetDir = fs.getBudgetDir(newId);
     await fs.mkdir(newBudgetDir);
 
     // write metadata for new budget
-    await fs.writeFile(
-      fs.join(newBudgetDir, 'metadata.json'),
-      JSON.stringify(metadata),
-    );
+    await fs.writeFile(fs.join(newBudgetDir, 'metadata.json'), JSON.stringify(metadata));
 
-    await fs.copyFile(
-      fs.join(budgetDir, 'db.sqlite'),
-      fs.join(newBudgetDir, 'db.sqlite'),
-    );
+    await fs.copyFile(fs.join(budgetDir, 'db.sqlite'), fs.join(newBudgetDir, 'db.sqlite'));
   } catch (error) {
     // Clean up any partially created files
     try {
@@ -391,7 +373,7 @@ async function duplicateBudget({
   }
 
   // load in and validate
-  const { error } = await _loadBudget(newId);
+  const {error} = await _loadBudget(newId);
   if (error) {
     logger.log('Error duplicating budget: ' + error);
     return error;
@@ -460,10 +442,10 @@ async function createBudget({
   );
 
   // Load it in
-  const { error } = await _loadBudget(id);
+  const {error} = await _loadBudget(id);
   if (error) {
     logger.log('Error creating budget: ' + error);
-    return { error };
+    return {error};
   }
 
   if (!avoidUpload && !testMode) {
@@ -498,7 +480,7 @@ async function importBudget({
    * to derive the budget name for some import types.
    */
   filename?: string;
-}): Promise<{ error?: string; meta?: unknown; id?: string }> {
+}): Promise<{error?: string; meta?: unknown; id?: string}> {
   try {
     let contents: Buffer;
     let name: string;
@@ -521,11 +503,11 @@ async function importBudget({
       return results;
     }
     // A successful import leaves the imported budget loaded
-    return { id: prefs.getPrefs()?.id };
+    return {id: prefs.getPrefs()?.id};
   } catch (err) {
     err.message = 'Error importing budget: ' + err.message;
     captureException(err);
-    return { error: 'internal-error' };
+    return {error: 'internal-error'};
   }
 }
 
@@ -539,14 +521,14 @@ async function exportBudget() {
   } catch (err) {
     err.message = 'Error exporting budget: ' + err.message;
     captureException(err);
-    return { error: 'internal-error' };
+    return {error: 'internal-error'};
   }
 }
 
-function onSheetChange({ names }: { names: string[] }) {
+function onSheetChange({names}: {names: string[]}) {
   const nodes = names.map(name => {
     const node = sheet.get()._getNode(name);
-    return { name: node.name, value: node.value };
+    return {name: node.name, value: node.value};
   });
   connection.send('cells-changed', nodes);
 }
@@ -563,17 +545,15 @@ async function _loadBudget(id: Budget['id']): Promise<{
   try {
     dir = fs.getBudgetDir(id);
   } catch (e) {
-    captureException(
-      new Error('`getBudgetDir` failed in `loadBudget`: ' + e.message),
-    );
-    return { error: 'budget-not-found' };
+    captureException(new Error('`getBudgetDir` failed in `loadBudget`: ' + e.message));
+    return {error: 'budget-not-found'};
   }
 
-  captureBreadcrumb({ message: 'Loading budget ' + dir });
+  captureBreadcrumb({message: 'Loading budget ' + dir});
 
   if (!(await fs.exists(dir))) {
     captureException(new Error('budget directory does not exist'));
-    return { error: 'budget-not-found' };
+    return {error: 'budget-not-found'};
   }
 
   try {
@@ -581,17 +561,17 @@ async function _loadBudget(id: Budget['id']): Promise<{
     await prefs.loadPrefs(id);
     await db.openDatabase(id);
   } catch (e) {
-    captureBreadcrumb({ message: 'Error loading budget ' + id });
+    captureBreadcrumb({message: 'Error loading budget ' + id});
     captureException(e);
     await closeBudget();
-    return { error: 'opening-budget' };
+    return {error: 'opening-budget'};
   }
 
   // Older versions didn't tag the file with the current user, so do
   // so now
   if (!prefs.getPrefs().userId) {
     const userId = await asyncStorage.getItem('user-token');
-    await prefs.savePrefs({ userId });
+    await prefs.savePrefs({userId});
   }
 
   try {
@@ -600,14 +580,14 @@ async function _loadBudget(id: Budget['id']): Promise<{
     logger.warn('Error updating', e);
     let result;
     if (e.message.includes('out-of-sync-migrations')) {
-      result = { error: 'out-of-sync-migrations' };
+      result = {error: 'out-of-sync-migrations'};
     } else if (e.message.includes('out-of-sync-data')) {
-      result = { error: 'out-of-sync-data' };
+      result = {error: 'out-of-sync-data'};
     } else {
       captureException(e);
       logger.info('Error updating budget ' + id, e);
       logger.log('Error updating budget', e);
-      result = { error: 'loading-budget' };
+      result = {error: 'loading-budget'};
     }
 
     await closeBudget();
@@ -638,12 +618,11 @@ async function _loadBudget(id: Budget['id']): Promise<{
     // TODO: The client id should be stored elsewhere. It shouldn't
     // work this way, but it's fine for now.
     CRDT.getClock().timestamp.setNode(CRDT.makeClientId());
-    db.runQuery(
-      'INSERT OR REPLACE INTO messages_clock (id, clock) VALUES (1, ?)',
-      [CRDT.serializeClock(CRDT.getClock())],
-    );
+    db.runQuery('INSERT OR REPLACE INTO messages_clock (id, clock) VALUES (1, ?)', [
+      CRDT.serializeClock(CRDT.getClock()),
+    ]);
 
-    await prefs.savePrefs({ resetClock: false });
+    await prefs.savePrefs({resetClock: false});
   }
 
   if (!Platform.isBrowser && process.env.NODE_ENV !== 'test') {
@@ -655,15 +634,14 @@ async function _loadBudget(id: Budget['id']): Promise<{
   } catch (e) {
     captureException(e);
     await closeBudget();
-    return { error: 'opening-budget' };
+    return {error: 'opening-budget'};
   }
 
   // This is a bit leaky, but we need to set the initial budget type
-  const { value: budgetType = 'envelope' } =
-    (await db.first<Pick<db.DbPreference, 'value'>>(
-      'SELECT value from preferences WHERE id = ?',
-      ['budgetType'],
-    )) ?? {};
+  const {value: budgetType = 'envelope'} =
+    (await db.first<Pick<db.DbPreference, 'value'>>('SELECT value from preferences WHERE id = ?', [
+      'budgetType',
+    ])) ?? {};
   sheet.get().meta().budgetType = budgetType as prefs.BudgetType;
   await budget.createAllBudgets();
 
@@ -695,18 +673,12 @@ async function _loadBudget(id: Budget['id']): Promise<{
     setSyncingMode('disabled');
   }
 
-  app.events.emit('load-budget', { id });
+  app.events.emit('load-budget', {id});
 
   return {};
 }
 
-async function uploadFileWeb({
-  filename,
-  contents,
-}: {
-  filename: string;
-  contents: ArrayBuffer;
-}) {
+async function uploadFileWeb({filename, contents}: {filename: string; contents: ArrayBuffer}) {
   if (!Platform.isBrowser) {
     return null;
   }
@@ -719,15 +691,15 @@ async function uploadFileWeb({
   return {};
 }
 
-async function getBackups({ id }) {
+async function getBackups({id}) {
   return getAvailableBackups(id);
 }
 
-async function loadBackup({ id, backupId }) {
+async function loadBackup({id, backupId}) {
   await _loadBackup(id, backupId);
 }
 
-async function makeBackup({ id }) {
+async function makeBackup({id}) {
   await _makeBackup(id);
 }
 

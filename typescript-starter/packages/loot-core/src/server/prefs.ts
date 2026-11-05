@@ -15,23 +15,18 @@
  */
 
 // @ts-strict-ignore
-import { Timestamp } from '@actual-app/crdt';
+import {Timestamp} from '@actual-app/crdt';
 
 import * as fs from '#platform/server/fs';
-import type { MetadataPrefs } from '#types/prefs';
+import type {MetadataPrefs} from '#types/prefs';
 
-import { sendMessages } from './sync';
-import type { Message } from './sync';
+import {sendMessages} from './sync';
+import type {Message} from './sync';
 
 export const BUDGET_TYPES = ['tracking', 'envelope'] as const;
 export type BudgetType = (typeof BUDGET_TYPES)[number];
 
-export const UPCOMING_SCHEDULED_TRANSACTION_LENGTHS = [
-  '1',
-  '7',
-  '14',
-  '30',
-] as const;
+export const UPCOMING_SCHEDULED_TRANSACTION_LENGTHS = ['1', '7', '14', '30'] as const;
 export type UpcomingScheduledTransactionLength =
   (typeof UPCOMING_SCHEDULED_TRANSACTION_LENGTHS)[number];
 
@@ -51,7 +46,7 @@ export async function loadPrefs(id?: string): Promise<MetadataPrefs> {
     // If the user messed something up, be flexible and allow them to
     // still load the budget database. Default the budget name to the
     // id.
-    prefs = { id, budgetName: id };
+    prefs = {id, budgetName: id};
   }
 
   // No matter what is in `id` field, force it to be the current id.
@@ -62,7 +57,7 @@ export async function loadPrefs(id?: string): Promise<MetadataPrefs> {
 
 export async function savePrefs(
   prefsToSet: MetadataPrefs,
-  { avoidSync = false } = {},
+  {avoidSync = false} = {},
 ): Promise<void> {
   Object.assign(prefs, prefsToSet);
 
@@ -103,5 +98,5 @@ export function getPrefs(): MetadataPrefs {
 }
 
 export function getDefaultPrefs(id: string, budgetName: string) {
-  return { id, budgetName };
+  return {id, budgetName};
 }

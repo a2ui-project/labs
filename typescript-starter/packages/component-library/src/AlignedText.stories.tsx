@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { AlignedText } from './AlignedText';
+import {AlignedText} from './AlignedText';
 
 const meta = {
   title: 'Components/AlignedText',
@@ -35,13 +35,12 @@ export const Default: Story = {
   args: {
     left: 'Label',
     right: 'Value',
-    style: { width: 300, display: 'flex' },
+    style: {width: 300, display: 'flex'},
   },
   parameters: {
     docs: {
       description: {
-        story:
-          'AlignedText displays two pieces of content aligned on opposite sides.',
+        story: 'AlignedText displays two pieces of content aligned on opposite sides.',
       },
     },
   },
@@ -52,13 +51,12 @@ export const TruncateLeft: Story = {
     left: 'This is a very long label that should be truncated on the left side',
     right: '$100.00',
     truncate: 'left',
-    style: { width: 250, display: 'flex' },
+    style: {width: 250, display: 'flex'},
   },
   parameters: {
     docs: {
       description: {
-        story:
-          'When `truncate="left"`, the left content is truncated with ellipsis.',
+        story: 'When `truncate="left"`, the left content is truncated with ellipsis.',
       },
     },
   },
@@ -67,16 +65,14 @@ export const TruncateLeft: Story = {
 export const TruncateRight: Story = {
   args: {
     left: 'Short Label',
-    right:
-      'This is a very long value that should be truncated on the right side',
+    right: 'This is a very long value that should be truncated on the right side',
     truncate: 'right',
-    style: { width: 250, display: 'flex' },
+    style: {width: 250, display: 'flex'},
   },
   parameters: {
     docs: {
       description: {
-        story:
-          'When `truncate="right"`, the right content is truncated with ellipsis.',
+        story: 'When `truncate="right"`, the right content is truncated with ellipsis.',
       },
     },
   },
@@ -86,14 +82,13 @@ export const FinancialAmount: Story = {
   args: {
     left: 'Groceries',
     right: '$1,234.56',
-    style: { width: 300, display: 'flex' },
-    rightStyle: { fontWeight: 'bold' },
+    style: {width: 300, display: 'flex'},
+    rightStyle: {fontWeight: 'bold'},
   },
   parameters: {
     docs: {
       description: {
-        story:
-          'Example showing AlignedText used for displaying financial data.',
+        story: 'Example showing AlignedText used for displaying financial data.',
       },
     },
   },
@@ -110,8 +105,8 @@ export const WithCustomStyles: Story = {
       borderRadius: 4,
       display: 'flex',
     },
-    leftStyle: { color: '#666', fontStyle: 'italic' },
-    rightStyle: { color: '#333', fontWeight: 'bold' },
+    leftStyle: {color: '#666', fontStyle: 'italic'},
+    rightStyle: {color: '#333', fontWeight: 'bold'},
   },
 };
 
@@ -121,34 +116,31 @@ export const MultipleRows: Story = {
     right: '$5,000.00',
   },
   render: () => (
-    <div
-      style={{ width: 300, display: 'flex', flexDirection: 'column', gap: 8 }}
-    >
+    <div style={{width: 300, display: 'flex', flexDirection: 'column', gap: 8}}>
       <AlignedText
         left="Income"
         right="$5,000.00"
-        rightStyle={{ color: 'green' }}
-        style={{ display: 'flex' }}
+        rightStyle={{color: 'green'}}
+        style={{display: 'flex'}}
       />
       <AlignedText
         left="Expenses"
         right="-$3,200.00"
-        rightStyle={{ color: 'red' }}
-        style={{ display: 'flex' }}
+        rightStyle={{color: 'red'}}
+        style={{display: 'flex'}}
       />
       <AlignedText
         left="Balance"
         right="$1,800.00"
-        style={{ borderTop: '1px solid #ccc', paddingTop: 8, display: 'flex' }}
-        rightStyle={{ fontWeight: 'bold' }}
+        style={{borderTop: '1px solid #ccc', paddingTop: 8, display: 'flex'}}
+        rightStyle={{fontWeight: 'bold'}}
       />
     </div>
   ),
   parameters: {
     docs: {
       description: {
-        story:
-          'Multiple AlignedText components stacked to create a summary view.',
+        story: 'Multiple AlignedText components stacked to create a summary view.',
       },
     },
   },

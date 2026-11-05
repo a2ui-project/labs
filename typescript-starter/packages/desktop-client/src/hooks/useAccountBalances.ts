@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-import { useLayoutEffect, useState } from 'react';
+import {useLayoutEffect, useState} from 'react';
 
-import { accountBalance } from '#spreadsheet/bindings';
+import {accountBalance} from '#spreadsheet/bindings';
 
-import { useSpreadsheet } from './useSpreadsheet';
+import {useSpreadsheet} from './useSpreadsheet';
 
 /**
  * Live balances for a set of accounts, keyed by account id. Values are
  * null until the spreadsheet reports them. Unlike useSheetValue this
  * accepts a variable-length list, binding one account-balance query per id.
  */
-export function useAccountBalances(
-  accountIds: string[],
-): Record<string, number | null> {
+export function useAccountBalances(accountIds: string[]): Record<string, number | null> {
   const spreadsheet = useSpreadsheet();
   const [balances, setBalances] = useState<Record<string, number | null>>({});
 
@@ -48,9 +46,7 @@ export function useAccountBalances(
         }
         const value = typeof result.value === 'number' ? result.value : null;
         setBalances(previous =>
-          previous[accountId] === value
-            ? previous
-            : { ...previous, [accountId]: value },
+          previous[accountId] === value ? previous : {...previous, [accountId]: value},
         );
       }),
     );

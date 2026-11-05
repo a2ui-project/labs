@@ -15,7 +15,7 @@
  */
 
 import '@rschedule/standard-date-adapter/setup';
-import { Schedule as OriginalSchedule } from '@rschedule/core/generators';
+import {Schedule as OriginalSchedule} from '@rschedule/core/generators';
 
 export * from '@rschedule/standard-date-adapter';
 export * from '@rschedule/core';

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { GoCardlessRequisitionId } from './gocardless-node.types';
+import type {GoCardlessRequisitionId} from './gocardless-node.types';
 
 export class RequisitionNotLinked extends Error {
   details: unknown;
@@ -33,7 +33,7 @@ export class AccountNotLinkedToRequisition extends Error {
 
   constructor(accountId: string, requisitionId: GoCardlessRequisitionId) {
     super('Provided account id is not linked to given requisition');
-    this.details = { accountId, requisitionId };
+    this.details = {accountId, requisitionId};
   }
 }
 
@@ -96,10 +96,7 @@ export class ResourceSuspended extends GoCardlessClientError {
 
 export class RateLimitError extends GoCardlessClientError {
   constructor(response: unknown) {
-    super(
-      'Daily request limit set by the Institution has been exceeded',
-      response,
-    );
+    super('Daily request limit set by the Institution has been exceeded', response);
   }
 }
 

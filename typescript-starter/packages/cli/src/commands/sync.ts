@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { rmSync } from 'node:fs';
-import { join } from 'node:path';
+import {rmSync} from 'node:fs';
+import {join} from 'node:path';
 
-import type { Command } from 'commander';
+import type {Command} from 'commander';
 
-import { CACHE_FILE_NAME, getMetaDir, readCacheState } from '#cache';
-import type { CliConfig } from '#config';
-import { resolveConfig } from '#config';
-import { withConnection } from '#connection';
-import { acquireExclusive } from '#lock';
-import { printOutput } from '#output';
+import {CACHE_FILE_NAME, getMetaDir, readCacheState} from '#cache';
+import type {CliConfig} from '#config';
+import {resolveConfig} from '#config';
+import {withConnection} from '#connection';
+import {acquireExclusive} from '#lock';
+import {printOutput} from '#output';
 
 type SyncCmdOpts = {
   status?: boolean;
@@ -34,14 +34,12 @@ type SyncCmdOpts = {
 async function requireSyncIdAndMeta(
   opts: Record<string, unknown>,
   flag: string,
-): Promise<{ config: CliConfig; meta: string }> {
+): Promise<{config: CliConfig; meta: string}> {
   const config = await resolveConfig(opts);
   if (!config.syncId) {
-    throw new Error(
-      `Sync ID is required for sync ${flag}. Set --sync-id or ACTUAL_SYNC_ID.`,
-    );
+    throw new Error(`Sync ID is required for sync ${flag}. Set --sync-id or ACTUAL_SYNC_ID.`);
   }
-  return { config, meta: getMetaDir(config.dataDir, config.syncId) };
+  return {config, meta: getMetaDir(config.dataDir, config.syncId)};
 }
 
 export function registerSyncCommand(program: Command) {
@@ -51,16 +49,12 @@ export function registerSyncCommand(program: Command) {
       'Sync the local cached budget with the server, print cache status, or clear the cache',
     )
     .option('--status', 'Print cache status without syncing', false)
-    .option(
-      '--clear',
-      'Delete the local cache; next command re-downloads',
-      false,
-    )
+    .option('--clear', 'Delete the local cache; next command re-downloads', false)
     .action(async (cmdOpts: SyncCmdOpts) => {
       const opts = program.opts();
 
       if (cmdOpts.status) {
-        const { config, meta } = await requireSyncIdAndMeta(opts, '--status');
+        const {config, meta} = await requireSyncIdAndMeta(opts, '--status');
         const state = readCacheState(meta);
         if (state === null) {
           printOutput(
@@ -73,9 +67,7 @@ export function registerSyncCommand(program: Command) {
           );
           return;
         }
-        const rawAgeSeconds = Math.round(
-          (Date.now() - state.lastSyncedAt) / 1000,
-        );
+        const rawAgeSeconds = Math.round((Date.now() - state.lastSyncedAt) / 1000);
         const ageSeconds = Math.max(0, rawAgeSeconds);
         printOutput(
           {
@@ -94,7 +86,7 @@ export function registerSyncCommand(program: Command) {
       }
 
       if (cmdOpts.clear) {
-        const { config, meta } = await requireSyncIdAndMeta(opts, '--clear');
+        const {config, meta} = await requireSyncIdAndMeta(opts, '--clear');
         // Serialize with concurrent writers so we don't rm a half-written
         // state.json that's about to be renamed into place.
         const release = config.noLock
@@ -103,11 +95,11 @@ export function registerSyncCommand(program: Command) {
               timeoutMs: config.lockTimeout * 1000,
             });
         try {
-          rmSync(join(meta, CACHE_FILE_NAME), { force: true });
+          rmSync(join(meta, CACHE_FILE_NAME), {force: true});
         } finally {
           await release?.();
         }
-        printOutput({ cleared: true, syncId: config.syncId }, opts.format);
+        printOutput({cleared: true, syncId: config.syncId}, opts.format);
         return;
       }
 
@@ -119,16 +111,14 @@ export function registerSyncCommand(program: Command) {
             : null;
           printOutput(
             {
-              syncedAt: new Date(
-                state?.lastSyncedAt ?? Date.now(),
-              ).toISOString(),
+              syncedAt: new Date(state?.lastSyncedAt ?? Date.now()).toISOString(),
               syncId: config.syncId,
               budgetId: state?.budgetId ?? config.syncId,
             },
             opts.format,
           );
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 }

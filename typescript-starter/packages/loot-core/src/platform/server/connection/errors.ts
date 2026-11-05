@@ -41,10 +41,7 @@ function getStringField(error: unknown, field: string): string | undefined {
 // SyncError, …) or `code` (BankSyncError, Node system errors); `errno` covers
 // Emscripten filesystem errors.
 function getErrorCode(error: unknown): string | undefined {
-  const code =
-    getField(error, 'reason') ??
-    getField(error, 'code') ??
-    getField(error, 'errno');
+  const code = getField(error, 'reason') ?? getField(error, 'code') ?? getField(error, 'errno');
 
   if (typeof code === 'string') {
     return code;
@@ -88,21 +85,21 @@ function toCloneableError(error: TransferableError): TransferableError {
 // cloneable shape so the real failure isn't replaced by a DataCloneError.
 export function postErrorReply(
   post: (message: unknown) => void,
-  request: { id: unknown; name: string; catchErrors?: boolean },
+  request: {id: unknown; name: string; catchErrors?: boolean},
   rejection: unknown,
 ): TransferableError {
-  const { id, name, catchErrors } = request;
+  const {id, name, catchErrors} = request;
   const error = coerceError(rejection);
 
   function buildMessage(err: TransferableError) {
     if (name.startsWith('api/')) {
       // The API is newer and does automatically forward errors
-      return { type: 'reply', id, error: err };
+      return {type: 'reply', id, error: err};
     }
     if (catchErrors) {
-      return { type: 'reply', id, result: { error: err, data: null } };
+      return {type: 'reply', id, result: {error: err, data: null}};
     }
-    return { type: 'error', id, error: err };
+    return {type: 'error', id, error: err};
   }
 
   try {

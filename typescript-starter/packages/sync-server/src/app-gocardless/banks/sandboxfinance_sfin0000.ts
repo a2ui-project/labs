@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { amountToInteger } from '#app-gocardless/utils';
+import {amountToInteger} from '#app-gocardless/utils';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -33,9 +33,7 @@ export default {
    *  it includes transaction placed during current day
    */
   calculateStartingBalance(sortedTransactions = [], balances = []) {
-    const currentBalance = balances.find(
-      balance => 'interimAvailable' === balance.balanceType,
-    );
+    const currentBalance = balances.find(balance => 'interimAvailable' === balance.balanceType);
 
     return sortedTransactions.reduce(
       (total, trans) => {

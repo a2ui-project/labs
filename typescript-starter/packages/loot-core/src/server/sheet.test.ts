@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import { generateTransaction } from '#mocks';
+import {generateTransaction} from '#mocks';
 
 import * as db from './db';
 import * as sheet from './sheet';
@@ -23,9 +23,9 @@ import * as sheet from './sheet';
 beforeEach(global.emptyDatabase());
 
 async function insertTransactions() {
-  await db.insertCategoryGroup({ id: 'group1', name: 'group1' });
-  await db.insertCategory({ id: 'cat1', name: 'cat1', cat_group: 'group1' });
-  await db.insertCategory({ id: 'cat2', name: 'cat2', cat_group: 'group1' });
+  await db.insertCategoryGroup({id: 'group1', name: 'group1'});
+  await db.insertCategory({id: 'cat1', name: 'cat1', cat_group: 'group1'});
+  await db.insertCategory({id: 'cat2', name: 'cat2', cat_group: 'group1'});
 
   await db.insertTransaction(
     generateTransaction({
@@ -75,7 +75,7 @@ describe('Spreadsheet', () => {
       });
     });
 
-    await db.deleteCategory({ id: 'cat1' }, 'cat2');
+    await db.deleteCategory({id: 'cat1'}, 'cat2');
 
     return new Promise(resolve => {
       spreadsheet.onFinish(() => {
@@ -89,7 +89,7 @@ describe('Spreadsheet', () => {
     const spreadsheet = await sheet.loadSpreadsheet(db);
     await insertTransactions();
 
-    await db.deleteCategory({ id: 'cat1' }, 'cat2');
+    await db.deleteCategory({id: 'cat1'}, 'cat2');
 
     spreadsheet.startTransaction();
     spreadsheet.set(
@@ -105,7 +105,7 @@ describe('Spreadsheet', () => {
       });
     });
 
-    await db.updateTransaction({ id: 'trans1', amount: 50000 });
+    await db.updateTransaction({id: 'trans1', amount: 50000});
 
     await new Promise(resolve => {
       spreadsheet.onFinish(() => {

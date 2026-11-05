@@ -15,32 +15,21 @@
  */
 
 // @ts-strict-ignore
-import { memo, useMemo, useRef } from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import {memo, useMemo, useRef} from 'react';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import {
-  SvgArrowThinRight,
-  SvgBookmark,
-  SvgLightBulb,
-} from '@actual-app/components/icons/v1';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import type { PayeeEntity } from '@actual-app/core/types/models';
+import {SvgArrowThinRight, SvgBookmark, SvgLightBulb} from '@actual-app/components/icons/v1';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import type {PayeeEntity} from '@actual-app/core/types/models';
 
-import {
-  Cell,
-  CellButton,
-  CustomCell,
-  InputCell,
-  Row,
-  SelectCell,
-} from '#components/table';
-import { useContextMenu } from '#hooks/useContextMenu';
-import { useSelectedDispatch, useSelectedItems } from '#hooks/useSelected';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {Cell, CellButton, CustomCell, InputCell, Row, SelectCell} from '#components/table';
+import {useContextMenu} from '#hooks/useContextMenu';
+import {useSelectedDispatch, useSelectedItems} from '#hooks/useSelected';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
-import { PayeeRuleCountLabel } from './PayeeRuleCountLabel';
+import {PayeeRuleCountLabel} from './PayeeRuleCountLabel';
 
 type RuleButtonProps = {
   ruleCount: number;
@@ -49,15 +38,9 @@ type RuleButtonProps = {
   onClick: () => void;
 };
 
-function RuleButton({ ruleCount, focused, onEdit, onClick }: RuleButtonProps) {
+function RuleButton({ruleCount, focused, onEdit, onClick}: RuleButtonProps) {
   return (
-    <Cell
-      name="rule-count"
-      width="auto"
-      focused={focused}
-      style={{ padding: '0 10px' }}
-      plain
-    >
+    <Cell name="rule-count" width="auto" focused={focused} style={{padding: '0 10px'}} plain>
       <CellButton
         style={{
           borderRadius: 4,
@@ -67,22 +50,19 @@ function RuleButton({ ruleCount, focused, onEdit, onClick }: RuleButtonProps) {
           color: theme.noticeTextDark,
           fontSize: 12,
           cursor: 'pointer',
-          ':hover': { backgroundColor: theme.noticeBackgroundLight },
+          ':hover': {backgroundColor: theme.noticeBackgroundLight},
         }}
         onEdit={onEdit}
         onSelect={onClick}
       >
-        <PayeeRuleCountLabel count={ruleCount} style={{ paddingRight: 5 }} />
-        <SvgArrowThinRight style={{ width: 8, height: 8 }} />
+        <PayeeRuleCountLabel count={ruleCount} style={{paddingRight: 5}} />
+        <SvgArrowThinRight style={{width: 8, height: 8}} />
       </CellButton>
     </Cell>
   );
 }
 
-type EditablePayeeFields = keyof Pick<
-  PayeeEntity,
-  'name' | 'favorite' | 'learn_categories'
->;
+type EditablePayeeFields = keyof Pick<PayeeEntity, 'name' | 'favorite' | 'learn_categories'>;
 
 type PayeeTableRowProps = {
   payee: PayeeEntity;
@@ -120,23 +100,20 @@ export const PayeeTableRow = memo(
     onUpdate,
     style,
   }: PayeeTableRowProps) => {
-    const { id } = payee;
+    const {id} = payee;
     const dispatchSelected = useSelectedDispatch();
     const selectedItems = useSelectedItems();
     const selectedIds = useMemo(() => {
-      const ids =
-        selectedItems && selectedItems.size > 0 ? selectedItems : [payee.id];
+      const ids = selectedItems && selectedItems.size > 0 ? selectedItems : [payee.id];
       return Array.from(new Set(ids));
     }, [payee, selectedItems]);
 
-    const borderColor = selected
-      ? theme.tableBorderSelected
-      : theme.tableBorder;
+    const borderColor = selected ? theme.tableBorderSelected : theme.tableBorder;
     const backgroundFocus = hovered || focusedField === 'select';
     const [learnCategories = 'true'] = useSyncedPref('learn-categories');
     const isLearnCategoriesEnabled = String(learnCategories) === 'true';
 
-    const { t } = useTranslation();
+    const {t} = useTranslation();
 
     const triggerRef = useRef(null);
     useContextMenu({
@@ -151,10 +128,7 @@ export const PayeeTableRow = memo(
         {
           name: 'favorite',
           text: payee.favorite ? t('Unfavorite') : t('Favorite'),
-          onClick: () =>
-            selectedIds.forEach(id =>
-              onUpdate(id, 'favorite', !payee.favorite),
-            ),
+          onClick: () => selectedIds.forEach(id => onUpdate(id, 'favorite', !payee.favorite)),
           hidden: payee.transfer_acct != null,
         },
         {
@@ -171,13 +145,9 @@ export const PayeeTableRow = memo(
         },
         {
           name: 'learn',
-          text: payee.learn_categories
-            ? t('Disable learning')
-            : t('Enable learning'),
+          text: payee.learn_categories ? t('Disable learning') : t('Enable learning'),
           onClick: () =>
-            selectedIds.forEach(id =>
-              onUpdate(id, 'learn_categories', !payee.learn_categories),
-            ),
+            selectedIds.forEach(id => onUpdate(id, 'learn_categories', !payee.learn_categories)),
           hidden: !isLearnCategoriesEnabled,
         },
       ],
@@ -206,9 +176,7 @@ export const PayeeTableRow = memo(
         onMouseEnter={() => onHover && onHover(payee.id)}
       >
         <SelectCell
-          exposed={
-            payee.transfer_acct == null && (hovered || selected || editing)
-          }
+          exposed={payee.transfer_acct == null && (hovered || selected || editing)}
           focused={focusedField === 'select'}
           selected={selected}
           onSelect={e => {
@@ -235,10 +203,10 @@ export const PayeeTableRow = memo(
           {() => {
             return (
               <>
-                {payee.favorite ? <SvgBookmark style={{ width: 10 }} /> : null}
+                {payee.favorite ? <SvgBookmark style={{width: 10}} /> : null}
                 {isLearnCategoriesEnabled && !payee.learn_categories && (
                   <Tooltip content={t('Category learning disabled')}>
-                    <SvgLightBulb style={{ color: 'red', width: 10 }} />
+                    <SvgLightBulb style={{color: 'red', width: 10}} />
                   </Tooltip>
                 )}
               </>
@@ -248,26 +216,21 @@ export const PayeeTableRow = memo(
         <InputCell
           value={(payee.transfer_acct ? t('Transfer: ') : '') + payee.name}
           valueStyle={
-            (!selected &&
-              payee.transfer_acct && { color: theme.pageTextSubdued }) ||
-            (!selected && !payee.transfer_acct && { color: theme.tableText }) ||
-            (selected && { color: theme.tableTextSelected })
+            (!selected && payee.transfer_acct && {color: theme.pageTextSubdued}) ||
+            (!selected && !payee.transfer_acct && {color: theme.tableText}) ||
+            (selected && {color: theme.tableTextSelected})
           }
           exposed={focusedField === 'name'}
           width="flex"
-          onUpdate={value =>
-            !payee.transfer_acct && onUpdate(id, 'name', value)
-          }
+          onUpdate={value => !payee.transfer_acct && onUpdate(id, 'name', value)}
           onExpose={() => onEdit(id, 'name')}
-          inputProps={{ readOnly: !!payee.transfer_acct }}
+          inputProps={{readOnly: !!payee.transfer_acct}}
         />
         <RuleButton
           ruleCount={ruleCount}
           focused={focusedField === 'rule-count'}
           onEdit={() => onEdit(id, 'rule-count')}
-          onClick={() =>
-            ruleCount > 0 ? onViewRules(payee.id) : onCreateRule(payee.id)
-          }
+          onClick={() => (ruleCount > 0 ? onViewRules(payee.id) : onCreateRule(payee.id))}
         />
       </Row>
     );

@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { PayeeEntity } from '@actual-app/core/types/models';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import { v4 as uuidv4 } from 'uuid';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {PayeeEntity} from '@actual-app/core/types/models';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import type {QueryClient, QueryKey} from '@tanstack/react-query';
+import {v4 as uuidv4} from 'uuid';
 
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import type { AppDispatch } from '#redux/store';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import type {AppDispatch} from '#redux/store';
 
-import { locationService } from './location';
-import { payeeQueries } from './queries';
+import {locationService} from './location';
+import {payeeQueries} from './queries';
 
 function invalidateQueries(queryClient: QueryClient, queryKey?: QueryKey) {
   void queryClient.invalidateQueries({
@@ -35,11 +35,7 @@ function invalidateQueries(queryClient: QueryClient, queryKey?: QueryKey) {
   });
 }
 
-function dispatchErrorNotification(
-  dispatch: AppDispatch,
-  message: string,
-  error?: Error,
-) {
+function dispatchErrorNotification(dispatch: AppDispatch, message: string, error?: Error) {
   dispatch(
     addNotification({
       notification: {
@@ -59,7 +55,7 @@ type CreatePayeePayload = {
 export function useDeletePayeeLocationMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
     mutationFn: async (locationId: string) => {
@@ -84,7 +80,7 @@ export function useDeletePayeeLocationMutation() {
 export function useSavePayeeLocationMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
     mutationFn: async (payeeId: PayeeEntity['id']) => {
@@ -110,10 +106,10 @@ export function useSavePayeeLocationMutation() {
 export function useCreatePayeeMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ name }: CreatePayeePayload) => {
+    mutationFn: async ({name}: CreatePayeePayload) => {
       const id: PayeeEntity['id'] = await send('payee-create', {
         name: name.trim(),
       });

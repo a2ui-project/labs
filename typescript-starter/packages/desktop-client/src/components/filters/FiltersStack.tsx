@@ -16,16 +16,13 @@
 
 import React from 'react';
 
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { View } from '@actual-app/components/view';
-import type {
-  RuleConditionEntity,
-  TransactionFilterEntity,
-} from '@actual-app/core/types/models';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {View} from '@actual-app/components/view';
+import type {RuleConditionEntity, TransactionFilterEntity} from '@actual-app/core/types/models';
 
-import { AppliedFilters } from './AppliedFilters';
-import { SavedFilterMenuButton } from './SavedFilterMenuButton';
-import type { SavedFilter } from './SavedFilterMenuButton';
+import {AppliedFilters} from './AppliedFilters';
+import {SavedFilterMenuButton} from './SavedFilterMenuButton';
+import type {SavedFilter} from './SavedFilterMenuButton';
 
 export function FiltersStack({
   conditions,
@@ -40,10 +37,7 @@ export function FiltersStack({
 }: {
   conditions: RuleConditionEntity[];
   conditionsOp: 'and' | 'or';
-  onUpdateFilter: (
-    filter: RuleConditionEntity,
-    newFilter: RuleConditionEntity,
-  ) => void;
+  onUpdateFilter: (filter: RuleConditionEntity, newFilter: RuleConditionEntity) => void;
   onDeleteFilter: (filter: RuleConditionEntity) => void;
   onClearFilters: () => void;
   onReloadSavedFilter: (savedFilter: SavedFilter, value?: string) => void;
@@ -56,7 +50,7 @@ export function FiltersStack({
       <SpaceBetween
         direction="horizontal"
         gap={10}
-        style={{ justifyContent: 'flex-start', alignItems: 'flex-start' }}
+        style={{justifyContent: 'flex-start', alignItems: 'flex-start'}}
       >
         <AppliedFilters
           conditions={conditions}
@@ -65,7 +59,7 @@ export function FiltersStack({
           onUpdate={onUpdateFilter}
           onDelete={onDeleteFilter}
         />
-        <View style={{ flex: 1 }} />
+        <View style={{flex: 1}} />
         <SavedFilterMenuButton
           conditions={conditions}
           conditionsOp={conditionsOp}

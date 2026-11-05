@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import type { Database } from '@jlongster/sql.js';
+import type {Database} from '@jlongster/sql.js';
 // @ts-strict-ignore
 import * as dateFns from 'date-fns';
 
 import * as connection from '#platform/server/connection';
 import * as fs from '#platform/server/fs';
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 import * as sqlite from '#platform/server/sqlite';
 import * as cloudStorage from '#server/cloud-storage';
 import * as prefs from '#server/prefs';
-import { safeUnzip, safeZip } from '#server/util/zip';
+import {safeUnzip, safeZip} from '#server/util/zip';
 import * as monthUtils from '#shared/months';
 
 // A special backup that represents the latest version of the db that
@@ -32,9 +32,9 @@ import * as monthUtils from '#shared/months';
 const LATEST_BACKUP_FILENAME = 'db.latest.sqlite';
 let serviceInterval = null;
 
-export type Backup = { id: string; date: string } | LatestBackup;
-type LatestBackup = { id: string; date: null; isLatest: true };
-type BackupWithDate = { id: string; date: Date };
+export type Backup = {id: string; date: string} | LatestBackup;
+type LatestBackup = {id: string; date: null; isLatest: true};
+type BackupWithDate = {id: string; date: Date};
 
 async function getBackups(id: string): Promise<BackupWithDate[]> {
   const budgetDir = fs.getBudgetDir(id);
@@ -137,11 +137,7 @@ export async function makeBackup(id: string) {
   }
 
   // Copy db to a temp path so we can clean CRDT messages before zipping
-  const tempDbPath = fs.join(
-    budgetDir,
-    'backups',
-    `db.${Date.now()}.sqlite.tmp`,
-  );
+  const tempDbPath = fs.join(budgetDir, 'backups', `db.${Date.now()}.sqlite.tmp`);
 
   await fs.copyFile(fs.join(budgetDir, 'db.sqlite'), tempDbPath);
 
@@ -154,10 +150,7 @@ export async function makeBackup(id: string) {
     sqlite.runQuery(db, 'DELETE FROM messages_clock');
     // Zip up the cleaned db and metadata into a single backup file
     const dbContent = await fs.readFile(tempDbPath, 'binary');
-    const metaContent = await fs.readFile(
-      fs.join(budgetDir, 'metadata.json'),
-      'binary',
-    );
+    const metaContent = await fs.readFile(fs.join(budgetDir, 'metadata.json'), 'binary');
     const zipped = safeZip({
       'db.sqlite': dbContent,
       'metadata.json': metaContent,
@@ -186,10 +179,7 @@ export async function loadBackup(id: string, backupId: string) {
   if (!(await fs.exists(fs.join(budgetDir, LATEST_BACKUP_FILENAME)))) {
     // If this is the first time we're loading a backup, save the
     // current version so the user can easily revert back to it
-    await fs.copyFile(
-      fs.join(budgetDir, 'db.sqlite'),
-      fs.join(budgetDir, LATEST_BACKUP_FILENAME),
-    );
+    await fs.copyFile(fs.join(budgetDir, 'db.sqlite'), fs.join(budgetDir, LATEST_BACKUP_FILENAME));
 
     await fs.copyFile(
       fs.join(budgetDir, 'metadata.json'),
@@ -209,10 +199,7 @@ export async function loadBackup(id: string, backupId: string) {
 
     // If reverting back to the latest, copy and delete the latest
     // backup
-    await fs.copyFile(
-      fs.join(budgetDir, LATEST_BACKUP_FILENAME),
-      fs.join(budgetDir, 'db.sqlite'),
-    );
+    await fs.copyFile(fs.join(budgetDir, LATEST_BACKUP_FILENAME), fs.join(budgetDir, 'db.sqlite'));
     await fs.copyFile(
       fs.join(budgetDir, 'metadata.latest.json'),
       fs.join(budgetDir, 'metadata.json'),
@@ -246,10 +233,7 @@ export async function loadBackup(id: string, backupId: string) {
 
     prefs.unloadPrefs();
 
-    const zipContent = await fs.readFile(
-      fs.join(budgetDir, 'backups', backupId),
-      'binary',
-    );
+    const zipContent = await fs.readFile(fs.join(budgetDir, 'backups', backupId), 'binary');
 
     let entries: Record<string, Uint8Array>;
     try {
@@ -263,10 +247,7 @@ export async function loadBackup(id: string, backupId: string) {
     }
 
     await fs.writeFile(fs.join(budgetDir, 'db.sqlite'), entries['db.sqlite']);
-    await fs.writeFile(
-      fs.join(budgetDir, 'metadata.json'),
-      entries['metadata.json'],
-    );
+    await fs.writeFile(fs.join(budgetDir, 'metadata.json'), entries['metadata.json']);
   }
 }
 

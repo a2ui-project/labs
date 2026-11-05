@@ -15,11 +15,7 @@
  */
 
 export default async function runMigration(db) {
-  const categories = db.runQuery(
-    'SELECT id FROM categories WHERE tombstone = 0',
-    [],
-    true,
-  );
+  const categories = db.runQuery('SELECT id FROM categories WHERE tombstone = 0', [], true);
 
   const customReports = db.runQuery(
     'SELECT id, selected_categories, conditions FROM custom_reports WHERE tombstone = 0 AND selected_categories IS NOT NULL',
@@ -33,11 +29,9 @@ export default async function runMigration(db) {
     const selectedCategories = report.selected_categories
       ? JSON.parse(report.selected_categories)
       : [];
-    const selectedCategoryIds = selectedCategories.map(({ id }) => id);
+    const selectedCategoryIds = selectedCategories.map(({id}) => id);
 
-    const areAllCategoriesSelected = !categories.find(
-      ({ id }) => !selectedCategoryIds.includes(id),
-    );
+    const areAllCategoriesSelected = !categories.find(({id}) => !selectedCategoryIds.includes(id));
 
     // Do nothing if all categories are selected.. we don't need to add a new condition for that
     if (areAllCategoriesSelected) {
@@ -45,7 +39,7 @@ export default async function runMigration(db) {
     }
 
     // If `conditions` already has a "category" filter - skip the entry
-    if (conditions.find(({ field }) => field === 'category')) {
+    if (conditions.find(({field}) => field === 'category')) {
       continue;
     }
 
@@ -65,7 +59,5 @@ export default async function runMigration(db) {
   }
 
   // Remove all the `selectedCategories` values - we don't need them anymore
-  db.runQuery(
-    'UPDATE custom_reports SET selected_categories = NULL WHERE tombstone = 0',
-  );
+  db.runQuery('UPDATE custom_reports SET selected_categories = NULL WHERE tombstone = 0');
 }

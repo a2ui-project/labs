@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-import { config } from '#load-config';
+import {config} from '#load-config';
 
-const protocol =
-  config.get('https.key') && config.get('https.cert') ? 'https' : 'http';
-const hostname =
-  config.get('hostname') === '::' ? 'localhost' : config.get('hostname');
+const protocol = config.get('https.key') && config.get('https.cert') ? 'https' : 'http';
+const hostname = config.get('hostname') === '::' ? 'localhost' : config.get('hostname');
 
 function getHealthStatus(response: unknown): string | undefined {
   if (
@@ -41,8 +39,7 @@ fetch(`${protocol}://${hostname}:${config.get('port')}/health`)
 
     if (status !== 'UP') {
       throw new Error(
-        'Health check failed: Server responded to health check with status ' +
-          status,
+        'Health check failed: Server responded to health check with status ' + status,
       );
     }
   })

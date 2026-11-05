@@ -19,9 +19,9 @@
  * while keeping the raw description in the notes field.
  */
 
-import type { Transaction } from '#app-gocardless/gocardless-node.types';
+import type {Transaction} from '#app-gocardless/gocardless-node.types';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 const CARD_PAYMENT_PREFIX = 'PAGAMENTO SU CIRCUITO INTERNAZIONALE';
@@ -79,10 +79,8 @@ const BperRetailBank = {
   institutionIds: ['BPER_RETAIL_BPMOIT22'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
-    const description = (
-      transaction.remittanceInformationUnstructured || ''
-    ).trim();
+    const editedTrans = {...transaction};
+    const description = (transaction.remittanceInformationUnstructured || '').trim();
 
     if (description) {
       editedTrans.remittanceInformationUnstructured = description;

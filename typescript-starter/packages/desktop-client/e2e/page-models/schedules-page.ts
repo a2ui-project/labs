@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { ScheduleEditModal } from './schedule-edit-modal';
+import {ScheduleEditModal} from './schedule-edit-modal';
 
 export class SchedulesPage {
   readonly page: Page;
@@ -86,10 +86,10 @@ export class SchedulesPage {
     const actions = row.getByTestId('actions');
 
     await actions.getByRole('button').click();
-    await this.page.getByRole('button', { name: actionName }).click();
+    await this.page.getByRole('button', {name: actionName}).click();
   }
 
   async rightClickNthSchedule(index: number) {
-    await this.getNthScheduleRow(index).click({ button: 'right' });
+    await this.getNthScheduleRow(index).click({button: 'right'});
   }
 }

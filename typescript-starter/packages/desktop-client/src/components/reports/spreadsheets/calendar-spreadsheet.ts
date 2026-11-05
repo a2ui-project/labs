@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type { RuleConditionEntity } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import {q} from '@actual-app/core/shared/query';
+import type {RuleConditionEntity} from '@actual-app/core/types/models';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 import * as d from 'date-fns';
 
-import type { useSpreadsheet } from '#hooks/useSpreadsheet';
-import { aqlQuery } from '#queries/aqlQuery';
+import type {useSpreadsheet} from '#hooks/useSpreadsheet';
+import {aqlQuery} from '#queries/aqlQuery';
 
 export type CalendarDataType = {
   date: Date;
@@ -53,12 +53,9 @@ export function calendarSpreadsheet(
     let filters: unknown[];
 
     try {
-      const { filters: filtersLocal } = await send(
-        'make-filters-from-conditions',
-        {
-          conditions: conditions.filter(cond => !cond.customName),
-        },
-      );
+      const {filters: filtersLocal} = await send('make-filters-from-conditions', {
+        conditions: conditions.filter(cond => !cond.customName),
+      });
       filters = filtersLocal;
     } catch (error) {
       console.error('Failed to make filters from conditions:', error);
@@ -68,11 +65,7 @@ export function calendarSpreadsheet(
 
     let startDay: Date;
     try {
-      startDay = d.parse(
-        monthUtils.firstDayOfMonth(start),
-        'yyyy-MM-dd',
-        new Date(),
-      );
+      startDay = d.parse(monthUtils.firstDayOfMonth(start), 'yyyy-MM-dd', new Date());
     } catch (error) {
       console.error('Failed to parse start date:', error);
       throw new Error('Invalid start date format');
@@ -80,11 +73,7 @@ export function calendarSpreadsheet(
 
     let endDay: Date;
     try {
-      endDay = d.parse(
-        monthUtils.lastDayOfMonth(end),
-        'yyyy-MM-dd',
-        new Date(),
-      );
+      endDay = d.parse(monthUtils.lastDayOfMonth(end), 'yyyy-MM-dd', new Date());
     } catch (error) {
       console.error('Failed to parse end date:', error);
       throw new Error('Invalid end date format');
@@ -94,38 +83,38 @@ export function calendarSpreadsheet(
       q('transactions')
         .filter({
           $and: [
-            { date: { $gte: d.format(startDay, 'yyyy-MM-dd') } },
-            { date: { $lte: d.format(endDay, 'yyyy-MM-dd') } },
+            {date: {$gte: d.format(startDay, 'yyyy-MM-dd')}},
+            {date: {$lte: d.format(endDay, 'yyyy-MM-dd')}},
           ],
         })
         .filter({
           [conditionsOpKey]: filters,
         })
         .groupBy(['date'])
-        .select(['date', { amount: { $sum: '$amount' } }]);
+        .select(['date', {amount: {$sum: '$amount'}}]);
 
     let expenseData;
     try {
       expenseData = await aqlQuery(
         makeRootQuery().filter({
-          $and: { amount: { $lt: 0 } },
+          $and: {amount: {$lt: 0}},
         }),
       );
     } catch (error) {
       console.error('Failed to fetch expense data:', error);
-      expenseData = { data: [] };
+      expenseData = {data: []};
     }
 
     let incomeData;
     try {
       incomeData = await aqlQuery(
         makeRootQuery().filter({
-          $and: { amount: { $gt: 0 } },
+          $and: {amount: {$gt: 0}},
         }),
       );
     } catch (error) {
       console.error('Failed to fetch income data:', error);
-      incomeData = { data: [] };
+      incomeData = {data: []};
     }
 
     const getOneDatePerMonth = (start: Date, end: Date) => {
@@ -203,18 +192,10 @@ function recalculate(
       : null;
 
     const getBarLength = (value: number) => {
-      if (
-        value < 0 &&
-        typeof totalExpenseValue === 'number' &&
-        totalExpenseValue > 0
-      ) {
+      if (value < 0 && typeof totalExpenseValue === 'number' && totalExpenseValue > 0) {
         const result = (Math.abs(value) / totalExpenseValue) * 100;
         return Number.isFinite(result) ? result : 0;
-      } else if (
-        value > 0 &&
-        typeof totalIncomeValue === 'number' &&
-        totalIncomeValue > 0
-      ) {
+      } else if (value > 0 && typeof totalIncomeValue === 'number' && totalIncomeValue > 0) {
         const result = (value / totalIncomeValue) * 100;
         return Number.isFinite(result) ? result : 0;
       } else {
@@ -232,8 +213,7 @@ function recalculate(
           ? (parseInt(firstDayOfWeekIdx) as 0 | 1 | 2 | 3 | 4 | 5 | 6)
           : 0,
     });
-    let totalDays =
-      d.differenceInDays(firstDay, beginDay) + d.getDaysInMonth(firstDay);
+    let totalDays = d.differenceInDays(firstDay, beginDay) + d.getDaysInMonth(firstDay);
     if (totalDays % 7 !== 0) {
       totalDays += 7 - (totalDays % 7);
     }

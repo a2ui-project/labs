@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { MAX_FORMATTABLE_AMOUNT } from '#components/reports/reports/monte-carlo/monteCarloSimulation';
-import { useFormat } from '#hooks/useFormat';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {MAX_FORMATTABLE_AMOUNT} from '#components/reports/reports/monte-carlo/monteCarloSimulation';
+import {useFormat} from '#hooks/useFormat';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
 /**
  * Y-axis tick formatter shared by the Monte Carlo charts: redacted in

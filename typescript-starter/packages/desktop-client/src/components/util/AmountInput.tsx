@@ -15,26 +15,21 @@
  */
 
 // @ts-strict-ignore
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import type {
-  CSSProperties,
-  FocusEventHandler,
-  KeyboardEvent,
-  Ref,
-} from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import type {CSSProperties, FocusEventHandler, KeyboardEvent, Ref} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgAdd, SvgSubtract } from '@actual-app/components/icons/v1';
-import { baseInputStyle, Input } from '@actual-app/components/input';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import { css, cx } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {SvgAdd, SvgSubtract} from '@actual-app/components/icons/v1';
+import {baseInputStyle, Input} from '@actual-app/components/input';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import {css, cx} from '@emotion/css';
 
-import { useFormat } from '#hooks/useFormat';
-import { useMergedRefs } from '#hooks/useMergedRefs';
+import {useFormat} from '#hooks/useFormat';
+import {useMergedRefs} from '#hooks/useMergedRefs';
 
 type AmountInputProps = {
   id?: string;
@@ -45,10 +40,7 @@ type AmountInputProps = {
   onChangeValue?: (value: string) => void;
   onFocus?: FocusEventHandler<HTMLInputElement>;
   onBlur?: FocusEventHandler<HTMLInputElement>;
-  onEnter?: (
-    event: KeyboardEvent<HTMLInputElement>,
-    amount?: IntegerAmount,
-  ) => void;
+  onEnter?: (event: KeyboardEvent<HTMLInputElement>, amount?: IntegerAmount) => void;
   onUpdate?: (amount: IntegerAmount) => void;
   style?: CSSProperties;
   inputStyle?: CSSProperties;
@@ -76,7 +68,7 @@ export function AmountInput({
   disabled = false,
   autoDecimals = false,
 }: AmountInputProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const [symbol, setSymbol] = useState<'+' | '-'>(() => {
     if (sign) return sign;
@@ -88,9 +80,7 @@ export function AmountInput({
   const getDisplayValue = useCallback(
     (value: number, isEditing: boolean) => {
       const absoluteValue = Math.abs(value || 0);
-      return isEditing
-        ? format.forEdit(absoluteValue)
-        : format(absoluteValue, 'financial');
+      return isEditing ? format.forEdit(absoluteValue) : format(absoluteValue, 'financial');
     },
     [format],
   );
@@ -201,16 +191,12 @@ export function AmountInput({
         variant="bare"
         isDisabled={disabled || !!sign}
         aria-label={symbol === '-' ? t('Make positive') : t('Make negative')}
-        style={{ padding: '0 7px' }}
+        style={{padding: '0 7px'}}
         onPress={onSwitch}
         ref={buttonRef}
       >
-        {symbol === '-' && (
-          <SvgSubtract style={{ width: 8, height: 8, color: 'inherit' }} />
-        )}
-        {symbol === '+' && (
-          <SvgAdd style={{ width: 8, height: 8, color: 'inherit' }} />
-        )}
+        {symbol === '-' && <SvgSubtract style={{width: 8, height: 8, color: 'inherit'}} />}
+        {symbol === '+' && <SvgAdd style={{width: 8, height: 8, color: 'inherit'}} />}
       </Button>
 
       <Input
@@ -219,7 +205,7 @@ export function AmountInput({
         inputMode="decimal"
         value={value}
         disabled={disabled}
-        style={{ ...inputStyle, ...styles.tnum }}
+        style={{...inputStyle, ...styles.tnum}}
         className={cx(
           css({
             width: '100%',
@@ -255,36 +241,33 @@ export function AmountInput({
 }
 
 type BetweenAmountInputProps = {
-  defaultValue: { num1: number; num2: number };
-  onChange: (newValue: { num1: number; num2: number }) => void;
+  defaultValue: {num1: number; num2: number};
+  onChange: (newValue: {num1: number; num2: number}) => void;
 };
 
-export function BetweenAmountInput({
-  defaultValue,
-  onChange,
-}: BetweenAmountInputProps) {
-  const { t } = useTranslation();
+export function BetweenAmountInput({defaultValue, onChange}: BetweenAmountInputProps) {
+  const {t} = useTranslation();
   const [num1, setNum1] = useState(defaultValue.num1);
   const [num2, setNum2] = useState(defaultValue.num2);
 
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+    <View style={{flexDirection: 'row', alignItems: 'center'}}>
       <AmountInput
         value={num1}
         onUpdate={value => {
           setNum1(value);
-          onChange({ num1: value, num2 });
+          onChange({num1: value, num2});
         }}
-        style={{ color: theme.formInputText }}
+        style={{color: theme.formInputText}}
       />
-      <View style={{ margin: '0 5px' }}>{t('and')}</View>
+      <View style={{margin: '0 5px'}}>{t('and')}</View>
       <AmountInput
         value={num2}
         onUpdate={value => {
           setNum2(value);
-          onChange({ num1, num2: value });
+          onChange({num1, num2: value});
         }}
-        style={{ color: theme.formInputText }}
+        style={{color: theme.formInputText}}
       />
     </View>
   );

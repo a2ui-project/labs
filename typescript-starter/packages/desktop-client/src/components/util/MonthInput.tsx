@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { MonthPicker } from '@actual-app/components/month-picker';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {MonthPicker} from '@actual-app/components/month-picker';
 
-import {
-  hideNativeDateIconClassName,
-  InputField,
-} from '#components/mobile/MobileForms';
-import { useLanguage } from '#hooks/useLocale';
+import {hideNativeDateIconClassName, InputField} from '#components/mobile/MobileForms';
+import {useLanguage} from '#hooks/useLocale';
 
 type MonthInputProps = {
   id: string;
@@ -32,10 +29,10 @@ type MonthInputProps = {
 };
 
 // mobile keeps the native month input; desktop uses the custom month picker
-export function MonthInput({ id, value, onChange }: MonthInputProps) {
-  const { t } = useTranslation();
+export function MonthInput({id, value, onChange}: MonthInputProps) {
+  const {t} = useTranslation();
   const language = useLanguage();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   if (isNarrowWidth) {
     return (
       <InputField
@@ -61,7 +58,7 @@ export function MonthInput({ id, value, onChange }: MonthInputProps) {
       value={value}
       locale={language}
       placeholder={t('Select month')}
-      labels={{ previous: t('Previous'), next: t('Next') }}
+      labels={{previous: t('Previous'), next: t('Next')}}
       onChange={onChange}
     />
   );

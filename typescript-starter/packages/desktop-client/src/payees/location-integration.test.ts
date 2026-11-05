@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-import type { LocationCoordinates } from '@actual-app/core/shared/location-utils';
-import type {
-  NearbyPayeeEntity,
-  PayeeLocationEntity,
-} from '@actual-app/core/types/models';
-import { beforeEach, describe, expect, it } from 'vitest';
+import type {LocationCoordinates} from '@actual-app/core/shared/location-utils';
+import type {NearbyPayeeEntity, PayeeLocationEntity} from '@actual-app/core/types/models';
+import {beforeEach, describe, expect, it} from 'vitest';
 
-import type {
-  GeolocationAdapter,
-  LocationApiClient,
-} from './location-adapters';
-import { LocationService } from './location-service';
+import type {GeolocationAdapter, LocationApiClient} from './location-adapters';
+import {LocationService} from './location-service';
 
 // Clean test implementations - no complex mocking needed
 class TestGeolocationAdapter implements GeolocationAdapter {
@@ -41,7 +35,7 @@ class TestGeolocationAdapter implements GeolocationAdapter {
     if (this.shouldThrow) {
       throw new Error('Geolocation denied');
     }
-    return { ...this.mockPosition }; // Return copy to avoid mutation
+    return {...this.mockPosition}; // Return copy to avoid mutation
   }
 
   getCallCount(): number {
@@ -64,11 +58,8 @@ class TestApiClient implements LocationApiClient {
     private shouldThrowOnSave = false,
   ) {}
 
-  async saveLocation(
-    payeeId: string,
-    coordinates: LocationCoordinates,
-  ): Promise<string> {
-    this.saveLocationCalls.push({ payeeId, coordinates });
+  async saveLocation(payeeId: string, coordinates: LocationCoordinates): Promise<string> {
+    this.saveLocationCalls.push({payeeId, coordinates});
     if (this.shouldThrowOnSave) {
       throw new Error('Save failed');
     }
@@ -94,7 +85,7 @@ describe('LocationService Integration Tests', () => {
   let testApiClient: TestApiClient;
   let locationService: LocationService;
 
-  const defaultPosition = { latitude: 40.7128, longitude: -74.006 }; // NYC
+  const defaultPosition = {latitude: 40.7128, longitude: -74.006}; // NYC
 
   beforeEach(() => {
     testGeolocation = new TestGeolocationAdapter(defaultPosition);
@@ -125,26 +116,15 @@ describe('LocationService Integration Tests', () => {
 
   describe('Error Handling', () => {
     it('propagates geolocation errors with meaningful messages', async () => {
-      const errorGeolocation = new TestGeolocationAdapter(
-        defaultPosition,
-        true,
-      );
-      const serviceWithError = new LocationService(
-        errorGeolocation,
-        testApiClient,
-      );
+      const errorGeolocation = new TestGeolocationAdapter(defaultPosition, true);
+      const serviceWithError = new LocationService(errorGeolocation, testApiClient);
 
-      await expect(serviceWithError.getCurrentPosition()).rejects.toThrow(
-        'Geolocation denied',
-      );
+      await expect(serviceWithError.getCurrentPosition()).rejects.toThrow('Geolocation denied');
     });
 
     it('propagates API save errors', async () => {
       const errorApiClient = new TestApiClient([], [], 'id', true);
-      const serviceWithError = new LocationService(
-        testGeolocation,
-        errorApiClient,
-      );
+      const serviceWithError = new LocationService(testGeolocation, errorApiClient);
 
       await expect(
         serviceWithError.savePayeeLocation('payee-123', defaultPosition),
@@ -155,17 +135,12 @@ describe('LocationService Integration Tests', () => {
   describe('API Integration', () => {
     it('calls save location with correct parameters', async () => {
       const payeeId = 'payee-456';
-      const coordinates = { latitude: 41.8781, longitude: -87.6298 }; // Chicago
+      const coordinates = {latitude: 41.8781, longitude: -87.6298}; // Chicago
 
-      const result = await locationService.savePayeeLocation(
-        payeeId,
-        coordinates,
-      );
+      const result = await locationService.savePayeeLocation(payeeId, coordinates);
 
       expect(result).toBe('test-location-id');
-      expect(testApiClient.saveLocationCalls).toEqual([
-        { payeeId, coordinates },
-      ]);
+      expect(testApiClient.saveLocationCalls).toEqual([{payeeId, coordinates}]);
     });
 
     it('retrieves payee locations correctly', async () => {
@@ -215,7 +190,7 @@ describe('LocationService Integration Tests', () => {
       locationService = new LocationService(testGeolocation, testApiClient);
 
       const position = await locationService.getCurrentPosition();
-      expect(position).toEqual({ latitude: 0, longitude: 0 });
+      expect(position).toEqual({latitude: 0, longitude: 0});
     });
   });
 });

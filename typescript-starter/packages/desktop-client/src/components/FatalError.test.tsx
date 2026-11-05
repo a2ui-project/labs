@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { LazyLoadFailedError } from '@actual-app/core/shared/errors';
-import { render, screen } from '@testing-library/react';
+import {LazyLoadFailedError} from '@actual-app/core/shared/errors';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import { TestProviders } from '#mocks';
+import {TestProviders} from '#mocks';
 
-import { FatalError } from './FatalError';
+import {FatalError} from './FatalError';
 
 describe('FatalError', () => {
   it('renders the SharedArrayBuffer message for a non-Error AppError payload', () => {
@@ -31,7 +31,7 @@ describe('FatalError', () => {
       SharedArrayBufferMissing: true,
     };
 
-    render(<FatalError error={error} />, { wrapper: TestProviders });
+    render(<FatalError error={error} />, {wrapper: TestProviders});
 
     expect(screen.getAllByText(/SharedArrayBuffer/).length).toBeGreaterThan(0);
   });
@@ -42,7 +42,7 @@ describe('FatalError', () => {
       IDBFailure: true,
     };
 
-    render(<FatalError error={error} />, { wrapper: TestProviders });
+    render(<FatalError error={error} />, {wrapper: TestProviders});
 
     expect(screen.getByText(/IndexedDB/)).toBeInTheDocument();
   });
@@ -53,11 +53,9 @@ describe('FatalError', () => {
       BackendInitFailure: true,
     };
 
-    render(<FatalError error={error} />, { wrapper: TestProviders });
+    render(<FatalError error={error} />, {wrapper: TestProviders});
 
-    expect(
-      screen.getByText(/couldn't load a critical backend worker/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/couldn't load a critical backend worker/i)).toBeInTheDocument();
   });
 
   it('renders the data folder path and an access-denied hint for a DocumentDirFailure', () => {
@@ -69,15 +67,11 @@ describe('FatalError', () => {
       message: 'EPERM: operation not permitted, mkdir',
     };
 
-    render(<FatalError error={error} />, { wrapper: TestProviders });
+    render(<FatalError error={error} />, {wrapper: TestProviders});
 
     expect(screen.getByText('Data folder unavailable')).toBeInTheDocument();
-    expect(
-      screen.getByText('C:\\Users\\peter\\Documents\\Actual'),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Access to this folder was denied/),
-    ).toBeInTheDocument();
+    expect(screen.getByText('C:\\Users\\peter\\Documents\\Actual')).toBeInTheDocument();
+    expect(screen.getByText(/Access to this folder was denied/)).toBeInTheDocument();
     expect(screen.getByText('Restart app')).toBeInTheDocument();
   });
 
@@ -90,19 +84,17 @@ describe('FatalError', () => {
       message: 'ENOTDIR: not a directory, mkdir',
     };
 
-    render(<FatalError error={error} />, { wrapper: TestProviders });
+    render(<FatalError error={error} />, {wrapper: TestProviders});
 
     expect(screen.getByText('/home/peter/blocked/Actual')).toBeInTheDocument();
     expect(screen.getByText(/ENOTDIR/)).toBeInTheDocument();
-    expect(
-      screen.queryByText(/Access to this folder was denied/),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Access to this folder was denied/)).not.toBeInTheDocument();
   });
 
   it('renders the generic simple message for an app-init-failure without a specific cause', () => {
-    const error = { type: 'app-init-failure' };
+    const error = {type: 'app-init-failure'};
 
-    render(<FatalError error={error} />, { wrapper: TestProviders });
+    render(<FatalError error={error} />, {wrapper: TestProviders});
 
     expect(
       screen.getByText(/problem loading the app in this browser version/i),
@@ -115,7 +107,7 @@ describe('FatalError', () => {
       BackendInitFailure: true,
     };
 
-    render(<FatalError error={error} />, { wrapper: TestProviders });
+    render(<FatalError error={error} />, {wrapper: TestProviders});
 
     await userEvent.click(screen.getByText('Show Error'));
 
@@ -128,9 +120,7 @@ describe('FatalError', () => {
       wrapper: TestProviders,
     });
 
-    expect(
-      screen.getByText(/unrecoverable error in the UI/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/unrecoverable error in the UI/i)).toBeInTheDocument();
   });
 
   it('renders the lazy load message for a LazyLoadFailedError', () => {
@@ -138,8 +128,6 @@ describe('FatalError', () => {
       wrapper: TestProviders,
     });
 
-    expect(
-      screen.getByText(/problem loading one of the chunks/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/problem loading one of the chunks/i)).toBeInTheDocument();
   });
 });

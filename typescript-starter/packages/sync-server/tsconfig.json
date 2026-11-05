@@ -25,12 +25,6 @@
       "path": "../desktop-client"
     }
   ],
-  "include": [
-    "src/**/*",
-    "migrations/**/*",
-    "types/**/*",
-    "app.ts",
-    "bin/**/*"
-  ],
+  "include": ["src/**/*", "migrations/**/*", "types/**/*", "app.ts", "bin/**/*"],
   "exclude": ["node_modules", "build", "coverage"]
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { logger } from '#platform/server/log';
+import {logger} from '#platform/server/log';
 
 import type * as T from './index';
 

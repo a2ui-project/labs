@@ -15,8 +15,8 @@
  */
 
 import React from 'react';
-import type { ComponentProps } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {ComponentProps} from 'react';
+import {useTranslation} from 'react-i18next';
 
 import {
   SvgCalculator,
@@ -29,23 +29,20 @@ import {
   SvgQueue,
   SvgTag,
 } from '@actual-app/components/icons/v1';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  CustomReportEntity,
-  RuleConditionEntity,
-} from '@actual-app/core/types/models';
-import { toPng } from 'html-to-image';
+import type {CustomReportEntity, RuleConditionEntity} from '@actual-app/core/types/models';
+import {toPng} from 'html-to-image';
 
-import { FilterButton } from '#components/filters/FiltersMenu';
+import {FilterButton} from '#components/filters/FiltersMenu';
 
-import { GraphButton } from './GraphButton';
-import { SaveReportWrapper } from './SaveReport';
-import type { SavedStatus } from './SaveReportMenu';
-import { setSessionReport } from './setSessionReport';
-import { SnapshotButton } from './SnapshotButton';
+import {GraphButton} from './GraphButton';
+import {SaveReportWrapper} from './SaveReport';
+import type {SavedStatus} from './SaveReportMenu';
+import {setSessionReport} from './setSessionReport';
+import {SnapshotButton} from './SnapshotButton';
 
 type ReportTopbarProps = {
   customReportItems: CustomReportEntity;
@@ -76,10 +73,10 @@ export function ReportTopbar({
   isItemDisabled,
   defaultItems,
 }: ReportTopbarProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const onChangeGraph = (cond: string) => {
     setSessionReport('graphType', cond);
-    onReportChange({ type: 'modify' });
+    onReportChange({type: 'modify'});
     setGraphType(cond);
     defaultItems(cond);
   };
@@ -114,27 +111,21 @@ export function ReportTopbar({
         onSelect={() => {
           onChangeGraph('TableGraph');
         }}
-        style={{ marginRight: 15 }}
+        style={{marginRight: 15}}
         disabled={isItemDisabled('TableGraph')}
       >
         <SvgQueue width={15} height={15} />
       </GraphButton>
       <GraphButton
-        title={
-          customReportItems.mode === 'total'
-            ? t('Bar Graph')
-            : t('Stacked Bar Graph')
-        }
+        title={customReportItems.mode === 'total' ? t('Bar Graph') : t('Stacked Bar Graph')}
         selected={
           customReportItems.graphType === 'BarGraph' ||
           customReportItems.graphType === 'StackedBarGraph'
         }
         onSelect={() => {
-          onChangeGraph(
-            customReportItems.mode === 'total' ? 'BarGraph' : 'StackedBarGraph',
-          );
+          onChangeGraph(customReportItems.mode === 'total' ? 'BarGraph' : 'StackedBarGraph');
         }}
-        style={{ marginRight: 15 }}
+        style={{marginRight: 15}}
         disabled={isItemDisabled(
           customReportItems.mode === 'total' ? 'BarGraph' : 'StackedBarGraph',
         )}
@@ -147,7 +138,7 @@ export function ReportTopbar({
         onSelect={() => {
           onChangeGraph('LineGraph');
         }}
-        style={{ marginRight: 15 }}
+        style={{marginRight: 15}}
         disabled={isItemDisabled('LineGraph')}
       >
         <SvgChart width={15} height={15} />
@@ -158,7 +149,7 @@ export function ReportTopbar({
         onSelect={() => {
           onChangeGraph('AreaGraph');
         }}
-        style={{ marginRight: 15 }}
+        style={{marginRight: 15}}
         disabled={isItemDisabled('AreaGraph')}
       >
         <SvgChartArea width={15} height={15} />
@@ -169,7 +160,7 @@ export function ReportTopbar({
         onSelect={() => {
           onChangeGraph('DonutGraph');
         }}
-        style={{ marginRight: 15 }}
+        style={{marginRight: 15}}
         disabled={isItemDisabled('DonutGraph')}
       >
         <SvgChartPie width={15} height={15} />
@@ -188,7 +179,7 @@ export function ReportTopbar({
         onSelect={() => {
           onChangeViews('viewLegend');
         }}
-        style={{ marginRight: 15 }}
+        style={{marginRight: 15}}
         title={t('Show Legend')}
         disabled={isItemDisabled('ShowLegend')}
       >
@@ -199,7 +190,7 @@ export function ReportTopbar({
         onSelect={() => {
           onChangeViews('viewSummary');
         }}
-        style={{ marginRight: 15 }}
+        style={{marginRight: 15}}
         title={t('Show Summary')}
       >
         <SvgCalculator width={15} height={15} />
@@ -209,7 +200,7 @@ export function ReportTopbar({
         onSelect={() => {
           onChangeViews('viewLabels');
         }}
-        style={{ marginRight: 15 }}
+        style={{marginRight: 15}}
         title={t('Show Labels')}
         disabled={isItemDisabled('ShowLabels')}
       >
@@ -225,7 +216,7 @@ export function ReportTopbar({
         }}
       />
       <SnapshotButton
-        style={{ marginRight: 15 }}
+        style={{marginRight: 15}}
         title={t('Download Snapshot')}
         onSelect={downloadSnapshot}
       >
@@ -251,12 +242,9 @@ export function ReportTopbar({
           compact
           hover
           onApply={(e: RuleConditionEntity) => {
-            setSessionReport('conditions', [
-              ...(customReportItems.conditions ?? []),
-              e,
-            ]);
+            setSessionReport('conditions', [...(customReportItems.conditions ?? []), e]);
             onApplyFilter(e);
-            onReportChange({ type: 'modify' });
+            onReportChange({type: 'modify'});
           }}
           exclude={
             customReportItems.balanceType === 'Budgeted'

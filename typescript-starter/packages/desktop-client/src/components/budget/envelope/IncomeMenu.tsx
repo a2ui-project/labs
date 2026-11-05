@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
-import type { CategoryEntity } from '@actual-app/core/types/models';
+import {Menu} from '@actual-app/components/menu';
+import type {CategoryEntity} from '@actual-app/core/types/models';
 
-import { envelopeBudget } from '#spreadsheet/bindings';
+import {envelopeBudget} from '#spreadsheet/bindings';
 
-import { useEnvelopeSheetValue } from './EnvelopeBudgetComponents';
+import {useEnvelopeSheetValue} from './EnvelopeBudgetComponents';
 
 type IncomeMenuProps = {
   categoryId: string;
@@ -38,10 +38,8 @@ export function IncomeMenu({
   onShowActivity,
   onClose,
 }: IncomeMenuProps) {
-  const { t } = useTranslation();
-  const carryover = useEnvelopeSheetValue(
-    envelopeBudget.catCarryover(categoryId),
-  );
+  const {t} = useTranslation();
+  const carryover = useEnvelopeSheetValue(envelopeBudget.catCarryover(categoryId));
 
   return (
     <span>

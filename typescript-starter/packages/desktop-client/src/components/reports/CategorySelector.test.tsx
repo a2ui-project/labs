@@ -16,14 +16,11 @@
 
 import React from 'react';
 
-import type {
-  CategoryEntity,
-  CategoryGroupEntity,
-} from '@actual-app/core/types/models';
-import { render, screen } from '@testing-library/react';
+import type {CategoryEntity, CategoryGroupEntity} from '@actual-app/core/types/models';
+import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { CategorySelector } from './CategorySelector';
+import {CategorySelector} from './CategorySelector';
 
 function makeCategory({
   id,
@@ -36,7 +33,7 @@ function makeCategory({
   hidden?: boolean;
   group?: string;
 }): CategoryEntity {
-  return { id, name, hidden, group } satisfies CategoryEntity;
+  return {id, name, hidden, group} satisfies CategoryEntity;
 }
 
 function makeCategoryGroup({
@@ -48,18 +45,18 @@ function makeCategoryGroup({
   name: string;
   categories: CategoryEntity[];
 }): CategoryGroupEntity {
-  return { id, name, categories } satisfies CategoryGroupEntity;
+  return {id, name, categories} satisfies CategoryGroupEntity;
 }
 
-const cat1 = makeCategory({ id: 'cat1', name: 'Category 1' });
-const cat2 = makeCategory({ id: 'cat2', name: 'Category 2' });
-const cat3 = makeCategory({ id: 'cat3', name: 'Category 3', hidden: true });
+const cat1 = makeCategory({id: 'cat1', name: 'Category 1'});
+const cat2 = makeCategory({id: 'cat2', name: 'Category 2'});
+const cat3 = makeCategory({id: 'cat3', name: 'Category 3', hidden: true});
 const group1 = makeCategoryGroup({
   id: 'group1',
   name: 'Group 1',
   categories: [cat1, cat2, cat3],
 });
-const cat4 = makeCategory({ id: 'cat4', name: 'Category 4' });
+const cat4 = makeCategory({id: 'cat4', name: 'Category 4'});
 const group2 = makeCategoryGroup({
   id: 'group2',
   name: 'Group 2',
@@ -87,43 +84,23 @@ describe('CategorySelector', () => {
 
   it('calls setSelectedCategories when a category is selected', async () => {
     const setSelectedCategories = vi.fn();
-    render(
-      <CategorySelector
-        {...defaultProps}
-        setSelectedCategories={setSelectedCategories}
-      />,
-    );
+    render(<CategorySelector {...defaultProps} setSelectedCategories={setSelectedCategories} />);
     await userEvent.click(screen.getByLabelText('Category 1'));
     expect(setSelectedCategories).toHaveBeenCalled();
   });
 
   it('calls setSelectedCategories when a group is selected', async () => {
     const setSelectedCategories = vi.fn();
-    render(
-      <CategorySelector
-        {...defaultProps}
-        setSelectedCategories={setSelectedCategories}
-      />,
-    );
+    render(<CategorySelector {...defaultProps} setSelectedCategories={setSelectedCategories} />);
     await userEvent.click(screen.getByLabelText('Group 1'));
     expect(setSelectedCategories).toHaveBeenCalled();
   });
 
   it('selects all categories when Select All is clicked', async () => {
     const setSelectedCategories = vi.fn();
-    render(
-      <CategorySelector
-        {...defaultProps}
-        setSelectedCategories={setSelectedCategories}
-      />,
-    );
-    await userEvent.click(screen.getByRole('button', { name: 'Select All' }));
-    expect(setSelectedCategories).toHaveBeenCalledWith([
-      cat1,
-      cat2,
-      cat3,
-      cat4,
-    ]);
+    render(<CategorySelector {...defaultProps} setSelectedCategories={setSelectedCategories} />);
+    await userEvent.click(screen.getByRole('button', {name: 'Select All'}));
+    expect(setSelectedCategories).toHaveBeenCalledWith([cat1, cat2, cat3, cat4]);
   });
 
   it('unselects all categories when Unselect All is clicked', async () => {
@@ -135,7 +112,7 @@ describe('CategorySelector', () => {
         setSelectedCategories={setSelectedCategories}
       />,
     );
-    await userEvent.click(screen.getByRole('button', { name: 'Unselect All' }));
+    await userEvent.click(screen.getByRole('button', {name: 'Unselect All'}));
     expect(setSelectedCategories).toHaveBeenCalledWith([]);
   });
 });

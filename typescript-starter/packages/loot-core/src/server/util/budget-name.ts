@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 import * as fs from '#platform/server/fs';
-import { handlers } from '#server/main';
+import {handlers} from '#server/main';
 
-export async function uniqueBudgetName(
-  initialName: string = 'My Finances',
-): Promise<string> {
+export async function uniqueBudgetName(initialName: string = 'My Finances'): Promise<string> {
   const budgets = await handlers['get-budgets']();
   let idx = 1;
 
@@ -38,7 +36,7 @@ export async function uniqueBudgetName(
 
 export async function validateBudgetName(
   name: string,
-): Promise<{ valid: boolean; message?: string }> {
+): Promise<{valid: boolean; message?: string}> {
   const trimmedName = name.trim();
   const uniqueName = await uniqueBudgetName(trimmedName);
   let message: string | null = null;
@@ -51,7 +49,7 @@ export async function validateBudgetName(
     message = `"${name}" already exists, try "${uniqueName}" instead`;
   }
 
-  return message ? { valid: false, message } : { valid: true };
+  return message ? {valid: false, message} : {valid: true};
 }
 
 export async function idFromBudgetName(name: string): Promise<string> {

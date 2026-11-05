@@ -14,38 +14,35 @@
  * limitations under the License.
  */
 
-import type { CSSProperties, ReactNode } from 'react';
-import { Trans } from 'react-i18next';
+import type {CSSProperties, ReactNode} from 'react';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgDelete } from '@actual-app/components/icons/v0';
-import { SvgInformationCircle } from '@actual-app/components/icons/v2';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import type {
-  CategoryGroupEntity,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
-import type { CleanupTemplate } from '@actual-app/core/types/models/cleanup-templates';
-import { css } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {SvgDelete} from '@actual-app/components/icons/v0';
+import {SvgInformationCircle} from '@actual-app/components/icons/v2';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import type {CategoryGroupEntity, ScheduleEntity} from '@actual-app/core/types/models';
+import type {CleanupTemplate} from '@actual-app/core/types/models/cleanup-templates';
+import {css} from '@emotion/css';
 
-import type { AutomationEntry } from '#components/budget/goals/automationExamples';
-import { isCleanupConfigured } from '#components/budget/goals/cleanupModel';
-import { CleanupAutomation } from '#components/budget/goals/editor/CleanupAutomation';
-import { formatMonthLabel } from '#components/budget/goals/formatMonthLabel';
-import { Link } from '#components/common/Link';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
+import type {AutomationEntry} from '#components/budget/goals/automationExamples';
+import {isCleanupConfigured} from '#components/budget/goals/cleanupModel';
+import {CleanupAutomation} from '#components/budget/goals/editor/CleanupAutomation';
+import {formatMonthLabel} from '#components/budget/goals/formatMonthLabel';
+import {Link} from '#components/common/Link';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
 
-import { AutomationEditorPane } from './AutomationEditorPane';
-import { AutomationListRow } from './AutomationListRow';
-import { BudgetAutomationMigrationWarning } from './BudgetAutomationMigrationWarning';
-import { CleanupListRow } from './CleanupListRow';
-import { ConflictBanner } from './ConflictBanner';
-import { EmptyState } from './EmptyState';
-import { useBudgetAutomationsEditor } from './useBudgetAutomationsEditor';
+import {AutomationEditorPane} from './AutomationEditorPane';
+import {AutomationListRow} from './AutomationListRow';
+import {BudgetAutomationMigrationWarning} from './BudgetAutomationMigrationWarning';
+import {CleanupListRow} from './CleanupListRow';
+import {ConflictBanner} from './ConflictBanner';
+import {EmptyState} from './EmptyState';
+import {useBudgetAutomationsEditor} from './useBudgetAutomationsEditor';
 
 const RULE_LIST_WIDTH = 310;
 
@@ -65,13 +62,7 @@ const ALWAYS_SCROLL_CLASS = css({
   },
 });
 
-function SidebarSectionHeader({
-  children,
-  style,
-}: {
-  children: ReactNode;
-  style?: CSSProperties;
-}) {
+function SidebarSectionHeader({children, style}: {children: ReactNode; style?: CSSProperties}) {
   return (
     <View
       style={{
@@ -93,13 +84,7 @@ function SidebarSectionHeader({
   );
 }
 
-function SidebarAddButton({
-  onPress,
-  children,
-}: {
-  onPress: () => void;
-  children: ReactNode;
-}) {
+function SidebarAddButton({onPress, children}: {onPress: () => void; children: ReactNode}) {
   return (
     <Button
       variant="bare"
@@ -186,10 +171,10 @@ export function BudgetAutomationsBody({
     onClose,
   });
 
-  const setActiveIdx = (idx: number) => setActive({ kind: 'entry', idx });
+  const setActiveIdx = (idx: number) => setActive({kind: 'entry', idx});
 
   return (
-    <View style={{ flex: 1, flexDirection: 'column', minHeight: 0 }}>
+    <View style={{flex: 1, flexDirection: 'column', minHeight: 0}}>
       <View
         style={{
           padding: '20px 24px 16px',
@@ -200,8 +185,8 @@ export function BudgetAutomationsBody({
           gap: 16,
         }}
       >
-        <View style={{ minWidth: 0 }}>
-          <Text style={{ fontSize: 12, color: theme.pageTextLight }}>
+        <View style={{minWidth: 0}}>
+          <Text style={{fontSize: 12, color: theme.pageTextLight}}>
             <Trans>Budget automation</Trans>
           </Text>
           <Text
@@ -215,7 +200,7 @@ export function BudgetAutomationsBody({
             {categoryName}
           </Text>
         </View>
-        <View style={{ textAlign: 'right', flexShrink: 0, minWidth: 220 }}>
+        <View style={{textAlign: 'right', flexShrink: 0, minWidth: 220}}>
           <View
             style={{
               flexDirection: 'row',
@@ -232,18 +217,15 @@ export function BudgetAutomationsBody({
                 letterSpacing: '0.04em',
               }}
             >
-              <Trans>
-                Projected for {{ month: formatMonthLabel(month, locale) }}
-              </Trans>
+              <Trans>Projected for {{month: formatMonthLabel(month, locale)}}</Trans>
             </Text>
             <Tooltip
               content={
-                <View style={{ maxWidth: 260 }}>
+                <View style={{maxWidth: 260}}>
                   <Trans>
-                    The projection shows the most that these automations could
-                    budget on their own. The actual amount may be smaller when
-                    To Budget is empty or when higher-priority categories run
-                    first.
+                    The projection shows the most that these automations could budget on their own.
+                    The actual amount may be smaller when To Budget is empty or when higher-priority
+                    categories run first.
                   </Trans>
                 </View>
               }
@@ -252,7 +234,7 @@ export function BudgetAutomationsBody({
               <SvgInformationCircle
                 width={12}
                 height={12}
-                style={{ color: theme.pageTextLight, cursor: 'help' }}
+                style={{color: theme.pageTextLight, cursor: 'help'}}
               />
             </Tooltip>
           </View>
@@ -274,7 +256,7 @@ export function BudgetAutomationsBody({
       {needsMigration && (
         <BudgetAutomationMigrationWarning
           categoryId={categoryId}
-          style={{ flexShrink: 0, margin: '12px 24px 0' }}
+          style={{flexShrink: 0, margin: '12px 24px 0'}}
         />
       )}
 
@@ -302,7 +284,7 @@ export function BudgetAutomationsBody({
           <SidebarSectionHeader>
             <Trans>Automations</Trans>
           </SidebarSectionHeader>
-          {contributionEntries.map(({ entry, idx }) => (
+          {contributionEntries.map(({entry, idx}) => (
             <AutomationListRow
               key={entry.id}
               index={idx}
@@ -318,10 +300,10 @@ export function BudgetAutomationsBody({
             + <Trans>Add an automation</Trans>
           </SidebarAddButton>
 
-          <SidebarSectionHeader style={{ marginTop: 16 }}>
+          <SidebarSectionHeader style={{marginTop: 16}}>
             <Trans>Options</Trans>
           </SidebarSectionHeader>
-          {optionEntries.map(({ entry, idx }) => (
+          {optionEntries.map(({entry, idx}) => (
             <AutomationListRow
               key={entry.id}
               index={idx}
@@ -348,7 +330,7 @@ export function BudgetAutomationsBody({
               config={cleanup}
               groups={cleanupGroups}
               isActive={cleanupActive}
-              onSelect={() => setActive({ kind: 'cleanup' })}
+              onSelect={() => setActive({kind: 'cleanup'})}
             />
           ) : (
             <SidebarAddButton onPress={onAddCleanup}>
@@ -357,7 +339,7 @@ export function BudgetAutomationsBody({
           )}
         </View>
 
-        <View style={{ flex: 1, minWidth: 0, minHeight: 0 }}>
+        <View style={{flex: 1, minWidth: 0, minHeight: 0}}>
           {cleanupActive ? (
             <View
               style={{
@@ -375,15 +357,9 @@ export function BudgetAutomationsBody({
                 onChange={setCleanup}
                 onCreateGroup={createCleanupGroup}
               />
-              <View
-                style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}
-              >
-                <View style={{ flex: 1 }} />
-                <Button
-                  variant="bare"
-                  onPress={onDeleteCleanup}
-                  style={{ color: theme.errorText }}
-                >
+              <View style={{flexDirection: 'row', gap: 12, alignItems: 'center'}}>
+                <View style={{flex: 1}} />
+                <Button variant="bare" onPress={onDeleteCleanup} style={{color: theme.errorText}}>
                   <span
                     style={{
                       display: 'inline-flex',
@@ -391,11 +367,7 @@ export function BudgetAutomationsBody({
                       gap: 6,
                     }}
                   >
-                    <SvgDelete
-                      width={10}
-                      height={10}
-                      style={{ color: 'inherit' }}
-                    />
+                    <SvgDelete width={10} height={10} style={{color: 'inherit'}} />
                     <Trans>Remove cleanup</Trans>
                   </span>
                 </Button>
@@ -435,7 +407,7 @@ export function BudgetAutomationsBody({
             <Trans>Un-migrate to text notes</Trans>
           </Link>
         )}
-        <View style={{ flex: 1 }} />
+        <View style={{flex: 1}} />
         <Button onPress={onClose}>
           <Trans>Cancel</Trans>
         </Button>

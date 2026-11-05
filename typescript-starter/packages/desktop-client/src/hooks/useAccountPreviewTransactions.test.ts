@@ -20,12 +20,9 @@ import type {
   ScheduleEntity,
   TransactionEntity,
 } from '@actual-app/core/types/models';
-import { describe, expect, test } from 'vitest';
+import {describe, expect, test} from 'vitest';
 
-import {
-  inverseBasedOnAccount,
-  isScheduleRelevantToAccount,
-} from './useAccountPreviewTransactions';
+import {inverseBasedOnAccount, isScheduleRelevantToAccount} from './useAccountPreviewTransactions';
 
 function makeAccount(id: string): AccountEntity {
   return {
@@ -57,10 +54,10 @@ const savings = makeAccount('savings');
 const unrelated = makeAccount('unrelated');
 
 const payees: PayeeEntity[] = [
-  { id: 'employer', name: 'Employer' },
-  { id: 'insurance', name: 'Insurance' },
-  { id: 'to-checking', name: 'Transfer: checking', transfer_acct: checking.id },
-  { id: 'to-savings', name: 'Transfer: savings', transfer_acct: savings.id },
+  {id: 'employer', name: 'Employer'},
+  {id: 'insurance', name: 'Insurance'},
+  {id: 'to-checking', name: 'Transfer: checking', transfer_acct: checking.id},
+  {id: 'to-savings', name: 'Transfer: savings', transfer_acct: savings.id},
 ];
 
 function getPayeeByTransferAccount(accountId?: string | null) {
@@ -68,14 +65,8 @@ function getPayeeByTransferAccount(accountId?: string | null) {
 }
 
 function getTransferAccountByPayee(payeeId?: string | null) {
-  const transferAccountId = payees.find(
-    payee => payee.id === payeeId,
-  )?.transfer_acct;
-  return (
-    [checking, savings, unrelated].find(
-      account => account.id === transferAccountId,
-    ) || null
-  );
+  const transferAccountId = payees.find(payee => payee.id === payeeId)?.transfer_acct;
+  return [checking, savings, unrelated].find(account => account.id === transferAccountId) || null;
 }
 
 function makeSplitSchedule(): ScheduleEntity {
@@ -97,7 +88,7 @@ function makeSplitSchedule(): ScheduleEntity {
         op: 'set',
         field: 'description',
         value: 'to-savings',
-        options: { splitIndex: 2 },
+        options: {splitIndex: 2},
       },
     ],
   };
@@ -183,9 +174,7 @@ describe('inverseBasedOnAccount', () => {
     ]);
     expect(result.transactions[0]).not.toHaveProperty('is_child');
     expect(result.transactions[0]).not.toHaveProperty('parent_id');
-    expect(result.runningBalances.get('preview/savings-transfer')).toBe(
-      540_000,
-    );
+    expect(result.runningBalances.get('preview/savings-transfer')).toBe(540_000);
   });
 
   test('preserves the complete split in its source account', () => {

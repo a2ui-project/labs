@@ -15,18 +15,15 @@
  */
 
 import React from 'react';
-import type { CSSProperties, RefObject, UIEventHandler } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {CSSProperties, RefObject, UIEventHandler} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type {
-  balanceTypeOpType,
-  IntervalEntity,
-} from '@actual-app/core/types/models';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {balanceTypeOpType, IntervalEntity} from '@actual-app/core/types/models';
 
-import { ReportOptions } from '#components/reports/ReportOptions';
-import { Cell, Row } from '#components/table';
+import {ReportOptions} from '#components/reports/ReportOptions';
+import {Cell, Row} from '#components/table';
 
 type ReportTableHeaderProps = {
   groupBy: string;
@@ -53,7 +50,7 @@ export function ReportTableHeader({
   compactStyle,
   mode,
 }: ReportTableHeaderProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   return (
     <Row
       collapsed
@@ -74,7 +71,7 @@ export function ReportTableHeader({
         style={{
           overflowX: 'auto',
           scrollbarWidth: 'none',
-          '::-webkit-scrollbar': { display: 'none' },
+          '::-webkit-scrollbar': {display: 'none'},
           flexDirection: 'row',
           flex: 1,
         }}
@@ -86,11 +83,7 @@ export function ReportTableHeader({
             flexGrow: 1,
           }}
           valueStyle={compactStyle}
-          value={
-            groupBy === 'Interval'
-              ? ReportOptions.intervalMap.get(interval)
-              : groupBy
-          }
+          value={groupBy === 'Interval' ? ReportOptions.intervalMap.get(interval) : groupBy}
         />
         {mode === 'time'
           ? data.map((header, index) => {

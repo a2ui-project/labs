@@ -15,11 +15,8 @@
  */
 
 import SandboxfinanceSfin0000 from '#app-gocardless/banks/sandboxfinance_sfin0000';
-import type {
-  Balance,
-  Transaction,
-} from '#app-gocardless/gocardless-node.types';
-import type { DetailedAccountWithInstitution } from '#app-gocardless/gocardless.types';
+import type {Balance, Transaction} from '#app-gocardless/gocardless-node.types';
+import type {DetailedAccountWithInstitution} from '#app-gocardless/gocardless.types';
 
 describe('SandboxfinanceSfin0000', () => {
   describe('#normalizeAccount', () => {
@@ -51,8 +48,7 @@ describe('SandboxfinanceSfin0000', () => {
     } as unknown as DetailedAccountWithInstitution;
 
     it('returns normalized account data returned to Frontend', () => {
-      expect(SandboxfinanceSfin0000.normalizeAccount(accountRaw))
-        .toMatchInlineSnapshot(`
+      expect(SandboxfinanceSfin0000.normalizeAccount(accountRaw)).toMatchInlineSnapshot(`
         {
           "account_id": "99a0bfe2-0bef-46df-bff2-e9ae0c6c5838",
           "iban": "GL0865354374424724",
@@ -81,14 +77,12 @@ describe('SandboxfinanceSfin0000', () => {
   describe('#sortTransactions', () => {
     it('handles empty arrays', () => {
       const transactions: Transaction[] = [];
-      const sortedTransactions =
-        SandboxfinanceSfin0000.sortTransactions(transactions);
+      const sortedTransactions = SandboxfinanceSfin0000.sortTransactions(transactions);
       expect(sortedTransactions).toEqual([]);
     });
 
     it('returns empty array for undefined input', () => {
-      const sortedTransactions =
-        SandboxfinanceSfin0000.sortTransactions(undefined);
+      const sortedTransactions = SandboxfinanceSfin0000.sortTransactions(undefined);
       expect(sortedTransactions).toEqual([]);
     });
   });
@@ -96,7 +90,7 @@ describe('SandboxfinanceSfin0000', () => {
   describe('#countStartingBalance', () => {
     const balances: Balance[] = [
       {
-        balanceAmount: { amount: '1000.00', currency: 'PLN' },
+        balanceAmount: {amount: '1000.00', currency: 'PLN'},
         balanceType: 'interimAvailable',
       },
     ];
@@ -105,15 +99,15 @@ describe('SandboxfinanceSfin0000', () => {
       const sortedTransactions = [
         {
           transactionId: '2022-01-01-1',
-          transactionAmount: { amount: '-100.00', currency: 'USD' },
+          transactionAmount: {amount: '-100.00', currency: 'USD'},
         },
         {
           transactionId: '2022-01-01-2',
-          transactionAmount: { amount: '50.00', currency: 'USD' },
+          transactionAmount: {amount: '50.00', currency: 'USD'},
         },
         {
           transactionId: '2022-01-01-3',
-          transactionAmount: { amount: '-25.00', currency: 'USD' },
+          transactionAmount: {amount: '-25.00', currency: 'USD'},
         },
       ];
 
@@ -128,24 +122,24 @@ describe('SandboxfinanceSfin0000', () => {
     it('returns the same balance amount when no transactions', () => {
       const transactions: Transaction[] = [];
 
-      expect(
-        SandboxfinanceSfin0000.calculateStartingBalance(transactions, balances),
-      ).toEqual(100000);
+      expect(SandboxfinanceSfin0000.calculateStartingBalance(transactions, balances)).toEqual(
+        100000,
+      );
     });
 
     it('returns the balance minus the available transactions', () => {
       const transactions: Transaction[] = [
         {
-          transactionAmount: { amount: '200.00', currency: 'PLN' },
+          transactionAmount: {amount: '200.00', currency: 'PLN'},
         },
         {
-          transactionAmount: { amount: '300.50', currency: 'PLN' },
+          transactionAmount: {amount: '300.50', currency: 'PLN'},
         },
       ];
 
-      expect(
-        SandboxfinanceSfin0000.calculateStartingBalance(transactions, balances),
-      ).toEqual(49950);
+      expect(SandboxfinanceSfin0000.calculateStartingBalance(transactions, balances)).toEqual(
+        49950,
+      );
     });
   });
 });

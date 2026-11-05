@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-import { useEffect, useEffectEvent, useState } from 'react';
+import {useEffect, useEffectEvent, useState} from 'react';
 
-import { listen } from '@actual-app/core/platform/client/connection';
-import type { Query } from '@actual-app/core/shared/query';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
-import type { TransactionEntity } from '@actual-app/core/types/models';
-import type { ServerEvents } from '@actual-app/core/types/server-events';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import type {
-  InfiniteData,
-  UseInfiniteQueryResult,
-} from '@tanstack/react-query';
+import {listen} from '@actual-app/core/platform/client/connection';
+import type {Query} from '@actual-app/core/shared/query';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
+import type {TransactionEntity} from '@actual-app/core/types/models';
+import type {ServerEvents} from '@actual-app/core/types/server-events';
+import {useInfiniteQuery} from '@tanstack/react-query';
+import type {InfiniteData, UseInfiniteQueryResult} from '@tanstack/react-query';
 
-import { transactionQueries } from '#transactions';
+import {transactionQueries} from '#transactions';
 
 // Mirrors the `splits` AQL option from the server
 type TransactionSplitsOption = 'all' | 'inline' | 'grouped' | 'none';
@@ -88,10 +85,7 @@ type UseTransactionsProps = {
   };
 };
 
-type UseTransactionsResult = UseInfiniteQueryResult<
-  InfiniteData<TransactionEntity[]>,
-  Error
-> & {
+type UseTransactionsResult = UseInfiniteQueryResult<InfiniteData<TransactionEntity[]>, Error> & {
   /**
    * The transactions returned by the query.
    */
@@ -104,10 +98,7 @@ type UseTransactionsResult = UseInfiniteQueryResult<
   runningBalances: Map<TransactionEntity['id'], IntegerAmount>;
 };
 
-export function useTransactions({
-  query,
-  options,
-}: UseTransactionsProps): UseTransactionsResult {
+export function useTransactions({query, options}: UseTransactionsProps): UseTransactionsResult {
   const {
     pageSize = 50,
     calculateRunningBalances = false,
@@ -119,9 +110,7 @@ export function useTransactions({
     Map<TransactionEntity['id'], IntegerAmount>
   >(new Map());
 
-  const queryResult = useInfiniteQuery(
-    transactionQueries.aql({ query, pageSize }),
-  );
+  const queryResult = useInfiniteQuery(transactionQueries.aql({query, pageSize}));
 
   const onSyncEvent = useEffectEvent((event: ServerEvents['sync-event']) => {
     if (event.type === 'applied') {
@@ -143,11 +132,8 @@ export function useTransactions({
     return listen('sync-event', onSyncEvent);
   }, [refetchOnSync]);
 
-  const calculateRunningBalancesOptionFn = getCalculateRunningBalancesFn(
-    calculateRunningBalances,
-  );
-  const splitsOption = query?.state.tableOptions
-    ?.splits as TransactionSplitsOption;
+  const calculateRunningBalancesOptionFn = getCalculateRunningBalancesFn(calculateRunningBalances);
+  const splitsOption = query?.state.tableOptions?.splits as TransactionSplitsOption;
 
   // Recalculate running balances whenever the transactions change or the
   // calculation options change (for example, when toggling show/hide
@@ -159,11 +145,7 @@ export function useTransactions({
       if (queryResult.isSuccess) {
         const transactions = flattenPages(queryResult.data);
         setRunningBalances(
-          calculateRunningBalancesOptionFn(
-            transactions,
-            splitsOption,
-            startingBalance,
-          ),
+          calculateRunningBalancesOptionFn(transactions, splitsOption, startingBalance),
         );
       }
     } else {
@@ -224,8 +206,7 @@ export function calculateRunningBalancesBottomUp(
         }
         const previousTransaction = arr[previousTransactionIndex];
         const previousRunningBalance = acc.get(previousTransaction.id) ?? 0;
-        const currentRunningBalance =
-          previousRunningBalance + transaction.amount;
+        const currentRunningBalance = previousRunningBalance + transaction.amount;
         acc.set(transaction.id, currentRunningBalance);
         return acc;
       }, new Map<TransactionEntity['id'], IntegerAmount>())
@@ -274,8 +255,6 @@ export function calculateRunningBalancesTopDown(
     }, new Map<TransactionEntity['id'], IntegerAmount>());
 }
 
-function flattenPages(
-  data?: InfiniteData<TransactionEntity[]>,
-): TransactionEntity[] {
+function flattenPages(data?: InfiniteData<TransactionEntity[]>): TransactionEntity[] {
   return data ? data.pages.flat() : [];
 }

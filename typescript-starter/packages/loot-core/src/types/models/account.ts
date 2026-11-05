@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import type { AccountGroupEntity } from './account-group';
-import type { BankSyncProviders } from './bank-sync';
+import type {AccountGroupEntity} from './account-group';
+import type {BankSyncProviders} from './bank-sync';
 
 export type AccountEntity = {
   id: string;

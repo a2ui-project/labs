@@ -14,47 +14,38 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useState} from 'react';
+import type {CSSProperties, ReactNode} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgDelete } from '@actual-app/components/icons/v0';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type {
-  CategoryGroupEntity,
-  ScheduleEntity,
-} from '@actual-app/core/types/models';
-import type { CleanupTemplate } from '@actual-app/core/types/models/cleanup-templates';
+import {Button} from '@actual-app/components/button';
+import {SvgDelete} from '@actual-app/components/icons/v0';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {CategoryGroupEntity, ScheduleEntity} from '@actual-app/core/types/models';
+import type {CleanupTemplate} from '@actual-app/core/types/models/cleanup-templates';
 
-import type { AutomationEntry } from '#components/budget/goals/automationExamples';
-import { isCleanupConfigured } from '#components/budget/goals/cleanupModel';
-import { getDisplayTemplateMeta } from '#components/budget/goals/displayTemplateMeta';
-import { CleanupAutomation } from '#components/budget/goals/editor/CleanupAutomation';
-import { formatMonthLabel } from '#components/budget/goals/formatMonthLabel';
-import { Link } from '#components/common/Link';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
+import type {AutomationEntry} from '#components/budget/goals/automationExamples';
+import {isCleanupConfigured} from '#components/budget/goals/cleanupModel';
+import {getDisplayTemplateMeta} from '#components/budget/goals/displayTemplateMeta';
+import {CleanupAutomation} from '#components/budget/goals/editor/CleanupAutomation';
+import {formatMonthLabel} from '#components/budget/goals/formatMonthLabel';
+import {Link} from '#components/common/Link';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
 
-import { AutomationEditorPane } from './AutomationEditorPane';
-import { AutomationListRow } from './AutomationListRow';
-import { BudgetAutomationMigrationWarning } from './BudgetAutomationMigrationWarning';
-import { CleanupListRow } from './CleanupListRow';
-import { ConflictBanner } from './ConflictBanner';
-import { useBudgetAutomationsEditor } from './useBudgetAutomationsEditor';
-import type { ActiveSelection } from './useBudgetAutomationsEditor';
+import {AutomationEditorPane} from './AutomationEditorPane';
+import {AutomationListRow} from './AutomationListRow';
+import {BudgetAutomationMigrationWarning} from './BudgetAutomationMigrationWarning';
+import {CleanupListRow} from './CleanupListRow';
+import {ConflictBanner} from './ConflictBanner';
+import {useBudgetAutomationsEditor} from './useBudgetAutomationsEditor';
+import type {ActiveSelection} from './useBudgetAutomationsEditor';
 
-function SectionHeader({
-  children,
-  style,
-}: {
-  children: ReactNode;
-  style?: CSSProperties;
-}) {
+function SectionHeader({children, style}: {children: ReactNode; style?: CSSProperties}) {
   return (
     <Text
       style={{
@@ -73,13 +64,7 @@ function SectionHeader({
   );
 }
 
-function AddButton({
-  onPress,
-  children,
-}: {
-  onPress: () => void;
-  children: ReactNode;
-}) {
+function AddButton({onPress, children}: {onPress: () => void; children: ReactNode}) {
   return (
     <Button
       variant="bare"
@@ -123,7 +108,7 @@ export function BudgetAutomationsBodyMobile({
   month,
   onClose,
 }: BudgetAutomationsBodyMobileProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
   const locale = useLocale();
 
@@ -175,7 +160,7 @@ export function BudgetAutomationsBodyMobile({
 
   const editing = screen === 'editor' && (cleanupActive || safeActiveIdx >= 0);
 
-  const select = (idx: number) => goToEditor({ kind: 'entry', idx });
+  const select = (idx: number) => goToEditor({kind: 'entry', idx});
   const addAutomation = () => {
     onAddAutomation();
     setScreen('editor');
@@ -192,7 +177,7 @@ export function BudgetAutomationsBodyMobile({
     onAddCleanup();
     setScreen('editor');
   };
-  const selectCleanup = () => goToEditor({ kind: 'cleanup' });
+  const selectCleanup = () => goToEditor({kind: 'cleanup'});
   const deleteEntry = (idx: number) => {
     onDelete(idx);
     backToList();
@@ -221,7 +206,7 @@ export function BudgetAutomationsBodyMobile({
         : '';
 
     return (
-      <View style={{ flex: 1, flexDirection: 'column', minHeight: 0 }}>
+      <View style={{flex: 1, flexDirection: 'column', minHeight: 0}}>
         <View
           style={{
             flexShrink: 0,
@@ -230,7 +215,7 @@ export function BudgetAutomationsBodyMobile({
             borderBottom: `1px solid ${theme.tableBorder}`,
           }}
         >
-          <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-start' }}>
+          <View style={{flex: 1, minWidth: 0, alignItems: 'flex-start'}}>
             <MobileBackButton onPress={backToList} />
           </View>
           <Text
@@ -243,7 +228,7 @@ export function BudgetAutomationsBodyMobile({
           >
             {title}
           </Text>
-          <View style={{ flex: 1, minWidth: 0 }} />
+          <View style={{flex: 1, minWidth: 0}} />
         </View>
 
         {cleanupActive ? (
@@ -265,16 +250,10 @@ export function BudgetAutomationsBodyMobile({
             <Button
               variant="bare"
               onPress={deleteCleanup}
-              style={{ color: theme.errorText, alignSelf: 'flex-start' }}
+              style={{color: theme.errorText, alignSelf: 'flex-start'}}
             >
-              <span
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
-              >
-                <SvgDelete
-                  width={10}
-                  height={10}
-                  style={{ color: 'inherit' }}
-                />
+              <span style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
+                <SvgDelete width={10} height={10} style={{color: 'inherit'}} />
                 <Trans>Remove cleanup</Trans>
               </span>
             </Button>
@@ -297,7 +276,7 @@ export function BudgetAutomationsBodyMobile({
   }
 
   return (
-    <View style={{ flex: 1, flexDirection: 'column', minHeight: 0 }}>
+    <View style={{flex: 1, flexDirection: 'column', minHeight: 0}}>
       <View
         style={{
           flexShrink: 0,
@@ -309,8 +288,8 @@ export function BudgetAutomationsBodyMobile({
           gap: 12,
         }}
       >
-        <View style={{ minWidth: 0 }}>
-          <Text style={{ fontSize: 11, color: theme.pageTextLight }}>
+        <View style={{minWidth: 0}}>
+          <Text style={{fontSize: 11, color: theme.pageTextLight}}>
             <Trans>Budget automation</Trans>
           </Text>
           <Text
@@ -324,7 +303,7 @@ export function BudgetAutomationsBodyMobile({
             {categoryName}
           </Text>
         </View>
-        <View style={{ textAlign: 'right', flexShrink: 0 }}>
+        <View style={{textAlign: 'right', flexShrink: 0}}>
           <Text
             style={{
               fontSize: 10,
@@ -334,9 +313,7 @@ export function BudgetAutomationsBodyMobile({
               display: 'block',
             }}
           >
-            <Trans>
-              Projected for {{ month: formatMonthLabel(month, locale) }}
-            </Trans>
+            <Trans>Projected for {{month: formatMonthLabel(month, locale)}}</Trans>
           </Text>
           <Text
             style={{
@@ -355,7 +332,7 @@ export function BudgetAutomationsBodyMobile({
       {needsMigration && (
         <BudgetAutomationMigrationWarning
           categoryId={categoryId}
-          style={{ flexShrink: 0, margin: '12px 16px 0' }}
+          style={{flexShrink: 0, margin: '12px 16px 0'}}
         />
       )}
 
@@ -375,7 +352,7 @@ export function BudgetAutomationsBodyMobile({
         <SectionHeader>
           <Trans>Automations</Trans>
         </SectionHeader>
-        {contributionEntries.map(({ entry, idx }) => (
+        {contributionEntries.map(({entry, idx}) => (
           <AutomationListRow
             key={entry.id}
             index={idx}
@@ -391,10 +368,10 @@ export function BudgetAutomationsBodyMobile({
           + <Trans>Add an automation</Trans>
         </AddButton>
 
-        <SectionHeader style={{ marginTop: 12 }}>
+        <SectionHeader style={{marginTop: 12}}>
           <Trans>Options</Trans>
         </SectionHeader>
-        {optionEntries.map(({ entry, idx }) => (
+        {optionEntries.map(({entry, idx}) => (
           <AutomationListRow
             key={entry.id}
             index={idx}
@@ -446,7 +423,7 @@ export function BudgetAutomationsBodyMobile({
             <Trans>Un-migrate to text notes</Trans>
           </Link>
         )}
-        <View style={{ flex: 1 }} />
+        <View style={{flex: 1}} />
         <Button onPress={onClose}>
           <Trans>Cancel</Trans>
         </Button>

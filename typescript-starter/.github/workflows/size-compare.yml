@@ -30,14 +30,14 @@ on:
   # treated as data (JSON stats) and never executed.
   pull_request_target: # zizmor: ignore[dangerous-triggers]
     paths:
-      - 'packages/**'
-      - 'package.json'
-      - 'yarn.lock'
-      - '.github/workflows/size-compare.yml'
-      - '!packages/sync-server/**' # Sync server changes don't affect the size of the web/api
-      - '!packages/ci-actions/**' # CI actions changes don't affect the size of the web/api
-      - '!packages/docs/**' # Docs changes don't affect the size of the web/api
-      - '!packages/eslint-plugin-actual/**' # Eslint plugin changes don't affect the size of the web/api
+      - "packages/**"
+      - "package.json"
+      - "yarn.lock"
+      - ".github/workflows/size-compare.yml"
+      - "!packages/sync-server/**" # Sync server changes don't affect the size of the web/api
+      - "!packages/ci-actions/**" # CI actions changes don't affect the size of the web/api
+      - "!packages/docs/**" # Docs changes don't affect the size of the web/api
+      - "!packages/eslint-plugin-actual/**" # Eslint plugin changes don't affect the size of the web/api
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -61,7 +61,7 @@ jobs:
       - name: Set up environment
         uses: ./.github/actions/setup
         with:
-          download-translations: 'false'
+          download-translations: "false"
 
       # Resolve one successful `build.yml` run for each exact commit (base and
       # PR head) up front, then pin every download below to its `run_id`.

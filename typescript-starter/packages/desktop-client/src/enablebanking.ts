@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-import { sendCatch } from '@actual-app/core/platform/client/connection';
-import type {
-  AccountEntity,
-  SyncServerEnableBankingAccount,
-} from '@actual-app/core/types/models';
-import { t } from 'i18next';
+import {sendCatch} from '@actual-app/core/platform/client/connection';
+import type {AccountEntity, SyncServerEnableBankingAccount} from '@actual-app/core/types/models';
+import {t} from 'i18next';
 
-import { pushModal } from '#modals/modalsSlice';
-import type { AppDispatch } from '#redux/store';
+import {pushModal} from '#modals/modalsSlice';
+import type {AppDispatch} from '#redux/store';
 
 function _authorize(
   dispatch: AppDispatch,
@@ -30,9 +27,7 @@ function _authorize(
     onSuccess,
     onClose,
   }: {
-    onSuccess: (data: {
-      accounts: SyncServerEnableBankingAccount[];
-    }) => Promise<void>;
+    onSuccess: (data: {accounts: SyncServerEnableBankingAccount[]}) => Promise<void>;
     onClose?: () => void;
   },
 ) {
@@ -85,11 +80,7 @@ function _authorize(
 
             localStorage.setItem('enablebanking_auth_state', state);
             onStateReady?.(state);
-            window.open(
-              authUrl,
-              'enablebanking-auth',
-              'width=600,height=700,popup=yes',
-            );
+            window.open(authUrl, 'enablebanking-auth', 'width=600,height=700,popup=yes');
 
             try {
               const pollResp = await sendCatch('enablebanking-poll-auth', {
@@ -98,7 +89,7 @@ function _authorize(
 
               if (pollResp.error) {
                 if (pollResp.error.message === 'timeout') {
-                  return { error: 'timeout' as const };
+                  return {error: 'timeout' as const};
                 }
 
                 return {
@@ -115,17 +106,14 @@ function _authorize(
               if (pollError) {
                 return {
                   error: 'unknown' as const,
-                  message:
-                    typeof pollError === 'string'
-                      ? pollError
-                      : String(pollError),
+                  message: typeof pollError === 'string' ? pollError : String(pollError),
                 };
               }
 
               const accounts: SyncServerEnableBankingAccount[] =
                 pollData?.data?.accounts ?? pollData?.accounts ?? [];
 
-              return { data: { accounts } };
+              return {data: {accounts}};
             } finally {
               // Only clear if this attempt's state is still the one stored;
               // a concurrent retry may have overwritten it with a newer one.

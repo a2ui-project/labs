@@ -15,7 +15,7 @@
  */
 
 import dns from 'dns';
-import { promisify } from 'util';
+import {promisify} from 'util';
 
 import ipaddr from 'ipaddr.js';
 
@@ -27,12 +27,7 @@ const dnsLookup = promisify(dns.lookup);
 // (169.254.169.254) — the credential-theft vector this protection primarily
 // guards against — and no real service is hosted on the reserved, broadcast or
 // unspecified ranges.
-const ALWAYS_BLOCKED_IP_RANGES = [
-  'linkLocal',
-  'unspecified',
-  'reserved',
-  'broadcast',
-];
+const ALWAYS_BLOCKED_IP_RANGES = ['linkLocal', 'unspecified', 'reserved', 'broadcast'];
 
 // Private-network ranges (LAN, loopback, IPv6 unique-local). These are blocked
 // by default, but self-hosters legitimately run services such as their own
@@ -57,7 +52,7 @@ type SsrfOptions = {
  */
 export function isBlockedIp(
   address: string,
-  { allowPrivateNetwork = false }: SsrfOptions = {},
+  {allowPrivateNetwork = false}: SsrfOptions = {},
 ): boolean {
   if (!ipaddr.isValid(address)) {
     return false;
@@ -113,9 +108,9 @@ export async function assertUrlAllowed(
   }
 
   // Hostname: resolve every address it points to and reject if any is blocked.
-  let addresses: { address: string }[];
+  let addresses: {address: string}[];
   try {
-    addresses = await dnsLookup(hostname, { all: true });
+    addresses = await dnsLookup(hostname, {all: true});
   } catch {
     throw new Error(`Unable to resolve host: ${hostname}`);
   }
@@ -124,7 +119,7 @@ export async function assertUrlAllowed(
     throw new Error(`Unable to resolve host: ${hostname}`);
   }
 
-  for (const { address } of addresses) {
+  for (const {address} of addresses) {
     if (isBlockedIp(address, options)) {
       throw new Error(
         `Blocked request to host resolving to private/local IP: ${hostname} (${address})`,

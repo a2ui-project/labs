@@ -14,49 +14,38 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactElement } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import type {ReactElement} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Block} from '@actual-app/components/block';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { SankeyWidget } from '@actual-app/core/types/models';
+import type {SankeyWidget} from '@actual-app/core/types/models';
 import * as d from 'date-fns';
-import { debounce } from 'es-toolkit/compat';
+import {debounce} from 'es-toolkit/compat';
 
-import { SankeyGraph } from '#components/reports/graphs/SankeyGraph';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
-import {
-  boundMonthRangeFromDates,
-  calculateTimeRange,
-} from '#components/reports/reportRanges';
-import {
-  getDefaultLayerRange,
-  topNNodes,
-} from '#components/reports/reports/Sankey';
+import {SankeyGraph} from '#components/reports/graphs/SankeyGraph';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {boundMonthRangeFromDates, calculateTimeRange} from '#components/reports/reportRanges';
+import {getDefaultLayerRange, topNNodes} from '#components/reports/reports/Sankey';
 import {
   buildSankeyData,
   createBaseGraphSpreadsheet,
   isGraphLayer,
 } from '#components/reports/spreadsheets/sankey-spreadsheet';
-import type {
-  Graph,
-  GraphLayers,
-} from '#components/reports/spreadsheets/sankey-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { useCategories } from '#hooks/useCategories';
-import { useLocale } from '#hooks/useLocale';
-import { useResizeObserver } from '#hooks/useResizeObserver';
+import type {Graph, GraphLayers} from '#components/reports/spreadsheets/sankey-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useCategories} from '#hooks/useCategories';
+import {useLocale} from '#hooks/useLocale';
+import {useResizeObserver} from '#hooks/useResizeObserver';
 
-const defaultGetBaseGraph = async (
-  _spreadsheet: unknown,
-  setData: (data: Graph) => void,
-) => setData(new Map());
+const defaultGetBaseGraph = async (_spreadsheet: unknown, setData: (data: Graph) => void) =>
+  setData(new Map());
 
 type SankeyCardProps = {
   widgetId: string;
@@ -64,38 +53,27 @@ type SankeyCardProps = {
   meta?: SankeyWidget['meta'];
   onMetaChange: (newMeta: SankeyWidget['meta']) => void;
 };
-export function SankeyCard({
-  widgetId,
-  isEditing,
-  meta,
-  onMetaChange,
-}: SankeyCardProps) {
-  const { t } = useTranslation();
+export function SankeyCard({widgetId, isEditing, meta, onMetaChange}: SankeyCardProps) {
+  const {t} = useTranslation();
   const locale = useLocale();
   const [nameMenuOpen, setNameMenuOpen] = useState(false);
   const [earliestTransaction, setEarliestTransaction] = useState('');
   const [latestTransaction, setLatestTransaction] = useState('');
   const [datesInitialized, setDatesInitialized] = useState(false);
-  const { data: { grouped: groupedCategories = [] } = { grouped: [] } } =
-    useCategories();
+  const {data: {grouped: groupedCategories = []} = {grouped: []}} = useCategories();
 
   useEffect(() => {
-    void Promise.all([
-      send('get-earliest-transaction'),
-      send('get-latest-transaction'),
-    ]).then(([earliest, latest]) => {
-      const today = monthUtils.currentDay();
-      setEarliestTransaction(earliest?.date ?? today);
-      setLatestTransaction(latest?.date ?? today);
-      setDatesInitialized(true);
-    });
+    void Promise.all([send('get-earliest-transaction'), send('get-latest-transaction')]).then(
+      ([earliest, latest]) => {
+        const today = monthUtils.currentDay();
+        setEarliestTransaction(earliest?.date ?? today);
+        setLatestTransaction(latest?.date ?? today);
+        setDatesInitialized(true);
+      },
+    );
   }, []);
 
-  const [start, end] = calculateTimeRange(
-    meta?.timeFrame,
-    undefined,
-    latestTransaction,
-  );
+  const [start, end] = calculateTimeRange(meta?.timeFrame, undefined, latestTransaction);
   const mode = meta?.mode ?? 'spent';
 
   const [cardHeight, setCardHeight] = useState(0);
@@ -106,7 +84,7 @@ export function SankeyCard({
           setCardHeight(prev => (prev === height ? prev : height));
         },
         200,
-        { leading: true, trailing: true, maxWait: 100 },
+        {leading: true, trailing: true, maxWait: 100},
       ),
     [],
   );
@@ -197,19 +175,12 @@ export function SankeyCard({
       layerFrom,
       layerTo,
     );
-  }, [
-    displayBaseGraph,
-    topN,
-    groupedCategories,
-    meta?.categorySort,
-    layerFrom,
-    layerTo,
-  ]);
+  }, [displayBaseGraph, topN, groupedCategories, meta?.categorySort, layerFrom, layerTo]);
 
   const startDate = d.parseISO(start);
   const endDate = d.parseISO(end);
-  const formattedStartDate = d.format(startDate, 'MMM yyyy', { locale });
-  const formattedEndDate = d.format(endDate, 'MMM yyyy', { locale });
+  const formattedStartDate = d.format(startDate, 'MMM yyyy', {locale});
+  const formattedEndDate = d.format(endDate, 'MMM yyyy', {locale});
 
   let dateDescription: string | ReactElement;
   if (
@@ -233,9 +204,9 @@ export function SankeyCard({
       to={`/reports/sankey/${widgetId}`}
       onRename={() => setNameMenuOpen(true)}
     >
-      <View style={{ flex: 1 }}>
-        <View style={{ flexDirection: 'row', padding: 20 }}>
-          <View style={{ flex: 1 }}>
+      <View style={{flex: 1}}>
+        <View style={{flexDirection: 'row', padding: 20}}>
+          <View style={{flex: 1}}>
             <ReportCardName
               name={meta?.name || t('Sankey')}
               isEditing={nameMenuOpen}
@@ -248,19 +219,17 @@ export function SankeyCard({
               }}
               onClose={() => setNameMenuOpen(false)}
             />
-            <Block style={{ color: theme.pageTextSubdued }}>
-              {dateDescription}
-            </Block>
+            <Block style={{color: theme.pageTextSubdued}}>{dateDescription}</Block>
           </View>
         </View>
 
         {compactData ? (
-          <View ref={containerRef} style={{ flexGrow: 1 }}>
+          <View ref={containerRef} style={{flexGrow: 1}}>
             <SankeyGraph
               data={compactData}
               showPercentages={meta?.showPercentages}
               showTooltip={!isEditing}
-              style={{ flex: 1 }}
+              style={{flex: 1}}
             />
           </View>
         ) : (

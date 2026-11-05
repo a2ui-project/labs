@@ -14,7 +14,7 @@
 
 name: Feature request
 description: Request a missing feature
-title: '[Feature] '
+title: "[Feature] "
 labels: []
 type: Feature
 body:
@@ -25,21 +25,21 @@ body:
   - type: checkboxes
     id: existing-issue
     attributes:
-      label: 'Verified feature request does not already exist?'
+      label: "Verified feature request does not already exist?"
       description: "Please search to see if an issue or PR already exists for the feature you're requesting."
       options:
-        - label: 'I have searched and found no existing issue'
+        - label: "I have searched and found no existing issue"
           required: true
   - type: checkboxes
     attributes:
-      label: '💻'
+      label: "💻"
       description: (Optional) Please check this box if you're willing to open a PR to implement this feature. We'll help you get started and answer any questions you have along the way :)
       options:
         - label: Would you like to implement this feature?
   - type: textarea
     id: pitch
     attributes:
-      label: 'Pitch: what problem are you trying to solve?'
+      label: "Pitch: what problem are you trying to solve?"
       description: Please describe, in as much detail as you can, the problem that motivated you to submit this feature request.
     validations:
       required: true

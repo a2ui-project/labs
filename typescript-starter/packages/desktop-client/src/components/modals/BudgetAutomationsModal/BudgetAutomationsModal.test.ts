@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { ScheduleEntity } from '@actual-app/core/types/models';
-import type { Template } from '@actual-app/core/types/models/templates';
+import type {ScheduleEntity} from '@actual-app/core/types/models';
+import type {Template} from '@actual-app/core/types/models/templates';
 
-import { migrateTemplatesToAutomations } from './migrateTemplatesToAutomations';
+import {migrateTemplatesToAutomations} from './migrateTemplatesToAutomations';
 
 function schedule(id: string, name: string): ScheduleEntity {
   return {
@@ -66,7 +66,7 @@ describe('migrateTemplatesToAutomations', () => {
     expect(result[0].template).toMatchObject({
       type: 'periodic',
       amount: 0,
-      period: { period: 'month', amount: 1 },
+      period: {period: 'month', amount: 1},
       directive: 'template',
       priority: 5,
     });
@@ -207,7 +207,7 @@ describe('migrateTemplatesToAutomations', () => {
       directive: 'template',
       priority: 2,
       amount: 32.5,
-      period: { period: 'day', amount: 1 },
+      period: {period: 'day', amount: 1},
       starting: '2025-02-01',
       limit: {
         amount: 2500,
@@ -225,7 +225,7 @@ describe('migrateTemplatesToAutomations', () => {
       directive: 'template',
       priority: 2,
       amount: 32.5,
-      period: { period: 'day', amount: 1 },
+      period: {period: 'day', amount: 1},
       starting: '2025-02-01',
     });
     expect(result[1].template).toEqual({
@@ -255,10 +255,7 @@ describe('migrateTemplatesToAutomations', () => {
     const result = migrateTemplatesToAutomations([remainderTemplate]);
 
     expect(result).toHaveLength(2);
-    expect(result.map(entry => entry.displayType)).toEqual([
-      'remainder',
-      'limit',
-    ]);
+    expect(result.map(entry => entry.displayType)).toEqual(['remainder', 'limit']);
     expect(result[0].template).toEqual({
       type: 'remainder',
       directive: 'template',
@@ -279,7 +276,7 @@ describe('migrateTemplatesToAutomations', () => {
       directive: 'template',
       priority: 2,
       amount: 10,
-      period: { period: 'month', amount: 1 },
+      period: {period: 'month', amount: 1},
       starting: '2025-02-01',
     } satisfies Template;
 
@@ -313,10 +310,7 @@ describe('migrateTemplatesToAutomations', () => {
       name: 'Rent',
     } satisfies Template;
 
-    const result = migrateTemplatesToAutomations(
-      [scheduleTemplate],
-      [schedule('sched-1', 'Rent')],
-    );
+    const result = migrateTemplatesToAutomations([scheduleTemplate], [schedule('sched-1', 'Rent')]);
 
     expect(result[0].template).toMatchObject({
       scheduleId: 'sched-1',
@@ -353,10 +347,7 @@ describe('migrateTemplatesToAutomations', () => {
       name: 'Gone',
     } satisfies Template;
 
-    const result = migrateTemplatesToAutomations(
-      [scheduleTemplate],
-      [schedule('sched-1', 'Rent')],
-    );
+    const result = migrateTemplatesToAutomations([scheduleTemplate], [schedule('sched-1', 'Rent')]);
 
     expect(result[0].template).toEqual(scheduleTemplate);
   });

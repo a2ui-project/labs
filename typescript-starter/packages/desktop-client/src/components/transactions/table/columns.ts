@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
 // The set of columns in the transaction table, in their default order.
 export const TRANSACTION_TABLE_COLUMN_IDS = [
@@ -30,8 +30,7 @@ export const TRANSACTION_TABLE_COLUMN_IDS = [
   'cleared',
 ] as const;
 
-export type TransactionTableColumnId =
-  (typeof TRANSACTION_TABLE_COLUMN_IDS)[number];
+export type TransactionTableColumnId = (typeof TRANSACTION_TABLE_COLUMN_IDS)[number];
 
 export type TransactionTableColumn = {
   id: TransactionTableColumnId;
@@ -41,17 +40,13 @@ export type TransactionTableColumn = {
 // The date column can be reordered but never hidden: it drives keyboard
 // navigation (new transactions start editing on the date field) so it must
 // always be visible.
-export function isTransactionTableColumnLocked(
-  id: TransactionTableColumnId,
-): boolean {
+export function isTransactionTableColumnLocked(id: TransactionTableColumnId): boolean {
   return id === 'date';
 }
 
 // Display-only columns render plain values with no editing, so they are
 // excluded from keyboard-focusable fields.
-export function isTransactionTableColumnDisplayOnly(
-  id: TransactionTableColumnId,
-): boolean {
+export function isTransactionTableColumnDisplayOnly(id: TransactionTableColumnId): boolean {
   return id === 'balance' || id === 'group';
 }
 
@@ -65,11 +60,8 @@ export function isTransactionTableColumnAvailableInChildRows(
 
 // User-facing column names, shared by the column manager modal and the
 // table header.
-export function useTransactionTableColumnLabels(): Record<
-  TransactionTableColumnId,
-  string
-> {
-  const { t } = useTranslation();
+export function useTransactionTableColumnLabels(): Record<TransactionTableColumnId, string> {
+  const {t} = useTranslation();
 
   return {
     date: t('Date'),
@@ -99,10 +91,7 @@ export function getDefaultTransactionTableColumns(): TransactionTableColumn[] {
 }
 
 function isKnownColumnId(id: unknown): id is TransactionTableColumnId {
-  return (
-    typeof id === 'string' &&
-    (TRANSACTION_TABLE_COLUMN_IDS as readonly string[]).includes(id)
-  );
+  return typeof id === 'string' && (TRANSACTION_TABLE_COLUMN_IDS as readonly string[]).includes(id);
 }
 
 /**
@@ -111,9 +100,7 @@ function isKnownColumnId(id: unknown): id is TransactionTableColumnId {
  * (e.g. because they were added in a later version, or were not available in
  * the view when it was saved) are inserted at their default position.
  */
-export function parseTransactionTableColumns(
-  raw: string | undefined,
-): TransactionTableColumn[] {
+export function parseTransactionTableColumns(raw: string | undefined): TransactionTableColumn[] {
   let saved: TransactionTableColumn[] = [];
 
   if (raw) {
@@ -132,7 +119,7 @@ export function parseTransactionTableColumns(
               'hidden' in entry &&
               entry.hidden === true &&
               !isTransactionTableColumnLocked(entry.id);
-            saved.push({ id: entry.id, hidden });
+            saved.push({id: entry.id, hidden});
           }
         }
       }
@@ -157,10 +144,8 @@ export function parseTransactionTableColumns(
       continue;
     }
     const defaultIdx = TRANSACTION_TABLE_COLUMN_IDS.indexOf(id);
-    const insertAt = saved.findIndex(
-      c => TRANSACTION_TABLE_COLUMN_IDS.indexOf(c.id) > defaultIdx,
-    );
-    const column = { id, hidden: isColumnHiddenByDefault(id) };
+    const insertAt = saved.findIndex(c => TRANSACTION_TABLE_COLUMN_IDS.indexOf(c.id) > defaultIdx);
+    const column = {id, hidden: isColumnHiddenByDefault(id)};
     if (insertAt === -1) {
       saved.push(column);
     } else {

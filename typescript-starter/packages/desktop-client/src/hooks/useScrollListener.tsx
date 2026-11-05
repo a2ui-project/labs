@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-} from 'react';
-import type { ReactNode, RefObject } from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import type {ReactNode, RefObject} from 'react';
 
-import { debounce } from 'es-toolkit/compat';
+import {debounce} from 'es-toolkit/compat';
 
 type ScrollDirection = 'up' | 'down' | 'left' | 'right';
 
@@ -37,9 +30,7 @@ type ScrollListenerArgs = {
 
 type ScrollListener = (args: ScrollListenerArgs) => void;
 type UnregisterScrollListener = () => void;
-type RegisterScrollListener = (
-  listener: ScrollListener,
-) => UnregisterScrollListener;
+type RegisterScrollListener = (listener: ScrollListener) => UnregisterScrollListener;
 
 type IScrollContext = {
   registerScrollListener: RegisterScrollListener;
@@ -70,48 +61,33 @@ export function ScrollProvider<T extends Element>({
   const clientHeight = useRef<number | undefined>(undefined);
   const listeners = useRef<ScrollListener[]>([]);
 
-  const hasScrolledToEnd = useCallback(
-    (direction: ScrollDirection, tolerance = 1) => {
-      const isAtStart = (currentCoordinate?: number) =>
-        currentCoordinate !== undefined && currentCoordinate <= tolerance;
+  const hasScrolledToEnd = useCallback((direction: ScrollDirection, tolerance = 1) => {
+    const isAtStart = (currentCoordinate?: number) =>
+      currentCoordinate !== undefined && currentCoordinate <= tolerance;
 
-      const isAtEnd = (
-        totalSize?: number,
-        currentCoordinate?: number,
-        viewportSize?: number,
-      ) =>
-        totalSize !== undefined &&
-        currentCoordinate !== undefined &&
-        viewportSize !== undefined &&
-        totalSize - currentCoordinate <= viewportSize + tolerance;
+    const isAtEnd = (totalSize?: number, currentCoordinate?: number, viewportSize?: number) =>
+      totalSize !== undefined &&
+      currentCoordinate !== undefined &&
+      viewportSize !== undefined &&
+      totalSize - currentCoordinate <= viewportSize + tolerance;
 
-      switch (direction) {
-        case 'up': {
-          return isAtStart(scrollY.current);
-        }
-        case 'down': {
-          return isAtEnd(
-            scrollHeight.current,
-            scrollY.current,
-            clientHeight.current,
-          );
-        }
-        case 'left': {
-          return isAtStart(scrollX.current);
-        }
-        case 'right': {
-          return isAtEnd(
-            scrollWidth.current,
-            scrollX.current,
-            clientWidth.current,
-          );
-        }
-        default:
-          return false;
+    switch (direction) {
+      case 'up': {
+        return isAtStart(scrollY.current);
       }
-    },
-    [],
-  );
+      case 'down': {
+        return isAtEnd(scrollHeight.current, scrollY.current, clientHeight.current);
+      }
+      case 'left': {
+        return isAtStart(scrollX.current);
+      }
+      case 'right': {
+        return isAtEnd(scrollWidth.current, scrollX.current, clientWidth.current);
+      }
+      default:
+        return false;
+    }
+  }, []);
 
   const isScrolling = useCallback((direction: ScrollDirection) => {
     switch (direction) {
@@ -199,21 +175,16 @@ export function ScrollProvider<T extends Element>({
       });
   }, [isDisabled, listenToScroll, scrollableRef]);
 
-  const registerScrollListener: RegisterScrollListener = useCallback(
-    listener => {
-      listeners.current.push(listener);
+  const registerScrollListener: RegisterScrollListener = useCallback(listener => {
+    listeners.current.push(listener);
 
-      return () => {
-        listeners.current = listeners.current.filter(l => l !== listener);
-      };
-    },
-    [],
-  );
+    return () => {
+      listeners.current = listeners.current.filter(l => l !== listener);
+    };
+  }, []);
 
   return (
-    <ScrollContext.Provider value={{ registerScrollListener }}>
-      {children}
-    </ScrollContext.Provider>
+    <ScrollContext.Provider value={{registerScrollListener}}>{children}</ScrollContext.Provider>
   );
 }
 
@@ -229,7 +200,7 @@ export function useScrollListener(listener: ScrollListener) {
     throw new Error('useScrollListener must be used within a ScrollProvider');
   }
 
-  const { registerScrollListener } = context;
+  const {registerScrollListener} = context;
 
   useEffect(() => {
     return registerScrollListener(listener);

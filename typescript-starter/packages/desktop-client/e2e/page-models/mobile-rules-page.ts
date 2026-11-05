@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class MobileRulesPage {
   readonly page: Page;
@@ -26,7 +26,7 @@ export class MobileRulesPage {
   constructor(page: Page) {
     this.page = page;
     this.searchBox = page.getByPlaceholder('Filter rules…');
-    this.addButton = page.getByRole('button', { name: 'Add new rule' });
+    this.addButton = page.getByRole('button', {name: 'Add new rule'});
     this.rulesList = page.getByRole('main');
     this.emptyMessage = page.getByText('No rules found');
   }
@@ -63,7 +63,7 @@ export class MobileRulesPage {
    * Get all visible rule items
    */
   getAllRules() {
-    return this.page.getByRole('grid', { name: 'Rules' }).getByRole('row');
+    return this.page.getByRole('grid', {name: 'Rules'}).getByRole('row');
   }
 
   /**

@@ -15,7 +15,7 @@
  */
 
 import * as React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 export const SvgDashboard = (props: SVGProps<SVGSVGElement>) => (
   <svg
     {...props}

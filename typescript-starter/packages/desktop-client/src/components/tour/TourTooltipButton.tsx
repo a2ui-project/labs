@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type { MouseEvent as ReactMouseEvent, ReactNode } from 'react';
-import type { TooltipRenderProps } from 'react-joyride';
+import type {MouseEvent as ReactMouseEvent, ReactNode} from 'react';
+import type {TooltipRenderProps} from 'react-joyride';
 
-import { Button } from '@actual-app/components/button';
-import type { CSSProperties } from '@actual-app/components/styles';
+import {Button} from '@actual-app/components/button';
+import type {CSSProperties} from '@actual-app/components/styles';
 
 type TourTooltipButtonProps = {
   handleProps: TooltipRenderProps['primaryProps'];
@@ -33,7 +33,7 @@ export function TourTooltipButton({
   style,
   children,
 }: TourTooltipButtonProps) {
-  const { onClick, title, ...restProps } = handleProps;
+  const {onClick, title, ...restProps} = handleProps;
 
   return (
     <Button

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { ComponentType, SVGProps } from 'react';
+import type {ComponentType, SVGProps} from 'react';
 
 import {
   SvgChartPie,
@@ -25,13 +25,10 @@ import {
   SvgShare,
   SvgTime,
 } from '@actual-app/components/icons/v1';
-import {
-  SvgArrowsSynchronize,
-  SvgCalendar3,
-} from '@actual-app/components/icons/v2';
-import { t } from 'i18next';
+import {SvgArrowsSynchronize, SvgCalendar3} from '@actual-app/components/icons/v2';
+import {t} from 'i18next';
 
-import type { DisplayTemplateType } from './constants';
+import type {DisplayTemplateType} from './constants';
 
 type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -41,9 +38,7 @@ export type DisplayTemplateMeta = {
   icon: IconComponent;
 };
 
-export function getDisplayTemplateMeta(
-  displayType: DisplayTemplateType,
-): DisplayTemplateMeta {
+export function getDisplayTemplateMeta(displayType: DisplayTemplateType): DisplayTemplateMeta {
   switch (displayType) {
     case 'fixed':
       return {
@@ -60,9 +55,7 @@ export function getDisplayTemplateMeta(
     case 'by':
       return {
         label: t('Save by date'),
-        description: t(
-          'Spread a target amount across the months until a deadline.',
-        ),
+        description: t('Spread a target amount across the months until a deadline.'),
         icon: SvgMoneyBag,
       };
     case 'percentage':
@@ -74,33 +67,25 @@ export function getDisplayTemplateMeta(
     case 'historical':
       return {
         label: t('From history'),
-        description: t(
-          'Use past months: average, a specific month, or a copy.',
-        ),
+        description: t('Use past months: average, a specific month, or a copy.'),
         icon: SvgTime,
       };
     case 'limit':
       return {
         label: t('Balance cap'),
-        description: t(
-          'Stop budgeting to this category once the balance reaches a cap.',
-        ),
+        description: t('Stop budgeting to this category once the balance reaches a cap.'),
         icon: SvgEquals,
       };
     case 'refill':
       return {
         label: t('Refill to cap'),
-        description: t(
-          'Top the category back up to the balance cap each month.',
-        ),
+        description: t('Top the category back up to the balance cap each month.'),
         icon: SvgArrowsSynchronize,
       };
     case 'remainder':
       return {
         label: t('Whatever is left'),
-        description: t(
-          'Split any remaining To Budget across these categories.',
-        ),
+        description: t('Split any remaining To Budget across these categories.'),
         icon: SvgShare,
       };
     case 'goal':

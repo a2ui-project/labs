@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { mkdir, rm, writeFile } from 'node:fs/promises';
+import {mkdir, rm, writeFile} from 'node:fs/promises';
 import path from 'node:path';
 
-import { _electron, test as base } from '@playwright/test';
-import type { ElectronApplication, Page, TestInfo } from '@playwright/test';
+import {_electron, test as base} from '@playwright/test';
+import type {ElectronApplication, Page, TestInfo} from '@playwright/test';
 
 type ElectronFixtures = {
   electronApp: ElectronApplication;
@@ -36,14 +36,14 @@ type ElectronOptions = {
 
 // Create the extended test with fixtures
 export const test = base.extend<ElectronFixtures & ElectronOptions>({
-  blockDocumentDir: [false, { option: true }],
+  blockDocumentDir: [false, {option: true}],
 
-  electronApp: async ({ blockDocumentDir }, use, testInfo: TestInfo) => {
+  electronApp: async ({blockDocumentDir}, use, testInfo: TestInfo) => {
     const uniqueTestId = testInfo.testId.replace(/[^\w-]/g, '-');
     const testDataDir = path.join('e2e/data/', uniqueTestId);
 
-    await rm(testDataDir, { recursive: true, force: true }); // ensure any leftover test data is removed
-    await mkdir(testDataDir, { recursive: true });
+    await rm(testDataDir, {recursive: true, force: true}); // ensure any leftover test data is removed
+    await mkdir(testDataDir, {recursive: true});
 
     let documentDir = testDataDir;
     if (blockDocumentDir) {
@@ -68,10 +68,10 @@ export const test = base.extend<ElectronFixtures & ElectronOptions>({
 
     // Cleanup after tests
     await app.close();
-    await rm(testDataDir, { recursive: true, force: true });
+    await rm(testDataDir, {recursive: true, force: true});
   },
 
-  electronPage: async ({ electronApp }, use) => {
+  electronPage: async ({electronApp}, use) => {
     const page = await electronApp.firstWindow();
     await use(page);
   },

@@ -21,7 +21,7 @@ import type {
   CustomReportEntity,
   sortByOpType,
 } from '@actual-app/core/types/models';
-import { t } from 'i18next';
+import {t} from 'i18next';
 
 const startDate = monthUtils.subMonths(monthUtils.currentMonth(), 5) + '-01';
 const endDate = monthUtils.currentDay();
@@ -51,9 +51,9 @@ export const defaultReport: CustomReportEntity = {
 };
 
 const balanceTypeOptions = [
-  { description: t('Payment'), key: 'Payment', format: 'totalDebts' as const },
-  { description: t('Deposit'), key: 'Deposit', format: 'totalAssets' as const },
-  { description: t('Net'), key: 'Net', format: 'totalTotals' as const },
+  {description: t('Payment'), key: 'Payment', format: 'totalDebts' as const},
+  {description: t('Deposit'), key: 'Deposit', format: 'totalAssets' as const},
+  {description: t('Net'), key: 'Net', format: 'totalTotals' as const},
   {
     description: t('Net Payment'),
     key: 'Net Payment',
@@ -72,12 +72,12 @@ const balanceTypeOptions = [
 ];
 
 const groupByOptions = [
-  { description: t('Category'), key: 'Category' },
-  { description: t('Group'), key: 'Group' },
-  { description: t('Category+Group'), key: 'CategoryGroup' }, // new: two-ring donut support
-  { description: t('Payee'), key: 'Payee' },
-  { description: t('Account'), key: 'Account' },
-  { description: t('Interval'), key: 'Interval' },
+  {description: t('Category'), key: 'Category'},
+  {description: t('Group'), key: 'Group'},
+  {description: t('Category+Group'), key: 'CategoryGroup'}, // new: two-ring donut support
+  {description: t('Payee'), key: 'Payee'},
+  {description: t('Account'), key: 'Account'},
+  {description: t('Interval'), key: 'Interval'},
 ];
 
 const sortByOptions: {
@@ -85,10 +85,10 @@ const sortByOptions: {
   key: string;
   format: sortByOpType;
 }[] = [
-  { description: t('Ascending'), key: 'Ascending', format: 'asc' as const },
-  { description: t('Descending'), key: 'Descending', format: 'desc' as const },
-  { description: t('Name'), key: 'Name', format: 'name' as const },
-  { description: t('Budget'), key: 'Budget', format: 'budget' as const },
+  {description: t('Ascending'), key: 'Ascending', format: 'asc' as const},
+  {description: t('Descending'), key: 'Descending', format: 'desc' as const},
+  {description: t('Name'), key: 'Name', format: 'name' as const},
+  {description: t('Budget'), key: 'Budget', format: 'budget' as const},
 ];
 
 export type dateRangeProps = {
@@ -250,11 +250,7 @@ type intervalOptionsProps = {
   key: string;
   name: 'Day' | 'Week' | 'Month' | 'Year';
   format: string;
-  range:
-    | 'dayRangeInclusive'
-    | 'weekRangeInclusive'
-    | 'rangeInclusive'
-    | 'yearRangeInclusive';
+  range: 'dayRangeInclusive' | 'weekRangeInclusive' | 'rangeInclusive' | 'yearRangeInclusive';
 };
 
 const intervalOptions: intervalOptionsProps[] = [
@@ -292,9 +288,7 @@ export const ReportOptions = {
   groupBy: groupByOptions,
   groupByItems: new Set(groupByOptions.map(item => item.key)),
   balanceType: balanceTypeOptions,
-  balanceTypeMap: new Map(
-    balanceTypeOptions.map(item => [item.key, item.format]),
-  ),
+  balanceTypeMap: new Map(balanceTypeOptions.map(item => [item.key, item.format])),
   sortBy: sortByOptions,
   sortByMap: new Map(sortByOptions.map(item => [item.key, item.format])),
   dateRange: dateRangeOptions,
@@ -307,10 +301,7 @@ export const ReportOptions = {
   intervalFormat: new Map(intervalOptions.map(item => [item.key, item.format])),
   intervalRange: new Map<
     string,
-    | 'dayRangeInclusive'
-    | 'weekRangeInclusive'
-    | 'rangeInclusive'
-    | 'yearRangeInclusive'
+    'dayRangeInclusive' | 'weekRangeInclusive' | 'rangeInclusive' | 'yearRangeInclusive'
   >(intervalOptions.map(item => [item.key, item.range])),
 };
 
@@ -327,10 +318,7 @@ const dayLevelIntervals = new Set(['Daily', 'Weekly']);
  * @param dateFormat the `dateFormat` synced pref, e.g. 'MM/dd/yyyy'.
  * @returns a date-fns format string, or '' for an unrecognised interval.
  */
-export function getIntervalFormat(
-  interval: string,
-  dateFormat?: string,
-): string {
+export function getIntervalFormat(interval: string, dateFormat?: string): string {
   if (!dayLevelIntervals.has(interval)) {
     return ReportOptions.intervalFormat.get(interval) ?? '';
   }
@@ -354,10 +342,7 @@ export type QueryDataEntity = {
 
 type UncategorizedId = 'off_budget' | 'transfer' | 'other' | 'all';
 
-export type UncategorizedEntity = Pick<
-  CategoryEntity,
-  'id' | 'name' | 'hidden'
-> & {
+export type UncategorizedEntity = Pick<CategoryEntity, 'id' | 'name' | 'hidden'> & {
   uncategorized_id?: UncategorizedId;
 };
 
@@ -380,10 +365,7 @@ const offBudgetCategory: UncategorizedEntity = {
   hidden: false,
 };
 
-type UncategorizedGroupEntity = Pick<
-  CategoryGroupEntity,
-  'name' | 'id' | 'hidden'
-> & {
+type UncategorizedGroupEntity = Pick<CategoryGroupEntity, 'name' | 'id' | 'hidden'> & {
   categories?: UncategorizedEntity[];
   uncategorized_id?: UncategorizedId;
 };
@@ -416,10 +398,7 @@ export const categoryLists = (categories: {
     transferCategory,
   ];
 
-  const categoryGroup: UncategorizedGroupEntity[] = [
-    ...categories.grouped,
-    uncategorizedGroup,
-  ];
+  const categoryGroup: UncategorizedGroupEntity[] = [...categories.grouped, uncategorizedGroup];
   return [categoryList, categoryGroup.filter(group => group !== null)] as const;
 };
 
@@ -429,10 +408,7 @@ export const groupBySelections = (
   categoryGroup: UncategorizedEntity[],
   payees: UncategorizedEntity[],
   accounts: UncategorizedEntity[],
-): [
-  UncategorizedEntity[],
-  'category' | 'categoryGroup' | 'payee' | 'account',
-] => {
+): [UncategorizedEntity[], 'category' | 'categoryGroup' | 'payee' | 'account'] => {
   let groupByList: UncategorizedEntity[];
   let groupByLabel: 'category' | 'categoryGroup' | 'payee' | 'account';
   switch (groupBy) {
@@ -467,13 +443,13 @@ export const groupBySelections = (
       break;
     case 'Payee':
       groupByList = payees.map(payee => {
-        return { id: payee.id, name: payee.name, hidden: false };
+        return {id: payee.id, name: payee.name, hidden: false};
       });
       groupByLabel = 'payee';
       break;
     case 'Account':
       groupByList = accounts.map(account => {
-        return { id: account.id, name: account.name, hidden: false };
+        return {id: account.id, name: account.name, hidden: false};
       });
       groupByLabel = 'account';
       break;

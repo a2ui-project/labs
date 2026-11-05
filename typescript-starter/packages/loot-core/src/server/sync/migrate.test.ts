@@ -15,18 +15,18 @@
  */
 
 // @ts-strict-ignore
-import { Timestamp } from '@actual-app/crdt';
+import {Timestamp} from '@actual-app/crdt';
 import fc from 'fast-check';
 
 import * as arbs from '#mocks/arbitrary-schema';
-import { convertInputType, schema, schemaConfig } from '#server/aql';
+import {convertInputType, schema, schemaConfig} from '#server/aql';
 import * as db from '#server/db';
-import { execTracer } from '#shared/test-helpers';
+import {execTracer} from '#shared/test-helpers';
 
-import { listen, unlisten } from './migrate';
+import {listen, unlisten} from './migrate';
 
-import { addSyncListener, sendMessages } from './index';
-import type { Message } from './index';
+import {addSyncListener, sendMessages} from './index';
+import type {Message} from './index';
 
 beforeEach(() => {
   listen();
@@ -68,9 +68,9 @@ const messageArb: fc.Arbitrary<Message> = fc
       dataset: fc.constant('transactions'),
       column: fc.constant(toInternalField(field) || field),
       row: fc.oneof(
-        fc.integer({ min: 0, max: 5 }).map(i => `id${i}`),
-        fc.integer({ min: 0, max: 5 }).chain(i => {
-          return fc.integer({ min: 0, max: 5 }).map(j => `id${i}/child${j}`);
+        fc.integer({min: 0, max: 5}).map(i => `id${i}`),
+        fc.integer({min: 0, max: 5}).chain(i => {
+          return fc.integer({min: 0, max: 5}).map(j => `id${i}/child${j}`);
         }),
       ),
       value,
@@ -83,10 +83,7 @@ describe('sync migrations', () => {
     tracer.start();
 
     const cleanup = addSyncListener((oldValues, newValues) => {
-      const transactionsMap = newValues.get('transactions') as Map<
-        string,
-        unknown
-      >;
+      const transactionsMap = newValues.get('transactions') as Map<string, unknown>;
       tracer.event('applied', [...transactionsMap.keys()]);
     });
 
@@ -98,11 +95,7 @@ describe('sync migrations', () => {
     tracer.expectNow('applied', ['trans1/child1']);
     tracer.expectNow('applied', ['trans1/child1']);
 
-    const transactions = db.runQuery<db.DbTransaction>(
-      'SELECT * FROM transactions',
-      [],
-      true,
-    );
+    const transactions = db.runQuery<db.DbTransaction>('SELECT * FROM transactions', [], true);
     expect(transactions.length).toBe(1);
     expect(transactions[0].parent_id).toBe('trans1');
 
@@ -113,19 +106,18 @@ describe('sync migrations', () => {
   it('child transactions should always have a parent_id', async () => {
     await fc.assert(
       fc
-        .asyncProperty(fc.array(messageArb, { maxLength: 100 }), async msgs => {
+        .asyncProperty(fc.array(messageArb, {maxLength: 100}), async msgs => {
           const tracer = execTracer();
           tracer.start();
           const cleanup = addSyncListener((oldValues, newValues) => {
             const ts = newValues.get('transactions') as Map<
               string,
-              { isChild: number; parent_id: string | null; id: string }
+              {isChild: number; parent_id: string | null; id: string}
             >;
             if (
               !ts ||
               ![...ts.values()].find(
-                t =>
-                  t.isChild === 1 && t.parent_id == null && t.id.includes('/'),
+                t => t.isChild === 1 && t.parent_id == null && t.id.includes('/'),
               )
             ) {
               tracer.event('applied');
@@ -135,10 +127,7 @@ describe('sync migrations', () => {
           await sendMessages(msgs);
           await tracer.expect('applied');
 
-          const transactions = await db.all<db.DbTransaction>(
-            'SELECT * FROM transactions',
-            [],
-          );
+          const transactions = await db.all<db.DbTransaction>('SELECT * FROM transactions', []);
           for (const trans of transactions) {
             const transMsgs = msgs
               .filter(msg => msg.row === trans.id)

@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import {
-  SvgAdd,
-  SvgCheveronDownUp,
-  SvgCheveronUpDown,
-} from '@actual-app/components/icons/v1';
-import { SvgSearchAlternate } from '@actual-app/components/icons/v2';
-import { theme } from '@actual-app/components/theme';
-import { spacing } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
+import {SvgAdd, SvgCheveronDownUp, SvgCheveronUpDown} from '@actual-app/components/icons/v1';
+import {SvgSearchAlternate} from '@actual-app/components/icons/v2';
+import {theme} from '@actual-app/components/theme';
+import {spacing} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
 
-import { Link } from '#components/common/Link';
-import { replaceModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {Link} from '#components/common/Link';
+import {replaceModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 import * as bindings from '#spreadsheet/bindings';
 
-import { SidebarBalance } from './SidebarBalance';
-import { SidebarIconButton } from './SidebarIconButton';
+import {SidebarBalance} from './SidebarBalance';
+import {SidebarIconButton} from './SidebarIconButton';
 
 type AccountsHeaderRowProps = {
   allOpen: boolean;
@@ -49,11 +45,11 @@ export function AccountsHeaderRow({
   isSearchOpen,
   onToggleSearch,
 }: AccountsHeaderRowProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
 
   const onAddAccount = () => {
-    dispatch(replaceModal({ modal: { name: 'add-account', options: {} } }));
+    dispatch(replaceModal({modal: {name: 'add-account', options: {}}}));
   };
 
   return (
@@ -76,7 +72,7 @@ export function AccountsHeaderRow({
           textDecoration: 'none',
           color: theme.sidebarHeaderText,
         }}
-        activeStyle={{ color: theme.sidebarItemTextSelected }}
+        activeStyle={{color: theme.sidebarItemTextSelected}}
       >
         <Trans>Accounts</Trans>
       </Link>
@@ -92,23 +88,19 @@ export function AccountsHeaderRow({
         isToggledOn={isSearchOpen}
         onPress={onToggleSearch}
       />
-      <SidebarIconButton
-        Icon={SvgAdd}
-        label={t('Add account')}
-        onPress={onAddAccount}
-      />
-      <View style={{ flex: 1 }} />
+      <SidebarIconButton Icon={SvgAdd} label={t('Add account')} onPress={onAddAccount} />
+      <View style={{flex: 1}} />
       <Link
         variant="internal"
         to="/accounts"
         isExactPathMatch
-        style={{ textDecoration: 'none', color: theme.sidebarItemText }}
-        activeStyle={{ color: theme.sidebarItemTextSelected }}
+        style={{textDecoration: 'none', color: theme.sidebarItemText}}
+        activeStyle={{color: theme.sidebarItemTextSelected}}
       >
         <SidebarBalance
           binding={bindings.allAccountBalance()}
           testId="sidebar-all-accounts-balance"
-          style={{ fontSize: 12, fontWeight: 600 }}
+          style={{fontSize: 12, fontWeight: 600}}
         />
       </Link>
     </View>

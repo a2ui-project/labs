@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-import type { Config } from '@svgr/core';
+import type {Config} from '@svgr/core';
 
-const tmpl: Config['template'] = (
-  { imports, interfaces, componentName, props, jsx },
-  { tpl },
-) => {
+const tmpl: Config['template'] = ({imports, interfaces, componentName, props, jsx}, {tpl}) => {
   return tpl`
 ${imports};
 

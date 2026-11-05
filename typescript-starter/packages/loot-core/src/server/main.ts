@@ -18,47 +18,47 @@
 import * as asyncStorage from '#platform/server/asyncStorage';
 import * as connection from '#platform/server/connection';
 import * as fs from '#platform/server/fs';
-import { logger, setVerboseMode } from '#platform/server/log';
+import {logger, setVerboseMode} from '#platform/server/log';
 import * as sqlite from '#platform/server/sqlite';
-import { q } from '#shared/query';
-import { amountToInteger, integerToAmount } from '#shared/util';
-import type { Handlers } from '#types/handlers';
+import {q} from '#shared/query';
+import {amountToInteger, integerToAmount} from '#shared/util';
+import type {Handlers} from '#types/handlers';
 
-import { app as accountGroupsApp } from './account-groups/app';
-import { app as accountsApp } from './accounts/app';
-import { app as adminApp } from './admin/app';
-import { installAPI } from './api';
-import { aqlQuery } from './aql';
-import { app as authApp } from './auth/app';
-import { app as budgetApp } from './budget/app';
-import { app as budgetFilesApp } from './budgetfiles/app';
-import { app as dashboardApp } from './dashboard/app';
+import {app as accountGroupsApp} from './account-groups/app';
+import {app as accountsApp} from './accounts/app';
+import {app as adminApp} from './admin/app';
+import {installAPI} from './api';
+import {aqlQuery} from './aql';
+import {app as authApp} from './auth/app';
+import {app as budgetApp} from './budget/app';
+import {app as budgetFilesApp} from './budgetfiles/app';
+import {app as dashboardApp} from './dashboard/app';
 import * as db from './db';
 import * as encryption from './encryption';
-import { app as encryptionApp } from './encryption/app';
-import { DocumentDirError, withErrorCode } from './errors';
-import { app as filtersApp } from './filters/app';
-import { app as forecastApp } from './forecast/app';
-import { app as formulasApp } from './formulas/app';
-import { app } from './main-app';
-import { mutator, runHandler } from './mutators';
-import { app as notesApp } from './notes/app';
-import { app as payeesApp } from './payees/app';
-import { get } from './post';
-import { app as preferencesApp } from './preferences/app';
+import {app as encryptionApp} from './encryption/app';
+import {DocumentDirError, withErrorCode} from './errors';
+import {app as filtersApp} from './filters/app';
+import {app as forecastApp} from './forecast/app';
+import {app as formulasApp} from './formulas/app';
+import {app} from './main-app';
+import {mutator, runHandler} from './mutators';
+import {app as notesApp} from './notes/app';
+import {app as payeesApp} from './payees/app';
+import {get} from './post';
+import {app as preferencesApp} from './preferences/app';
 import * as prefs from './prefs';
-import { app as reportsApp } from './reports/app';
-import { app as rulesApp } from './rules/app';
-import { app as schedulesApp } from './schedules/app';
-import { getServer, setServer } from './server-config';
-import { app as spreadsheetApp } from './spreadsheet/app';
-import { fullSync, setSyncingMode } from './sync';
-import { app as syncApp } from './sync/app';
-import { app as tagsApp } from './tags/app';
-import { app as toolsApp } from './tools/app';
-import { app as transactionsApp } from './transactions/app';
+import {app as reportsApp} from './reports/app';
+import {app as rulesApp} from './rules/app';
+import {app as schedulesApp} from './schedules/app';
+import {getServer, setServer} from './server-config';
+import {app as spreadsheetApp} from './spreadsheet/app';
+import {fullSync, setSyncingMode} from './sync';
+import {app as syncApp} from './sync/app';
+import {app as tagsApp} from './tags/app';
+import {app as toolsApp} from './tools/app';
+import {app as transactionsApp} from './transactions/app';
 import * as rules from './transactions/transaction-rules';
-import { redo, undo } from './undo';
+import {redo, undo} from './undo';
 
 // handlers
 
@@ -74,11 +74,8 @@ handlers['redo'] = mutator(function () {
   return redo();
 });
 
-handlers['make-filters-from-conditions'] = async function ({
-  conditions,
-  applySpecialCases,
-}) {
-  return rules.conditionsToAQL(conditions, { applySpecialCases });
+handlers['make-filters-from-conditions'] = async function ({conditions, applySpecialCases}) {
+  return rules.conditionsToAQL(conditions, {applySpecialCases});
 };
 
 handlers['query'] = async function (query) {
@@ -91,7 +88,7 @@ handlers['query'] = async function (query) {
 
 handlers['get-server-version'] = async function () {
   if (!getServer()) {
-    return { error: 'no-server' };
+    return {error: 'no-server'};
   }
 
   let version;
@@ -101,17 +98,17 @@ handlers['get-server-version'] = async function () {
     const info = JSON.parse(res);
     version = info.build.version;
   } catch {
-    return { error: 'network-failure' };
+    return {error: 'network-failure'};
   }
 
-  return { version };
+  return {version};
 };
 
 handlers['get-server-url'] = async function () {
   return getServer() && getServer().BASE_SERVER;
 };
 
-handlers['set-server-url'] = async function ({ url, validate = true }) {
+handlers['set-server-url'] = async function ({url, validate = true}) {
   if (url == null) {
     await asyncStorage.removeItem('user-token');
   } else {
@@ -123,7 +120,7 @@ handlers['set-server-url'] = async function ({ url, validate = true }) {
         url,
       });
       if ('error' in result) {
-        return { error: result.error };
+        return {error: result.error};
       }
     }
   }
@@ -219,9 +216,7 @@ async function ensureUsable(dir) {
 
   // Unique per run so we never touch (let alone delete) something the user
   // put there; only the directory this call created is removed.
-  const probeName = `.actual-write-test-${Date.now()}-${Math.random()
-    .toString(36)
-    .slice(2)}`;
+  const probeName = `.actual-write-test-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   const probeDir = fs.join(dir, probeName);
   await fs.mkdir(probeDir);
   await fs.removeDir(probeDir);
@@ -302,10 +297,7 @@ type NoServerConfig = BaseInitConfig & {
   sessionToken?: never;
 };
 
-export type InitConfig =
-  | PasswordAuthConfig
-  | SessionTokenAuthConfig
-  | NoServerConfig;
+export type InitConfig = PasswordAuthConfig | SessionTokenAuthConfig | NoServerConfig;
 
 export async function init(config: InitConfig) {
   // Get from build
@@ -325,7 +317,7 @@ export async function init(config: InitConfig) {
   }
 
   await sqlite.init();
-  asyncStorage.init({ persist: false });
+  asyncStorage.init({persist: false});
   await fs.init();
   fs._setDocumentDir(dataDir || process.cwd());
 
@@ -341,7 +333,7 @@ export async function init(config: InitConfig) {
       const user = await runHandler(handlers['subscribe-get-user'], undefined);
       if (!user || user.tokenExpired === true) {
         // Clear invalid token
-        await runHandler(handlers['subscribe-set-token'], { token: '' });
+        await runHandler(handlers['subscribe-set-token'], {token: ''});
         throw withErrorCode(
           new Error('Authentication failed: invalid or expired session token'),
           'token-expired',
@@ -349,7 +341,7 @@ export async function init(config: InitConfig) {
       }
       if (user.offline === true) {
         // Clear token since we can't validate
-        await runHandler(handlers['subscribe-set-token'], { token: '' });
+        await runHandler(handlers['subscribe-set-token'], {token: ''});
         throw withErrorCode(
           new Error('Authentication failed: server offline or unreachable'),
           'network-failure',
@@ -362,10 +354,7 @@ export async function init(config: InitConfig) {
       if (result?.error) {
         // `result.error` is already a machine-readable slug (e.g.
         // 'invalid-password', 'network-failure')
-        throw withErrorCode(
-          new Error(`Authentication failed: ${result.error}`),
-          result.error,
-        );
+        throw withErrorCode(new Error(`Authentication failed: ${result.error}`), result.error);
       }
     }
   } else {

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { type Ref } from 'react';
+import {type Ref} from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { InitialFocus } from './InitialFocus';
-import { Input } from './Input';
-import { View } from './View';
+import {InitialFocus} from './InitialFocus';
+import {Input} from './Input';
+import {View} from './View';
 
 const meta = {
   title: 'Components/InitialFocus',
@@ -40,7 +40,7 @@ export const WithInput: Story = {
     children: <Input placeholder="This input will be focused on mount" />,
   },
   render: args => (
-    <View style={{ width: 300 }}>
+    <View style={{width: 300}}>
       <InitialFocus {...args} />
     </View>
   ),
@@ -59,13 +59,10 @@ export const WithFunctionChild: Story = {
     children: <Input placeholder="Focused via function child" />,
   },
   render: () => (
-    <View style={{ width: 300 }}>
+    <View style={{width: 300}}>
       <InitialFocus>
         {ref => (
-          <Input
-            ref={ref as Ref<HTMLInputElement>}
-            placeholder="Focused via function child"
-          />
+          <Input ref={ref as Ref<HTMLInputElement>} placeholder="Focused via function child" />
         )}
       </InitialFocus>
     </View>
@@ -85,7 +82,7 @@ export const MultipleInputsOnlyFirstFocused: Story = {
     children: <Input placeholder="This one is focused" />,
   },
   render: args => (
-    <View style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+    <View style={{display: 'flex', flexDirection: 'column', gap: 10}}>
       <InitialFocus {...args} />
       <Input placeholder="This one is not focused" />
       <Input placeholder="This one is also not focused" />

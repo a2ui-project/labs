@@ -15,22 +15,16 @@
  */
 
 import React from 'react';
-import type { CSSProperties } from 'react';
+import type {CSSProperties} from 'react';
 
-import { Block } from '@actual-app/components/block';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
+import {Block} from '@actual-app/components/block';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
 
-import { FinancialText } from '#components/FinancialText';
-import { useFormat } from '#hooks/useFormat';
+import {FinancialText} from '#components/FinancialText';
+import {useFormat} from '#hooks/useFormat';
 
-export function Change({
-  amount,
-  style,
-}: {
-  amount: number;
-  style?: CSSProperties;
-}) {
+export function Change({amount, style}: {amount: number; style?: CSSProperties}) {
   const format = useFormat();
 
   return (

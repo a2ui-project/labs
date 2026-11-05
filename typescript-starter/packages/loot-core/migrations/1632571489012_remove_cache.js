@@ -54,9 +54,7 @@ CREATE TABLE kvcache_key (id INTEGER PRIMARY KEY, key REAL);
   );
   db.transaction(() => {
     budget.forEach(monthBudget => {
-      const match = monthBudget.name.match(
-        /^(budget-report|budget)(\d+)!budget-(.+)$/,
-      );
+      const match = monthBudget.name.match(/^(budget-report|budget)(\d+)!budget-(.+)$/);
       if (match == null) {
         console.log('Warning: invalid budget month name', monthBudget.name);
         return;
@@ -79,8 +77,7 @@ CREATE TABLE kvcache_key (id INTEGER PRIMARY KEY, key REAL);
         true,
       );
 
-      const table =
-        type === 'budget-report' ? 'reflect_budgets' : 'zero_budgets';
+      const table = type === 'budget-report' ? 'reflect_budgets' : 'zero_budgets';
       db.runQuery(
         `INSERT INTO ${table} (id, month, category, amount, carryover) VALUES (?, ?, ?, ?, ?)`,
         [
@@ -110,20 +107,13 @@ CREATE TABLE kvcache_key (id INTEGER PRIMARY KEY, key REAL);
           amount = 0;
         }
 
-        db.runQuery(
-          `INSERT INTO zero_budget_months (id, buffered) VALUES (?, ?)`,
-          [month, amount],
-        );
+        db.runQuery(`INSERT INTO zero_budget_months (id, buffered) VALUES (?, ?)`, [month, amount]);
       }
     });
   });
 
   // Migrate notes
-  const notes = db.runQuery(
-    `SELECT * FROM spreadsheet_cells WHERE name LIKE 'notes!%'`,
-    [],
-    true,
-  );
+  const notes = db.runQuery(`SELECT * FROM spreadsheet_cells WHERE name LIKE 'notes!%'`, [], true);
 
   const parseNote = str => {
     try {

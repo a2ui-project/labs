@@ -14,34 +14,34 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Input } from '@actual-app/components/input';
-import { Select } from '@actual-app/components/select';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import { PossibleRoles } from '@actual-app/core/shared/user';
-import type { NewUserEntity, UserEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {Input} from '@actual-app/components/input';
+import {Select} from '@actual-app/components/select';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import {PossibleRoles} from '@actual-app/core/shared/user';
+import type {NewUserEntity, UserEntity} from '@actual-app/core/types/models';
 
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { Checkbox, FormField, FormLabel } from '#components/forms';
-import { popModal } from '#modals/modalsSlice';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { signOut } from '#users/usersSlice';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {Checkbox, FormField, FormLabel} from '#components/forms';
+import {popModal} from '#modals/modalsSlice';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {signOut} from '#users/usersSlice';
 
 type User = UserEntity;
 type NewUser = NewUserEntity;
 
 function useGetUserDirectoryErrors() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   function getUserDirectoryErrors(reason: string) {
     switch (reason) {
@@ -50,15 +50,11 @@ function useGetUserDirectoryErrors() {
       case 'token-expired':
         return t('Login expired, please log in again.');
       case 'user-cant-be-empty':
-        return t(
-          'Please enter a value for the username; the field cannot be empty.',
-        );
+        return t('Please enter a value for the username; the field cannot be empty.');
       case 'role-cant-be-empty':
         return t('Select a role; the field cannot be empty.');
       case 'user-already-exists':
-        return t(
-          'The username you entered already exists. Please choose a different username.',
-        );
+        return t('The username you entered already exists. Please choose a different username.');
       case 'not-all-deleted':
         return t(
           'Not all users were deleted. Check if one of the selected users is the server owner.',
@@ -70,18 +66,18 @@ function useGetUserDirectoryErrors() {
       default:
         return t(
           'An internal error occurred, sorry! Visit https://actualbudget.org/contact/ for support. (ref: {{reason}})',
-          { reason },
+          {reason},
         );
     }
   }
 
-  return { getUserDirectoryErrors };
+  return {getUserDirectoryErrors};
 }
 
 function useSaveUser() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
-  const { getUserDirectoryErrors } = useGetUserDirectoryErrors();
+  const {getUserDirectoryErrors} = useGetUserDirectoryErrors();
 
   async function saveUser(
     method: 'user-add' | 'user-update',
@@ -123,24 +119,21 @@ function useSaveUser() {
     return true;
   }
 
-  return { saveUser };
+  return {saveUser};
 }
 
-type EditUserFinanceAppProps = Extract<
-  ModalType,
-  { name: 'edit-user' }
->['options'];
+type EditUserFinanceAppProps = Extract<ModalType, {name: 'edit-user'}>['options'];
 
 export function EditUserFinanceApp({
   user: defaultUser,
   onSave: originalOnSave,
 }: EditUserFinanceAppProps) {
-  const { t } = useTranslation();
-  const { saveUser } = useSaveUser();
+  const {t} = useTranslation();
+  const {saveUser} = useSaveUser();
   const isExistingUser = 'id' in defaultUser && !!defaultUser.id;
   return (
     <Modal name="edit-user">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={
@@ -176,16 +169,14 @@ type EditUserProps = {
   ) => Promise<void>;
 };
 
-function EditUser({ defaultUser, onSave: originalOnSave }: EditUserProps) {
-  const { t } = useTranslation();
+function EditUser({defaultUser, onSave: originalOnSave}: EditUserProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const isExistingUser = 'id' in defaultUser && !!defaultUser.id;
   const isOwner = 'owner' in defaultUser && defaultUser.owner;
 
   const [userName, setUserName] = useState<string>(defaultUser.userName ?? '');
-  const [displayName, setDisplayName] = useState<string>(
-    defaultUser.displayName ?? '',
-  );
+  const [displayName, setDisplayName] = useState<string>(defaultUser.displayName ?? '');
   const [enabled, setEnabled] = useState<boolean>(defaultUser.enabled);
   const [role, setRole] = useState<string>(defaultUser.role ?? 'BASIC');
   const [error, setError] = useState<string>('');
@@ -215,8 +206,8 @@ function EditUser({ defaultUser, onSave: originalOnSave }: EditUserProps) {
 
   return (
     <>
-      <SpaceBetween style={{ marginTop: 10 }}>
-        <FormField style={{ flex: 1 }}>
+      <SpaceBetween style={{marginTop: 10}}>
+        <FormField style={{flex: 1}}>
           <FormLabel title={t('Username')} htmlFor="name-field" />
           <Input
             id="name-field"
@@ -253,7 +244,7 @@ function EditUser({ defaultUser, onSave: originalOnSave }: EditUserProps) {
             }}
             onChange={() => setEnabled(!enabled)}
           />
-          <label htmlFor="enabled-field" style={{ userSelect: 'none' }}>
+          <label htmlFor="enabled-field" style={{userSelect: 'none'}}>
             <Trans>Enabled</Trans>
           </label>
         </View>
@@ -266,13 +257,11 @@ function EditUser({ defaultUser, onSave: originalOnSave }: EditUserProps) {
             marginTop: 5,
           }}
         >
-          <Trans>
-            Change this username with caution; it is the server owner.
-          </Trans>
+          <Trans>Change this username with caution; it is the server owner.</Trans>
         </Text>
       )}
-      <SpaceBetween style={{ marginTop: 10 }}>
-        <FormField style={{ flex: 1 }}>
+      <SpaceBetween style={{marginTop: 10}}>
+        <FormField style={{flex: 1}}>
           <FormLabel title={t('Display Name')} htmlFor="displayname-field" />
           <Input
             id="displayname-field"
@@ -291,8 +280,8 @@ function EditUser({ defaultUser, onSave: originalOnSave }: EditUserProps) {
             }}
           >
             <Trans>
-              If left empty, it will be updated from your OpenID provider on the
-              user&apos;s login, if available there.
+              If left empty, it will be updated from your OpenID provider on the user&apos;s login,
+              if available there.
             </Trans>
           </View>
           <View
@@ -302,14 +291,13 @@ function EditUser({ defaultUser, onSave: originalOnSave }: EditUserProps) {
             }}
           >
             <Trans>
-              When displaying user information, this will be shown instead of
-              the username.
+              When displaying user information, this will be shown instead of the username.
             </Trans>
           </View>
         </FormField>
       </SpaceBetween>
-      <SpaceBetween style={{ marginTop: 10, width: '100px' }}>
-        <FormField style={{ flex: 1 }}>
+      <SpaceBetween style={{marginTop: 10, width: '100px'}}>
+        <FormField style={{flex: 1}}>
           <FormLabel title={t('Role')} htmlFor="role-field" />
           <Select
             id="role-field"
@@ -332,7 +320,7 @@ function EditUser({ defaultUser, onSave: originalOnSave }: EditUserProps) {
           justifyContent: 'flex-end',
         }}
       >
-        {error && <Text style={{ color: theme.errorText }}>{error}</Text>}
+        {error && <Text style={{color: theme.errorText}}>{error}</Text>}
         <Button variant="bare" onPress={() => dispatch(popModal())}>
           <Trans>Cancel</Trans>
         </Button>
@@ -346,7 +334,7 @@ function EditUser({ defaultUser, onSave: originalOnSave }: EditUserProps) {
 
 const RoleDescription = () => {
   return (
-    <View style={{ paddingTop: 10 }}>
+    <View style={{paddingTop: 10}}>
       <Text
         style={{
           ...styles.verySmallText,
@@ -354,8 +342,8 @@ const RoleDescription = () => {
         }}
       >
         <Trans>
-          In our user directory, each user is assigned a specific role that
-          determines their permissions and capabilities within the system.
+          In our user directory, each user is assigned a specific role that determines their
+          permissions and capabilities within the system.
         </Trans>
       </Text>
       <Text
@@ -365,11 +353,11 @@ const RoleDescription = () => {
         }}
       >
         <Trans>
-          Understanding these roles is essential for managing users and
-          responsibilities effectively.
+          Understanding these roles is essential for managing users and responsibilities
+          effectively.
         </Trans>
       </Text>
-      <View style={{ paddingTop: 5 }}>
+      <View style={{paddingTop: 5}}>
         <Text
           style={{
             ...styles.altMenuHeaderText,
@@ -386,8 +374,8 @@ const RoleDescription = () => {
           }}
         >
           <Trans>
-            Users with the Basic role can create new budgets and be invited to
-            collaborate on budgets created by others.
+            Users with the Basic role can create new budgets and be invited to collaborate on
+            budgets created by others.
           </Trans>
         </Text>
         <Text
@@ -397,12 +385,12 @@ const RoleDescription = () => {
           }}
         >
           <Trans>
-            This role is ideal for users who primarily need to manage their own
-            budgets and participate in shared budget activities.
+            This role is ideal for users who primarily need to manage their own budgets and
+            participate in shared budget activities.
           </Trans>
         </Text>
       </View>
-      <View style={{ paddingTop: 10 }}>
+      <View style={{paddingTop: 10}}>
         <Text
           style={{
             ...styles.altMenuHeaderText,
@@ -419,9 +407,8 @@ const RoleDescription = () => {
           }}
         >
           <Trans>
-            Can do everything that Basic users can. In addition, they have the
-            ability to add new users to the directory and access budget files
-            from all users.
+            Can do everything that Basic users can. In addition, they have the ability to add new
+            users to the directory and access budget files from all users.
           </Trans>
         </Text>
         <Text
@@ -431,8 +418,8 @@ const RoleDescription = () => {
           }}
         >
           <Trans>
-            Can also assign ownership of a budget to another person, ensuring
-            efficient budget management.
+            Can also assign ownership of a budget to another person, ensuring efficient budget
+            management.
           </Trans>
         </Text>
       </View>

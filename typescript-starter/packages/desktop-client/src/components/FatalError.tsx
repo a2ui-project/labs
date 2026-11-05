@@ -14,29 +14,28 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import type { ReactNode } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import type {ReactNode} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { Button, ButtonWithLoading } from '@actual-app/components/button';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { isElectron } from '@actual-app/core/shared/environment';
-import { LazyLoadFailedError } from '@actual-app/core/shared/errors';
+import {Block} from '@actual-app/components/block';
+import {Button, ButtonWithLoading} from '@actual-app/components/button';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {isElectron} from '@actual-app/core/shared/environment';
+import {LazyLoadFailedError} from '@actual-app/core/shared/errors';
 
-import { useModalState } from '#hooks/useModalState';
+import {useModalState} from '#hooks/useModalState';
 
-import { DirectoryDisplay } from './common/DirectoryDisplay';
-import { Link } from './common/Link';
-import { Modal, ModalHeader } from './common/Modal';
-import { Checkbox } from './forms';
+import {DirectoryDisplay} from './common/DirectoryDisplay';
+import {Link} from './common/Link';
+import {Modal, ModalHeader} from './common/Modal';
+import {Checkbox} from './forms';
 
-const DATA_FOLDER_DOCS_URL =
-  'https://actualbudget.org/docs/troubleshooting/data-folder-access';
+const DATA_FOLDER_DOCS_URL = 'https://actualbudget.org/docs/troubleshooting/data-folder-access';
 
 // Filesystem error codes that mean "the OS refused access" rather than "the
 // location is missing or invalid".
@@ -60,7 +59,7 @@ type RenderSimpleProps = {
   error: Error | AppError;
 };
 
-function RenderSimple({ error }: RenderSimpleProps) {
+function RenderSimple({error}: RenderSimpleProps) {
   let msg: ReactNode;
 
   if ('IDBFailure' in error && error.IDBFailure) {
@@ -68,25 +67,21 @@ function RenderSimple({ error }: RenderSimpleProps) {
     msg = (
       <Text>
         <Trans>
-          Your browser doesn't support IndexedDB in this environment, a feature
-          that Actual requires to run. This might happen if you are in private
-          browsing mode. Please try a different browser or turn off private
-          browsing.
+          Your browser doesn't support IndexedDB in this environment, a feature that Actual requires
+          to run. This might happen if you are in private browsing mode. Please try a different
+          browser or turn off private browsing.
         </Trans>
       </Text>
     );
-  } else if (
-    'SharedArrayBufferMissing' in error &&
-    error.SharedArrayBufferMissing
-  ) {
+  } else if ('SharedArrayBufferMissing' in error && error.SharedArrayBufferMissing) {
     // SharedArrayBuffer isn't available
     msg = (
       <Text>
         <Trans>
-          Actual requires access to <code>SharedArrayBuffer</code> in order to
-          function properly. If you're seeing this error, either your browser
-          does not support <code>SharedArrayBuffer</code>, or your server is not
-          sending the appropriate headers, or you are not using HTTPS. See{' '}
+          Actual requires access to <code>SharedArrayBuffer</code> in order to function properly. If
+          you're seeing this error, either your browser does not support{' '}
+          <code>SharedArrayBuffer</code>, or your server is not sending the appropriate headers, or
+          you are not using HTTPS. See{' '}
           <Link
             variant="external"
             linkColor="muted"
@@ -102,8 +97,8 @@ function RenderSimple({ error }: RenderSimpleProps) {
     msg = isElectron() ? (
       <Text>
         <Trans>
-          Actual's backend process failed to start or stopped unexpectedly.
-          Restart the app to try again; if the problem persists, please get{' '}
+          Actual's backend process failed to start or stopped unexpectedly. Restart the app to try
+          again; if the problem persists, please get{' '}
           <Link variant="external" to="https://actualbudget.org/contact">
             in touch
           </Link>{' '}
@@ -113,18 +108,15 @@ function RenderSimple({ error }: RenderSimpleProps) {
     ) : (
       <Text>
         <Trans>
-          Actual couldn't load a critical backend worker. Reload the page to try
-          again; if the problem persists, do a hard refresh to clear any stale
-          cached assets.
+          Actual couldn't load a critical backend worker. Reload the page to try again; if the
+          problem persists, do a hard refresh to clear any stale cached assets.
         </Trans>
       </Text>
     );
   } else {
     msg = (
       <Text>
-        <Trans>
-          There was a problem loading the app in this browser version.
-        </Trans>
+        <Trans>There was a problem loading the app in this browser version.</Trans>
       </Text>
     );
   }
@@ -148,7 +140,7 @@ type RenderDocumentDirErrorProps = {
   code?: string;
 };
 
-function RenderDocumentDirError({ path, code }: RenderDocumentDirErrorProps) {
+function RenderDocumentDirError({path, code}: RenderDocumentDirErrorProps) {
   const isAccessDenied = code ? ACCESS_DENIED_CODES.includes(code) : false;
 
   return (
@@ -161,28 +153,23 @@ function RenderDocumentDirError({ path, code }: RenderDocumentDirErrorProps) {
       }}
     >
       <Text>
-        <Trans>
-          Actual couldn't access the folder where it stores your budget files:
-        </Trans>
+        <Trans>Actual couldn't access the folder where it stores your budget files:</Trans>
       </Text>
       {path && <DirectoryDisplay directory={path} />}
       {isAccessDenied ? (
         <Text>
           <Trans>
-            Access to this folder was denied. This is usually caused by folder
-            permissions, or by security software (such as ransomware protection
-            or antivirus) blocking Actual. Allow Actual to use this folder, or
-            choose a different folder below.
+            Access to this folder was denied. This is usually caused by folder permissions, or by
+            security software (such as ransomware protection or antivirus) blocking Actual. Allow
+            Actual to use this folder, or choose a different folder below.
           </Trans>
         </Text>
       ) : (
         <Text>
-          {code ? (
-            <Trans>The system reported the error code {{ code }}. </Trans>
-          ) : null}
+          {code ? <Trans>The system reported the error code {{code}}. </Trans> : null}
           <Trans>
-            Check that this location exists and that Actual is allowed to write
-            to it, or choose a different folder below.
+            Check that this location exists and that Actual is allowed to write to it, or choose a
+            different folder below.
           </Trans>
         </Text>
       )}
@@ -205,7 +192,7 @@ function RenderDocumentDirError({ path, code }: RenderDocumentDirErrorProps) {
  * the desktop app's main process and the app is relaunched.
  */
 function ChooseDocumentDirButton() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [isChanging, setIsChanging] = useState(false);
   const [chooseError, setChooseError] = useState('');
 
@@ -239,17 +226,11 @@ function ChooseDocumentDirButton() {
 
   return (
     <>
-      <ButtonWithLoading
-        variant="primary"
-        isLoading={isChanging}
-        onPress={chooseDirectory}
-      >
+      <ButtonWithLoading variant="primary" isLoading={isChanging} onPress={chooseDirectory}>
         <Trans>Choose a different folder</Trans>
       </ButtonWithLoading>
       {chooseError && (
-        <Text style={{ color: theme.errorText, flexBasis: '100%' }}>
-          {chooseError}
-        </Text>
+        <Text style={{color: theme.errorText, flexBasis: '100%'}}>{chooseError}</Text>
       )}
     </>
   );
@@ -267,10 +248,9 @@ function RenderLazyLoadError() {
     >
       <Text>
         <Trans>
-          There was a problem loading one of the chunks of the application.
-          Please reload the page and try again. If the issue persists - there
-          might be an issue with either your internet connection and/or the
-          server where the app is hosted.
+          There was a problem loading one of the chunks of the application. Please reload the page
+          and try again. If the issue persists - there might be an issue with either your internet
+          connection and/or the server where the app is hosted.
         </Trans>
       </Text>
     </SpaceBetween>
@@ -302,25 +282,17 @@ function SharedArrayBufferOverride() {
 
   return expanded ? (
     <>
-      <Paragraph style={{ marginTop: 10 }}>
+      <Paragraph style={{marginTop: 10}}>
         <Trans>
-          Actual uses <code>SharedArrayBuffer</code> to allow usage from
-          multiple tabs at once and to ensure correct behavior when switching
-          files. While it can run without access to
-          <code>SharedArrayBuffer</code>, you may encounter data loss or notice
-          multiple budget files being merged with each other.
+          Actual uses <code>SharedArrayBuffer</code> to allow usage from multiple tabs at once and
+          to ensure correct behavior when switching files. While it can run without access to
+          <code>SharedArrayBuffer</code>, you may encounter data loss or notice multiple budget
+          files being merged with each other.
         </Trans>
       </Paragraph>
-      <label
-        style={{ display: 'flex', alignItems: 'center', marginBottom: 10 }}
-      >
-        <Checkbox
-          checked={understand}
-          onChange={() => setUnderstand(!understand)}
-        />{' '}
-        <Trans>
-          I understand the risks, run Actual in the unsupported fallback mode
-        </Trans>
+      <label style={{display: 'flex', alignItems: 'center', marginBottom: 10}}>
+        <Checkbox checked={understand} onChange={() => setUnderstand(!understand)} />{' '}
+        <Trans>I understand the risks, run Actual in the unsupported fallback mode</Trans>
       </label>
       <Button
         isDisabled={!understand}
@@ -333,20 +305,16 @@ function SharedArrayBufferOverride() {
       </Button>
     </>
   ) : (
-    <Link
-      variant="text"
-      onClick={() => setExpanded(true)}
-      style={{ marginLeft: 5 }}
-    >
+    <Link variant="text" onClick={() => setExpanded(true)} style={{marginLeft: 5}}>
       <Trans>Advanced options</Trans>
     </Link>
   );
 }
 
-export function FatalError({ error: rawError }: FatalErrorProps) {
-  const { t } = useTranslation();
+export function FatalError({error: rawError}: FatalErrorProps) {
+  const {t} = useTranslation();
 
-  const { modalStack } = useModalState();
+  const {modalStack} = useModalState();
   const lastModal = modalStack[modalStack.length - 1];
 
   const [showError, setShowError] = useState(false);
@@ -362,9 +330,7 @@ export function FatalError({ error: rawError }: FatalErrorProps) {
         : new Error(String(rawError));
   const isAppInitFailure = 'type' in error && error.type === 'app-init-failure';
   const isDocumentDirError =
-    isAppInitFailure &&
-    'DocumentDirFailure' in error &&
-    Boolean(error.DocumentDirFailure);
+    isAppInitFailure && 'DocumentDirFailure' in error && Boolean(error.DocumentDirFailure);
   const documentDirPath =
     'path' in error && typeof error.path === 'string' ? error.path : undefined;
   const documentDirCode =
@@ -389,10 +355,7 @@ export function FatalError({ error: rawError }: FatalErrorProps) {
         {isLazyLoadError ? (
           <RenderLazyLoadError />
         ) : isDocumentDirError ? (
-          <RenderDocumentDirError
-            path={documentDirPath}
-            code={documentDirCode}
-          />
+          <RenderDocumentDirError path={documentDirPath} code={documentDirCode} />
         ) : isAppInitFailure ? (
           <RenderSimple error={error} />
         ) : (
@@ -400,14 +363,14 @@ export function FatalError({ error: rawError }: FatalErrorProps) {
         )}
 
         <Paragraph>
-          <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+          <View style={{flexDirection: 'row', gap: 10, flexWrap: 'wrap'}}>
             {isDocumentDirError && isElectron() && <ChooseDocumentDirButton />}
             <Button onPress={() => window.Actual.relaunch()}>
               <Trans>Restart app</Trans>
             </Button>
           </View>
         </Paragraph>
-        <Paragraph isLast style={{ fontSize: 11 }}>
+        <Paragraph isLast style={{fontSize: 11}}>
           <Link variant="text" onClick={() => setShowError(state => !state)}>
             <Trans>Show Error</Trans>
           </Link>

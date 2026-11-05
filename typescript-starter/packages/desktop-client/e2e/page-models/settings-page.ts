@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class SettingsPage {
   readonly page: Page;
@@ -33,11 +33,8 @@ export class SettingsPage {
     this.switchBudgetTypeButton = this.settings.getByRole('button', {
       name: /^Switch to (envelope|tracking) budgeting$/i,
     });
-    this.advancedSettingsButton =
-      this.settings.getByTestId('advanced-settings');
-    this.experimentalSettingsButton = this.settings.getByTestId(
-      'experimental-settings',
-    );
+    this.advancedSettingsButton = this.settings.getByTestId('advanced-settings');
+    this.experimentalSettingsButton = this.settings.getByTestId('experimental-settings');
   }
 
   async waitFor(...options: Parameters<Locator['waitFor']>) {
@@ -73,7 +70,7 @@ export class SettingsPage {
     const featureCheckbox = this.page.getByRole('checkbox', {
       name: featureName,
     });
-    await featureCheckbox.waitFor({ state: 'visible' });
+    await featureCheckbox.waitFor({state: 'visible'});
     if (!(await featureCheckbox.isChecked())) {
       await featureCheckbox.click();
     }

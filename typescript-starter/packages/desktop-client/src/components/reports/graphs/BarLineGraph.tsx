@@ -16,27 +16,19 @@
 
 // @ts-strict-ignore
 import React from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
-import {
-  Bar,
-  CartesianGrid,
-  ComposedChart,
-  Line,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {theme} from '@actual-app/components/theme';
+import {css} from '@emotion/css';
+import {Bar, CartesianGrid, ComposedChart, Line, Tooltip, XAxis, YAxis} from 'recharts';
 
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { numberFormatterTooltip } from '#components/reports/numberFormatter';
-import { useFormat } from '#hooks/useFormat';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {numberFormatterTooltip} from '#components/reports/numberFormatter';
+import {useFormat} from '#hooks/useFormat';
 
 type PayloadItem = {
   payload: {
@@ -53,8 +45,8 @@ type CustomTooltipProps = {
   payload?: PayloadItem[];
 };
 
-const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
-  const { t } = useTranslation();
+const CustomTooltip = ({active, payload}: CustomTooltipProps) => {
+  const {t} = useTranslation();
 
   if (active && payload && payload.length) {
     return (
@@ -70,15 +62,12 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
         })}
       >
         <div>
-          <div style={{ marginBottom: 10 }}>
+          <div style={{marginBottom: 10}}>
             <strong>{payload[0].payload.date}</strong>
           </div>
-          <div style={{ lineHeight: 1.5 }}>
+          <div style={{lineHeight: 1.5}}>
             <PrivacyFilter>
-              <AlignedText
-                left={t('Assets:')}
-                right={payload[0].payload.assets}
-              />
+              <AlignedText left={t('Assets:')} right={payload[0].payload.assets} />
               <AlignedText left={t('Debt:')} right={payload[0].payload.debt} />
               <AlignedText
                 left={t('Change:')}
@@ -99,12 +88,7 @@ type BarLineGraphProps = {
   showTooltip?: boolean;
 };
 
-export function BarLineGraph({
-  style,
-  data,
-  compact,
-  showTooltip = true,
-}: BarLineGraphProps) {
+export function BarLineGraph({style, data, compact, showTooltip = true}: BarLineGraphProps) {
   const format = useFormat();
   const animationProps = useRechartsAnimation();
   const tickFormatter = tick => {
@@ -115,19 +99,19 @@ export function BarLineGraph({
     <Container
       style={{
         ...style,
-        ...(compact && { height: 'auto' }),
+        ...(compact && {height: 'auto'}),
       }}
     >
       {(width, height) =>
         data && (
           <div>
-            {!compact && <div style={{ marginTop: '15px' }} />}
+            {!compact && <div style={{marginTop: '15px'}} />}
             <ComposedChart
               responsive
               width={width}
               height={height}
               data={data.data}
-              margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+              margin={{top: 0, right: 0, left: 0, bottom: 0}}
             >
               {showTooltip && (
                 <Tooltip
@@ -139,18 +123,8 @@ export function BarLineGraph({
               {!compact && <CartesianGrid strokeDasharray="3 3" />}
               {!compact && <XAxis dataKey="x" />}
               {!compact && <YAxis dataKey="y" tickFormatter={tickFormatter} />}
-              <Bar
-                type="monotone"
-                dataKey="y"
-                fill="#8884d8"
-                {...animationProps}
-              />
-              <Line
-                type="monotone"
-                dataKey="y"
-                stroke="#8884d8"
-                {...animationProps}
-              />
+              <Bar type="monotone" dataKey="y" fill="#8884d8" {...animationProps} />
+              <Line type="monotone" dataKey="y" stroke="#8884d8" {...animationProps} />
             </ComposedChart>
           </div>
         )

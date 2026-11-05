@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 
-import type { Query } from '@actual-app/core/shared/query';
-import { debounce } from 'es-toolkit/compat';
+import type {Query} from '@actual-app/core/shared/query';
+import {debounce} from 'es-toolkit/compat';
 
 import * as queries from '#queries';
 

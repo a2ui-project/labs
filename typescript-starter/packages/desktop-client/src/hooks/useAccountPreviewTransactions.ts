@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { useCallback, useMemo } from 'react';
+import {useCallback, useMemo} from 'react';
 
-import { groupById } from '@actual-app/core/shared/util';
-import type { IntegerAmount } from '@actual-app/core/shared/util';
+import {groupById} from '@actual-app/core/shared/util';
+import type {IntegerAmount} from '@actual-app/core/shared/util';
 import type {
   AccountEntity,
   PayeeEntity,
@@ -27,20 +27,18 @@ import type {
 
 import * as bindings from '#spreadsheet/bindings';
 
-import { useAccounts } from './useAccounts';
-import { usePayees } from './usePayees';
-import { usePreviewTransactions } from './usePreviewTransactions';
-import { useSheetValue } from './useSheetValue';
-import { useSyncedPref } from './useSyncedPref';
-import { calculateRunningBalancesBottomUp } from './useTransactions';
+import {useAccounts} from './useAccounts';
+import {usePayees} from './usePayees';
+import {usePreviewTransactions} from './usePreviewTransactions';
+import {useSheetValue} from './useSheetValue';
+import {useSyncedPref} from './useSyncedPref';
+import {calculateRunningBalancesBottomUp} from './useTransactions';
 
 type UseAccountPreviewTransactionsProps = {
   accountId?: AccountEntity['id'] | undefined;
 };
 
-type UseAccountPreviewTransactionsResult = ReturnType<
-  typeof usePreviewTransactions
->;
+type UseAccountPreviewTransactionsResult = ReturnType<typeof usePreviewTransactions>;
 
 /**
  * Preview transactions for a given account or all accounts if no `accountId` is provided.
@@ -50,9 +48,9 @@ type UseAccountPreviewTransactionsResult = ReturnType<
 export function useAccountPreviewTransactions({
   accountId,
 }: UseAccountPreviewTransactionsProps): UseAccountPreviewTransactionsResult {
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const accountsById = useMemo(() => groupById(accounts), [accounts]);
-  const { data: payees = [] } = usePayees();
+  const {data: payees = []} = usePayees();
   const payeesById = useMemo(() => groupById(payees), [payees]);
 
   const getPayeeByTransferAccount = useCallback(
@@ -86,13 +84,8 @@ export function useAccountPreviewTransactions({
     [accountId, getTransferAccountByPayee],
   );
 
-  const accountBalanceValue = useSheetValue<
-    'account',
-    'balance' | 'accounts-balance'
-  >(
-    accountId
-      ? bindings.accountBalance(accountId)
-      : bindings.allAccountBalance(),
+  const accountBalanceValue = useSheetValue<'account', 'balance' | 'accounts-balance'>(
+    accountId ? bindings.accountBalance(accountId) : bindings.allAccountBalance(),
   );
 
   const [showBalances] = useSyncedPref(`show-balances-${accountId}`);
@@ -120,23 +113,19 @@ export function useAccountPreviewTransactions({
       };
     }
 
-    const {
-      transactions: previewTransactions,
-      runningBalances: previewRunningBalances,
-    } = inverseBasedOnAccount({
-      accountId,
-      transactions: allPreviewTransactions,
-      runningBalances: allRunningBalances,
-      startingBalance: accountBalanceValue ?? 0,
-      getPayeeByTransferAccount,
-      getTransferAccountByPayee,
-    });
+    const {transactions: previewTransactions, runningBalances: previewRunningBalances} =
+      inverseBasedOnAccount({
+        accountId,
+        transactions: allPreviewTransactions,
+        runningBalances: allRunningBalances,
+        startingBalance: accountBalanceValue ?? 0,
+        getPayeeByTransferAccount,
+        getTransferAccountByPayee,
+      });
 
     const transactionIds = new Set(previewTransactions.map(t => t.id));
     const runningBalances = new Map(
-      [...previewRunningBalances.entries()].filter(([id]) =>
-        transactionIds.has(id),
-      ),
+      [...previewRunningBalances.entries()].filter(([id]) => transactionIds.has(id)),
     );
 
     return {
@@ -162,12 +151,8 @@ type InverseBasedOnAccountProps = {
   transactions: readonly TransactionEntity[];
   startingBalance: IntegerAmount;
   runningBalances: Map<TransactionEntity['id'], IntegerAmount>;
-  getPayeeByTransferAccount: (
-    transferAccountId?: AccountEntity['id'] | null,
-  ) => PayeeEntity | null;
-  getTransferAccountByPayee: (
-    payeeId?: PayeeEntity['id'] | null,
-  ) => AccountEntity | null;
+  getPayeeByTransferAccount: (transferAccountId?: AccountEntity['id'] | null) => PayeeEntity | null;
+  getTransferAccountByPayee: (payeeId?: PayeeEntity['id'] | null) => AccountEntity | null;
 };
 
 type AccountPreviewTransaction = TransactionEntity & {
@@ -223,10 +208,7 @@ function inverseTransferForAccount({
   previewStatus,
   transaction,
   getPayeeByTransferAccount,
-}: Pick<
-  InverseBasedOnAccountProps,
-  'accountId' | 'getPayeeByTransferAccount'
-> & {
+}: Pick<InverseBasedOnAccountProps, 'accountId' | 'getPayeeByTransferAccount'> & {
   previewStatus?: TransactionEntity['category'];
   transaction: TransactionEntity;
 }): AccountPreviewTransaction {
@@ -245,7 +227,7 @@ function inverseTransferForAccount({
     amount: -transaction.amount,
     payee: getPayeeByTransferAccount(transaction.account)?.id || '',
     account: accountId || '',
-    ...(previewStatus != null && { category: previewStatus }),
+    ...(previewStatus != null && {category: previewStatus}),
   };
 }
 
@@ -265,35 +247,30 @@ export function inverseBasedOnAccount({
       .filter(transaction => transaction.is_parent)
       .map(transaction => [transaction.id, transaction.category]),
   );
-  const mappedTransactions: AccountPreviewTransaction[] = transactions.flatMap(
-    transaction => {
-      if (transaction.account === accountId) {
-        return [{ inversed: false, ...transaction }];
-      }
+  const mappedTransactions: AccountPreviewTransaction[] = transactions.flatMap(transaction => {
+    if (transaction.account === accountId) {
+      return [{inversed: false, ...transaction}];
+    }
 
-      const candidates = transaction.subtransactions
-        ? transaction.subtransactions
-        : transaction.is_parent
-          ? []
-          : [transaction];
+    const candidates = transaction.subtransactions
+      ? transaction.subtransactions
+      : transaction.is_parent
+        ? []
+        : [transaction];
 
-      return candidates
-        .filter(
-          candidate =>
-            getTransferAccountByPayee(candidate.payee)?.id === accountId,
-        )
-        .map(candidate =>
-          inverseTransferForAccount({
-            accountId,
-            previewStatus: candidate.parent_id
-              ? parentPreviewStatuses.get(candidate.parent_id)
-              : candidate.category,
-            transaction: candidate,
-            getPayeeByTransferAccount,
-          }),
-        );
-    },
-  );
+    return candidates
+      .filter(candidate => getTransferAccountByPayee(candidate.payee)?.id === accountId)
+      .map(candidate =>
+        inverseTransferForAccount({
+          accountId,
+          previewStatus: candidate.parent_id
+            ? parentPreviewStatuses.get(candidate.parent_id)
+            : candidate.category,
+          transaction: candidate,
+          getPayeeByTransferAccount,
+        }),
+      );
+  });
 
   // Recalculate running balances if any transaction was inversed.
   // This is necessary because the running balances are calculated based on the
@@ -301,11 +278,7 @@ export function inverseBasedOnAccount({
   // based on the inversed transactions.
   const anyInversed = mappedTransactions.some(t => t.inversed);
   const mappedRunningBalances = anyInversed
-    ? calculateRunningBalancesBottomUp(
-        mappedTransactions,
-        'all',
-        startingBalance ?? 0,
-      )
+    ? calculateRunningBalancesBottomUp(mappedTransactions, 'all', startingBalance ?? 0)
     : runningBalances;
 
   return {

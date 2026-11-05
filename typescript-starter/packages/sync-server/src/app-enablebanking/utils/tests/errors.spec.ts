@@ -14,20 +14,13 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import {
-  EnableBankingError,
-  handleEnableBankingError,
-} from '#app-enablebanking/utils/errors';
+import {EnableBankingError, handleEnableBankingError} from '#app-enablebanking/utils/errors';
 
 describe('EnableBankingError', () => {
   it('should create an error with type and code', () => {
-    const error = new EnableBankingError(
-      'INVALID_INPUT',
-      'MISSING_FIELD',
-      'oops',
-    );
+    const error = new EnableBankingError('INVALID_INPUT', 'MISSING_FIELD', 'oops');
     expect(error.error_type).toBe('INVALID_INPUT');
     expect(error.error_code).toBe('MISSING_FIELD');
     expect(error.message).toBe('oops');
@@ -36,21 +29,19 @@ describe('EnableBankingError', () => {
 
   it('should use default message when not provided', () => {
     const error = new EnableBankingError('INTERNAL_ERROR', 'UNKNOWN');
-    expect(error.message).toBe(
-      'Enable Banking error: INTERNAL_ERROR - UNKNOWN',
-    );
+    expect(error.message).toBe('Enable Banking error: INTERNAL_ERROR - UNKNOWN');
   });
 });
 
 describe('handleEnableBankingError', () => {
   it('should return INVALID_ACCESS_TOKEN for 401', () => {
-    const error = handleEnableBankingError(401, { message: 'Unauthorized' });
+    const error = handleEnableBankingError(401, {message: 'Unauthorized'});
     expect(error.error_type).toBe('Unauthorized');
     expect(error.error_code).toBe('INVALID_ACCESS_TOKEN');
   });
 
   it('should return INVALID_ACCESS_TOKEN for 403', () => {
-    const error = handleEnableBankingError(403, { message: 'Forbidden' });
+    const error = handleEnableBankingError(403, {message: 'Forbidden'});
     expect(error.error_type).toBe('Forbidden');
     expect(error.error_code).toBe('INVALID_ACCESS_TOKEN');
   });
@@ -64,7 +55,7 @@ describe('handleEnableBankingError', () => {
   });
 
   it('should return NOT_FOUND for 404', () => {
-    const error = handleEnableBankingError(404, { message: 'Not found' });
+    const error = handleEnableBankingError(404, {message: 'Not found'});
     expect(error.error_type).toBe('Not found');
     expect(error.error_code).toBe('NOT_FOUND');
   });
@@ -88,7 +79,7 @@ describe('handleEnableBankingError', () => {
   });
 
   it('should return INTERNAL_ERROR for 500+', () => {
-    const error = handleEnableBankingError(500, { message: 'Server error' });
+    const error = handleEnableBankingError(500, {message: 'Server error'});
     expect(error.error_type).toBe('Server error');
     expect(error.error_code).toBe('INTERNAL_ERROR');
   });

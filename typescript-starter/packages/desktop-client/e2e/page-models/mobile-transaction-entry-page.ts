@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { MobileAccountPage } from './mobile-account-page';
+import {MobileAccountPage} from './mobile-account-page';
 
 export class MobileTransactionEntryPage {
   readonly page: Page;
@@ -47,10 +47,7 @@ export class MobileTransactionEntryPage {
     // TransactionEdit.onUpdate runs an async rules-run before setTransactions,
     // so wait for the outer display button (reads props.value) to reflect the
     // committed amount before the next fillField snapshots the transaction.
-    await this.transactionForm
-      .getByRole('button')
-      .filter({ hasText: value })
-      .waitFor();
+    await this.transactionForm.getByRole('button').filter({hasText: value}).waitFor();
   }
 
   async fillField(fieldLocator: Locator, content: string) {
@@ -59,13 +56,9 @@ export class MobileTransactionEntryPage {
     // pressSequentially + option click: fill()+Enter breaks the autocomplete
     // highlight and selects "None"/wrong entry under CPU contention.
     await comboboxInput.pressSequentially(content);
-    await this.page
-      .getByRole('option')
-      .filter({ hasText: content })
-      .first()
-      .click();
-    await comboboxInput.waitFor({ state: 'hidden' });
-    await fieldLocator.filter({ hasText: content }).waitFor();
+    await this.page.getByRole('option').filter({hasText: content}).first().click();
+    await comboboxInput.waitFor({state: 'hidden'});
+    await fieldLocator.filter({hasText: content}).waitFor();
   }
 
   async createTransaction() {

@@ -14,33 +14,30 @@
  * limitations under the License.
  */
 
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgArrowThickRight } from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { CategoryEntity } from '@actual-app/core/types/models';
-import { css, cx } from '@emotion/css';
-import { AutoTextSize } from 'auto-text-size';
+import {Button} from '@actual-app/components/button';
+import {SvgArrowThickRight} from '@actual-app/components/icons/v1';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {CategoryEntity} from '@actual-app/core/types/models';
+import {css, cx} from '@emotion/css';
+import {AutoTextSize} from 'auto-text-size';
 
-import { BalanceWithCarryover } from '#components/budget/BalanceWithCarryover';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { useFormat } from '#hooks/useFormat';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import type { Binding } from '#spreadsheet';
-import { envelopeBudget, trackingBudget } from '#spreadsheet/bindings';
+import {BalanceWithCarryover} from '#components/budget/BalanceWithCarryover';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {useFormat} from '#hooks/useFormat';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import type {Binding} from '#spreadsheet';
+import {envelopeBudget, trackingBudget} from '#spreadsheet/bindings';
 
-import { getColumnWidth, PILL_STYLE } from './BudgetTable';
+import {getColumnWidth, PILL_STYLE} from './BudgetTable';
 
 type BalanceCellProps = {
-  binding: Binding<
-    'envelope-budget' | 'tracking-budget',
-    'leftover' | 'sum-amount'
-  >;
+  binding: Binding<'envelope-budget' | 'tracking-budget', 'leftover' | 'sum-amount'>;
   category: CategoryEntity;
   show3Columns?: boolean;
   onPress?: () => void;
@@ -54,7 +51,7 @@ export function BalanceCell({
   onPress,
   'aria-label': ariaLabel,
 }: BalanceCellProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [budgetType = 'envelope'] = useSyncedPref('budgetType');
   const columnWidth = getColumnWidth({
     show3Columns,
@@ -95,7 +92,7 @@ export function BalanceCell({
       longGoal={longGoal}
       CarryoverIndicator={MobileCarryoverIndicator}
     >
-      {({ type, value, className: defaultClassName }) => (
+      {({type, value, className: defaultClassName}) => (
         <Button
           variant="bare"
           style={{
@@ -130,7 +127,7 @@ export function BalanceCell({
     </BalanceWithCarryover>
   );
 }
-function MobileCarryoverIndicator({ style }: { style?: CSSProperties }) {
+function MobileCarryoverIndicator({style}: {style?: CSSProperties}) {
   return (
     <View
       style={{
@@ -141,11 +138,7 @@ function MobileCarryoverIndicator({ style }: { style?: CSSProperties }) {
         backgroundColor: style?.color ?? theme.pillText,
       }}
     >
-      <SvgArrowThickRight
-        width={11}
-        height={11}
-        style={{ color: theme.pillBackgroundLight }}
-      />
+      <SvgArrowThickRight width={11} height={11} style={{color: theme.pillBackgroundLight}} />
     </View>
   );
 }

@@ -14,49 +14,40 @@
  * limitations under the License.
  */
 
-import { createContext, useContext, useMemo } from 'react';
-import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import {createContext, useContext, useMemo} from 'react';
+import type {ReactNode} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { q } from '@actual-app/core/shared/query';
-import type {
-  AccountEntity,
-  PayeeEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
+import {q} from '@actual-app/core/shared/query';
+import type {AccountEntity, PayeeEntity, TransactionEntity} from '@actual-app/core/types/models';
 
-import { useAccounts } from './useAccounts';
-import { usePayeesById } from './usePayees';
-import { useTransactions } from './useTransactions';
+import {useAccounts} from './useAccounts';
+import {usePayeesById} from './usePayees';
+import {useTransactions} from './useTransactions';
 
 type DisplayPayeeContextValue = {
   displayPayees: Record<TransactionEntity['id'], string>;
 };
 
-const DisplayPayeeContext = createContext<DisplayPayeeContextValue | null>(
-  null,
-);
+const DisplayPayeeContext = createContext<DisplayPayeeContextValue | null>(null);
 
 type DisplayPayeeProviderProps = {
   transactions: readonly TransactionEntity[];
   children: ReactNode;
 };
 
-export function DisplayPayeeProvider({
-  transactions,
-  children,
-}: DisplayPayeeProviderProps) {
-  const { t } = useTranslation();
+export function DisplayPayeeProvider({transactions, children}: DisplayPayeeProviderProps) {
+  const {t} = useTranslation();
   const subtransactionsQuery = useMemo(
     () =>
       q('transactions')
-        .filter({ parent_id: { $oneof: transactions.map(t => t.id) } })
+        .filter({parent_id: {$oneof: transactions.map(t => t.id)}})
         .select('*'),
     [transactions],
   );
-  const { transactions: queriedSubtransactions = [] } = useTransactions({
+  const {transactions: queriedSubtransactions = []} = useTransactions({
     query: subtransactionsQuery,
-    options: { pageSize: transactions.length * 5 },
+    options: {pageSize: transactions.length * 5},
   });
 
   // Preview and other not-yet-saved split transactions have subtransactions
@@ -65,21 +56,16 @@ export function DisplayPayeeProvider({
   const allSubtransactions = useMemo(() => {
     const localChildren = transactions.filter(t => t.is_child);
     const localIds = new Set(localChildren.map(t => t.id));
-    return [
-      ...queriedSubtransactions.filter(st => !localIds.has(st.id)),
-      ...localChildren,
-    ];
+    return [...queriedSubtransactions.filter(st => !localIds.has(st.id)), ...localChildren];
   }, [queriedSubtransactions, transactions]);
 
-  const { data: accounts = [] } = useAccounts();
-  const { data: payeesById = {} } = usePayeesById();
+  const {data: accounts = []} = useAccounts();
+  const {data: payeesById = {}} = usePayeesById();
 
   const displayPayees = useMemo(() => {
     return transactions.reduce(
       (acc, transaction) => {
-        const subtransactions = allSubtransactions.filter(
-          st => st.parent_id === transaction.id,
-        );
+        const subtransactions = allSubtransactions.filter(st => st.parent_id === transaction.id);
 
         if (subtransactions.length === 0) {
           acc[transaction.id] = getPrettyPayee({
@@ -94,9 +80,9 @@ export function DisplayPayeeProvider({
           return acc;
         }
 
-        const { counts, mostCommonPayeeTransaction } =
+        const {counts, mostCommonPayeeTransaction} =
           subtransactions.reduce(
-            ({ counts, ...result }, sub) => {
+            ({counts, ...result}, sub) => {
               if (sub.payee) {
                 counts[sub.payee] = (counts[sub.payee] || 0) + 1;
                 if (counts[sub.payee] > result.maxCount) {
@@ -107,7 +93,7 @@ export function DisplayPayeeProvider({
                   };
                 }
               }
-              return { counts, ...result };
+              return {counts, ...result};
             },
             {
               counts: {},
@@ -121,8 +107,7 @@ export function DisplayPayeeProvider({
           return acc;
         }
 
-        const mostCommonPayee =
-          payeesById[mostCommonPayeeTransaction.payee || ''];
+        const mostCommonPayee = payeesById[mostCommonPayeeTransaction.payee || ''];
 
         if (!mostCommonPayee) {
           acc[transaction.id] = t('Split (no payee)');
@@ -136,9 +121,7 @@ export function DisplayPayeeProvider({
           transaction: mostCommonPayeeTransaction,
           payee: mostCommonPayee,
           transferAccount: accounts.find(
-            a =>
-              a.id ===
-              payeesById[mostCommonPayeeTransaction.payee || '']?.transfer_acct,
+            a => a.id === payeesById[mostCommonPayeeTransaction.payee || '']?.transfer_acct,
           ),
           numHiddenPayees: numDistinctPayees - 1,
         });
@@ -150,9 +133,7 @@ export function DisplayPayeeProvider({
   }, [transactions, allSubtransactions, payeesById, accounts, t]);
 
   return (
-    <DisplayPayeeContext.Provider value={{ displayPayees }}>
-      {children}
-    </DisplayPayeeContext.Provider>
+    <DisplayPayeeContext.Provider value={{displayPayees}}>{children}</DisplayPayeeContext.Provider>
   );
 }
 
@@ -166,14 +147,12 @@ type UseDisplayPayeeProps = {
   transaction?: TransactionEntity | undefined;
 };
 
-export function useDisplayPayee({ transaction }: UseDisplayPayeeProps) {
+export function useDisplayPayee({transaction}: UseDisplayPayeeProps) {
   const context = useContext(DisplayPayeeContext);
   if (!context) {
-    throw new Error(
-      'useDisplayPayee must be used within a DisplayPayeeContextProvider.',
-    );
+    throw new Error('useDisplayPayee must be used within a DisplayPayeeContextProvider.');
   }
-  const { displayPayees } = context;
+  const {displayPayees} = context;
 
   return transaction ? displayPayees[transaction.id] || '' : '';
 }
@@ -204,7 +183,7 @@ function getPrettyPayee({
         })}`
       : payeeName;
 
-  const { payee: payeeId } = transaction;
+  const {payee: payeeId} = transaction;
 
   if (transferAccount) {
     return formatPayeeName(transferAccount.name);

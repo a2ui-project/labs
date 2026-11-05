@@ -15,43 +15,35 @@
  */
 
 // @ts-strict-ignore
-import React, { useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useMemo, useState} from 'react';
+import type {CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { theme } from '@actual-app/components/theme';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {theme} from '@actual-app/components/theme';
 import type {
   balanceTypeOpType,
   DataEntity,
   LegendEntity,
   RuleConditionEntity,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  LabelList,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import {css} from '@emotion/css';
+import {Bar, BarChart, CartesianGrid, LabelList, Tooltip, XAxis, YAxis} from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { getCustomTick } from '#components/reports/getCustomTick';
-import { numberFormatterTooltip } from '#components/reports/numberFormatter';
-import { useAccounts } from '#hooks/useAccounts';
-import { useCategories } from '#hooks/useCategories';
-import { useFormat } from '#hooks/useFormat';
-import type { FormatType } from '#hooks/useFormat';
-import { useNavigate } from '#hooks/useNavigate';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {FinancialText} from '#components/FinancialText';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {getCustomTick} from '#components/reports/getCustomTick';
+import {numberFormatterTooltip} from '#components/reports/numberFormatter';
+import {useAccounts} from '#hooks/useAccounts';
+import {useCategories} from '#hooks/useCategories';
+import {useFormat} from '#hooks/useFormat';
+import type {FormatType} from '#hooks/useFormat';
+import {useNavigate} from '#hooks/useNavigate';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
-import { renderCustomLabel } from './renderCustomLabel';
-import { showActivity } from './showActivity';
+import {renderCustomLabel} from './renderCustomLabel';
+import {showActivity} from './showActivity';
 
 type PayloadItem = {
   name: string;
@@ -82,13 +74,13 @@ const CustomTooltip = ({
   label,
   format,
 }: CustomTooltipProps) => {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const dataKeyToName = useMemo(() => {
     return new Map(legend.map(entry => [entry.dataKey, entry.name]));
   }, [legend]);
 
-  const { sumTotals, items } = useMemo(() => {
+  const {sumTotals, items} = useMemo(() => {
     return (payload ?? [])
       .slice(0)
       .reverse()
@@ -132,25 +124,20 @@ const CustomTooltip = ({
         })}
       >
         <div>
-          <div style={{ marginBottom: 10 }}>
+          <div style={{marginBottom: 10}}>
             <strong>{label}</strong>
           </div>
-          <div style={{ lineHeight: 1.4 }}>
+          <div style={{lineHeight: 1.4}}>
             {visibleItems.map(pay => {
               const displayName = dataKeyToName.get(pay.name) ?? pay.name;
               return (
                 <AlignedText
                   key={pay.name}
                   left={displayName}
-                  right={
-                    <FinancialText>
-                      {format(pay.value, 'financial')}
-                    </FinancialText>
-                  }
+                  right={<FinancialText>{format(pay.value, 'financial')}</FinancialText>}
                   style={{
                     color: pay.color,
-                    textDecoration:
-                      tooltip === pay.name ? 'underline' : 'inherit',
+                    textDecoration: tooltip === pay.name ? 'underline' : 'inherit',
                   }}
                 />
               );
@@ -158,9 +145,7 @@ const CustomTooltip = ({
             {compact && items.length > visibleItems.length && '...'}
             <AlignedText
               left={t('Total')}
-              right={
-                <FinancialText>{format(sumTotals, 'financial')}</FinancialText>
-              }
+              right={<FinancialText>{format(sumTotals, 'financial')}</FinancialText>}
               style={{
                 fontWeight: 600,
               }}
@@ -176,8 +161,7 @@ const customLabel = props => {
   const calcX = props.x + props.width / 2;
   const calcY = props.y + props.height / 2;
   const textAnchor = 'middle';
-  const display =
-    props.value && `${props.format(props.value, 'financial-no-decimals')}`;
+  const display = props.value && `${props.format(props.value, 'financial-no-decimals')}`;
   const textSize = '12px';
   const showLabel = props.height;
   const showLabelThreshold = 20;
@@ -224,12 +208,12 @@ export function StackedBarGraph({
 }: StackedBarGraphProps) {
   const animationProps = useRechartsAnimation();
   const navigate = useNavigate();
-  const { data: categories = { grouped: [], list: [] } } = useCategories();
-  const { data: accounts = [] } = useAccounts();
+  const {data: categories = {grouped: [], list: []}} = useCategories();
+  const {data: accounts = []} = useAccounts();
   const privacyMode = usePrivacyMode();
   const format = useFormat();
 
-  const customLabelWithFormat = props => customLabel({ ...props, format });
+  const customLabelWithFormat = props => customLabel({...props, format});
 
   const [pointer, setPointer] = useState('');
   const [tooltip, setTooltip] = useState('');
@@ -244,19 +228,19 @@ export function StackedBarGraph({
     <Container
       style={{
         ...style,
-        ...(compact && { height: 'auto' }),
+        ...(compact && {height: 'auto'}),
       }}
     >
       {(width, height) =>
         data.intervalData && (
           <div>
-            {!compact && <div style={{ marginTop: '15px' }} />}
+            {!compact && <div style={{marginTop: '15px'}} />}
             <BarChart
               width={width}
               height={height}
               data={data.intervalData}
-              margin={{ top: 0, right: 0, left: leftMargin, bottom: 10 }}
-              style={{ cursor: pointer }}
+              margin={{top: 0, right: 0, left: leftMargin, bottom: 10}}
+              style={{cursor: pointer}}
               stackOffset="sign" //stacked by sign
             >
               {showTooltip && (
@@ -271,25 +255,22 @@ export function StackedBarGraph({
                   }
                   formatter={numberFormatterTooltip}
                   isAnimationActive={false}
-                  cursor={{ fill: 'transparent' }}
+                  cursor={{fill: 'transparent'}}
                 />
               )}
               <XAxis
                 dataKey="date"
-                tick={{ fill: theme.pageText }}
-                tickLine={{ stroke: theme.pageText }}
+                tick={{fill: theme.pageText}}
+                tickLine={{stroke: theme.pageText}}
               />
               {!compact && <CartesianGrid strokeDasharray="3 3" />}
               {!compact && (
                 <YAxis
                   tickFormatter={value =>
-                    getCustomTick(
-                      format(value, 'financial-no-decimals'),
-                      privacyMode,
-                    )
+                    getCustomTick(format(value, 'financial-no-decimals'), privacyMode)
                   }
-                  tick={{ fill: theme.pageText }}
-                  tickLine={{ stroke: theme.pageText }}
+                  tick={{fill: theme.pageText}}
+                  tickLine={{stroke: theme.pageText}}
                   tickSize={0}
                 />
               )}
@@ -335,10 +316,7 @@ export function StackedBarGraph({
                     }
                   >
                     {viewLabels && !compact && (
-                      <LabelList
-                        dataKey={entry.dataKey}
-                        content={customLabelWithFormat}
-                      />
+                      <LabelList dataKey={entry.dataKey} content={customLabelWithFormat} />
                     )}
                   </Bar>
                 ))}

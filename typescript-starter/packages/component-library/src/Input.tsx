@@ -15,19 +15,14 @@
  */
 
 import React from 'react';
-import type {
-  ChangeEvent,
-  ComponentPropsWithRef,
-  FocusEvent,
-  KeyboardEvent,
-} from 'react';
-import { Input as ReactAriaInput } from 'react-aria-components';
+import type {ChangeEvent, ComponentPropsWithRef, FocusEvent, KeyboardEvent} from 'react';
+import {Input as ReactAriaInput} from 'react-aria-components';
 
-import { css, cx } from '@emotion/css';
+import {css, cx} from '@emotion/css';
 
-import { useResponsive } from './hooks/useResponsive';
-import { styles } from './styles';
-import { theme } from './theme';
+import {useResponsive} from './hooks/useResponsive';
+import {styles} from './styles';
+import {theme} from './theme';
 
 export const baseInputStyle = {
   outline: 0,
@@ -52,17 +47,14 @@ export const defaultInputClassName = css({
   '&[data-disabled]': {
     color: theme.formInputTextPlaceholder,
   },
-  '::placeholder': { color: theme.formInputTextPlaceholder },
+  '::placeholder': {color: theme.formInputTextPlaceholder},
   ...styles.smallText,
 });
 
 export type InputProps = ComponentPropsWithRef<typeof ReactAriaInput> & {
   onEnter?: (value: string, event: KeyboardEvent<HTMLInputElement>) => void;
   onEscape?: (value: string, event: KeyboardEvent<HTMLInputElement>) => void;
-  onChangeValue?: (
-    newValue: string,
-    event: ChangeEvent<HTMLInputElement>,
-  ) => void;
+  onChangeValue?: (newValue: string, event: ChangeEvent<HTMLInputElement>) => void;
   onUpdate?: (newValue: string, event: FocusEvent<HTMLInputElement>) => void;
 };
 
@@ -112,10 +104,10 @@ const defaultBigInputClassName = css({
   fontSize: 15,
   border: 'none',
   ...styles.shadow,
-  '&[data-focused]': { border: 'none', ...styles.shadow },
+  '&[data-focused]': {border: 'none', ...styles.shadow},
 });
 
-export function BigInput({ className, ...props }: InputProps) {
+export function BigInput({className, ...props}: InputProps) {
   return (
     <Input
       {...props}
@@ -129,7 +121,7 @@ export function BigInput({ className, ...props }: InputProps) {
 }
 
 export function ResponsiveInput(props: InputProps) {
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   return isNarrowWidth ? <BigInput {...props} /> : <Input {...props} />;
 }

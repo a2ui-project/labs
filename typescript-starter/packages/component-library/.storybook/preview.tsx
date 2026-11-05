@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { type ReactNode } from 'react';
+import {type ReactNode} from 'react';
 
-import type { Preview } from '@storybook/react-vite';
+import type {Preview} from '@storybook/react-vite';
 
 import darkThemeCss from '../src/themes/dark.css?inline';
 import lightThemeCss from '../src/themes/light.css?inline';
@@ -31,13 +31,7 @@ const THEMES = {
 
 type ThemeName = keyof typeof THEMES;
 
-const ThemedStory = ({
-  themeName,
-  children,
-}: {
-  themeName?: ThemeName;
-  children?: ReactNode;
-}) => {
+const ThemedStory = ({themeName, children}: {themeName?: ThemeName; children?: ReactNode}) => {
   if (!themeName || !THEMES[themeName]) {
     throw new Error(`No theme specified`);
   }
@@ -53,7 +47,7 @@ const ThemedStory = ({
 
 const preview: Preview = {
   decorators: [
-    (Story, { globals }) => {
+    (Story, {globals}) => {
       const themeName = globals.theme;
 
       return (
@@ -71,9 +65,9 @@ const preview: Preview = {
       toolbar: {
         icon: 'circlehollow',
         items: [
-          { value: 'light', title: 'Light' },
-          { value: 'dark', title: 'Dark' },
-          { value: 'midnight', title: 'Midnight' },
+          {value: 'light', title: 'Light'},
+          {value: 'dark', title: 'Dark'},
+          {value: 'midnight', title: 'Midnight'},
         ],
       },
     },

@@ -15,29 +15,25 @@
  */
 
 // @ts-strict-ignore
-import React, { memo, useRef } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {memo, useRef} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgRightArrow2 } from '@actual-app/components/icons/v0';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { RuleEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {SvgRightArrow2} from '@actual-app/components/icons/v0';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {RuleEntity} from '@actual-app/core/types/models';
 
-import { Cell, Field, Row, SelectCell } from '#components/table';
-import { useContextMenu } from '#hooks/useContextMenu';
-import { useSelectedDispatch } from '#hooks/useSelected';
-import {
-  friendlyOp,
-  groupActionsBySplitIndex,
-  translateRuleStage,
-} from '#util/rule';
+import {Cell, Field, Row, SelectCell} from '#components/table';
+import {useContextMenu} from '#hooks/useContextMenu';
+import {useSelectedDispatch} from '#hooks/useSelected';
+import {friendlyOp, groupActionsBySplitIndex, translateRuleStage} from '#util/rule';
 
-import { ActionExpression } from './ActionExpression';
-import { ConditionExpression } from './ConditionExpression';
+import {ActionExpression} from './ActionExpression';
+import {ConditionExpression} from './ConditionExpression';
 
 type RuleRowProps = {
   rule: RuleEntity;
@@ -49,14 +45,7 @@ type RuleRowProps = {
 };
 
 export const RuleRow = memo(
-  ({
-    rule,
-    hovered,
-    selected,
-    onHover,
-    onEditRule,
-    onDeleteRule,
-  }: RuleRowProps) => {
+  ({rule, hovered, selected, onHover, onEditRule, onDeleteRule}: RuleRowProps) => {
     const dispatchSelected = useSelectedDispatch();
     const borderColor = selected ? theme.tableBorderSelected : 'none';
     const backgroundFocus = hovered;
@@ -64,9 +53,9 @@ export const RuleRow = memo(
     const actionSplits = groupActionsBySplitIndex(rule.actions);
     const hasSplits = actionSplits.length > 1;
 
-    const hasSchedule = rule.actions.some(({ op }) => op === 'link-schedule');
+    const hasSchedule = rule.actions.some(({op}) => op === 'link-schedule');
 
-    const { t } = useTranslation();
+    const {t} = useTranslation();
 
     const triggerRef = useRef(null);
 
@@ -118,7 +107,7 @@ export const RuleRow = memo(
           selected={selected}
         />
 
-        <Cell name="stage" width={50} plain style={{ color: theme.tableText }}>
+        <Cell name="stage" width={50} plain style={{color: theme.tableText}}>
           {rule.stage && (
             <View
               style={{
@@ -135,12 +124,9 @@ export const RuleRow = memo(
           )}
         </Cell>
 
-        <Field width="flex" style={{ padding: '15px 0' }} truncate={false}>
-          <SpaceBetween style={{ alignItems: 'center' }}>
-            <View
-              style={{ flex: 1, alignItems: 'flex-start' }}
-              data-testid="conditions"
-            >
+        <Field width="flex" style={{padding: '15px 0'}} truncate={false}>
+          <SpaceBetween style={{alignItems: 'center'}}>
+            <View style={{flex: 1, alignItems: 'flex-start'}} data-testid="conditions">
               {rule.conditions.map((cond, i) => (
                 <ConditionExpression
                   key={i}
@@ -150,21 +136,16 @@ export const RuleRow = memo(
                   value={cond.value}
                   options={cond.options}
                   prefix={i > 0 ? friendlyOp(rule.conditionsOp) : null}
-                  style={i !== 0 && { marginTop: 3 }}
+                  style={i !== 0 && {marginTop: 3}}
                 />
               ))}
             </View>
 
             <Text>
-              <SvgRightArrow2
-                style={{ width: 12, height: 12, color: theme.tableText }}
-              />
+              <SvgRightArrow2 style={{width: 12, height: 12, color: theme.tableText}} />
             </Text>
 
-            <View
-              style={{ flex: 1, alignItems: 'flex-start' }}
-              data-testid="actions"
-            >
+            <View style={{flex: 1, alignItems: 'flex-start'}} data-testid="actions">
               {hasSplits
                 ? actionSplits.map((split, i) => (
                     <View
@@ -188,29 +169,21 @@ export const RuleRow = memo(
                           marginBottom: 6,
                         }}
                       >
-                        {i ? t('Split {{num}}', { num: i }) : t('Apply to all')}
+                        {i ? t('Split {{num}}', {num: i}) : t('Apply to all')}
                       </Text>
                       {split.actions.map((action, j) => (
-                        <ActionExpression
-                          key={j}
-                          {...action}
-                          style={j !== 0 && { marginTop: 3 }}
-                        />
+                        <ActionExpression key={j} {...action} style={j !== 0 && {marginTop: 3}} />
                       ))}
                     </View>
                   ))
                 : rule.actions.map((action, i) => (
-                    <ActionExpression
-                      key={i}
-                      {...action}
-                      style={i !== 0 && { marginTop: 3 }}
-                    />
+                    <ActionExpression key={i} {...action} style={i !== 0 && {marginTop: 3}} />
                   ))}
             </View>
           </SpaceBetween>
         </Field>
 
-        <Cell name="edit" plain style={{ padding: '0 15px', paddingLeft: 5 }}>
+        <Cell name="edit" plain style={{padding: '0 15px', paddingLeft: 5}}>
           <Button onPress={() => onEditRule(rule)}>
             <Trans>Edit</Trans>
           </Button>

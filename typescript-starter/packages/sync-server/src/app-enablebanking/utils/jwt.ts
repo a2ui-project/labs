@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { sign } from 'jws';
-import type { Algorithm } from 'jws';
+import {sign} from 'jws';
+import type {Algorithm} from 'jws';
 
-type Header = { typ: string; alg: Algorithm; kid: string };
+type Header = {typ: string; alg: Algorithm; kid: string};
 
 type JWTPayload = {
   iss: string;
@@ -27,7 +27,7 @@ type JWTPayload = {
 };
 
 function getJWTHeader(applicationId: string): Header {
-  return { typ: 'JWT', alg: 'RS256', kid: applicationId };
+  return {typ: 'JWT', alg: 'RS256', kid: applicationId};
 }
 
 function getJWTBody(exp = 3600): JWTPayload {
@@ -40,11 +40,7 @@ function getJWTBody(exp = 3600): JWTPayload {
   };
 }
 
-export function getJWT(
-  applicationId: string,
-  secretKey: string,
-  exp = 3600,
-): string {
+export function getJWT(applicationId: string, secretKey: string, exp = 3600): string {
   return sign({
     header: getJWTHeader(applicationId),
     payload: getJWTBody(exp),

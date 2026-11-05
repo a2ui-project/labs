@@ -30,14 +30,12 @@ function report(state: 'ok' | 'error', detail: unknown) {
 }
 
 async function run() {
-  await api.init({ dataDir: '/documents' });
+  await api.init({dataDir: '/documents'});
   await api.runImport('Consumer E2E', async () => {
-    await api.createAccount({ name: 'Checking', offbudget: false }, 12345);
+    await api.createAccount({name: 'Checking', offbudget: false}, 12345);
   });
   const accounts = await api.getAccounts();
-  report('ok', { accounts: accounts.map(a => a.name) });
+  report('ok', {accounts: accounts.map(a => a.name)});
 }
 
-run().catch(err =>
-  report('error', err instanceof Error ? err.message : String(err)),
-);
+run().catch(err => report('error', err instanceof Error ? err.message : String(err)));

@@ -40,7 +40,7 @@ export function peggyLoader() {
         grammarSource: id,
       });
 
-      return { code, map: null };
+      return {code, map: null};
     },
   };
 }

@@ -14,59 +14,51 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import React, {useEffect, useMemo, useState} from 'react';
+import type {CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgEquals } from '@actual-app/components/icons/v1';
-import {
-  SvgCloseParenthesis,
-  SvgOpenParenthesis,
-  SvgSum,
-} from '@actual-app/components/icons/v2';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgEquals} from '@actual-app/components/icons/v1';
+import {SvgCloseParenthesis, SvgOpenParenthesis, SvgSum} from '@actual-app/components/icons/v2';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type {
-  SummaryContent,
-  SummaryWidget,
-  TimeFrame,
-} from '@actual-app/core/types/models';
-import { parseISO } from 'date-fns';
+import type {SummaryContent, SummaryWidget, TimeFrame} from '@actual-app/core/types/models';
+import {parseISO} from 'date-fns';
 
-import { EditablePageHeaderTitle } from '#components/EditablePageHeaderTitle';
-import { AppliedFilters } from '#components/filters/AppliedFilters';
-import { FilterButton } from '#components/filters/FiltersMenu';
-import { FinancialText } from '#components/FinancialText';
-import { Checkbox } from '#components/forms';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page, PageHeader } from '#components/Page';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { Header } from '#components/reports/Header';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { summarySpreadsheet } from '#components/reports/spreadsheets/summary-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { fromDateRepr } from '#components/reports/util';
-import { FieldSelect } from '#components/rules/RuleEditor';
-import { useDashboardWidget } from '#hooks/useDashboardWidget';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { useNavigate } from '#hooks/useNavigate';
-import { useRuleConditionFilters } from '#hooks/useRuleConditionFilters';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { useUpdateDashboardWidgetMutation } from '#reports/mutations';
+import {EditablePageHeaderTitle} from '#components/EditablePageHeaderTitle';
+import {AppliedFilters} from '#components/filters/AppliedFilters';
+import {FilterButton} from '#components/filters/FiltersMenu';
+import {FinancialText} from '#components/FinancialText';
+import {Checkbox} from '#components/forms';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page, PageHeader} from '#components/Page';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {Header} from '#components/reports/Header';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {summarySpreadsheet} from '#components/reports/spreadsheets/summary-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {fromDateRepr} from '#components/reports/util';
+import {FieldSelect} from '#components/rules/RuleEditor';
+import {useDashboardWidget} from '#hooks/useDashboardWidget';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {useNavigate} from '#hooks/useNavigate';
+import {useRuleConditionFilters} from '#hooks/useRuleConditionFilters';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {useUpdateDashboardWidgetMutation} from '#reports/mutations';
 
 export function Summary() {
   const params = useParams();
-  const { data: widget, isPending } = useDashboardWidget<SummaryWidget>({
+  const {data: widget, isPending} = useDashboardWidget<SummaryWidget>({
     id: params.id,
     type: 'summary-card',
   });
@@ -84,14 +76,12 @@ type SummaryInnerProps = {
 
 type FilterObject = ReturnType<typeof useRuleConditionFilters>;
 
-function SummaryInner({ widget }: SummaryInnerProps) {
+function SummaryInner({widget}: SummaryInnerProps) {
   const locale = useLocale();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
-  const [start, setStart] = useState(
-    monthUtils.dayFromDate(monthUtils.currentMonth()),
-  );
+  const [start, setStart] = useState(monthUtils.dayFromDate(monthUtils.currentMonth()));
   const [end, setEnd] = useState(monthUtils.currentDay());
   const [mode, setMode] = useState<TimeFrame['mode']>('full');
   const dividendFilters: FilterObject = useRuleConditionFilters(
@@ -124,9 +114,7 @@ function SummaryInner({ widget }: SummaryInnerProps) {
 
   const divisorFilters = useRuleConditionFilters(
     content.type === 'percentage' ? (content?.divisorConditions ?? []) : [],
-    content.type === 'percentage'
-      ? (content?.divisorConditionsOp ?? 'and')
-      : 'and',
+    content.type === 'percentage' ? (content?.divisorConditionsOp ?? 'and') : 'and',
   );
 
   const params = useMemo(
@@ -139,14 +127,7 @@ function SummaryInner({ widget }: SummaryInnerProps) {
         content,
         locale,
       ),
-    [
-      start,
-      end,
-      dividendFilters.conditions,
-      dividendFilters.conditionsOp,
-      content,
-      locale,
-    ],
+    [start, end, dividendFilters.conditions, dividendFilters.conditionsOp, content, locale],
   );
 
   const data = useReport('summary', params);
@@ -175,32 +156,22 @@ function SummaryInner({ widget }: SummaryInnerProps) {
     async function run() {
       const earliestTransaction = await send('get-earliest-transaction');
       setEarliestTransaction(
-        earliestTransaction
-          ? earliestTransaction.date
-          : monthUtils.currentDay(),
+        earliestTransaction ? earliestTransaction.date : monthUtils.currentDay(),
       );
 
       const latestTransaction = await send('get-latest-transaction');
-      setLatestTransaction(
-        latestTransaction ? latestTransaction.date : monthUtils.currentDay(),
-      );
+      setLatestTransaction(latestTransaction ? latestTransaction.date : monthUtils.currentDay());
 
       const currentMonth = monthUtils.currentMonth();
       let earliestMonth = earliestTransaction
-        ? monthUtils.monthFromDate(
-            parseISO(fromDateRepr(earliestTransaction.date)),
-          )
+        ? monthUtils.monthFromDate(parseISO(fromDateRepr(earliestTransaction.date)))
         : currentMonth;
       const latestTransactionMonth = latestTransaction
-        ? monthUtils.monthFromDate(
-            parseISO(fromDateRepr(latestTransaction.date)),
-          )
+        ? monthUtils.monthFromDate(parseISO(fromDateRepr(latestTransaction.date)))
         : currentMonth;
 
       const latestMonth =
-        latestTransactionMonth > currentMonth
-          ? latestTransactionMonth
-          : currentMonth;
+        latestTransactionMonth > currentMonth ? latestTransactionMonth : currentMonth;
 
       // Make sure the month selects are at least populates with a
       // year's worth of months. We can undo this when we have fancier
@@ -242,7 +213,7 @@ function SummaryInner({ widget }: SummaryInnerProps) {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const title = widget?.meta?.name || t('Summary');
 
   const updateDashboardWidgetMutation = useUpdateDashboardWidgetMutation();
@@ -349,21 +320,12 @@ function SummaryInner({ widget }: SummaryInnerProps) {
         isNarrowWidth ? (
           <MobilePageHeader
             title={title}
-            leftContent={
-              <MobileBackButton onPress={() => navigate('/reports')} />
-            }
+            leftContent={<MobileBackButton onPress={() => navigate('/reports')} />}
           />
         ) : (
           <PageHeader
             title={
-              widget ? (
-                <EditablePageHeaderTitle
-                  title={title}
-                  onSave={onSaveWidgetName}
-                />
-              ) : (
-                title
-              )
+              widget ? <EditablePageHeaderTitle title={title} onSave={onSaveWidgetName} /> : title
             }
           />
         )
@@ -403,11 +365,11 @@ function SummaryInner({ widget }: SummaryInnerProps) {
             padding: 16,
           }}
         >
-          <span style={{ marginRight: 4 }}>
+          <span style={{marginRight: 4}}>
             <Trans>Show as</Trans>
           </span>
           <FieldSelect
-            style={{ marginRight: 16 }}
+            style={{marginRight: 16}}
             fields={[
               ['sum', t('Sum')],
               ['avgPerMonth', t('Average per month')],
@@ -417,12 +379,7 @@ function SummaryInner({ widget }: SummaryInnerProps) {
             ]}
             value={content.type ?? 'sum'}
             onChange={(
-              newValue:
-                | 'sum'
-                | 'avgPerMonth'
-                | 'avgPerYear'
-                | 'avgPerTransact'
-                | 'percentage',
+              newValue: 'sum' | 'avgPerMonth' | 'avgPerYear' | 'avgPerTransact' | 'percentage',
             ) =>
               setContent(
                 (prev: SummaryContent) =>
@@ -435,7 +392,7 @@ function SummaryInner({ widget }: SummaryInnerProps) {
           />
         </View>
         {content.type === 'percentage' && (
-          <View style={{ flexDirection: 'row', marginLeft: 16 }}>
+          <View style={{flexDirection: 'row', marginLeft: 16}}>
             <Checkbox
               id="enabled-field"
               checked={content.divisorAllTimeDateRange ?? false}
@@ -473,24 +430,18 @@ function SummaryInner({ widget }: SummaryInnerProps) {
             dividendFilterObject={dividendFilters}
             divisorFilterObject={divisorFilters}
             showDivisorDateRange={
-              content.type === 'percentage'
-                ? !(content.divisorAllTimeDateRange ?? false)
-                : false
+              content.type === 'percentage' ? !(content.divisorAllTimeDateRange ?? false) : false
             }
             fromRange={data?.fromRange ?? ''}
             toRange={data?.toRange ?? ''}
           />
           {content.type !== 'sum' && (
             <>
-              {!isNarrowWidth && (
-                <SvgEquals width={50} style={{ marginLeft: 56 }} />
-              )}
-              <View style={{ padding: 16 }}>
+              {!isNarrowWidth && <SvgEquals width={50} style={{marginLeft: 56}} />}
+              <View style={{padding: 16}}>
                 <Text style={fractionNumberStyle}>
                   <PrivacyFilter>
-                    <FinancialText>
-                      {format(data?.dividend ?? 0, 'financial')}
-                    </FinancialText>
+                    <FinancialText>{format(data?.dividend ?? 0, 'financial')}</FinancialText>
                   </PrivacyFilter>
                 </Text>
                 <div
@@ -510,9 +461,7 @@ function SummaryInner({ widget }: SummaryInnerProps) {
               </View>
             </>
           )}
-          {!isNarrowWidth && (
-            <SvgEquals width={50} style={{ marginLeft: 16 }} />
-          )}
+          {!isNarrowWidth && <SvgEquals width={50} style={{marginLeft: 16}} />}
           <View
             style={{
               flexGrow: isNarrowWidth ? 0 : 1,
@@ -561,15 +510,11 @@ function Operator({
   toRange,
   showDivisorDateRange,
 }: OperatorProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <View>
-      <SumWithRange
-        from={fromRange}
-        to={toRange}
-        filterObject={dividendFilterObject}
-      />
+      <SumWithRange from={fromRange} to={toRange} filterObject={dividendFilterObject} />
       {type === 'percentage' && (
         <>
           <div
@@ -599,9 +544,7 @@ function Operator({
               borderBottom: '2px solid',
             }}
           />
-          <Text
-            style={{ fontSize: '32px', width: '100%', textAlign: 'center' }}
-          >
+          <Text style={{fontSize: '32px', width: '100%', textAlign: 'center'}}>
             {type === 'avgPerMonth'
               ? t('number of months')
               : type === 'avgPerYear'
@@ -620,14 +563,9 @@ type SumWithRangeProps = {
   containerStyle?: CSSProperties;
   filterObject: FilterObject;
 };
-function SumWithRange({
-  from,
-  to,
-  containerStyle,
-  filterObject,
-}: SumWithRangeProps) {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+function SumWithRange({from, to, containerStyle, filterObject}: SumWithRangeProps) {
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
   const sigmaSize = isNarrowWidth ? 34 : 50;
   // The range labels hang outside the sigma column; `nowrap` keeps them off the glyph.
   const rangeLabelStyle = {
@@ -660,12 +598,10 @@ function SumWithRange({
         }}
       >
         <SvgSum width={sigmaSize} height={sigmaSize} />
-        <Text style={{ ...rangeLabelStyle, top: rangeLabelOffset }}>{to}</Text>
-        <Text style={{ ...rangeLabelStyle, bottom: rangeLabelOffset }}>
-          {from}
-        </Text>
+        <Text style={{...rangeLabelStyle, top: rangeLabelOffset}}>{to}</Text>
+        <Text style={{...rangeLabelStyle, bottom: rangeLabelOffset}}>{from}</Text>
       </View>
-      <SvgOpenParenthesis width={15} style={{ height: '100%' }} />
+      <SvgOpenParenthesis width={15} style={{height: '100%'}} />
       <View
         style={{
           marginLeft: conditionsMargin,
@@ -692,7 +628,7 @@ function SumWithRange({
           />
         )}
       </View>
-      <SvgCloseParenthesis width={15} style={{ height: '100%' }} />
+      <SvgCloseParenthesis width={15} style={{height: '100%'}} />
       <View
         style={{
           position: 'absolute',
@@ -700,11 +636,7 @@ function SumWithRange({
           right: isNarrowWidth ? -42 : -55,
         }}
       >
-        <FilterButton
-          compact={false}
-          onApply={filterObject.onApply}
-          hover={false}
-        />
+        <FilterButton compact={false} onApply={filterObject.onApply} hover={false} />
       </View>
     </View>
   );

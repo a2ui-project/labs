@@ -8,7 +8,7 @@ This part deserves better docs, but here's a reference example you can use to se
 
 ```js
 q('transactions')
-  .filter({ date: { $transform: '$month', $eq: '2021-01' } })
+  .filter({date: {$transform: '$month', $eq: '2021-01'}})
   .select('*');
 ```
 
@@ -23,14 +23,11 @@ You can substitute `$year` to do the same thing for year.
   await $query(
     $q('transactions')
       .filter({
-        $and: [
-          { date: { $gte: '2020-04-06' } },
-          { date: { $lte: '2021-04-05' } },
-        ],
+        $and: [{date: {$gte: '2020-04-06'}}, {date: {$lte: '2021-04-05'}}],
       })
       .groupBy('payee.name')
       .orderBy('payee.name')
-      .select(['payee.name', { amount: { $sum: '$amount' } }]),
+      .select(['payee.name', {amount: {$sum: '$amount'}}]),
   )
 ).data.map(row => {
   console.log(`${row['payee.name']}: ${row.amount / 100}`);
@@ -45,12 +42,12 @@ You can substitute `$year` to do the same thing for year.
     $q('transactions')
       .filter({
         $and: [
-          { date: { $gte: '2020-04-06' } },
-          { date: { $lte: '2021-04-05' } },
-          { notes: { $like: '%#interest (P)%' } },
+          {date: {$gte: '2020-04-06'}},
+          {date: {$lte: '2021-04-05'}},
+          {notes: {$like: '%#interest (P)%'}},
         ],
       })
-      .calculate({ $sum: '$amount' }),
+      .calculate({$sum: '$amount'}),
   )
 ).data / 100;
 ```
@@ -63,12 +60,12 @@ or
     $q('transactions')
       .filter({
         $and: [
-          { date: { $gte: '2020-04-06' } },
-          { date: { $lte: '2021-04-05' } },
-          { notes: { $like: '%#interest (P)%' } },
+          {date: {$gte: '2020-04-06'}},
+          {date: {$lte: '2021-04-05'}},
+          {notes: {$like: '%#interest (P)%'}},
         ],
       })
-      .select({ total: { $sum: '$amount' } }),
+      .select({total: {$sum: '$amount'}}),
   )
 ).data[0].total / 100;
 ```
@@ -80,25 +77,14 @@ or
   await $query(
     $q('transactions')
       .filter({
-        $and: [
-          { date: { $gte: '2020-04-06' } },
-          { date: { $lte: '2021-04-05' } },
-        ],
+        $and: [{date: {$gte: '2020-04-06'}}, {date: {$lte: '2021-04-05'}}],
       })
       .groupBy('category.name')
       .orderBy(['category.group.sort_order', 'category.sort_order'])
-      .select([
-        'category.group.name',
-        'category.name',
-        { amount: { $sum: '$amount' } },
-      ]),
+      .select(['category.group.name', 'category.name', {amount: {$sum: '$amount'}}]),
   )
 ).data.map(row => {
-  console.log(
-    `${row['category.group.name']}/${row['category.name']}: ${
-      row.amount / 100
-    }`,
-  );
+  console.log(`${row['category.group.name']}/${row['category.name']}: ${row.amount / 100}`);
 });
 ```
 

@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { existsSync, mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import {existsSync, mkdtempSync, rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
-import { Command } from 'commander';
+import {Command} from 'commander';
 
-import { CACHE_FILE_NAME, getMetaDir, writeCacheState } from '#cache';
-import { resolveConfig } from '#config';
+import {CACHE_FILE_NAME, getMetaDir, writeCacheState} from '#cache';
+import {resolveConfig} from '#config';
 
-import { registerSyncCommand } from './sync';
+import {registerSyncCommand} from './sync';
 
 vi.mock('@actual-app/api', () => ({
   init: vi.fn().mockResolvedValue(undefined),
@@ -31,9 +31,7 @@ vi.mock('@actual-app/api', () => ({
   loadBudget: vi.fn().mockResolvedValue(undefined),
   sync: vi.fn().mockResolvedValue(undefined),
   shutdown: vi.fn().mockResolvedValue(undefined),
-  getBudgets: vi
-    .fn()
-    .mockResolvedValue([{ id: 'bud-disk-1', groupId: 'sync-1' }]),
+  getBudgets: vi.fn().mockResolvedValue([{id: 'bud-disk-1', groupId: 'sync-1'}]),
 }));
 
 vi.mock('#config', () => ({
@@ -73,14 +71,12 @@ describe('actual sync', () => {
       refresh: false,
       noLock: true,
     });
-    stdoutSpy = vi
-      .spyOn(process.stdout, 'write')
-      .mockImplementation(() => true);
+    stdoutSpy = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
   });
 
   afterEach(() => {
     stdoutSpy.mockRestore();
-    rmSync(dataDir, { recursive: true, force: true });
+    rmSync(dataDir, {recursive: true, force: true});
   });
 
   it('runs a sync and prints the syncId', async () => {
@@ -93,9 +89,7 @@ describe('actual sync', () => {
       lastDownloadedAt: 0,
     });
     await program().parseAsync(['node', 'actual', 'sync']);
-    const out = stdoutSpy.mock.calls
-      .map((c: unknown[]) => String(c[0]))
-      .join('');
+    const out = stdoutSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('');
     expect(out).toMatch(/"syncId":\s*"sync-1"/);
   });
 
@@ -109,18 +103,14 @@ describe('actual sync', () => {
       lastDownloadedAt: Date.now() - 5000,
     });
     await program().parseAsync(['node', 'actual', 'sync', '--status']);
-    const out = stdoutSpy.mock.calls
-      .map((c: unknown[]) => String(c[0]))
-      .join('');
+    const out = stdoutSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('');
     expect(out).toMatch(/"stale":\s*(true|false)/);
     expect(out).toMatch(/"ageSeconds":\s*\d+/);
   });
 
   it('--status on no prior sync reports "never synced" and exits 0', async () => {
     await program().parseAsync(['node', 'actual', 'sync', '--status']);
-    const out = stdoutSpy.mock.calls
-      .map((c: unknown[]) => String(c[0]))
-      .join('');
+    const out = stdoutSpy.mock.calls.map((c: unknown[]) => String(c[0])).join('');
     expect(out).toMatch(/"neverSynced":\s*true/);
   });
 

@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-import { forwardRef, useRef } from 'react';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { Trans, useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router';
+import {forwardRef, useRef} from 'react';
+import {useHotkeys} from 'react-hotkeys-hook';
+import {Trans, useTranslation} from 'react-i18next';
+import {useLocation} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { SvgHelp } from '@actual-app/components/icons/v2';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { useToggle } from 'usehooks-ts';
+import {Button} from '@actual-app/components/button';
+import {SvgHelp} from '@actual-app/components/icons/v2';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {useToggle} from 'usehooks-ts';
 
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { pushModal } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {pushModal} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
-import { useTour } from './tour/TourProvider';
+import {useTour} from './tour/TourProvider';
 
 const getPageDocs = (page: string) => {
   switch (page) {
@@ -58,50 +58,43 @@ function openDocsForCurrentPage() {
   window.Actual.openURLInBrowser(getPageDocs(window.location.pathname));
 }
 
-type HelpMenuItem =
-  | 'docs'
-  | 'discord'
-  | 'keyboard-shortcuts'
-  | 'start-tour'
-  | 'goal-templates';
+type HelpMenuItem = 'docs' | 'discord' | 'keyboard-shortcuts' | 'start-tour' | 'goal-templates';
 
 type HelpButtonProps = {
   onPress?: () => void;
 };
 
-const HelpButton = forwardRef<HTMLButtonElement, HelpButtonProps>(
-  ({ onPress }, ref) => {
-    const size = 15;
-    return (
-      <Button
-        variant="bare"
-        ref={ref}
-        onPress={onPress}
-        data-testid="help-menu-button"
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-        }}
-      >
-        <SvgHelp width={size} height={size} />
-        <Trans>Help</Trans>
-      </Button>
-    );
-  },
-);
+const HelpButton = forwardRef<HTMLButtonElement, HelpButtonProps>(({onPress}, ref) => {
+  const size = 15;
+  return (
+    <Button
+      variant="bare"
+      ref={ref}
+      onPress={onPress}
+      data-testid="help-menu-button"
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+      }}
+    >
+      <SvgHelp width={size} height={size} />
+      <Trans>Help</Trans>
+    </Button>
+  );
+});
 
 HelpButton.displayName = 'HelpButton';
 
 export const HelpMenu = () => {
   const showGoalTemplates = useFeatureFlag('goalTemplatesEnabled');
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [isMenuOpen, toggleMenuOpen, setMenuOpen] = useToggle();
   const menuButtonRef = useRef(null);
 
   const dispatch = useDispatch();
   const page = useLocation().pathname;
-  const { startTour } = useTour();
+  const {startTour} = useTour();
 
   const handleItemSelect = (item: HelpMenuItem) => {
     switch (item) {
@@ -112,20 +105,20 @@ export const HelpMenu = () => {
         window.Actual.openURLInBrowser('https://discord.gg/pRYNYr4W5A');
         break;
       case 'keyboard-shortcuts':
-        dispatch(pushModal({ modal: { name: 'keyboard-shortcuts' } }));
+        dispatch(pushModal({modal: {name: 'keyboard-shortcuts'}}));
         break;
       case 'start-tour':
         startTour();
         break;
       case 'goal-templates':
-        dispatch(pushModal({ modal: { name: 'goal-templates' } }));
+        dispatch(pushModal({modal: {name: 'goal-templates'}}));
         break;
       default:
         throw new Error(`Unrecognized menu option: ${String(item)}`);
     }
   };
 
-  useHotkeys('?', () => setMenuOpen(true), { useKey: true });
+  useHotkeys('?', () => setMenuOpen(true), {useKey: true});
 
   return (
     <SpaceBetween>
@@ -152,10 +145,10 @@ export const HelpMenu = () => {
               name: 'discord',
               text: t('Community support (Discord)'),
             },
-            { name: 'keyboard-shortcuts', text: t('Keyboard shortcuts') },
-            { name: 'start-tour', text: t('Take a tour') },
+            {name: 'keyboard-shortcuts', text: t('Keyboard shortcuts')},
+            {name: 'start-tour', text: t('Take a tour')},
             ...(showGoalTemplates && page === '/budget'
-              ? [{ name: 'goal-templates', text: t('Goal templates') }]
+              ? [{name: 'goal-templates', text: t('Goal templates')}]
               : []),
           ]}
         />

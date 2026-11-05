@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { join, resolve } from 'node:path';
+import {join, resolve} from 'node:path';
 
-import { config } from '#load-config';
+import {config} from '#load-config';
 
-import type { BrandedId } from './types';
+import type {BrandedId} from './types';
 
 const ID_REGEX = /^[a-zA-Z0-9_-]+$/;
 

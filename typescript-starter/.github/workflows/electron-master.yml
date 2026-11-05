@@ -118,7 +118,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           # Avoid restoring potentially poisoned caches in release jobs.
-          cache: 'false'
+          cache: "false"
       - if: ${{ startsWith(matrix.os, 'ubuntu') }}
         name: Install arm64 cross-compilation toolchain
         run: |

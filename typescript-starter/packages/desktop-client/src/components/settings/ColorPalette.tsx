@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { View } from '@actual-app/components/view';
+import {View} from '@actual-app/components/view';
 
 const DEFAULT_COLORS = ['#ccc', '#999', '#666', '#333', '#111', '#000'];
 
@@ -22,7 +22,7 @@ type ColorPaletteProps = {
   colors?: string[];
 };
 
-export function ColorPalette({ colors }: ColorPaletteProps) {
+export function ColorPalette({colors}: ColorPaletteProps) {
   // Default fallback colors if not provided
   const paletteColors = colors ?? DEFAULT_COLORS;
 
@@ -40,7 +40,7 @@ export function ColorPalette({ colors }: ColorPaletteProps) {
       }}
     >
       {paletteColors.slice(0, 6).map((color, i) => (
-        <div key={i} data-swatch style={{ backgroundColor: color }} />
+        <div key={i} data-swatch style={{backgroundColor: color}} />
       ))}
     </View>
   );

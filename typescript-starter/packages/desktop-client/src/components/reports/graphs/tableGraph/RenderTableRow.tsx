@@ -15,12 +15,12 @@
  */
 
 import React from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import type {CSSProperties, ReactNode} from 'react';
 
-import { View } from '@actual-app/components/view';
-import type { GroupedEntity } from '@actual-app/core/types/models';
+import {View} from '@actual-app/components/view';
+import type {GroupedEntity} from '@actual-app/core/types/models';
 
-import type { renderRowProps } from './ReportTable';
+import type {renderRowProps} from './ReportTable';
 
 type RenderTableRowProps = {
   index: number;
@@ -40,14 +40,12 @@ export function RenderTableRow({
   style,
 }: RenderTableRowProps) {
   const child = metadata[index];
-  const parent =
-    parent_index !== undefined ? metadata[parent_index] : ({} as GroupedEntity);
+  const parent = parent_index !== undefined ? metadata[parent_index] : ({} as GroupedEntity);
 
   const item =
     parent_index === undefined
       ? child
-      : (parent.categories && parent.categories[index]) ||
-        ({} as GroupedEntity);
+      : (parent.categories && parent.categories[index]) || ({} as GroupedEntity);
 
   return (
     <View>

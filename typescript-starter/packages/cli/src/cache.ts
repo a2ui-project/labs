@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { randomBytes } from 'node:crypto';
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import {randomBytes} from 'node:crypto';
+import {mkdirSync, readFileSync, renameSync, writeFileSync} from 'node:fs';
+import {join} from 'node:path';
 
-import { isRecord } from './utils';
+import {isRecord} from './utils';
 
 export const CACHE_FILE_NAME = 'state.json';
 export const CACHE_VERSION = 1;
@@ -71,7 +71,7 @@ export function readCacheState(metaDir: string): CacheState | null {
 
 export function writeCacheState(metaDir: string, state: CacheState): void {
   try {
-    mkdirSync(metaDir, { recursive: true });
+    mkdirSync(metaDir, {recursive: true});
     const target = cachePath(metaDir);
     // Unique tmp name per writer: concurrent shared-lock commands (encrypted
     // budgets, --refresh, stale TTL) can both publish, and a shared tmp path
@@ -87,13 +87,13 @@ export function writeCacheState(metaDir: string, state: CacheState): void {
 }
 
 export type SyncDecision =
-  | { action: 'download' }
-  | { action: 'skip'; state: CacheState }
-  | { action: 'sync'; state: CacheState };
+  | {action: 'download'}
+  | {action: 'skip'; state: CacheState}
+  | {action: 'sync'; state: CacheState};
 
 export type DecideSyncArgs = {
   state: CacheState | null;
-  config: { syncId: string; serverUrl: string };
+  config: {syncId: string; serverUrl: string};
   now: number;
   ttlMs: number;
   mutates: boolean;
@@ -110,14 +110,14 @@ export function decideSyncAction({
   refresh,
   encrypted,
 }: DecideSyncArgs): SyncDecision {
-  if (state === null) return { action: 'download' };
-  if (state.syncId !== config.syncId) return { action: 'download' };
-  if (state.serverUrl !== config.serverUrl) return { action: 'download' };
+  if (state === null) return {action: 'download'};
+  if (state.syncId !== config.syncId) return {action: 'download'};
+  if (state.serverUrl !== config.serverUrl) return {action: 'download'};
   if (mutates || refresh || ttlMs === 0 || encrypted) {
-    return { action: 'sync', state };
+    return {action: 'sync', state};
   }
   const age = now - state.lastSyncedAt;
-  if (age < 0) return { action: 'sync', state };
-  if (age < ttlMs) return { action: 'skip', state };
-  return { action: 'sync', state };
+  if (age < 0) return {action: 'sync', state};
+  if (age < ttlMs) return {action: 'skip', state};
+  return {action: 'sync', state};
 }

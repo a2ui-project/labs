@@ -15,10 +15,10 @@
  */
 
 // @ts-strict-ignore
-import { renderHook } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {renderHook} from '@testing-library/react';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { useOnVisible } from './useOnVisible';
+import {useOnVisible} from './useOnVisible';
 
 function setVisibilityState(value: DocumentVisibilityState) {
   Object.defineProperty(document, 'visibilityState', {
@@ -65,7 +65,7 @@ describe('useOnVisible', () => {
 
   it('does not attach listener when isEnabled is false', () => {
     const callback = vi.fn();
-    renderHook(() => useOnVisible(callback, { isEnabled: false }));
+    renderHook(() => useOnVisible(callback, {isEnabled: false}));
 
     dispatchVisibilityChange();
 
@@ -74,7 +74,7 @@ describe('useOnVisible', () => {
 
   it('stops invoking callback after unmount', () => {
     const callback = vi.fn();
-    const { unmount } = renderHook(() => useOnVisible(callback));
+    const {unmount} = renderHook(() => useOnVisible(callback));
 
     unmount();
     dispatchVisibilityChange();

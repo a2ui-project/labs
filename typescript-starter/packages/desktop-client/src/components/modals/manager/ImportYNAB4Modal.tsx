@@ -15,21 +15,21 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { ButtonWithLoading } from '@actual-app/components/button';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Block} from '@actual-app/components/block';
+import {ButtonWithLoading} from '@actual-app/components/button';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { importBudget } from '#budgetfiles/budgetfilesSlice';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { ImportProgress } from '#components/modals/manager/ImportProgress';
-import { useNavigate } from '#hooks/useNavigate';
-import { useDispatch } from '#redux';
+import {importBudget} from '#budgetfiles/budgetfilesSlice';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {ImportProgress} from '#components/modals/manager/ImportProgress';
+import {useNavigate} from '#hooks/useNavigate';
+import {useDispatch} from '#redux';
 
 function getErrorMessage(error: string): string {
   switch (error) {
@@ -41,7 +41,7 @@ function getErrorMessage(error: string): string {
 }
 
 export function ImportYNAB4Modal() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [error, setError] = useState<string | null>(null);
@@ -50,13 +50,13 @@ export function ImportYNAB4Modal() {
   async function onImport() {
     const res = await window.Actual.openFileDialog({
       properties: ['openFile'],
-      filters: [{ name: 'ynab', extensions: ['zip'] }],
+      filters: [{name: 'ynab', extensions: ['zip']}],
     });
     if (res) {
       setImporting(true);
       setError(null);
       try {
-        await dispatch(importBudget({ filepath: res[0], type: 'ynab4' }));
+        await dispatch(importBudget({filepath: res[0], type: 'ynab4'}));
         void navigate('/budget');
       } catch (err) {
         setError(err.message);
@@ -67,51 +67,39 @@ export function ImportYNAB4Modal() {
   }
 
   return (
-    <Modal
-      name="import-ynab4"
-      isDismissable={!importing}
-      containerProps={{ style: { width: 400 } }}
-    >
-      {({ state }) => (
+    <Modal name="import-ynab4" isDismissable={!importing} containerProps={{style: {width: 400}}}>
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Import from YNAB4')}
-            rightContent={
-              !importing && <ModalCloseButton onPress={() => state.close()} />
-            }
+            rightContent={!importing && <ModalCloseButton onPress={() => state.close()} />}
           />
-          <View style={{ ...styles.smallText, lineHeight: 1.5, marginTop: 20 }}>
+          <View style={{...styles.smallText, lineHeight: 1.5, marginTop: 20}}>
             {error && (
-              <Block style={{ color: theme.errorText, marginBottom: 15 }}>
+              <Block style={{color: theme.errorText, marginBottom: 15}}>
                 {getErrorMessage(error)}
               </Block>
             )}
 
-            <View style={{ alignItems: 'center' }}>
+            <View style={{alignItems: 'center'}}>
               <Paragraph>
                 <Trans>
-                  To import data from YNAB4, locate where your YNAB4 data is
-                  stored. It is usually in your Documents folder under YNAB.
-                  Your data is a directory inside that with the
+                  To import data from YNAB4, locate where your YNAB4 data is stored. It is usually
+                  in your Documents folder under YNAB. Your data is a directory inside that with the
                   <code>.ynab4</code> suffix.
                 </Trans>
               </Paragraph>
               <Paragraph>
                 <Trans>
-                  When you've located your data,{' '}
-                  <strong>compress it into a zip file</strong>. On macOS,
-                  right-click the folder and select "Compress". On Windows,
-                  right-click and select "Send to &rarr; Compressed (zipped)
-                  folder". Upload the zipped folder for importing.
+                  When you've located your data, <strong>compress it into a zip file</strong>. On
+                  macOS, right-click the folder and select "Compress". On Windows, right-click and
+                  select "Send to &rarr; Compressed (zipped) folder". Upload the zipped folder for
+                  importing.
                 </Trans>
               </Paragraph>
               {!importing && (
                 <View>
-                  <ButtonWithLoading
-                    variant="primary"
-                    autoFocus
-                    onPress={onImport}
-                  >
+                  <ButtonWithLoading variant="primary" autoFocus onPress={onImport}>
                     <Trans>Select zip file...</Trans>
                   </ButtonWithLoading>
                 </View>

@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgNotificationsOutline } from '@actual-app/components/icons/v1';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgNotificationsOutline} from '@actual-app/components/icons/v1';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
 
-import { useNavigate } from '#hooks/useNavigate';
-import { useNewsFeed } from '#hooks/useNewsFeed';
+import {useNavigate} from '#hooks/useNavigate';
+import {useNewsFeed} from '#hooks/useNewsFeed';
 
 // Keeps the badge small; the feed only ever holds a couple of dozen entries.
 const MAX_DISPLAYED_COUNT = 9;
@@ -35,9 +35,9 @@ const MAX_DISPLAYED_COUNT = 9;
  * is disabled (the user turned it off in settings).
  */
 export function NotificationsButton() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const navigate = useNavigate();
-  const { isEnabled, unseenCount } = useNewsFeed();
+  const {isEnabled, unseenCount} = useNewsFeed();
 
   if (!isEnabled) {
     return null;
@@ -45,23 +45,21 @@ export function NotificationsButton() {
 
   const label =
     unseenCount > 0
-      ? t('Notifications: {{count}} unread', { count: unseenCount })
+      ? t('Notifications: {{count}} unread', {count: unseenCount})
       : t('Notifications');
   const displayedCount =
-    unseenCount > MAX_DISPLAYED_COUNT
-      ? `${MAX_DISPLAYED_COUNT}+`
-      : String(unseenCount);
+    unseenCount > MAX_DISPLAYED_COUNT ? `${MAX_DISPLAYED_COUNT}+` : String(unseenCount);
 
   return (
     <Tooltip placement="bottom end" content={label}>
-      <View style={{ position: 'relative' }}>
+      <View style={{position: 'relative'}}>
         <Button
           variant="bare"
           aria-label={label}
           onPress={() => void navigate('/notifications')}
           data-testid="notifications-button"
         >
-          <SvgNotificationsOutline style={{ width: 15, height: 15 }} />
+          <SvgNotificationsOutline style={{width: 15, height: 15}} />
         </Button>
         {unseenCount > 0 && (
           <Text

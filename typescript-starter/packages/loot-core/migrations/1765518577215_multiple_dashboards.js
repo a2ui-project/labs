@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 export default async function runMigration(db) {
   db.transaction(() => {
@@ -39,8 +39,6 @@ export default async function runMigration(db) {
     ]);
 
     // 4. Migrate existing widgets to the default dashboard
-    db.runQuery(`UPDATE dashboard SET dashboard_page_id = ?`, [
-      defaultDashboardId,
-    ]);
+    db.runQuery(`UPDATE dashboard SET dashboard_page_id = ?`, [defaultDashboardId]);
   });
 }

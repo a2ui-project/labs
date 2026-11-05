@@ -15,23 +15,18 @@
  */
 
 // @ts-strict-ignore
-import type { Database } from '@jlongster/sql.js';
+import type {Database} from '@jlongster/sql.js';
 
-import { captureBreadcrumb } from '#platform/exceptions';
-import { logger } from '#platform/server/log';
+import {captureBreadcrumb} from '#platform/exceptions';
+import {logger} from '#platform/server/log';
 import * as sqlite from '#platform/server/sqlite';
-import { sheetForMonth } from '#shared/months';
+import {sheetForMonth} from '#shared/months';
 import * as Platform from '#shared/platform';
 
 import type * as DbModule from './db';
-import type {
-  DbPreference,
-  DbReflectBudget,
-  DbZeroBudget,
-  DbZeroBudgetMonth,
-} from './db';
-import { Spreadsheet } from './spreadsheet/spreadsheet';
-import { resolveName } from './spreadsheet/util';
+import type {DbPreference, DbReflectBudget, DbZeroBudget, DbZeroBudgetMonth} from './db';
+import {Spreadsheet} from './spreadsheet/spreadsheet';
+import {resolveName} from './spreadsheet/util';
 
 let globalSheet: Spreadsheet;
 let globalOnChange;
@@ -48,36 +43,23 @@ async function updateSpreadsheetCache(rawDb, names: string[]) {
 
       // Don't cache query nodes yet
       if (node.sql == null) {
-        sqlite.runQuery(
-          rawDb,
-          'INSERT OR REPLACE INTO kvcache (key, value) VALUES (?, ?)',
-          [name, JSON.stringify(node.value)],
-        );
+        sqlite.runQuery(rawDb, 'INSERT OR REPLACE INTO kvcache (key, value) VALUES (?, ?)', [
+          name,
+          JSON.stringify(node.value),
+        ]);
       }
     });
   });
 }
 
-function setCacheStatus(
-  mainDb: Database,
-  cacheDb: Database,
-  { clean }: { clean: boolean },
-) {
+function setCacheStatus(mainDb: Database, cacheDb: Database, {clean}: {clean: boolean}) {
   if (clean) {
     // Generate random number and stick in both places
     const num = Math.random() * 10000000;
-    sqlite.runQuery(
-      cacheDb,
-      'INSERT OR REPLACE INTO kvcache_key (id, key) VALUES (1, ?)',
-      [num],
-    );
+    sqlite.runQuery(cacheDb, 'INSERT OR REPLACE INTO kvcache_key (id, key) VALUES (1, ?)', [num]);
 
     if (mainDb) {
-      sqlite.runQuery(
-        mainDb,
-        'INSERT OR REPLACE INTO kvcache_key (id, key) VALUES (1, ?)',
-        [num],
-      );
+      sqlite.runQuery(mainDb, 'INSERT OR REPLACE INTO kvcache_key (id, key) VALUES (1, ?)', [num]);
     }
   } else {
     sqlite.runQuery(cacheDb, 'DELETE FROM kvcache_key');
@@ -85,7 +67,7 @@ function setCacheStatus(
 }
 
 function isCacheDirty(mainDb: Database, cacheDb: Database): boolean {
-  let rows = sqlite.runQuery<{ key?: number }>(
+  let rows = sqlite.runQuery<{key?: number}>(
     cacheDb,
     'SELECT key FROM kvcache_key WHERE id = 1',
     [],
@@ -98,7 +80,7 @@ function isCacheDirty(mainDb: Database, cacheDb: Database): boolean {
   }
 
   if (mainDb) {
-    const rows = sqlite.runQuery<{ key?: number }>(
+    const rows = sqlite.runQuery<{key?: number}>(
       mainDb,
       'SELECT key FROM kvcache_key WHERE id = 1',
       [],
@@ -115,10 +97,7 @@ function isCacheDirty(mainDb: Database, cacheDb: Database): boolean {
   return rows.length === 0;
 }
 
-export async function loadSpreadsheet(
-  db,
-  onSheetChange?,
-): Promise<Spreadsheet> {
+export async function loadSpreadsheet(db, onSheetChange?): Promise<Spreadsheet> {
   const cacheEnabled = process.env.NODE_ENV !== 'test';
   const mainDb = db.getDatabase();
   let cacheDb;
@@ -128,9 +107,7 @@ export async function loadSpreadsheet(
     // much more likely to directly work with files on desktop, and this makes
     // it a lot clearer what the true filesize of the main db is (and avoid
     // copying the cache data around).
-    const cachePath = db
-      .getDatabasePath()
-      .replace(/db\.sqlite$/, 'cache.sqlite');
+    const cachePath = db.getDatabasePath().replace(/db\.sqlite$/, 'cache.sqlite');
     globalCacheDb = cacheDb = await sqlite.openDatabase(cachePath);
 
     sqlite.execQuery(
@@ -168,7 +145,7 @@ export async function loadSpreadsheet(
   }
 
   if (cacheEnabled && !isCacheDirty(mainDb, cacheDb)) {
-    const cachedRows = sqlite.runQuery<{ key?: number; value: string }>(
+    const cachedRows = sqlite.runQuery<{key?: number; value: string}>(
       cacheDb,
       'SELECT * FROM kvcache',
       [],
@@ -219,11 +196,10 @@ export async function loadUserBudgets(db: typeof DbModule): Promise<void> {
   // TODO: Clear out the cache here so make sure future loads of the app
   // don't load any extra values that aren't set here
 
-  const { value: budgetType = 'envelope' } =
-    (await db.first<Pick<DbPreference, 'value'>>(
-      'SELECT value from preferences WHERE id = ?',
-      ['budgetType'],
-    )) ?? {};
+  const {value: budgetType = 'envelope'} =
+    (await db.first<Pick<DbPreference, 'value'>>('SELECT value from preferences WHERE id = ?', [
+      'budgetType',
+    ])) ?? {};
 
   const table = budgetType === 'tracking' ? 'reflect_budgets' : 'zero_budgets';
   const budgets = await db.all<DbReflectBudget | DbZeroBudget>(`
@@ -239,10 +215,7 @@ export async function loadUserBudgets(db: typeof DbModule): Promise<void> {
     if (budget.month && budget.category) {
       const sheetName = `budget${budget.month}`;
       sheet.set(`${sheetName}!budget-${budget.category}`, budget.amount);
-      sheet.set(
-        `${sheetName}!carryover-${budget.category}`,
-        budget.carryover === 1 ? true : false,
-      );
+      sheet.set(`${sheetName}!carryover-${budget.category}`, budget.carryover === 1 ? true : false);
       sheet.set(`${sheetName}!goal-${budget.category}`, budget.goal);
       sheet.set(`${sheetName}!long-goal-${budget.category}`, budget.long_goal);
     }
@@ -250,9 +223,7 @@ export async function loadUserBudgets(db: typeof DbModule): Promise<void> {
 
   // For zero-based budgets, load the buffered amounts
   if (budgetType !== 'tracking') {
-    const budgetMonths = await db.all<DbZeroBudgetMonth>(
-      'SELECT * FROM zero_budget_months',
-    );
+    const budgetMonths = await db.all<DbZeroBudgetMonth>('SELECT * FROM zero_budget_months');
     for (const budgetMonth of budgetMonths) {
       const sheetName = sheetForMonth(budgetMonth.id);
       sheet.set(`${sheetName}!buffered`, budgetMonth.buffered);
@@ -266,10 +237,7 @@ export function getCell(sheet: string, name: string) {
   return globalSheet._getNode(resolveName(sheet, name));
 }
 
-export function getCellValue(
-  sheet: string,
-  name: string,
-): string | number | boolean {
+export function getCellValue(sheet: string, name: string): string | number | boolean {
   return globalSheet.getValue(resolveName(sheet, name));
 }
 

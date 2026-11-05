@@ -15,22 +15,22 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { useNavigate } from '#hooks/useNavigate';
+import {useNavigate} from '#hooks/useNavigate';
 
-import { Title } from './common';
-import { ConfirmPasswordForm } from './ConfirmPasswordForm';
+import {Title} from './common';
+import {ConfirmPasswordForm} from './ConfirmPasswordForm';
 
 export function ChangePassword() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const navigate = useNavigate();
   const [error, setError] = useState(null);
@@ -51,19 +51,19 @@ export function ChangePassword() {
 
   async function onSetPassword(password) {
     setError(null);
-    const { error } = await send('subscribe-change-password', { password });
+    const {error} = await send('subscribe-change-password', {password});
 
     if (error) {
       setError(error);
     } else {
       setMessage(t('Password successfully changed'));
-      await send('subscribe-sign-in', { password });
+      await send('subscribe-sign-in', {password});
       void navigate('/');
     }
   }
 
   return (
-    <View style={{ maxWidth: 500, marginTop: -30 }}>
+    <View style={{maxWidth: 500, marginTop: -30}}>
       <Title text={t('Change server password')} />
       <Text
         style={{
@@ -73,8 +73,8 @@ export function ChangePassword() {
         }}
       >
         <Trans>
-          This will change the password for this server instance. All existing
-          sessions will stay logged in.
+          This will change the password for this server instance. All existing sessions will stay
+          logged in.
         </Trans>
       </Text>
 
@@ -108,7 +108,7 @@ export function ChangePassword() {
         buttons={
           <Button
             variant="bare"
-            style={{ fontSize: 15, marginRight: 10 }}
+            style={{fontSize: 15, marginRight: 10}}
             onPress={() => navigate('/')}
           >
             <Trans>Cancel</Trans>

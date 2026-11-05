@@ -32,9 +32,9 @@ module.exports = async page => {
   }
 
   const result = await page.evaluate(
-    ({ selector, label }) => {
+    ({selector, label}) => {
       const el = document.querySelector(selector);
-      if (!el) return { ok: false, reason: 'not-found' };
+      if (!el) return {ok: false, reason: 'not-found'};
 
       el.scrollIntoView({
         block: 'center',
@@ -44,7 +44,7 @@ module.exports = async page => {
 
       const rect = el.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) {
-        return { ok: false, reason: 'zero-size' };
+        return {ok: false, reason: 'zero-size'};
       }
 
       const PAD = 6;
@@ -92,16 +92,14 @@ module.exports = async page => {
 
       return {
         ok: true,
-        rect: { x: rect.left, y: rect.top, w: rect.width, h: rect.height },
+        rect: {x: rect.left, y: rect.top, w: rect.width, h: rect.height},
       };
     },
-    { selector, label },
+    {selector, label},
   );
 
   if (!result.ok) {
-    throw new Error(
-      `Highlight failed: ${result.reason} (selector: ${selector})`,
-    );
+    throw new Error(`Highlight failed: ${result.reason} (selector: ${selector})`);
   }
 
   // Give the browser a frame to paint before the next screenshot fires.

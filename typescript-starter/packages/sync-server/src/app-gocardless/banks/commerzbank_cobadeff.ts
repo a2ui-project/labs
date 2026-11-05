@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
-import { escapeRegExp } from './util/escape-regexp';
+import {escapeRegExp} from './util/escape-regexp';
 
 export default {
   ...Fallback,
@@ -24,7 +24,7 @@ export default {
   institutionIds: ['COMMERZBANK_COBADEFF'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     // remittanceInformationUnstructured is limited to 140 chars thus ...
     // ... missing information form remittanceInformationUnstructuredArray ...
@@ -57,15 +57,12 @@ export default {
     // Clean up remittanceInformation, deduplicate payee (removing slashes ...
     // ... that are added to the remittanceInformation field), and ...
     // ... remove clutter like "End-to-End-Ref.: NOTPROVIDED"
-    const payee = escapeRegExp(
-      transaction.creditorName || transaction.debtorName || '',
-    );
-    editedTrans.remittanceInformationUnstructured =
-      editedTrans.remittanceInformationUnstructured
-        .replace(/\s*(,)?\s+/g, '$1 ')
-        .replace(RegExp(payee.split(' ').join('(/*| )'), 'gi'), ' ')
-        .replace(', End-to-End-Ref.: NOTPROVIDED', '')
-        .trim();
+    const payee = escapeRegExp(transaction.creditorName || transaction.debtorName || '');
+    editedTrans.remittanceInformationUnstructured = editedTrans.remittanceInformationUnstructured
+      .replace(/\s*(,)?\s+/g, '$1 ')
+      .replace(RegExp(payee.split(' ').join('(/*| )'), 'gi'), ' ')
+      .replace(', End-to-End-Ref.: NOTPROVIDED', '')
+      .trim();
 
     return Fallback.normalizeTransaction(transaction, booked, editedTrans);
   },

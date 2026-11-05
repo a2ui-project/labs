@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { theme } from '@actual-app/components/theme';
+import {theme} from '@actual-app/components/theme';
 import type {
   balanceTypeOpType,
   GroupedEntity,
@@ -22,7 +22,7 @@ import type {
   LegendEntity,
 } from '@actual-app/core/types/models';
 
-import { getColorScale } from '#components/reports/chart-theme';
+import {getColorScale} from '#components/reports/chart-theme';
 
 export function calculateLegend(
   intervalData: IntervalEntity[],
@@ -35,10 +35,10 @@ export function calculateLegend(
   const chooseData =
     groupBy === 'Interval'
       ? intervalData.map(c => {
-          return { name: c.date, id: null, data: c };
+          return {name: c.date, id: null, data: c};
         })
       : calcDataFiltered.map(c => {
-          return { name: c.name, id: c.id, data: c };
+          return {name: c.name, id: c.id, data: c};
         });
 
   function getColor(data: IntervalEntity | GroupedEntity, index: number) {
@@ -55,14 +55,8 @@ export function calculateLegend(
         return theme.reportsNumberNegative;
       }
 
-      if (
-        balanceTypeOp === 'totalTotals' ||
-        balanceTypeOp === 'totalBudgeted'
-      ) {
-        const total =
-          balanceTypeOp === 'totalBudgeted'
-            ? data.totalBudgeted
-            : data.totalTotals;
+      if (balanceTypeOp === 'totalTotals' || balanceTypeOp === 'totalBudgeted') {
+        const total = balanceTypeOp === 'totalBudgeted' ? data.totalBudgeted : data.totalTotals;
 
         if (total < 0) {
           return theme.reportsNumberNegative;
@@ -87,8 +81,7 @@ export function calculateLegend(
       name: item.name || '',
       color: getColor(item.data, index),
       dataKey: item.id || item.name || '', // Use id for unique data lookup
-      uncategorizedId:
-        'uncategorizedId' in item.data ? item.data.uncategorizedId : undefined,
+      uncategorizedId: 'uncategorizedId' in item.data ? item.data.uncategorizedId : undefined,
     };
   });
   return legend;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 type ScheduleEntry = {
   scheduleName?: string;
@@ -43,12 +43,12 @@ export class ScheduleEditModal {
     this.scheduleNameInput = locator.getByRole('textbox', {
       name: 'Schedule name',
     });
-    this.payeeInput = locator.getByRole('textbox', { name: 'Payee' });
-    this.accountInput = locator.getByRole('textbox', { name: 'Account' });
+    this.payeeInput = locator.getByRole('textbox', {name: 'Payee'});
+    this.accountInput = locator.getByRole('textbox', {name: 'Account'});
     this.amountInput = locator.getByLabel('Amount');
-    this.addButton = locator.getByRole('button', { name: 'Add' });
-    this.saveButton = locator.getByRole('button', { name: 'Save' });
-    this.cancelButton = locator.getByRole('button', { name: 'Cancel' });
+    this.addButton = locator.getByRole('button', {name: 'Add'});
+    this.saveButton = locator.getByRole('button', {name: 'Save'});
+    this.cancelButton = locator.getByRole('button', {name: 'Cancel'});
   }
 
   async fill(data: ScheduleEntry) {
@@ -77,11 +77,7 @@ export class ScheduleEditModal {
   async #typeAndSelectOption(input: Locator, content: string) {
     await input.pressSequentially(content);
     // Click the option: Enter on a not-yet-highlighted list saves "None".
-    await this.page
-      .getByRole('option')
-      .filter({ hasText: content })
-      .first()
-      .click();
+    await this.page.getByRole('option').filter({hasText: content}).first().click();
   }
 
   async save() {
@@ -97,6 +93,6 @@ export class ScheduleEditModal {
   }
 
   async close() {
-    await this.heading.getByRole('button', { name: 'Close' }).click();
+    await this.heading.getByRole('button', {name: 'Close'}).click();
   }
 }

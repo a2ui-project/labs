@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { CleanupTemplate } from '@actual-app/core/types/models/cleanup-templates';
+import type {CleanupTemplate} from '@actual-app/core/types/models/cleanup-templates';
 
 export type GlobalCleanup = {
   send: boolean;
@@ -36,7 +36,7 @@ export type CleanupConfig = {
 };
 
 export const emptyCleanupConfig = (): CleanupConfig => ({
-  global: { send: false, take: false, weight: 1 },
+  global: {send: false, take: false, weight: 1},
   groups: [],
 });
 
@@ -48,10 +48,7 @@ export function isCleanupConfigured(config: CleanupConfig): boolean {
   );
 }
 
-function ensureGroup(
-  map: Map<string, GroupCleanup>,
-  groupId: string,
-): GroupCleanup {
+function ensureGroup(map: Map<string, GroupCleanup>, groupId: string): GroupCleanup {
   const existing = map.get(groupId);
   if (existing) return existing;
   const fresh: GroupCleanup = {
@@ -107,18 +104,18 @@ export function editorToCleanupDef(config: CleanupConfig): CleanupTemplate[] {
 
   const rows: CleanupTemplate[] = [];
 
-  if (config.global.send) rows.push({ role: 'source', groupId: null });
+  if (config.global.send) rows.push({role: 'source', groupId: null});
   if (config.global.take) {
-    rows.push({ role: 'sink', groupId: null, weight: config.global.weight });
+    rows.push({role: 'sink', groupId: null, weight: config.global.weight});
   }
 
   for (const group of config.groups) {
-    if (group.send) rows.push({ role: 'source', groupId: group.groupId });
+    if (group.send) rows.push({role: 'source', groupId: group.groupId});
     if (group.take) {
       rows.push(
         group.overspendOnly
-          ? { role: 'overspend', groupId: group.groupId }
-          : { role: 'sink', groupId: group.groupId, weight: group.weight },
+          ? {role: 'overspend', groupId: group.groupId}
+          : {role: 'sink', groupId: group.groupId, weight: group.weight},
       );
     }
   }

@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import { Text } from '@actual-app/components/text';
+import {Text} from '@actual-app/components/text';
 
-import { Error } from '#components/alerts';
+import {Error} from '#components/alerts';
 import {
   GlobalConflictDetail,
   GlobalConflictTitle,
 } from '#components/budget/goals/automationMessages';
-import type { GlobalConflictKind } from '#components/budget/goals/validateAutomation';
+import type {GlobalConflictKind} from '#components/budget/goals/validateAutomation';
 
 type ConflictBannerProps = {
   conflict: GlobalConflictKind;
 };
 
-export function ConflictBanner({ conflict }: ConflictBannerProps) {
+export function ConflictBanner({conflict}: ConflictBannerProps) {
   return (
     <Error
       style={{

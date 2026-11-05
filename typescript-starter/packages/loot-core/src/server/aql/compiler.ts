@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { getNormalisedString } from '#shared/normalisation';
-import type { QueryState } from '#shared/query';
+import {getNormalisedString} from '#shared/normalisation';
+import type {QueryState} from '#shared/query';
 
 // @ts-strict-ignore
 let _uid = 0;
@@ -44,9 +44,7 @@ function addTombstone(schema, tableName, tableId, whereStr) {
   if (!hasTombstone) {
     return whereStr;
   }
-  return whereStr
-    ? `${whereStr} AND ${tableId}.tombstone = 0`
-    : `WHERE ${tableId}.tombstone = 0`;
+  return whereStr ? `${whereStr} AND ${tableId}.tombstone = 0` : `WHERE ${tableId}.tombstone = 0`;
 }
 
 export function appendWhere(whereStr: string, condition: string) {
@@ -55,7 +53,7 @@ export function appendWhere(whereStr: string, condition: string) {
 
 function popPath(path) {
   const parts = path.split('.');
-  return { path: parts.slice(0, -1).join('.'), field: parts[parts.length - 1] };
+  return {path: parts.slice(0, -1).join('.'), field: parts[parts.length - 1]};
 }
 
 function isKeyword(str) {
@@ -66,8 +64,8 @@ export function quoteAlias(alias) {
   return alias.indexOf('.') === -1 && !isKeyword(alias) ? alias : `"${alias}"`;
 }
 
-function typed(value, type, { literal = false } = {}) {
-  return { value, type, literal };
+function typed(value, type, {literal = false} = {}) {
+  return {value, type, literal};
 }
 
 function getFieldDescription(schema, tableName, field) {
@@ -77,15 +75,13 @@ function getFieldDescription(schema, tableName, field) {
 
   const fieldDesc = schema[tableName][field];
   if (fieldDesc == null) {
-    throw new CompileError(
-      `Field "${field}" does not exist in table "${tableName}"`,
-    );
+    throw new CompileError(`Field "${field}" does not exist in table "${tableName}"`);
   }
   return fieldDesc;
 }
 
 function makePath(state, path) {
-  const { schema, paths } = state;
+  const {schema, paths} = state;
 
   const parts = path.split('.');
   if (parts.length < 2) {
@@ -102,9 +98,7 @@ function makePath(state, path) {
     }
 
     if (!table[field] || table[field].ref == null) {
-      throw new CompileError(
-        `Field not joinable on table ${tableName}: "${field}"`,
-      );
+      throw new CompileError(`Field not joinable on table ${tableName}: "${field}"`);
     }
 
     return table[field].ref;
@@ -142,7 +136,7 @@ function resolvePath(state, path) {
         path: [...acc.path, fullName],
       };
     },
-    { context: state.implicitTableName, path: [] },
+    {context: state.implicitTableName, path: []},
   ).path;
 
   paths.forEach(path => {
@@ -160,7 +154,7 @@ function transformField(state, name) {
     throw new CompileError('Invalid field name, must be a string');
   }
 
-  const { path, field: originalField } = popPath(name);
+  const {path, field: originalField} = popPath(name);
 
   let field = originalField;
   let pathInfo;
@@ -173,11 +167,7 @@ function transformField(state, name) {
     pathInfo = resolvePath(state, path);
   }
 
-  const fieldDesc = getFieldDescription(
-    state.schema,
-    pathInfo.tableName,
-    field,
-  );
+  const fieldDesc = getFieldDescription(state.schema, pathInfo.tableName, field);
 
   // If this is a field that references an item in another table, that
   // item could have been deleted. If that's the case, we want to
@@ -185,12 +175,7 @@ function transformField(state, name) {
   // converts an id reference into a path that pulls the id through a
   // table join which will filter out dead items, resulting in a
   // `null` id if the item is deleted
-  if (
-    state.validateRefs &&
-    fieldDesc.ref &&
-    fieldDesc.type === 'id' &&
-    field !== 'id'
-  ) {
+  if (state.validateRefs && fieldDesc.ref && fieldDesc.type === 'id' && field !== 'id') {
     const refPath = state.implicitTableName + '.' + name;
     let refPathInfo = state.paths.get(refPath);
 
@@ -210,7 +195,7 @@ function transformField(state, name) {
 function parseDate(str) {
   const m = str.match(/^(\d{4}-\d{2}-\d{2})$/);
   if (m) {
-    return typed(dateToInt(m[1]), 'date', { literal: true });
+    return typed(dateToInt(m[1]), 'date', {literal: true});
   }
   return null;
 }
@@ -218,7 +203,7 @@ function parseDate(str) {
 function parseMonth(str) {
   const m = str.match(/^(\d{4}-\d{2})$/);
   if (m) {
-    return typed(dateToInt(m[1]), 'date', { literal: true });
+    return typed(dateToInt(m[1]), 'date', {literal: true});
   }
   return null;
 }
@@ -226,7 +211,7 @@ function parseMonth(str) {
 function parseYear(str) {
   const m = str.match(/^(\d{4})$/);
   if (m) {
-    return typed(dateToInt(m[1]), 'date', { literal: true });
+    return typed(dateToInt(m[1]), 'date', {literal: true});
   }
   return null;
 }
@@ -246,10 +231,7 @@ function inferParam(param, type) {
       float: ['integer'],
     };
 
-    if (
-      existingType !== type &&
-      (!casts[type] || !casts[type].includes(existingType))
-    ) {
+    if (existingType !== type && (!casts[type] || !casts[type].includes(existingType))) {
       throw new Error(
         `Parameter "${param.paramName}" can't convert to ${type} (already inferred as ${existingType})`,
       );
@@ -271,7 +253,7 @@ function castInput(state, expr, type) {
     }
 
     if (type === 'boolean') {
-      return typed(0, 'boolean', { literal: true });
+      return typed(0, 'boolean', {literal: true});
     }
     return expr;
   }
@@ -282,9 +264,7 @@ function castInput(state, expr, type) {
       if (expr.literal) {
         return parseDate(expr.value) || badDateFormat(expr.value, 'date');
       } else {
-        throw new CompileError(
-          'Casting string fields to dates is not supported',
-        );
+        throw new CompileError('Casting string fields to dates is not supported');
       }
     }
 
@@ -295,24 +275,15 @@ function castInput(state, expr, type) {
       expr2 = expr;
     } else if (expr.type === 'string' || expr.type === 'any') {
       expr2 =
-        parseMonth(expr.value) ||
-        parseDate(expr.value) ||
-        badDateFormat(expr.value, 'date-month');
+        parseMonth(expr.value) || parseDate(expr.value) || badDateFormat(expr.value, 'date-month');
     } else {
       throw new CompileError(`Can't cast ${expr.type} to date-month`);
     }
 
     if (expr2.literal) {
-      return typed(
-        dateToInt(expr2.value.toString().slice(0, 6)),
-        'date-month',
-        { literal: true },
-      );
+      return typed(dateToInt(expr2.value.toString().slice(0, 6)), 'date-month', {literal: true});
     } else {
-      return typed(
-        `CAST(SUBSTR(${expr2.value}, 1, 6) AS integer)`,
-        'date-month',
-      );
+      return typed(`CAST(SUBSTR(${expr2.value}, 1, 6) AS integer)`, 'date-month');
     }
   } else if (type === 'date-year') {
     let expr2;
@@ -333,23 +304,20 @@ function castInput(state, expr, type) {
         literal: true,
       });
     } else {
-      return typed(
-        `CAST(SUBSTR(${expr2.value}, 1, 4) AS integer)`,
-        'date-year',
-      );
+      return typed(`CAST(SUBSTR(${expr2.value}, 1, 4) AS integer)`, 'date-year');
     }
   } else if (type === 'id') {
     if (expr.type === 'string') {
-      return typed(expr.value, 'id', { literal: expr.literal });
+      return typed(expr.value, 'id', {literal: expr.literal});
     }
   } else if (type === 'float') {
     if (expr.type === 'integer') {
-      return typed(expr.value, 'float', { literal: expr.literal });
+      return typed(expr.value, 'float', {literal: expr.literal});
     }
   }
 
   if (expr.type === 'any') {
-    return typed(expr.value, type, { literal: expr.literal });
+    return typed(expr.value, type, {literal: expr.literal});
   }
 
   throw new CompileError(`Can't convert ${expr.type} to ${type}`);
@@ -405,7 +373,7 @@ function saveStack(type, func) {
       );
     }
 
-    state.compileStack.push({ type, args });
+    state.compileStack.push({type, args});
     const ret = func(state, ...args);
     state.compileStack.pop();
     return ret;
@@ -442,7 +410,7 @@ function getCompileError(error, stack) {
           return prettyValue(entry.args[0]);
         case 'op': {
           const [fieldRef, opData] = entry.args;
-          return prettyValue({ [fieldRef]: opData });
+          return prettyValue({[fieldRef]: opData});
         }
         case 'value':
           return prettyValue(entry.value);
@@ -477,26 +445,24 @@ function compileLiteral(value) {
   if (value === undefined) {
     throw new CompileError('`undefined` is not a valid query value');
   } else if (value === null) {
-    return typed('NULL', 'null', { literal: true });
+    return typed('NULL', 'null', {literal: true});
   } else if (value instanceof Date) {
-    return typed(nativeDateToInt(value), 'date', { literal: true });
+    return typed(nativeDateToInt(value), 'date', {literal: true});
   } else if (typeof value === 'string') {
     // Allow user to escape $, and quote the string to make it a
     // string literal in the output
     value = value.replace(/\\\$/g, '$');
-    return typed(value, 'string', { literal: true });
+    return typed(value, 'string', {literal: true});
   } else if (typeof value === 'boolean') {
-    return typed(value ? 1 : 0, 'boolean', { literal: true });
+    return typed(value ? 1 : 0, 'boolean', {literal: true});
   } else if (typeof value === 'number') {
     return typed(value, Number.isInteger(value) ? 'integer' : 'float', {
       literal: true,
     });
   } else if (Array.isArray(value)) {
-    return typed(value, 'array', { literal: true });
+    return typed(value, 'array', {literal: true});
   } else {
-    throw new CompileError(
-      'Unsupported type of expression: ' + JSON.stringify(value),
-    );
+    throw new CompileError('Unsupported type of expression: ' + JSON.stringify(value));
   }
 }
 
@@ -515,7 +481,7 @@ const compileExpr = saveStack('expr', (state, expr) => {
 
     // Named parameter
     if (expr[0] === ':') {
-      const param = { value: '?', type: 'param', paramName: expr.slice(1) };
+      const param = {value: '?', type: 'param', paramName: expr.slice(1)};
       state.namedParameters.push(param);
       return param;
     }
@@ -524,10 +490,7 @@ const compileExpr = saveStack('expr', (state, expr) => {
   if (expr !== null) {
     if (Array.isArray(expr)) {
       return compileLiteral(expr);
-    } else if (
-      typeof expr === 'object' &&
-      Object.keys(expr).find(k => k[0] === '$')
-    ) {
+    } else if (typeof expr === 'object' && Object.keys(expr).find(k => k[0] === '$')) {
       // It's a function call
       return compileFunction(state, expr);
     }
@@ -565,9 +528,7 @@ const compileFunction = saveStack('function', (state, func) => {
 
     case '$sumOver': {
       const [arg1] = valArray(state, args, ['float']);
-      const order = state.orders
-        ? 'ORDER BY ' + compileOrderBy(state, state.orders)
-        : '';
+      const order = state.orders ? 'ORDER BY ' + compileOrderBy(state, state.orders) : '';
 
       return typed(
         `(SUM(${arg1}) OVER (${order} ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING))`,
@@ -584,11 +545,7 @@ const compileFunction = saveStack('function', (state, func) => {
     // string functions
     case '$substr': {
       validateArgLength(args, 2, 3);
-      const [arg1, arg2, arg3] = valArray(state, args, [
-        'string',
-        'integer',
-        'integer',
-      ]);
+      const [arg1, arg2, arg3] = valArray(state, args, ['string', 'integer', 'integer']);
       return typed(`SUBSTR(${arg1}, ${arg2}, ${arg3})`, 'string');
     }
     case '$lower': {
@@ -611,10 +568,7 @@ const compileFunction = saveStack('function', (state, func) => {
     case '$idiv': {
       validateArgLength(args, 2);
       valArray(state, args, ['integer', 'integer']);
-      return typed(
-        `(${val(state, args[0])} / ${val(state, args[1])})`,
-        args[0].type,
-      );
+      return typed(`(${val(state, args[0])} / ${val(state, args[1])})`, args[0].type);
     }
 
     // id functions
@@ -661,7 +615,7 @@ const compileFunction = saveStack('function', (state, func) => {
 });
 
 const compileOp = saveStack('op', (state, fieldRef, opData) => {
-  const { $transform, ...opExpr } = opData;
+  const {$transform, ...opExpr} = opData;
   const [op] = Object.keys(opExpr);
 
   const rhs = compileExpr(state, opData[op]);
@@ -669,8 +623,8 @@ const compileOp = saveStack('op', (state, fieldRef, opData) => {
   let lhs;
   if ($transform) {
     lhs = compileFunction(
-      { ...state, implicitField: fieldRef },
-      typeof $transform === 'string' ? { [$transform]: '$' } : $transform,
+      {...state, implicitField: fieldRef},
+      typeof $transform === 'string' ? {[$transform]: '$'} : $transform,
     );
   } else {
     lhs = compileExpr(state, '$' + fieldRef);
@@ -702,7 +656,7 @@ const compileOp = saveStack('op', (state, fieldRef, opData) => {
 
       if (rhs.type === 'param') {
         const orders = state.namedParameters.map(param => {
-          return param === rhs || param === lhs ? [param, { ...param }] : param;
+          return param === rhs || param === lhs ? [param, {...param}] : param;
         });
         state.namedParameters = [].concat.apply([], orders);
 
@@ -723,7 +677,7 @@ const compileOp = saveStack('op', (state, fieldRef, opData) => {
 
       if (rhs.type === 'param') {
         const orders = state.namedParameters.map(param => {
-          return param === rhs || param === lhs ? [param, { ...param }] : param;
+          return param === rhs || param === lhs ? [param, {...param}] : param;
         });
         state.namedParameters = [].concat.apply([], orders);
 
@@ -740,11 +694,7 @@ const compileOp = saveStack('op', (state, fieldRef, opData) => {
       // Dedupe the ids
       const ids = [...new Set(right)];
 
-      return (
-        `${String(left)} IN (` +
-        ids.map(id => `'${String(id)}'`).join(',') +
-        ')'
-      );
+      return `${String(left)} IN (` + ids.map(id => `'${String(id)}'`).join(',') + ')';
     }
     case '$like': {
       const [left, right] = valArray(state, [lhs, rhs], ['string', 'string']);
@@ -768,7 +718,7 @@ function compileConditions(state, conds) {
     // Convert the object form `{foo: 1, bar:2}` into the array form
     // `[{foo: 1}, {bar:2}]`
     conds = Object.entries(conds).map(cond => {
-      return { [cond[0]]: cond[1] };
+      return {[cond[0]]: cond[1]};
     });
   }
 
@@ -796,7 +746,7 @@ function compileConditions(state, conds) {
           cond instanceof Date ||
           cond == null
         ) {
-          return compileOp(state, field, { $eq: cond });
+          return compileOp(state, field, {$eq: cond});
         }
 
         if (Array.isArray(cond)) {
@@ -851,7 +801,7 @@ const compileWhere = saveStack('filter', (state, conds) => {
 function compileJoins(state, tableRef, internalTableFilters) {
   const joins = [];
   state.paths.forEach((desc, path) => {
-    const { tableName, tableId, joinField, joinTable } = state.paths.get(path);
+    const {tableName, tableId, joinField, joinTable} = state.paths.get(path);
 
     let on = `${tableId}.id = ${tableRef(joinTable)}.${quoteAlias(joinField)}`;
 
@@ -859,10 +809,7 @@ function compileJoins(state, tableRef, internalTableFilters) {
     if (filters.length > 0) {
       on +=
         ' AND ' +
-        compileAnd(
-          { ...state, implicitTableName: tableName, implicitTableId: tableId },
-          filters,
-        );
+        compileAnd({...state, implicitTableName: tableName, implicitTableId: tableId}, filters);
     }
 
     joins.push(
@@ -901,55 +848,52 @@ function expandStar(state, expr) {
   return Object.keys(table).map(field => (path ? `${path}.${field}` : field));
 }
 
-const compileSelect = saveStack(
-  'select',
-  (state, exprs, isAggregate, orders) => {
-    // Always include the id if it's not an aggregate
-    if (!isAggregate && !exprs.includes('id') && !exprs.includes('*')) {
-      exprs = exprs.concat(['id']);
+const compileSelect = saveStack('select', (state, exprs, isAggregate, orders) => {
+  // Always include the id if it's not an aggregate
+  if (!isAggregate && !exprs.includes('id') && !exprs.includes('*')) {
+    exprs = exprs.concat(['id']);
+  }
+
+  const select = exprs.map(expr => {
+    if (typeof expr === 'string') {
+      if (expr.indexOf('*') !== -1) {
+        const fields = expandStar(state, expr);
+
+        return fields
+          .map(field => {
+            const compiled = compileExpr(state, '$' + field);
+            state.outputTypes.set(field, compiled.type);
+            return compiled.value + ' AS ' + quoteAlias(field);
+          })
+          .join(', ');
+      }
+
+      const compiled = compileExpr(state, '$' + expr);
+      state.outputTypes.set(expr, compiled.type);
+      return compiled.value + ' AS ' + quoteAlias(expr);
     }
 
-    const select = exprs.map(expr => {
-      if (typeof expr === 'string') {
-        if (expr.indexOf('*') !== -1) {
-          const fields = expandStar(state, expr);
+    const [name, value] = Object.entries(expr)[0];
+    if (name[0] === '$') {
+      state.compileStack.push({type: 'value', value: expr});
+      throw new CompileError(
+        `Invalid field "${name}", are you trying to select a function? You need to name the expression`,
+      );
+    }
 
-          return fields
-            .map(field => {
-              const compiled = compileExpr(state, '$' + field);
-              state.outputTypes.set(field, compiled.type);
-              return compiled.value + ' AS ' + quoteAlias(field);
-            })
-            .join(', ');
-        }
-
-        const compiled = compileExpr(state, '$' + expr);
-        state.outputTypes.set(expr, compiled.type);
-        return compiled.value + ' AS ' + quoteAlias(expr);
-      }
-
-      const [name, value] = Object.entries(expr)[0];
-      if (name[0] === '$') {
-        state.compileStack.push({ type: 'value', value: expr });
-        throw new CompileError(
-          `Invalid field "${name}", are you trying to select a function? You need to name the expression`,
-        );
-      }
-
-      if (typeof value === 'string') {
-        const compiled = compileExpr(state, '$' + value);
-        state.outputTypes.set(name, compiled.type);
-        return `${compiled.value} AS ${quoteAlias(name)}`;
-      }
-
-      const compiled = compileFunction({ ...state, orders }, value);
+    if (typeof value === 'string') {
+      const compiled = compileExpr(state, '$' + value);
       state.outputTypes.set(name, compiled.type);
-      return compiled.value + ` AS ${quoteAlias(name)}`;
-    });
+      return `${compiled.value} AS ${quoteAlias(name)}`;
+    }
 
-    return select.join(', ');
-  },
-);
+    const compiled = compileFunction({...state, orders}, value);
+    state.outputTypes.set(name, compiled.type);
+    return compiled.value + ` AS ${quoteAlias(name)}`;
+  });
+
+  return select.join(', ');
+});
 
 const compileGroupBy = saveStack('groupBy', (state, exprs) => {
   const groupBy = exprs.map(expr => {
@@ -980,7 +924,7 @@ const compileOrderBy = saveStack('orderBy', (state, exprs) => {
         compiled = compileExpr(state, '$' + entry[0]).value;
       } else {
         // Otherwise it's a function
-        const { $dir, ...func } = expr;
+        const {$dir, ...func} = expr;
         dir = $dir;
         compiled = compileFunction(state, func).value;
       }
@@ -1041,7 +985,7 @@ type Schema = unknown;
 export type SchemaConfig = {
   tableViews?:
     | Record<string, string>
-    | ((name: string, config: { withDead; isJoin; tableOptions }) => string);
+    | ((name: string, config: {withDead; isJoin; tableOptions}) => string);
   tableFilters?: (name: string) => unknown[];
   customizeQuery?: (queryState: QueryState) => QueryState;
   views?: Record<
@@ -1094,7 +1038,7 @@ export function compileQuery(
   schema: Schema,
   schemaConfig: SchemaConfig = {},
 ) {
-  const { withDead, validateRefs = true, tableOptions, rawMode } = queryState;
+  const {withDead, validateRefs = true, tableOptions, rawMode} = queryState;
 
   const {
     tableViews = {},
@@ -1107,14 +1051,10 @@ export function compileQuery(
     // These filters cannot join tables and must be simple strings
     for (const filter of filters) {
       if (Array.isArray(filter)) {
-        throw new CompileError(
-          'Invalid internal table filter: only object filters are supported',
-        );
+        throw new CompileError('Invalid internal table filter: only object filters are supported');
       }
       if (Object.keys(filter)[0].indexOf('.') !== -1) {
-        throw new CompileError(
-          'Invalid internal table filter: field names cannot contain paths',
-        );
+        throw new CompileError('Invalid internal table filter: field names cannot contain paths');
       }
     }
     return filters;
@@ -1123,21 +1063,15 @@ export function compileQuery(
   const tableRef = (name: string, isJoin?: boolean) => {
     const view =
       typeof tableViews === 'function'
-        ? tableViews(name, { withDead, isJoin, tableOptions })
+        ? tableViews(name, {withDead, isJoin, tableOptions})
         : tableViews[name];
     return view || name;
   };
 
   const tableName = queryState.table;
 
-  const {
-    filterExpressions,
-    selectExpressions,
-    groupExpressions,
-    orderExpressions,
-    limit,
-    offset,
-  } = customizeQuery(queryState);
+  const {filterExpressions, selectExpressions, groupExpressions, orderExpressions, limit, offset} =
+    customizeQuery(queryState);
 
   let select = '';
   let where = '';
@@ -1252,6 +1186,6 @@ export function generateSQLWithState(
   schema?: Schema,
   schemaConfig?: SchemaConfig,
 ) {
-  const { sqlPieces, state } = compileQuery(queryState, schema, schemaConfig);
-  return { sql: defaultConstructQuery(queryState, state, sqlPieces), state };
+  const {sqlPieces, state} = compileQuery(queryState, schema, schemaConfig);
+  return {sql: defaultConstructQuery(queryState, state, sqlPieces), state};
 }

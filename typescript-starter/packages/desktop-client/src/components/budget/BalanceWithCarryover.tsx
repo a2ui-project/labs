@@ -15,36 +15,32 @@
  */
 
 // @ts-strict-ignore
-import React, { useCallback } from 'react';
-import type {
-  ComponentPropsWithoutRef,
-  ComponentType,
-  CSSProperties,
-} from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback} from 'react';
+import type {ComponentPropsWithoutRef, ComponentType, CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgArrowThinRight } from '@actual-app/components/icons/v1';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import type { TransObjectLiteral } from '@actual-app/core/types/util';
-import { css } from '@emotion/css';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgArrowThinRight} from '@actual-app/components/icons/v1';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import type {TransObjectLiteral} from '@actual-app/core/types/util';
+import {css} from '@emotion/css';
 
-import { CellValue, CellValueText } from '#components/spreadsheet/CellValue';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useFormat } from '#hooks/useFormat';
-import { useSheetValue } from '#hooks/useSheetValue';
-import type { Binding } from '#spreadsheet';
+import {CellValue, CellValueText} from '#components/spreadsheet/CellValue';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useFormat} from '#hooks/useFormat';
+import {useSheetValue} from '#hooks/useSheetValue';
+import type {Binding} from '#spreadsheet';
 
-import { makeBalanceAmountStyle } from './util';
+import {makeBalanceAmountStyle} from './util';
 
 type CarryoverIndicatorProps = {
   style?: CSSProperties;
 };
 
-export function CarryoverIndicator({ style }: CarryoverIndicatorProps) {
+export function CarryoverIndicator({style}: CarryoverIndicatorProps) {
   return (
     <View
       style={{
@@ -58,16 +54,12 @@ export function CarryoverIndicator({ style }: CarryoverIndicatorProps) {
         ...style,
       }}
     >
-      <SvgArrowThinRight
-        width={style?.width || 7}
-        height={style?.height || 7}
-        style={style}
-      />
+      <SvgArrowThinRight width={style?.width || 7} height={style?.height || 7} style={style} />
     </View>
   );
 }
 
-function GoalTooltipRow({ children }) {
+function GoalTooltipRow({children}) {
   return (
     <div
       style={{
@@ -100,10 +92,7 @@ type BalanceWithCarryoverProps = Omit<
    * Expense category balance binding is `leftover`,
    * while income category balance binding is `sum-amount`.
    */
-  balance: Binding<
-    'envelope-budget' | 'tracking-budget',
-    'leftover' | 'sum-amount'
-  >;
+  balance: Binding<'envelope-budget' | 'tracking-budget', 'leftover' | 'sum-amount'>;
   goal: Binding<'envelope-budget' | 'tracking-budget', 'goal'>;
   budgeted: Binding<'envelope-budget' | 'tracking-budget', 'budget'>;
   longGoal: Binding<'envelope-budget' | 'tracking-budget', 'long-goal'>;
@@ -126,8 +115,8 @@ export function BalanceWithCarryover({
   children,
   ...props
 }: BalanceWithCarryoverProps) {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
   const carryoverValue = useSheetValue(carryover);
   const goalValue = useSheetValue(goal);
   const budgetedValue = useSheetValue(budgeted);
@@ -146,9 +135,7 @@ export function BalanceWithCarryover({
 
   const getDifferenceToGoal = useCallback(
     (balanceValue: number) =>
-      longGoalValue === 1
-        ? balanceValue - goalValue
-        : budgetedValue - goalValue,
+      longGoalValue === 1 ? balanceValue - goalValue : budgetedValue - goalValue,
     [budgetedValue, goalValue, longGoalValue],
   );
 
@@ -162,7 +149,7 @@ export function BalanceWithCarryover({
         ...(!isDisabled && {
           cursor: 'pointer',
         }),
-        ':hover': { textDecoration: 'underline' },
+        ':hover': {textDecoration: 'underline'},
       }),
     [getBalanceAmountStyle, isDisabled],
   );
@@ -170,33 +157,27 @@ export function BalanceWithCarryover({
     (balanceValue, type) => {
       return (
         <>
-          <span style={{ fontWeight: 'bold' }}>
+          <span style={{fontWeight: 'bold'}}>
             {getDifferenceToGoal(balanceValue) === 0 ? (
-              <span style={{ color: theme.templateNumberFunded }}>
+              <span style={{color: theme.templateNumberFunded}}>
                 <Trans>Fully funded</Trans>
               </span>
             ) : getDifferenceToGoal(balanceValue) > 0 ? (
-              <span style={{ color: theme.templateNumberFunded }}>
+              <span style={{color: theme.templateNumberFunded}}>
                 <Trans>
                   Overfunded (
                   {{
-                    amount: format(
-                      getDifferenceToGoal(balanceValue),
-                      'financial',
-                    ),
+                    amount: format(getDifferenceToGoal(balanceValue), 'financial'),
                   }}
                   )
                 </Trans>
               </span>
             ) : (
-              <span style={{ color: theme.templateNumberUnderFunded }}>
+              <span style={{color: theme.templateNumberUnderFunded}}>
                 <Trans>
                   Underfunded (
                   {{
-                    amount: format(
-                      getDifferenceToGoal(balanceValue),
-                      'financial',
-                    ),
+                    amount: format(getDifferenceToGoal(balanceValue), 'financial'),
                   }}
                   )
                 </Trans>
@@ -260,23 +241,16 @@ export function BalanceWithCarryover({
 
   return (
     <CellValue binding={balance} type="financial" {...props}>
-      {({ type, name, value: balanceValue }) => (
+      {({type, name, value: balanceValue}) => (
         <>
           <Tooltip
-            content={
-              <View style={{ padding: 10 }}>
-                {GoalStatusDisplay(balanceValue, type)}
-              </View>
-            }
-            style={{ ...styles.tooltip, borderRadius: '0px 5px 5px 0px' }}
+            content={<View style={{padding: 10}}>{GoalStatusDisplay(balanceValue, type)}</View>}
+            style={{...styles.tooltip, borderRadius: '0px 5px 5px 0px'}}
             placement="bottom"
             triggerProps={{
               delay: 750,
               isDisabled:
-                !isGoalTemplatesEnabled ||
-                goalValue == null ||
-                isNarrowWidth ||
-                tooltipDisabled,
+                !isGoalTemplatesEnabled || goalValue == null || isNarrowWidth || tooltipDisabled,
             }}
           >
             {children ? (
@@ -297,24 +271,20 @@ export function BalanceWithCarryover({
           </Tooltip>
 
           {carryoverValue && (
-            <CarryoverIndicatorComponent
-              style={getBalanceAmountStyle(balanceValue)}
-            />
+            <CarryoverIndicatorComponent style={getBalanceAmountStyle(balanceValue)} />
           )}
-          {shouldInlineGoalStatus &&
-            isGoalTemplatesEnabled &&
-            goalValue !== null && (
-              <>
-                <View
-                  style={{
-                    borderTop: '1px solid ' + theme.tableBorderSeparator,
-                    width: '160px',
-                    margin: '3px 0px',
-                  }}
-                />
-                <View>{GoalStatusDisplay(balanceValue, type)}</View>
-              </>
-            )}
+          {shouldInlineGoalStatus && isGoalTemplatesEnabled && goalValue !== null && (
+            <>
+              <View
+                style={{
+                  borderTop: '1px solid ' + theme.tableBorderSeparator,
+                  width: '160px',
+                  margin: '3px 0px',
+                }}
+              />
+              <View>{GoalStatusDisplay(balanceValue, type)}</View>
+            </>
+          )}
         </>
       )}
     </CellValue>

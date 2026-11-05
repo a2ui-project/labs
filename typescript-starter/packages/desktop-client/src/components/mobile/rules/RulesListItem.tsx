@@ -15,33 +15,28 @@
  */
 
 import React from 'react';
-import type { GridListItemProps } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import type {GridListItemProps} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { RuleEntity } from '@actual-app/core/types/models';
-import type { WithRequired } from '@actual-app/core/types/util';
+import {Button} from '@actual-app/components/button';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {RuleEntity} from '@actual-app/core/types/models';
+import type {WithRequired} from '@actual-app/core/types/util';
 
-import { ActionableGridListItem } from '#components/mobile/ActionableGridListItem';
-import { ActionExpression } from '#components/rules/ActionExpression';
-import { ConditionExpression } from '#components/rules/ConditionExpression';
-import { groupActionsBySplitIndex } from '#util/rule';
+import {ActionableGridListItem} from '#components/mobile/ActionableGridListItem';
+import {ActionExpression} from '#components/rules/ActionExpression';
+import {ConditionExpression} from '#components/rules/ConditionExpression';
+import {groupActionsBySplitIndex} from '#util/rule';
 
 type RulesListItemProps = {
   onDelete: () => void;
 } & WithRequired<GridListItemProps<RuleEntity>, 'value'>;
 
-export function RulesListItem({
-  value: rule,
-  onDelete,
-  style,
-  ...props
-}: RulesListItemProps) {
-  const { t } = useTranslation();
+export function RulesListItem({value: rule, onDelete, style, ...props}: RulesListItemProps) {
+  const {t} = useTranslation();
 
   // Group actions by splitIndex to handle split transactions
   const actionSplits = groupActionsBySplitIndex(rule.actions);
@@ -51,8 +46,8 @@ export function RulesListItem({
     <ActionableGridListItem
       id={rule.id}
       value={rule}
-      textValue={t('Rule {{id}}', { id: rule.id })}
-      style={{ ...styles.mobileListItem, padding: '8px 16px', ...style }}
+      textValue={t('Rule {{id}}', {id: rule.id})}
+      style={{...styles.mobileListItem, padding: '8px 16px', ...style}}
       actions={
         <Button
           variant="bare"
@@ -67,10 +62,7 @@ export function RulesListItem({
       }
       {...props}
     >
-      <SpaceBetween
-        gap={12}
-        style={{ alignItems: 'flex-start', width: '100%' }}
-      >
+      <SpaceBetween gap={12} style={{alignItems: 'flex-start', width: '100%'}}>
         {/* Column 1: PRE/POST pill */}
         <View
           style={{
@@ -106,11 +98,7 @@ export function RulesListItem({
               }}
               data-testid="rule-stage-badge"
             >
-              {rule.stage === 'pre'
-                ? t('PRE')
-                : rule.stage === 'post'
-                  ? t('POST')
-                  : t('DEFAULT')}
+              {rule.stage === 'pre' ? t('PRE') : rule.stage === 'post' ? t('POST') : t('DEFAULT')}
             </span>
           </View>
         </View>
@@ -137,7 +125,7 @@ export function RulesListItem({
             </span>
 
             {rule.conditions.map((condition, index) => (
-              <View key={index} style={{ marginRight: 4, marginBottom: 2 }}>
+              <View key={index} style={{marginRight: 4, marginBottom: 2}}>
                 <ConditionExpression
                   field={condition.field}
                   op={condition.op}
@@ -191,7 +179,7 @@ export function RulesListItem({
                         marginBottom: 4,
                       }}
                     >
-                      {i ? t('Split {{num}}', { num: i }) : t('Apply to all')}
+                      {i ? t('Split {{num}}', {num: i}) : t('Apply to all')}
                     </span>
                     {split.actions.map((action, j) => (
                       <View
@@ -207,10 +195,7 @@ export function RulesListItem({
                   </View>
                 ))
               : rule.actions.map((action, index) => (
-                  <View
-                    key={index}
-                    style={{ marginBottom: 2, maxWidth: '100%' }}
-                  >
+                  <View key={index} style={{marginBottom: 2, maxWidth: '100%'}}>
                     <ActionExpression {...action} />
                   </View>
                 ))}

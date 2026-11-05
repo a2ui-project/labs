@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { BankFactory } from '#app-gocardless/bank-factory';
-import type { IBank } from '#app-gocardless/banks/bank.interface';
+import {BankFactory} from '#app-gocardless/bank-factory';
+import type {IBank} from '#app-gocardless/banks/bank.interface';
 import {
   AccessDeniedError,
   AccountNotLinkedToRequisition,
@@ -52,10 +52,10 @@ import type {
   NormalizedAccountDetails,
   TransactionWithBookedStatus,
 } from '#app-gocardless/gocardless.types';
-import { SecretName, secretsService } from '#services/secrets-service';
+import {SecretName, secretsService} from '#services/secrets-service';
 
-import type { AccountDetailsResponse, TokenResponse } from './gocardless-api';
-import { GoCardlessApi, GoCardlessApiError } from './gocardless-api';
+import type {AccountDetailsResponse, TokenResponse} from './gocardless-api';
+import {GoCardlessApi, GoCardlessApiError} from './gocardless-api';
 
 const clients = new Map<string, GoCardlessApi>();
 
@@ -86,15 +86,12 @@ const isEuaExpiredError = (error: unknown): boolean => {
     return false;
   }
 
-  const { summary } = data as Record<string, unknown>;
-  return (
-    typeof summary === 'string' && /end user agreement.*expired/i.test(summary)
-  );
+  const {summary} = data as Record<string, unknown>;
+  return typeof summary === 'string' && /end user agreement.*expired/i.test(summary);
 };
 
 export const handleGoCardlessError = (error: unknown): never => {
-  const status =
-    error instanceof GoCardlessApiError ? error.response.status : undefined;
+  const status = error instanceof GoCardlessApiError ? error.response.status : undefined;
 
   switch (status) {
     case 400:
@@ -123,18 +120,14 @@ export const handleGoCardlessError = (error: unknown): never => {
 
 export const goCardlessService = {
   isConfigured: (): boolean => {
-    return !!(
-      getGocardlessClient().secretId && getGocardlessClient().secretKey
-    );
+    return !!(getGocardlessClient().secretId && getGocardlessClient().secretKey);
   },
 
   setToken: async (): Promise<void> => {
     const isExpiredJwtToken = (token: string | null): boolean => {
       if (!token) return true;
       try {
-        const payload = JSON.parse(
-          Buffer.from(token.split('.')[1], 'base64url').toString(),
-        );
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString());
         const clockTimestamp = Math.floor(Date.now() / 1000);
         return clockTimestamp >= payload.exp;
       } catch {
@@ -147,17 +140,15 @@ export const goCardlessService = {
     }
   },
 
-  getLinkedRequisition: async (
-    requisitionId: GoCardlessRequisitionId,
-  ): Promise<Requisition> => {
+  getLinkedRequisition: async (requisitionId: GoCardlessRequisitionId): Promise<Requisition> => {
     const requisition = await goCardlessService.getRequisition(requisitionId);
 
-    const { status } = requisition;
+    const {status} = requisition;
 
     // Continue only if status of requisition is "LN" which
     // means the account has been successfully linked to the requisition
     if (status !== 'LN') {
-      throw new RequisitionNotLinked({ requisitionStatus: status });
+      throw new RequisitionNotLinked({requisitionStatus: status});
     }
 
     return requisition;
@@ -169,8 +160,7 @@ export const goCardlessService = {
     requisition: Requisition;
     accounts: NormalizedAccountDetails[];
   }> => {
-    const requisition =
-      await goCardlessService.getLinkedRequisition(requisitionId);
+    const requisition = await goCardlessService.getLinkedRequisition(requisitionId);
 
     console.log('GoCardless requisition linked:', {
       institutionId: requisition.institution_id,
@@ -189,25 +179,22 @@ export const goCardlessService = {
     );
 
     const institutions = await Promise.all(
-      Array.from(institutionIdSet).map(
-        async (institutionId: GoCardlessInstitutionId) => {
-          return await goCardlessService.getInstitution(institutionId);
-        },
-      ),
+      Array.from(institutionIdSet).map(async (institutionId: GoCardlessInstitutionId) => {
+        return await goCardlessService.getInstitution(institutionId);
+      }),
     );
 
-    const extendedAccounts =
-      await goCardlessService.extendAccountsAboutInstitutions({
-        accounts: detailedAccounts,
-        institutions,
-      });
+    const extendedAccounts = await goCardlessService.extendAccountsAboutInstitutions({
+      accounts: detailedAccounts,
+      institutions,
+    });
 
     const normalizedAccounts = extendedAccounts.map(account => {
       const bank: IBank = BankFactory(account.institution_id);
       return bank.normalizeAccount(account);
     });
 
-    return { requisition, accounts: normalizedAccounts };
+    return {requisition, accounts: normalizedAccounts};
   },
 
   getTransactionsWithBalance: async (
@@ -225,7 +212,7 @@ export const goCardlessService = {
       all: TransactionWithBookedStatus[];
     };
   }> => {
-    const { institution_id, accounts: accountIds } =
+    const {institution_id, accounts: accountIds} =
       await goCardlessService.getLinkedRequisition(requisitionId);
 
     if (!accountIds.includes(accountId)) {
@@ -233,12 +220,7 @@ export const goCardlessService = {
     }
 
     const [normalizedTransactions, accountBalance] = await Promise.all([
-      goCardlessService.getNormalizedTransactions(
-        requisitionId,
-        accountId,
-        startDate,
-        endDate,
-      ),
+      goCardlessService.getNormalizedTransactions(requisitionId, accountId, startDate, endDate),
       goCardlessService.getBalances(accountId),
     ]);
 
@@ -272,7 +254,7 @@ export const goCardlessService = {
       all: TransactionWithBookedStatus[];
     };
   }> => {
-    const { institution_id, accounts: accountIds } =
+    const {institution_id, accounts: accountIds} =
       await goCardlessService.getLinkedRequisition(requisitionId);
 
     if (!accountIds.includes(accountId)) {
@@ -287,20 +269,13 @@ export const goCardlessService = {
     });
 
     const bank: IBank = BankFactory(institution_id);
-    const sortedBookedTransactions = bank.sortTransactions(
-      transactions.transactions.booked,
-    );
-    const sortedPendingTransactions = bank.sortTransactions(
-      transactions.transactions.pending,
-    );
-    const allTransactions: TransactionWithBookedStatus[] =
-      sortedBookedTransactions.map(t => ({
-        ...t,
-        booked: true,
-      }));
-    sortedPendingTransactions.forEach(t =>
-      allTransactions.push({ ...t, booked: false }),
-    );
+    const sortedBookedTransactions = bank.sortTransactions(transactions.transactions.booked);
+    const sortedPendingTransactions = bank.sortTransactions(transactions.transactions.pending);
+    const allTransactions: TransactionWithBookedStatus[] = sortedBookedTransactions.map(t => ({
+      ...t,
+      booked: true,
+    }));
+    sortedPendingTransactions.forEach(t => allTransactions.push({...t, booked: false}));
     const sortedAllTransactions = bank.sortTransactions(allTransactions);
 
     return {
@@ -323,21 +298,16 @@ export const goCardlessService = {
     await goCardlessService.setToken();
 
     const institution = await goCardlessService.getInstitution(institutionId);
-    const accountSelection =
-      institution.supported_features?.includes('account_selection') ?? false;
+    const accountSelection = institution.supported_features?.includes('account_selection') ?? false;
     const separateContinuousHistoryConsent =
-      institution.supported_features?.includes(
-        'separate_continuous_history_consent',
-      ) ?? false;
+      institution.supported_features?.includes('separate_continuous_history_consent') ?? false;
 
     const body = {
       redirectUrl: host + '/gocardless/link',
       institutionId,
       referenceId: uuidv4(),
       accessValidForDays: institution.max_access_valid_for_days,
-      maxHistoricalDays: separateContinuousHistoryConsent
-        ? 90
-        : institution.transaction_total_days,
+      maxHistoricalDays: separateContinuousHistoryConsent ? 90 : institution.transaction_total_days,
       userLanguage: 'en',
       ssn: null,
       redirectImmediate: false,
@@ -357,10 +327,7 @@ export const goCardlessService = {
     const response = await client.initSession(body).catch(async () => {
       console.log('Failed to link using:');
       console.log(body);
-      console.log(
-        'Falling back to accessValidForDays = 90 ' +
-          'and maxHistoricalDays = 89',
-      );
+      console.log('Falling back to accessValidForDays = 90 ' + 'and maxHistoricalDays = 89');
 
       return await client
         .initSession({
@@ -371,7 +338,7 @@ export const goCardlessService = {
         .catch(handleGoCardlessError);
     });
 
-    const { link, id: requisitionId } = response;
+    const {link, id: requisitionId} = response;
 
     console.log('GoCardless requisition created:', {
       institutionId,
@@ -387,23 +354,17 @@ export const goCardlessService = {
 
   deleteRequisition: async (
     requisitionId: GoCardlessRequisitionId,
-  ): Promise<{ summary: string; detail: string }> => {
+  ): Promise<{summary: string; detail: string}> => {
     await goCardlessService.getRequisition(requisitionId);
     return client.deleteRequisition(requisitionId).catch(handleGoCardlessError);
   },
 
-  getRequisition: async (
-    requisitionId: GoCardlessRequisitionId,
-  ): Promise<Requisition> => {
+  getRequisition: async (requisitionId: GoCardlessRequisitionId): Promise<Requisition> => {
     await goCardlessService.setToken();
-    return client
-      .getRequisitionById(requisitionId)
-      .catch(handleGoCardlessError);
+    return client.getRequisitionById(requisitionId).catch(handleGoCardlessError);
   },
 
-  getDetailedAccount: async (
-    accountId: GoCardlessAccountId,
-  ): Promise<DetailedAccount> => {
+  getDetailedAccount: async (accountId: GoCardlessAccountId): Promise<DetailedAccount> => {
     const [detailedAccount, metadataAccount] = await Promise.all([
       client.getDetails(accountId),
       client.getMetadata(accountId),
@@ -415,26 +376,20 @@ export const goCardlessService = {
     // Some banks provide additional data in both fields, but can do yucky things like have an empty
     // string in one place but not the other. We'll fix this by merging the two objects, but preferring truthy values
     // from the metadata object over the details object.
-    const truthyMetadata = Object.fromEntries(
-      Object.entries(metadata).filter(([, v]) => v),
-    );
+    const truthyMetadata = Object.fromEntries(Object.entries(metadata).filter(([, v]) => v));
     return {
       ...accountDetails,
       ...truthyMetadata,
     } as unknown as DetailedAccount;
   },
 
-  getAccountMetadata: async (
-    accountId: GoCardlessAccountId,
-  ): Promise<GoCardlessAccountMetadata> =>
+  getAccountMetadata: async (accountId: GoCardlessAccountId): Promise<GoCardlessAccountMetadata> =>
     client.getMetadata(accountId).catch(handleGoCardlessError),
 
   getInstitutions: async (country: string): Promise<Institution[]> =>
     client.getInstitutions(country).catch(handleGoCardlessError),
 
-  getInstitution: async (
-    institutionId: GoCardlessInstitutionId,
-  ): Promise<Institution> =>
+  getInstitution: async (institutionId: GoCardlessInstitutionId): Promise<Institution> =>
     client.getInstitutionById(institutionId).catch(handleGoCardlessError),
 
   extendAccountsAboutInstitutions: async ({
@@ -509,26 +464,18 @@ export const client = {
       dateTo,
     }),
   getInstitutions: async (country: string): Promise<Institution[]> =>
-    await getGocardlessClient().getInstitutions({ country }),
-  getInstitutionById: async (
-    institutionId: GoCardlessInstitutionId,
-  ): Promise<Institution> =>
+    await getGocardlessClient().getInstitutions({country}),
+  getInstitutionById: async (institutionId: GoCardlessInstitutionId): Promise<Institution> =>
     await getGocardlessClient().getInstitutionById(institutionId),
-  getDetails: async (
-    accountId: GoCardlessAccountId,
-  ): Promise<AccountDetailsResponse> =>
+  getDetails: async (accountId: GoCardlessAccountId): Promise<AccountDetailsResponse> =>
     await getGocardlessClient().getAccountDetails(accountId),
-  getMetadata: async (
-    accountId: GoCardlessAccountId,
-  ): Promise<GoCardlessAccountMetadata> =>
+  getMetadata: async (accountId: GoCardlessAccountId): Promise<GoCardlessAccountMetadata> =>
     await getGocardlessClient().getAccountMetadata(accountId),
-  getRequisitionById: async (
-    requisitionId: GoCardlessRequisitionId,
-  ): Promise<Requisition> =>
+  getRequisitionById: async (requisitionId: GoCardlessRequisitionId): Promise<Requisition> =>
     await getGocardlessClient().getRequisitionById(requisitionId),
   deleteRequisition: async (
     requisitionId: GoCardlessRequisitionId,
-  ): Promise<{ summary: string; detail: string }> =>
+  ): Promise<{summary: string; detail: string}> =>
     await getGocardlessClient().deleteRequisition(requisitionId),
   initSession: async ({
     redirectUrl,
@@ -562,12 +509,7 @@ export const client = {
       redirectImmediate,
       accountSelection,
     }),
-  generateToken: async (): Promise<TokenResponse> =>
-    await getGocardlessClient().generateToken(),
-  exchangeToken: async ({
-    refreshToken,
-  }: {
-    refreshToken: string;
-  }): Promise<TokenResponse> =>
-    await getGocardlessClient().exchangeToken({ refreshToken }),
+  generateToken: async (): Promise<TokenResponse> => await getGocardlessClient().generateToken(),
+  exchangeToken: async ({refreshToken}: {refreshToken: string}): Promise<TokenResponse> =>
+    await getGocardlessClient().exchangeToken({refreshToken}),
 };

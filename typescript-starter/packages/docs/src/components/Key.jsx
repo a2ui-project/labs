@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 
 import classes from './Key.module.css';
 
@@ -49,7 +49,7 @@ const arrows = {
   right: '→',
 };
 
-export default function Key({ mod, fixed, mods = [], k, arrow }) {
+export default function Key({mod, fixed, mods = [], k, arrow}) {
   const [isMacLike, setMacLike] = useState(true);
 
   useEffect(() => {
@@ -69,13 +69,9 @@ export default function Key({ mod, fixed, mods = [], k, arrow }) {
   const keys = [...mods, title(k)];
 
   return (
-    <div style={{ display: 'inline-flex' }}>
+    <div style={{display: 'inline-flex'}}>
       {keys.map((key, idx) => (
-        <div
-          key={idx}
-          className={classes.key}
-          style={{ marginLeft: idx === 0 ? 0 : '0.25rem' }}
-        >
+        <div key={idx} className={classes.key} style={{marginLeft: idx === 0 ? 0 : '0.25rem'}}>
           {key}
         </div>
       ))}

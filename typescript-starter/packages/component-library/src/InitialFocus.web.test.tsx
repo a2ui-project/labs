@@ -15,13 +15,13 @@
  */
 
 import * as React from 'react';
-import { forwardRef } from 'react';
-import type { Ref } from 'react';
+import {forwardRef} from 'react';
+import type {Ref} from 'react';
 
-import { render } from '@testing-library/react';
+import {render} from '@testing-library/react';
 
-import { InitialFocus } from './InitialFocus';
-import { View } from './View';
+import {InitialFocus} from './InitialFocus';
+import {View} from './View';
 
 describe('InitialFocus', () => {
   it('should focus a text input', async () => {
@@ -38,9 +38,7 @@ describe('InitialFocus', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     const input = component.getByTitle('focused') as HTMLInputElement;
-    const unfocusedInput = component.getByTitle(
-      'unfocused',
-    ) as HTMLInputElement;
+    const unfocusedInput = component.getByTitle('unfocused') as HTMLInputElement;
     expect(document.activeElement).toBe(input);
     expect(document.activeElement).not.toBe(unfocusedInput);
   });
@@ -59,9 +57,7 @@ describe('InitialFocus', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     const textarea = component.getByTitle('focused') as HTMLTextAreaElement;
-    const unfocusedTextarea = component.getByTitle(
-      'unfocused',
-    ) as HTMLTextAreaElement;
+    const unfocusedTextarea = component.getByTitle('unfocused') as HTMLTextAreaElement;
     expect(document.activeElement).toBe(textarea);
     expect(document.activeElement).not.toBe(unfocusedTextarea);
   });
@@ -99,9 +95,7 @@ describe('InitialFocus', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     const button = component.getByTitle('focused') as HTMLButtonElement;
-    const unfocusedButton = component.getByTitle(
-      'unfocused',
-    ) as HTMLButtonElement;
+    const unfocusedButton = component.getByTitle('unfocused') as HTMLButtonElement;
     expect(document.activeElement).toBe(button);
     expect(document.activeElement).not.toBe(unfocusedButton);
   });
@@ -114,9 +108,7 @@ describe('InitialFocus', () => {
 
     const component = render(
       <View>
-        <InitialFocus>
-          {node => <CustomInput ref={node as Ref<HTMLInputElement>} />}
-        </InitialFocus>
+        <InitialFocus>{node => <CustomInput ref={node as Ref<HTMLInputElement>} />}</InitialFocus>
         <input type="text" title="unfocused" />
       </View>,
     );
@@ -125,9 +117,7 @@ describe('InitialFocus', () => {
     await new Promise(resolve => setTimeout(resolve, 0));
 
     const input = component.getByTitle('focused') as HTMLInputElement;
-    const unfocusedInput = component.getByTitle(
-      'unfocused',
-    ) as HTMLInputElement;
+    const unfocusedInput = component.getByTitle('unfocused') as HTMLInputElement;
     expect(document.activeElement).toBe(input);
     expect(document.activeElement).not.toBe(unfocusedInput);
   });

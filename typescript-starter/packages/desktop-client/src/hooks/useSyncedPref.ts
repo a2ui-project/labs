@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-import { useCallback } from 'react';
+import {useCallback} from 'react';
 
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 
-import { saveSyncedPrefs } from '#prefs/prefsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {saveSyncedPrefs} from '#prefs/prefsSlice';
+import {useDispatch, useSelector} from '#redux';
 
-type SetSyncedPrefAction<K extends keyof SyncedPrefs> = (
-  value: SyncedPrefs[K],
-) => void;
+type SetSyncedPrefAction<K extends keyof SyncedPrefs> = (value: SyncedPrefs[K]) => void;
 
 export function useSyncedPref<K extends keyof SyncedPrefs>(
   prefName: K,
@@ -33,7 +31,7 @@ export function useSyncedPref<K extends keyof SyncedPrefs>(
     value => {
       void dispatch(
         saveSyncedPrefs({
-          prefs: { [prefName]: value },
+          prefs: {[prefName]: value},
         }),
       );
     },

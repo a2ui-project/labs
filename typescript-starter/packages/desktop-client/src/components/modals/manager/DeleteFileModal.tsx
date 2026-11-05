@@ -14,27 +14,24 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button, ButtonWithLoading } from '@actual-app/components/button';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button, ButtonWithLoading} from '@actual-app/components/button';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { deleteBudget } from '#budgetfiles/budgetfilesSlice';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { useSyncServerStatus } from '#hooks/useSyncServerStatus';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {deleteBudget} from '#budgetfiles/budgetfilesSlice';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {useSyncServerStatus} from '#hooks/useSyncServerStatus';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {useDispatch, useSelector} from '#redux';
 
-type DeleteFileModalProps = Extract<
-  ModalType,
-  { name: 'delete-budget' }
->['options'];
+type DeleteFileModalProps = Extract<ModalType, {name: 'delete-budget'}>['options'];
 
-export function DeleteFileModal({ file }: DeleteFileModalProps) {
-  const { t } = useTranslation();
+export function DeleteFileModal({file}: DeleteFileModalProps) {
+  const {t} = useTranslation();
 
   // If the state is "broken" that means it was created by another
   // user. The current user should be able to delete the local file,
@@ -52,16 +49,14 @@ export function DeleteFileModal({ file }: DeleteFileModalProps) {
   const isAdmin = userData?.permission === 'ADMIN';
   const canDeleteFromServer = isOwner || isAdmin;
 
-  const [loadingState, setLoadingState] = useState<'cloud' | 'local' | null>(
-    null,
-  );
+  const [loadingState, setLoadingState] = useState<'cloud' | 'local' | null>(null);
 
   return (
     <Modal name="delete-budget">
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
-            title={t('Delete {{fileName}}', { fileName: file.name })}
+            title={t('Delete {{fileName}}', {fileName: file.name})}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
           <View
@@ -79,10 +74,9 @@ export function DeleteFileModal({ file }: DeleteFileModalProps) {
                 <>
                   <Text>
                     <Trans>
-                      This is a <strong>hosted file</strong> which means it is
-                      stored on your server to make it available for download on
-                      any device. You can delete it from the server, which will
-                      also remove it from all of your devices.
+                      This is a <strong>hosted file</strong> which means it is stored on your server
+                      to make it available for download on any device. You can delete it from the
+                      server, which will also remove it from all of your devices.
                     </Trans>
                   </Text>
 
@@ -128,8 +122,8 @@ export function DeleteFileModal({ file }: DeleteFileModalProps) {
               ) : (
                 <Text>
                   <Trans>
-                    This is a <strong>hosted file</strong> shared with you. Only
-                    the file owner can delete it from the server.
+                    This is a <strong>hosted file</strong> shared with you. Only the file owner can
+                    delete it from the server.
                   </Trans>
                 </Text>
               ))}
@@ -139,29 +133,23 @@ export function DeleteFileModal({ file }: DeleteFileModalProps) {
                 {isCloudFile ? (
                   <Text>
                     <Trans>
-                      You can also delete just the local copy. This will remove
-                      all local data and the file will be listed as available
-                      for download.
+                      You can also delete just the local copy. This will remove all local data and
+                      the file will be listed as available for download.
                     </Trans>
                   </Text>
                 ) : (
                   <Text>
                     {file.state === 'broken' ? (
                       <Trans>
-                        This is a <strong>hosted file</strong> but it was
-                        created by another user. You can only delete the local
-                        copy.
+                        This is a <strong>hosted file</strong> but it was created by another user.
+                        You can only delete the local copy.
                       </Trans>
                     ) : (
                       <Trans>
-                        This a <strong>local file</strong> which is not stored
-                        on a server.
+                        This a <strong>local file</strong> which is not stored on a server.
                       </Trans>
                     )}{' '}
-                    <Trans>
-                      Deleting it will remove it and all of its backups
-                      permanently.
-                    </Trans>
+                    <Trans>Deleting it will remove it and all of its backups permanently.</Trans>
                   </Text>
                 )}
 
@@ -185,7 +173,7 @@ export function DeleteFileModal({ file }: DeleteFileModalProps) {
                   }}
                   onPress={async () => {
                     setLoadingState('local');
-                    await dispatch(deleteBudget({ id: file.id }));
+                    await dispatch(deleteBudget({id: file.id}));
                     setLoadingState(null);
 
                     state.close();

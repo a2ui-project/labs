@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-import { describe, expect, it } from 'vitest';
+import {describe, expect, it} from 'vitest';
 
-import type { DashboardWidgetEntity } from '#types/models';
+import type {DashboardWidgetEntity} from '#types/models';
 
-import { isWidgetType } from './app';
+import {isWidgetType} from './app';
 
 function allWidgetTypes<T extends DashboardWidgetEntity['type'][]>(
-  ...types: T &
-    (DashboardWidgetEntity['type'] extends T[number] ? unknown : never)
+  ...types: T & (DashboardWidgetEntity['type'] extends T[number] ? unknown : never)
 ): T {
   return types;
 }

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
-import { CustomReportPage } from './custom-report-page';
+import {CustomReportPage} from './custom-report-page';
 
 export class ReportsPage {
   readonly page: Page;
@@ -28,16 +28,16 @@ export class ReportsPage {
   }
 
   async waitToLoad() {
-    return this.pageContent.getByRole('button', { name: /^Net/ }).waitFor();
+    return this.pageContent.getByRole('button', {name: /^Net/}).waitFor();
   }
 
   async goToNetWorthPage() {
-    await this.pageContent.getByRole('button', { name: /^Net/ }).click();
+    await this.pageContent.getByRole('button', {name: /^Net/}).click();
     return new ReportsPage(this.page);
   }
 
   async goToCashFlowPage() {
-    await this.pageContent.getByRole('button', { name: /^Cash/ }).click();
+    await this.pageContent.getByRole('button', {name: /^Cash/}).click();
     return new ReportsPage(this.page);
   }
 
@@ -49,7 +49,7 @@ export class ReportsPage {
     for (let i = count - 1; i >= 0; i--) {
       const item = gridItems.nth(i);
       await item.scrollIntoViewIfNeeded();
-      const heading = item.getByRole('heading', { name: /^Balance Forecast/i });
+      const heading = item.getByRole('heading', {name: /^Balance Forecast/i});
       if (await heading.isVisible()) {
         targetItem = item;
         break;
@@ -81,69 +81,49 @@ export class ReportsPage {
     const cardNavigateButton = targetItem.getByRole('button', {
       name: /^Balance Forecast/i,
     });
-    await Promise.all([
-      this.page.waitForURL(/\/reports\/forecast\//),
-      cardNavigateButton.click(),
-    ]);
+    await Promise.all([this.page.waitForURL(/\/reports\/forecast\//), cardNavigateButton.click()]);
 
-    await this.pageContent
-      .getByRole('button', { name: 'Monthly' })
-      .waitFor({ state: 'visible' });
+    await this.pageContent.getByRole('button', {name: 'Monthly'}).waitFor({state: 'visible'});
 
     return new ReportsPage(this.page);
   }
 
   async selectForecastGranularity(granularity: string) {
-    await this.pageContent.getByRole('button', { name: 'Monthly' }).click();
-    const option = this.page.getByRole('button', { name: granularity });
-    await option.waitFor({ state: 'visible' });
+    await this.pageContent.getByRole('button', {name: 'Monthly'}).click();
+    const option = this.page.getByRole('button', {name: granularity});
+    await option.waitFor({state: 'visible'});
     await option.click();
-    await this.pageContent
-      .getByRole('button', { name: granularity })
-      .waitFor({ state: 'visible' });
+    await this.pageContent.getByRole('button', {name: granularity}).waitFor({state: 'visible'});
   }
 
-  async selectForecastSource(
-    source: 'Scheduled transactions' | 'Tracking budget',
-  ) {
+  async selectForecastSource(source: 'Scheduled transactions' | 'Tracking budget') {
     await this.pageContent
       .getByRole('button', {
         name: /^(Scheduled transactions|Tracking budget)$/,
       })
       .click();
-    const option = this.page.getByRole('button', { name: source });
-    await option.waitFor({ state: 'visible' });
+    const option = this.page.getByRole('button', {name: source});
+    await option.waitFor({state: 'visible'});
     await option.click();
-    await this.pageContent
-      .getByRole('button', { name: source })
-      .waitFor({ state: 'visible' });
+    await this.pageContent.getByRole('button', {name: source}).waitFor({state: 'visible'});
   }
 
   async addWidget(widgetName: string) {
-    await this.pageContent
-      .getByRole('button', { name: 'Add new widget' })
-      .click();
-    await this.page.getByRole('button', { name: widgetName }).click();
+    await this.pageContent.getByRole('button', {name: 'Add new widget'}).click();
+    await this.page.getByRole('button', {name: widgetName}).click();
   }
 
   async goToCustomReportPage() {
-    await this.pageContent
-      .getByRole('button', { name: 'Add new widget' })
-      .click();
-    await this.page.getByRole('button', { name: 'New custom report' }).click();
+    await this.pageContent.getByRole('button', {name: 'Add new widget'}).click();
+    await this.page.getByRole('button', {name: 'New custom report'}).click();
     return new CustomReportPage(this.page);
   }
 
   async getAvailableReportList() {
-    return this.pageContent
-      .getByRole('button')
-      .getByRole('heading')
-      .allTextContents();
+    return this.pageContent.getByRole('button').getByRole('heading').allTextContents();
   }
 
   async rightClickReportCard(title: string | RegExp) {
-    await this.pageContent
-      .getByRole('button', { name: title })
-      .click({ button: 'right' });
+    await this.pageContent.getByRole('button', {name: title}).click({button: 'right'});
   }
 }

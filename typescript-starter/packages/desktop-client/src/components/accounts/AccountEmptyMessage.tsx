@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
 type AccountEmptyMessageProps = {
   onAdd: () => void;
 };
 
-export function AccountEmptyMessage({ onAdd }: AccountEmptyMessageProps) {
+export function AccountEmptyMessage({onAdd}: AccountEmptyMessageProps) {
   return (
     <View
       style={{
@@ -45,27 +45,19 @@ export function AccountEmptyMessage({ onAdd }: AccountEmptyMessageProps) {
           alignItems: 'center',
         }}
       >
-        <Text style={{ textAlign: 'center', lineHeight: '1.4em' }}>
+        <Text style={{textAlign: 'center', lineHeight: '1.4em'}}>
           <Trans>
-            <strong>Let's add your first account.</strong> Accounts hold your
-            transactions, like everyday spending, savings, credit cards, or
-            cash. You can connect to your bank to import transactions
-            automatically, or add them yourself.
+            <strong>Let's add your first account.</strong> Accounts hold your transactions, like
+            everyday spending, savings, credit cards, or cash. You can connect to your bank to
+            import transactions automatically, or add them yourself.
           </Trans>
         </Text>
 
-        <Button
-          variant="primary"
-          style={{ marginTop: 20 }}
-          autoFocus
-          onPress={onAdd}
-        >
+        <Button variant="primary" style={{marginTop: 20}} autoFocus onPress={onAdd}>
           <Trans>Add account</Trans>
         </Button>
 
-        <View
-          style={{ marginTop: 20, fontSize: 13, color: theme.tableTextLight }}
-        >
+        <View style={{marginTop: 20, fontSize: 13, color: theme.tableTextLight}}>
           <Trans>You can add more accounts at any time from the sidebar.</Trans>
         </View>
       </View>

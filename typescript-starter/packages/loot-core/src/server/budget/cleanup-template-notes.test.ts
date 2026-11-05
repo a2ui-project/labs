@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { vi } from 'vitest';
+import {vi} from 'vitest';
 
 import * as db from '#server/db';
 
-import { storeNoteCleanups } from './cleanup-template-notes';
+import {storeNoteCleanups} from './cleanup-template-notes';
 
 vi.mock('#server/db');
 
@@ -33,10 +33,8 @@ type GroupRow = {
   tombstone: 0 | 1;
 };
 
-function setupDb(initial: { categories: CategoryRow[]; groups?: GroupRow[] }) {
-  const groups = new Map<string, GroupRow>(
-    (initial.groups ?? []).map(g => [g.id, { ...g }]),
-  );
+function setupDb(initial: {categories: CategoryRow[]; groups?: GroupRow[]}) {
+  const groups = new Map<string, GroupRow>((initial.groups ?? []).map(g => [g.id, {...g}]));
   const categoryDefs = new Map<string, string | null>();
 
   vi.mocked(db.all).mockImplementation(async (sql: string) => {
@@ -49,9 +47,7 @@ function setupDb(initial: { categories: CategoryRow[]; groups?: GroupRow[] }) {
   vi.mocked(db.first).mockImplementation(async (sql: string, params) => {
     if (sql.includes('FROM cleanup_groups')) {
       const key = (params as string[])[0];
-      const match = Array.from(groups.values()).find(
-        g => g.name.toLowerCase() === key,
-      );
+      const match = Array.from(groups.values()).find(g => g.name.toLowerCase() === key);
       return (match ?? null) as never;
     }
     return null as never;
@@ -60,23 +56,23 @@ function setupDb(initial: { categories: CategoryRow[]; groups?: GroupRow[] }) {
   vi.mocked(db.insertWithSchema).mockImplementation(async (table, row) => {
     if (table === 'cleanup_groups') {
       const r = row as GroupRow;
-      groups.set(r.id, { ...r, tombstone: 0 });
+      groups.set(r.id, {...r, tombstone: 0});
     }
     return row.id as never;
   });
 
   vi.mocked(db.update).mockImplementation(async (table, params) => {
     if (table === 'cleanup_groups') {
-      const r = params as Partial<GroupRow> & { id: string };
+      const r = params as Partial<GroupRow> & {id: string};
       const existing = groups.get(r.id);
-      if (existing) groups.set(r.id, { ...existing, ...r } as GroupRow);
+      if (existing) groups.set(r.id, {...existing, ...r} as GroupRow);
     }
     return undefined as never;
   });
 
   vi.mocked(db.updateWithSchema).mockImplementation(async (table, fields) => {
     if (table === 'categories') {
-      const r = fields as { id: string; cleanup_def: string | null };
+      const r = fields as {id: string; cleanup_def: string | null};
       categoryDefs.set(r.id, r.cleanup_def);
     }
     return undefined as never;
@@ -88,21 +84,21 @@ function setupDb(initial: { categories: CategoryRow[]; groups?: GroupRow[] }) {
       const referenced = new Set<string>();
       for (const def of categoryDefs.values()) {
         if (!def) continue;
-        const arr = JSON.parse(def) as Array<{ groupId?: string | null }>;
+        const arr = JSON.parse(def) as Array<{groupId?: string | null}>;
         for (const row of arr) {
           if (row.groupId) referenced.add(row.groupId);
         }
       }
       for (const [id, g] of groups) {
         if (g.tombstone === 0 && !referenced.has(id)) {
-          groups.set(id, { ...g, tombstone: 1 });
+          groups.set(id, {...g, tombstone: 1});
         }
       }
     }
     return undefined as never;
   });
 
-  return { groups, categoryDefs };
+  return {groups, categoryDefs};
 }
 
 describe('storeNoteCleanups', () => {
@@ -111,27 +107,25 @@ describe('storeNoteCleanups', () => {
   it('persists global source/sink lines as cleanup_def with null groupId', async () => {
     const state = setupDb({
       categories: [
-        { id: 'cat-1', note: '#cleanup source' },
-        { id: 'cat-2', note: '#cleanup sink 2' },
+        {id: 'cat-1', note: '#cleanup source'},
+        {id: 'cat-2', note: '#cleanup sink 2'},
       ],
     });
 
     await storeNoteCleanups();
 
-    expect(JSON.parse(state.categoryDefs.get('cat-1')!)).toEqual([
-      { role: 'source', groupId: null },
-    ]);
+    expect(JSON.parse(state.categoryDefs.get('cat-1')!)).toEqual([{role: 'source', groupId: null}]);
     expect(JSON.parse(state.categoryDefs.get('cat-2')!)).toEqual([
-      { role: 'sink', groupId: null, weight: 2 },
+      {role: 'sink', groupId: null, weight: 2},
     ]);
   });
 
   it('resolves shared group names to a single group id, case-insensitively', async () => {
     const state = setupDb({
       categories: [
-        { id: 'cat-1', note: '#cleanup Vacations source' },
-        { id: 'cat-2', note: '#cleanup vacations sink' },
-        { id: 'cat-3', note: '#cleanup VACATIONS' },
+        {id: 'cat-1', note: '#cleanup Vacations source'},
+        {id: 'cat-2', note: '#cleanup vacations sink'},
+        {id: 'cat-3', note: '#cleanup VACATIONS'},
       ],
     });
 
@@ -144,9 +138,7 @@ describe('storeNoteCleanups', () => {
     expect(def2[0].groupId).toBe(def3[0].groupId);
 
     // One group exists.
-    const liveGroups = Array.from(state.groups.values()).filter(
-      g => g.tombstone === 0,
-    );
+    const liveGroups = Array.from(state.groups.values()).filter(g => g.tombstone === 0);
     expect(liveGroups).toHaveLength(1);
     // Name preserves the casing of whichever line was seen first.
     expect(liveGroups[0].name).toBe('Vacations');
@@ -154,7 +146,7 @@ describe('storeNoteCleanups', () => {
 
   it('clears cleanup_def for categories whose notes no longer carry cleanup', async () => {
     const state = setupDb({
-      categories: [{ id: 'cat-1', note: 'totally unrelated note text' }],
+      categories: [{id: 'cat-1', note: 'totally unrelated note text'}],
     });
 
     await storeNoteCleanups();
@@ -164,8 +156,8 @@ describe('storeNoteCleanups', () => {
 
   it('tombstones groups that no longer have any live members', async () => {
     const state = setupDb({
-      categories: [{ id: 'cat-1', note: 'no cleanup here' }],
-      groups: [{ id: 'g-orphan', name: 'OldGroup', tombstone: 0 }],
+      categories: [{id: 'cat-1', note: 'no cleanup here'}],
+      groups: [{id: 'g-orphan', name: 'OldGroup', tombstone: 0}],
     });
 
     await storeNoteCleanups();
@@ -175,8 +167,8 @@ describe('storeNoteCleanups', () => {
 
   it('resurrects a tombstoned group when a fresh note references its name', async () => {
     const state = setupDb({
-      categories: [{ id: 'cat-1', note: '#cleanup Reborn source' }],
-      groups: [{ id: 'g-existing', name: 'Reborn', tombstone: 1 }],
+      categories: [{id: 'cat-1', note: '#cleanup Reborn source'}],
+      groups: [{id: 'g-existing', name: 'Reborn', tombstone: 1}],
     });
 
     await storeNoteCleanups();

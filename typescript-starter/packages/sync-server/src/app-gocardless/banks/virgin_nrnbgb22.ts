@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -23,14 +23,12 @@ export default {
   institutionIds: ['VIRGIN_NRNBGB22'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     const transferPrefixes = ['MOB', 'FPS'];
     const methodRegex = /^(Card|WLT)\s\d+/;
 
-    const parts = (transaction.remittanceInformationUnstructured ?? '').split(
-      ', ',
-    );
+    const parts = (transaction.remittanceInformationUnstructured ?? '').split(', ');
 
     if (transferPrefixes.includes(parts[0])) {
       // Transfer remittance information begins with either "MOB" or "FPS"

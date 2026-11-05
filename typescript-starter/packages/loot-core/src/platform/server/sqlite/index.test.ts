@@ -15,15 +15,15 @@
  */
 
 // @ts-strict-ignore
-import { patchFetchForSqlJS } from '#mocks/util';
+import {patchFetchForSqlJS} from '#mocks/util';
 
-import { execQuery, init, openDatabase, runQuery, transaction } from './index';
+import {execQuery, init, openDatabase, runQuery, transaction} from './index';
 
 beforeAll(async () => {
   const baseURL = `${__dirname}/../../../../../../node_modules/@jlongster/sql.js/dist/`;
   patchFetchForSqlJS(baseURL);
 
-  return init({ baseURL });
+  return init({baseURL});
 });
 
 const initSQL = `
@@ -77,9 +77,7 @@ describe('Web sqlite', () => {
       runQuery(db, "INSERT INTO numbers (id, number) VALUES ('id3', 6)");
 
       // Only this transaction should fail
-      const consoleSpy = vi
-        .spyOn(console, 'log')
-        .mockImplementation(() => null);
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => null);
       expect(() => {
         transaction(db, () => {
           runQuery(db, "INSERT INTO numbers (id, number) VALUES ('id4', 7)");
@@ -115,10 +113,10 @@ describe('Web sqlite', () => {
           () => {
             runQuery(db, "INSERT INTO numbers (id, number) VALUES ('id2', 2)");
           },
-          { immediate: true },
+          {immediate: true},
         );
       },
-      { immediate: true },
+      {immediate: true},
     );
     expect(runQuery(db, 'SELECT * FROM numbers', null, true).length).toBe(2);
 
@@ -130,7 +128,7 @@ describe('Web sqlite', () => {
           runQuery(db, "INSERT INTO numbers (id, number) VALUES ('id3', 3)");
           runQuery(db, "INSERT INTO numbers (id, number) VALUES ('id1', 1)");
         },
-        { immediate: true },
+        {immediate: true},
       );
     }).toThrow(/constraint failed/);
     consoleSpy.mockRestore();
@@ -166,24 +164,17 @@ describe('Web sqlite', () => {
     const sql =
       'SELECT dataset, row, column, timestamp FROM messages_crdt WHERE ' +
       Array(termCount).fill(term).join(' OR ');
-    const params = Array.from({ length: termCount }, (_, index) => [
+    const params = Array.from({length: termCount}, (_, index) => [
       'transactions',
       `row${index}`,
       'amount',
       '2024-01-01T00:00:00.000Z-0000-0000000000000000',
     ]).flat();
 
-    const plan = runQuery<{ detail: string }>(
-      db,
-      'EXPLAIN QUERY PLAN ' + sql,
-      params,
-      true,
-    );
+    const plan = runQuery<{detail: string}>(db, 'EXPLAIN QUERY PLAN ' + sql, params, true);
     expect(plan.length).toBeGreaterThan(0);
     expect(plan.some(step => step.detail.includes('SCAN'))).toBe(false);
-    expect(
-      plan.some(step => step.detail.includes('messages_crdt_search')),
-    ).toBe(true);
+    expect(plan.some(step => step.detail.includes('messages_crdt_search'))).toBe(true);
 
     // And the query itself runs within the parameter limits
     expect(runQuery(db, sql, params, true)).toEqual([]);
@@ -193,18 +184,10 @@ describe('Web sqlite', () => {
     const db = await openDatabase();
     execQuery(db, initSQL);
 
-    runQuery(
-      db,
-      "INSERT INTO textstrings (id, string) VALUES ('id1', 'not empty string')",
-    );
+    runQuery(db, "INSERT INTO textstrings (id, string) VALUES ('id1', 'not empty string')");
     runQuery(db, "INSERT INTO textstrings (id) VALUES ('id2')");
 
-    const rows = runQuery(
-      db,
-      'SELECT id FROM textstrings where REGEXP("n.", string)',
-      null,
-      true,
-    );
+    const rows = runQuery(db, 'SELECT id FROM textstrings where REGEXP("n.", string)', null, true);
     expect(rows.length).toBe(1);
     // @ts-expect-error Property 'id' does not exist on type 'unknown'
     expect(rows[0].id).toBe('id1');

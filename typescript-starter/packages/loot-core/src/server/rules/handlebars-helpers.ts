@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-import {
-  addMonths,
-  addWeeks,
-  addYears,
-  subMonths,
-  subWeeks,
-  subYears,
-} from 'date-fns';
+import {addMonths, addWeeks, addYears, subMonths, subWeeks, subYears} from 'date-fns';
 import * as Handlebars from 'handlebars';
 
-import { logger } from '#platform/server/log';
-import { addDays, format, parseDate, subDays } from '#shared/months';
+import {logger} from '#platform/server/log';
+import {addDays, format, parseDate, subDays} from '#shared/months';
 
 export function registerHandlebarsHelpers() {
   const regexTest = /^\/(.*)\/([gimuy]*)$/;

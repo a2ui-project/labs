@@ -53,10 +53,7 @@ export type GoCardlessAmount = {
 export type GoCardlessTransaction = {
   additionalInformation?: string;
   bookingStatus?: string;
-  balanceAfterTransaction?: Pick<
-    GoCardlessBalance,
-    'balanceType' | 'balanceAmount'
-  >;
+  balanceAfterTransaction?: Pick<GoCardlessBalance, 'balanceType' | 'balanceAmount'>;
   bankTransactionCode?: string;
   bookingDate?: string;
   bookingDateTime?: string;
@@ -92,7 +89,7 @@ export type GoCardlessTransaction = {
 
 export type SyncServerGoCardlessAccount = {
   balance: number;
-  institution: string | { name: string };
+  institution: string | {name: string};
   account_id: string;
   mask: string;
   name: string;

@@ -15,23 +15,23 @@
  */
 
 // oxlint-disable typescript-paths/absolute-parent-import
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import {useEffect, useMemo, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { Select } from '@actual-app/components/select';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {Select} from '@actual-app/components/select';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
 import type {
   BalanceForecastWidget,
   RuleConditionEntity,
   TimeFrame,
 } from '@actual-app/core/types/models';
-import type { ForecastSource } from '@actual-app/core/types/models/forecast';
+import type {ForecastSource} from '@actual-app/core/types/models/forecast';
 import * as d from 'date-fns';
 import {
   CartesianGrid,
@@ -44,23 +44,23 @@ import {
   YAxis,
 } from 'recharts';
 
-import { Page, PageHeader } from '#components/Page';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { Container } from '#components/reports/Container';
-import { getCustomTick } from '#components/reports/getCustomTick';
-import { computePadding } from '#components/reports/graphs/util/computePadding';
-import { Header } from '#components/reports/Header';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { useAccounts } from '#hooks/useAccounts';
-import { useBalanceForecast } from '#hooks/useBalanceForecast';
-import { useDashboardWidget } from '#hooks/useDashboardWidget';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
-import { useRuleConditionFilters } from '#hooks/useRuleConditionFilters';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {Page, PageHeader} from '#components/Page';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {Container} from '#components/reports/Container';
+import {getCustomTick} from '#components/reports/getCustomTick';
+import {computePadding} from '#components/reports/graphs/util/computePadding';
+import {Header} from '#components/reports/Header';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {useAccounts} from '#hooks/useAccounts';
+import {useBalanceForecast} from '#hooks/useBalanceForecast';
+import {useDashboardWidget} from '#hooks/useDashboardWidget';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
+import {useRuleConditionFilters} from '#hooks/useRuleConditionFilters';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
 import {
   buildBalanceForecastChartData,
@@ -71,12 +71,10 @@ import {
 
 export function BalanceForecast() {
   const params = useParams();
-  const { data: widget, isLoading } = useDashboardWidget<BalanceForecastWidget>(
-    {
-      id: params.id,
-      type: 'balance-forecast-card',
-    },
-  );
+  const {data: widget, isLoading} = useDashboardWidget<BalanceForecastWidget>({
+    id: params.id,
+    type: 'balance-forecast-card',
+  });
 
   if (isLoading) {
     return <LoadingIndicator />;
@@ -89,13 +87,13 @@ type BalanceForecastInnerProps = {
   widget?: BalanceForecastWidget;
 };
 
-function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
-  const { t } = useTranslation();
+function BalanceForecastInner({widget}: BalanceForecastInnerProps) {
+  const {t} = useTranslation();
   const format = useFormat();
   const privacyMode = usePrivacyMode();
   const locale = useLocale();
   const dispatch = useDispatch();
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const [budgetTypePref] = useSyncedPref('budgetType');
   const budgetType = budgetTypePref === 'tracking' ? 'tracking' : 'envelope';
 
@@ -121,13 +119,9 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
     widget?.meta?.timeFrame?.start ?? widget?.meta?.startDate ?? currentMonth,
   );
   const [end, setEnd] = useState(
-    widget?.meta?.timeFrame?.end ??
-      widget?.meta?.endDate ??
-      monthUtils.addMonths(currentMonth, 11),
+    widget?.meta?.timeFrame?.end ?? widget?.meta?.endDate ?? monthUtils.addMonths(currentMonth, 11),
   );
-  const [mode, setMode] = useState<TimeFrame['mode']>(
-    widget?.meta?.timeFrame?.mode ?? 'static',
-  );
+  const [mode, setMode] = useState<TimeFrame['mode']>(widget?.meta?.timeFrame?.mode ?? 'static');
   const [granularity, setGranularity] = useState<'Daily' | 'Monthly'>(
     widget?.meta?.granularity ?? 'Monthly',
   );
@@ -159,11 +153,7 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
     isPlaceholderData,
     isPending: isLoading,
   } = useBalanceForecast({
-    accountIds: isTrackingBudgetForecast
-      ? undefined
-      : widget
-        ? selectedAccountIds
-        : undefined,
+    accountIds: isTrackingBudgetForecast ? undefined : widget ? selectedAccountIds : undefined,
     conditions: isTrackingBudgetForecast ? undefined : conditions,
     conditionsOp: isTrackingBudgetForecast ? undefined : conditionsOp,
     startDate,
@@ -175,14 +165,10 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
     enabled: hasMonthOptions,
   });
   const errorMessage =
-    error instanceof Error
-      ? error.message
-      : error
-        ? t('Failed to load forecast')
-        : null;
+    error instanceof Error ? error.message : error ? t('Failed to load forecast') : null;
   const normalizedForecastData = forecastData ?? null;
   const hasFilters = !isTrackingBudgetForecast && conditions.length > 0;
-  const committedChartRange = useRef({ start, end });
+  const committedChartRange = useRef({start, end});
 
   async function onSaveWidget() {
     if (!widget) {
@@ -227,9 +213,7 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
     async function loadMonths() {
       const currentMonthLocal = monthUtils.currentMonth();
 
-      const earliestTransactionResponse = await send(
-        'get-earliest-transaction',
-      );
+      const earliestTransactionResponse = await send('get-earliest-transaction');
 
       const earliestMonth = earliestTransactionResponse
         ? monthUtils.monthFromDate(d.parseISO(earliestTransactionResponse.date))
@@ -240,9 +224,7 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
         futureEndMonth = end;
       }
       if (normalizedForecastData?.forecastEndDate) {
-        const forecastEndMonth = monthUtils.monthFromDate(
-          normalizedForecastData.forecastEndDate,
-        );
+        const forecastEndMonth = monthUtils.monthFromDate(normalizedForecastData.forecastEndDate);
         if (forecastEndMonth > futureEndMonth) {
           futureEndMonth = forecastEndMonth;
         }
@@ -265,9 +247,7 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
           prev &&
           prev.length === allMonthsArray.length &&
           prev.every(
-            (p, i) =>
-              p.name === allMonthsArray[i]?.name &&
-              p.pretty === allMonthsArray[i]?.pretty,
+            (p, i) => p.name === allMonthsArray[i]?.name && p.pretty === allMonthsArray[i]?.pretty,
           )
         ) {
           return prev;
@@ -282,11 +262,7 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
     };
   }, [locale, end, normalizedForecastData?.forecastEndDate]);
 
-  const onChangeDates = (
-    newStart: string,
-    newEnd: string,
-    newMode?: TimeFrame['mode'],
-  ) => {
+  const onChangeDates = (newStart: string, newEnd: string, newMode?: TimeFrame['mode']) => {
     setStart(newStart);
     setEnd(newEnd);
     if (newMode) {
@@ -301,12 +277,10 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
     }
   }
 
-  const chartRange = isPlaceholderData
-    ? committedChartRange.current
-    : { start, end };
+  const chartRange = isPlaceholderData ? committedChartRange.current : {start, end};
   useEffect(() => {
     if (normalizedForecastData && !isPlaceholderData) {
-      committedChartRange.current = { start, end };
+      committedChartRange.current = {start, end};
     }
   }, [end, isPlaceholderData, normalizedForecastData, start]);
 
@@ -344,9 +318,7 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
   const hasNegativeBalance = chartData.some(d => d.balance < 0);
   const zeroCrossingGradientOffset = getZeroCrossingGradientOffset(chartData);
   const todayReferenceDate =
-    granularity === 'Daily'
-      ? monthUtils.currentDay()
-      : monthUtils.currentMonth();
+    granularity === 'Daily' ? monthUtils.currentDay() : monthUtils.currentMonth();
   const showsTodayReferenceLine = chartData.some(
     dataPoint => dataPoint.date === todayReferenceDate,
   );
@@ -380,10 +352,7 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
   ) : null;
 
   return (
-    <Page
-      header={<PageHeader title={<Trans>Balance Forecast</Trans>} />}
-      padding={0}
-    >
+    <Page header={<PageHeader title={<Trans>Balance Forecast</Trans>} />} padding={0}>
       {isTrackingBudgetForecast ? (
         <Header
           allMonths={allMonths}
@@ -441,9 +410,7 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
         }}
       >
         {errorMessage ? (
-          <div style={{ color: theme.errorText, marginBottom: 20 }}>
-            {errorMessage}
-          </div>
+          <div style={{color: theme.errorText, marginBottom: 20}}>{errorMessage}</div>
         ) : endingPoint ? (
           <View
             style={{
@@ -457,15 +424,12 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
                 ...styles.largeText,
                 fontWeight: 400,
                 marginBottom: 5,
-                color:
-                  endingPoint.balance < 0 ? theme.errorText : theme.pageText,
+                color: endingPoint.balance < 0 ? theme.errorText : theme.pageText,
               }}
             >
-              <PrivacyFilter>
-                {format(endingPoint.balance, 'financial')}
-              </PrivacyFilter>
+              <PrivacyFilter>{format(endingPoint.balance, 'financial')}</PrivacyFilter>
             </View>
-            <View style={{ color: theme.pageTextLight }}>
+            <View style={{color: theme.pageTextLight}}>
               <Trans>Ending Balance</Trans>: {endingPoint.date}
             </View>
             {lowestPoint && lowestPoint.date !== endingPoint.date ? (
@@ -477,16 +441,14 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
                 }}
               >
                 <Trans>Lowest visible point</Trans>:{' '}
-                <PrivacyFilter>
-                  {format(lowestPoint.balance, 'financial')}
-                </PrivacyFilter>{' '}
-                ({lowestPoint.date})
+                <PrivacyFilter>{format(lowestPoint.balance, 'financial')}</PrivacyFilter> (
+                {lowestPoint.date})
               </View>
             ) : null}
           </View>
         ) : null}
 
-        <div style={{ flex: 1, minHeight: 300 }}>
+        <div style={{flex: 1, minHeight: 300}}>
           {errorMessage ? null : chartData.length > 0 ? (
             <>
               <Container>
@@ -537,19 +499,12 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
                       <CartesianGrid strokeDasharray="3 3" />
                       <XAxis
                         dataKey="date"
-                        tick={{ fill: theme.pageText }}
-                        tickLine={{ stroke: theme.pageText }}
-                        interval={
-                          granularity === 'Daily'
-                            ? Math.ceil(chartData.length / 10)
-                            : 0
-                        }
+                        tick={{fill: theme.pageText}}
+                        tickLine={{stroke: theme.pageText}}
+                        interval={granularity === 'Daily' ? Math.ceil(chartData.length / 10) : 0}
                         tickFormatter={value => {
                           if (granularity === 'Daily') {
-                            return d.format(
-                              monthUtils.parseDate(value),
-                              'MMM d',
-                            );
+                            return d.format(monthUtils.parseDate(value), 'MMM d');
                           }
                           return value;
                         }}
@@ -557,13 +512,13 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
                       <YAxis
                         domain={['auto', 'auto']}
                         tickFormatter={formatYTick}
-                        tick={{ fill: theme.pageText }}
-                        tickLine={{ stroke: theme.pageText }}
+                        tick={{fill: theme.pageText}}
+                        tickLine={{stroke: theme.pageText}}
                         tickSize={0}
                       />
                       <Tooltip
                         isAnimationActive={false}
-                        content={({ active, payload }) => {
+                        content={({active, payload}) => {
                           if (active && payload && payload.length) {
                             return (
                               <div
@@ -577,15 +532,10 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
                                   padding: 10,
                                 }}
                               >
-                                <div style={{ marginBottom: 5 }}>
+                                <div style={{marginBottom: 5}}>
                                   <strong>{payload[0].payload.date}</strong>
                                 </div>
-                                <div>
-                                  {format(
-                                    payload[0].value as number,
-                                    'financial',
-                                  )}
-                                </div>
+                                <div>{format(payload[0].value as number, 'financial')}</div>
                               </div>
                             );
                           }
@@ -606,16 +556,14 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
                           }}
                         />
                       )}
-                      {hasNegativeBalance && (
-                        <ReferenceLine y={0} stroke={theme.pageTextSubdued} />
-                      )}
+                      {hasNegativeBalance && <ReferenceLine y={0} stroke={theme.pageTextSubdued} />}
                       <Line
                         type="monotone"
                         dataKey="balance"
                         stroke="url(#balance-forecast-line-gradient)"
                         strokeWidth={2}
                         dot={false}
-                        activeDot={{ r: 6 }}
+                        activeDot={{r: 6}}
                         opacity={isUpdatingForecast ? 0.45 : 1}
                       />
                     </LineChart>
@@ -631,18 +579,17 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
               >
                 {isTrackingBudgetForecast ? (
                   <Trans>
-                    Tracking budget forecast uses on-budget balance plus monthly
-                    budgeted income minus budgeted expenses.
+                    Tracking budget forecast uses on-budget balance plus monthly budgeted income
+                    minus budgeted expenses.
                   </Trans>
                 ) : scheduledOccurrenceCount === 0 ? (
                   <Trans>
-                    This range shows posted transactions only; no scheduled
-                    occurrences fall in it.
+                    This range shows posted transactions only; no scheduled occurrences fall in it.
                   </Trans>
                 ) : (
                   <Trans count={scheduledOccurrenceCount}>
-                    {{ count: scheduledOccurrenceCount }} scheduled transactions
-                    included in this date range
+                    {{count: scheduledOccurrenceCount}} scheduled transactions included in this date
+                    range
                   </Trans>
                 )}
                 {isUpdatingForecast ? (
@@ -663,10 +610,10 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
                 minHeight: 200,
               }}
             >
-              <div style={{ color: theme.pageTextLight }}>
+              <div style={{color: theme.pageTextLight}}>
                 <Trans>
-                  No transactions are included in this report. Adjust your
-                  filters, accounts, or date range to see a balance projection.
+                  No transactions are included in this report. Adjust your filters, accounts, or
+                  date range to see a balance projection.
                 </Trans>
               </div>
             </div>
@@ -674,20 +621,16 @@ function BalanceForecastInner({ widget }: BalanceForecastInnerProps) {
         </div>
 
         {!errorMessage && !isTrackingBudgetForecast && (
-          <div
-            style={{ marginTop: 20, fontSize: 12, color: theme.pageTextLight }}
-          >
+          <div style={{marginTop: 20, fontSize: 12, color: theme.pageTextLight}}>
             {hasFilters ? (
               <Trans>
-                This forecast shows the running total of matching posted
-                transactions, plus upcoming scheduled transactions in the
-                future.
+                This forecast shows the running total of matching posted transactions, plus upcoming
+                scheduled transactions in the future.
               </Trans>
             ) : (
               <Trans>
-                This forecast shows your running balance from posted
-                transactions, plus upcoming scheduled transactions in the
-                future.
+                This forecast shows your running balance from posted transactions, plus upcoming
+                scheduled transactions in the future.
               </Trans>
             )}
           </div>

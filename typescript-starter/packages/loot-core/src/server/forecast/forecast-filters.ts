@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { aqlQuery } from '#server/aql';
-import { conditionsToAQL } from '#server/transactions/transaction-rules';
-import { q } from '#shared/query';
-import type { RuleConditionEntity, TransactionEntity } from '#types/models';
+import {aqlQuery} from '#server/aql';
+import {conditionsToAQL} from '#server/transactions/transaction-rules';
+import {q} from '#shared/query';
+import type {RuleConditionEntity, TransactionEntity} from '#types/models';
 
-import { getAccountRestrictionMode } from './forecast-accounts';
-import type { AccountWithComputedBalance } from './forecast-accounts';
+import {getAccountRestrictionMode} from './forecast-accounts';
+import type {AccountWithComputedBalance} from './forecast-accounts';
 
 type PayeeForFiltering = {
   id: string;
@@ -60,29 +60,21 @@ export type ForecastFilterInfo = {
   canRestrictAccounts: boolean;
 };
 
-export function buildFilterInfo(
-  conditions?: RuleConditionEntity[],
-  conditionsOp?: 'and' | 'or',
-) {
+export function buildFilterInfo(conditions?: RuleConditionEntity[], conditionsOp?: 'and' | 'or') {
   const resolvedConditionsOp = conditionsOp ?? 'and';
   const plainConditions = (conditions ?? []).filter(cond => !cond.customName);
-  const { filters } = conditionsToAQL(plainConditions);
+  const {filters} = conditionsToAQL(plainConditions);
 
   return {
     filterInfo: {
       filters: [
         ...filters,
         ...plainConditions.flatMap(condition =>
-          condition.queryFilter
-            ? [condition.queryFilter as Record<string, unknown>]
-            : [],
+          condition.queryFilter ? [condition.queryFilter as Record<string, unknown>] : [],
         ),
       ],
       conditionsOpKey: resolvedConditionsOp === 'or' ? '$or' : '$and',
-      canRestrictAccounts: getAccountRestrictionMode(
-        plainConditions,
-        resolvedConditionsOp,
-      ),
+      canRestrictAccounts: getAccountRestrictionMode(plainConditions, resolvedConditionsOp),
     } satisfies ForecastFilterInfo,
     plainConditions,
     resolvedConditionsOp,
@@ -93,24 +85,21 @@ export async function getTransactions(
   accountIds: string[] | undefined,
   filterInfo: ForecastFilterInfo,
 ) {
-  let query = q('transactions')
-    .filter({ tombstone: false })
-    .select('*')
-    .options({ splits: 'inline' });
+  let query = q('transactions').filter({tombstone: false}).select('*').options({splits: 'inline'});
 
   if (accountIds !== undefined) {
     if (accountIds.length === 0) {
       return [];
     }
 
-    query = query.filter({ 'account.id': { $oneof: accountIds } });
+    query = query.filter({'account.id': {$oneof: accountIds}});
   }
 
   if (filterInfo.filters.length > 0) {
-    query = query.filter({ [filterInfo.conditionsOpKey]: filterInfo.filters });
+    query = query.filter({[filterInfo.conditionsOpKey]: filterInfo.filters});
   }
 
-  const { data } = await aqlQuery(query);
+  const {data} = await aqlQuery(query);
   return data;
 }
 
@@ -118,10 +107,7 @@ function escapeRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function getValueByPath(
-  object: Record<string, unknown> | null | undefined,
-  path: string,
-): unknown {
+function getValueByPath(object: Record<string, unknown> | null | undefined, path: string): unknown {
   return path.split('.').reduce<unknown>((current, key) => {
     if (current == null || typeof current !== 'object') {
       return undefined;
@@ -132,11 +118,7 @@ function getValueByPath(
 }
 
 function normalizeComparisonValue(value: unknown) {
-  if (
-    value != null &&
-    typeof value === 'object' &&
-    'id' in (value as Record<string, unknown>)
-  ) {
+  if (value != null && typeof value === 'object' && 'id' in (value as Record<string, unknown>)) {
     return (value as Record<string, unknown>).id;
   }
 
@@ -190,28 +172,19 @@ function evaluateClause(actualValue: unknown, clause: unknown): boolean {
   return Object.entries(typedClause)
     .filter(([key]) => key !== '$transform')
     .every(([operator, expectedValue]) => {
-      const normalizedActualValue = normalizeComparisonValue(
-        transformedActualValue,
-      );
+      const normalizedActualValue = normalizeComparisonValue(transformedActualValue);
 
       switch (operator) {
         case '$eq':
-          return equalComparableFilterValues(
-            normalizedActualValue,
-            expectedValue,
-          );
+          return equalComparableFilterValues(normalizedActualValue, expectedValue);
         case '$ne':
-          return !equalComparableFilterValues(
-            normalizedActualValue,
-            expectedValue,
-          );
+          return !equalComparableFilterValues(normalizedActualValue, expectedValue);
         case '$gt':
           return (
             normalizedActualValue != null &&
             (typeof normalizedActualValue === 'number' ||
               typeof normalizedActualValue === 'string') &&
-            (typeof expectedValue === 'number' ||
-              typeof expectedValue === 'string') &&
+            (typeof expectedValue === 'number' || typeof expectedValue === 'string') &&
             normalizedActualValue > expectedValue
           );
         case '$gte':
@@ -219,8 +192,7 @@ function evaluateClause(actualValue: unknown, clause: unknown): boolean {
             normalizedActualValue != null &&
             (typeof normalizedActualValue === 'number' ||
               typeof normalizedActualValue === 'string') &&
-            (typeof expectedValue === 'number' ||
-              typeof expectedValue === 'string') &&
+            (typeof expectedValue === 'number' || typeof expectedValue === 'string') &&
             normalizedActualValue >= expectedValue
           );
         case '$lt':
@@ -228,8 +200,7 @@ function evaluateClause(actualValue: unknown, clause: unknown): boolean {
             normalizedActualValue != null &&
             (typeof normalizedActualValue === 'number' ||
               typeof normalizedActualValue === 'string') &&
-            (typeof expectedValue === 'number' ||
-              typeof expectedValue === 'string') &&
+            (typeof expectedValue === 'number' || typeof expectedValue === 'string') &&
             normalizedActualValue < expectedValue
           );
         case '$lte':
@@ -237,8 +208,7 @@ function evaluateClause(actualValue: unknown, clause: unknown): boolean {
             normalizedActualValue != null &&
             (typeof normalizedActualValue === 'number' ||
               typeof normalizedActualValue === 'string') &&
-            (typeof expectedValue === 'number' ||
-              typeof expectedValue === 'string') &&
+            (typeof expectedValue === 'number' || typeof expectedValue === 'string') &&
             normalizedActualValue <= expectedValue
           );
         case '$oneof':
@@ -261,10 +231,7 @@ function evaluateClause(actualValue: unknown, clause: unknown): boolean {
             !likeToRegex(expectedValue).test(normalizedActualValue)
           );
         case '$regexp':
-          if (
-            typeof normalizedActualValue !== 'string' ||
-            typeof expectedValue !== 'string'
-          ) {
+          if (typeof normalizedActualValue !== 'string' || typeof expectedValue !== 'string') {
             return false;
           }
 
@@ -286,18 +253,14 @@ export function matchesAQLFilter(
   if ('$and' in filter) {
     const clauses = filter.$and;
     return Array.isArray(clauses)
-      ? clauses.every(clause =>
-          matchesAQLFilter(object, clause as Record<string, unknown>),
-        )
+      ? clauses.every(clause => matchesAQLFilter(object, clause as Record<string, unknown>))
       : false;
   }
 
   if ('$or' in filter) {
     const clauses = filter.$or;
     return Array.isArray(clauses)
-      ? clauses.some(clause =>
-          matchesAQLFilter(object, clause as Record<string, unknown>),
-        )
+      ? clauses.some(clause => matchesAQLFilter(object, clause as Record<string, unknown>))
       : false;
   }
 
@@ -334,67 +297,54 @@ export async function enrichForecastFilterObjects(
   transactions: TransactionEntity[],
   accountsById: Map<string, AccountWithComputedBalance>,
 ) {
-  const payeeIds = [
-    ...new Set(transactions.flatMap(tx => (tx.payee ? [tx.payee] : []))),
-  ];
-  const categoryIds = [
-    ...new Set(transactions.flatMap(tx => (tx.category ? [tx.category] : []))),
-  ];
+  const payeeIds = [...new Set(transactions.flatMap(tx => (tx.payee ? [tx.payee] : [])))];
+  const categoryIds = [...new Set(transactions.flatMap(tx => (tx.category ? [tx.category] : [])))];
 
-  const [{ data: payees }, { data: categories }] = await Promise.all([
+  const [{data: payees}, {data: categories}] = await Promise.all([
     payeeIds.length > 0
       ? aqlQuery(
           q('payees')
-            .filter({ id: { $oneof: payeeIds } })
+            .filter({id: {$oneof: payeeIds}})
             .select(['id', 'name', 'transfer_acct']),
         )
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({data: []}),
     categoryIds.length > 0
       ? aqlQuery(
           q('categories')
-            .filter({ id: { $oneof: categoryIds } })
+            .filter({id: {$oneof: categoryIds}})
             .select(['id', 'name', 'group']),
         )
-      : Promise.resolve({ data: [] }),
+      : Promise.resolve({data: []}),
   ]);
 
   const categoryGroupIds = [
     ...new Set(
-      (categories as Array<{ group: string | null }>).flatMap(category =>
+      (categories as Array<{group: string | null}>).flatMap(category =>
         category.group ? [category.group] : [],
       ),
     ),
   ];
 
-  const { data: categoryGroups } =
+  const {data: categoryGroups} =
     categoryGroupIds.length > 0
       ? await aqlQuery(
           q('category_groups')
-            .filter({ id: { $oneof: categoryGroupIds } })
+            .filter({id: {$oneof: categoryGroupIds}})
             .select(['id', 'name']),
         )
-      : { data: [] };
+      : {data: []};
 
-  const payeesById = new Map(
-    (payees as PayeeForFiltering[]).map(payee => [payee.id, payee]),
-  );
+  const payeesById = new Map((payees as PayeeForFiltering[]).map(payee => [payee.id, payee]));
   const categoryGroupsById = new Map(
-    (categoryGroups as CategoryGroupForFiltering[]).map(group => [
-      group.id,
-      group,
-    ]),
+    (categoryGroups as CategoryGroupForFiltering[]).map(group => [group.id, group]),
   );
   const categoriesById = new Map(
-    (
-      categories as Array<{ id: string; name: string; group: string | null }>
-    ).map(category => [
+    (categories as Array<{id: string; name: string; group: string | null}>).map(category => [
       category.id,
       {
         id: category.id,
         name: category.name,
-        group: category.group
-          ? (categoryGroupsById.get(category.group) ?? null)
-          : null,
+        group: category.group ? (categoryGroupsById.get(category.group) ?? null) : null,
       } satisfies CategoryForFiltering,
     ]),
   );
@@ -413,12 +363,8 @@ export async function enrichForecastFilterObjects(
         is_parent: !!transaction.is_parent,
         imported_payee: transaction.imported_payee ?? null,
         account: accountsById.get(transaction.account) ?? null,
-        payee: transaction.payee
-          ? (payeesById.get(transaction.payee) ?? null)
-          : null,
-        category: transaction.category
-          ? (categoriesById.get(transaction.category) ?? null)
-          : null,
+        payee: transaction.payee ? (payeesById.get(transaction.payee) ?? null) : null,
+        category: transaction.category ? (categoriesById.get(transaction.category) ?? null) : null,
       } satisfies ForecastFilterObject,
     ]),
   );

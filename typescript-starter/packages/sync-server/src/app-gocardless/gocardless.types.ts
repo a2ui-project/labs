@@ -25,12 +25,11 @@ import type {
   Transactions,
 } from './gocardless-node.types';
 
-export type DetailedAccount = Omit<GoCardlessAccountDetails, 'status'> &
-  GoCardlessAccountMetadata;
+export type DetailedAccount = Omit<GoCardlessAccountDetails, 'status'> & GoCardlessAccountMetadata;
 export type DetailedAccountWithInstitution = DetailedAccount & {
   institution: Institution | null;
 };
-export type TransactionWithBookedStatus = Transaction & { booked: boolean };
+export type TransactionWithBookedStatus = Transaction & {booked: boolean};
 
 export type NormalizedAccountDetails = {
   /**

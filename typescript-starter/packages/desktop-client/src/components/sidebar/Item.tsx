@@ -16,26 +16,18 @@
 
 // @ts-strict-ignore
 import React from 'react';
-import type {
-  ComponentProps,
-  ComponentType,
-  CSSProperties,
-  ReactNode,
-  SVGProps,
-} from 'react';
+import type {ComponentProps, ComponentType, CSSProperties, ReactNode, SVGProps} from 'react';
 
-import { Block } from '@actual-app/components/block';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Block} from '@actual-app/components/block';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { ItemContent } from './ItemContent';
+import {ItemContent} from './ItemContent';
 
 type ItemProps = {
   title: string;
-  Icon:
-    | ComponentType<SVGProps<SVGElement>>
-    | ComponentType<SVGProps<SVGSVGElement>>;
+  Icon: ComponentType<SVGProps<SVGElement>> | ComponentType<SVGProps<SVGSVGElement>>;
   to?: string;
   children?: ReactNode;
   style?: CSSProperties;
@@ -69,13 +61,13 @@ export function Item({
       }}
     >
       <Icon width={15} height={15} />
-      <Block style={{ marginLeft: 8 }}>{title}</Block>
-      <View style={{ flex: 1 }} />
+      <Block style={{marginLeft: 8}}>{title}</Block>
+      <View style={{flex: 1}} />
     </View>
   );
 
   return (
-    <View style={{ flexShrink: 0, ...style }}>
+    <View style={{flexShrink: 0, ...style}}>
       <ItemContent
         style={{
           ...styles.mediumText,
@@ -99,7 +91,7 @@ export function Item({
       >
         {content}
       </ItemContent>
-      {children ? <View style={{ marginTop: 5 }}>{children}</View> : null}
+      {children ? <View style={{marginTop: 5}}>{children}</View> : null}
     </View>
   );
 }

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import {mkdtempSync, rmSync, writeFileSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import {afterAll, beforeAll, describe, expect, it} from 'vitest';
 
-import type { config as loadedConfig } from './load-config';
+import type {config as loadedConfig} from './load-config';
 
 // load-config reads the environment when it is first imported, so the
 // environment has to be set up before importing it.
@@ -39,13 +39,13 @@ describe('load-config _FILE overrides', () => {
     // and re-imports at the end of loadFile. The file must still win.
     process.env.ACTUAL_OPENID_CLIENT_SECRET = 'secret-from-env';
 
-    ({ config } = await import('./load-config'));
+    ({config} = await import('./load-config'));
   });
 
   afterAll(() => {
     delete process.env.ACTUAL_OPENID_CLIENT_SECRET_FILE;
     delete process.env.ACTUAL_OPENID_CLIENT_SECRET;
-    rmSync(secretDirectory, { recursive: true, force: true });
+    rmSync(secretDirectory, {recursive: true, force: true});
   });
 
   it('loads the secret from the file, superseding the plain variable', () => {

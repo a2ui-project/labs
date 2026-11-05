@@ -15,40 +15,35 @@
  */
 
 // @ts-strict-ignore
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type {
-  ComponentProps,
-  HTMLProps,
-  KeyboardEvent,
-  ReactNode,
-} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {ComponentProps, HTMLProps, KeyboardEvent, ReactNode} from 'react';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgRemove } from '@actual-app/components/icons/v2';
-import { Input } from '@actual-app/components/input';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View, viewStyles } from '@actual-app/components/view';
-import { getNormalisedString } from '@actual-app/core/shared/normalisation';
-import { css, cx } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgRemove} from '@actual-app/components/icons/v2';
+import {Input} from '@actual-app/components/input';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View, viewStyles} from '@actual-app/components/view';
+import {getNormalisedString} from '@actual-app/core/shared/normalisation';
+import {css, cx} from '@emotion/css';
 import Downshift from 'downshift';
-import type { StateChangeTypes } from 'downshift';
+import type {StateChangeTypes} from 'downshift';
 
-import { useProperFocus } from '#hooks/useProperFocus';
+import {useProperFocus} from '#hooks/useProperFocus';
 
 type CommonAutocompleteProps<T extends AutocompleteItem> = {
   focused?: boolean;
   embedded?: boolean;
   containerProps?: HTMLProps<HTMLDivElement>;
-  labelProps?: { id?: string };
+  labelProps?: {id?: string};
   inputProps?: ComponentProps<typeof Input>;
   suggestions?: T[];
   renderInput?: (props: ComponentProps<typeof Input>) => ReactNode;
   renderItems?: (
     items: T[],
-    getItemProps: (arg: { item: T }) => ComponentProps<typeof View>,
+    getItemProps: (arg: {item: T}) => ComponentProps<typeof View>,
     idx: number,
     value?: string,
   ) => ReactNode;
@@ -73,7 +68,7 @@ export type AutocompleteItem = {
   name: string;
 };
 
-const inst: { lastChangeType?: StateChangeTypes } = {};
+const inst: {lastChangeType?: StateChangeTypes} = {};
 
 function findItem<T extends AutocompleteItem>(
   strict: boolean,
@@ -88,9 +83,7 @@ function findItem<T extends AutocompleteItem>(
   return value;
 }
 
-function getItemName<T extends AutocompleteItem>(
-  item: T | T['name'] | null,
-): string {
+function getItemName<T extends AutocompleteItem>(item: T | T['name'] | null): string {
   if (item == null) {
     return '';
   } else if (typeof item === 'string') {
@@ -106,21 +99,13 @@ function getItemId<T extends AutocompleteItem>(item: T | NonNullable<T['id']>) {
   return item ? item.id : null;
 }
 
-export function defaultFilterSuggestion<T extends AutocompleteItem>(
-  suggestion: T,
-  value: string,
-) {
+export function defaultFilterSuggestion<T extends AutocompleteItem>(suggestion: T, value: string) {
   const name = getItemName(suggestion);
   return getNormalisedString(name).includes(getNormalisedString(value));
 }
 
-function defaultFilterSuggestions<T extends AutocompleteItem>(
-  suggestions: T[],
-  value: string,
-) {
-  return suggestions.filter(suggestion =>
-    defaultFilterSuggestion(suggestion, value),
-  );
+function defaultFilterSuggestions<T extends AutocompleteItem>(suggestions: T[], value: string) {
+  return suggestions.filter(suggestion => defaultFilterSuggestion(suggestion, value));
 }
 
 function fireUpdate<T extends AutocompleteItem>(
@@ -161,7 +146,7 @@ function defaultRenderInput(props: ComponentProps<typeof Input>) {
 
 function defaultRenderItems<T extends AutocompleteItem>(
   items: T[],
-  getItemProps: (arg: { item: T }) => ComponentProps<typeof View>,
+  getItemProps: (arg: {item: T}) => ComponentProps<typeof View>,
   highlightedIndex: number,
 ) {
   return (
@@ -171,7 +156,7 @@ function defaultRenderItems<T extends AutocompleteItem>(
         return (
           <div
             key={name}
-            {...getItemProps({ item })}
+            {...getItemProps({item})}
             // Downshift calls `setTimeout(..., 250)` in the `onMouseMove`
             // event handler they set on this element. When this code runs
             // in WebKit on touch-enabled devices, taps on this element end
@@ -199,9 +184,7 @@ function defaultRenderItems<T extends AutocompleteItem>(
               padding: 5,
               cursor: 'default',
               backgroundColor:
-                highlightedIndex === index
-                  ? theme.menuAutoCompleteBackgroundHover
-                  : undefined,
+                highlightedIndex === index ? theme.menuAutoCompleteBackgroundHover : undefined,
             })}
           >
             {name}
@@ -220,12 +203,11 @@ function defaultItemToString<T extends AutocompleteItem>(item?: T) {
   return item ? getItemName(item) : '';
 }
 
-type SingleAutocompleteProps<T extends AutocompleteItem> =
-  CommonAutocompleteProps<T> & {
-    type?: 'single' | never;
-    onSelect: (id: T['id'], value: string) => void;
-    value: null | T | T['id'];
-  };
+type SingleAutocompleteProps<T extends AutocompleteItem> = CommonAutocompleteProps<T> & {
+  type?: 'single' | never;
+  onSelect: (id: T['id'], value: string) => void;
+  value: null | T | T['id'];
+};
 
 function SingleAutocomplete<T extends AutocompleteItem>({
   focused,
@@ -256,9 +238,7 @@ function SingleAutocomplete<T extends AutocompleteItem>({
   const [selectedItem, setSelectedItem] = useState(() =>
     findItem(strict, suggestions, initialValue),
   );
-  const [value, setValue] = useState(
-    selectedItem ? getItemName(selectedItem) : '',
-  );
+  const [value, setValue] = useState(selectedItem ? getItemName(selectedItem) : '');
   const [isChanged, setIsChanged] = useState(false);
   const [originalItem, setOriginalItem] = useState(selectedItem);
   const filteredSuggestions = useMemo(
@@ -297,7 +277,7 @@ function SingleAutocomplete<T extends AutocompleteItem>({
   const triggerRef = useRef(null);
   const itemsViewRef = useRef(null);
 
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const narrowInputStyle =
     embedded && isNarrowWidth
       ? {
@@ -354,7 +334,7 @@ function SingleAutocomplete<T extends AutocompleteItem>({
 
   return (
     <Downshift
-      onSelect={(item, { inputValue }) => {
+      onSelect={(item, {inputValue}) => {
         setSelectedItem(item);
         setHighlightedIndex(null);
 
@@ -428,18 +408,12 @@ function SingleAutocomplete<T extends AutocompleteItem>({
           const defaultGetHighlightedIndex = filteredSuggestions => {
             return highlightFirst && filteredSuggestions.length ? 0 : null;
           };
-          const highlightedIndex = (
-            getHighlightedIndex || defaultGetHighlightedIndex
-          )(filteredSuggestions);
+          const highlightedIndex = (getHighlightedIndex || defaultGetHighlightedIndex)(
+            filteredSuggestions,
+          );
           // @ts-expect-error Types say there is no type
           if (changes.type !== Downshift.stateChangeTypes.clickItem) {
-            fireUpdate(
-              onUpdate,
-              strict,
-              filteredSuggestions,
-              highlightedIndex,
-              value,
-            );
+            fireUpdate(onUpdate, strict, filteredSuggestions, highlightedIndex, value);
           }
 
           setHighlightedIndex(highlightedIndex);
@@ -481,9 +455,7 @@ function SingleAutocomplete<T extends AutocompleteItem>({
             onUpdate,
             strict,
             filteredSuggestions || suggestions,
-            changes.highlightedIndex != null
-              ? changes.highlightedIndex
-              : highlightedIndex,
+            changes.highlightedIndex != null ? changes.highlightedIndex : highlightedIndex,
             value,
           );
         }
@@ -492,27 +464,17 @@ function SingleAutocomplete<T extends AutocompleteItem>({
       }}
       labelId={labelProps?.id}
     >
-      {({
-        getInputProps,
-        getItemProps,
-        isOpen,
-        inputValue,
-        highlightedIndex,
-      }) => {
-        const wrappedGetItemProps = itemProps => getItemProps({ ...itemProps });
+      {({getInputProps, getItemProps, isOpen, inputValue, highlightedIndex}) => {
+        const wrappedGetItemProps = itemProps => getItemProps({...itemProps});
         return (
           // Super annoying but it works best to return a div so we
           // can't use a View here, but we can fake it be using the
           // className
-          <div
-            className={cx(viewStyles, css({ display: 'flex' }))}
-            {...containerProps}
-          >
-            <View ref={triggerRef} style={{ flexShrink: 0 }}>
+          <div className={cx(viewStyles, css({display: 'flex'}))} {...containerProps}>
+            <View ref={triggerRef} style={{flexShrink: 0}}>
               {renderInput(
                 (() => {
-                  const { className, style, ...restInputProps } =
-                    inputProps || {};
+                  const {className, style, ...restInputProps} = inputProps || {};
                   const downshiftProps = getInputProps({
                     ref: inputRef,
                     ...restInputProps,
@@ -548,9 +510,7 @@ function SingleAutocomplete<T extends AutocompleteItem>({
 
                         // If not using table behavior, reset the input on blur. Tables
                         // handle saving the value on blur.
-                        const value = selectedItem
-                          ? getItemId(selectedItem)
-                          : null;
+                        const value = selectedItem ? getItemId(selectedItem) : null;
 
                         resetState(value);
                       } else {
@@ -558,17 +518,14 @@ function SingleAutocomplete<T extends AutocompleteItem>({
                       }
                     },
                     onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => {
-                      const { onKeyDown } = inputProps || {};
+                      const {onKeyDown} = inputProps || {};
 
                       // If the dropdown is open, an item is highlighted, and the user
                       // pressed enter, always capture that and handle it ourselves
                       if (isOpen) {
                         if (e.key === 'Enter') {
                           if (highlightedIndex != null) {
-                            if (
-                              inst.lastChangeType ===
-                              Downshift.stateChangeTypes.itemMouseEnter
-                            ) {
+                            if (inst.lastChangeType === Downshift.stateChangeTypes.itemMouseEnter) {
                               // If the last thing the user did was hover an item, intentionally
                               // ignore the default behavior of selecting the item. It's too
                               // common to accidentally hover an item and then save it
@@ -581,10 +538,7 @@ function SingleAutocomplete<T extends AutocompleteItem>({
                           } else if (!strict) {
                             // Handle it ourselves
                             e.stopPropagation();
-                            onSelect(
-                              value,
-                              (e.target as HTMLInputElement).value,
-                            );
+                            onSelect(value, (e.target as HTMLInputElement).value);
                             return onSelectAfter();
                           } else {
                             // No highlighted item, still allow the table to save the item
@@ -606,18 +560,10 @@ function SingleAutocomplete<T extends AutocompleteItem>({
                           e.stopPropagation();
                         }
 
-                        fireUpdate(
-                          onUpdate,
-                          strict,
-                          suggestions,
-                          null,
-                          getItemId(originalItem),
-                        );
+                        fireUpdate(onUpdate, strict, suggestions, null, getItemId(originalItem));
 
                         setValue(getItemName(originalItem));
-                        setSelectedItem(
-                          findItem(strict, suggestions, originalItem),
-                        );
+                        setSelectedItem(findItem(strict, suggestions, originalItem));
                         setHighlightedIndex(null);
                         if (embedded) {
                           open();
@@ -630,8 +576,8 @@ function SingleAutocomplete<T extends AutocompleteItem>({
 
                   return {
                     ...downshiftProps,
-                    ...(className && { className }),
-                    ...(style && { style }),
+                    ...(className && {className}),
+                    ...(style && {style}),
                   };
                 })(),
               )}
@@ -641,15 +587,10 @@ function SingleAutocomplete<T extends AutocompleteItem>({
               (embedded ? (
                 <View
                   ref={itemsViewRef}
-                  style={{ ...styles.darkScrollbar, marginTop: 5 }}
+                  style={{...styles.darkScrollbar, marginTop: 5}}
                   data-testid="autocomplete"
                 >
-                  {renderItems(
-                    filtered,
-                    wrappedGetItemProps,
-                    highlightedIndex,
-                    inputValue,
-                  )}
+                  {renderItems(filtered, wrappedGetItemProps, highlightedIndex, inputValue)}
                 </View>
               ) : (
                 <Popover
@@ -670,12 +611,7 @@ function SingleAutocomplete<T extends AutocompleteItem>({
                   data-testid="autocomplete"
                 >
                   <View ref={itemsViewRef}>
-                    {renderItems(
-                      filtered,
-                      wrappedGetItemProps,
-                      highlightedIndex,
-                      inputValue,
-                    )}
+                    {renderItems(filtered, wrappedGetItemProps, highlightedIndex, inputValue)}
                   </View>
                 </Popover>
               ))}
@@ -691,7 +627,7 @@ type MultiItemProps = {
   onRemove: () => void;
 };
 
-function MultiItem({ name, onRemove }: MultiItemProps) {
+function MultiItem({name, onRemove}: MultiItemProps) {
   return (
     <View
       style={{
@@ -715,8 +651,8 @@ function MultiItem({ name, onRemove }: MultiItemProps) {
       >
         {name}
       </span>
-      <Button variant="bare" style={{ marginLeft: 1 }} onPress={onRemove}>
-        <SvgRemove style={{ width: 8, height: 8 }} />
+      <Button variant="bare" style={{marginLeft: 1}} onPress={onRemove}>
+        <SvgRemove style={{width: 8, height: 8}} />
       </Button>
     </View>
   );
@@ -726,16 +662,15 @@ const defaultMultiAutocompleteInputClassName = css({
   flex: 1,
   minWidth: 30,
   border: 0,
-  '&[data-focused]': { border: 0, boxShadow: 'none' },
+  '&[data-focused]': {border: 0, boxShadow: 'none'},
 });
 
-type MultiAutocompleteProps<T extends AutocompleteItem> =
-  CommonAutocompleteProps<T> & {
-    type: 'multi';
-    onSelect: (ids: NonNullable<T['id']>[], id?: NonNullable<T['id']>) => void;
-    value: null | T[] | NonNullable<T['id']>[];
-    renderMultiItem?: (props: MultiItemProps) => ReactNode;
-  };
+type MultiAutocompleteProps<T extends AutocompleteItem> = CommonAutocompleteProps<T> & {
+  type: 'multi';
+  onSelect: (ids: NonNullable<T['id']>[], id?: NonNullable<T['id']>) => void;
+  value: null | T[] | NonNullable<T['id']>[];
+  renderMultiItem?: (props: MultiItemProps) => ReactNode;
+};
 
 function MultiAutocomplete<T extends AutocompleteItem>({
   value: selectedItems = [],
@@ -783,13 +718,11 @@ function MultiAutocomplete<T extends AutocompleteItem>({
       value={null}
       clearOnBlur={clearOnBlur}
       clearOnSelect
-      suggestions={suggestions.filter(
-        item => !selectedItemIds.includes(getItemId(item)),
-      )}
+      suggestions={suggestions.filter(item => !selectedItemIds.includes(getItemId(item)))}
       onSelect={onAddItem}
       highlightFirst
       strict={strict}
-      renderInput={({ className: inputClassName, ...inputProps }) => (
+      renderInput={({className: inputClassName, ...inputProps}) => (
         <View
           style={{
             display: 'flex',
@@ -832,10 +765,7 @@ function MultiAutocomplete<T extends AutocompleteItem>({
             className={
               typeof inputClassName === 'function'
                 ? renderProps =>
-                    cx(
-                      defaultMultiAutocompleteInputClassName,
-                      inputClassName(renderProps),
-                    )
+                    cx(defaultMultiAutocompleteInputClassName, inputClassName(renderProps))
                 : cx(defaultMultiAutocompleteInputClassName, inputClassName)
             }
           />
@@ -851,11 +781,7 @@ type AutocompleteFooterProps = {
   children: ReactNode;
 };
 
-export function AutocompleteFooter({
-  show = true,
-  embedded,
-  children,
-}: AutocompleteFooterProps) {
+export function AutocompleteFooter({show = true, embedded, children}: AutocompleteFooterProps) {
   if (!show) {
     return null;
   }
@@ -864,7 +790,7 @@ export function AutocompleteFooter({
     <View
       style={{
         flexShrink: 0,
-        ...(embedded ? { paddingTop: 5 } : { padding: 5 }),
+        ...(embedded ? {paddingTop: 5} : {padding: 5}),
       }}
     >
       {children}
@@ -876,9 +802,7 @@ type AutocompleteProps<T extends AutocompleteItem> =
   | ComponentProps<typeof SingleAutocomplete<T>>
   | ComponentProps<typeof MultiAutocomplete<T>>;
 
-export function Autocomplete<T extends AutocompleteItem>({
-  ...props
-}: AutocompleteProps<T>) {
+export function Autocomplete<T extends AutocompleteItem>({...props}: AutocompleteProps<T>) {
   if (props.type === 'multi') {
     return <MultiAutocomplete {...props} />;
   }

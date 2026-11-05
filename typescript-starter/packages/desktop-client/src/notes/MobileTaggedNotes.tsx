@@ -16,9 +16,9 @@
 
 import React from 'react';
 
-import { Text } from '@actual-app/components/text';
+import {Text} from '@actual-app/components/text';
 
-import { useTagCSS } from '#hooks/useTagCSS';
+import {useTagCSS} from '#hooks/useTagCSS';
 
 type MobileTaggedNotesProps = {
   content: string;
@@ -26,15 +26,11 @@ type MobileTaggedNotesProps = {
   separator: string;
 };
 
-export function MobileTaggedNotes({
-  content,
-  tag,
-  separator,
-}: MobileTaggedNotesProps) {
+export function MobileTaggedNotes({content, tag, separator}: MobileTaggedNotesProps) {
   const getTagCSS = useTagCSS();
   return (
     <>
-      <Text className={getTagCSS(tag, { compact: true })}>{content}</Text>
+      <Text className={getTagCSS(tag, {compact: true})}>{content}</Text>
       {separator}
     </>
   );

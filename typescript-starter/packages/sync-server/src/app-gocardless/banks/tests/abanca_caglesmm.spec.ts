@@ -15,7 +15,7 @@
  */
 
 import Abanca from '#app-gocardless/banks/abanca_caglesmm';
-import { mockTransactionAmount } from '#app-gocardless/services/tests/fixtures';
+import {mockTransactionAmount} from '#app-gocardless/services/tests/fixtures';
 
 describe('Abanca', () => {
   describe('#normalizeTransaction', () => {
@@ -27,10 +27,7 @@ describe('Abanca', () => {
         remittanceInformationStructured: 'some-creditor-name',
         date: new Date().toISOString(),
       };
-      const normalizedTransaction = Abanca.normalizeTransaction(
-        transaction,
-        true,
-      );
+      const normalizedTransaction = Abanca.normalizeTransaction(transaction, true);
       expect(normalizedTransaction?.payeeName).toEqual('Some-Creditor-Name');
     });
   });

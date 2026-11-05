@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { Fzf } from 'fzf';
+import {Fzf} from 'fzf';
 
 type CategorySuggestion = {
   id: string;
   name: string;
-  group?: { name: string };
+  group?: {name: string};
 };
 
 function rankMatches<T extends CategorySuggestion>(

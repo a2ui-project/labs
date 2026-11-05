@@ -16,11 +16,11 @@
 
 // @ts-strict-ignore
 import * as connection from '@actual-app/core/platform/client/connection';
-import { subDays } from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import { resetTracer, tracer } from '@actual-app/core/shared/test-helpers';
+import {subDays} from '@actual-app/core/shared/months';
+import {q} from '@actual-app/core/shared/query';
+import {resetTracer, tracer} from '@actual-app/core/shared/test-helpers';
 
-import { pagedQuery } from './pagedQuery';
+import {pagedQuery} from './pagedQuery';
 
 function wait(n) {
   return new Promise(resolve => setTimeout(() => resolve(`wait(${n})`), n));
@@ -36,9 +36,7 @@ function isCountQuery(query) {
 }
 
 function select(row, selectExpressions) {
-  return Object.fromEntries(
-    selectExpressions.map(fieldName => [fieldName, row[fieldName]]),
-  );
+  return Object.fromEntries(selectExpressions.map(fieldName => [fieldName, row[fieldName]]));
 }
 
 function selectData(data, selectExpressions) {
@@ -124,7 +122,7 @@ function mockPublishEvent(name, args) {
   }
 }
 
-async function mockSend(name, args, { delay }) {
+async function mockSend(name, args, {delay}) {
   switch (name) {
     case 'query':
       const query = args;
@@ -134,15 +132,15 @@ async function mockSend(name, args, { delay }) {
       if (delay) {
         await wait(delay);
       }
-      return { data: query.selectExpressions, dependencies: ['transactions'] };
+      return {data: query.selectExpressions, dependencies: ['transactions']};
     default:
       throw new Error(`Command not implemented: ${name}`);
   }
 }
 
-function mockServer({ send = mockSend, listen = mockListen }) {
+function mockServer({send = mockSend, listen = mockListen}) {
   vi.spyOn(connection, 'send').mockImplementation((name, args) => {
-    return send(name, args, { delay: 0 });
+    return send(name, args, {delay: 0});
   });
   vi.spyOn(connection, 'listen').mockImplementation(listen);
 }
@@ -155,18 +153,18 @@ function clearMockServer() {
 function mockBasicServer(delay?) {
   mockServer({
     send: (name, args) => {
-      return mockSend(name, args, { delay });
+      return mockSend(name, args, {delay});
     },
   });
 }
 
 function mockPagingServer(
   dataLength,
-  { delay, eventType = 'select' }: { delay?: number; eventType?: string } = {},
+  {delay, eventType = 'select'}: {delay?: number; eventType?: string} = {},
 ) {
   const data = [];
   for (let i = 0; i < dataLength; i++) {
-    data.push({ id: i, date: subDays('2020-05-01', Math.floor(i / 5)) });
+    data.push({id: i, date: subDays('2020-05-01', Math.floor(i / 5))});
   }
 
   mockServer({
@@ -174,10 +172,7 @@ function mockPagingServer(
       switch (name) {
         case 'query':
           const query = args;
-          tracer.event(
-            'server-query',
-            eventType === 'select' ? query.selectExpressions : query,
-          );
+          tracer.event('server-query', eventType === 'select' ? query.selectExpressions : query);
           if (delay) {
             await wait(delay);
           }
@@ -205,7 +200,7 @@ describe('pagedQuery', () => {
     tracer.start();
 
     const query = q('transactions').select('*');
-    pagedQuery(query, { onData: data => tracer.event('data', data) });
+    pagedQuery(query, {onData: data => tracer.event('data', data)});
 
     await tracer.expect('server-query');
     await tracer.expect('data', ['*']);
@@ -227,7 +222,7 @@ describe('pagedQuery', () => {
     const query = q('transactions').select('*');
     pagedQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { onlySync: true },
+      options: {onlySync: true},
     });
 
     await tracer.expect('server-query');
@@ -249,7 +244,7 @@ describe('pagedQuery', () => {
     const query = q('transactions').select('*');
     pagedQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { onlySync: true },
+      options: {onlySync: true},
     });
 
     await tracer.expect('server-query');
@@ -274,7 +269,7 @@ describe('pagedQuery', () => {
               requestId++;
             }
             await wait(500);
-            return { data: requestId, dependencies: ['transactions'] };
+            return {data: requestId, dependencies: ['transactions']};
           default:
             throw new Error(`Command not implemented: ${name}`);
         }
@@ -285,7 +280,7 @@ describe('pagedQuery', () => {
     const query = q('transactions').select('*');
     const lq = pagedQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { onlySync: true },
+      options: {onlySync: true},
     });
 
     // Users should never call `run` manually but we'll do it to
@@ -315,7 +310,7 @@ describe('pagedQuery', () => {
 
     pagedQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { onlySync: true },
+      options: {onlySync: true},
     });
 
     // Simulate a sync event
@@ -343,7 +338,7 @@ describe('pagedQuery', () => {
 
     pagedQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { onlySync: true },
+      options: {onlySync: true},
     });
 
     await tracer.expect('server-query');
@@ -403,7 +398,7 @@ describe('pagedQuery', () => {
       onPageData: data => tracer.event('page-data', data),
     });
 
-    await tracer.expect('server-query', [{ result: { $count: '*' } }]);
+    await tracer.expect('server-query', [{result: {$count: '*'}}]);
     await tracer.expect('server-query', ['id']);
 
     await tracer.expect('data', async d => {
@@ -462,10 +457,10 @@ describe('pagedQuery', () => {
     const query = q('transactions').select('id');
     pagedQuery(query, {
       onData: data => tracer.event('data', data),
-      options: { pageCount: 10 },
+      options: {pageCount: 10},
     });
 
-    await tracer.expect('server-query', [{ result: { $count: '*' } }]);
+    await tracer.expect('server-query', [{result: {$count: '*'}}]);
     await tracer.expect('server-query', ['id']);
 
     // Should only get 10 items back
@@ -473,7 +468,7 @@ describe('pagedQuery', () => {
   });
 
   it('pagedQuery only runs `fetchNext` once at a time', () => async done => {
-    mockPagingServer(1000, { delay: 200 });
+    mockPagingServer(1000, {delay: 200});
     tracer.start();
 
     const query = q('transactions').select('id');
@@ -481,7 +476,7 @@ describe('pagedQuery', () => {
       onData: data => tracer.event('data', data),
     });
 
-    await tracer.expect('server-query', [{ result: { $count: '*' } }]);
+    await tracer.expect('server-query', [{result: {$count: '*'}}]);
     await tracer.expect('server-query', ['id']);
     await tracer.expect('data', vi.fn());
 
@@ -500,17 +495,17 @@ describe('pagedQuery', () => {
   });
 
   it('pagedQuery refetches all paged data on update', async () => {
-    const data = mockPagingServer(500, { delay: 200 });
+    const data = mockPagingServer(500, {delay: 200});
     tracer.start();
 
     const query = q('transactions').select('id');
     const paged = pagedQuery(query, {
       onData: data => tracer.event('data', data),
       onPageData: data => tracer.event('page-data', data),
-      options: { pageCount: 20 },
+      options: {pageCount: 20},
     });
 
-    await tracer.expect('server-query', [{ result: { $count: '*' } }]);
+    await tracer.expect('server-query', [{result: {$count: '*'}}]);
     await tracer.expect('server-query', ['id']);
     await tracer.expect('data', d => {
       expect(d.length).toBe(20);
@@ -533,7 +528,7 @@ describe('pagedQuery', () => {
       tables: ['transactions'],
     });
 
-    await tracer.expect('server-query', [{ result: { $count: '*' } }]);
+    await tracer.expect('server-query', [{result: {$count: '*'}}]);
     await tracer.expect('server-query', ['id']);
     await tracer.expect('data', d => {
       // All 40 we fetched again
@@ -542,12 +537,12 @@ describe('pagedQuery', () => {
   });
 
   it('pagedQuery reruns `fetchNext` if data changed underneath it', async () => {
-    const data = mockPagingServer(500, { delay: 10 });
+    const data = mockPagingServer(500, {delay: 10});
     const query = q('transactions').select('id');
     const paged = pagedQuery(query, {
       onData: data => tracer.event('data', data),
       onPageData: data => tracer.event('page-data', data),
-      options: { pageCount: 20 },
+      options: {pageCount: 20},
     });
 
     await paged.fetchNext();
@@ -568,7 +563,7 @@ describe('pagedQuery', () => {
     // This is from the paged request, but it ignores the new data
     await tracer.expect('server-query', ['id']);
 
-    await tracer.expect('server-query', [{ result: { $count: '*' } }]);
+    await tracer.expect('server-query', [{result: {$count: '*'}}]);
     await tracer.expect('server-query', ['id']);
     await tracer.expect('data', d => {
       expect(d.length).toBe(40);
@@ -590,47 +585,41 @@ describe('pagedQuery', () => {
   });
 
   it('pagedQuery fetches up to a specific row', async () => {
-    const data = mockPagingServer(500, { delay: 10, eventType: 'all' });
+    const data = mockPagingServer(500, {delay: 10, eventType: 'all'});
     const query = q('transactions').select(['id', 'date']);
     const paged = pagedQuery(query, {
       onData: data => tracer.event('data', data),
       onPageData: data => tracer.event('page-data', data),
-      options: { pageCount: 20 },
+      options: {pageCount: 20},
     });
     await paged.run();
 
     tracer.start();
 
     const item = data.find(row => row.id === 300);
-    void paged.refetchUpToRow(item.id, { field: 'date', order: 'desc' });
+    void paged.refetchUpToRow(item.id, {field: 'date', order: 'desc'});
 
     await tracer.expect(
       'server-query',
       expect.objectContaining({
-        selectExpressions: [{ result: { $count: '*' } }],
+        selectExpressions: [{result: {$count: '*'}}],
       }),
     );
-    await tracer.expect(
-      'server-query',
-      expect.objectContaining({ filterExpressions: [{ id: 300 }] }),
-    );
+    await tracer.expect('server-query', expect.objectContaining({filterExpressions: [{id: 300}]}));
     await tracer.expect(
       'server-query',
       expect.objectContaining({
-        filterExpressions: [{ date: { $gte: item.date } }],
+        filterExpressions: [{date: {$gte: item.date}}],
       }),
     );
     await tracer.expect(
       'server-query',
       expect.objectContaining({
-        filterExpressions: [{ date: { $lt: item.date } }],
+        filterExpressions: [{date: {$lt: item.date}}],
         limit: 20,
       }),
     );
-    await tracer.expect(
-      'data',
-      data.slice(0, data.findIndex(row => row.date < item.date) + 20),
-    );
+    await tracer.expect('data', data.slice(0, data.findIndex(row => row.date < item.date) + 20));
 
     await wait(1000);
   });
@@ -642,7 +631,7 @@ describe('pagedQuery', () => {
     // in an infinite microtask loop that froze the app at 100% CPU.
     const data = [];
     for (let i = 0; i < 400; i++) {
-      data.push({ id: i });
+      data.push({id: i});
     }
 
     // Server that blocks every page query until we release it, so the test
@@ -654,7 +643,7 @@ describe('pagedQuery', () => {
           case 'query': {
             const query = args;
             if (isCountQuery(query)) {
-              return { data: data.length, dependencies: ['transactions'] };
+              return {data: data.length, dependencies: ['transactions']};
             }
             await new Promise(resolve => pending.push(resolve));
             return {
@@ -674,7 +663,7 @@ describe('pagedQuery', () => {
 
     const query = q('transactions').select('id');
     const paged = pagedQuery(query, {
-      options: { onlySync: true, pageCount: 150 },
+      options: {onlySync: true, pageCount: 150},
     });
 
     await wait(1);

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { describe, expect, it, vi } from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 
-import { loadMigrationModules } from './migrations';
+import {loadMigrationModules} from './migrations';
 
 const migrationModule = {
   up: vi.fn(),
@@ -26,13 +26,10 @@ const migrationModule = {
 describe('migrations', () => {
   it('preserves the legacy JavaScript title for a TypeScript migration', async () => {
     const migrations = await loadMigrationModules({
-      '../migrations/1694360000000-create-folders.ts': async () =>
-        migrationModule,
+      '../migrations/1694360000000-create-folders.ts': async () => migrationModule,
     });
 
-    expect(Object.keys(migrations)).toEqual([
-      '1694360000000-create-folders.js',
-    ]);
+    expect(Object.keys(migrations)).toEqual(['1694360000000-create-folders.js']);
   });
 
   it('rejects duplicate migration titles after normalization', async () => {

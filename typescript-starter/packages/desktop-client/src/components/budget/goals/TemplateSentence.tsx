@@ -14,30 +14,27 @@
  * limitations under the License.
  */
 
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import type { Template } from '@actual-app/core/types/models/templates';
-import type { TransObjectLiteral } from '@actual-app/core/types/util';
+import type {Template} from '@actual-app/core/types/models/templates';
+import type {TransObjectLiteral} from '@actual-app/core/types/util';
 
-import { BySaveAutomationReadOnly } from './editor/BySaveAutomationReadOnly';
-import { FixedAutomationReadOnly } from './editor/FixedAutomationReadOnly';
-import { HistoricalAutomationReadOnly } from './editor/HistoricalAutomationReadOnly';
-import { LimitAutomationReadOnly } from './editor/LimitAutomationReadOnly';
-import { LongTermGoalAutomationReadOnly } from './editor/LongTermGoalAutomationReadOnly';
-import { PercentageAutomationReadOnly } from './editor/PercentageAutomationReadOnly';
-import { RefillAutomationReadOnly } from './editor/RefillAutomationReadOnly';
-import { RemainderAutomationReadOnly } from './editor/RemainderAutomationReadOnly';
-import { ScheduleAutomationReadOnly } from './editor/ScheduleAutomationReadOnly';
+import {BySaveAutomationReadOnly} from './editor/BySaveAutomationReadOnly';
+import {FixedAutomationReadOnly} from './editor/FixedAutomationReadOnly';
+import {HistoricalAutomationReadOnly} from './editor/HistoricalAutomationReadOnly';
+import {LimitAutomationReadOnly} from './editor/LimitAutomationReadOnly';
+import {LongTermGoalAutomationReadOnly} from './editor/LongTermGoalAutomationReadOnly';
+import {PercentageAutomationReadOnly} from './editor/PercentageAutomationReadOnly';
+import {RefillAutomationReadOnly} from './editor/RefillAutomationReadOnly';
+import {RemainderAutomationReadOnly} from './editor/RemainderAutomationReadOnly';
+import {ScheduleAutomationReadOnly} from './editor/ScheduleAutomationReadOnly';
 
 type TemplateSentenceProps = {
   template: Template;
   categoryNameMap: Record<string, string>;
 };
 
-export function TemplateSentence({
-  template,
-  categoryNameMap,
-}: TemplateSentenceProps) {
+export function TemplateSentence({template, categoryNameMap}: TemplateSentenceProps) {
   switch (template.type) {
     case 'limit':
       return <LimitAutomationReadOnly template={template} />;
@@ -48,12 +45,7 @@ export function TemplateSentence({
     case 'schedule':
       return <ScheduleAutomationReadOnly template={template} />;
     case 'percentage':
-      return (
-        <PercentageAutomationReadOnly
-          template={template}
-          categoryNameMap={categoryNameMap}
-        />
-      );
+      return <PercentageAutomationReadOnly template={template} categoryNameMap={categoryNameMap} />;
     case 'average':
     case 'copy':
       return <HistoricalAutomationReadOnly template={template} />;
@@ -67,11 +59,7 @@ export function TemplateSentence({
     case 'simple':
     case 'error': {
       const type = template.type;
-      return (
-        <Trans>
-          Unsupported template type: {{ type } satisfies TransObjectLiteral}
-        </Trans>
-      );
+      return <Trans>Unsupported template type: {{type} satisfies TransObjectLiteral}</Trans>;
     }
     default:
       template satisfies never;

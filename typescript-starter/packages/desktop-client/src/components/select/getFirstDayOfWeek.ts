@@ -14,15 +14,7 @@
  * limitations under the License.
  */
 
-const FIRST_DAY_OF_WEEK_NAMES = [
-  'sun',
-  'mon',
-  'tue',
-  'wed',
-  'thu',
-  'fri',
-  'sat',
-] as const;
+const FIRST_DAY_OF_WEEK_NAMES = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 
 export type FirstDayOfWeek = (typeof FIRST_DAY_OF_WEEK_NAMES)[number];
 

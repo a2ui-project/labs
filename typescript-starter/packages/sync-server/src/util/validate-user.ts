@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import type { Request, Response } from 'express';
+import type {Request, Response} from 'express';
 import ipaddr from 'ipaddr.js';
 
-import { getSession } from '#account-db';
-import { config } from '#load-config';
+import {getSession} from '#account-db';
+import {config} from '#load-config';
 
 export const TOKEN_EXPIRATION_NEVER = -1;
 const MS_PER_SECOND = 1000;
 
 export function validateSession(req: Request, res: Response) {
-  let { token } = req.body || {};
+  let {token} = req.body || {};
 
   if (!token) {
     token = req.headers['x-actual-token'];

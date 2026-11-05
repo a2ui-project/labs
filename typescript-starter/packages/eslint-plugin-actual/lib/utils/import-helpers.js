@@ -52,14 +52,12 @@ function getImportFix(sourceCode, importName, moduleName) {
 
   // Find existing import from the same module
   const existingImport = ast.body.find(
-    node =>
-      node.type === 'ImportDeclaration' && node.source.value === moduleName,
+    node => node.type === 'ImportDeclaration' && node.source.value === moduleName,
   );
 
   if (existingImport) {
     const hasImportAlready = existingImport.specifiers.some(
-      spec =>
-        spec.type === 'ImportSpecifier' && spec.imported.name === importName,
+      spec => spec.type === 'ImportSpecifier' && spec.imported.name === importName,
     );
 
     if (hasImportAlready) {
@@ -68,13 +66,11 @@ function getImportFix(sourceCode, importName, moduleName) {
 
     if (existingImport.specifiers.length === 0) {
       const importStatement = `import { ${importName} } from '${moduleName}';\n`;
-      return fixer =>
-        fixer.insertTextAfter(existingImport, `\n${importStatement}`);
+      return fixer => fixer.insertTextAfter(existingImport, `\n${importStatement}`);
     }
 
     // Add to existing import
-    const lastSpecifier =
-      existingImport.specifiers[existingImport.specifiers.length - 1];
+    const lastSpecifier = existingImport.specifiers[existingImport.specifiers.length - 1];
     return fixer => fixer.insertTextAfter(lastSpecifier, `, ${importName}`);
   } else {
     // Add new import statement
@@ -87,8 +83,7 @@ function getImportFix(sourceCode, importName, moduleName) {
     if (firstImport) {
       return fixer => fixer.insertTextAfter(targetNode, `\n${importStatement}`);
     } else {
-      return fixer =>
-        fixer.insertTextBefore(targetNode, `${importStatement}\n`);
+      return fixer => fixer.insertTextBefore(targetNode, `${importStatement}\n`);
     }
   }
 }

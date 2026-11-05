@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import type { ReactNode } from 'react';
+import type {ReactNode} from 'react';
 
-import { act, renderHook } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import {act, renderHook} from '@testing-library/react';
+import {describe, expect, it} from 'vitest';
 
-import { TourProvider, useTour } from './TourProvider';
+import {TourProvider, useTour} from './TourProvider';
 
-function wrapper({ children }: { children: ReactNode }) {
+function wrapper({children}: {children: ReactNode}) {
   return <TourProvider>{children}</TourProvider>;
 }
 
 describe('TourProvider', () => {
   it('starts and stops the tour', () => {
-    const { result } = renderHook(() => useTour(), { wrapper });
+    const {result} = renderHook(() => useTour(), {wrapper});
 
     expect(result.current.activeTourId).toBeNull();
 
@@ -42,7 +42,7 @@ describe('TourProvider', () => {
     const originalWidth = window.innerWidth;
     window.innerWidth = 400;
     try {
-      const { result } = renderHook(() => useTour(), { wrapper });
+      const {result} = renderHook(() => useTour(), {wrapper});
 
       act(() => result.current.startTour());
       expect(result.current.activeTourId).toBeNull();

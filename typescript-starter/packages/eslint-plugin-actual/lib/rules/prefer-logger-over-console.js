@@ -16,15 +16,14 @@
 
 const path = require('path');
 
-const { ensureImport } = require('../utils/import-helpers');
+const {ensureImport} = require('../utils/import-helpers');
 
 /** @type {import('eslint').Rule.RuleModule} */
 module.exports = {
   meta: {
     type: 'suggestion',
     docs: {
-      description:
-        'Replace console.log/warn/error calls with logger in loot-core files',
+      description: 'Replace console.log/warn/error calls with logger in loot-core files',
     },
     fixable: 'code',
     schema: [],
@@ -54,25 +53,24 @@ module.exports = {
     }
 
     function getLoggerImportInfo() {
-      const { ast } = context.sourceCode;
+      const {ast} = context.sourceCode;
       const importPath = getLoggerImportPath();
 
       for (const node of ast.body) {
         if (
           node.type === 'ImportDeclaration' &&
           typeof node.source.value === 'string' &&
-          (node.source.value === importPath ||
-            node.source.value.includes('platform/server/log'))
+          (node.source.value === importPath || node.source.value.includes('platform/server/log'))
         ) {
           const spec = node.specifiers.find(
             s => s.type === 'ImportSpecifier' && s.imported.name === 'logger',
           );
           if (spec) {
-            return { decl: node, localName: spec.local.name };
+            return {decl: node, localName: spec.local.name};
           }
         }
       }
-      return { decl: null, localName: null };
+      return {decl: null, localName: null};
     }
 
     return {
@@ -83,9 +81,7 @@ module.exports = {
         );
         if (
           !isLootCoreFile ||
-          normalizedFilename.includes(
-            'packages/loot-core/src/platform/server/log/index.ts',
-          )
+          normalizedFilename.includes('packages/loot-core/src/platform/server/log/index.ts')
         ) {
           return false;
         }
@@ -103,17 +99,12 @@ module.exports = {
           context.report({
             node,
             messageId: 'preferLogger',
-            data: { method },
+            data: {method},
             fix(fixer) {
               const sourceCode = context.sourceCode;
-              const { localName } = getLoggerImportInfo();
+              const {localName} = getLoggerImportInfo();
               const loggerIdent = localName || 'logger';
-              const fixes = [
-                fixer.replaceText(
-                  node.callee,
-                  `${loggerIdent}.${methodMap[method]}`,
-                ),
-              ];
+              const fixes = [fixer.replaceText(node.callee, `${loggerIdent}.${methodMap[method]}`)];
 
               const importPath = getLoggerImportPath();
               if (!localName) {

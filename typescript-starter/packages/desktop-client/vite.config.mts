@@ -1,25 +1,21 @@
-import { spawn } from 'node:child_process';
-import type { ChildProcess } from 'node:child_process';
-import { createReadStream } from 'node:fs';
-import { cp, mkdir, readdir, rename, rm, writeFile } from 'node:fs/promises';
+import {spawn} from 'node:child_process';
+import type {ChildProcess} from 'node:child_process';
+import {createReadStream} from 'node:fs';
+import {cp, mkdir, readdir, rename, rm, writeFile} from 'node:fs/promises';
 import * as path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 
-import {
-  defaultDbPath,
-  migrationsDir,
-  sqlWasmPath,
-} from '@actual-app/core/default-filesystem';
+import {defaultDbPath, migrationsDir, sqlWasmPath} from '@actual-app/core/default-filesystem';
 import babel from '@rolldown/plugin-babel';
 import inject from '@rollup/plugin-inject';
 import basicSsl from '@vitejs/plugin-basic-ssl';
-import react, { reactCompilerPreset } from '@vitejs/plugin-react';
-import type { PreRenderedAsset } from 'rolldown';
-import { visualizer } from 'rollup-plugin-visualizer';
+import react, {reactCompilerPreset} from '@vitejs/plugin-react';
+import type {PreRenderedAsset} from 'rolldown';
+import {visualizer} from 'rollup-plugin-visualizer';
 /// <reference types="vitest" />
-import { build, defineConfig, loadEnv } from 'vite';
-import type { Plugin } from 'vite';
-import { VitePWA } from 'vite-plugin-pwa';
+import {build, defineConfig, loadEnv} from 'vite';
+import type {Plugin} from 'vite';
+import {VitePWA} from 'vite-plugin-pwa';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // Compile every workspace package that ships React components. Workspace
@@ -27,8 +23,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // current or future package flowing through this build is picked up
 // automatically. Third-party code is never compiled: the babel plugin's
 // default exclude (node_modules) still applies alongside this include.
-const reactCompilerInclude =
-  /[\\/]packages[\\/][^\\/]+[\\/]src[\\/].*\.[jt]sx?(?:$|\?)/;
+const reactCompilerInclude = /[\\/]packages[\\/][^\\/]+[\\/]src[\\/].*\.[jt]sx?(?:$|\?)/;
 
 const addWatchers = (): Plugin => ({
   name: 'add-watchers',
@@ -40,7 +35,7 @@ const addWatchers = (): Plugin => ({
       ])
       .on('all', function () {
         for (const wsc of server.ws.clients) {
-          wsc.send(JSON.stringify({ type: 'static-changed' }));
+          wsc.send(JSON.stringify({type: 'static-changed'}));
         }
       });
   },
@@ -92,10 +87,7 @@ const publicDir = path.resolve(__dirname, 'public');
 const publicDataDir = path.resolve(publicDir, 'data');
 const publicKcabDir = path.resolve(publicDir, 'kcab');
 const buildStatsDir = path.resolve(__dirname, 'build-stats');
-const pluginsServiceDistDir = path.resolve(
-  __dirname,
-  '../plugins-service/dist',
-);
+const pluginsServiceDistDir = path.resolve(__dirname, '../plugins-service/dist');
 const serviceWorkerDir = path.resolve(__dirname, 'service-worker');
 
 const WORKER_FILENAME_RE = /^kcab\.worker\.(.+)\.js$/;
@@ -106,9 +98,7 @@ async function extractWorkerHash(): Promise<string> {
     const match = f.match(WORKER_FILENAME_RE);
     if (match) return match[1];
   }
-  throw new Error(
-    `loot-core worker build produced no hashed output at ${lootCoreOutDir}`,
-  );
+  throw new Error(`loot-core worker build produced no hashed output at ${lootCoreOutDir}`);
 }
 
 // Serve loot-core worker assets with correct content types so the browser can
@@ -121,8 +111,8 @@ const CONTENT_TYPES: Record<string, string> = {
 };
 
 async function stagePluginsService(): Promise<void> {
-  await rm(serviceWorkerDir, { recursive: true, force: true });
-  await cp(pluginsServiceDistDir, serviceWorkerDir, { recursive: true });
+  await rm(serviceWorkerDir, {recursive: true, force: true});
+  await cp(pluginsServiceDistDir, serviceWorkerDir, {recursive: true});
 }
 
 // Extensions of data files served to the backend worker. Keep in sync
@@ -131,10 +121,10 @@ const DATA_FILE_EXTENSIONS = new Set(['.sql', '.js', '.sqlite']);
 
 async function stagePublicData(): Promise<void> {
   const migrationsDest = path.resolve(publicDataDir, 'migrations');
-  await mkdir(publicDataDir, { recursive: true });
-  await rm(migrationsDest, { recursive: true, force: true });
+  await mkdir(publicDataDir, {recursive: true});
+  await rm(migrationsDest, {recursive: true, force: true});
   await Promise.all([
-    cp(migrationsDir, migrationsDest, { recursive: true }),
+    cp(migrationsDir, migrationsDest, {recursive: true}),
     cp(defaultDbPath, path.resolve(publicDataDir, 'default-db.sqlite')),
     cp(sqlWasmPath, path.resolve(publicDir, 'sql-wasm.wasm')),
   ]);
@@ -146,19 +136,14 @@ async function stagePublicData(): Promise<void> {
   const files = entries
     .filter(e => e.isFile())
     .map(e =>
-      path
-        .relative(publicDataDir, path.join(e.parentPath, e.name))
-        .replaceAll(path.sep, '/'),
+      path.relative(publicDataDir, path.join(e.parentPath, e.name)).replaceAll(path.sep, '/'),
     )
     // Only list files the backend needs and the workbox precache globs
     // cover; anything else fails to load offline and breaks startup.
     .filter(file => !file.split('/').some(part => part.startsWith('.')))
     .filter(file => DATA_FILE_EXTENSIONS.has(path.extname(file)))
     .sort();
-  await writeFile(
-    path.resolve(publicDir, 'data-file-index.txt'),
-    files.join('\n') + '\n',
-  );
+  await writeFile(path.resolve(publicDir, 'data-file-index.txt'), files.join('\n') + '\n');
 }
 
 const lootCoreBackend = (): Plugin => ({
@@ -166,21 +151,11 @@ const lootCoreBackend = (): Plugin => ({
   configureServer(server) {
     const child: ChildProcess = spawn(
       'yarn',
-      [
-        'vite',
-        'build',
-        '--config',
-        lootCoreConfig,
-        '--mode',
-        'development',
-        '--watch',
-      ],
-      { cwd: lootCoreRoot, stdio: 'inherit' },
+      ['vite', 'build', '--config', lootCoreConfig, '--mode', 'development', '--watch'],
+      {cwd: lootCoreRoot, stdio: 'inherit'},
     );
     child.on('error', err => {
-      server.config.logger.error(
-        `loot-core backend failed to spawn: ${err.message}`,
-      );
+      server.config.logger.error(`loot-core backend failed to spawn: ${err.message}`);
     });
     const cleanup = () => {
       if (!child.killed) child.kill('SIGTERM');
@@ -207,7 +182,7 @@ const lootCoreBackend = (): Plugin => ({
     });
   },
   async closeBundle() {
-    await mkdir(buildStatsDir, { recursive: true });
+    await mkdir(buildStatsDir, {recursive: true});
     try {
       await rename(
         path.resolve(__dirname, 'build/kcab/stats.json'),
@@ -240,7 +215,7 @@ const pluginsServiceAssets = (): Plugin => ({
   },
 });
 
-export default defineConfig(async ({ mode, command }) => {
+export default defineConfig(async ({mode, command}) => {
   const env = loadEnv(mode, process.cwd(), '');
   const isVitest = process.env.VITEST === 'true';
   const devHeaders = {
@@ -264,15 +239,11 @@ export default defineConfig(async ({ mode, command }) => {
         root: lootCoreRoot,
       }).then(async () => {
         const hash = await extractWorkerHash();
-        await rm(publicKcabDir, { recursive: true, force: true });
-        await cp(lootCoreOutDir, publicKcabDir, { recursive: true });
+        await rm(publicKcabDir, {recursive: true, force: true});
+        await cp(lootCoreOutDir, publicKcabDir, {recursive: true});
         return hash;
       });
-      const [, , hash] = await Promise.all([
-        stagePublicData(),
-        stagePluginsService(),
-        stageKcab,
-      ]);
+      const [, , hash] = await Promise.all([stagePublicData(), stagePluginsService(), stageKcab]);
       process.env.REACT_APP_BACKEND_WORKER_HASH = hash;
     } else {
       await stagePublicData();
@@ -324,9 +295,7 @@ export default defineConfig(async ({ mode, command }) => {
       headers: devHeaders,
       port: +env.PORT || 5173,
       open: env.BROWSER
-        ? ['chrome', 'firefox', 'edge', 'browser', 'browserPrivate'].includes(
-            env.BROWSER,
-          )
+        ? ['chrome', 'firefox', 'edge', 'browser', 'browserPrivate'].includes(env.BROWSER)
         : browserOpen,
       watch: {
         disableGlobbing: false,
@@ -368,9 +337,7 @@ export default defineConfig(async ({ mode, command }) => {
               type: 'module',
             },
             workbox: {
-              globPatterns: [
-                '**/*.{js,css,html,txt,wasm,sql,sqlite,ico,png,woff2,webmanifest}',
-              ],
+              globPatterns: ['**/*.{js,css,html,txt,wasm,sql,sqlite,ico,png,woff2,webmanifest}'],
               ignoreURLParametersMatching: [/^v$/],
               navigateFallback: '/index.html',
               maximumFileSizeToCacheInBytes: 10 * 1024 * 1024, // 10MB

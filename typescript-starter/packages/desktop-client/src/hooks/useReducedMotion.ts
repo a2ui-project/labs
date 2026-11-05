@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { useSyncExternalStore } from 'react';
+import {useSyncExternalStore} from 'react';
 
-import { useIsTestEnv } from './useIsTestEnv';
+import {useIsTestEnv} from './useIsTestEnv';
 
 const QUERY = '(prefers-reduced-motion: reduce)';
 

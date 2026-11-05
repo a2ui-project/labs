@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 
-import { send } from '#server/main-app';
+import {send} from '#server/main-app';
 
 import {
   getBudgetName,
@@ -25,7 +25,7 @@ import {
   importTransactions,
   parseFile,
 } from './ynab5';
-import type { Payee, Transaction } from './ynab5-types';
+import type {Payee, Transaction} from './ynab5-types';
 
 vi.mock('#server/main-app', () => ({
   send: vi.fn(),
@@ -64,15 +64,13 @@ describe('importPayees', () => {
 
     const entityIdMap = new Map<string, string>();
     await importPayees(
-      { payees: [transferPayee, normalPayee] } as Parameters<
-        typeof importPayees
-      >[0],
+      {payees: [transferPayee, normalPayee]} as Parameters<typeof importPayees>[0],
       entityIdMap,
     );
 
     expect(send).toHaveBeenCalledTimes(1);
     expect(send).toHaveBeenCalledWith('api/payee-create', {
-      payee: { name: 'Coffee Shop' },
+      payee: {name: 'Coffee Shop'},
     });
     expect(entityIdMap.has('ynab-transfer-payee')).toBe(false);
     expect(entityIdMap.get('ynab-normal-payee')).toBe('created-payee-id');
@@ -81,13 +79,10 @@ describe('importPayees', () => {
   it('still skips deleted payees', async () => {
     vi.mocked(send).mockResolvedValue('created-payee-id');
 
-    const deletedPayee = makePayee({ id: 'deleted-1', deleted: true });
+    const deletedPayee = makePayee({id: 'deleted-1', deleted: true});
     const entityIdMap = new Map<string, string>();
 
-    await importPayees(
-      { payees: [deletedPayee] } as Parameters<typeof importPayees>[0],
-      entityIdMap,
-    );
+    await importPayees({payees: [deletedPayee]} as Parameters<typeof importPayees>[0], entityIdMap);
 
     expect(send).not.toHaveBeenCalled();
     expect(entityIdMap.size).toBe(0);
@@ -168,15 +163,9 @@ describe('importTransactions', () => {
       .mock.calls.filter(([name]) => name === 'api/transactions-add');
     expect(transactionsAddCalls).toHaveLength(2);
 
-    const allImportedTransactions = transactionsAddCalls.flatMap(
-      ([, args]) => args.transactions,
-    );
-    const outImported = allImportedTransactions.find(
-      t => t.id === entityIdMap.get('txn-out'),
-    );
-    const inImported = allImportedTransactions.find(
-      t => t.id === entityIdMap.get('txn-in'),
-    );
+    const allImportedTransactions = transactionsAddCalls.flatMap(([, args]) => args.transactions);
+    const outImported = allImportedTransactions.find(t => t.id === entityIdMap.get('txn-out'));
+    const inImported = allImportedTransactions.find(t => t.id === entityIdMap.get('txn-in'));
 
     expect(outImported.payee).toBe('actual-payee-for-account-2');
     expect(inImported.payee).toBe('actual-payee-for-account-1');
@@ -224,7 +213,7 @@ describe('importScheduledTransactions', () => {
       if (name === 'api/schedule-create') return 'schedule-1';
       if (name === 'api/query') {
         queryCount += 1;
-        return queryCount === 1 ? { data: 'rule-1' } : { data: [rule] };
+        return queryCount === 1 ? {data: 'rule-1'} : {data: [rule]};
       }
       if (name === 'api/rule-update') {
         expect(tick).not.toHaveBeenCalled();
@@ -272,25 +261,21 @@ describe('importScheduledTransactions', () => {
 
 describe('ynab5 parseFile', () => {
   it('unwraps the legacy `budget` wrapper', () => {
-    const data = parseFile(
-      toBuffer({ data: { budget: { name: 'Legacy', accounts: [] } } }),
-    );
+    const data = parseFile(toBuffer({data: {budget: {name: 'Legacy', accounts: []}}}));
 
     expect(data.name).toBe('Legacy');
     expect(getBudgetName('legacy.json', data)).toBe('Legacy');
   });
 
   it('unwraps the renamed `plan` wrapper from the current YNAB API', () => {
-    const data = parseFile(
-      toBuffer({ data: { plan: { name: 'Modern', accounts: [] } } }),
-    );
+    const data = parseFile(toBuffer({data: {plan: {name: 'Modern', accounts: []}}}));
 
     expect(data.name).toBe('Modern');
     expect(getBudgetName('modern.json', data)).toBe('Modern');
   });
 
   it('returns an already-unwrapped object unchanged', () => {
-    const data = parseFile(toBuffer({ name: 'Bare', accounts: [] }));
+    const data = parseFile(toBuffer({name: 'Bare', accounts: []}));
 
     expect(data.name).toBe('Bare');
   });

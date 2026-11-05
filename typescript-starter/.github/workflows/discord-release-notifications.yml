@@ -25,7 +25,7 @@ name: Discord Release Notifications
 on:
   push:
     tags:
-      - '**'
+      - "**"
   release:
     types: [published]
 
@@ -46,7 +46,7 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
           status: Success
-          title: 'New tag: ${{ github.ref_name }}'
+          title: "New tag: ${{ github.ref_name }}"
           description: Tag `${{ github.ref_name }}` was pushed to ${{ github.repository }}.
           url: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}
           username: Actual Releases
@@ -58,7 +58,7 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK_URL }}
           status: Success
-          title: 'Release published: ${{ github.event.release.name || github.event.release.tag_name }}'
+          title: "Release published: ${{ github.event.release.name || github.event.release.tag_name }}"
           description: A new release was published for ${{ github.repository }}.
           url: ${{ github.event.release.html_url }}
           username: Actual Releases

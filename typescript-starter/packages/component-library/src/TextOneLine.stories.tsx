@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { TextOneLine } from './TextOneLine';
-import { View } from './View';
+import {TextOneLine} from './TextOneLine';
+import {View} from './View';
 
 const meta = {
   title: 'Components/TextOneLine',
@@ -36,7 +36,7 @@ export const Default: Story = {
   args: {
     children:
       'This is a single line of text that will be truncated with an ellipsis if it overflows its container',
-    style: { maxWidth: 300 },
+    style: {maxWidth: 300},
   },
   parameters: {
     docs: {
@@ -51,7 +51,7 @@ export const Default: Story = {
 export const ShortText: Story = {
   args: {
     children: 'Short text',
-    style: { maxWidth: 300 },
+    style: {maxWidth: 300},
   },
   parameters: {
     docs: {
@@ -64,9 +64,8 @@ export const ShortText: Story = {
 
 export const NarrowContainer: Story = {
   args: {
-    children:
-      'This text will be truncated because the container is very narrow',
-    style: { maxWidth: 120 },
+    children: 'This text will be truncated because the container is very narrow',
+    style: {maxWidth: 120},
   },
   parameters: {
     docs: {
@@ -79,12 +78,10 @@ export const NarrowContainer: Story = {
 
 export const ComparisonWithText: Story = {
   render: () => (
-    <View style={{ gap: 15, maxWidth: 200 }}>
+    <View style={{gap: 15, maxWidth: 200}}>
       <View>
         <strong>TextOneLine:</strong>
-        <TextOneLine>
-          This is a long piece of text that should be truncated
-        </TextOneLine>
+        <TextOneLine>This is a long piece of text that should be truncated</TextOneLine>
       </View>
       <View>
         <strong>Regular span:</strong>
@@ -95,8 +92,7 @@ export const ComparisonWithText: Story = {
   parameters: {
     docs: {
       description: {
-        story:
-          'Comparison between TextOneLine (truncated) and regular text (wrapping).',
+        story: 'Comparison between TextOneLine (truncated) and regular text (wrapping).',
       },
     },
   },

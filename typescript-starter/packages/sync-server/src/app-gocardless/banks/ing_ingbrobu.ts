@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -23,7 +23,7 @@ export default {
   institutionIds: ['ING_INGBROBU'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     //Merchant transactions all have the same transactionId of 'NOTPROVIDED'.
     //For booked transactions, this can be set to the internalTransactionId
@@ -37,43 +37,34 @@ export default {
         transaction.proprietaryBankTransactionCode &&
         !transaction.remittanceInformationUnstructured
       ) {
-        editedTrans.remittanceInformationUnstructured =
-          transaction.proprietaryBankTransactionCode;
+        editedTrans.remittanceInformationUnstructured = transaction.proprietaryBankTransactionCode;
       }
 
       if (booked) {
         transaction.transactionId = transaction.internalTransactionId;
         if (
           transaction.remittanceInformationUnstructured &&
-          transaction.remittanceInformationUnstructured
-            .toLowerCase()
-            .includes('card no:')
+          transaction.remittanceInformationUnstructured.toLowerCase().includes('card no:')
         ) {
-          editedTrans.creditorName =
-            transaction.remittanceInformationUnstructured.split(',')[0];
+          editedTrans.creditorName = transaction.remittanceInformationUnstructured.split(',')[0];
           //Catch all case for other types of payees
         } else {
-          editedTrans.creditorName =
-            transaction.remittanceInformationUnstructured;
+          editedTrans.creditorName = transaction.remittanceInformationUnstructured;
         }
       } else {
         transaction.transactionId = undefined;
 
         if (
           transaction.remittanceInformationUnstructured &&
-          transaction.remittanceInformationUnstructured
-            .toLowerCase()
-            .includes('card no:')
+          transaction.remittanceInformationUnstructured.toLowerCase().includes('card no:')
         ) {
-          editedTrans.creditorName =
-            transaction.remittanceInformationUnstructured.replace(
-              /x{4}/g,
-              'Xxxx ',
-            );
+          editedTrans.creditorName = transaction.remittanceInformationUnstructured.replace(
+            /x{4}/g,
+            'Xxxx ',
+          );
           //Catch all case for other types of payees
         } else {
-          editedTrans.creditorName =
-            transaction.remittanceInformationUnstructured;
+          editedTrans.creditorName = transaction.remittanceInformationUnstructured;
         }
         //Remove remittanceInformationUnstructured from pending transactions, so the `notes` field remains empty (there is no merchant information)
         //Once booked, the right `notes` (containing the merchant) will be populated

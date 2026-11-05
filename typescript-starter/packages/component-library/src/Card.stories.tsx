@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { styles } from '@actual-app/components/styles';
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import {styles} from '@actual-app/components/styles';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Card } from './Card';
-import { Paragraph } from './Paragraph';
-import { theme } from './theme';
+import {Card} from './Card';
+import {Paragraph} from './Paragraph';
+import {theme} from './theme';
 
 const meta = {
   title: 'Components/Card',
@@ -66,10 +66,9 @@ export const WithCustomContent: Story = {
   },
   render: args => (
     <Card {...args}>
-      <h3 style={{ ...styles.largeText }}>Card Title</h3>
-      <Paragraph style={{ margin: 0 }}>
-        This is a card with more complex content including a title and
-        paragraph.
+      <h3 style={{...styles.largeText}}>Card Title</h3>
+      <Paragraph style={{margin: 0}}>
+        This is a card with more complex content including a title and paragraph.
       </Paragraph>
     </Card>
   ),

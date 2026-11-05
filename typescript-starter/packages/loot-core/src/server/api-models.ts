@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Budget } from '#types/budget';
+import type {Budget} from '#types/budget';
 import type {
   AccountEntity,
   AccountGroupEntity,
@@ -27,7 +27,7 @@ import type {
   TagEntity,
 } from '#types/models';
 
-import type { RemoteFile } from './cloud-storage';
+import type {RemoteFile} from './cloud-storage';
 import * as models from './models';
 
 export type APIAccountEntity = Pick<AccountEntity, 'id' | 'name'> & {
@@ -52,7 +52,7 @@ export const accountModel = {
   },
 
   fromExternal(account: APIAccountEntity) {
-    const result = { ...account } as unknown as AccountEntity;
+    const result = {...account} as unknown as AccountEntity;
     if ('offbudget' in account) {
       result.offbudget = account.offbudget ? 1 : 0;
     }
@@ -81,10 +81,7 @@ export const accountGroupModel = {
   },
 };
 
-export type APICategoryEntity = Pick<
-  CategoryEntity,
-  'id' | 'name' | 'is_income' | 'hidden'
-> & {
+export type APICategoryEntity = Pick<CategoryEntity, 'id' | 'name' | 'is_income' | 'hidden'> & {
   group_id: string;
 };
 
@@ -102,7 +99,7 @@ export const categoryModel = {
   },
 
   fromExternal(category: APICategoryEntity) {
-    const { group_id, ...apiCategory } = category;
+    const {group_id, ...apiCategory} = category;
     const result: CategoryEntity = {
       ...apiCategory,
       group: group_id,
@@ -127,17 +124,14 @@ export const categoryGroupModel = {
       name: group.name,
       is_income: group.is_income ? true : false,
       hidden: group.hidden ? true : false,
-      categories:
-        group.categories?.map(cat => categoryModel.toExternal(cat)) || [],
+      categories: group.categories?.map(cat => categoryModel.toExternal(cat)) || [],
     };
   },
 
   fromExternal(group: APICategoryGroupEntity) {
-    const result = { ...group } as unknown as CategoryGroupEntity;
+    const result = {...group} as unknown as CategoryGroupEntity;
     if ('categories' in group && group.categories) {
-      result.categories = group.categories.map(cat =>
-        categoryModel.fromExternal(cat),
-      );
+      result.categories = group.categories.map(cat => categoryModel.fromExternal(cat));
     }
     return result;
   },
@@ -179,10 +173,7 @@ export const ruleModel = {
   fromExternal: fromExternalRule,
 };
 
-export type APITagEntity = Pick<
-  TagEntity,
-  'id' | 'tag' | 'color' | 'description'
->;
+export type APITagEntity = Pick<TagEntity, 'id' | 'tag' | 'color' | 'description'>;
 
 export const tagModel = {
   toExternal(tag: TagEntity): APITagEntity {
@@ -223,7 +214,7 @@ export const remoteFileModel = {
   },
 
   fromExternal(file: APIFileEntity) {
-    return { deleted: false, fileId: file.cloudFileId, ...file } as RemoteFile;
+    return {deleted: false, fileId: file.cloudFileId, ...file} as RemoteFile;
   },
 };
 
@@ -239,10 +230,7 @@ export const budgetModel = {
 
 export type AmountOPType = 'is' | 'isapprox' | 'isbetween';
 
-export type APIScheduleEntity = Pick<
-  ScheduleEntity,
-  'id' | 'name' | 'posts_transaction'
-> & {
+export type APIScheduleEntity = Pick<ScheduleEntity, 'id' | 'name' | 'posts_transaction'> & {
   rule?: ScheduleEntity['rule']; //All schedules has an associated underlying rule. not to be supplied iwth a new schedule
   next_date?: ScheduleEntity['next_date']; //Next occurence of a schedule. not to be supplied iwth a new schedule
   completed?: ScheduleEntity['completed']; //not to be supplied with a new schedule
@@ -287,10 +275,10 @@ export const scheduleModel = {
       _amountOp: schedule.amountOp, // e.g. 'isapprox', 'is', etc.
       _date: schedule.date,
       _conditions: [
-        { op: 'is', field: 'payee', value: String(schedule.payee) },
-        { op: 'is', field: 'account', value: String(schedule.account) },
-        { op: 'isapprox', field: 'date', value: schedule.date },
-        { op: schedule.amountOp, field: 'amount', value: amount },
+        {op: 'is', field: 'payee', value: String(schedule.payee)},
+        {op: 'is', field: 'account', value: String(schedule.account)},
+        {op: 'isapprox', field: 'date', value: schedule.date},
+        {op: schedule.amountOp, field: 'amount', value: amount},
       ],
       _actions: [], // empty array, as you requested
     };

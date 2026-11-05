@@ -15,10 +15,10 @@
  */
 
 import * as api from '@actual-app/api';
-import type { Command } from 'commander';
+import type {Command} from 'commander';
 
-import { withConnection } from '#connection';
-import { printOutput } from '#output';
+import {withConnection} from '#connection';
+import {printOutput} from '#output';
 
 export function registerTagsCommand(program: Command) {
   const tags = program.command('tags').description('Manage tags');
@@ -34,7 +34,7 @@ export function registerTagsCommand(program: Command) {
           const result = await api.getTags();
           printOutput(result, opts.format);
         },
-        { mutates: false },
+        {mutates: false},
       );
     });
 
@@ -54,9 +54,9 @@ export function registerTagsCommand(program: Command) {
             color: cmdOpts.color,
             description: cmdOpts.description,
           });
-          printOutput({ id }, opts.format);
+          printOutput({id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -74,18 +74,16 @@ export function registerTagsCommand(program: Command) {
         fields.description = cmdOpts.description;
       }
       if (Object.keys(fields).length === 0) {
-        throw new Error(
-          'At least one of --tag, --color, or --description is required',
-        );
+        throw new Error('At least one of --tag, --color, or --description is required');
       }
       const opts = program.opts();
       await withConnection(
         opts,
         async () => {
           await api.updateTag(id, fields);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 
@@ -98,9 +96,9 @@ export function registerTagsCommand(program: Command) {
         opts,
         async () => {
           await api.deleteTag(id);
-          printOutput({ success: true, id }, opts.format);
+          printOutput({success: true, id}, opts.format);
         },
-        { mutates: true },
+        {mutates: true},
       );
     });
 }

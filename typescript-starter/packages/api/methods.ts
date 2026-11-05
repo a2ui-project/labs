@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
+import {send} from '@actual-app/core/platform/client/connection';
 import type {
   APIAccountEntity,
   APIAccountGroupEntity,
@@ -26,24 +26,21 @@ import type {
   APIScheduleEntity,
   APITagEntity,
 } from '@actual-app/core/server/api-models';
-import type { ImportableBudgetType } from '@actual-app/core/server/importers/index';
-import type { Query } from '@actual-app/core/shared/query';
-import type { ImportTransactionsOpts } from '@actual-app/core/types/api-handlers';
+import type {ImportableBudgetType} from '@actual-app/core/server/importers/index';
+import type {Query} from '@actual-app/core/shared/query';
+import type {ImportTransactionsOpts} from '@actual-app/core/types/api-handlers';
 import type {
   ImportTransactionEntity,
   NoteEntity,
   RuleEntity,
   TransactionEntity,
 } from '@actual-app/core/types/models';
-import type { SyncedPrefs } from '@actual-app/core/types/prefs';
+import type {SyncedPrefs} from '@actual-app/core/types/prefs';
 
-export { q } from './app/query';
+export {q} from './app/query';
 
-export async function runImport(
-  budgetName: APIFileEntity['name'],
-  func: () => Promise<void>,
-) {
-  await send('api/start-import', { budgetName });
+export async function runImport(budgetName: APIFileEntity['name'], func: () => Promise<void>) {
+  await send('api/start-import', {budgetName});
   try {
     await func();
   } catch (e) {
@@ -54,14 +51,11 @@ export async function runImport(
 }
 
 export async function loadBudget(budgetId: string) {
-  return send('api/load-budget', { id: budgetId });
+  return send('api/load-budget', {id: budgetId});
 }
 
-export async function downloadBudget(
-  syncId: string,
-  { password }: { password?: string } = {},
-) {
-  return send('api/download-budget', { syncId, password });
+export async function downloadBudget(syncId: string, {password}: {password?: string} = {}) {
+  return send('api/download-budget', {syncId, password});
 }
 
 export async function getBudgets() {
@@ -76,14 +70,11 @@ export async function getBudgets() {
  */
 export async function importBudget(
   input: string | ArrayBuffer | Uint8Array,
-  {
-    type = 'actual',
-    filename,
-  }: { type?: ImportableBudgetType; filename?: string } = {},
-): Promise<{ id: string }> {
+  {type = 'actual', filename}: {type?: ImportableBudgetType; filename?: string} = {},
+): Promise<{id: string}> {
   const result =
     typeof input === 'string'
-      ? await send('import-budget', { filepath: input, type })
+      ? await send('import-budget', {filepath: input, type})
       : await send('import-budget', {
           buffer: toArrayBuffer(input),
           filename,
@@ -96,7 +87,7 @@ export async function importBudget(
   if (!result.id) {
     throw new Error('Error importing budget: no budget was loaded');
   }
-  return { id: result.id };
+  return {id: result.id};
 }
 
 /** Export the currently-loaded budget as a zip buffer. */
@@ -127,9 +118,7 @@ export async function sync() {
   return send('api/sync');
 }
 
-export async function runBankSync(args?: {
-  accountId: APIAccountEntity['id'];
-}) {
+export async function runBankSync(args?: {accountId: APIAccountEntity['id']}) {
   return send('api/bank-sync', args);
 }
 
@@ -147,11 +136,11 @@ export async function batchBudgetUpdates(func: () => Promise<void>) {
  * This function will be removed in a future release.
  */
 export function runQuery(query: Query) {
-  return send('api/query', { query: query.serialize() });
+  return send('api/query', {query: query.serialize()});
 }
 
 export function aqlQuery(query: Query) {
-  return send('api/query', { query: query.serialize() });
+  return send('api/query', {query: query.serialize()});
 }
 
 export function getBudgetMonths() {
@@ -159,15 +148,11 @@ export function getBudgetMonths() {
 }
 
 export function getBudgetMonth(month: string) {
-  return send('api/budget-month', { month });
+  return send('api/budget-month', {month});
 }
 
-export function setBudgetAmount(
-  month: string,
-  categoryId: APICategoryEntity['id'],
-  value: number,
-) {
-  return send('api/budget-set-amount', { month, categoryId, amount: value });
+export function setBudgetAmount(month: string, categoryId: APICategoryEntity['id'], value: number) {
+  return send('api/budget-set-amount', {month, categoryId, amount: value});
 }
 
 export function setBudgetCarryover(
@@ -175,7 +160,7 @@ export function setBudgetCarryover(
   categoryId: APICategoryEntity['id'],
   flag: boolean,
 ) {
-  return send('api/budget-set-carryover', { month, categoryId, flag });
+  return send('api/budget-set-carryover', {month, categoryId, flag});
 }
 
 export function addTransactions(
@@ -184,7 +169,7 @@ export function addTransactions(
   {
     learnCategories = false,
     runTransfers = false,
-  }: { learnCategories?: boolean; runTransfers?: boolean } = {},
+  }: {learnCategories?: boolean; runTransfers?: boolean} = {},
 ) {
   return send('api/transactions-add', {
     accountId,
@@ -215,42 +200,31 @@ export function getTransactions(
   startDate: string,
   endDate: string,
 ) {
-  return send('api/transactions-get', { accountId, startDate, endDate });
+  return send('api/transactions-get', {accountId, startDate, endDate});
 }
 
-export function updateTransaction(
-  id: TransactionEntity['id'],
-  fields: Partial<TransactionEntity>,
-) {
-  return send('api/transaction-update', { id, fields });
+export function updateTransaction(id: TransactionEntity['id'], fields: Partial<TransactionEntity>) {
+  return send('api/transaction-update', {id, fields});
 }
 
 export function deleteTransaction(id: TransactionEntity['id']) {
-  return send('api/transaction-delete', { id });
+  return send('api/transaction-delete', {id});
 }
 
-export function mergeTransactions(
-  ids: [TransactionEntity['id'], TransactionEntity['id']],
-) {
-  return send('api/transactions-merge', { ids });
+export function mergeTransactions(ids: [TransactionEntity['id'], TransactionEntity['id']]) {
+  return send('api/transactions-merge', {ids});
 }
 
 export function getAccounts() {
   return send('api/accounts-get');
 }
 
-export function createAccount(
-  account: Omit<APIAccountEntity, 'id'>,
-  initialBalance?: number,
-) {
-  return send('api/account-create', { account, initialBalance });
+export function createAccount(account: Omit<APIAccountEntity, 'id'>, initialBalance?: number) {
+  return send('api/account-create', {account, initialBalance});
 }
 
-export function updateAccount(
-  id: APIAccountEntity['id'],
-  fields: Partial<APIAccountEntity>,
-) {
-  return send('api/account-update', { id, fields });
+export function updateAccount(id: APIAccountEntity['id'], fields: Partial<APIAccountEntity>) {
+  return send('api/account-update', {id, fields});
 }
 
 export function closeAccount(
@@ -266,15 +240,15 @@ export function closeAccount(
 }
 
 export function reopenAccount(id: APIAccountEntity['id']) {
-  return send('api/account-reopen', { id });
+  return send('api/account-reopen', {id});
 }
 
 export function deleteAccount(id: APIAccountEntity['id']) {
-  return send('api/account-delete', { id });
+  return send('api/account-delete', {id});
 }
 
 export function getAccountBalance(id: APIAccountEntity['id'], cutoff?: Date) {
-  return send('api/account-balance', { id, cutoff });
+  return send('api/account-balance', {id, cutoff});
 }
 
 export function getAccountGroups() {
@@ -282,70 +256,67 @@ export function getAccountGroups() {
 }
 
 export function createAccountGroup(group: Omit<APIAccountGroupEntity, 'id'>) {
-  return send('api/account-group-create', { group });
+  return send('api/account-group-create', {group});
 }
 
 export function updateAccountGroup(
   id: APIAccountGroupEntity['id'],
   fields: Partial<Omit<APIAccountGroupEntity, 'id'>>,
 ) {
-  return send('api/account-group-update', { id, fields });
+  return send('api/account-group-update', {id, fields});
 }
 
 export function deleteAccountGroup(id: APIAccountGroupEntity['id']) {
-  return send('api/account-group-delete', { id });
+  return send('api/account-group-delete', {id});
 }
 
-export function getCategoryGroups(options: { hidden?: boolean } = {}) {
+export function getCategoryGroups(options: {hidden?: boolean} = {}) {
   return send('api/category-groups-get', options);
 }
 
 export function createCategoryGroup(group: Omit<APICategoryGroupEntity, 'id'>) {
-  return send('api/category-group-create', { group });
+  return send('api/category-group-create', {group});
 }
 
 export function updateCategoryGroup(
   id: APICategoryGroupEntity['id'],
   fields: Partial<APICategoryGroupEntity>,
 ) {
-  return send('api/category-group-update', { id, fields });
+  return send('api/category-group-update', {id, fields});
 }
 
 export function deleteCategoryGroup(
   id: APICategoryGroupEntity['id'],
   transferCategoryId?: APICategoryEntity['id'],
 ) {
-  return send('api/category-group-delete', { id, transferCategoryId });
+  return send('api/category-group-delete', {id, transferCategoryId});
 }
 
-export function getCategories(options: { hidden?: boolean } = {}) {
+export function getCategories(options: {hidden?: boolean} = {}) {
   return send('api/categories-get', options);
 }
 
 export function createCategory(category: Omit<APICategoryEntity, 'id'>) {
-  return send('api/category-create', { category });
+  return send('api/category-create', {category});
 }
 
-export function updateCategory(
-  id: APICategoryEntity['id'],
-  fields: Partial<APICategoryEntity>,
-) {
-  return send('api/category-update', { id, fields });
+export function updateCategory(id: APICategoryEntity['id'], fields: Partial<APICategoryEntity>) {
+  return send('api/category-update', {id, fields});
 }
 
 export function deleteCategory(
   id: APICategoryEntity['id'],
   transferCategoryId?: APICategoryEntity['id'],
 ) {
-  return send('api/category-delete', { id, transferCategoryId });
+  return send('api/category-delete', {id, transferCategoryId});
 }
 
 export function getNote(id: NoteEntity['id']) {
-  return send('api/note-get', { id });
+  return send('api/note-get', {id});
 }
 
 export function updateNote(id: NoteEntity['id'], note: NoteEntity['note']) {
-  return send('api/note-update', { id, note });
+  return send('api/note-update', {id, note});
 }
 
 export function getCommonPayees() {
@@ -357,18 +328,15 @@ export function getPayees() {
 }
 
 export function createPayee(payee: Omit<APIPayeeEntity, 'id'>) {
-  return send('api/payee-create', { payee });
+  return send('api/payee-create', {payee});
 }
 
-export function updatePayee(
-  id: APIPayeeEntity['id'],
-  fields: Partial<APIPayeeEntity>,
-) {
-  return send('api/payee-update', { id, fields });
+export function updatePayee(id: APIPayeeEntity['id'], fields: Partial<APIPayeeEntity>) {
+  return send('api/payee-update', {id, fields});
 }
 
 export function deletePayee(id: APIPayeeEntity['id']) {
-  return send('api/payee-delete', { id });
+  return send('api/payee-delete', {id});
 }
 
 export function getTags() {
@@ -376,25 +344,19 @@ export function getTags() {
 }
 
 export function createTag(tag: Omit<APITagEntity, 'id'>) {
-  return send('api/tag-create', { tag });
+  return send('api/tag-create', {tag});
 }
 
-export function updateTag(
-  id: APITagEntity['id'],
-  fields: Partial<Omit<APITagEntity, 'id'>>,
-) {
-  return send('api/tag-update', { id, fields });
+export function updateTag(id: APITagEntity['id'], fields: Partial<Omit<APITagEntity, 'id'>>) {
+  return send('api/tag-update', {id, fields});
 }
 
 export function deleteTag(id: APITagEntity['id']) {
-  return send('api/tag-delete', { id });
+  return send('api/tag-delete', {id});
 }
 
-export function mergePayees(
-  targetId: APIPayeeEntity['id'],
-  mergeIds: APIPayeeEntity['id'][],
-) {
-  return send('api/payees-merge', { targetId, mergeIds });
+export function mergePayees(targetId: APIPayeeEntity['id'], mergeIds: APIPayeeEntity['id'][]) {
+  return send('api/payees-merge', {targetId, mergeIds});
 }
 
 export function getRules() {
@@ -402,15 +364,15 @@ export function getRules() {
 }
 
 export function getPayeeRules(id: RuleEntity['id']) {
-  return send('api/payee-rules-get', { id });
+  return send('api/payee-rules-get', {id});
 }
 
 export function createRule(rule: Omit<APIRuleEntity, 'id'>) {
-  return send('api/rule-create', { rule });
+  return send('api/rule-create', {rule});
 }
 
 export function updateRule(rule: APIRuleEntity) {
-  return send('api/rule-update', { rule });
+  return send('api/rule-update', {rule});
 }
 
 export function deleteRule(id: RuleEntity['id']) {
@@ -418,11 +380,11 @@ export function deleteRule(id: RuleEntity['id']) {
 }
 
 export function holdBudgetForNextMonth(month: string, amount: number) {
-  return send('api/budget-hold-for-next-month', { month, amount });
+  return send('api/budget-hold-for-next-month', {month, amount});
 }
 
 export function resetBudgetHold(month: string) {
-  return send('api/budget-reset-hold', { month });
+  return send('api/budget-reset-hold', {month});
 }
 
 export function createSchedule(schedule: Omit<APIScheduleEntity, 'id'>) {
@@ -453,7 +415,7 @@ export function getIDByName(
   type: 'accounts' | 'schedules' | 'categories' | 'payees',
   name: string,
 ) {
-  return send('api/get-id-by-name', { type, name });
+  return send('api/get-id-by-name', {type, name});
 }
 
 export function getServerVersion() {
@@ -469,5 +431,5 @@ export function setPreference<T extends keyof SyncedPrefs>(
   id: T,
   value: SyncedPrefs[T] | undefined,
 ): Promise<void> {
-  return send('preferences/save', { id, value });
+  return send('preferences/save', {id, value});
 }

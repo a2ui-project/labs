@@ -14,28 +14,26 @@
  * limitations under the License.
  */
 
-import type { RefillTemplate, Template } from '#types/models/templates';
+import type {RefillTemplate, Template} from '#types/models/templates';
 
-import { storeTemplates } from './goal-template';
-import { parse } from './goal-template.pegjs';
+import {storeTemplates} from './goal-template';
+import {parse} from './goal-template.pegjs';
 import {
   getActiveSchedules,
   getCategoriesWithTemplateNotes,
   resetCategoryGoalDefsWithNoTemplates,
 } from './statements';
-import type { CategoryWithTemplateNote } from './statements';
-import type { TemplateNotification } from './template-notification';
+import type {CategoryWithTemplateNote} from './statements';
+import type {TemplateNotification} from './template-notification';
 
 export const TEMPLATE_PREFIX = '#template';
 export const GOAL_PREFIX = '#goal';
 const CLEANUP_PREFIX = '#cleanup';
 
-export async function storeNoteTemplates(
-  categoryIds?: string[],
-): Promise<void> {
+export async function storeNoteTemplates(categoryIds?: string[]): Promise<void> {
   const categoriesWithTemplates = await getCategoriesWithTemplates(categoryIds);
 
-  await storeTemplates({ categoriesWithTemplates, source: 'notes' });
+  await storeTemplates({categoriesWithTemplates, source: 'notes'});
 
   await resetCategoryGoalDefsWithNoTemplates(categoryIds);
 }
@@ -49,10 +47,10 @@ type CategoryWithTemplateNotes = {
 export async function checkTemplateNotes(): Promise<TemplateNotification> {
   const categoryWithTemplates = await getCategoriesWithTemplates();
   const schedules = await getActiveSchedules();
-  const scheduleNames = schedules.map(({ name }) => name);
+  const scheduleNames = schedules.map(({name}) => name);
   const errors: string[] = [];
 
-  categoryWithTemplates.forEach(({ name, templates }) => {
+  categoryWithTemplates.forEach(({name, templates}) => {
     templates.forEach(template => {
       if (template.type === 'error') {
         // Only show detailed error for adjustment-related errors
@@ -91,7 +89,7 @@ async function getCategoriesWithTemplates(
   const templatesForCategory: CategoryWithTemplateNotes[] = [];
   const templateNotes = await getCategoriesWithTemplateNotes(categoryIds);
 
-  templateNotes.forEach(({ id, name, note }: CategoryWithTemplateNote) => {
+  templateNotes.forEach(({id, name, note}: CategoryWithTemplateNote) => {
     if (!note) {
       return;
     }
@@ -105,8 +103,7 @@ async function getCategoriesWithTemplates(
     note.split('\n').forEach(line => {
       const trimmedLine = line.substring(line.indexOf('#')).trim();
       const isTemplateLine =
-        trimmedLine.startsWith(TEMPLATE_PREFIX) ||
-        trimmedLine.startsWith(GOAL_PREFIX);
+        trimmedLine.startsWith(TEMPLATE_PREFIX) || trimmedLine.startsWith(GOAL_PREFIX);
 
       if (!isTemplateLine) {
         if (line.trim() === '' || trimmedLine.startsWith(CLEANUP_PREFIX)) {
@@ -117,8 +114,7 @@ async function getCategoriesWithTemplates(
         return;
       }
 
-      const description =
-        descriptionLines.length > 0 ? descriptionLines.join('\n') : undefined;
+      const description = descriptionLines.length > 0 ? descriptionLines.join('\n') : undefined;
       descriptionLines = [];
 
       try {
@@ -126,15 +122,11 @@ async function getCategoriesWithTemplates(
 
         // Validate schedule adjustments
         if (
-          (parsedTemplate.type === 'average' ||
-            parsedTemplate.type === 'schedule') &&
+          (parsedTemplate.type === 'average' || parsedTemplate.type === 'schedule') &&
           parsedTemplate.adjustment !== undefined
         ) {
           if (parsedTemplate.adjustmentType === 'percent') {
-            if (
-              parsedTemplate.adjustment <= -100 ||
-              parsedTemplate.adjustment > 1000
-            ) {
+            if (parsedTemplate.adjustment <= -100 || parsedTemplate.adjustment > 1000) {
               throw new Error(
                 `Invalid adjustment percentage (${parsedTemplate.adjustment}%). Must be between -100% and 1000%`,
               );
@@ -144,9 +136,7 @@ async function getCategoriesWithTemplates(
           }
         }
 
-        parsedTemplates.push(
-          description ? { ...parsedTemplate, description } : parsedTemplate,
-        );
+        parsedTemplates.push(description ? {...parsedTemplate, description} : parsedTemplate);
       } catch (e: unknown) {
         const errorTemplate: Template = {
           type: 'error',
@@ -154,9 +144,7 @@ async function getCategoriesWithTemplates(
           line,
           error: (e as Error).message,
         };
-        parsedTemplates.push(
-          description ? { ...errorTemplate, description } : errorTemplate,
-        );
+        parsedTemplates.push(description ? {...errorTemplate, description} : errorTemplate);
       }
     });
 
@@ -176,15 +164,10 @@ async function getCategoriesWithTemplates(
 
 function prefixFromPriority(priority: number | null): string {
   // Priority 0 is the parser's "unset" default and serializes without a suffix.
-  return priority === null || priority === 0
-    ? TEMPLATE_PREFIX
-    : `${TEMPLATE_PREFIX}-${priority}`;
+  return priority === null || priority === 0 ? TEMPLATE_PREFIX : `${TEMPLATE_PREFIX}-${priority}`;
 }
 
-function templateToLine(
-  template: Template,
-  refill: RefillTemplate | undefined,
-): string | null {
+function templateToLine(template: Template, refill: RefillTemplate | undefined): string | null {
   if (template.type === 'error') {
     return null;
   }
@@ -340,10 +323,7 @@ function limitToString(limit: {
   }
 }
 
-function periodToString(p: {
-  period: 'day' | 'week' | 'month' | 'year';
-  amount: number;
-}): string {
+function periodToString(p: {period: 'day' | 'week' | 'month' | 'year'; amount: number}): string {
   return `${p.amount} ${p.period}s`;
 }
 

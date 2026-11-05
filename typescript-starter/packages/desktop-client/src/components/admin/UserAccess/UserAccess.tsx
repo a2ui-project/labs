@@ -15,42 +15,39 @@
  */
 
 // @ts-strict-ignore
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import type { CSSProperties } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {CSSProperties} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgLockOpen } from '@actual-app/components/icons/v1';
-import { SvgLockClosed } from '@actual-app/components/icons/v2';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {SvgLockOpen} from '@actual-app/components/icons/v1';
+import {SvgLockClosed} from '@actual-app/components/icons/v2';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as undo from '@actual-app/core/platform/client/undo';
-import type { Handlers } from '@actual-app/core/types/handlers';
-import type {
-  UserAccessEntity,
-  UserAvailable,
-} from '@actual-app/core/types/models';
+import type {Handlers} from '@actual-app/core/types/handlers';
+import type {UserAccessEntity, UserAvailable} from '@actual-app/core/types/models';
 
-import { InfiniteScrollWrapper } from '#components/common/InfiniteScrollWrapper';
-import { Link } from '#components/common/Link';
-import { Search } from '#components/common/Search';
-import { useMetadataPref } from '#hooks/useMetadataPref';
-import { pushModal } from '#modals/modalsSlice';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {InfiniteScrollWrapper} from '#components/common/InfiniteScrollWrapper';
+import {Link} from '#components/common/Link';
+import {Search} from '#components/common/Search';
+import {useMetadataPref} from '#hooks/useMetadataPref';
+import {pushModal} from '#modals/modalsSlice';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
-import { UserAccessHeader } from './UserAccessHeader';
-import { UserAccessRow } from './UserAccessRow';
+import {UserAccessHeader} from './UserAccessHeader';
+import {UserAccessRow} from './UserAccessRow';
 
 type ManageUserAccessContentProps = {
   isModal: boolean;
 };
 
-function UserAccessContent({ isModal }: ManageUserAccessContentProps) {
-  const { t } = useTranslation();
+function UserAccessContent({isModal}: ManageUserAccessContentProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const [allAccess, setAllAccess] = useState([]);
   const [page, setPage] = useState(0);
@@ -62,10 +59,7 @@ function UserAccessContent({ isModal }: ManageUserAccessContentProps) {
       (filter === ''
         ? allAccess
         : allAccess.filter(
-            access =>
-              access?.displayName
-                .toLowerCase()
-                .includes(filter.toLowerCase()) ?? false,
+            access => access?.displayName.toLowerCase().includes(filter.toLowerCase()) ?? false,
           )
       ).slice(0, 100 + page * 50),
     [allAccess, filter, page],
@@ -81,8 +75,10 @@ function UserAccessContent({ isModal }: ManageUserAccessContentProps) {
   );
 
   const loadAccess = useCallback(async () => {
-    const data: Awaited<ReturnType<Handlers['access-get-available-users']>> =
-      await send('access-get-available-users', cloudFileId as string);
+    const data: Awaited<ReturnType<Handlers['access-get-available-users']>> = await send(
+      'access-get-available-users',
+      cloudFileId as string,
+    );
 
     const sortUsers = (a: UserAvailable, b: UserAvailable) => {
       if ((a.owner ?? 0) !== (b.owner ?? 0)) {
@@ -160,9 +156,7 @@ function UserAccessContent({ isModal }: ManageUserAccessContentProps) {
           }}
         >
           <Text>
-            <Trans>
-              Determine which users can view and manage your budgets
-            </Trans>{' '}
+            <Trans>Determine which users can view and manage your budgets</Trans>{' '}
             <Link
               variant="external"
               to="https://actualbudget.org/docs/config/multi-user#user-access-management"
@@ -172,12 +166,8 @@ function UserAccessContent({ isModal }: ManageUserAccessContentProps) {
             </Link>
           </Text>
         </View>
-        <View style={{ flex: 1 }} />
-        <Search
-          placeholder={t('Filter users...')}
-          value={filter}
-          onChange={onSearchChange}
-        />
+        <View style={{flex: 1}} />
+        <Search placeholder={t('Filter users...')} value={filter} onChange={onSearchChange} />
       </View>
       <View style={styles.tableContainer}>
         <UserAccessHeader />
@@ -197,9 +187,9 @@ function UserAccessContent({ isModal }: ManageUserAccessContentProps) {
           flexShrink: 0,
         }}
       />
-      <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+      <View style={{flexDirection: 'row', justifyContent: 'flex-end'}}>
         <LockToggle
-          style={{ width: 16, height: 16 }}
+          style={{width: 16, height: 16}}
           onToggleSave={async () => {
             await loadAccess();
           }}
@@ -213,7 +203,7 @@ type ManageUsersProps = {
   isModal: boolean;
 };
 
-export function UserAccess({ isModal }: ManageUsersProps) {
+export function UserAccess({isModal}: ManageUsersProps) {
   return <UserAccessContent isModal={isModal} />;
 }
 
@@ -223,11 +213,7 @@ type UsersAccessListProps = {
   onHover?: (id: string | null) => void;
 };
 
-function UserAccessList({
-  accesses,
-  hoveredAccess,
-  onHover,
-}: UsersAccessListProps) {
+function UserAccessList({accesses, hoveredAccess, onHover}: UsersAccessListProps) {
   if (accesses.length === 0) {
     return null;
   }
@@ -238,12 +224,7 @@ function UserAccessList({
         const hovered = hoveredAccess === access.userId;
 
         return (
-          <UserAccessRow
-            key={access.userId}
-            access={access}
-            hovered={hovered}
-            onHover={onHover}
-          />
+          <UserAccessRow key={access.userId} access={access} hovered={hovered} onHover={onHover} />
         );
       })}
     </View>
@@ -255,10 +236,10 @@ type LockToggleProps = {
   onToggleSave: () => void;
 };
 
-function LockToggle({ style, onToggleSave }: LockToggleProps) {
+function LockToggle({style, onToggleSave}: LockToggleProps) {
   const [hover, setHover] = useState(false);
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <Button
@@ -279,8 +260,8 @@ function LockToggle({ style, onToggleSave }: LockToggleProps) {
         )
       }
     >
-      {hover && <SvgLockOpen style={{ ...style, marginRight: 5 }} />}
-      {!hover && <SvgLockClosed style={{ ...style, marginRight: 5 }} />}{' '}
+      {hover && <SvgLockOpen style={{...style, marginRight: 5}} />}
+      {!hover && <SvgLockClosed style={{...style, marginRight: 5}} />}{' '}
       <Trans>Transfer ownership</Trans>
     </Button>
   );

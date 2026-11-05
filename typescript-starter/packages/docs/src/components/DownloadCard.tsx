@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { ReactElement } from 'react';
+import type {ReactElement} from 'react';
 
 type DownloadLink = {
   label: string;
@@ -27,7 +27,7 @@ type DownloadCardProps = {
   links: DownloadLink[];
 };
 
-export function DownloadCard({ icon, platform, links }: DownloadCardProps) {
+export function DownloadCard({icon, platform, links}: DownloadCardProps) {
   return (
     <div
       style={{
@@ -48,13 +48,9 @@ export function DownloadCard({ icon, platform, links }: DownloadCardProps) {
       >
         {icon}
       </div>
-      <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>{platform}</h3>
+      <h3 style={{marginTop: 0, marginBottom: '1rem'}}>{platform}</h3>
       {links.map(link => (
-        <a
-          key={link.url}
-          href={link.url}
-          style={{ display: 'block', marginTop: '0.5rem' }}
-        >
+        <a key={link.url} href={link.url} style={{display: 'block', marginTop: '0.5rem'}}>
           {link.label}
         </a>
       ))}

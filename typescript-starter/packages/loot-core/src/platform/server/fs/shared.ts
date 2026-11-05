@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import { join } from '#platform/server/fs/path-join';
+import {join} from '#platform/server/fs/path-join';
 
 let documentDir;
 export const _setDocumentDir = dir => (documentDir = dir);

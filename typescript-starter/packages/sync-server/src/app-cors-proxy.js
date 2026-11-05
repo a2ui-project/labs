@@ -17,10 +17,10 @@
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 
-import { config } from './load-config';
-import { requestLoggerMiddleware } from './util/middlewares';
-import { isBlockedIp } from './util/ssrf';
-import { validateSession } from './util/validate-user';
+import {config} from './load-config';
+import {requestLoggerMiddleware} from './util/middlewares';
+import {isBlockedIp} from './util/ssrf';
+import {validateSession} from './util/validate-user';
 
 const app = express();
 
@@ -48,10 +48,7 @@ export const clearAllowlistCache = () => {
 
 async function fetchAllowlist() {
   const now = Date.now();
-  if (
-    now - lastAllowlistFetch < ALLOWLIST_CACHE_TTL &&
-    allowlistedRepos.length > 0
-  ) {
+  if (now - lastAllowlistFetch < ALLOWLIST_CACHE_TTL && allowlistedRepos.length > 0) {
     return allowlistedRepos;
   }
 
@@ -100,7 +97,7 @@ function isUrlAllowed(targetUrl) {
     // Check against allowlisted repositories
     for (const repoUrl of allowlistedRepos) {
       try {
-        const { pathname } = new URL(repoUrl);
+        const {pathname} = new URL(repoUrl);
         const [, repoOwner, repoName] = pathname.split('/');
 
         if (
@@ -117,11 +114,7 @@ function isUrlAllowed(targetUrl) {
           return true;
         }
       } catch (e) {
-        console.warn(
-          'Invalid repository URL in allowlist:',
-          repoUrl,
-          e.message,
-        );
+        console.warn('Invalid repository URL in allowlist:', repoUrl, e.message);
       }
     }
 
@@ -145,7 +138,7 @@ app.use('/', async (req, res) => {
   const targetUrlString = req.query.url;
 
   if (!targetUrlString) {
-    return res.status(400).json({ error: 'Missing url parameter' });
+    return res.status(400).json({error: 'Missing url parameter'});
   }
 
   // Validate session/token
@@ -158,7 +151,7 @@ app.use('/', async (req, res) => {
   try {
     url = new URL(targetUrlString);
   } catch {
-    return res.status(400).json({ error: 'Invalid url parameter' });
+    return res.status(400).json({error: 'Invalid url parameter'});
   }
 
   // Fetch the latest allowlist
@@ -177,20 +170,19 @@ app.use('/', async (req, res) => {
     console.warn('Blocked request to unauthorized URL:', url.href);
     return res.status(403).json({
       error: 'URL not allowed',
-      message:
-        'Only allowlisted plugin repositories are allowed (localhost only in development)',
+      message: 'Only allowlisted plugin repositories are allowed (localhost only in development)',
     });
   }
 
   try {
-    const { method = 'GET', headers: customHeaders = {} } = req.body || {};
+    const {method = 'GET', headers: customHeaders = {}} = req.body || {};
 
     if (typeof method !== 'string') {
-      return res.status(400).json({ error: 'Invalid method parameter' });
+      return res.status(400).json({error: 'Invalid method parameter'});
     }
     const methodNormalized = method.toUpperCase();
     if (!['GET', 'HEAD'].includes(methodNormalized)) {
-      return res.status(405).json({ error: 'Method not allowed' });
+      return res.status(405).json({error: 'Method not allowed'});
     }
 
     const requestHeaders = {
@@ -215,9 +207,7 @@ app.use('/', async (req, res) => {
     ) {
       requestHeaders['Authorization'] = `Bearer ${githubToken}`;
       requestHeaders['User-Agent'] = 'Actual-Budget-Plugin-System';
-      console.log(
-        `Using GitHub authentication for request to: ${url.hostname}`,
-      );
+      console.log(`Using GitHub authentication for request to: ${url.hostname}`);
     }
 
     const response = await fetch(url.href, {
@@ -225,8 +215,7 @@ app.use('/', async (req, res) => {
       headers: requestHeaders,
     });
 
-    const contentType =
-      response.headers.get('content-type') || 'application/octet-stream';
+    const contentType = response.headers.get('content-type') || 'application/octet-stream';
 
     res.set('Access-Control-Allow-Origin', '*');
     res.status(response.status);
@@ -268,10 +257,8 @@ app.use('/', async (req, res) => {
       res.json(binaryData);
     }
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: 'Error proxying request', details: err.message });
+    res.status(500).json({error: 'Error proxying request', details: err.message});
   }
 });
 
-export { app as handlers };
+export {app as handlers};

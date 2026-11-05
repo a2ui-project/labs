@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-import { vi } from 'vitest';
+import {vi} from 'vitest';
 
 import * as aql from '#server/aql';
 import * as db from '#server/db';
-import type { DbCategory } from '#server/db';
-import { amountToInteger } from '#shared/util';
-import type { CategoryEntity } from '#types/models';
-import type { ByTemplate, Template } from '#types/models/templates';
+import type {DbCategory} from '#server/db';
+import {amountToInteger} from '#shared/util';
+import type {CategoryEntity} from '#types/models';
+import type {ByTemplate, Template} from '#types/models/templates';
 
 import * as actions from './actions';
-import { CategoryTemplateContext } from './category-template-context';
-import { distributeRemainder } from './goal-template';
+import {CategoryTemplateContext} from './category-template-context';
+import {distributeRemainder} from './goal-template';
 import * as statements from './statements';
 
 // Mock getSheetValue and getCategories
@@ -49,25 +49,22 @@ vi.mock('./statements', () => ({
 }));
 
 // Helper function to mock preferences (hideFraction and defaultCurrencyCode)
-function mockPreferences(
-  hideFraction: boolean = false,
-  currencyCode: string = 'USD',
-) {
+function mockPreferences(hideFraction: boolean = false, currencyCode: string = 'USD') {
   vi.mocked(aql.aqlQuery).mockImplementation(async (query: unknown) => {
     const queryStr = JSON.stringify(query);
     if (queryStr.includes('hideFraction')) {
       return {
-        data: [{ value: hideFraction ? 'true' : 'false' }],
+        data: [{value: hideFraction ? 'true' : 'false'}],
         dependencies: [],
       };
     }
     if (queryStr.includes('defaultCurrencyCode')) {
       return {
-        data: currencyCode ? [{ value: currencyCode }] : [],
+        data: currencyCode ? [{value: currencyCode}] : [],
         dependencies: [],
       };
     }
-    return { data: [], dependencies: [] };
+    return {data: [], dependencies: []};
   });
 }
 
@@ -82,15 +79,7 @@ class TestCategoryTemplateContext extends CategoryTemplateContext {
     currencyCode: string = 'USD',
     hideDecimal: boolean = false,
   ) {
-    super(
-      templates,
-      category,
-      month,
-      fromLastMonth,
-      budgeted,
-      currencyCode,
-      hideDecimal,
-    );
+    super(templates, category, month, fromLastMonth, budgeted, currencyCode, hideDecimal);
   }
 }
 
@@ -110,13 +99,7 @@ describe('CategoryTemplateContext', () => {
         priority: 1,
       };
 
-      const instance = new TestCategoryTemplateContext(
-        [],
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext([], category, '2024-01', 0, 0);
 
       const result = CategoryTemplateContext.runSimple(template, instance);
       expect(result).toBe(amountToInteger(100));
@@ -131,18 +114,12 @@ describe('CategoryTemplateContext', () => {
       };
       const template: Template = {
         type: 'simple',
-        limit: { amount: 500, hold: false, period: 'monthly' },
+        limit: {amount: 500, hold: false, period: 'monthly'},
         directive: 'template',
         priority: 1,
       };
 
-      const instance = new TestCategoryTemplateContext(
-        [template],
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext([template], category, '2024-01', 0, 0);
 
       const result = CategoryTemplateContext.runSimple(template, instance);
       expect(result).toBe(amountToInteger(500));
@@ -166,13 +143,7 @@ describe('CategoryTemplateContext', () => {
         directive: 'template',
         priority: 1,
       };
-      const instance = new TestCategoryTemplateContext(
-        [template],
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext([template], category, '2024-01', 0, 0);
       const result = await instance.runTemplatesForPriority(1, 100000, 100000);
       expect(result).toBe(50000); // 5 Mondays * 100
     });
@@ -186,17 +157,11 @@ describe('CategoryTemplateContext', () => {
       };
       const template: Template = {
         type: 'simple',
-        limit: { amount: 10, hold: false, period: 'daily' },
+        limit: {amount: 10, hold: false, period: 'daily'},
         directive: 'template',
         priority: 1,
       };
-      const instance = new TestCategoryTemplateContext(
-        [template],
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext([template], category, '2024-01', 0, 0);
       const result = await instance.runTemplatesForPriority(1, 100000, 100000);
       expect(result).toBe(31000); // 31 days * 10
     });
@@ -569,11 +534,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getSheetValue).mockResolvedValue(10000);
 
-      const result = await CategoryTemplateContext.runPercentage(
-        template,
-        0,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runPercentage(template, 0, instance);
       expect(result).toBe(1000); // 10% of 10000
     });
 
@@ -587,11 +548,7 @@ describe('CategoryTemplateContext', () => {
         priority: 1,
       };
 
-      const result = await CategoryTemplateContext.runPercentage(
-        template,
-        500,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runPercentage(template, 500, instance);
       expect(result).toBe(100); // 20% of 500
     });
 
@@ -618,11 +575,7 @@ describe('CategoryTemplateContext', () => {
       ]);
       vi.mocked(actions.getSheetValue).mockResolvedValue(2000);
 
-      const result = await CategoryTemplateContext.runPercentage(
-        template,
-        0,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runPercentage(template, 0, instance);
       expect(result).toBe(300); // 15% of 2000
     });
 
@@ -638,16 +591,9 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getSheetValue).mockResolvedValue(10000);
 
-      const result = await CategoryTemplateContext.runPercentage(
-        template,
-        0,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runPercentage(template, 0, instance);
       expect(result).toBe(1000); // 10% of 10000
-      expect(actions.getSheetValue).toHaveBeenCalledWith(
-        'budget202312',
-        'total-income',
-      );
+      expect(actions.getSheetValue).toHaveBeenCalledWith('budget202312', 'total-income');
     });
   });
 
@@ -682,10 +628,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-200);
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
       expect(result).toBe(200); // Average of -100, -200, -300
       expect(actions.getCategoryAverage).toHaveBeenCalledWith({
         month: '2024-01',
@@ -704,10 +647,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-100);
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
       expect(result).toBe(100);
     });
 
@@ -721,10 +661,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-(200 / 3));
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
       expect(result).toBe(67); // Average of -100, 200, -300
     });
 
@@ -738,10 +675,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-150);
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
 
       expect(result).toBe(150);
       expect(actions.getCategoryAverage).toHaveBeenCalledWith({
@@ -763,10 +697,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-100);
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
       expect(result).toBe(110);
     });
 
@@ -782,10 +713,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-100);
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
       expect(result).toBe(90);
     });
     it('should handle zero percent adjustments', async () => {
@@ -800,22 +728,13 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-100);
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
       expect(result).toBe(100);
     });
 
     it('should skip the current month and future months', async () => {
       global.currentMonth = '2024-01';
-      instance = new TestCategoryTemplateContext(
-        [],
-        instance.category,
-        '2024-03',
-        0,
-        0,
-      );
+      instance = new TestCategoryTemplateContext([], instance.category, '2024-03', 0, 0);
       const template: Template = {
         type: 'average',
         numMonths: 3,
@@ -825,10 +744,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-200);
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
       expect(result).toBe(200);
       expect(actions.getCategoryAverage).toHaveBeenCalledWith({
         month: '2024-03',
@@ -849,10 +765,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-100);
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
       expect(result).toBe(100);
     });
 
@@ -868,10 +781,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-10000);
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
       expect(result).toBe(11100);
     });
 
@@ -887,10 +797,7 @@ describe('CategoryTemplateContext', () => {
 
       vi.mocked(actions.getCategoryAverage).mockResolvedValue(-10000);
 
-      const result = await CategoryTemplateContext.runAverage(
-        template,
-        instance,
-      );
+      const result = await CategoryTemplateContext.runAverage(template, instance);
       expect(result).toBe(9900);
     });
   });
@@ -1015,13 +922,7 @@ describe('CategoryTemplateContext', () => {
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
       const result = await instance.runTemplatesForPriority(1, 150, 150);
       expect(result).toBe(150); // Max out at available funds
     });
@@ -1039,18 +940,12 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'simple',
           monthly: 100,
-          limit: { amount: 150, hold: false, period: 'monthly' },
+          limit: {amount: 150, hold: false, period: 'monthly'},
           directive: 'template',
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        9000,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 9000, 0);
       const result = await instance.runTemplatesForPriority(1, 10000, 10000);
       expect(result).toBe(6000); //150 - 90
     });
@@ -1066,18 +961,12 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'simple',
           monthly: 100,
-          limit: { amount: 200, hold: true, period: 'monthly' },
+          limit: {amount: 200, hold: true, period: 'monthly'},
           directive: 'template',
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        300,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 300, 0);
       const result = instance.getLimitExcess();
       expect(result).toBe(0);
     });
@@ -1093,18 +982,12 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'simple',
           monthly: 100,
-          limit: { amount: 200, hold: false, period: 'monthly' },
+          limit: {amount: 200, hold: false, period: 'monthly'},
           directive: 'template',
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        30000,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 30000, 0);
       const result = instance.getLimitExcess();
       expect(result).toBe(10000);
     });
@@ -1126,13 +1009,7 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
       const result = instance.runRemainder(100, 50);
       expect(result).toBe(100); // 2 * 50 = 100
     });
@@ -1152,13 +1029,7 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
       const result = instance.runRemainder(101, 100);
       expect(result).toBe(101);
     });
@@ -1213,13 +1084,7 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
       const result = instance.runRemainder(99, 100);
       expect(result).toBe(99);
     });
@@ -1261,19 +1126,10 @@ describe('CategoryTemplateContext', () => {
       mockPreferences(false, 'USD');
 
       // Initialize the template
-      const instance = await CategoryTemplateContext.init(
-        templates,
-        category,
-        '2024-01',
-        0,
-      );
+      const instance = await CategoryTemplateContext.init(templates, category, '2024-01', 0);
 
       // Run each priority level separately
-      const priority1Result = await instance.runTemplatesForPriority(
-        1,
-        15000,
-        15000,
-      );
+      const priority1Result = await instance.runTemplatesForPriority(1, 15000, 15000);
       const priority2Result = await instance.runTemplatesForPriority(
         2,
         15000 - priority1Result,
@@ -1313,7 +1169,7 @@ describe('CategoryTemplateContext', () => {
         },
         {
           type: 'simple',
-          limit: { amount: 150, hold: false, period: 'monthly' },
+          limit: {amount: 150, hold: false, period: 'monthly'},
           directive: 'template',
           priority: 1,
         },
@@ -1326,12 +1182,7 @@ describe('CategoryTemplateContext', () => {
       mockPreferences(false, 'USD');
 
       // Initialize the template
-      const instance = await CategoryTemplateContext.init(
-        templates,
-        category,
-        '2024-01',
-        0,
-      );
+      const instance = await CategoryTemplateContext.init(templates, category, '2024-01', 0);
 
       // Run the templates with more than enough funds
       const result = await instance.runTemplatesForPriority(1, 100000, 100000);
@@ -1381,12 +1232,7 @@ describe('CategoryTemplateContext', () => {
       mockPreferences(false, 'USD');
 
       // Initialize the template
-      const instance = await CategoryTemplateContext.init(
-        templates,
-        category,
-        '2024-01',
-        0,
-      );
+      const instance = await CategoryTemplateContext.init(templates, category, '2024-01', 0);
       const weight = instance.getRemainderWeight();
 
       // Run the templates with more than enough funds
@@ -1441,12 +1287,7 @@ describe('CategoryTemplateContext', () => {
       mockPreferences(false, 'USD');
 
       // Initialize the template
-      const instance = await CategoryTemplateContext.init(
-        templates,
-        category,
-        '2024-01',
-        0,
-      );
+      const instance = await CategoryTemplateContext.init(templates, category, '2024-01', 0);
 
       // Run the templates with more than enough funds
       const result = await instance.runTemplatesForPriority(1, 100000, 100000);
@@ -1484,12 +1325,7 @@ describe('CategoryTemplateContext', () => {
       mockPreferences(false, 'USD');
 
       // Initialize the template
-      const instance = await CategoryTemplateContext.init(
-        templates,
-        category,
-        '2024-01',
-        10000,
-      );
+      const instance = await CategoryTemplateContext.init(templates, category, '2024-01', 10000);
 
       expect(instance.isGoalOnly()).toBe(true); // Should be goal only
       // Get the final values
@@ -1529,12 +1365,7 @@ describe('CategoryTemplateContext', () => {
       mockPreferences(true, 'USD');
 
       // Initialize the template
-      const instance = await CategoryTemplateContext.init(
-        templates,
-        category,
-        '2024-01',
-        0,
-      );
+      const instance = await CategoryTemplateContext.init(templates, category, '2024-01', 0);
 
       // Run the templates with more than enough funds
       const result = await instance.runTemplatesForPriority(1, 100000, 100000);
@@ -1571,12 +1402,7 @@ describe('CategoryTemplateContext', () => {
       vi.mocked(actions.isTrackingBudget).mockReturnValueOnce(false);
       mockPreferences(true, 'JPY');
 
-      const instance = await CategoryTemplateContext.init(
-        [template],
-        category,
-        '2024-01',
-        0,
-      );
+      const instance = await CategoryTemplateContext.init([template], category, '2024-01', 0);
 
       await instance.runTemplatesForPriority(1, 100000, 100000);
       const values = instance.getValues();
@@ -1603,12 +1429,7 @@ describe('CategoryTemplateContext', () => {
       vi.mocked(actions.isTrackingBudget).mockReturnValueOnce(false);
       mockPreferences(true, 'JPY');
 
-      const instance = await CategoryTemplateContext.init(
-        [template],
-        category,
-        '2024-01',
-        0,
-      );
+      const instance = await CategoryTemplateContext.init([template], category, '2024-01', 0);
 
       await instance.runTemplatesForPriority(1, 100000, 100000);
       const values = instance.getValues();
@@ -1634,12 +1455,7 @@ describe('CategoryTemplateContext', () => {
       vi.mocked(actions.getSheetBoolean).mockResolvedValueOnce(false);
       mockPreferences(true, 'JPY');
 
-      const instance = await CategoryTemplateContext.init(
-        [template],
-        category,
-        '2024-01',
-        0,
-      );
+      const instance = await CategoryTemplateContext.init([template], category, '2024-01', 0);
 
       await instance.runTemplatesForPriority(1, 100000, 100000);
       const values = instance.getValues();
@@ -1670,12 +1486,7 @@ describe('CategoryTemplateContext', () => {
       vi.mocked(actions.getSheetBoolean).mockResolvedValueOnce(false);
       mockPreferences(true, 'JPY');
 
-      const instance = await CategoryTemplateContext.init(
-        [template],
-        category,
-        '2024-01',
-        0,
-      );
+      const instance = await CategoryTemplateContext.init([template], category, '2024-01', 0);
 
       const result = CategoryTemplateContext.runSimple(template, instance);
 
@@ -1693,7 +1504,7 @@ describe('CategoryTemplateContext', () => {
       const template: Template = {
         type: 'periodic',
         amount: 1000,
-        period: { period: 'week', amount: 1 },
+        period: {period: 'week', amount: 1},
         starting: '2024-01-01',
         directive: 'template',
         priority: 1,
@@ -1703,12 +1514,7 @@ describe('CategoryTemplateContext', () => {
       vi.mocked(actions.getSheetBoolean).mockResolvedValueOnce(false);
       mockPreferences(true, 'JPY');
 
-      const instance = await CategoryTemplateContext.init(
-        [template],
-        category,
-        '2024-01',
-        0,
-      );
+      const instance = await CategoryTemplateContext.init([template], category, '2024-01', 0);
 
       await instance.runTemplatesForPriority(1, 100000, 100000);
       const values = instance.getValues();
@@ -1735,12 +1541,7 @@ describe('CategoryTemplateContext', () => {
       vi.mocked(actions.getSheetBoolean).mockResolvedValueOnce(false);
       mockPreferences(true, 'JPY');
 
-      const instanceJPY = await CategoryTemplateContext.init(
-        [template],
-        category,
-        '2024-01',
-        0,
-      );
+      const instanceJPY = await CategoryTemplateContext.init([template], category, '2024-01', 0);
       await instanceJPY.runTemplatesForPriority(1, 100000, 100000);
       const valuesJPY = instanceJPY.getValues();
 
@@ -1748,12 +1549,7 @@ describe('CategoryTemplateContext', () => {
       vi.mocked(actions.getSheetBoolean).mockResolvedValueOnce(false);
       mockPreferences(false, 'USD');
 
-      const instanceUSD = await CategoryTemplateContext.init(
-        [template],
-        category,
-        '2024-01',
-        0,
-      );
+      const instanceUSD = await CategoryTemplateContext.init([template], category, '2024-01', 0);
       await instanceUSD.runTemplatesForPriority(1, 100000, 100000);
       const valuesUSD = instanceUSD.getValues();
 
@@ -1775,7 +1571,7 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'periodic',
           amount: 100,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
@@ -1783,24 +1579,16 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'periodic',
           amount: 50,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
       await instance.runTemplatesForPriority(1, 1_000_000, 1_000_000);
       const values = instance.getValues();
-      const contributions = templates.map(
-        t => values.perTemplateContribution.get(t) ?? 0,
-      );
+      const contributions = templates.map(t => values.perTemplateContribution.get(t) ?? 0);
       expect(contributions).toEqual([10000, 5000]);
       expect(contributions.reduce((a, b) => a + b, 0)).toBe(values.budgeted);
     });
@@ -1827,13 +1615,7 @@ describe('CategoryTemplateContext', () => {
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
       await instance.runTemplatesForPriority(1, 1_000_000, 1_000_000);
       const values = instance.getValues();
       const longHorizon = values.perTemplateContribution.get(templates[0]) ?? 0;
@@ -1851,7 +1633,7 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'periodic',
           amount: 100,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
@@ -1859,7 +1641,7 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'periodic',
           amount: 50,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
@@ -1873,13 +1655,7 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
       await instance.runTemplatesForPriority(1, 1_000_000, 1_000_000);
       const values = instance.getValues();
       // $150 demanded, cap $120; per-row contributions sum to the clamp.
@@ -1890,9 +1666,7 @@ describe('CategoryTemplateContext', () => {
       expect(sum).toBe(values.budgeted);
       expect(values.budgeted).toBe(12000);
       for (const t of templates) {
-        expect(
-          values.perTemplateContribution.get(t) ?? 0,
-        ).toBeGreaterThanOrEqual(0);
+        expect(values.perTemplateContribution.get(t) ?? 0).toBeGreaterThanOrEqual(0);
       }
     });
 
@@ -1911,13 +1685,7 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
       instance.runRemainder(100, 25);
       const values = instance.getValues();
       expect(values.perTemplateContribution.get(templates[0])).toBe(75);
@@ -1943,13 +1711,7 @@ describe('CategoryTemplateContext', () => {
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
       const result = CategoryTemplateContext.runBy(instance);
       // Same horizon for both, so per-template need == target amount.
       expect(result.perTemplateNeed.get(templates[0])).toBe(120000);
@@ -1974,7 +1736,7 @@ describe('CategoryTemplateContext', () => {
 
     it('throws when a schedule template references a non-existent schedule', async () => {
       vi.mocked(statements.getActiveSchedules).mockResolvedValue([
-        { name: 'Rent', id: 's1' },
+        {name: 'Rent', id: 's1'},
       ] as Awaited<ReturnType<typeof statements.getActiveSchedules>>);
       const templates: Template[] = [
         {
@@ -1984,14 +1746,14 @@ describe('CategoryTemplateContext', () => {
           priority: 1,
         },
       ];
-      await expect(
-        CategoryTemplateContext.init(templates, category, '2024-01', 0),
-      ).rejects.toThrow(/Schedule Internet does not exist/);
+      await expect(CategoryTemplateContext.init(templates, category, '2024-01', 0)).rejects.toThrow(
+        /Schedule Internet does not exist/,
+      );
     });
 
     it('throws when schedule and by templates have mismatched priorities', async () => {
       vi.mocked(statements.getActiveSchedules).mockResolvedValue([
-        { name: 'Rent', id: 's1' },
+        {name: 'Rent', id: 's1'},
       ] as Awaited<ReturnType<typeof statements.getActiveSchedules>>);
       const templates: Template[] = [
         {
@@ -2009,9 +1771,7 @@ describe('CategoryTemplateContext', () => {
           priority: 2,
         },
       ];
-      await expect(
-        CategoryTemplateContext.init(templates, category, '2024-01', 0),
-      ).rejects.toThrow(
+      await expect(CategoryTemplateContext.init(templates, category, '2024-01', 0)).rejects.toThrow(
         /Schedule and By templates must be the same priority level/,
       );
     });
@@ -2030,9 +1790,7 @@ describe('CategoryTemplateContext', () => {
           priority: 1,
         },
       ];
-      await expect(
-        CategoryTemplateContext.init(templates, category, '2024-06', 0),
-      ).rejects.toThrow(
+      await expect(CategoryTemplateContext.init(templates, category, '2024-06', 0)).rejects.toThrow(
         /Target month has passed, remove or update the target month/,
       );
     });
@@ -2081,9 +1839,9 @@ describe('CategoryTemplateContext', () => {
           priority: 1,
         },
       ];
-      await expect(
-        CategoryTemplateContext.init(templates, category, '2024-01', 0),
-      ).rejects.toThrow(/is not found in available income categories/i);
+      await expect(CategoryTemplateContext.init(templates, category, '2024-01', 0)).rejects.toThrow(
+        /is not found in available income categories/i,
+      );
     });
 
     it('rolls a past `by` target forward by its annual period', async () => {
@@ -2102,17 +1860,8 @@ describe('CategoryTemplateContext', () => {
           priority: 1,
         },
       ];
-      const ctx = await CategoryTemplateContext.init(
-        templates,
-        category,
-        '2024-06',
-        0,
-      );
-      const budgeted = await ctx.runTemplatesForPriority(
-        1,
-        1_000_000,
-        1_000_000,
-      );
+      const ctx = await CategoryTemplateContext.init(templates, category, '2024-06', 0);
+      const budgeted = await ctx.runTemplatesForPriority(1, 1_000_000, 1_000_000);
       expect(budgeted).toBeGreaterThan(0);
     });
 
@@ -2195,10 +1944,9 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      expect(
-        () =>
-          new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0),
-      ).toThrow(/Only one .up to. allowed per category/);
+      expect(() => new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0)).toThrow(
+        /Only one .up to. allowed per category/,
+      );
     });
 
     it('throws when a weekly limit has no start date', () => {
@@ -2212,10 +1960,9 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      expect(
-        () =>
-          new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0),
-      ).toThrow(/Weekly limit requires a start date/);
+      expect(() => new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0)).toThrow(
+        /Weekly limit requires a start date/,
+      );
     });
 
     it('throws when a limit period is not daily/weekly/monthly', () => {
@@ -2230,10 +1977,9 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      expect(
-        () =>
-          new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0),
-      ).toThrow(/Invalid limit period/);
+      expect(() => new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0)).toThrow(
+        /Invalid limit period/,
+      );
     });
 
     it('throws when more than one spend template is defined', () => {
@@ -2255,21 +2001,19 @@ describe('CategoryTemplateContext', () => {
           priority: 1,
         },
       ];
-      expect(
-        () =>
-          new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0),
-      ).toThrow(/Only one spend template is allowed per category/);
+      expect(() => new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0)).toThrow(
+        /Only one spend template is allowed per category/,
+      );
     });
 
     it('throws when more than one #goal directive is defined', () => {
       const templates: Template[] = [
-        { type: 'goal', amount: 1000, directive: 'goal' },
-        { type: 'goal', amount: 2000, directive: 'goal' },
+        {type: 'goal', amount: 1000, directive: 'goal'},
+        {type: 'goal', amount: 2000, directive: 'goal'},
       ];
-      expect(
-        () =>
-          new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0),
-      ).toThrow(/Only one #goal is allowed per category/);
+      expect(() => new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0)).toThrow(
+        /Only one #goal is allowed per category/,
+      );
     });
 
     it('throws when a periodic template uses an unknown period unit', async () => {
@@ -2281,21 +2025,16 @@ describe('CategoryTemplateContext', () => {
           type: 'periodic',
           amount: 100,
           // @ts-expect-error deliberately invalid period unit
-          period: { period: 'fortnight', amount: 1 },
+          period: {period: 'fortnight', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
         },
       ];
-      const ctx = await CategoryTemplateContext.init(
-        templates,
-        category,
-        '2024-01',
-        0,
+      const ctx = await CategoryTemplateContext.init(templates, category, '2024-01', 0);
+      await expect(ctx.runTemplatesForPriority(1, 1_000_000, 1_000_000)).rejects.toThrow(
+        /Unrecognized periodic period/,
       );
-      await expect(
-        ctx.runTemplatesForPriority(1, 1_000_000, 1_000_000),
-      ).rejects.toThrow(/Unrecognized periodic period/);
     });
   });
 
@@ -2332,13 +2071,7 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        3000,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 3000, 0);
       expect(instance.runRemainder(10000, 8000)).toBe(7000);
     });
 
@@ -2370,24 +2103,14 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'periodic',
           amount: 100,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        incomeCategory,
-        '2024-01',
-        0,
-        0,
-      );
-      const result = await instance.runTemplatesForPriority(
-        1,
-        1_000_000,
-        1_000_000,
-      );
+      const instance = new TestCategoryTemplateContext(templates, incomeCategory, '2024-01', 0, 0);
+      const result = await instance.runTemplatesForPriority(1, 1_000_000, 1_000_000);
       expect(result).toBe(-10000);
     });
 
@@ -2405,13 +2128,7 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        30000,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 30000, 0);
       expect(instance.getLimitExcess()).toBe(5000);
     });
 
@@ -2420,7 +2137,7 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'periodic',
           amount: 100,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 1,
@@ -2428,19 +2145,13 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'periodic',
           amount: 50,
-          period: { period: 'month', amount: 1 },
+          period: {period: 'month', amount: 1},
           starting: '2024-01-01',
           directive: 'template',
           priority: 2,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
       const total = await instance.runAll(1_000_000);
       expect(total).toBe(15000);
       const values = instance.getValues();
@@ -2463,18 +2174,8 @@ describe('CategoryTemplateContext', () => {
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
-      const result = await instance.runTemplatesForPriority(
-        1,
-        1_000_000,
-        1_000_000,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
+      const result = await instance.runTemplatesForPriority(1, 1_000_000, 1_000_000);
       expect(result).toBe(15000);
     });
 
@@ -2495,18 +2196,8 @@ describe('CategoryTemplateContext', () => {
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        0,
-        0,
-      );
-      const result = await instance.runTemplatesForPriority(
-        1,
-        1_000_000,
-        1_000_000,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 0, 0);
+      const result = await instance.runTemplatesForPriority(1, 1_000_000, 1_000_000);
       expect(result).toBe(50000);
     });
 
@@ -2524,13 +2215,7 @@ describe('CategoryTemplateContext', () => {
           priority: null,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-01',
-        30000,
-        0,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-01', 30000, 0);
       expect(instance.getLimitExcess()).toBe(0);
     });
 
@@ -2539,23 +2224,13 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'simple',
           monthly: 10000,
-          limit: { amount: 10, hold: false, period: 'daily' },
+          limit: {amount: 10, hold: false, period: 'daily'},
           directive: 'template',
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2023-02',
-        0,
-        0,
-      );
-      const result = await instance.runTemplatesForPriority(
-        1,
-        1_000_000,
-        1_000_000,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2023-02', 0, 0);
+      const result = await instance.runTemplatesForPriority(1, 1_000_000, 1_000_000);
       expect(result).toBe(28000);
     });
 
@@ -2564,23 +2239,13 @@ describe('CategoryTemplateContext', () => {
         {
           type: 'simple',
           monthly: 10000,
-          limit: { amount: 10, hold: false, period: 'daily' },
+          limit: {amount: 10, hold: false, period: 'daily'},
           directive: 'template',
           priority: 1,
         },
       ];
-      const instance = new TestCategoryTemplateContext(
-        templates,
-        category,
-        '2024-02',
-        0,
-        0,
-      );
-      const result = await instance.runTemplatesForPriority(
-        1,
-        1_000_000,
-        1_000_000,
-      );
+      const instance = new TestCategoryTemplateContext(templates, category, '2024-02', 0, 0);
+      const result = await instance.runTemplatesForPriority(1, 1_000_000, 1_000_000);
       expect(result).toBe(29000);
     });
   });

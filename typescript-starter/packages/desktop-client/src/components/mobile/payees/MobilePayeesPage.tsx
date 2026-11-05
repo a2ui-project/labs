@@ -14,36 +14,35 @@
  * limitations under the License.
  */
 
-import React, { useCallback, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useCallback, useMemo, useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import { getNormalisedString } from '@actual-app/core/shared/normalisation';
-import type { PayeeEntity, RuleEntity } from '@actual-app/core/types/models';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import {getNormalisedString} from '@actual-app/core/shared/normalisation';
+import type {PayeeEntity, RuleEntity} from '@actual-app/core/types/models';
 
-import { Search } from '#components/common/Search';
-import { MobilePageHeader, Page } from '#components/Page';
-import { useNavigate } from '#hooks/useNavigate';
-import { usePayeeRuleCounts } from '#hooks/usePayeeRuleCounts';
-import { usePayees } from '#hooks/usePayees';
-import { useUndo } from '#hooks/useUndo';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {Search} from '#components/common/Search';
+import {MobilePageHeader, Page} from '#components/Page';
+import {useNavigate} from '#hooks/useNavigate';
+import {usePayeeRuleCounts} from '#hooks/usePayeeRuleCounts';
+import {usePayees} from '#hooks/usePayees';
+import {useUndo} from '#hooks/useUndo';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
-import { PayeesList } from './PayeesList';
+import {PayeesList} from './PayeesList';
 
 export function MobilePayeesPage() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { data: payees = [], isPending } = usePayees();
-  const { showUndoNotification } = useUndo();
+  const {data: payees = [], isPending} = usePayees();
+  const {showUndoNotification} = useUndo();
   const [filter, setFilter] = useState('');
-  const { data: ruleCounts = new Map(), isPending: isRuleCountsLoading } =
-    usePayeeRuleCounts();
+  const {data: ruleCounts = new Map(), isPending: isRuleCountsLoading} = usePayeeRuleCounts();
 
   const filteredPayees: PayeeEntity[] = useMemo(() => {
     if (!filter) return payees;
@@ -103,7 +102,7 @@ export function MobilePayeesPage() {
   const handlePayeeDelete = useCallback(
     async (payee: PayeeEntity) => {
       try {
-        await send('payees-batch-change', { deleted: [{ id: payee.id }] });
+        await send('payees-batch-change', {deleted: [{id: payee.id}]});
         showUndoNotification({
           message: t('Payee "{{name}}" deleted successfully', {
             name: payee.name,

@@ -14,32 +14,29 @@
  * limitations under the License.
  */
 
-import { useRef, useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useRef, useState} from 'react';
+import type {CSSProperties, ReactNode} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { Input } from '@actual-app/components/input';
-import { theme } from '@actual-app/components/theme';
-import { tokens } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
-import { currentDay, dayFromDate } from '@actual-app/core/shared/months';
-import {
-  amountToInteger,
-  currencyToInteger,
-} from '@actual-app/core/shared/util';
-import { format as formatDate, parse as parseDate, parseISO } from 'date-fns';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {Input} from '@actual-app/components/input';
+import {theme} from '@actual-app/components/theme';
+import {tokens} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
+import {currentDay, dayFromDate} from '@actual-app/core/shared/months';
+import {amountToInteger, currencyToInteger} from '@actual-app/core/shared/util';
+import {format as formatDate, parse as parseDate, parseISO} from 'date-fns';
 
-import { NoteInsertHashButton } from '#components/autocomplete/NoteInsertHashButton';
-import { NoteTagAutocomplete } from '#components/autocomplete/NoteTagAutocomplete';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { SectionLabel } from '#components/forms';
-import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
-import { InputField } from '#components/mobile/MobileForms';
-import { DateSelect } from '#components/select/DateSelect';
-import { useDateFormat } from '#hooks/useDateFormat';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {NoteInsertHashButton} from '#components/autocomplete/NoteInsertHashButton';
+import {NoteTagAutocomplete} from '#components/autocomplete/NoteTagAutocomplete';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {SectionLabel} from '#components/forms';
+import {LabeledCheckbox} from '#components/forms/LabeledCheckbox';
+import {InputField} from '#components/mobile/MobileForms';
+import {DateSelect} from '#components/select/DateSelect';
+import {useDateFormat} from '#hooks/useDateFormat';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
 const itemStyle: CSSProperties = {
   fontSize: 17,
@@ -49,9 +46,7 @@ const itemStyle: CSSProperties = {
 };
 
 type NoteAmendValue = Parameters<EditFieldModalProps['onSubmit']>[1];
-type NoteAmendMode = NonNullable<
-  Parameters<EditFieldModalProps['onSubmit']>[2]
->;
+type NoteAmendMode = NonNullable<Parameters<EditFieldModalProps['onSubmit']>[2]>;
 const noteAmendStrings: Record<NoteAmendMode, string> = {
   prepend: 'Prepend',
   replace: 'Replace',
@@ -59,17 +54,10 @@ const noteAmendStrings: Record<NoteAmendMode, string> = {
   findAndReplace: 'Find and Replace',
 };
 
-type EditFieldModalProps = Extract<
-  ModalType,
-  { name: 'edit-field' }
->['options'];
+type EditFieldModalProps = Extract<ModalType, {name: 'edit-field'}>['options'];
 
-export function EditFieldModal({
-  name,
-  onSubmit,
-  onClose,
-}: EditFieldModalProps) {
-  const { t } = useTranslation();
+export function EditFieldModal({name, onSubmit, onClose}: EditFieldModalProps) {
+  const {t} = useTranslation();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
   const noteInputRef = useRef<HTMLInputElement | null>(null);
   const noteReplaceInputRef = useRef<HTMLInputElement | null>(null);
@@ -100,9 +88,9 @@ export function EditFieldModal({
     }
   }
 
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   let label: string;
-  let editor: (props: { close: () => void }) => ReactNode;
+  let editor: (props: {close: () => void}) => ReactNode;
   let width: string | undefined;
   let height: number | 'auto' = 275;
 
@@ -112,7 +100,7 @@ export function EditFieldModal({
 
   const [noteAmend, onChangeMode] = useState<NoteAmendMode>('replace');
   const [noteFindReplace, setNoteFindReplace] = useState<
-    Extract<NoteAmendValue, { useRegex: boolean }>
+    Extract<NoteAmendValue, {useRegex: boolean}>
   >({
     useRegex: false,
     find: '',
@@ -127,7 +115,7 @@ export function EditFieldModal({
       // size the modal (see DateSelect)
       width = tokens.breakpoint_small;
       height = 'auto'; // fit the calendar; 275 clips six-row months
-      editor = ({ close }) => (
+      editor = ({close}) => (
         <DateSelect
           value={formatDate(parseISO(today), dateFormat)}
           dateFormat={dateFormat}
@@ -144,7 +132,7 @@ export function EditFieldModal({
     case 'notes':
       label = t('Notes');
       width = tokens.breakpoint_small;
-      editor = ({ close }) => (
+      editor = ({close}) => (
         <>
           <View
             style={{
@@ -194,12 +182,12 @@ export function EditFieldModal({
             ))}
           </View>
           {noteAmend === 'findAndReplace' ? (
-            <View style={{ gap: 10 }}>
+            <View style={{gap: 10}}>
               <LabeledCheckbox
                 id="noteRegex"
                 checked={noteFindReplace.useRegex}
-                style={{ color: theme.menuAutoCompleteText }}
-                onChange={({ currentTarget: { checked } }) =>
+                style={{color: theme.menuAutoCompleteText}}
+                onChange={({currentTarget: {checked}}) =>
                   setNoteFindReplace(current => ({
                     ...current,
                     useRegex: checked,
@@ -213,8 +201,8 @@ export function EditFieldModal({
                 autoFocus
                 placeholder={t('Find')}
                 value={noteFindReplace.find}
-                onChange={({ currentTarget: { value } }) =>
-                  setNoteFindReplace(current => ({ ...current, find: value }))
+                onChange={({currentTarget: {value}}) =>
+                  setNoteFindReplace(current => ({...current, find: value}))
                 }
                 onEnter={() => {
                   noteReplaceInputRef.current?.focus();
@@ -225,7 +213,7 @@ export function EditFieldModal({
                 ref={noteReplaceInputRef}
                 placeholder={t('Replace')}
                 value={noteFindReplace.replace}
-                onChange={({ currentTarget: { value } }) =>
+                onChange={({currentTarget: {value}}) =>
                   setNoteFindReplace(current => ({
                     ...current,
                     replace: value,
@@ -283,7 +271,7 @@ export function EditFieldModal({
 
     case 'amount':
       label = t('Amount');
-      editor = ({ close }) => (
+      editor = ({close}) => (
         <Input
           onEnter={value => {
             onSelect(value);
@@ -305,16 +293,14 @@ export function EditFieldModal({
       onClose={onClose}
       containerProps={{
         style: {
-          height: isNarrowWidth
-            ? 'calc(var(--visual-viewport-height) * 0.85)'
-            : height,
+          height: isNarrowWidth ? 'calc(var(--visual-viewport-height) * 0.85)' : height,
           padding: '15px 10px',
-          ...(width && { width }),
+          ...(width && {width}),
           backgroundColor: theme.menuAutoCompleteBackground,
         },
       }}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           {isNarrowWidth && (
             <ModalHeader
@@ -333,9 +319,7 @@ export function EditFieldModal({
                 }}
               />
             )}
-            <View style={{ flex: 1 }}>
-              {editor({ close: () => state.close() })}
-            </View>
+            <View style={{flex: 1}}>{editor({close: () => state.close()})}</View>
           </View>
         </>
       )}

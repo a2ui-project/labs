@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { theme } from '@actual-app/components/theme';
-import { radius } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
+import {theme} from '@actual-app/components/theme';
+import {radius} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
 
 export type SyncDotStatus = 'synced' | 'error' | 'pending' | 'unlinked';
 
 export function useSyncDotLabel(status: SyncDotStatus): string {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const labels: Record<SyncDotStatus, string> = {
     synced: t('Synced'),
@@ -39,7 +39,7 @@ type SyncDotProps = {
   status: SyncDotStatus;
 };
 
-export function SyncDot({ status }: SyncDotProps) {
+export function SyncDot({status}: SyncDotProps) {
   const label = useSyncDotLabel(status);
 
   return (

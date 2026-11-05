@@ -14,27 +14,19 @@
  * limitations under the License.
  */
 
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  ReferenceLine,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
+import {CartesianGrid, Line, LineChart, ReferenceLine, Tooltip, XAxis, YAxis} from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import { useRechartsAnimation } from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { useFormat } from '#hooks/useFormat';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {FinancialText} from '#components/FinancialText';
+import {useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {useFormat} from '#hooks/useFormat';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
 type PayloadItem = {
   payload: {
@@ -52,8 +44,8 @@ type CustomTooltipProps = {
   payload?: PayloadItem[];
 };
 
-function CustomTooltip({ active, payload }: CustomTooltipProps) {
-  const { t } = useTranslation();
+function CustomTooltip({active, payload}: CustomTooltipProps) {
+  const {t} = useTranslation();
   const format = useFormat();
 
   if (active && payload && payload.length) {
@@ -70,15 +62,13 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
         })}
       >
         <div>
-          <div style={{ marginBottom: 10 }}>
+          <div style={{marginBottom: 10}}>
             <strong>{payload[0].payload.x}</strong>
             {payload[0].payload.isProjection ? (
-              <span style={{ marginLeft: 8, opacity: 0.7 }}>
-                {t('(projected)')}
-              </span>
+              <span style={{marginLeft: 8, opacity: 0.7}}>{t('(projected)')}</span>
             ) : null}
           </div>
-          <div style={{ lineHeight: 1.5 }}>
+          <div style={{lineHeight: 1.5}}>
             <View
               className={css({
                 display: 'flex',
@@ -104,9 +94,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
                 <Trans>Monthly expenses:</Trans>
               </div>
               <div>
-                <FinancialText>
-                  {format(payload[0].payload.expenses, 'financial')}
-                </FinancialText>
+                <FinancialText>{format(payload[0].payload.expenses, 'financial')}</FinancialText>
               </div>
             </View>
             {payload[0].payload.adjustedExpenses != null && (
@@ -136,9 +124,7 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
                 <Trans>Life savings:</Trans>
               </div>
               <div>
-                <FinancialText>
-                  {format(payload[0].payload.nestEgg, 'financial')}
-                </FinancialText>
+                <FinancialText>{format(payload[0].payload.nestEgg, 'financial')}</FinancialText>
               </div>
             </View>
           </div>
@@ -176,7 +162,7 @@ export function CrossoverGraph({
 }: CrossoverGraphProps) {
   const privacyMode = usePrivacyMode();
   const format = useFormat();
-  const animationProps = useRechartsAnimation({ animationDuration: 1000 });
+  const animationProps = useRechartsAnimation({animationDuration: 1000});
 
   const tickFormatter = (tick: number) => {
     if (privacyMode) {
@@ -189,7 +175,7 @@ export function CrossoverGraph({
     <Container
       style={{
         ...style,
-        ...(compact && { height: 'auto' }),
+        ...(compact && {height: 'auto'}),
       }}
     >
       {(width, height) => (
@@ -208,18 +194,16 @@ export function CrossoverGraph({
           <XAxis
             dataKey="x"
             hide={compact}
-            tick={{ fill: theme.pageText }}
-            tickLine={{ stroke: theme.pageText }}
+            tick={{fill: theme.pageText}}
+            tickLine={{stroke: theme.pageText}}
           />
           <YAxis
             hide={compact}
             tickFormatter={tickFormatter}
-            tick={{ fill: theme.pageText }}
-            tickLine={{ stroke: theme.pageText }}
+            tick={{fill: theme.pageText}}
+            tickLine={{stroke: theme.pageText}}
           />
-          {showTooltip && (
-            <Tooltip content={<CustomTooltip />} isAnimationActive={false} />
-          )}
+          {showTooltip && <Tooltip content={<CustomTooltip />} isAnimationActive={false} />}
           {graphData.crossoverXLabel && (
             <ReferenceLine
               x={graphData.crossoverXLabel}

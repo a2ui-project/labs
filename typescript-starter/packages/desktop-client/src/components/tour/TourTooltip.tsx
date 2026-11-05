@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
-import type { TooltipRenderProps } from 'react-joyride';
+import {useTranslation} from 'react-i18next';
+import type {TooltipRenderProps} from 'react-joyride';
 
-import { SvgDelete } from '@actual-app/components/icons/v0';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {SvgDelete} from '@actual-app/components/icons/v0';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { TourTooltipButton } from './TourTooltipButton';
+import {TourTooltipButton} from './TourTooltipButton';
 
 export function TourTooltip({
   backProps,
@@ -36,7 +36,7 @@ export function TourTooltip({
   step,
   tooltipProps,
 }: TooltipRenderProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <View
@@ -61,7 +61,7 @@ export function TourTooltip({
           top: 8,
         }}
       >
-        <SvgDelete style={{ width: 9, height: 9 }} />
+        <SvgDelete style={{width: 9, height: 9}} />
       </TourTooltipButton>
 
       {step.title != null && (
@@ -77,7 +77,7 @@ export function TourTooltip({
         </Text>
       )}
 
-      <Text style={{ lineHeight: '1.4em' }}>{step.content}</Text>
+      <Text style={{lineHeight: '1.4em'}}>{step.content}</Text>
 
       <View
         style={{
@@ -87,17 +87,14 @@ export function TourTooltip({
           marginTop: 14,
         }}
       >
-        <Text style={{ color: theme.pageTextSubdued, flex: 1 }}>
+        <Text style={{color: theme.pageTextSubdued, flex: 1}}>
           {t('{{current}} of {{total}}', {
             current: index + 1,
             total: size,
           })}
         </Text>
         {!isLastStep && (
-          <TourTooltipButton
-            handleProps={skipProps}
-            style={{ color: theme.pageTextSubdued }}
-          />
+          <TourTooltipButton handleProps={skipProps} style={{color: theme.pageTextSubdued}} />
         )}
         {index > 0 && <TourTooltipButton handleProps={backProps} />}
         <TourTooltipButton handleProps={primaryProps} variant="primary" />

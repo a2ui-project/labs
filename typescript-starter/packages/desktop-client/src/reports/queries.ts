@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import { q } from '@actual-app/core/shared/query';
+import {send} from '@actual-app/core/platform/client/connection';
+import {q} from '@actual-app/core/shared/query';
 import type {
   CustomReportEntity,
   DashboardPageEntity,
   DashboardWidgetEntity,
 } from '@actual-app/core/types/models';
-import { queryOptions } from '@tanstack/react-query';
+import {queryOptions} from '@tanstack/react-query';
 
-import { aqlQuery } from '#queries/aqlQuery';
+import {aqlQuery} from '#queries/aqlQuery';
 
 export const reportQueries = {
   all: () => ['reports'],
@@ -44,9 +44,7 @@ export const dashboardQueries = {
     queryOptions<T[]>({
       queryKey: [...dashboardQueries.lists(), 'widgets'],
       queryFn: async () => {
-        const { data }: { data: T[] } = await aqlQuery(
-          q('dashboard').select('*'),
-        );
+        const {data}: {data: T[]} = await aqlQuery(q('dashboard').select('*'));
         return data;
       },
     }),
@@ -55,18 +53,17 @@ export const dashboardQueries = {
   ) =>
     queryOptions<T[]>({
       ...dashboardQueries.listDashboardWidgets<T>(),
-      select: widgets =>
-        widgets.filter(w => w.dashboard_page_id === dashboardPageId),
+      select: widgets => widgets.filter(w => w.dashboard_page_id === dashboardPageId),
       enabled: !!dashboardPageId,
     }),
   listDashboardPages: () =>
     queryOptions<DashboardPageEntity[]>({
       queryKey: [...dashboardQueries.lists(), 'pages'],
       queryFn: async () => {
-        const { data }: { data: DashboardPageEntity[] } = await aqlQuery(
+        const {data}: {data: DashboardPageEntity[]} = await aqlQuery(
           q('dashboard_pages').select('*'),
         );
-        return data.map(page => ({ ...page, name: page.name ?? '' }));
+        return data.map(page => ({...page, name: page.name ?? ''}));
       },
     }),
 };

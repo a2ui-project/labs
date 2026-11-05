@@ -15,22 +15,22 @@
  */
 
 // @ts-strict-ignore
-import React, { useEffect } from 'react';
-import type { ComponentProps } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { AutoSizer } from 'react-virtualized-auto-sizer';
+import React, {useEffect} from 'react';
+import type {ComponentProps} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
+import {useHotkeys} from 'react-hotkeys-hook';
+import {AutoSizer} from 'react-virtualized-auto-sizer';
 
-import { View } from '@actual-app/components/view';
+import {View} from '@actual-app/components/view';
 import * as monthUtils from '@actual-app/core/shared/months';
 
-import { FeatureErrorFallback } from '#components/FeatureErrorFallback';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useGlobalPref } from '#hooks/useGlobalPref';
+import {FeatureErrorFallback} from '#components/FeatureErrorFallback';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useGlobalPref} from '#hooks/useGlobalPref';
 
-import { useBudgetMonthCount } from './BudgetMonthCountContext';
-import { BudgetPageHeader } from './BudgetPageHeader';
-import { BudgetTable } from './BudgetTable';
+import {useBudgetMonthCount} from './BudgetMonthCountContext';
+import {BudgetPageHeader} from './BudgetPageHeader';
+import {BudgetTable} from './BudgetTable';
 
 function getNumPossibleMonths(width: number, categoryWidth: number) {
   const estimatedTableWidth = width - categoryWidth;
@@ -67,15 +67,12 @@ const DynamicBudgetTable = ({
   onBudgetAction,
   ...props
 }: DynamicBudgetTableProps) => {
-  const { setDisplayMax } = useBudgetMonthCount();
+  const {setDisplayMax} = useBudgetMonthCount();
   const [categoryExpandedStatePref] = useGlobalPref('categoryExpandedState');
   const isGoalTemplatesEnabled = useFeatureFlag('goalTemplatesEnabled');
   const categoryExpandedState = categoryExpandedStatePref ?? 0;
 
-  const numPossible = getNumPossibleMonths(
-    width,
-    200 + 100 * categoryExpandedState,
-  );
+  const numPossible = getNumPossibleMonths(width, 200 + 100 * categoryExpandedState);
   const numMonths = Math.min(numPossible, maxMonths);
   const maxWidth = 200 + 100 * categoryExpandedState + 500 * numMonths;
 
@@ -163,7 +160,7 @@ const DynamicBudgetTable = ({
         opacity: width <= 0 || height <= 0 ? 0 : 1,
       }}
     >
-      <View style={{ width: '100%', maxWidth }}>
+      <View style={{width: '100%', maxWidth}}>
         <ErrorBoundary FallbackComponent={FeatureErrorFallback}>
           <BudgetPageHeader
             startMonth={prewarmStartMonth}
@@ -188,10 +185,7 @@ const DynamicBudgetTable = ({
 
 DynamicBudgetTable.displayName = 'DynamicBudgetTable';
 
-type AutoSizingBudgetTableProps = Omit<
-  ComponentProps<typeof BudgetTable>,
-  'numMonths'
-> & {
+type AutoSizingBudgetTableProps = Omit<ComponentProps<typeof BudgetTable>, 'numMonths'> & {
   maxMonths: number;
   onMonthSelect: (month: string, numMonths: number) => void;
 };
@@ -199,7 +193,7 @@ type AutoSizingBudgetTableProps = Omit<
 export const AutoSizingBudgetTable = (props: AutoSizingBudgetTableProps) => {
   return (
     <AutoSizer
-      renderProp={({ width = 0, height = 0 }) => {
+      renderProp={({width = 0, height = 0}) => {
         if (width === 0 || height === 0) {
           return null;
         }

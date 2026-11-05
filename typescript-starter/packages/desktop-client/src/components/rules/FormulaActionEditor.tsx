@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import React, { lazy, Suspense } from 'react';
+import React, {lazy, Suspense} from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
 const FormulaEditor = lazy(() =>
   import('#components/formula/FormulaEditor').then(module => ({
@@ -31,11 +31,7 @@ type FormulaActionEditorProps = {
   disabled?: boolean;
 };
 
-export function FormulaActionEditor({
-  value,
-  onChange,
-  disabled = false,
-}: FormulaActionEditorProps) {
+export function FormulaActionEditor({value, onChange, disabled = false}: FormulaActionEditorProps) {
   // Enforce single-line: replace newlines with spaces
   const handleChange = (newValue: string) => {
     const singleLineValue = newValue.replace(/[\r\n]+/g, ' ');
@@ -49,13 +45,11 @@ export function FormulaActionEditor({
         border: `1px solid ${theme.formInputBorder}`,
         borderRadius: 4,
         overflow: 'visible',
-        backgroundColor: disabled
-          ? theme.formInputBackgroundSelection
-          : theme.tableBackground,
+        backgroundColor: disabled ? theme.formInputBackgroundSelection : theme.tableBackground,
         opacity: disabled ? 0.6 : 1,
       }}
     >
-      <Suspense fallback={<div style={{ height: 32 }} />}>
+      <Suspense fallback={<div style={{height: 32}} />}>
         <FormulaEditor
           value={value}
           onChange={handleChange}

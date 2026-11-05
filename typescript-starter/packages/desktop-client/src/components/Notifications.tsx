@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useEffectEvent, useMemo, useState } from 'react';
-import type { CSSProperties, SetStateAction } from 'react';
-import { useTranslation } from 'react-i18next';
-import { animated, to, useSpring } from 'react-spring';
-import { useSwipeable } from 'react-swipeable';
+import React, {useEffect, useEffectEvent, useMemo, useState} from 'react';
+import type {CSSProperties, SetStateAction} from 'react';
+import {useTranslation} from 'react-i18next';
+import {animated, to, useSpring} from 'react-spring';
+import {useSwipeable} from 'react-swipeable';
 
-import { Button, ButtonWithLoading } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { SvgDelete } from '@actual-app/components/icons/v0';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import {Button, ButtonWithLoading} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {SvgDelete} from '@actual-app/components/icons/v0';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
 
-import { removeNotification } from '#notifications/notificationsSlice';
-import type { NotificationWithId } from '#notifications/notificationsSlice';
-import { useDispatch, useSelector } from '#redux';
+import {removeNotification} from '#notifications/notificationsSlice';
+import type {NotificationWithId} from '#notifications/notificationsSlice';
+import {useDispatch, useSelector} from '#redux';
 
-import { Link } from './common/Link';
-import { MODAL_Z_INDEX } from './common/Modal';
+import {Link} from './common/Link';
+import {MODAL_Z_INDEX} from './common/Modal';
 
 // Notification stacking configuration
 const MAX_VISIBLE_NOTIFICATIONS = 3; // Maximum number of notifications visible in the stack
@@ -58,7 +58,7 @@ function compileMessage(
         const parts = paragraph.split(/(\[[^\]]*\]\([^)]*\))/g);
 
         return (
-          <Text key={idx} style={{ lineHeight: '1.4em' }}>
+          <Text key={idx} style={{lineHeight: '1.4em'}}>
             {parts.map((part, idx) => {
               const match = part.match(/\[([^\]]*)\]\(([^)]*)\)/);
               if (match) {
@@ -85,12 +85,7 @@ function compileMessage(
                 }
 
                 return (
-                  <Link
-                    variant="external"
-                    linkColor="purple"
-                    key={idx}
-                    to={match[2]}
-                  >
+                  <Link variant="external" linkColor="purple" key={idx} to={match[2]}>
                     {match[1]}
                   </Link>
                 );
@@ -115,18 +110,9 @@ function Notification({
   index: number;
   isInteractive: boolean;
 }) {
-  const { t } = useTranslation();
-  const {
-    type,
-    title,
-    message,
-    pre,
-    messageActions,
-    sticky,
-    internal,
-    button,
-    timeout,
-  } = notification;
+  const {t} = useTranslation();
+  const {type, title, message, pre, messageActions, sticky, internal, button, timeout} =
+    notification;
 
   const [loading, setLoading] = useState(false);
   const [overlayLoading, setOverlayLoading] = useState(false);
@@ -146,20 +132,12 @@ function Notification({
   const error = type === 'error';
 
   const processedMessage = useMemo(
-    () =>
-      compileMessage(
-        message,
-        messageActions ?? {},
-        setOverlayLoading,
-        onRemove,
-      ),
+    () => compileMessage(message, messageActions ?? {}, setOverlayLoading, onRemove),
     [message, messageActions, onRemove, setOverlayLoading],
   );
 
-  const { isNarrowWidth } = useResponsive();
-  const narrowStyle: CSSProperties = isNarrowWidth
-    ? { minHeight: styles.mobileMinHeight }
-    : {};
+  const {isNarrowWidth} = useResponsive();
+  const narrowStyle: CSSProperties = isNarrowWidth ? {minHeight: styles.mobileMinHeight} : {};
 
   // Calculate stacking properties based on index (scales for any number of notifications)
   const scale = 1.0 - index * SCALE_MULTIPLIER;
@@ -183,16 +161,16 @@ function Notification({
 
   // Update scale, opacity, and y-position when index changes
   useEffect(() => {
-    void api.start({ to: { scale, opacity: stackOpacity, y: yOffset } });
+    void api.start({to: {scale, opacity: stackOpacity, y: yOffset}});
   }, [index, scale, stackOpacity, yOffset, api]);
 
   const swipeHandlers = useSwipeable({
-    onSwiping: ({ deltaX }) => {
+    onSwiping: ({deltaX}) => {
       if (!isSwiped) {
-        void api.start({ to: { x: deltaX } });
+        void api.start({to: {x: deltaX}});
       }
     },
-    onSwiped: ({ velocity, deltaX }) => {
+    onSwiped: ({velocity, deltaX}) => {
       // Distance to trigger deletion
       const threshold = 100;
       const direction = deltaX > 0 ? 1 : -1;
@@ -200,13 +178,13 @@ function Notification({
       if (Math.abs(deltaX) > threshold || velocity > 0.5) {
         // Animate out & remove item after animation
         void api.start({
-          to: { x: direction * 1000, opacity: 0 },
+          to: {x: direction * 1000, opacity: 0},
           onRest: onRemove,
         });
         setIsSwiped(true);
       } else {
         // Reset position if not swiped far enough
-        void api.start({ to: { x: 0 } });
+        void api.start({to: {x: 0}});
       }
     },
     trackMouse: true,
@@ -228,11 +206,7 @@ function Notification({
         ),
         opacity: spring.opacity,
         pointerEvents: isInteractive ? 'auto' : 'none',
-        color: positive
-          ? theme.noticeText
-          : error
-            ? theme.errorTextDark
-            : theme.warningTextDark,
+        color: positive ? theme.noticeText : error ? theme.errorTextDark : theme.warningTextDark,
         // Prevents scrolling conflicts
         touchAction: isInteractive ? 'none' : 'auto',
       }}
@@ -251,15 +225,11 @@ function Notification({
               ? theme.errorBackground
               : theme.warningBackground,
           borderTop: `3px solid ${
-            positive
-              ? theme.noticeBorder
-              : error
-                ? theme.errorBorder
-                : theme.warningBorder
+            positive ? theme.noticeBorder : error ? theme.errorBorder : theme.warningBorder
           }`,
           ...styles.shadowLarge,
           maxWidth: 550,
-          '& a': { color: 'currentColor' },
+          '& a': {color: 'currentColor'},
         }}
       >
         {/* Close button in top right corner */}
@@ -276,15 +246,11 @@ function Notification({
           }}
           onPress={onRemove}
         >
-          <SvgDelete style={{ width: 10, height: 10 }} />
+          <SvgDelete style={{width: 10, height: 10}} />
         </Button>
 
         {/* Content and action button layout */}
-        <SpaceBetween
-          direction="vertical"
-          gap={10}
-          style={{ alignItems: 'flex-start' }}
-        >
+        <SpaceBetween direction="vertical" gap={10} style={{alignItems: 'flex-start'}}>
           {title && (
             <View
               style={{
@@ -298,12 +264,8 @@ function Notification({
           )}
 
           {/* Message and button on same row */}
-          <SpaceBetween
-            wrap={false}
-            gap={10}
-            style={{ width: '100%', alignItems: 'flex-start' }}
-          >
-            <View style={{ flex: 1, minWidth: 0 }}>{processedMessage}</View>
+          <SpaceBetween wrap={false} gap={10} style={{width: '100%', alignItems: 'flex-start'}}>
+            <View style={{flex: 1, minWidth: 0}}>{processedMessage}</View>
             {button && (
               <ButtonWithLoading
                 variant="bare"
@@ -317,11 +279,7 @@ function Notification({
                 className={css({
                   backgroundColor: 'transparent',
                   border: `1px solid ${
-                    positive
-                      ? theme.noticeBorder
-                      : error
-                        ? theme.errorBorder
-                        : theme.warningBorder
+                    positive ? theme.noticeBorder : error ? theme.errorBorder : theme.warningBorder
                   }`,
                   color: 'currentColor',
                   ...styles.mediumText,
@@ -374,26 +332,22 @@ function Notification({
             justifyContent: 'center',
           }}
         >
-          <AnimatedLoading
-            style={{ width: 20, height: 20, color: 'currentColor' }}
-          />
+          <AnimatedLoading style={{width: 20, height: 20, color: 'currentColor'}} />
         </View>
       )}
     </animated.div>
   );
 }
 
-export function Notifications({ style }: { style?: CSSProperties }) {
+export function Notifications({style}: {style?: CSSProperties}) {
   const dispatch = useDispatch();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const notifications = useSelector(state => state.notifications.notifications);
   const notificationInset = useSelector(state => state.notifications.inset);
 
   // Only show the last N notifications (newest first) for z-axis stacking
   // Reverse so newest notification (last in array) becomes index 0 (front)
-  const visibleNotifications = notifications
-    .slice(-MAX_VISIBLE_NOTIFICATIONS)
-    .reverse();
+  const visibleNotifications = notifications.slice(-MAX_VISIBLE_NOTIFICATIONS).reverse();
 
   return (
     <View
@@ -408,7 +362,7 @@ export function Notifications({ style }: { style?: CSSProperties }) {
         ...style,
       }}
     >
-      <View style={{ position: 'relative' }}>
+      <View style={{position: 'relative'}}>
         {visibleNotifications.map((note, index) => (
           <Notification
             key={note.id}
@@ -419,7 +373,7 @@ export function Notifications({ style }: { style?: CSSProperties }) {
               if (note.onClose) {
                 note.onClose();
               }
-              dispatch(removeNotification({ id: note.id }));
+              dispatch(removeNotification({id: note.id}));
             }}
           />
         ))}

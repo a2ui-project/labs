@@ -15,33 +15,29 @@
  */
 
 // @ts-strict-ignore
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
-import { addTransactions } from '#server/accounts/sync';
-import { aqlQuery } from '#server/aql';
+import {addTransactions} from '#server/accounts/sync';
+import {aqlQuery} from '#server/aql';
 import * as budgetActions from '#server/budget/actions';
 import * as budget from '#server/budget/base';
 import * as db from '#server/db';
-import { runHandler, runMutator } from '#server/mutators';
+import {runHandler, runMutator} from '#server/mutators';
 import * as sheet from '#server/sheet';
-import { batchMessages, setSyncingMode } from '#server/sync';
+import {batchMessages, setSyncingMode} from '#server/sync';
 import * as monthUtils from '#shared/months';
-import { q } from '#shared/query';
-import type { Handlers } from '#types/handlers';
-import type {
-  CategoryGroupEntity,
-  PayeeEntity,
-  TransactionEntity,
-} from '#types/models';
+import {q} from '#shared/query';
+import type {Handlers} from '#types/handlers';
+import type {CategoryGroupEntity, PayeeEntity, TransactionEntity} from '#types/models';
 
-import { random } from './random';
+import {random} from './random';
 
-import type { CategoryGroupDefinition } from '.';
+import type {CategoryGroupDefinition} from '.';
 
-type MockPayeeEntity = Partial<PayeeEntity> & { bill?: boolean };
+type MockPayeeEntity = Partial<PayeeEntity> & {bill?: boolean};
 
 const DEMO_TAGS = [
-  { tag: 'groceries', color: '#388E3C', description: 'Kroger & Publix trips' },
+  {tag: 'groceries', color: '#388E3C', description: 'Kroger & Publix trips'},
   {
     tag: 'dining-out',
     color: '#FFA000',
@@ -67,19 +63,19 @@ const DEMO_TAGS = [
     color: '#D32F2F',
     description: 'Power, water, internet, phone',
   },
-  { tag: 'subscription', color: '#455A64', description: 'Recurring services' },
-  { tag: 'medical', color: '#C2185B', description: 'Healthcare expenses' },
-  { tag: 'gift', color: '#C39DDF', description: 'Gifts given or received' },
-  { tag: 'clothing', color: '#E64A19', description: 'Apparel purchases' },
+  {tag: 'subscription', color: '#455A64', description: 'Recurring services'},
+  {tag: 'medical', color: '#C2185B', description: 'Healthcare expenses'},
+  {tag: 'gift', color: '#C39DDF', description: 'Gifts given or received'},
+  {tag: 'clothing', color: '#E64A19', description: 'Apparel purchases'},
   {
     tag: 'retirement',
     color: '#00796B',
     description: '401k and IRA contributions',
   },
-  { tag: 'mortgage', color: '#616161', description: 'Housing payments' },
-  { tag: 'emergency', color: '#F57C00', description: 'Unexpected expenses' },
-  { tag: 'income', color: '#689F38', description: 'Paychecks and deposits' },
-  { tag: 'splurge', color: '#512DA8', description: 'Treat yourself purchases' },
+  {tag: 'mortgage', color: '#616161', description: 'Housing payments'},
+  {tag: 'emergency', color: '#F57C00', description: 'Unexpected expenses'},
+  {tag: 'income', color: '#689F38', description: 'Paychecks and deposits'},
+  {tag: 'splurge', color: '#512DA8', description: 'Treat yourself purchases'},
   {
     tag: 'reimbursable',
     color: '#0097A7',
@@ -187,27 +183,16 @@ function getStartingBalanceCat(categories: CategoryGroupEntity[]) {
   return categories.find(c => c.name === 'Starting Balances').id;
 }
 
-function extractCommonThings(
-  payees: MockPayeeEntity[],
-  groups: CategoryGroupEntity[],
-) {
+function extractCommonThings(payees: MockPayeeEntity[], groups: CategoryGroupEntity[]) {
   const incomePayee = payees.find(p => p.name === 'Deposit');
-  const expensePayees = payees.filter(
-    p => p.name !== 'Deposit' && p.name !== 'Starting Balance',
-  );
+  const expensePayees = payees.filter(p => p.name !== 'Deposit' && p.name !== 'Starting Balance');
   const expenseGroup = groups.find(g => !g.is_income);
   const incomeGroup = groups.find(g => g.is_income);
   const categories = expenseGroup.categories.filter(
     c =>
-      [
-        'Food',
-        'Restaurants',
-        'Entertainment',
-        'Clothing',
-        'General',
-        'Gift',
-        'Medical',
-      ].indexOf(c.name) !== -1,
+      ['Food', 'Restaurants', 'Entertainment', 'Clothing', 'General', 'Gift', 'Medical'].indexOf(
+        c.name,
+      ) !== -1,
   );
 
   return {
@@ -226,14 +211,8 @@ async function fillPrimaryChecking(
   payees: MockPayeeEntity[],
   groups: CategoryGroupEntity[],
 ) {
-  const {
-    incomePayee,
-    expensePayees,
-    incomeGroup,
-    expenseCategories,
-    billCategories,
-    billPayees,
-  } = extractCommonThings(payees, groups);
+  const {incomePayee, expensePayees, incomeGroup, expenseCategories, billCategories, billPayees} =
+    extractCommonThings(payees, groups);
   const numTransactions = integer(100, 200);
 
   const transactions = [];
@@ -259,10 +238,7 @@ async function fillPrimaryChecking(
       amount = integer(0, random() < 0.05 ? -8000 : -700);
     }
 
-    const currentDate = monthUtils.subDays(
-      monthUtils.currentDay(),
-      Math.floor(i / 3),
-    );
+    const currentDate = monthUtils.subDays(monthUtils.currentDay(), Math.floor(i / 3));
 
     const transaction: TransactionEntity = {
       id: uuidv4(),
@@ -289,10 +265,7 @@ async function fillPrimaryChecking(
           account: account.id,
           amount: a,
           category: childCategories[0].id,
-          notes:
-            payee === incomePayee
-              ? '#income'
-              : getChildTagNotes(childCategories[0].name, a),
+          notes: payee === incomePayee ? '#income' : getChildTagNotes(childCategories[0].name, a),
         },
         {
           id: uuidv4(),
@@ -300,10 +273,7 @@ async function fillPrimaryChecking(
           account: account.id,
           amount: a,
           category: childCategories[1].id,
-          notes:
-            payee === incomePayee
-              ? '#income'
-              : getChildTagNotes(childCategories[1].name, a),
+          notes: payee === incomePayee ? '#income' : getChildTagNotes(childCategories[1].name, a),
         },
         {
           id: uuidv4(),
@@ -314,22 +284,14 @@ async function fillPrimaryChecking(
           notes:
             payee === incomePayee
               ? '#income'
-              : getChildTagNotes(
-                  childCategories[2].name,
-                  transaction.amount - a * 2,
-                ),
+              : getChildTagNotes(childCategories[2].name, transaction.amount - a * 2),
         },
       ];
     }
   }
 
-  const earliestMonth = monthUtils.monthFromDate(
-    transactions[transactions.length - 1].date,
-  );
-  const months = monthUtils.rangeInclusive(
-    earliestMonth,
-    monthUtils.currentMonth(),
-  );
+  const earliestMonth = monthUtils.monthFromDate(transactions[transactions.length - 1].date);
+  const months = monthUtils.rangeInclusive(earliestMonth, monthUtils.currentMonth());
   const currentDay = monthUtils.currentDay();
   for (const month of months) {
     let date = monthUtils.addDays(month, 12);
@@ -372,8 +334,7 @@ async function fillPrimaryChecking(
     if (monthUtils.isBefore(date, currentDay)) {
       transactions.push({
         amount: -6000,
-        payee: billPayees.find(p => p.name.toLowerCase().includes('internet'))
-          .id,
+        payee: billPayees.find(p => p.name.toLowerCase().includes('internet')).id,
         account: account.id,
         date,
         category: billCategories.find(c => c.name === 'Internet').id,
@@ -385,8 +346,7 @@ async function fillPrimaryChecking(
     if (monthUtils.isBefore(date, currentDay)) {
       transactions.push({
         amount: -7500,
-        payee: billPayees.find(p => p.name.toLowerCase().includes('t-mobile'))
-          .id,
+        payee: billPayees.find(p => p.name.toLowerCase().includes('t-mobile')).id,
         account: account.id,
         date,
         category: billCategories.find(c => c.name === 'Cell').id,
@@ -415,8 +375,10 @@ async function fillPrimaryChecking(
 }
 
 async function fillChecking(handlers, account, payees, groups) {
-  const { incomePayee, expensePayees, incomeGroup, expenseCategories } =
-    extractCommonThings(payees, groups);
+  const {incomePayee, expensePayees, incomeGroup, expenseCategories} = extractCommonThings(
+    payees,
+    groups,
+  );
   const numTransactions = integer(20, 40);
 
   const transactions = [];
@@ -435,8 +397,7 @@ async function fillChecking(handlers, account, payees, groups) {
       category = pickRandom(expenseCategories);
     }
 
-    const amount =
-      payee.name === 'Deposit' ? integer(50000, 70000) : integer(0, -10000);
+    const amount = payee.name === 'Deposit' ? integer(50000, 70000) : integer(0, -10000);
 
     transactions.push({
       amount,
@@ -464,7 +425,7 @@ async function fillChecking(handlers, account, payees, groups) {
 }
 
 async function fillInvestment(handlers, account, payees, groups) {
-  const { incomePayee, incomeGroup } = extractCommonThings(payees, groups);
+  const {incomePayee, incomeGroup} = extractCommonThings(payees, groups);
 
   const numTransactions = integer(10, 30);
 
@@ -501,8 +462,10 @@ async function fillInvestment(handlers, account, payees, groups) {
 }
 
 async function fillSavings(handlers, account, payees, groups) {
-  const { incomePayee, expensePayees, incomeGroup, expenseCategories } =
-    extractCommonThings(payees, groups);
+  const {incomePayee, expensePayees, incomeGroup, expenseCategories} = extractCommonThings(
+    payees,
+    groups,
+  );
 
   const numTransactions = integer(15, 40);
 
@@ -518,8 +481,7 @@ async function fillSavings(handlers, account, payees, groups) {
       payee === incomePayee
         ? incomeGroup.categories.find(c => c.name === 'Income')
         : pickRandom(expenseCategories);
-    const amount =
-      payee === incomePayee ? integer(10000, 80000) : integer(-10000, -2000);
+    const amount = payee === incomePayee ? integer(10000, 80000) : integer(-10000, -2000);
 
     transactions.push({
       amount,
@@ -547,7 +509,7 @@ async function fillSavings(handlers, account, payees, groups) {
 }
 
 async function fillMortgage(handlers, account, payees, groups) {
-  const { incomePayee, incomeGroup } = extractCommonThings(payees, groups);
+  const {incomePayee, incomeGroup} = extractCommonThings(payees, groups);
 
   const numTransactions = integer(7, 10);
   const amount = integer(100000, 200000);
@@ -558,8 +520,7 @@ async function fillMortgage(handlers, account, payees, groups) {
       amount: integer(-3000, -3500) * 100 * 100,
       payee: payees.find(p => p.name === 'Starting Balance').id,
       account: account.id,
-      date:
-        monthUtils.subMonths(monthUtils.currentDay(), numTransactions) + '-02',
+      date: monthUtils.subMonths(monthUtils.currentDay(), numTransactions) + '-02',
       category: getStartingBalanceCat(incomeGroup.categories),
       notes: '#mortgage',
       starting_balance_flag: true,
@@ -586,7 +547,7 @@ async function fillMortgage(handlers, account, payees, groups) {
 }
 
 async function fillOther(handlers, account, payees, groups) {
-  const { incomePayee, incomeGroup } = extractCommonThings(payees, groups);
+  const {incomePayee, incomeGroup} = extractCommonThings(payees, groups);
 
   const numTransactions = integer(3, 6);
   const category = incomeGroup.categories.find(c => c.name === 'Income');
@@ -597,8 +558,7 @@ async function fillOther(handlers, account, payees, groups) {
       amount: integer(3250, 3700) * 100 * 100,
       payee: payees.find(p => p.name === 'Starting Balance').id,
       account: account.id,
-      date:
-        monthUtils.subMonths(monthUtils.currentDay(), numTransactions) + '-02',
+      date: monthUtils.subMonths(monthUtils.currentDay(), numTransactions) + '-02',
       category: getStartingBalanceCat(incomeGroup.categories),
       starting_balance_flag: true,
     },
@@ -654,7 +614,7 @@ async function createBudget(accounts, payees, groups) {
   }
 
   function setBudget(month, category, amount) {
-    return budgetActions.setBudget({ month, category: category.id, amount });
+    return budgetActions.setBudget({month, category: category.id, amount});
   }
 
   function setBudgetIfSpent(month, cat) {
@@ -671,10 +631,7 @@ async function createBudget(accounts, payees, groups) {
   await runMutator(() =>
     batchMessages(async () => {
       for (const month of months) {
-        if (
-          month >=
-          monthUtils.monthFromDate(db.fromDateRepr(earliestPrimaryDate))
-        ) {
+        if (month >= monthUtils.monthFromDate(db.fromDateRepr(earliestPrimaryDate))) {
           void setBudget(month, category('Food'), 40000);
           void setBudget(month, category('Restaurants'), 30000);
           void setBudget(month, category('Entertainment'), 10000);
@@ -714,15 +671,11 @@ async function createBudget(accounts, payees, groups) {
       let prevSaved = 0;
       for (const month of months) {
         if (
-          month >=
-            monthUtils.monthFromDate(db.fromDateRepr(earliestPrimaryDate)) &&
+          month >= monthUtils.monthFromDate(db.fromDateRepr(earliestPrimaryDate)) &&
           month <= monthUtils.currentMonth()
         ) {
           const sheetName = monthUtils.sheetForMonth(month);
-          const toBudget: number = sheet.getCellValue(
-            sheetName,
-            'to-budget',
-          ) as number;
+          const toBudget: number = sheet.getCellValue(sheetName, 'to-budget') as number;
           const available = toBudget - prevSaved;
 
           if (available - 403000 > 0) {
@@ -770,15 +723,15 @@ export async function createTestBudget(handlers: Handlers) {
   db.runQuery('DELETE FROM categories;');
   db.runQuery('DELETE FROM category_groups');
 
-  const accounts: { name: string; offBudget?: boolean; id?: string }[] = [
-    { name: 'Bank of America' },
-    { name: 'Ally Savings' },
-    { name: 'Capital One Checking' },
-    { name: 'HSBC' },
-    { name: 'Vanguard 401k', offBudget: true },
-    { name: 'Mortgage', offBudget: true },
-    { name: 'House Asset', offBudget: true },
-    { name: 'Roth IRA', offBudget: true },
+  const accounts: {name: string; offBudget?: boolean; id?: string}[] = [
+    {name: 'Bank of America'},
+    {name: 'Ally Savings'},
+    {name: 'Capital One Checking'},
+    {name: 'HSBC'},
+    {name: 'Vanguard 401k', offBudget: true},
+    {name: 'Mortgage', offBudget: true},
+    {name: 'House Asset', offBudget: true},
+    {name: 'Roth IRA', offBudget: true},
   ];
 
   await runMutator(async () => {
@@ -788,18 +741,18 @@ export async function createTestBudget(handlers: Handlers) {
   });
 
   const newPayees: Array<MockPayeeEntity> = [
-    { name: 'Starting Balance' },
-    { name: 'Kroger' },
-    { name: 'Publix' },
-    { name: 'Home Depot' },
-    { name: 'Movies' },
-    { name: 'Online store' },
-    { name: 'Deposit' },
-    { name: 'Dominion Power', bill: true },
-    { name: 'Extra Watery', bill: true },
-    { name: 'Housy House', bill: true },
-    { name: 'Fast Internet', bill: true },
-    { name: 'T-mobile', bill: true },
+    {name: 'Starting Balance'},
+    {name: 'Kroger'},
+    {name: 'Publix'},
+    {name: 'Home Depot'},
+    {name: 'Movies'},
+    {name: 'Online store'},
+    {name: 'Deposit'},
+    {name: 'Dominion Power', bill: true},
+    {name: 'Extra Watery', bill: true},
+    {name: 'Housy House', bill: true},
+    {name: 'Fast Internet', bill: true},
+    {name: 'T-mobile', bill: true},
   ];
 
   const payees: PayeeEntity[] = [];
@@ -807,7 +760,7 @@ export async function createTestBudget(handlers: Handlers) {
   await runMutator(() =>
     batchMessages(async () => {
       for (const newPayee of newPayees) {
-        const id = await handlers['payee-create']({ name: newPayee.name });
+        const id = await handlers['payee-create']({name: newPayee.name});
         payees.push({
           id,
           name: newPayee.name,
@@ -821,33 +774,33 @@ export async function createTestBudget(handlers: Handlers) {
     {
       name: 'Usual Expenses',
       categories: [
-        { name: 'Savings' },
-        { name: 'Medical' },
-        { name: 'Gift' },
-        { name: 'General' },
-        { name: 'Clothing' },
-        { name: 'Entertainment' },
-        { name: 'Restaurants' },
-        { name: 'Food' },
+        {name: 'Savings'},
+        {name: 'Medical'},
+        {name: 'Gift'},
+        {name: 'General'},
+        {name: 'Clothing'},
+        {name: 'Entertainment'},
+        {name: 'Restaurants'},
+        {name: 'Food'},
       ],
     },
     {
       name: 'Bills',
       categories: [
-        { name: 'Power' },
-        { name: 'Water' },
-        { name: 'Mortgage' },
-        { name: 'Internet' },
-        { name: 'Cell' },
+        {name: 'Power'},
+        {name: 'Water'},
+        {name: 'Mortgage'},
+        {name: 'Internet'},
+        {name: 'Cell'},
       ],
     },
     {
       name: 'Income',
       is_income: true,
       categories: [
-        { name: 'Income', is_income: true },
-        { name: 'Misc', is_income: true },
-        { name: 'Starting Balances', is_income: true },
+        {name: 'Income', is_income: true},
+        {name: 'Misc', is_income: true},
+        {name: 'Starting Balances', is_income: true},
       ],
     },
   ];
@@ -897,17 +850,11 @@ export async function createTestBudget(handlers: Handlers) {
       for (const account of accounts) {
         if (account.name === 'Bank of America') {
           await fillPrimaryChecking(handlers, account, payees, allGroups);
-        } else if (
-          account.name === 'Capital One Checking' ||
-          account.name === 'HSBC'
-        ) {
+        } else if (account.name === 'Capital One Checking' || account.name === 'HSBC') {
           await fillChecking(handlers, account, payees, allGroups);
         } else if (account.name === 'Ally Savings') {
           await fillSavings(handlers, account, payees, allGroups);
-        } else if (
-          account.name === 'Vanguard 401k' ||
-          account.name === 'Roth IRA'
-        ) {
+        } else if (account.name === 'Vanguard 401k' || account.name === 'Roth IRA') {
           await fillInvestment(handlers, account, payees, allGroups);
         } else if (account.name === 'Mortgage') {
           await fillMortgage(handlers, account, payees, allGroups);
@@ -928,16 +875,13 @@ export async function createTestBudget(handlers: Handlers) {
   // don't want to show that as it'd be weird. We modify the latest
   // deposit transaction to force it to be positive
   const primaryAccount = accounts.find(a => (a.name = 'Bank of America'));
-  const { data: primaryBalance } = await aqlQuery(
-    q('transactions')
-      .filter({ account: primaryAccount.id })
-      .calculate({ $sum: '$amount' })
-      .serialize(),
+  const {data: primaryBalance} = await aqlQuery(
+    q('transactions').filter({account: primaryAccount.id}).calculate({$sum: '$amount'}).serialize(),
   );
   if (primaryBalance < 0) {
-    const { data: results } = await aqlQuery(
+    const {data: results} = await aqlQuery(
       q('transactions')
-        .filter({ account: primaryAccount.id, amount: { $gt: 0 } })
+        .filter({account: primaryAccount.id, amount: {$gt: 0}})
         .limit(1)
         .select(['id', 'amount'])
         .serialize(),
@@ -989,7 +933,7 @@ export async function createTestBudget(handlers: Handlers) {
               weekendSolveMode: 'after',
             },
           },
-          { op: 'isapprox', field: 'amount', value: -12000 },
+          {op: 'isapprox', field: 'amount', value: -12000},
         ],
       });
 
@@ -1014,7 +958,7 @@ export async function createTestBudget(handlers: Handlers) {
             field: 'date',
             value: monthUtils.subDays(monthUtils.currentDay(), 1),
           },
-          { op: 'isapprox', field: 'amount', value: -14000 },
+          {op: 'isapprox', field: 'amount', value: -14000},
         ],
       });
 
@@ -1035,7 +979,7 @@ export async function createTestBudget(handlers: Handlers) {
               weekendSolveMode: 'after',
             },
           },
-          { op: 'is', field: 'amount', value: -2700000 },
+          {op: 'is', field: 'amount', value: -2700000},
         ],
       });
 
@@ -1061,7 +1005,7 @@ export async function createTestBudget(handlers: Handlers) {
               weekendSolveMode: 'after',
             },
           },
-          { op: 'is', field: 'amount', value: -190000 },
+          {op: 'is', field: 'amount', value: -190000},
         ],
       });
     }),

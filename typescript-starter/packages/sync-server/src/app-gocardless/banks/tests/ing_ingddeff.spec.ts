@@ -15,11 +15,8 @@
  */
 
 import IngIngddeff from '#app-gocardless/banks/ing_ingddeff';
-import type {
-  Balance,
-  Transaction,
-} from '#app-gocardless/gocardless-node.types';
-import type { DetailedAccountWithInstitution } from '#app-gocardless/gocardless.types';
+import type {Balance, Transaction} from '#app-gocardless/gocardless-node.types';
+import type {DetailedAccountWithInstitution} from '#app-gocardless/gocardless.types';
 
 describe('IngIngddeff', () => {
   describe('#normalizeAccount', () => {
@@ -288,7 +285,7 @@ describe('IngIngddeff', () => {
   describe('#countStartingBalance', () => {
     const balances: Balance[] = [
       {
-        balanceAmount: { amount: '3596.87', currency: 'EUR' },
+        balanceAmount: {amount: '3596.87', currency: 'EUR'},
         balanceType: 'interimBooked',
         lastChangeDateTime: '2023-12-29T16:44:06.479Z',
       },
@@ -302,10 +299,7 @@ describe('IngIngddeff', () => {
         normalizeTransactions.filter(tx => tx != null),
       );
 
-      const startingBalance = IngIngddeff.calculateStartingBalance(
-        sortedTransactions,
-        balances,
-      );
+      const startingBalance = IngIngddeff.calculateStartingBalance(sortedTransactions, balances);
 
       expect(startingBalance).toEqual(75236);
     });
@@ -313,9 +307,7 @@ describe('IngIngddeff', () => {
     it('returns the same balance amount when no transactions', () => {
       const transactions: Transaction[] = [];
 
-      expect(
-        IngIngddeff.calculateStartingBalance(transactions, balances),
-      ).toEqual(359687);
+      expect(IngIngddeff.calculateStartingBalance(transactions, balances)).toEqual(359687);
     });
   });
 });

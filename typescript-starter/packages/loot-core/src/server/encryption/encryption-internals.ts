@@ -61,7 +61,7 @@ export async function encrypt(masterKey, value) {
 }
 
 export async function decrypt(masterKey, encrypted, meta) {
-  const { algorithm, iv, authTag } = meta;
+  const {algorithm, iv, authTag} = meta;
 
   const decrypted = await crypto.subtle.decrypt(
     {
@@ -76,14 +76,14 @@ export async function decrypt(masterKey, encrypted, meta) {
   return Buffer.from(decrypted);
 }
 
-export async function createKey({ secret, salt }) {
+export async function createKey({secret, salt}) {
   const passwordBuffer = Buffer.from(secret);
   const saltBuffer = Buffer.from(salt);
 
   const passwordKey = await crypto.subtle.importKey(
     'raw',
     passwordBuffer,
-    { name: 'PBKDF2' },
+    {name: 'PBKDF2'},
     false,
     ['deriveBits', 'deriveKey'],
   );
@@ -96,7 +96,7 @@ export async function createKey({ secret, salt }) {
       iterations: 10000,
     },
     passwordKey,
-    { name: 'AES-GCM', length: 256 },
+    {name: 'AES-GCM', length: 256},
     true,
     ['encrypt', 'decrypt'],
   );
@@ -113,7 +113,7 @@ export async function importKey(str) {
   const key = await crypto.subtle.importKey(
     'raw',
     Buffer.from(str, 'base64'),
-    { name: 'AES-GCM' },
+    {name: 'AES-GCM'},
     false,
     ['encrypt', 'decrypt'],
   );

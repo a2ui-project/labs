@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 /**
@@ -48,16 +48,11 @@ export default {
   institutionIds: ['ALIOR_ALBPPLPW'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
-    if (
-      Number(transaction.transactionAmount.amount) < 0 &&
-      !transaction.creditorName
-    ) {
-      const remittanceInfo =
-        transaction.remittanceInformationUnstructured ?? '';
-      const merchant =
-        remittanceInfo.match(CARD_PAYMENT_MERCHANT)?.[1].trim() ?? '';
+    if (Number(transaction.transactionAmount.amount) < 0 && !transaction.creditorName) {
+      const remittanceInfo = transaction.remittanceInformationUnstructured ?? '';
+      const merchant = remittanceInfo.match(CARD_PAYMENT_MERCHANT)?.[1].trim() ?? '';
 
       if (merchant) {
         editedTrans.creditorName = merchant;

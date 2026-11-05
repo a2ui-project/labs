@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { mockTransactionAmount } from '#app-gocardless/services/tests/fixtures';
-import { sortByBookingDateOrValueDate } from '#app-gocardless/utils';
+import {mockTransactionAmount} from '#app-gocardless/services/tests/fixtures';
+import {sortByBookingDateOrValueDate} from '#app-gocardless/utils';
 
 describe('utils', () => {
   describe('#sortByBookingDate', () => {

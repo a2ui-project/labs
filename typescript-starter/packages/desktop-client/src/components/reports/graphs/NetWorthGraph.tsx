@@ -15,39 +15,29 @@
  */
 
 // @ts-strict-ignore
-import React, { useId, useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useId, useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { AlignedText } from '@actual-app/components/aligned-text';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { css } from '@emotion/css';
-import { getDay, parse } from 'date-fns';
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
-import type { TooltipContentProps } from 'recharts';
+import {AlignedText} from '@actual-app/components/aligned-text';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {css} from '@emotion/css';
+import {getDay, parse} from 'date-fns';
+import {Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis} from 'recharts';
+import type {TooltipContentProps} from 'recharts';
 
-import { FinancialText } from '#components/FinancialText';
-import {
-  getColorScale,
-  useRechartsAnimation,
-} from '#components/reports/chart-theme';
-import { Container } from '#components/reports/Container';
-import { numberFormatterTooltip } from '#components/reports/numberFormatter';
-import { getIntervalFormat } from '#components/reports/ReportOptions';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
-import type { UseFormatResult } from '#hooks/useFormat';
-import { usePrivacyMode } from '#hooks/usePrivacyMode';
+import {FinancialText} from '#components/FinancialText';
+import {getColorScale, useRechartsAnimation} from '#components/reports/chart-theme';
+import {Container} from '#components/reports/Container';
+import {numberFormatterTooltip} from '#components/reports/numberFormatter';
+import {getIntervalFormat} from '#components/reports/ReportOptions';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
+import type {UseFormatResult} from '#hooks/useFormat';
+import {usePrivacyMode} from '#hooks/usePrivacyMode';
 
-import { computePadding } from './util/computePadding';
+import {computePadding} from './util/computePadding';
 
 type NetWorthDataPoint = {
   x: string;
@@ -63,8 +53,8 @@ type TrendTooltipProps = TooltipContentProps & {
   style?: CSSProperties;
 };
 
-function TrendTooltip({ active, payload, style }: TrendTooltipProps) {
-  const { t } = useTranslation();
+function TrendTooltip({active, payload, style}: TrendTooltipProps) {
+  const {t} = useTranslation();
 
   if (active && payload && payload.length) {
     return (
@@ -83,10 +73,10 @@ function TrendTooltip({ active, payload, style }: TrendTooltipProps) {
         ])}
       >
         <div>
-          <div style={{ marginBottom: 10 }}>
+          <div style={{marginBottom: 10}}>
             <strong>{payload[0].payload.date}</strong>
           </div>
-          <div style={{ lineHeight: 1.5 }}>
+          <div style={{lineHeight: 1.5}}>
             <AlignedText
               left={t('Assets:')}
               right={<FinancialText>{payload[0].payload.assets}</FinancialText>}
@@ -97,11 +87,7 @@ function TrendTooltip({ active, payload, style }: TrendTooltipProps) {
             />
             <AlignedText
               left={t('Net worth:')}
-              right={
-                <FinancialText as="strong">
-                  {payload[0].payload.networth}
-                </FinancialText>
-              }
+              right={<FinancialText as="strong">{payload[0].payload.networth}</FinancialText>}
             />
             <AlignedText
               left={t('Change:')}
@@ -116,8 +102,8 @@ function TrendTooltip({ active, payload, style }: TrendTooltipProps) {
 }
 
 type StackedTooltipProps = TooltipContentProps & {
-  sortedAccounts: Array<{ id: string; name: string }>;
-  accounts: Array<{ id: string; name: string }>;
+  sortedAccounts: Array<{id: string; name: string}>;
+  accounts: Array<{id: string; name: string}>;
   hoveredAccountId: string | null;
   format: UseFormatResult;
 };
@@ -132,10 +118,7 @@ function StackedTooltip({
 }: StackedTooltipProps) {
   if (active && payload && payload.length) {
     // Calculate total from payload (visible accounts)
-    const total = payload.reduce(
-      (acc: number, p) => acc + (Number(p.value) || 0),
-      0,
-    );
+    const total = payload.reduce((acc: number, p) => acc + (Number(p.value) || 0), 0);
     const sortedPayload = [...payload].sort((a, b) => {
       const indexA = sortedAccounts.findIndex(acc => acc.id === a.dataKey);
       const indexB = sortedAccounts.findIndex(acc => acc.id === b.dataKey);
@@ -163,53 +146,45 @@ function StackedTooltip({
           },
         ])}
       >
-        <div style={{ marginBottom: 10, fontWeight: 'bold' }}>
-          {payload[0].payload.date}
-        </div>
-        <table style={{ borderSpacing: '15px 0', marginLeft: '-15px' }}>
+        <div style={{marginBottom: 10, fontWeight: 'bold'}}>{payload[0].payload.date}</div>
+        <table style={{borderSpacing: '15px 0', marginLeft: '-15px'}}>
           <thead>
             <tr>
-              <th style={{ textAlign: 'left', paddingLeft: 15 }}>
+              <th style={{textAlign: 'left', paddingLeft: 15}}>
                 <Trans>Account</Trans>
               </th>
-              <th style={{ textAlign: 'right' }}>
+              <th style={{textAlign: 'right'}}>
                 <Trans>Value</Trans>
               </th>
-              {showPercentage && <th style={{ textAlign: 'right' }}>%</th>}
+              {showPercentage && <th style={{textAlign: 'right'}}>%</th>}
             </tr>
           </thead>
           <tbody>
             {sortedPayload.map(entry => {
               const accountId = entry.dataKey as string;
-              const accountName =
-                accounts.find(a => a.id === accountId)?.name || accountId;
+              const accountName = accounts.find(a => a.id === accountId)?.name || accountId;
               const value = Number(entry.value);
               const percent = total !== 0 ? (value / total) * 100 : 0;
 
               return (
-                <tr key={accountId} style={{ color: entry.color }}>
+                <tr key={accountId} style={{color: entry.color}}>
                   <td
                     style={{
                       textAlign: 'left',
                       paddingLeft: 15,
-                      textDecoration:
-                        hoveredAccountId === accountId
-                          ? 'underline'
-                          : undefined,
+                      textDecoration: hoveredAccountId === accountId ? 'underline' : undefined,
                     }}
                   >
                     {accountName}
                   </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <span style={{ color: theme.pageText }}>
-                      <FinancialText>
-                        {format(value, 'financial')}
-                      </FinancialText>
+                  <td style={{textAlign: 'right'}}>
+                    <span style={{color: theme.pageText}}>
+                      <FinancialText>{format(value, 'financial')}</FinancialText>
                     </span>
                   </td>
                   {showPercentage && (
-                    <td style={{ textAlign: 'right' }}>
-                      <span style={{ color: theme.pageText }}>
+                    <td style={{textAlign: 'right'}}>
+                      <span style={{color: theme.pageText}}>
                         <FinancialText>{percent.toFixed(1)}%</FinancialText>
                       </span>
                     </td>
@@ -223,15 +198,13 @@ function StackedTooltip({
                 borderTop: '1px solid ' + theme.tableBorder,
               }}
             >
-              <td style={{ textAlign: 'left', paddingLeft: 15, paddingTop: 5 }}>
+              <td style={{textAlign: 'left', paddingLeft: 15, paddingTop: 5}}>
                 <Trans>Total</Trans>
               </td>
-              <td style={{ textAlign: 'right', paddingTop: 5 }}>
+              <td style={{textAlign: 'right', paddingTop: 5}}>
                 <FinancialText>{format(total, 'financial')}</FinancialText>
               </td>
-              {showPercentage && (
-                <td style={{ textAlign: 'right', paddingTop: 5 }}>100.0%</td>
-              )}
+              {showPercentage && <td style={{textAlign: 'right', paddingTop: 5}}>100.0%</td>}
             </tr>
           </tbody>
         </table>
@@ -249,7 +222,7 @@ type NetWorthGraphProps = {
     start: string;
     end: string;
   };
-  accounts?: Array<{ id: string; name: string }>;
+  accounts?: Array<{id: string; name: string}>;
   compact?: boolean;
   showTooltip?: boolean;
   interval?: string;
@@ -269,21 +242,18 @@ export function NetWorthGraph({
   const id = useId();
   const format = useFormat();
   const dateFormat = useDateFormat() || 'MM/dd/yyyy';
-  const animationProps = useRechartsAnimation({ animationDuration: 1000 });
+  const animationProps = useRechartsAnimation({animationDuration: 1000});
   const [isTooltipActive, setIsTooltipActive] = useState(false);
   const [hoveredAccountId, setHoveredAccountId] = useState<string | null>(null);
 
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
   const effectiveShowTooltip = showTooltip && !isNarrowWidth;
 
   // Use more aggressive smoothening for high-frequency data
-  const interpolationType =
-    interval === 'Daily' || interval === 'Weekly' ? 'basis' : 'monotone';
+  const interpolationType = interval === 'Daily' || interval === 'Weekly' ? 'basis' : 'monotone';
 
   const tickFormatter = (tick: number) => {
-    const res = privacyMode
-      ? '...'
-      : `${format(Math.round(tick), 'financial-no-decimals')}`;
+    const res = privacyMode ? '...' : `${format(Math.round(tick), 'financial-no-decimals')}`;
 
     return res;
   };
@@ -360,7 +330,7 @@ export function NetWorthGraph({
     <Container
       style={{
         ...style,
-        ...(compact && { height: 'auto' }),
+        ...(compact && {height: 'auto'}),
         position: 'relative',
       }}
     >
@@ -368,7 +338,7 @@ export function NetWorthGraph({
         graphData && (
           <div
             style={{
-              ...(!compact && { marginTop: '15px' }),
+              ...(!compact && {marginTop: '15px'}),
               position: 'relative',
             }}
             onMouseLeave={() => {
@@ -393,19 +363,15 @@ export function NetWorthGraph({
                 bottom: 0,
               }}
               onMouseMove={() =>
-                effectiveShowTooltip &&
-                !isTooltipActive &&
-                setIsTooltipActive(true)
+                effectiveShowTooltip && !isTooltipActive && setIsTooltipActive(true)
               }
             >
-              {compact ? null : (
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              )}
+              {compact ? null : <CartesianGrid strokeDasharray="3 3" vertical={false} />}
               <XAxis
                 dataKey="x"
                 hide={compact}
-                tick={{ fill: theme.pageText }}
-                tickLine={{ stroke: theme.pageText }}
+                tick={{fill: theme.pageText}}
+                tickLine={{stroke: theme.pageText}}
                 ticks={weeklyTicks}
               />
               <YAxis
@@ -413,8 +379,8 @@ export function NetWorthGraph({
                 domain={mode === 'trend' ? ['auto', 'auto'] : undefined}
                 hide={compact}
                 tickFormatter={tickFormatter}
-                tick={{ fill: theme.pageText }}
-                tickLine={{ stroke: theme.pageText }}
+                tick={{fill: theme.pageText}}
+                tickLine={{stroke: theme.pageText}}
               />
               {effectiveShowTooltip && mode === 'trend' && (
                 <Tooltip
@@ -435,22 +401,14 @@ export function NetWorthGraph({
                     />
                   )}
                   isAnimationActive={false}
-                  wrapperStyle={{ zIndex: 9999, pointerEvents: 'auto' }}
+                  wrapperStyle={{zIndex: 9999, pointerEvents: 'auto'}}
                 />
               )}
 
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset={off}
-                    stopColor={theme.reportsChartFill}
-                    stopOpacity={0.2}
-                  />
-                  <stop
-                    offset={off}
-                    stopColor={theme.reportsNumberNegative}
-                    stopOpacity={0.2}
-                  />
+                  <stop offset={off} stopColor={theme.reportsChartFill} stopOpacity={0.2} />
+                  <stop offset={off} stopColor={theme.reportsNumberNegative} stopOpacity={0.2} />
                 </linearGradient>
               </defs>
 

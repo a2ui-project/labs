@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import React, { forwardRef } from 'react';
-import type { HTMLProps, ReactNode, Ref } from 'react';
+import React, {forwardRef} from 'react';
+import type {HTMLProps, ReactNode, Ref} from 'react';
 
-import { css, cx } from '@emotion/css';
+import {css, cx} from '@emotion/css';
 
-import type { CSSProperties } from './styles';
+import type {CSSProperties} from './styles';
 
 type TextProps = Omit<HTMLProps<HTMLSpanElement>, 'style'> & {
   innerRef?: Ref<HTMLSpanElement>;
@@ -29,14 +29,8 @@ type TextProps = Omit<HTMLProps<HTMLSpanElement>, 'style'> & {
 };
 
 export const Text = forwardRef<HTMLSpanElement, TextProps>((props, ref) => {
-  const { className = '', style, innerRef, ...restProps } = props;
-  return (
-    <span
-      {...restProps}
-      ref={innerRef ?? ref}
-      className={cx(className, css(style))}
-    />
-  );
+  const {className = '', style, innerRef, ...restProps} = props;
+  return <span {...restProps} ref={innerRef ?? ref} className={cx(className, css(style))} />;
 });
 
 Text.displayName = 'Text';

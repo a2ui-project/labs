@@ -20,7 +20,7 @@ on:
   # Gated on the 'pr-automation' environment (manual approval) and
   # validates the patch is PNG-only before applying. See SECURITY note above.
   workflow_run: # zizmor: ignore[dangerous-triggers]
-    workflows: ['VRT Update - Generate']
+    workflows: ["VRT Update - Generate"]
     types:
       - completed
 

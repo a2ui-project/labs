@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { app, session } from 'electron';
+import {app, session} from 'electron';
 
 app.on('web-contents-created', function (event, contents) {
   contents.on('will-attach-webview', function (event, webPreferences) {
@@ -35,14 +35,12 @@ app.on('web-contents-created', function (event, contents) {
 });
 
 app.on('ready', function () {
-  session.defaultSession.setPermissionRequestHandler(
-    function (webContents, permission, callback) {
-      const url = webContents.getURL();
-      if (url.startsWith('file://')) {
-        callback(true);
-      } else {
-        callback(false);
-      }
-    },
-  );
+  session.defaultSession.setPermissionRequestHandler(function (webContents, permission, callback) {
+    const url = webContents.getURL();
+    if (url.startsWith('file://')) {
+      callback(true);
+    } else {
+      callback(false);
+    }
+  });
 });

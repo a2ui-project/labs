@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Query } from '@actual-app/core/shared/query';
+import type {Query} from '@actual-app/core/shared/query';
 
 export type Spreadsheets = {
   account: {
@@ -100,15 +100,14 @@ export type Spreadsheets = {
 
     // Balance fields
     [key: `balance-query-${string}`]: number;
-    [key: `selected-transactions-${string}`]: Array<{ id: string }>;
+    [key: `selected-transactions-${string}`]: Array<{id: string}>;
     [key: `selected-balance-${string}`]: number;
   };
 };
 
 export type SheetNames = keyof Spreadsheets & string;
 
-export type SheetFields<SheetName extends SheetNames> =
-  keyof Spreadsheets[SheetName] & string;
+export type SheetFields<SheetName extends SheetNames> = keyof Spreadsheets[SheetName] & string;
 
 export type BindingObject<
   SheetName extends SheetNames,
@@ -119,10 +118,7 @@ export type BindingObject<
   query?: Query | undefined;
 };
 
-export type Binding<
-  SheetName extends SheetNames,
-  SheetFieldName extends SheetFields<SheetName>,
-> =
+export type Binding<SheetName extends SheetNames, SheetFieldName extends SheetFields<SheetName>> =
   | SheetFieldName
   | {
       name: SheetFieldName;

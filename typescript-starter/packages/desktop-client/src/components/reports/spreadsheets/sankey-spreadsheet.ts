@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-import { theme } from '@actual-app/components/theme';
-import { send } from '@actual-app/core/platform/client/connection';
+import {theme} from '@actual-app/components/theme';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
-import type {
-  CategoryGroupEntity,
-  RuleConditionEntity,
-} from '@actual-app/core/types/models';
-import { t } from 'i18next';
+import {q} from '@actual-app/core/shared/query';
+import type {CategoryGroupEntity, RuleConditionEntity} from '@actual-app/core/types/models';
+import {t} from 'i18next';
 
-import { getColorScale } from '#components/reports/chart-theme';
-import type { useSpreadsheet } from '#hooks/useSpreadsheet';
-import { aqlQuery } from '#queries/aqlQuery';
+import {getColorScale} from '#components/reports/chart-theme';
+import type {useSpreadsheet} from '#hooks/useSpreadsheet';
+import {aqlQuery} from '#queries/aqlQuery';
 
 type BudgetMonthCategory = {
   id: string;
@@ -74,7 +71,7 @@ type SankeyLink = {
   source: number;
   target: number;
   value: number;
-  tooltipInfo?: Array<{ name: string; value: number }>;
+  tooltipInfo?: Array<{name: string; value: number}>;
   color?: string;
 };
 
@@ -124,17 +121,14 @@ export type NodeData = {
   labelKey?: string;
   labelParams?: Record<string, string>;
   isNegative?: boolean;
-  tooltipInfo?: Array<{ name: string; value: number }>;
+  tooltipInfo?: Array<{name: string; value: number}>;
   percentageLabel?: string;
   color?: string;
 };
 export type Graph = Map<NodeKey, NodeData>;
 type VisualLayerIndex = number;
 
-type TooltipInfoMap = Map<
-  NodeKey,
-  Map<NodeKey, Array<{ name: string; value: number }>>
->;
+type TooltipInfoMap = Map<NodeKey, Map<NodeKey, Array<{name: string; value: number}>>>;
 
 const SpecialNodeKeys = {
   ToBudget: 'to_budget',
@@ -170,10 +164,7 @@ export const GRAPH_LAYER_ORDER = [
 ] as const;
 
 export function isGraphLayer(value: unknown): value is GraphLayers {
-  return (
-    typeof value === 'string' &&
-    (Object.values(GraphLayers) as string[]).includes(value)
-  );
+  return typeof value === 'string' && (Object.values(GraphLayers) as string[]).includes(value);
 }
 
 export function createBaseGraphSpreadsheet(
@@ -220,12 +211,7 @@ async function createBaseGraph(
   let transferData: TransferPair[] | undefined;
 
   if (mode === 'budgeted') {
-    ({ data, aggregated } = await createBudgetSpreadsheet(
-      start,
-      end,
-      conditions,
-      conditionsOp,
-    )());
+    ({data, aggregated} = await createBudgetSpreadsheet(start, end, conditions, conditionsOp)());
   } else if (mode === 'spent') {
     const res = await createTransactionsSpreadsheet(
       start,
@@ -255,11 +241,7 @@ export function buildSankeyData(
 ): SankeyData {
   const graph = cloneGraph(baseGraph);
 
-  const toolTipInfoMap = groupOtherCategories(
-    graph,
-    topNcategories,
-    categorySort,
-  );
+  const toolTipInfoMap = groupOtherCategories(graph, topNcategories, categorySort);
   const sortedGraph = sortGraph(graph, categorySort, categories);
   cleanUpNodes(sortedGraph);
   addHiddenNodes(sortedGraph);
@@ -277,8 +259,7 @@ export function createBudgetSpreadsheet(
   conditionsOp: 'and' | 'or' = 'and',
 ) {
   return async () => {
-    const months =
-      end && end !== start ? monthUtils.rangeInclusive(start, end) : [start];
+    const months = end && end !== start ? monthUtils.rangeInclusive(start, end) : [start];
 
     const monthResponses = await Promise.all(
       months.map(
@@ -304,26 +285,21 @@ export function createBudgetSpreadsheet(
           if (!existingGroup) {
             acc.categoryGroupsMap.set(group.id, {
               ...group,
-              categories: group.categories.map(cat => ({ ...cat })),
+              categories: group.categories.map(cat => ({...cat})),
             });
             continue;
           }
 
           for (const cat of group.categories) {
-            const existingCat = existingGroup.categories.find(
-              c => c.id === cat.id,
-            );
+            const existingCat = existingGroup.categories.find(c => c.id === cat.id);
             if (!existingCat) {
-              existingGroup.categories.push({ ...cat });
+              existingGroup.categories.push({...cat});
               continue;
             }
-            existingCat.budgeted =
-              (existingCat.budgeted ?? 0) + (cat.budgeted ?? 0);
+            existingCat.budgeted = (existingCat.budgeted ?? 0) + (cat.budgeted ?? 0);
             existingCat.spent = (existingCat.spent ?? 0) + (cat.spent ?? 0);
-            existingCat.balance =
-              (existingCat.balance ?? 0) + (cat.balance ?? 0);
-            existingCat.received =
-              (existingCat.received ?? 0) + (cat.received ?? 0);
+            existingCat.balance = (existingCat.balance ?? 0) + (cat.balance ?? 0);
+            existingCat.received = (existingCat.received ?? 0) + (cat.received ?? 0);
           }
         }
 
@@ -337,22 +313,14 @@ export function createBudgetSpreadsheet(
       },
     );
 
-    const categoryGroups = Array.from(
-      accumulate_months.categoryGroupsMap.values(),
-    );
+    const categoryGroups = Array.from(accumulate_months.categoryGroupsMap.values());
 
-    const filteredCategoryGroups = filterCategoryGroups(
-      categoryGroups,
-      conditions,
-      conditionsOp,
-    );
+    const filteredCategoryGroups = filterCategoryGroups(categoryGroups, conditions, conditionsOp);
 
     const categoryData: CategoryEntry[] = filteredCategoryGroups
       .flatMap(group =>
         group.categories.map(cat => {
-          const rawValue = group.is_income
-            ? (cat.received ?? 0)
-            : (cat.budgeted ?? 0);
+          const rawValue = group.is_income ? (cat.received ?? 0) : (cat.budgeted ?? 0);
           return {
             categoryGroup: group.name,
             categoryGroupId: group.id,
@@ -372,8 +340,7 @@ export function createBudgetSpreadsheet(
 
     const aggregated: AggregatedBudget = {
       toBudget: accumulate_months.toBudget,
-      forNextMonth:
-        (nextMonthResponse.fromLastMonth ?? 0) - accumulate_months.toBudget,
+      forNextMonth: (nextMonthResponse.fromLastMonth ?? 0) - accumulate_months.toBudget,
       fromPreviousMonth: accumulate_months.fromPreviousMonth,
       lastMonthOverspent: accumulate_months.lastMonthOverspent,
       categoryGroupsMap: accumulate_months.categoryGroupsMap,
@@ -381,7 +348,7 @@ export function createBudgetSpreadsheet(
       endMonth: end,
     };
 
-    return { data: categoryData, aggregated };
+    return {data: categoryData, aggregated};
   };
 }
 
@@ -396,7 +363,7 @@ export function createTransactionsSpreadsheet(
 ) {
   return async () => {
     // gather filters user has set
-    const { filters } = await send('make-filters-from-conditions', {
+    const {filters} = await send('make-filters-from-conditions', {
       conditions: conditions.filter(cond => !cond.customName),
     });
     const conditionsOpKey = conditionsOp === 'or' ? '$or' : '$and';
@@ -412,15 +379,10 @@ export function createTransactionsSpreadsheet(
 
     let transferData: TransferPair[] = [];
     if (showTransfers) {
-      transferData = await fetchTransferData(
-        conditionsOpKey,
-        filters,
-        start,
-        end,
-      );
+      transferData = await fetchTransferData(conditionsOpKey, filters, start, end);
     }
 
-    return { data: categoryData, transferData };
+    return {data: categoryData, transferData};
   };
 }
 
@@ -431,7 +393,7 @@ function cloneGraph(graph: Graph): Graph {
     clonedGraph.set(key, {
       ...node,
       to: new Map(node.to),
-      tooltipInfo: node.tooltipInfo?.map(info => ({ ...info })),
+      tooltipInfo: node.tooltipInfo?.map(info => ({...info})),
     });
   }
 
@@ -447,9 +409,7 @@ export function filterCategoryGroups(
   conditions: RuleConditionEntity[],
   conditionsOp: 'and' | 'or',
 ): BudgetMonthGroup[] {
-  const categoryConditions = conditions.filter(
-    cond => cond.field === GraphLayers.Category,
-  );
+  const categoryConditions = conditions.filter(cond => cond.field === GraphLayers.Category);
   const categoryGroupConditions = conditions.filter(
     cond => cond.field === GraphLayers.CategoryGroup,
   );
@@ -458,11 +418,7 @@ export function filterCategoryGroups(
     return categoryGroups;
   }
 
-  const matchesStringCondition = (
-    id: string,
-    name: string,
-    cond: RuleConditionEntity,
-  ): boolean => {
+  const matchesStringCondition = (id: string, name: string, cond: RuleConditionEntity): boolean => {
     const value = cond.value;
     if (typeof cond.op !== 'string') {
       throw new Error('Invalid op');
@@ -473,16 +429,10 @@ export function filterCategoryGroups(
     if (op === 'oneOf') return Array.isArray(value) && value.includes(id);
     if (op === 'notOneOf') return !Array.isArray(value) || !value.includes(id);
     if (op === 'contains') {
-      return (
-        typeof value === 'string' &&
-        name.toLowerCase().includes(value.toLowerCase())
-      );
+      return typeof value === 'string' && name.toLowerCase().includes(value.toLowerCase());
     }
     if (op === 'doesNotContain') {
-      return (
-        typeof value === 'string' &&
-        !name.toLowerCase().includes(value.toLowerCase())
-      );
+      return typeof value === 'string' && !name.toLowerCase().includes(value.toLowerCase());
     }
     if (op === 'matches') {
       if (typeof value !== 'string') return false;
@@ -506,23 +456,17 @@ export function filterCategoryGroups(
     groupId: string,
     groupName: string,
   ): boolean => {
-    const matchesCat = (cond: RuleConditionEntity) =>
-      matchesStringCondition(catId, catName, cond);
+    const matchesCat = (cond: RuleConditionEntity) => matchesStringCondition(catId, catName, cond);
     const matchesGroup = (cond: RuleConditionEntity) =>
       matchesStringCondition(groupId, groupName, cond);
 
     if (conditionsOp === 'or') {
-      return (
-        categoryConditions.some(matchesCat) ||
-        categoryGroupConditions.some(matchesGroup)
-      );
+      return categoryConditions.some(matchesCat) || categoryGroupConditions.some(matchesGroup);
     }
     // 'and': all category conditions AND all category_group conditions must match
-    const catMatch =
-      categoryConditions.length === 0 || categoryConditions.every(matchesCat);
+    const catMatch = categoryConditions.length === 0 || categoryConditions.every(matchesCat);
     const groupMatch =
-      categoryGroupConditions.length === 0 ||
-      categoryGroupConditions.every(matchesGroup);
+      categoryGroupConditions.length === 0 || categoryGroupConditions.every(matchesGroup);
     return catMatch && groupMatch;
   };
 
@@ -551,29 +495,25 @@ async function fetchCategoryData(
         (categoryGroup.categories || []).map(async category => {
           const results = await aqlQuery(
             q('transactions')
-              .filter({ [conditionsOpKey]: filters })
+              .filter({[conditionsOpKey]: filters})
               .filter({
                 $and: [
-                  { date: { $gte: monthUtils.firstDayOfMonth(start) } },
-                  { date: { $lte: monthUtils.lastDayOfMonth(end) } },
+                  {date: {$gte: monthUtils.firstDayOfMonth(start)}},
+                  {date: {$lte: monthUtils.lastDayOfMonth(end)}},
                 ],
               })
-              .filter({ category: category.id })
+              .filter({category: category.id})
               .groupBy(
                 categoryGroup.is_income
-                  ? [
-                      { $id: '$category' },
-                      { $id: '$account' },
-                      { $id: '$payee' },
-                    ]
-                  : [{ $id: '$category' }, { $id: '$account' }],
+                  ? [{$id: '$category'}, {$id: '$account'}, {$id: '$payee'}]
+                  : [{$id: '$category'}, {$id: '$account'}],
               )
               .select([
-                { accountId: { $id: '$account.id' } },
-                { accountName: { $id: '$account.name' } },
-                { amount: { $sum: '$amount' } },
-                { payeeId: { $id: '$payee.id' } },
-                { payeeName: { $id: '$payee.name' } },
+                {accountId: {$id: '$account.id'}},
+                {accountName: {$id: '$account.name'}},
+                {amount: {$sum: '$amount'}},
+                {payeeId: {$id: '$payee.id'}},
+                {payeeName: {$id: '$payee.name'}},
               ]),
           );
           return results.data.map(
@@ -626,20 +566,20 @@ async function fetchTransferData(
 ): Promise<TransferPair[]> {
   const results = await aqlQuery(
     q('transactions')
-      .filter({ [conditionsOpKey]: filters })
+      .filter({[conditionsOpKey]: filters})
       .filter({
         $and: [
-          { date: { $gte: monthUtils.firstDayOfMonth(start) } },
-          { date: { $lte: monthUtils.lastDayOfMonth(end) } },
+          {date: {$gte: monthUtils.firstDayOfMonth(start)}},
+          {date: {$lte: monthUtils.lastDayOfMonth(end)}},
         ],
       })
-      .filter({ transfer_id: { $ne: null }, 'account.offbudget': false })
+      .filter({transfer_id: {$ne: null}, 'account.offbudget': false})
       .select([
-        { id: 'id' },
-        { amount: 'amount' },
-        { accountId: { $id: '$account.id' } },
-        { accountName: { $id: '$account.name' } },
-        { transfer_id: 'transfer_id' },
+        {id: 'id'},
+        {amount: 'amount'},
+        {accountId: {$id: '$account.id'}},
+        {accountName: {$id: '$account.name'}},
+        {transfer_id: 'transfer_id'},
       ]),
   );
 
@@ -663,9 +603,7 @@ async function fetchTransferData(
   return aggregateTransferPairs(raw_results);
 }
 
-export function aggregateTransferPairs(
-  rawResults: TransferEntry[],
-): TransferPair[] {
+export function aggregateTransferPairs(rawResults: TransferEntry[]): TransferPair[] {
   const byId = new Map<string, TransferEntry>();
   const byAccountId = new Map<string, string>();
 
@@ -716,50 +654,20 @@ export function createBudgetGraph(
 
   // Add initial budget nodes with no links
   addNode(graph, SpecialNodeKeys.Budgeted, GraphLayers.Budget, 'Budgeted');
-  addNode(
-    graph,
-    SpecialNodeKeys.AvailableIncome,
-    GraphLayers.Account,
-    'Available funds',
-  );
+  addNode(graph, SpecialNodeKeys.AvailableIncome, GraphLayers.Account, 'Available funds');
 
   categoryData.forEach(entry => {
     if (entry.isIncome) {
       // Income category > Available income
-      addNode(
-        graph,
-        entry.categoryId,
-        GraphLayers.IncomeCategory,
-        entry.category,
-      );
-      addValueToLink(
-        graph,
-        entry.categoryId,
-        SpecialNodeKeys.AvailableIncome,
-        entry.value,
-      );
+      addNode(graph, entry.categoryId, GraphLayers.IncomeCategory, entry.category);
+      addValueToLink(graph, entry.categoryId, SpecialNodeKeys.AvailableIncome, entry.value);
     } else {
       if (entry.value >= 0) {
         // Budgeted > Category group > Category
-        addNode(
-          graph,
-          entry.categoryGroupId,
-          GraphLayers.CategoryGroup,
-          entry.categoryGroup,
-        );
+        addNode(graph, entry.categoryGroupId, GraphLayers.CategoryGroup, entry.categoryGroup);
         addNode(graph, entry.categoryId, GraphLayers.Category, entry.category);
-        addValueToLink(
-          graph,
-          entry.categoryGroupId,
-          entry.categoryId,
-          entry.value,
-        );
-        addValueToLink(
-          graph,
-          SpecialNodeKeys.Budgeted,
-          entry.categoryGroupId,
-          entry.value,
-        );
+        addValueToLink(graph, entry.categoryGroupId, entry.categoryId, entry.value);
+        addValueToLink(graph, SpecialNodeKeys.Budgeted, entry.categoryGroupId, entry.value);
         addValueToLink(
           graph,
           SpecialNodeKeys.AvailableIncome,
@@ -772,15 +680,10 @@ export function createBudgetGraph(
           entry.categoryId,
           GraphLayers.Account,
           'From {{category}}',
-          { category: entry.category },
+          {category: entry.category},
           true,
         );
-        addValueToLink(
-          graph,
-          entry.categoryId,
-          SpecialNodeKeys.Budgeted,
-          Math.abs(entry.value),
-        );
+        addValueToLink(graph, entry.categoryId, SpecialNodeKeys.Budgeted, Math.abs(entry.value));
         addValueToLink(
           graph,
           SpecialNodeKeys.AvailableIncome,
@@ -834,7 +737,7 @@ export function createBudgetGraph(
     SpecialNodeKeys.FromPrevMonth,
     GraphLayers.IncomeCategory,
     'From {{month}}',
-    { month: monthUtils.prevMonth(aggregated.startMonth) },
+    {month: monthUtils.prevMonth(aggregated.startMonth)},
   );
   addValueToLink(
     graph,
@@ -842,25 +745,16 @@ export function createBudgetGraph(
     SpecialNodeKeys.AvailableIncome,
     aggregated.fromPreviousMonth,
   );
-  addNodeWithLabel(
-    graph,
-    SpecialNodeKeys.ForNextMonth,
-    GraphLayers.Budget,
-    'For {{month}}',
-    { month: monthUtils.nextMonth(aggregated.endMonth) },
-  );
+  addNodeWithLabel(graph, SpecialNodeKeys.ForNextMonth, GraphLayers.Budget, 'For {{month}}', {
+    month: monthUtils.nextMonth(aggregated.endMonth),
+  });
   addValueToLink(
     graph,
     SpecialNodeKeys.AvailableIncome,
     SpecialNodeKeys.ForNextMonth,
     aggregated.forNextMonth,
   );
-  addNode(
-    graph,
-    SpecialNodeKeys.LastMonthOverspent,
-    GraphLayers.Budget,
-    'Overspent',
-  );
+  addNode(graph, SpecialNodeKeys.LastMonthOverspent, GraphLayers.Budget, 'Overspent');
   addValueToLink(
     graph,
     SpecialNodeKeys.AvailableIncome,
@@ -878,13 +772,7 @@ export function createTransactionsGraph(
 ): Graph {
   function addAccountNode(accountId: string, accountName: string): void {
     if (accountId === SpecialNodeKeys.AllAccounts) {
-      addNodeWithLabel(
-        graph,
-        accountId,
-        GraphLayers.Account,
-        'Income',
-        undefined,
-      );
+      addNodeWithLabel(graph, accountId, GraphLayers.Account, 'Income', undefined);
     } else {
       addNode(graph, accountId, GraphLayers.Account, accountName);
     }
@@ -914,21 +802,11 @@ export function createTransactionsGraph(
           );
         } else {
           // Payee > Income category > Account
-          addNode(
-            graph,
-            entry.categoryId,
-            GraphLayers.IncomeCategory,
-            entry.category,
-          );
+          addNode(graph, entry.categoryId, GraphLayers.IncomeCategory, entry.category);
           addAccountNode(entry.accountId, entry.accountName);
           addValueToLink(graph, entry.categoryId, entry.accountId, entry.value);
           if (entry.payeeId) {
-            addNode(
-              graph,
-              entry.payeeId,
-              GraphLayers.IncomePayee,
-              entry.payeeName,
-            );
+            addNode(graph, entry.payeeId, GraphLayers.IncomePayee, entry.payeeName);
             addValueToLink(graph, entry.payeeId, entry.categoryId, entry.value);
           }
         }
@@ -936,30 +814,10 @@ export function createTransactionsGraph(
         if (entry.isNegative) {
           // Account > Category group > Category
           addAccountNode(entry.accountId, entry.accountName);
-          addNode(
-            graph,
-            entry.categoryGroupId,
-            GraphLayers.CategoryGroup,
-            entry.categoryGroup,
-          );
-          addNode(
-            graph,
-            entry.categoryId,
-            GraphLayers.Category,
-            entry.category,
-          );
-          addValueToLink(
-            graph,
-            entry.accountId,
-            entry.categoryGroupId,
-            entry.value,
-          );
-          addValueToLink(
-            graph,
-            entry.categoryGroupId,
-            entry.categoryId,
-            entry.value,
-          );
+          addNode(graph, entry.categoryGroupId, GraphLayers.CategoryGroup, entry.categoryGroup);
+          addNode(graph, entry.categoryId, GraphLayers.Category, entry.category);
+          addValueToLink(graph, entry.accountId, entry.categoryGroupId, entry.value);
+          addValueToLink(graph, entry.categoryGroupId, entry.categoryId, entry.value);
         } else {
           // Category > Account
           addNode(
@@ -993,12 +851,7 @@ export function createTransactionsGraph(
   return graph;
 }
 
-export function addNode(
-  graph: Graph,
-  key: NodeKey,
-  type: GraphLayers,
-  name?: string,
-) {
+export function addNode(graph: Graph, key: NodeKey, type: GraphLayers, name?: string) {
   if (!graph.has(key)) {
     graph.set(key, {
       to: new Map(),
@@ -1027,12 +880,7 @@ export function addNodeWithLabel(
   }
 }
 
-export function addValueToLink(
-  graph: Graph,
-  from: NodeKey,
-  to: NodeKey,
-  value: number,
-) {
+export function addValueToLink(graph: Graph, from: NodeKey, to: NodeKey, value: number) {
   const fromNode = graph.get(from);
   if (fromNode) {
     fromNode.to.set(to, (fromNode.to.get(to) ?? 0) + value);
@@ -1064,9 +912,7 @@ export function getLayer(
   return resolvedLayerCache.get(key) ?? 0;
 }
 
-function getLayersByStronglyConnectedComponents(
-  graph: Graph,
-): Map<NodeKey, VisualLayerIndex> {
+function getLayersByStronglyConnectedComponents(graph: Graph): Map<NodeKey, VisualLayerIndex> {
   const visitedIndex = new Map<NodeKey, number>();
   const lowlink = new Map<NodeKey, number>();
   const stack: NodeKey[] = [];
@@ -1091,17 +937,11 @@ function getLayersByStronglyConnectedComponents(
 
         if (!visitedIndex.has(childKey)) {
           strongConnect(childKey);
-          lowlink.set(
-            nodeKey,
-            Math.min(lowlink.get(nodeKey) ?? 0, lowlink.get(childKey) ?? 0),
-          );
+          lowlink.set(nodeKey, Math.min(lowlink.get(nodeKey) ?? 0, lowlink.get(childKey) ?? 0));
         } else if (activeStack.has(childKey)) {
           lowlink.set(
             nodeKey,
-            Math.min(
-              lowlink.get(nodeKey) ?? 0,
-              visitedIndex.get(childKey) ?? 0,
-            ),
+            Math.min(lowlink.get(nodeKey) ?? 0, visitedIndex.get(childKey) ?? 0),
           );
         }
       }
@@ -1134,11 +974,7 @@ function getLayersByStronglyConnectedComponents(
   }
 
   const parentsByComponent = new Map<number, Set<number>>();
-  for (
-    let componentIndex = 0;
-    componentIndex < components.length;
-    componentIndex += 1
-  ) {
+  for (let componentIndex = 0; componentIndex < components.length; componentIndex += 1) {
     parentsByComponent.set(componentIndex, new Set());
   }
 
@@ -1150,10 +986,7 @@ function getLayersByStronglyConnectedComponents(
 
     for (const targetKey of sourceNode.to.keys()) {
       const targetComponent = componentByNode.get(targetKey);
-      if (
-        targetComponent === undefined ||
-        targetComponent === sourceComponent
-      ) {
+      if (targetComponent === undefined || targetComponent === sourceComponent) {
         continue;
       }
 
@@ -1174,8 +1007,7 @@ function getLayersByStronglyConnectedComponents(
       return 0;
     }
 
-    const layer =
-      1 + Math.max(...Array.from(parents).map(resolveComponentLayer));
+    const layer = 1 + Math.max(...Array.from(parents).map(resolveComponentLayer));
     layerByComponent.set(componentIndex, layer);
     return layer;
   }
@@ -1239,17 +1071,10 @@ function groupOtherCategories(
 
       if (nodeToDelete === undefined) break; // safety
 
-      moveToOther(
-        graph,
-        nodeToDelete,
-        toolTipInfoMap,
-        categorySort === 'global',
-      );
+      moveToOther(graph, nodeToDelete, toolTipInfoMap, categorySort === 'global');
 
       ordinaryNodes = nodesInLayer(graph, layer).filter(isGroupableNode);
-      otherNodes = nodesInLayer(graph, layer).filter(s =>
-        s.endsWith(SpecialNodeKeys.OtherSuffix),
-      );
+      otherNodes = nodesInLayer(graph, layer).filter(s => s.endsWith(SpecialNodeKeys.OtherSuffix));
     }
   });
 
@@ -1290,9 +1115,9 @@ function moveToOther(
         otherKey = categoryGroupKey + SpecialNodeKeys.OtherSuffix;
       }
     } else if (nodeData.type === GraphLayers.IncomePayee) {
-      const incomeCategoryKey = Array.from(
-        graph.get(key)?.to.keys() ?? [],
-      ).find(k => graph.get(k)?.type === GraphLayers.IncomeCategory);
+      const incomeCategoryKey = Array.from(graph.get(key)?.to.keys() ?? []).find(
+        k => graph.get(k)?.type === GraphLayers.IncomeCategory,
+      );
       if (incomeCategoryKey) {
         otherKey = incomeCategoryKey + SpecialNodeKeys.OtherSuffix;
       }
@@ -1326,13 +1151,7 @@ function moveToOther(
       // Avoid creating self-links (otherKey -> otherKey)
       if (otherKey !== toKey) {
         addValueToLink(graph, otherKey, toKey, linkValue);
-        newAddTooltipInfo(
-          toolTipInfoMap,
-          otherKey,
-          toKey,
-          graph.get(key)?.name ?? key,
-          linkValue,
-        );
+        newAddTooltipInfo(toolTipInfoMap, otherKey, toKey, graph.get(key)?.name ?? key, linkValue);
       }
     }
   });
@@ -1360,7 +1179,7 @@ function newAddTooltipInfo(
   const innerMap = toolTipInfoMap.get(from)!;
   const existingInfo = innerMap.get(to) ?? [];
   if (!existingInfo.find(info => info.name === name)) {
-    innerMap.set(to, [...existingInfo, { name, value }]);
+    innerMap.set(to, [...existingInfo, {name, value}]);
   }
 }
 
@@ -1396,27 +1215,20 @@ export function sortGraph(
 
       const relatedKeys =
         placement === 'after'
-          ? Array.from(anchor.to.keys()).filter(
-              key => graph.get(key)?.type === relatedLayer,
-            )
+          ? Array.from(anchor.to.keys()).filter(key => graph.get(key)?.type === relatedLayer)
           : Array.from(graph)
-              .filter(
-                ([, data]) =>
-                  data.type === relatedLayer && data.to.has(anchorKey),
-              )
+              .filter(([, data]) => data.type === relatedLayer && data.to.has(anchorKey))
               .map(([key]) => key);
 
       const otherKey = `${anchorKey}${SpecialNodeKeys.OtherSuffix}`;
-      const relatedOtherKey =
-        graph.get(otherKey)?.type === relatedLayer ? otherKey : undefined;
+      const relatedOtherKey = graph.get(otherKey)?.type === relatedLayer ? otherKey : undefined;
       const orderedRelatedKeys = relatedKeys.filter(key => key !== otherKey);
 
       const relatedEntries = orderedRelatedKeys
         .map(key => entries.find(([entryKey]) => entryKey === key))
         .filter((entry): entry is [string, NodeData] => entry !== undefined);
       relatedEntries.sort(
-        ([keyA], [keyB]) =>
-          getNodeValue(graph, keyB) - getNodeValue(graph, keyA),
+        ([keyA], [keyB]) => getNodeValue(graph, keyB) - getNodeValue(graph, keyA),
       );
 
       const otherEntry = relatedOtherKey
@@ -1430,18 +1242,13 @@ export function sortGraph(
       const entriesWithoutRelated = entries.filter(
         ([entryKey]) => !relatedKeysToMove.has(entryKey),
       );
-      const anchorIndex = entriesWithoutRelated.findIndex(
-        ([entryKey]) => entryKey === anchorKey,
-      );
+      const anchorIndex = entriesWithoutRelated.findIndex(([entryKey]) => entryKey === anchorKey);
       if (anchorIndex === -1) {
         return;
       }
 
-      const insertionIndex =
-        placement === 'before' ? anchorIndex : anchorIndex + 1;
-      const nodesToInsert = otherEntry
-        ? [...relatedEntries, otherEntry]
-        : relatedEntries;
+      const insertionIndex = placement === 'before' ? anchorIndex : anchorIndex + 1;
+      const nodesToInsert = otherEntry ? [...relatedEntries, otherEntry] : relatedEntries;
 
       entriesWithoutRelated.splice(insertionIndex, 0, ...nodesToInsert);
       entries.length = 0;
@@ -1534,10 +1341,7 @@ export function sortGraph(
   return new Map(sortedEntries);
 }
 
-export function moveNodeToEnd(
-  entries: Array<[string, NodeData]>,
-  key: NodeKey,
-) {
+export function moveNodeToEnd(entries: Array<[string, NodeData]>, key: NodeKey) {
   const nodeIndex = entries.findIndex(([nodekey]) => nodekey === key);
   if (nodeIndex !== -1) {
     const [entry] = entries.splice(nodeIndex, 1);
@@ -1545,10 +1349,7 @@ export function moveNodeToEnd(
   }
 }
 
-export function moveNodeToStart(
-  entries: Array<[string, NodeData]>,
-  key: NodeKey,
-) {
+export function moveNodeToStart(entries: Array<[string, NodeData]>, key: NodeKey) {
   const nodeIndex = entries.findIndex(([nodekey]) => nodekey === key);
   if (nodeIndex !== -1) {
     const [entry] = entries.splice(nodeIndex, 1);
@@ -1561,8 +1362,7 @@ export function getNodeValue(
   key: NodeKey,
   computedLayersByNode?: Map<NodeKey, VisualLayerIndex>,
 ): number {
-  const resolvedLayersByNode =
-    computedLayersByNode ?? getComputedNodeLayers(graph);
+  const resolvedLayersByNode = computedLayersByNode ?? getComputedNodeLayers(graph);
   let nodeValue: number = 0;
 
   if ((resolvedLayersByNode.get(key) ?? 0) === 0) {
@@ -1683,22 +1483,16 @@ export function addHiddenNodes(graph: Graph) {
   // in the wrong place in the graph. This fixes that, by adding extra, hidden nodes.
 
   // Group nodes by type
-  const nodesByType: Partial<Record<GraphLayers, Array<[NodeKey, NodeData]>>> =
-    {};
+  const nodesByType: Partial<Record<GraphLayers, Array<[NodeKey, NodeData]>>> = {};
 
   for (const [key, node] of graph) {
     if (!nodesByType[node.type]) nodesByType[node.type] = [];
     nodesByType[node.type]!.push([key, node]);
   }
 
-  const { typeHasParent, typeHasChild } = buildTypeConnectivity(
-    graph,
-    nodesByType,
-  );
+  const {typeHasParent, typeHasChild} = buildTypeConnectivity(graph, nodesByType);
 
-  const activeLayerOrder = GRAPH_LAYER_ORDER.filter(
-    layer => (nodesByType[layer]?.length ?? 0) > 0,
-  );
+  const activeLayerOrder = GRAPH_LAYER_ORDER.filter(layer => (nodesByType[layer]?.length ?? 0) > 0);
   const layerIndex = new Map<GraphLayers, number>();
   activeLayerOrder.forEach((layer, index) => {
     layerIndex.set(layer, index);
@@ -1725,11 +1519,7 @@ export function addHiddenNodes(graph: Graph) {
 
   function addHiddenChildChain(key: NodeKey, type: GraphLayers) {
     const typeIndex = layerIndex.get(type);
-    if (
-      typeIndex === undefined ||
-      typeIndex < 0 ||
-      typeIndex >= activeLayerOrder.length - 1
-    ) {
+    if (typeIndex === undefined || typeIndex < 0 || typeIndex >= activeLayerOrder.length - 1) {
       return;
     }
 
@@ -1802,15 +1592,8 @@ function ensureCategoryGroupsFollowAccountLayers(graph: Graph) {
 
   for (const key of categoryGroupsToPush) {
     let currentLayer = computedLayersByNode.get(key);
-    while (
-      currentLayer !== undefined &&
-      currentLayer <= maxVisibleAccountLayer
-    ) {
-      const deepestParent = getDeepestParentKey(
-        graph,
-        key,
-        computedLayersByNode,
-      );
+    while (currentLayer !== undefined && currentLayer <= maxVisibleAccountLayer) {
+      const deepestParent = getDeepestParentKey(graph, key, computedLayersByNode);
       if (!deepestParent) {
         break;
       }
@@ -1868,13 +1651,10 @@ function buildTypeConnectivity(
       if (hasChild(node)) typeHasChild[type] = true;
     }
   }
-  return { typeHasParent, typeHasChild };
+  return {typeHasParent, typeHasChild};
 }
 
-export function hasParent(
-  graph: Map<NodeKey, NodeData>,
-  key: NodeKey,
-): boolean {
+export function hasParent(graph: Map<NodeKey, NodeData>, key: NodeKey): boolean {
   for (const [_, data] of graph) {
     if (data.to.has(key)) return true;
   }
@@ -1947,15 +1727,10 @@ export function cleanUpNodes(graph: Graph) {
   }
 }
 
-export function convertToSankeyData(
-  graph: Graph,
-  toolTipInfoMap: TooltipInfoMap,
-): SankeyData {
+export function convertToSankeyData(graph: Graph, toolTipInfoMap: TooltipInfoMap): SankeyData {
   const nodes = Array.from(graph, ([key, data]) => ({
     key,
-    name: data.labelKey
-      ? t(data.labelKey, data.labelParams)
-      : (data.name ?? key),
+    name: data.labelKey ? t(data.labelKey, data.labelParams) : (data.name ?? key),
     percentageLabel: data.percentageLabel ?? '',
     color: data.color ?? undefined,
   }));
@@ -1977,15 +1752,9 @@ export function convertToSankeyData(
         GraphLayers.Budget,
       ];
 
-      if (
-        isGraphLayer(data.type) &&
-        sourceLayersWithOwnColor.includes(data.type)
-      ) {
+      if (isGraphLayer(data.type) && sourceLayersWithOwnColor.includes(data.type)) {
         color = data.color;
-      } else if (
-        isGraphLayer(data.type) &&
-        targetLayersWithTargetColor.includes(data.type)
-      ) {
+      } else if (isGraphLayer(data.type) && targetLayersWithTargetColor.includes(data.type)) {
         const targetNode = graph.get(targetKey);
         color = targetNode ? targetNode.color : undefined;
       }

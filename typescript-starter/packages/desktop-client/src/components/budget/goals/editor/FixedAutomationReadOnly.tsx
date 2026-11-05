@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { amountToInteger } from '@actual-app/core/shared/util';
-import type { PeriodicTemplate } from '@actual-app/core/types/models/templates';
-import type { TransObjectLiteral } from '@actual-app/core/types/util';
+import {amountToInteger} from '@actual-app/core/shared/util';
+import type {PeriodicTemplate} from '@actual-app/core/types/models/templates';
+import type {TransObjectLiteral} from '@actual-app/core/types/util';
 
-import { FinancialText } from '#components/FinancialText';
-import { useFormat } from '#hooks/useFormat';
+import {FinancialText} from '#components/FinancialText';
+import {useFormat} from '#hooks/useFormat';
 
 type FixedAutomationReadOnlyProps = {
   template: PeriodicTemplate;
 };
 
-export function FixedAutomationReadOnly({
-  template,
-}: FixedAutomationReadOnlyProps) {
+export function FixedAutomationReadOnly({template}: FixedAutomationReadOnlyProps) {
   const format = useFormat();
   const amount = format(
     amountToInteger(template.amount, format.currency.decimalPlaces),
@@ -42,33 +40,29 @@ export function FixedAutomationReadOnly({
     case 'day':
       return (
         <Trans count={periodAmount}>
-          Budget{' '}
-          <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText>{' '}
-          every {{ count: periodAmount }} days
+          Budget <FinancialText>{{amount} as TransObjectLiteral}</FinancialText> every{' '}
+          {{count: periodAmount}} days
         </Trans>
       );
     case 'week':
       return (
         <Trans count={periodAmount}>
-          Budget{' '}
-          <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText>{' '}
-          every {{ count: periodAmount }} weeks
+          Budget <FinancialText>{{amount} as TransObjectLiteral}</FinancialText> every{' '}
+          {{count: periodAmount}} weeks
         </Trans>
       );
     case 'month':
       return (
         <Trans count={periodAmount}>
-          Budget{' '}
-          <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText>{' '}
-          every {{ count: periodAmount }} months
+          Budget <FinancialText>{{amount} as TransObjectLiteral}</FinancialText> every{' '}
+          {{count: periodAmount}} months
         </Trans>
       );
     case 'year':
       return (
         <Trans count={periodAmount}>
-          Budget{' '}
-          <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText>{' '}
-          every {{ count: periodAmount }} years
+          Budget <FinancialText>{{amount} as TransObjectLiteral}</FinancialText> every{' '}
+          {{count: periodAmount}} years
         </Trans>
       );
     default:

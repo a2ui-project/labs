@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
-import type { Ref } from 'react';
-import { useTranslation } from 'react-i18next';
+import {useState} from 'react';
+import type {Ref} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgRemove, SvgSearchAlternate } from '@actual-app/components/icons/v2';
-import { baseInputStyle, Input } from '@actual-app/components/input';
-import type { CSSProperties } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {SvgRemove, SvgSearchAlternate} from '@actual-app/components/icons/v2';
+import {baseInputStyle, Input} from '@actual-app/components/input';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
 
 type SearchProps = {
   ref?: Ref<HTMLInputElement>;
@@ -47,7 +47,7 @@ export function Search({
   height,
   style,
 }: SearchProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const [focused, setFocused] = useState(false);
 
@@ -69,9 +69,7 @@ export function Search({
         ...style,
         ...(focused && {
           boxShadow: '0 0 0 1px ' + theme.formInputShadowSelected,
-          ...(isInModal
-            ? {}
-            : { backgroundColor: theme.formInputBackgroundSelected }),
+          ...(isInModal ? {} : {backgroundColor: theme.formInputBackgroundSelected}),
         }),
       }}
     >
@@ -130,7 +128,7 @@ export function Search({
             }}
             onPress={() => onChange('')}
           >
-            <SvgRemove style={{ width: 8, height: 8 }} />
+            <SvgRemove style={{width: 8, height: 8}} />
           </Button>
         </View>
       )}

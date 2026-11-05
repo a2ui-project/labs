@@ -14,33 +14,33 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
-import type { DragItem } from 'react-aria';
-import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import {useState} from 'react';
+import type {DragItem} from 'react-aria';
+import {DropIndicator, GridList, useDragAndDrop} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgAdd } from '@actual-app/components/icons/v1';
-import { ModeButton } from '@actual-app/components/mode-button';
-import { Select } from '@actual-app/components/select';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgAdd} from '@actual-app/components/icons/v1';
+import {ModeButton} from '@actual-app/components/mode-button';
+import {Select} from '@actual-app/components/select';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 import type {
   MonteCarloReturnModel,
   MonteCarloWithdrawalStrategy,
 } from '@actual-app/core/types/models';
-import { css } from '@emotion/css';
-import { v4 as uuidv4 } from 'uuid';
+import {css} from '@emotion/css';
+import {v4 as uuidv4} from 'uuid';
 
-import { LabeledCheckbox } from '#components/forms/LabeledCheckbox';
-import { MonteCarloContributions } from '#components/reports/reports/monte-carlo/MonteCarloContributions';
-import { MonteCarloHelpTooltip } from '#components/reports/reports/monte-carlo/MonteCarloHelpTooltip';
-import { MonteCarloIncomeStreams } from '#components/reports/reports/monte-carlo/MonteCarloIncomeStreams';
-import { MonteCarloNumberInput } from '#components/reports/reports/monte-carlo/MonteCarloNumberInput';
-import { MonteCarloPotConfiguration } from '#components/reports/reports/monte-carlo/MonteCarloPotConfiguration';
-import { MonteCarloPotsTableHeader } from '#components/reports/reports/monte-carlo/MonteCarloPotsTableHeader';
+import {LabeledCheckbox} from '#components/forms/LabeledCheckbox';
+import {MonteCarloContributions} from '#components/reports/reports/monte-carlo/MonteCarloContributions';
+import {MonteCarloHelpTooltip} from '#components/reports/reports/monte-carlo/MonteCarloHelpTooltip';
+import {MonteCarloIncomeStreams} from '#components/reports/reports/monte-carlo/MonteCarloIncomeStreams';
+import {MonteCarloNumberInput} from '#components/reports/reports/monte-carlo/MonteCarloNumberInput';
+import {MonteCarloPotConfiguration} from '#components/reports/reports/monte-carlo/MonteCarloPotConfiguration';
+import {MonteCarloPotsTableHeader} from '#components/reports/reports/monte-carlo/MonteCarloPotsTableHeader';
 import {
   createMonteCarloPot,
   createMonteCarloSurplusPot,
@@ -53,23 +53,17 @@ import type {
   MonteCarloConfig,
   MonteCarloPot,
 } from '#components/reports/reports/monte-carlo/monteCarloSimulation';
-import { MonteCarloSpendingPhases } from '#components/reports/reports/monte-carlo/MonteCarloSpendingPhases';
+import {MonteCarloSpendingPhases} from '#components/reports/reports/monte-carlo/MonteCarloSpendingPhases';
 import {
   FIELD_LABEL_ROW_STYLE,
   FIELD_LABEL_STYLE,
   FIELD_STYLE,
   GROUP_HEADING_STYLE,
 } from '#components/reports/reports/monte-carlo/monteCarloStyles';
-import { MonteCarloTaxConfiguration } from '#components/reports/reports/monte-carlo/MonteCarloTaxConfiguration';
-import { MonteCarloWithdrawalRuleConfiguration } from '#components/reports/reports/monte-carlo/MonteCarloWithdrawalRuleConfiguration';
+import {MonteCarloTaxConfiguration} from '#components/reports/reports/monte-carlo/MonteCarloTaxConfiguration';
+import {MonteCarloWithdrawalRuleConfiguration} from '#components/reports/reports/monte-carlo/MonteCarloWithdrawalRuleConfiguration';
 
-type ConfigurationTab =
-  | 'plan'
-  | 'pots'
-  | 'contributions'
-  | 'income'
-  | 'withdrawals'
-  | 'tax';
+type ConfigurationTab = 'plan' | 'pots' | 'contributions' | 'income' | 'withdrawals' | 'tax';
 
 const PLAN_GROUP_FIELDS_STYLE = {
   flexDirection: 'row',
@@ -82,11 +76,8 @@ type MonteCarloConfigurationProps = {
   onConfigChange: (changes: Partial<MonteCarloConfig>) => void;
 };
 
-export function MonteCarloConfiguration({
-  config,
-  onConfigChange,
-}: MonteCarloConfigurationProps) {
-  const { t } = useTranslation();
+export function MonteCarloConfiguration({config, onConfigChange}: MonteCarloConfigurationProps) {
+  const {t} = useTranslation();
   const [activeTab, setActiveTab] = useState<ConfigurationTab>('plan');
 
   // Whether unspent money is kept is simply whether a surplus pot exists
@@ -102,14 +93,10 @@ export function MonteCarloConfiguration({
     } else {
       // The surplus pot only exists while unspent money is kept; it
       // takes its contributions with it, and the plan always keeps a pot
-      const surplusPotIds = config.pots
-        .filter(pot => pot.isSurplus)
-        .map(pot => pot.id);
+      const surplusPotIds = config.pots.filter(pot => pot.isSurplus).map(pot => pot.id);
       const remainingPots = config.pots.filter(pot => !pot.isSurplus);
       onConfigChange({
-        pots: remainingPots.length
-          ? remainingPots
-          : [createMonteCarloPot(uuidv4())],
+        pots: remainingPots.length ? remainingPots : [createMonteCarloPot(uuidv4())],
         contributions: config.contributions.filter(
           contribution => !surplusPotIds.includes(contribution.potId),
         ),
@@ -119,15 +106,12 @@ export function MonteCarloConfiguration({
 
   function onPotChange(potId: string, changes: Partial<MonteCarloPot>) {
     onConfigChange({
-      pots: config.pots.map(pot =>
-        pot.id === potId ? { ...pot, ...changes } : pot,
-      ),
+      pots: config.pots.map(pot => (pot.id === potId ? {...pot, ...changes} : pot)),
     });
   }
 
-  const { dragAndDropHooks } = useDragAndDrop({
-    getItems: keys =>
-      [...keys].map(key => ({ 'text/plain': String(key) }) as DragItem),
+  const {dragAndDropHooks} = useDragAndDrop({
+    getItems: keys => [...keys].map(key => ({'text/plain': String(key)}) as DragItem),
     renderDropIndicator: target => (
       <DropIndicator
         target={target}
@@ -144,22 +128,19 @@ export function MonteCarloConfiguration({
     onReorder: event => {
       const [movedKey] = event.keys;
       const fromIndex = config.pots.findIndex(pot => pot.id === movedKey);
-      const targetIndex = config.pots.findIndex(
-        pot => pot.id === event.target.key,
-      );
+      const targetIndex = config.pots.findIndex(pot => pot.id === event.target.key);
       if (fromIndex === -1 || targetIndex === -1) {
         return;
       }
 
       const newPots = [...config.pots];
       const [movedPot] = newPots.splice(fromIndex, 1);
-      let insertIndex =
-        targetIndex + (event.target.dropPosition === 'after' ? 1 : 0);
+      let insertIndex = targetIndex + (event.target.dropPosition === 'after' ? 1 : 0);
       if (fromIndex < insertIndex) {
         insertIndex -= 1;
       }
       newPots.splice(insertIndex, 0, movedPot);
-      onConfigChange({ pots: newPots });
+      onConfigChange({pots: newPots});
     },
   });
 
@@ -173,23 +154,14 @@ export function MonteCarloConfiguration({
       }}
     >
       {/* Tab bar; wraps onto extra lines on narrow screens */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 5 }}>
-        <ModeButton
-          selected={activeTab === 'plan'}
-          onSelect={() => setActiveTab('plan')}
-        >
+      <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 5}}>
+        <ModeButton selected={activeTab === 'plan'} onSelect={() => setActiveTab('plan')}>
           <Trans>Plan details</Trans>
         </ModeButton>
-        <ModeButton
-          selected={activeTab === 'pots'}
-          onSelect={() => setActiveTab('pots')}
-        >
+        <ModeButton selected={activeTab === 'pots'} onSelect={() => setActiveTab('pots')}>
           <Trans>Investment pots</Trans>
         </ModeButton>
-        <ModeButton
-          selected={activeTab === 'income'}
-          onSelect={() => setActiveTab('income')}
-        >
+        <ModeButton selected={activeTab === 'income'} onSelect={() => setActiveTab('income')}>
           <Trans>Income</Trans>
         </ModeButton>
         <ModeButton
@@ -204,20 +176,15 @@ export function MonteCarloConfiguration({
         >
           <Trans>Spending</Trans>
         </ModeButton>
-        <ModeButton
-          selected={activeTab === 'tax'}
-          onSelect={() => setActiveTab('tax')}
-        >
+        <ModeButton selected={activeTab === 'tax'} onSelect={() => setActiveTab('tax')}>
           <Trans>Tax</Trans>
         </ModeButton>
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-        <Text style={{ color: theme.pageText }}>
+      <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+        <Text style={{color: theme.pageText}}>
           {activeTab === 'plan'
-            ? t(
-                'Who this plan is for and how the simulation generates market returns.',
-              )
+            ? t('Who this plan is for and how the simulation generates market returns.')
             : activeTab === 'pots'
               ? t(
                   'The invested accounts your plan draws from - each with its own balance, allocation, and return assumptions. Drag rows to reorder pots; expand a row for access, tax and fee settings.',
@@ -234,43 +201,35 @@ export function MonteCarloConfiguration({
                     ? t(
                         'How much you take out each year, and optional rules that adjust it as markets move.',
                       )
-                    : t(
-                        'How withdrawals are taxed - your spending is what you keep after tax.',
-                      )}
+                    : t('How withdrawals are taxed - your spending is what you keep after tax.')}
         </Text>
         {activeTab === 'contributions' && (
           <MonteCarloHelpTooltip>
             <Trans>
-              Each contribution is paid in at the start of every year in its age
-              window (both ages inclusive), so it earns that year&apos;s return.
-              Leave the ages blank for &ldquo;now&rdquo; and &ldquo;the end of
-              the plan&rdquo;. Tick Adjust by inflation to keep the
-              amount&apos;s buying power constant; untick it for a fixed amount
-              that shrinks in real terms. A pot can receive any number of
-              contributions - even one that is still locked for withdrawals.
+              Each contribution is paid in at the start of every year in its age window (both ages
+              inclusive), so it earns that year&apos;s return. Leave the ages blank for
+              &ldquo;now&rdquo; and &ldquo;the end of the plan&rdquo;. Tick Adjust by inflation to
+              keep the amount&apos;s buying power constant; untick it for a fixed amount that
+              shrinks in real terms. A pot can receive any number of contributions - even one that
+              is still locked for withdrawals.
               <br />
-              <br />
-              A contribution paid from an income stream is capped at what that
-              stream brings in that year. Tick Before tax for a workplace
-              pension or salary sacrifice, which is deducted before the
-              income&apos;s tax is worked out.
+              <br />A contribution paid from an income stream is capped at what that stream brings
+              in that year. Tick Before tax for a workplace pension or salary sacrifice, which is
+              deducted before the income&apos;s tax is worked out.
             </Trans>
           </MonteCarloHelpTooltip>
         )}
         {activeTab === 'income' && (
           <MonteCarloHelpTooltip>
             <Trans>
-              Each income stream arrives every year in its age window (both ages
-              inclusive), taxed the same way as pot withdrawals: at its own rate
-              under the flat model, or by its taxable portion under the bands
-              model, where it uses up the lower bands before any pot withdrawal
-              is taxed. What is left after tax and any contributions paid from
-              it goes towards the year&apos;s spending; the pots only fund the
-              remainder. Income beyond that is unspent: it is saved into the
-              Surplus cash pot, or leaves the plan if you tick Assume any
-              unspent money is spent under Manage surplus on the Plan details
-              tab. You can also route specific amounts into a pot with a
-              contribution.
+              Each income stream arrives every year in its age window (both ages inclusive), taxed
+              the same way as pot withdrawals: at its own rate under the flat model, or by its
+              taxable portion under the bands model, where it uses up the lower bands before any pot
+              withdrawal is taxed. What is left after tax and any contributions paid from it goes
+              towards the year&apos;s spending; the pots only fund the remainder. Income beyond that
+              is unspent: it is saved into the Surplus cash pot, or leaves the plan if you tick
+              Assume any unspent money is spent under Manage surplus on the Plan details tab. You
+              can also route specific amounts into a pot with a contribution.
             </Trans>
           </MonteCarloHelpTooltip>
         )}
@@ -287,7 +246,7 @@ export function MonteCarloConfiguration({
             columnGap: 40,
           }}
         >
-          <View style={{ gap: 10 }}>
+          <View style={{gap: 10}}>
             <Text style={GROUP_HEADING_STYLE}>
               <Trans>Your plan</Trans>
             </Text>
@@ -336,35 +295,33 @@ export function MonteCarloConfiguration({
             </View>
           </View>
 
-          <View style={{ gap: 10 }}>
+          <View style={{gap: 10}}>
             <Text style={GROUP_HEADING_STYLE}>
               <Trans>Simulation</Trans>
             </Text>
             <View style={PLAN_GROUP_FIELDS_STYLE}>
-              <View style={{ width: 250 }}>
+              <View style={{width: 250}}>
                 <View style={FIELD_LABEL_ROW_STYLE}>
                   <Text style={FIELD_LABEL_STYLE}>
                     <Trans>Return model</Trans>
                   </Text>
                   <MonteCarloHelpTooltip>
                     <Trans>
-                      How each simulated year&apos;s investment return is
-                      generated.
+                      How each simulated year&apos;s investment return is generated.
                       <br />
                       <br />
-                      Random: drawn from a normal distribution around each
-                      pot&apos;s expected return and volatility. All pots
-                      experience the same market conditions each year, scaled by
-                      their own volatility.
+                      Random: drawn from a normal distribution around each pot&apos;s expected
+                      return and volatility. All pots experience the same market conditions each
+                      year, scaled by their own volatility.
                       <br />
                       <br />
-                      Historical, shuffled: drawn from actual US market years
-                      (1928 onwards) in random order.
+                      Historical, shuffled: drawn from actual US market years (1928 onwards) in
+                      random order.
                       <br />
                       <br />
-                      Historical sequences: replays real market history, one
-                      scenario per starting year. Pots with a Custom allocation
-                      always use their own return and volatility.
+                      Historical sequences: replays real market history, one scenario per starting
+                      year. Pots with a Custom allocation always use their own return and
+                      volatility.
                     </Trans>
                   </MonteCarloHelpTooltip>
                 </View>
@@ -390,8 +347,8 @@ export function MonteCarloConfiguration({
                   </Text>
                   <MonteCarloHelpTooltip>
                     <Trans>
-                      How many random scenarios to run. More simulations give a
-                      steadier result but take slightly longer.
+                      How many random scenarios to run. More simulations give a steadier result but
+                      take slightly longer.
                     </Trans>
                   </MonteCarloHelpTooltip>
                 </View>
@@ -414,7 +371,7 @@ export function MonteCarloConfiguration({
             </View>
           </View>
 
-          <View style={{ gap: 10 }}>
+          <View style={{gap: 10}}>
             <Text style={GROUP_HEADING_STYLE}>
               <Trans>Inflation</Trans>
             </Text>
@@ -427,9 +384,8 @@ export function MonteCarloConfiguration({
                     </Text>
                     <MonteCarloHelpTooltip>
                       <Trans>
-                        The average yearly rise in prices. When set, your
-                        planned spending grows with it so your spending power is
-                        maintained.
+                        The average yearly rise in prices. When set, your planned spending grows
+                        with it so your spending power is maintained.
                         <br />
                         <br />
                         Leave blank to keep withdrawals flat.
@@ -444,9 +400,7 @@ export function MonteCarloConfiguration({
                     min={0}
                     max={100}
                     placeholder={t('None')}
-                    onCommit={newValue =>
-                      onConfigChange({ inflationMean: newValue })
-                    }
+                    onCommit={newValue => onConfigChange({inflationMean: newValue})}
                   />
                 </View>
 
@@ -457,14 +411,13 @@ export function MonteCarloConfiguration({
                     </Text>
                     <MonteCarloHelpTooltip>
                       <Trans>
-                        Real-world inflation bounces around from year to year
-                        rather than staying fixed. When set, each simulated year
-                        draws its own inflation rate around the mean.
+                        Real-world inflation bounces around from year to year rather than staying
+                        fixed. When set, each simulated year draws its own inflation rate around the
+                        mean.
                         <br />
                         <br />
-                        Around 2% matches how much US inflation has varied in
-                        recent decades. Set to 0 to use the fixed mean rate
-                        every year.
+                        Around 2% matches how much US inflation has varied in recent decades. Set to
+                        0 to use the fixed mean rate every year.
                       </Trans>
                     </MonteCarloHelpTooltip>
                   </View>
@@ -475,9 +428,7 @@ export function MonteCarloConfiguration({
                     min={0}
                     max={50}
                     disabled={config.inflationMean == null}
-                    onCommit={newValue =>
-                      onConfigChange({ inflationStdDev: newValue ?? 0 })
-                    }
+                    onCommit={newValue => onConfigChange({inflationStdDev: newValue ?? 0})}
                   />
                 </View>
               </View>
@@ -487,7 +438,7 @@ export function MonteCarloConfiguration({
               // instead of number inputs whose values would be ignored. An
               // empty label-row spacer seats the checkbox on the same
               // baseline as the neighboring inputs.
-              <View style={{ width: 250 }}>
+              <View style={{width: 250}}>
                 <View style={FIELD_LABEL_ROW_STYLE} />
                 <View
                   style={{
@@ -507,7 +458,7 @@ export function MonteCarloConfiguration({
                           : null,
                       })
                     }
-                    style={{ flex: 'unset', minHeight: 'auto' }}
+                    style={{flex: 'unset', minHeight: 'auto'}}
                   >
                     <Text style={FIELD_LABEL_STYLE}>
                       <Trans>Adjust spending with inflation</Trans>
@@ -515,10 +466,9 @@ export function MonteCarloConfiguration({
                   </LabeledCheckbox>
                   <MonteCarloHelpTooltip>
                     <Trans>
-                      Historical models pair each sampled year&apos;s market
-                      returns with that same year&apos;s actual US inflation,
-                      keeping the two correlated the way they really were.
-                      Untick to keep withdrawals flat instead.
+                      Historical models pair each sampled year&apos;s market returns with that same
+                      year&apos;s actual US inflation, keeping the two correlated the way they
+                      really were. Untick to keep withdrawals flat instead.
                     </Trans>
                   </MonteCarloHelpTooltip>
                 </View>
@@ -526,15 +476,14 @@ export function MonteCarloConfiguration({
             )}
           </View>
 
-          <View style={{ gap: 10, flexBasis: '100%' }}>
+          <View style={{gap: 10, flexBasis: '100%'}}>
             <Text style={GROUP_HEADING_STYLE}>
               <Trans>Manage surplus</Trans>
             </Text>
-            <Text style={{ color: theme.pageText }}>
+            <Text style={{color: theme.pageText}}>
               <Trans>
-                Money the plan doesn&apos;t spend - such as income beyond your
-                spending - is saved into a Surplus cash pot. Tick the box to
-                treat it as spent and gone instead.
+                Money the plan doesn&apos;t spend - such as income beyond your spending - is saved
+                into a Surplus cash pot. Tick the box to treat it as spent and gone instead.
               </Trans>
             </Text>
             <View
@@ -556,15 +505,13 @@ export function MonteCarloConfiguration({
               </LabeledCheckbox>
               <MonteCarloHelpTooltip>
                 <Trans>
-                  The Surplus cash pot is created automatically. Income beyond
-                  your spending goes into it, and it is drawn on before any
-                  other pot when spending needs funding.
+                  The Surplus cash pot is created automatically. Income beyond your spending goes
+                  into it, and it is drawn on before any other pot when spending needs funding.
                   <br />
                   <br />
-                  It starts empty and holds cash - no access age, no tax, no
-                  fees. It can&apos;t be edited or deleted from the pots list;
-                  tick the box to remove it, along with any contributions paid
-                  into it, and untick it to bring it back empty.
+                  It starts empty and holds cash - no access age, no tax, no fees. It can&apos;t be
+                  edited or deleted from the pots list; tick the box to remove it, along with any
+                  contributions paid into it, and untick it to bring it back empty.
                 </Trans>
               </MonteCarloHelpTooltip>
             </View>
@@ -586,7 +533,7 @@ export function MonteCarloConfiguration({
               overflowX: 'auto',
             }}
           >
-            <View style={{ minWidth: 'fit-content' }}>
+            <View style={{minWidth: 'fit-content'}}>
               <MonteCarloPotsTableHeader />
               <GridList
                 aria-label={t('Investment pots')}
@@ -604,11 +551,7 @@ export function MonteCarloConfiguration({
                   <MonteCarloPotConfiguration
                     key={pot.id}
                     pot={pot}
-                    potLabel={getMonteCarloPotLabel(
-                      config.pots,
-                      config.pots.indexOf(pot),
-                      t,
-                    )}
+                    potLabel={getMonteCarloPotLabel(config.pots, config.pots.indexOf(pot), t)}
                     // The surplus pot is managed by the Manage surplus toggle
                     canRemove={ordinaryPotCount > 1 && !pot.isSurplus}
                     usesHistoricalReturns={config.returnModel !== 'normal'}
@@ -628,7 +571,7 @@ export function MonteCarloConfiguration({
               </GridList>
             </View>
           </View>
-          <View style={{ flexDirection: 'row', marginTop: 10 }}>
+          <View style={{flexDirection: 'row', marginTop: 10}}>
             <Button
               onPress={() =>
                 onConfigChange({
@@ -636,7 +579,7 @@ export function MonteCarloConfiguration({
                 })
               }
             >
-              <SvgAdd width={10} height={10} style={{ marginRight: 5 }} />
+              <SvgAdd width={10} height={10} style={{marginRight: 5}} />
               <Trans>Add pot</Trans>
             </Button>
           </View>
@@ -674,44 +617,38 @@ export function MonteCarloConfiguration({
             phases={config.spendingPhases}
             currentAge={config.currentAge}
             targetAge={config.targetAge}
-            onPhasesChange={phases =>
-              onConfigChange({ spendingPhases: phases })
-            }
+            onPhasesChange={phases => onConfigChange({spendingPhases: phases})}
           />
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 20 }}>
-            <View style={{ width: 220 }}>
+          <View style={{flexDirection: 'row', flexWrap: 'wrap', gap: 20}}>
+            <View style={{width: 220}}>
               <View style={FIELD_LABEL_ROW_STYLE}>
                 <Text style={FIELD_LABEL_STYLE}>
                   <Trans>Withdrawal order</Trans>
                 </Text>
                 <MonteCarloHelpTooltip>
                   <Trans>
-                    How the annual withdrawal is taken when you have more than
-                    one pot.
+                    How the annual withdrawal is taken when you have more than one pot.
                     <br />
                     <br />
-                    Proportionally: split across pots based on their current
-                    balances.
+                    Proportionally: split across pots based on their current balances.
                     <br />
                     <br />
-                    In pot order: drain the first pot before touching the next,
-                    in the order listed on the Investment pots tab.
+                    In pot order: drain the first pot before touching the next, in the order listed
+                    on the Investment pots tab.
                     <br />
                     <br />
-                    Best performer first: each year, drain the pot with the
-                    highest return last year - e.g. spend cash after a stock
-                    crash so the crashed pot can recover, and spend stocks in
-                    boom years. The first year uses the listed order.
+                    Best performer first: each year, drain the pot with the highest return last year
+                    - e.g. spend cash after a stock crash so the crashed pot can recover, and spend
+                    stocks in boom years. The first year uses the listed order.
                     <br />
                     <br />
-                    Keep pots at their target mix: withdrawals come from
-                    whichever pots have grown above their share of your starting
-                    mix, pulling the portfolio back toward it - trim stocks
-                    after a boom, spend cash and bonds after a crash.
+                    Keep pots at their target mix: withdrawals come from whichever pots have grown
+                    above their share of your starting mix, pulling the portfolio back toward it -
+                    trim stocks after a boom, spend cash and bonds after a crash.
                     <br />
                     <br />
-                    Pots that haven&apos;t reached their access age yet are
-                    skipped until they unlock.
+                    Pots that haven&apos;t reached their access age yet are skipped until they
+                    unlock.
                   </Trans>
                 </MonteCarloHelpTooltip>
               </View>
@@ -736,12 +673,10 @@ export function MonteCarloConfiguration({
             minimumSpending={config.minimumSpending}
             onRuleChange={changes =>
               onConfigChange({
-                withdrawalRule: { ...config.withdrawalRule, ...changes },
+                withdrawalRule: {...config.withdrawalRule, ...changes},
               })
             }
-            onMinimumSpendingChange={value =>
-              onConfigChange({ minimumSpending: value })
-            }
+            onMinimumSpendingChange={value => onConfigChange({minimumSpending: value})}
           />
         </View>
       )}

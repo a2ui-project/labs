@@ -14,16 +14,9 @@
  * limitations under the License.
  */
 
-import type {
-  balanceTypeOpType,
-  GroupedEntity,
-  IntervalEntity,
-} from '@actual-app/core/types/models';
+import type {balanceTypeOpType, GroupedEntity, IntervalEntity} from '@actual-app/core/types/models';
 
-function isEmptyForMetric(
-  interval: IntervalEntity,
-  metric: balanceTypeOpType,
-): boolean {
+function isEmptyForMetric(interval: IntervalEntity, metric: balanceTypeOpType): boolean {
   switch (metric) {
     case 'totalAssets':
       return interval.totalAssets === 0;
@@ -47,9 +40,9 @@ export function determineIntervalRange(
   intervalData: IntervalEntity[],
   trimIntervals: boolean,
   balanceTypeOp: balanceTypeOpType = 'totalTotals',
-): { startIndex: number; endIndex: number } {
+): {startIndex: number; endIndex: number} {
   if (!trimIntervals || intervalData.length === 0) {
-    return { startIndex: 0, endIndex: intervalData.length - 1 };
+    return {startIndex: 0, endIndex: intervalData.length - 1};
   }
 
   let globalStartIndex = intervalData.length;
@@ -66,10 +59,7 @@ export function determineIntervalRange(
 
       // Find last non-empty interval for this group
       let endIndex = item.intervalData.length - 1;
-      while (
-        endIndex >= 0 &&
-        isEmptyForMetric(item.intervalData[endIndex], balanceTypeOp)
-      ) {
+      while (endIndex >= 0 && isEmptyForMetric(item.intervalData[endIndex], balanceTypeOp)) {
         endIndex--;
       }
       globalEndIndex = Math.max(globalEndIndex, endIndex);
@@ -85,10 +75,7 @@ export function determineIntervalRange(
 
     let mainEndIndex = intervalData.length - 1;
 
-    while (
-      mainEndIndex >= 0 &&
-      isEmptyForMetric(intervalData[mainEndIndex], balanceTypeOp)
-    ) {
+    while (mainEndIndex >= 0 && isEmptyForMetric(intervalData[mainEndIndex], balanceTypeOp)) {
       mainEndIndex--;
     }
     globalEndIndex = Math.max(globalEndIndex, mainEndIndex);
@@ -96,10 +83,10 @@ export function determineIntervalRange(
 
   // If no non-empty intervals found anywhere, return empty range
   if (globalStartIndex === intervalData.length || globalEndIndex === -1) {
-    return { startIndex: 0, endIndex: -1 };
+    return {startIndex: 0, endIndex: -1};
   }
 
-  return { startIndex: globalStartIndex, endIndex: globalEndIndex };
+  return {startIndex: globalStartIndex, endIndex: globalEndIndex};
 }
 
 export function trimIntervalDataToRange(
@@ -121,11 +108,7 @@ export function trimIntervalsToRange(
 ): void {
   // Trims intervalData for each GroupedEntity based on range
   data.forEach(item => {
-    if (
-      startIndex > endIndex ||
-      startIndex < 0 ||
-      endIndex >= item.intervalData.length
-    ) {
+    if (startIndex > endIndex || startIndex < 0 || endIndex >= item.intervalData.length) {
       item.intervalData = [];
     } else {
       item.intervalData = item.intervalData.slice(startIndex, endIndex + 1);
@@ -141,11 +124,7 @@ export function trimGroupedDataIntervals(
 ): void {
   groupedData.forEach(group => {
     // Trim the group's own intervalData
-    if (
-      startIndex > endIndex ||
-      startIndex < 0 ||
-      endIndex >= group.intervalData.length
-    ) {
+    if (startIndex > endIndex || startIndex < 0 || endIndex >= group.intervalData.length) {
       group.intervalData = [];
     } else {
       group.intervalData = group.intervalData.slice(startIndex, endIndex + 1);
@@ -154,17 +133,10 @@ export function trimGroupedDataIntervals(
     // Trim the nested categories' intervalData
     if (group.categories) {
       group.categories.forEach(category => {
-        if (
-          startIndex > endIndex ||
-          startIndex < 0 ||
-          endIndex >= category.intervalData.length
-        ) {
+        if (startIndex > endIndex || startIndex < 0 || endIndex >= category.intervalData.length) {
           category.intervalData = [];
         } else {
-          category.intervalData = category.intervalData.slice(
-            startIndex,
-            endIndex + 1,
-          );
+          category.intervalData = category.intervalData.slice(startIndex, endIndex + 1);
         }
       });
     }

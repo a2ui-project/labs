@@ -15,25 +15,23 @@
  */
 
 import React from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { SvgClose } from '@actual-app/components/icons/v1';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
+import {Button} from '@actual-app/components/button';
+import {SvgClose} from '@actual-app/components/icons/v1';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
 
-import { setAppState, updateApp } from '#app/appSlice';
-import { useDispatch, useSelector } from '#redux';
+import {setAppState, updateApp} from '#app/appSlice';
+import {useDispatch, useSelector} from '#redux';
 
-import { Link } from './common/Link';
+import {Link} from './common/Link';
 
 export function UpdateNotification() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const updateInfo = useSelector(state => state.app.updateInfo);
-  const showUpdateNotification = useSelector(
-    state => state.app.showUpdateNotification,
-  );
+  const showUpdateNotification = useSelector(state => state.app.showUpdateNotification);
 
   const dispatch = useDispatch();
   const onRestart = () => {
@@ -58,14 +56,14 @@ export function UpdateNotification() {
           maxWidth: 450,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ marginRight: 10, fontWeight: 700 }}>
+        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+          <View style={{marginRight: 10, fontWeight: 700}}>
             <Text>
-              <Trans>App updated to {{ version: updateInfo.version }}</Trans>
+              <Trans>App updated to {{version: updateInfo.version}}</Trans>
             </Text>
           </View>
-          <View style={{ flex: 1 }} />
-          <View style={{ marginTop: -1 }}>
+          <View style={{flex: 1}} />
+          <View style={{marginTop: -1}}>
             <Text>
               <Link
                 variant="text"
@@ -85,9 +83,7 @@ export function UpdateNotification() {
                   textDecoration: 'underline',
                 }}
                 onClick={() =>
-                  window.Actual.openURLInBrowser(
-                    'https://actualbudget.org/docs/releases',
-                  )
+                  window.Actual.openURLInBrowser('https://actualbudget.org/docs/releases')
                 }
               >
                 <Trans>notes</Trans>
@@ -96,7 +92,7 @@ export function UpdateNotification() {
               <Button
                 variant="bare"
                 aria-label={t('Close')}
-                style={{ display: 'inline', padding: '1px 7px 2px 7px' }}
+                style={{display: 'inline', padding: '1px 7px 2px 7px'}}
                 onPress={() => {
                   // Set a flag to never show an update notification again for this session
                   dispatch(
@@ -107,17 +103,12 @@ export function UpdateNotification() {
                   );
                 }}
               >
-                <SvgClose
-                  width={9}
-                  style={{ color: theme.buttonPrimaryText }}
-                />
+                <SvgClose width={9} style={{color: theme.buttonPrimaryText}} />
               </Button>
             </Text>
           </View>
         </View>
-        {notes && (
-          <View style={{ marginTop: 10, fontWeight: 500 }}>{notes}</View>
-        )}
+        {notes && <View style={{marginTop: 10, fontWeight: 500}}>{notes}</View>}
       </View>
     );
   }

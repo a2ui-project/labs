@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { run as runMigrations } from './src/migrations';
+import {run as runMigrations} from './src/migrations';
 
 runMigrations()
   .then(() => {

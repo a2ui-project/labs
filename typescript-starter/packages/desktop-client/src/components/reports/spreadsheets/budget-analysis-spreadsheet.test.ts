@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { rangeInclusive } from '@actual-app/core/shared/months';
-import type { CategoryEntity } from '@actual-app/core/types/models';
+import {rangeInclusive} from '@actual-app/core/shared/months';
+import type {CategoryEntity} from '@actual-app/core/types/models';
 
 import {
   getLastSelectableMonth,
@@ -23,7 +23,7 @@ import {
   isBaseCategory,
   summarizeMonthCategories,
 } from './budget-analysis-spreadsheet';
-import type { BudgetMonthCell } from './budgetMonthCell';
+import type {BudgetMonthCell} from './budgetMonthCell';
 
 const makeCategory = (
   overrides: Partial<CategoryEntity> & Pick<CategoryEntity, 'id' | 'name'>,
@@ -34,7 +34,7 @@ const makeCategory = (
   ...overrides,
 });
 
-const visibleExpense = makeCategory({ id: 'c1', name: 'Groceries' });
+const visibleExpense = makeCategory({id: 'c1', name: 'Groceries'});
 const hiddenExpense = makeCategory({
   id: 'c2',
   name: 'Car Fund',
@@ -123,10 +123,7 @@ describe('createBudgetAnalysisSpreadsheet', () => {
     });
 
     it('produces a range that spans from the earliest month to the endpoint', () => {
-      const range = rangeInclusive(
-        '2026-06',
-        getLastSelectableMonth('2026-06', '2026-06'),
-      );
+      const range = rangeInclusive('2026-06', getLastSelectableMonth('2026-06', '2026-06'));
 
       expect(range[0]).toBe('2026-06');
       expect(range[range.length - 1]).toBe('2027-12');
@@ -142,9 +139,7 @@ describe('createBudgetAnalysisSpreadsheet', () => {
   });
 
   describe('summarizeMonthCategories', () => {
-    const cells = (
-      values: Record<string, number | boolean>,
-    ): BudgetMonthCell[] =>
+    const cells = (values: Record<string, number | boolean>): BudgetMonthCell[] =>
       Object.entries(values).map(([name, value]) => ({
         name: `budget202601!${name}`,
         value,

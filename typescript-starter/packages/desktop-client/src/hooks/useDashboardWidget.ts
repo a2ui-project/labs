@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-import type { DashboardWidgetEntity } from '@actual-app/core/types/models';
-import { useQuery } from '@tanstack/react-query';
+import type {DashboardWidgetEntity} from '@actual-app/core/types/models';
+import {useQuery} from '@tanstack/react-query';
 
-import { dashboardQueries } from '#reports';
+import {dashboardQueries} from '#reports';
 
-type UseDashboardWidgetProps<W extends DashboardWidgetEntity> = Partial<
-  Pick<W, 'id' | 'type'>
->;
+type UseDashboardWidgetProps<W extends DashboardWidgetEntity> = Partial<Pick<W, 'id' | 'type'>>;
 
 export function useDashboardWidget<W extends DashboardWidgetEntity>({
   id,

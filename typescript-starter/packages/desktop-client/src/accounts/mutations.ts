@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { SyncResponseWithErrors } from '@actual-app/core/server/accounts/app';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {SyncResponseWithErrors} from '@actual-app/core/server/accounts/app';
 import type {
   AccountEntity,
   AccountGroupEntity,
@@ -29,17 +29,17 @@ import type {
   SyncServerSimpleFinAccount,
   TransactionEntity,
 } from '@actual-app/core/types/models';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import { v4 as uuidv4 } from 'uuid';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import type {QueryClient, QueryKey} from '@tanstack/react-query';
+import {v4 as uuidv4} from 'uuid';
 
-import { sync } from '#app/appSlice';
-import { useAccounts } from '#hooks/useAccounts';
-import { addNotification } from '#notifications/notificationsSlice';
-import { payeeQueries } from '#payees';
-import { useDispatch, useStore } from '#redux';
-import type { AppDispatch } from '#redux/store';
-import { setNewTransactions } from '#transactions/transactionsSlice';
+import {sync} from '#app/appSlice';
+import {useAccounts} from '#hooks/useAccounts';
+import {addNotification} from '#notifications/notificationsSlice';
+import {payeeQueries} from '#payees';
+import {useDispatch, useStore} from '#redux';
+import type {AppDispatch} from '#redux/store';
+import {setNewTransactions} from '#transactions/transactionsSlice';
 
 import {
   markAccountFailed,
@@ -47,7 +47,7 @@ import {
   markUpdatedAccounts,
   setAccountsSyncing,
 } from './accountsSlice';
-import { accountQueries } from './queries';
+import {accountQueries} from './queries';
 
 const invalidateQueries = (queryClient: QueryClient, queryKey?: QueryKey) => {
   void queryClient.invalidateQueries({
@@ -55,11 +55,7 @@ const invalidateQueries = (queryClient: QueryClient, queryKey?: QueryKey) => {
   });
 };
 
-const dispatchErrorNotification = (
-  dispatch: AppDispatch,
-  message: string,
-  error?: Error,
-) => {
+const dispatchErrorNotification = (dispatch: AppDispatch, message: string, error?: Error) => {
   dispatch(
     addNotification({
       notification: {
@@ -81,10 +77,10 @@ type CreateAccountPayload = {
 export function useCreateAccountMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ name, balance, offBudget }: CreateAccountPayload) => {
+    mutationFn: async ({name, balance, offBudget}: CreateAccountPayload) => {
       const id = await send('account-create', {
         name,
         balance,
@@ -114,15 +110,10 @@ type CloseAccountPayload = {
 export function useCloseAccountMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      transferAccountId,
-      categoryId,
-      forced,
-    }: CloseAccountPayload) => {
+    mutationFn: async ({id, transferAccountId, categoryId, forced}: CloseAccountPayload) => {
       await send('account-close', {
         id,
         transferAccountId: transferAccountId || undefined,
@@ -149,11 +140,11 @@ type ReopenAccountPayload = {
 export function useReopenAccountMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id }: ReopenAccountPayload) => {
-      await send('account-reopen', { id });
+    mutationFn: async ({id}: ReopenAccountPayload) => {
+      await send('account-reopen', {id});
     },
     onSuccess: () => invalidateQueries(queryClient),
     onError: error => {
@@ -174,10 +165,10 @@ type UpdateAccountPayload = {
 export function useUpdateAccountMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ account }: UpdateAccountPayload) => {
+    mutationFn: async ({account}: UpdateAccountPayload) => {
       await send('account-update', account);
       return account;
     },
@@ -202,15 +193,11 @@ type MoveAccountPayload = {
 export function useMoveAccountMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({
-      id,
-      targetId,
-      accountGroupId,
-    }: MoveAccountPayload) => {
-      await send('account-move', { id, targetId, accountGroupId });
+    mutationFn: async ({id, targetId, accountGroupId}: MoveAccountPayload) => {
+      await send('account-move', {id, targetId, accountGroupId});
     },
     onSuccess: () => {
       invalidateQueries(queryClient);
@@ -236,7 +223,7 @@ type ImportPreviewTransactionsPayload = {
 export function useImportPreviewTransactionsMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
     mutationFn: async ({
@@ -244,15 +231,12 @@ export function useImportPreviewTransactionsMutation() {
       transactions,
       reimportDeleted,
     }: ImportPreviewTransactionsPayload) => {
-      const { errors = [], updatedPreview } = await send(
-        'transactions-import',
-        {
-          accountId,
-          transactions,
-          isPreview: true,
-          opts: reimportDeleted !== undefined ? { reimportDeleted } : undefined,
-        },
-      );
+      const {errors = [], updatedPreview} = await send('transactions-import', {
+        accountId,
+        transactions,
+        isPreview: true,
+        opts: reimportDeleted !== undefined ? {reimportDeleted} : undefined,
+      });
 
       errors.forEach(error => {
         dispatch(
@@ -272,9 +256,7 @@ export function useImportPreviewTransactionsMutation() {
       console.error('Error importing preview transactions to account:', error);
       dispatchErrorNotification(
         dispatch,
-        t(
-          'There was an error importing preview transactions to the account. Please try again.',
-        ),
+        t('There was an error importing preview transactions to the account. Please try again.'),
         error,
       );
     },
@@ -291,7 +273,7 @@ type ImportTransactionsPayload = {
 export function useImportTransactionsMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
     mutationFn: async ({
@@ -317,7 +299,7 @@ export function useImportTransactionsMutation() {
         accountId,
         transactions,
         isPreview: false,
-        opts: reimportDeleted !== undefined ? { reimportDeleted } : undefined,
+        opts: reimportDeleted !== undefined ? {reimportDeleted} : undefined,
       });
 
       errors.forEach(error => {
@@ -351,9 +333,7 @@ export function useImportTransactionsMutation() {
       console.error('Error importing transactions to account:', error);
       dispatchErrorNotification(
         dispatch,
-        t(
-          'There was an error importing transactions to the account. Please try again.',
-        ),
+        t('There was an error importing transactions to the account. Please try again.'),
         error,
       );
     },
@@ -367,15 +347,15 @@ type UnlinkAccountPayload = {
 export function useUnlinkAccountMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id }: UnlinkAccountPayload) => {
-      await send('account-unlink', { id });
+    mutationFn: async ({id}: UnlinkAccountPayload) => {
+      await send('account-unlink', {id});
     },
-    onSuccess: (_, { id }) => {
+    onSuccess: (_, {id}) => {
       invalidateQueries(queryClient);
-      dispatch(markAccountSuccess({ id }));
+      dispatch(markAccountSuccess({id}));
     },
     onError: error => {
       console.error('Error unlinking account:', error);
@@ -404,7 +384,7 @@ type LinkAccountPayload = LinkAccountBasePayload & {
 export function useLinkAccountMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
     mutationFn: async ({
@@ -446,7 +426,7 @@ type LinkAccountSimpleFinPayload = LinkAccountBasePayload & {
 export function useLinkAccountSimpleFinMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
     mutationFn: async ({
@@ -472,9 +452,7 @@ export function useLinkAccountSimpleFinMutation() {
       console.error('Error linking account to SimpleFIN:', error);
       dispatchErrorNotification(
         dispatch,
-        t(
-          'There was an error linking the account to SimpleFIN. Please try again.',
-        ),
+        t('There was an error linking the account to SimpleFIN. Please try again.'),
         error,
       );
     },
@@ -488,7 +466,7 @@ type LinkAccountPluggyAiPayload = LinkAccountBasePayload & {
 export function useLinkAccountPluggyAiMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
     mutationFn: async ({
@@ -514,9 +492,7 @@ export function useLinkAccountPluggyAiMutation() {
       console.error('Error linking account to PluggyAI:', error);
       dispatchErrorNotification(
         dispatch,
-        t(
-          'There was an error linking the account to PluggyAI. Please try again.',
-        ),
+        t('There was an error linking the account to PluggyAI. Please try again.'),
         error,
       );
     },
@@ -530,7 +506,7 @@ type LinkAccountAkahuPayload = LinkAccountBasePayload & {
 export function useLinkAccountAkahuMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
     mutationFn: async ({
@@ -570,7 +546,7 @@ type LinkAccountEnableBankingPayload = LinkAccountBasePayload & {
 export function useLinkAccountEnableBankingMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
     mutationFn: async ({
@@ -596,9 +572,7 @@ export function useLinkAccountEnableBankingMutation() {
       console.error('Error linking account to Enable Banking:', error);
       dispatchErrorNotification(
         dispatch,
-        t(
-          'There was an error linking the account to Enable Banking. Please try again.',
-        ),
+        t('There was an error linking the account to Enable Banking. Please try again.'),
         error,
       );
     },
@@ -612,15 +586,15 @@ type SyncAccountsPayload = {
 export function useSyncAccountsMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const store = useStore();
 
   return useMutation({
-    mutationFn: async ({ id }: SyncAccountsPayload) => {
+    mutationFn: async ({id}: SyncAccountsPayload) => {
       const {
-        account: { accountsSyncing = [] },
+        account: {accountsSyncing = []},
       } = store.getState();
 
       // Disallow two parallel sync operations
@@ -630,7 +604,7 @@ export function useSyncAccountsMutation() {
 
       if (id === 'uncategorized') {
         // Sync no accounts
-        dispatch(setAccountsSyncing({ ids: [] }));
+        dispatch(setAccountsSyncing({ids: []}));
         return false;
       }
 
@@ -639,33 +613,27 @@ export function useSyncAccountsMutation() {
         const targetOffbudget = id === 'offbudget' ? 1 : 0;
         accountIdsToSync = accounts
           .filter(
-            ({ bank, closed, tombstone, offbudget }) =>
+            ({bank, closed, tombstone, offbudget}) =>
               !!bank && !closed && !tombstone && offbudget === targetOffbudget,
           )
           .sort((a, b) => a.sort_order - b.sort_order)
-          .map(({ id }) => id);
+          .map(({id}) => id);
       } else if (id) {
         accountIdsToSync = [id];
       } else {
         // Default: all accounts
         accountIdsToSync = accounts
-          .filter(
-            ({ bank, closed, tombstone }) => !!bank && !closed && !tombstone,
-          )
+          .filter(({bank, closed, tombstone}) => !!bank && !closed && !tombstone)
           .sort((a, b) =>
-            a.offbudget === b.offbudget
-              ? a.sort_order - b.sort_order
-              : a.offbudget - b.offbudget,
+            a.offbudget === b.offbudget ? a.sort_order - b.sort_order : a.offbudget - b.offbudget,
           )
-          .map(({ id }) => id);
+          .map(({id}) => id);
       }
 
-      dispatch(setAccountsSyncing({ ids: accountIdsToSync }));
+      dispatch(setAccountsSyncing({ids: accountIdsToSync}));
 
       const simpleFinAccounts = accounts.filter(
-        a =>
-          a.account_sync_source === 'simpleFin' &&
-          accountIdsToSync.includes(a.id),
+        a => a.account_sync_source === 'simpleFin' && accountIdsToSync.includes(a.id),
       );
 
       let isSyncSuccess = false;
@@ -697,7 +665,7 @@ export function useSyncAccountsMutation() {
           id => !simpleFinAccounts.find(sfa => sfa.id === id),
         );
 
-        dispatch(setAccountsSyncing({ ids: accountIdsToSync }));
+        dispatch(setAccountsSyncing({ids: accountIdsToSync}));
       }
 
       // Loop through the accounts and perform sync operation.. one by one
@@ -722,7 +690,7 @@ export function useSyncAccountsMutation() {
         if (success) isSyncSuccess = true;
 
         // Dispatch the ids for the accounts that are yet to be synced
-        dispatch(setAccountsSyncing({ ids: accountIdsToSync.slice(idx + 1) }));
+        dispatch(setAccountsSyncing({ids: accountIdsToSync.slice(idx + 1)}));
       }
 
       // Set new transactions
@@ -733,11 +701,11 @@ export function useSyncAccountsMutation() {
         }),
       );
 
-      dispatch(markUpdatedAccounts({ ids: updatedAccounts }));
+      dispatch(markUpdatedAccounts({ids: updatedAccounts}));
 
       // Reset the sync state back to empty (fallback in case something breaks
       // in the logic above)
-      dispatch(setAccountsSyncing({ ids: [] }));
+      dispatch(setAccountsSyncing({ids: []}));
       return isSyncSuccess;
     },
     onSuccess: () => invalidateQueries(queryClient),
@@ -761,7 +729,7 @@ function handleSyncResponse(
   resMatchedTransactions: Array<TransactionEntity['id']>,
   resUpdatedAccounts: Array<AccountEntity['id']>,
 ) {
-  const { errors, newTransactions, matchedTransactions, updatedAccounts } = res;
+  const {errors, newTransactions, matchedTransactions, updatedAccounts} = res;
 
   // Mark the account as failed or succeeded (depending on sync output)
   const [error] = errors;
@@ -778,7 +746,7 @@ function handleSyncResponse(
       );
     }
   } else {
-    dispatch(markAccountSuccess({ id: accountId }));
+    dispatch(markAccountSuccess({id: accountId}));
   }
 
   // Dispatch errors (if any)
@@ -821,12 +789,12 @@ type SyncAndDownloadPayload = {
 export function useSyncAndDownloadMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const syncAccounts = useSyncAccountsMutation();
 
   return useMutation({
-    mutationFn: async ({ id }: SyncAndDownloadPayload) => {
+    mutationFn: async ({id}: SyncAndDownloadPayload) => {
       // It is *critical* that we sync first because of transaction
       // reconciliation. We want to get all transactions that other
       // clients have already made, so that imported transactions can be
@@ -834,23 +802,23 @@ export function useSyncAndDownloadMutation() {
       // new transactions from the bank and create duplicate ones.
       const syncState = await dispatch(sync()).unwrap();
       if (syncState.error) {
-        return { error: syncState.error };
+        return {error: syncState.error};
       }
 
-      const hasDownloaded = await syncAccounts.mutateAsync({ id });
+      const hasDownloaded = await syncAccounts.mutateAsync({id});
 
       if (hasDownloaded) {
         // Sync again afterwards if new transactions were created
         const syncState = await dispatch(sync()).unwrap();
         if (syncState.error) {
-          return { error: syncState.error };
+          return {error: syncState.error};
         }
 
         // `hasDownloaded` is already true, we know there has been
         // updates
         return true;
       }
-      return { hasUpdated: hasDownloaded };
+      return {hasUpdated: hasDownloaded};
     },
     onSuccess: () => invalidateQueries(queryClient),
     onError: error => {

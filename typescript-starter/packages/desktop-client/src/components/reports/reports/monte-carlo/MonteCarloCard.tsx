@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-import { useMemo, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import {useMemo, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Block } from '@actual-app/components/block';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { MonteCarloWidget } from '@actual-app/core/types/models';
+import {Block} from '@actual-app/components/block';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {MonteCarloWidget} from '@actual-app/core/types/models';
 
-import { FinancialText } from '#components/FinancialText';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { MonteCarloGraph } from '#components/reports/graphs/MonteCarloGraph';
-import { ReportCard } from '#components/reports/ReportCard';
-import { ReportCardName } from '#components/reports/ReportCardName';
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {MonteCarloGraph} from '#components/reports/graphs/MonteCarloGraph';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
 import {
   getMonteCarloHorizonYears,
   monteCarloConfigFromMeta,
   runMonteCarloSimulation,
 } from '#components/reports/reports/monte-carlo/monteCarloSimulation';
-import { useResolvedMonteCarloConfig } from '#components/reports/reports/monte-carlo/useResolvedMonteCarloConfig';
+import {useResolvedMonteCarloConfig} from '#components/reports/reports/monte-carlo/useResolvedMonteCarloConfig';
 
 // Stable default so an unsaved widget doesn't bust the simulation's
 // memoization on every re-render (e.g. hover state changes)
@@ -53,8 +53,8 @@ export function MonteCarloCard({
   meta = EMPTY_META,
   onMetaChange,
 }: MonteCarloCardProps) {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
 
   const [nameMenuOpen, setNameMenuOpen] = useState(false);
   const [isCardHovered, setIsCardHovered] = useState(false);
@@ -85,12 +85,12 @@ export function MonteCarloCard({
       onRename={() => setNameMenuOpen(true)}
     >
       <View
-        style={{ flex: 1 }}
+        style={{flex: 1}}
         onPointerEnter={() => setIsCardHovered(true)}
         onPointerLeave={() => setIsCardHovered(false)}
       >
-        <View style={{ flexDirection: 'row', padding: 20 }}>
-          <View style={{ flex: 1 }}>
+        <View style={{flexDirection: 'row', padding: 20}}>
+          <View style={{flex: 1}}>
             <ReportCardName
               name={meta?.name || t('Monte Carlo Analysis')}
               isEditing={nameMenuOpen}
@@ -104,7 +104,7 @@ export function MonteCarloCard({
               onClose={() => setNameMenuOpen(false)}
             />
           </View>
-          <View style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+          <View style={{textAlign: 'right', whiteSpace: 'nowrap'}}>
             <Block
               style={{
                 ...styles.mediumText,
@@ -122,7 +122,7 @@ export function MonteCarloCard({
                 color: theme.pageTextSubdued,
               }}
             >
-              <Trans>Success rate to age {{ age: endAge }}</Trans>
+              <Trans>Success rate to age {{age: endAge}}</Trans>
             </Block>
           </View>
         </View>
@@ -132,7 +132,7 @@ export function MonteCarloCard({
           startAge={config.currentAge}
           compact
           showTooltip={!isEditing && !isNarrowWidth}
-          style={{ height: 'auto', flex: 1 }}
+          style={{height: 'auto', flex: 1}}
         />
       </View>
     </ReportCard>

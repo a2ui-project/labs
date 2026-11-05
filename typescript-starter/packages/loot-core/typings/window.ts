@@ -34,19 +34,12 @@ type Actual = {
   ACTUAL_VERSION: string;
   openURLInBrowser: (url: string) => void;
   openInFileManager: (filepath: string) => void;
-  saveFile: (
-    contents: string | Buffer,
-    filename: string,
-    dialogTitle?: string,
-  ) => Promise<void>;
+  saveFile: (contents: string | Buffer, filename: string, dialogTitle?: string) => Promise<void>;
   openFileDialog: (options: FileDialogOptions) => Promise<string[]>;
   relaunch: () => void;
   reload: (() => Promise<void>) | undefined;
   restartElectronServer: () => void;
-  moveBudgetDirectory: (
-    currentBudgetDirectory: string,
-    newDirectory: string,
-  ) => Promise<void>;
+  moveBudgetDirectory: (currentBudgetDirectory: string, newDirectory: string) => Promise<void>;
   /**
    * Persists the budget data folder directly from the desktop app's main
    * process, so it works even when the backend failed to start. Validates
@@ -59,10 +52,7 @@ type Actual = {
   getServerSocket: () => Promise<Worker | null>;
   setTheme: (theme: string) => void;
   logToTerminal: (...args: unknown[]) => void;
-  onEventFromMain: (
-    event: string,
-    listener: (...args: unknown[]) => void,
-  ) => void;
+  onEventFromMain: (event: string, listener: (...args: unknown[]) => void) => void;
   isUpdateReadyForDownload: () => boolean;
   waitForUpdateReadyForDownload: () => Promise<void>;
   startSyncServer: () => Promise<void>;

@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-import React, { useRef, useState } from 'react';
-import type { ComponentProps, ReactNode } from 'react';
-import { Dialog, DialogTrigger } from 'react-aria-components';
-import { useHotkeys } from 'react-hotkeys-hook';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useRef, useState} from 'react';
+import type {ComponentProps, ReactNode} from 'react';
+import {Dialog, DialogTrigger} from 'react-aria-components';
+import {useHotkeys} from 'react-hotkeys-hook';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import {
-  SvgAdd,
-  SvgDotsHorizontalTriple,
-} from '@actual-app/components/icons/v1';
+import {Button} from '@actual-app/components/button';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {SvgAdd, SvgDotsHorizontalTriple} from '@actual-app/components/icons/v1';
 import {
   SvgArrowsExpand3,
   SvgArrowsShrink3,
@@ -33,44 +30,44 @@ import {
   SvgLockClosed,
   SvgPencil1,
 } from '@actual-app/components/icons/v2';
-import { InitialFocus } from '@actual-app/components/initial-focus';
-import { Input } from '@actual-app/components/input';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { Tooltip } from '@actual-app/components/tooltip';
-import { View } from '@actual-app/components/view';
-import { tsToRelativeTime } from '@actual-app/core/shared/util';
+import {InitialFocus} from '@actual-app/components/initial-focus';
+import {Input} from '@actual-app/components/input';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {Tooltip} from '@actual-app/components/tooltip';
+import {View} from '@actual-app/components/view';
+import {tsToRelativeTime} from '@actual-app/core/shared/util';
 import type {
   AccountEntity,
   RuleConditionEntity,
   TransactionEntity,
   TransactionFilterEntity,
 } from '@actual-app/core/types/models';
-import { format as formatDate } from 'date-fns';
+import {format as formatDate} from 'date-fns';
 
-import { isAccountFailedSync } from '#accounts/syncStatus';
-import { AnimatedRefresh } from '#components/AnimatedRefresh';
-import { Search } from '#components/common/Search';
-import { FilterButton } from '#components/filters/FiltersMenu';
-import { FiltersStack } from '#components/filters/FiltersStack';
-import type { SavedFilter } from '#components/filters/SavedFilterMenuButton';
-import { NotesButton } from '#components/NotesButton';
-import { SelectedTransactionsButton } from '#components/transactions/SelectedTransactionsButton';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
-import { useLocale } from '#hooks/useLocale';
-import { useLocalPref } from '#hooks/useLocalPref';
-import { useSplitsExpanded } from '#hooks/useSplitsExpanded';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { useSyncServerStatus } from '#hooks/useSyncServerStatus';
+import {isAccountFailedSync} from '#accounts/syncStatus';
+import {AnimatedRefresh} from '#components/AnimatedRefresh';
+import {Search} from '#components/common/Search';
+import {FilterButton} from '#components/filters/FiltersMenu';
+import {FiltersStack} from '#components/filters/FiltersStack';
+import type {SavedFilter} from '#components/filters/SavedFilterMenuButton';
+import {NotesButton} from '#components/NotesButton';
+import {SelectedTransactionsButton} from '#components/transactions/SelectedTransactionsButton';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
+import {useLocale} from '#hooks/useLocale';
+import {useLocalPref} from '#hooks/useLocalPref';
+import {useSplitsExpanded} from '#hooks/useSplitsExpanded';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {useSyncServerStatus} from '#hooks/useSyncServerStatus';
 
-import type { TableRef } from './Account';
-import { Balances } from './Balance';
-import { BalanceHistoryGraph } from './BalanceHistoryGraph';
-import { ReconcileMenu, ReconcilingMessage } from './Reconcile';
+import type {TableRef} from './Account';
+import {Balances} from './Balance';
+import {BalanceHistoryGraph} from './BalanceHistoryGraph';
+import {ReconcileMenu, ReconcilingMessage} from './Reconcile';
 
 type AccountHeaderProps = {
   tableRef: TableRef;
@@ -97,16 +94,12 @@ type AccountHeaderProps = {
   filterConditionsOp: 'and' | 'or';
   onSearch: (newSearch: string) => void;
   onAddTransaction: () => void;
-  onShowTransactions: ComponentProps<
-    typeof SelectedTransactionsButton
-  >['onShow'];
+  onShowTransactions: ComponentProps<typeof SelectedTransactionsButton>['onShow'];
   onDoneReconciling: ComponentProps<typeof ReconcilingMessage>['onDone'];
   onCreateReconciliationTransaction: ComponentProps<
     typeof ReconcilingMessage
   >['onCreateTransaction'];
-  onToggleExtraBalances: ComponentProps<
-    typeof Balances
-  >['onToggleExtraBalances'];
+  onToggleExtraBalances: ComponentProps<typeof Balances>['onToggleExtraBalances'];
   onSaveName: AccountNameFieldProps['onSaveName'];
   saveNameError: AccountNameFieldProps['saveNameError'];
   onSync: () => void;
@@ -116,15 +109,9 @@ type AccountHeaderProps = {
   onBatchEdit: ComponentProps<typeof SelectedTransactionsButton>['onEdit'];
   onRunRules: ComponentProps<typeof SelectedTransactionsButton>['onRunRules'];
   onBatchDelete: ComponentProps<typeof SelectedTransactionsButton>['onDelete'];
-  onBatchDuplicate: ComponentProps<
-    typeof SelectedTransactionsButton
-  >['onDuplicate'];
-  onBatchLinkSchedule: ComponentProps<
-    typeof SelectedTransactionsButton
-  >['onLinkSchedule'];
-  onBatchUnlinkSchedule: ComponentProps<
-    typeof SelectedTransactionsButton
-  >['onUnlinkSchedule'];
+  onBatchDuplicate: ComponentProps<typeof SelectedTransactionsButton>['onDuplicate'];
+  onBatchLinkSchedule: ComponentProps<typeof SelectedTransactionsButton>['onLinkSchedule'];
+  onBatchUnlinkSchedule: ComponentProps<typeof SelectedTransactionsButton>['onUnlinkSchedule'];
   onApplyFilter: (filter: RuleConditionEntity) => void;
 } & Pick<
   ComponentProps<typeof SelectedTransactionsButton>,
@@ -198,7 +185,7 @@ export function AccountHeader({
   onMakeAsNonSplitTransactions,
   onMergeTransactions,
 }: AccountHeaderProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const [reconcileOpen, setReconcileOpen] = useState(false);
   const searchInput = useRef<HTMLInputElement>(null);
@@ -288,7 +275,7 @@ export function AccountHeader({
 
   return (
     <>
-      <View style={{ ...styles.pageContent, paddingBottom: 10, flexShrink: 0 }}>
+      <View style={{...styles.pageContent, paddingBottom: 10, flexShrink: 0}}>
         <View
           style={{
             flexDirection: 'column',
@@ -312,10 +299,7 @@ export function AccountHeader({
               }}
             >
               {!!account?.bank && (
-                <AccountSyncSidebar
-                  account={account}
-                  accountsSyncing={accountsSyncing}
-                />
+                <AccountSyncSidebar account={account} accountsSyncing={accountsSyncing} />
               )}
               <AccountNameField
                 account={account}
@@ -346,20 +330,14 @@ export function AccountHeader({
             }}
           />
         </View>
-        <SpaceBetween gap={10} style={{ marginTop: 12 }}>
+        <SpaceBetween gap={10} style={{marginTop: 12}}>
           {canSync && (
-            <Button
-              variant="bare"
-              onPress={onSync}
-              isDisabled={isServerOffline}
-            >
+            <Button variant="bare" onPress={onSync} isDisabled={isServerOffline}>
               <AnimatedRefresh
                 width={13}
                 height={13}
                 animating={
-                  account
-                    ? accountsSyncing.includes(account.id)
-                    : accountsSyncing.length > 0
+                  account ? accountsSyncing.includes(account.id) : accountsSyncing.length > 0
                 }
               />{' '}
               {isServerOffline ? t('Bank Sync Offline') : t('Bank Sync')}
@@ -368,36 +346,27 @@ export function AccountHeader({
 
           {account && !account.closed && (
             <Button variant="bare" onPress={onImport}>
-              <SvgDownloadThickBottom
-                width={13}
-                height={13}
-                style={{ marginRight: 4 }}
-              />{' '}
+              <SvgDownloadThickBottom width={13} height={13} style={{marginRight: 4}} />{' '}
               <Trans>Import</Trans>
             </Button>
           )}
 
           {!showEmptyMessage && (
             <Button variant="bare" onPress={onAddTransaction}>
-              <SvgAdd width={10} height={10} style={{ marginRight: 3 }} />
+              <SvgAdd width={10} height={10} style={{marginRight: 3}} />
               <Trans>Add New</Trans>
             </Button>
           )}
-          <View style={{ flexShrink: 0 }}>
+          <View style={{flexShrink: 0}}>
             {/* @ts-expect-error fix me */}
             <FilterButton onApply={onApplyFilter} />
           </View>
-          <View style={{ flex: 1 }} />
+          <View style={{flex: 1}} />
 
-          <Search
-            placeholder={t('Search')}
-            value={search}
-            onChange={onSearch}
-            ref={searchInput}
-          />
+          <Search placeholder={t('Search')} value={search} onChange={onSearch} ref={searchInput} />
           {workingHard ? (
             <View>
-              <AnimatedLoading style={{ width: 16, height: 16 }} />
+              <AnimatedLoading style={{width: 16, height: 16}} />
             </View>
           ) : (
             <SelectedTransactionsButton
@@ -418,7 +387,7 @@ export function AccountHeader({
               onMergeTransactions={onMergeTransactions}
             />
           )}
-          <View style={{ flex: '0 0 auto' }}>
+          <View style={{flex: '0 0 auto'}}>
             {account && (
               <Tooltip
                 style={{
@@ -427,22 +396,14 @@ export function AccountHeader({
                 }}
                 content={
                   account?.last_reconciled
-                    ? t(
-                        'Reconciled {{ relativeTimeAgo }} ({{ absoluteDate }})',
-                        {
-                          relativeTimeAgo: tsToRelativeTime(
-                            account.last_reconciled,
-                            locale,
-                          ),
-                          absoluteDate: formatDate(
-                            new Date(
-                              parseInt(account.last_reconciled ?? '0', 10),
-                            ),
-                            dateFormat,
-                            { locale },
-                          ),
-                        },
-                      )
+                    ? t('Reconciled {{ relativeTimeAgo }} ({{ absoluteDate }})', {
+                        relativeTimeAgo: tsToRelativeTime(account.last_reconciled, locale),
+                        absoluteDate: formatDate(
+                          new Date(parseInt(account.last_reconciled ?? '0', 10)),
+                          dateFormat,
+                          {locale},
+                        ),
+                      })
                     : t('Not yet reconciled')
                 }
                 placement="top"
@@ -454,7 +415,7 @@ export function AccountHeader({
                   ref={reconcileRef}
                   variant="bare"
                   aria-label={t('Reconcile')}
-                  style={{ padding: 6 }}
+                  style={{padding: 6}}
                   onPress={() => {
                     setReconcileOpen(true);
                   }}
@@ -466,7 +427,7 @@ export function AccountHeader({
                 <Popover
                   placement="bottom"
                   triggerRef={reconcileRef}
-                  style={{ width: 275 }}
+                  style={{width: 275}}
                   isOpen={reconcileOpen}
                   onOpenChange={() => setReconcileOpen(false)}
                 >
@@ -486,7 +447,7 @@ export function AccountHeader({
                 ? t('Collapse split transactions')
                 : t('Expand split transactions')
             }
-            style={{ padding: 6 }}
+            style={{padding: 6}}
             onPress={onToggleSplits}
           >
             <View
@@ -497,24 +458,24 @@ export function AccountHeader({
               }
             >
               {splitsExpanded.state.mode === 'collapse' ? (
-                <SvgArrowsShrink3 style={{ width: 14, height: 14 }} />
+                <SvgArrowsShrink3 style={{width: 14, height: 14}} />
               ) : (
-                <SvgArrowsExpand3 style={{ width: 14, height: 14 }} />
+                <SvgArrowsExpand3 style={{width: 14, height: 14}} />
               )}
             </View>
           </Button>
           {account ? (
-            <View style={{ flex: '0 0 auto' }}>
+            <View style={{flex: '0 0 auto'}}>
               <DialogTrigger>
                 <Button variant="bare" aria-label={t('Account menu')}>
                   <SvgDotsHorizontalTriple
                     width={15}
                     height={15}
-                    style={{ transform: 'rotateZ(90deg)' }}
+                    style={{transform: 'rotateZ(90deg)'}}
                   />
                 </Button>
 
-                <Popover style={{ minWidth: 275 }}>
+                <Popover style={{minWidth: 275}}>
                   <Dialog>
                     <AccountMenu
                       account={account}
@@ -529,13 +490,13 @@ export function AccountHeader({
               </DialogTrigger>
             </View>
           ) : (
-            <View style={{ flex: '0 0 auto' }}>
+            <View style={{flex: '0 0 auto'}}>
               <DialogTrigger>
                 <Button variant="bare" aria-label={t('Account menu')}>
                   <SvgDotsHorizontalTriple
                     width={15}
                     height={15}
-                    style={{ transform: 'rotateZ(90deg)' }}
+                    style={{transform: 'rotateZ(90deg)'}}
                   />
                 </Button>
 
@@ -553,7 +514,7 @@ export function AccountHeader({
                               } as const,
                             ]
                           : []),
-                        { name: 'export', text: t('Export') },
+                        {name: 'export', text: t('Export')},
                         {
                           name: 'toggle-net-worth-chart',
                           text: showNetWorthChart
@@ -603,10 +564,7 @@ type AccountSyncSidebarProps = {
   accountsSyncing: string[];
 };
 
-function AccountSyncSidebar({
-  account,
-  accountsSyncing,
-}: AccountSyncSidebarProps) {
+function AccountSyncSidebar({account, accountsSyncing}: AccountSyncSidebarProps) {
   return (
     <View
       style={{
@@ -639,7 +597,7 @@ function AccountNameField({
   saveNameError,
   onSaveName,
 }: AccountNameFieldProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const [editingName, setEditingName] = useState(false);
 
   const handleSave = (newName: string) => {
@@ -648,7 +606,7 @@ function AccountNameField({
   };
 
   return (
-    <View style={{ flexShrink: 0, alignItems: 'center' }}>
+    <View style={{flexShrink: 0, alignItems: 'center'}}>
       {editingName ? (
         <>
           <InitialFocus>
@@ -669,9 +627,7 @@ function AccountNameField({
               }}
             />
           </InitialFocus>
-          {saveNameError && (
-            <View style={{ color: theme.warningText }}>{saveNameError}</View>
-          )}
+          {saveNameError && <View style={{color: theme.warningText}}>{saveNameError}</View>}
         </>
       ) : (
         <View
@@ -699,16 +655,13 @@ function AccountNameField({
             data-testid="account-name"
           >
             {account && account.closed
-              ? t('Closed: {{ accountName }}', { accountName })
+              ? t('Closed: {{ accountName }}', {accountName})
               : accountName}
           </View>
 
-          <View style={{ flexDirection: 'row', width: 50 }}>
+          <View style={{flexDirection: 'row', width: 50}}>
             {isNameEditable && account && (
-              <NotesButton
-                id={`account-${account.id}`}
-                defaultColor={theme.pageTextSubdued}
-              />
+              <NotesButton id={`account-${account.id}`} defaultColor={theme.pageTextSubdued} />
             )}
             {isNameEditable && (
               <Button
@@ -762,7 +715,7 @@ function AccountMenu({
   isSorted,
   onMenuSelect,
 }: AccountMenuProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const syncServerStatus = useSyncServerStatus();
   const newSidebarUIEnabled = useFeatureFlag('newSidebarUI');
 
@@ -783,9 +736,7 @@ function AccountMenu({
           : []),
         {
           name: 'toggle-net-worth-chart',
-          text: showNetWorthChart
-            ? t('Hide balance chart')
-            : t('Show balance chart'),
+          text: showNetWorthChart ? t('Hide balance chart') : t('Show balance chart'),
         },
         {
           name: 'manage-columns',
@@ -805,7 +756,7 @@ function AccountMenu({
             ? t('Hide reconciled transactions')
             : t('Show reconciled transactions'),
         },
-        { name: 'export', text: t('Export') },
+        {name: 'export', text: t('Export')},
         ...(account && !account.closed
           ? canSync
             ? [
@@ -825,8 +776,8 @@ function AccountMenu({
           : []),
 
         ...(account.closed
-          ? [{ name: 'reopen', text: t('Reopen account') } as const]
-          : [{ name: 'close', text: t('Close account') } as const]),
+          ? [{name: 'reopen', text: t('Reopen account')} as const]
+          : [{name: 'close', text: t('Close account')} as const]),
       ]}
     />
   );

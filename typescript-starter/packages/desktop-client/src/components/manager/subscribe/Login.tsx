@@ -15,42 +15,39 @@
  */
 
 // @ts-strict-ignore
-import React, { useEffect, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useSearchParams } from 'react-router';
+import React, {useEffect, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useSearchParams} from 'react-router';
 
-import { Button, ButtonWithLoading } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { SvgCheveronDown } from '@actual-app/components/icons/v1';
-import { BigInput, ResponsiveInput } from '@actual-app/components/input';
-import { Menu } from '@actual-app/components/menu';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
-import { isElectron } from '@actual-app/core/shared/environment';
-import type { OpenIdConfig } from '@actual-app/core/types/models';
+import {Button, ButtonWithLoading} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {SvgCheveronDown} from '@actual-app/components/icons/v1';
+import {BigInput, ResponsiveInput} from '@actual-app/components/input';
+import {Menu} from '@actual-app/components/menu';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
+import {isElectron} from '@actual-app/core/shared/environment';
+import type {OpenIdConfig} from '@actual-app/core/types/models';
 
-import { Link } from '#components/common/Link';
-import {
-  useAvailableLoginMethods,
-  useLoginMethod,
-} from '#components/ServerContext';
-import { useNavigate } from '#hooks/useNavigate';
-import { useDispatch } from '#redux';
-import { loggedIn } from '#users/usersSlice';
+import {Link} from '#components/common/Link';
+import {useAvailableLoginMethods, useLoginMethod} from '#components/ServerContext';
+import {useNavigate} from '#hooks/useNavigate';
+import {useDispatch} from '#redux';
+import {loggedIn} from '#users/usersSlice';
 
-import { Title, useBootstrapped } from './common';
-import { OpenIdForm } from './OpenIdForm';
+import {Title, useBootstrapped} from './common';
+import {OpenIdForm} from './OpenIdForm';
 
-function PasswordLogin({ setError, dispatch }) {
+function PasswordLogin({setError, dispatch}) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
 
   async function onSubmitPassword() {
     if (password === '' || loading) {
@@ -59,7 +56,7 @@ function PasswordLogin({ setError, dispatch }) {
 
     setError(null);
     setLoading(true);
-    const { error } = await send('subscribe-sign-in', {
+    const {error} = await send('subscribe-sign-in', {
       password,
       loginMethod: 'password',
     });
@@ -85,7 +82,7 @@ function PasswordLogin({ setError, dispatch }) {
         placeholder={t('Password')}
         type="password"
         onChangeValue={setPassword}
-        style={{ flex: 1 }}
+        style={{flex: 1}}
         onEnter={onSubmitPassword}
       />
       <ButtonWithLoading
@@ -94,7 +91,7 @@ function PasswordLogin({ setError, dispatch }) {
         style={{
           fontSize: 15,
           width: isNarrowWidth ? '100%' : 170,
-          ...(isNarrowWidth ? { padding: 10 } : null),
+          ...(isNarrowWidth ? {padding: 10} : null),
         }}
         onPress={onSubmitPassword}
       >
@@ -104,21 +101,20 @@ function PasswordLogin({ setError, dispatch }) {
   );
 }
 
-function OpenIdLogin({ setError }) {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+function OpenIdLogin({setError}) {
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
   const [warnMasterCreation, setWarnMasterCreation] = useState(false);
   const loginMethods = useAvailableLoginMethods();
   const [askForPassword, setAskForPassword] = useState(false);
-  const [reviewOpenIdConfiguration, setReviewOpenIdConfiguration] =
-    useState(false);
+  const [reviewOpenIdConfiguration, setReviewOpenIdConfiguration] = useState(false);
   const navigate = useNavigate();
   const [openIdConfig, setOpenIdConfig] = useState<OpenIdConfig | null>(null);
   const [firstLoginPassword, setFirstLoginPassword] = useState<string>('');
 
   async function onSetOpenId(config: OpenIdConfig) {
     setError(null);
-    const { error } = await send('subscribe-bootstrap', { openId: config });
+    const {error} = await send('subscribe-bootstrap', {openId: config});
 
     if (error) {
       setError(error);
@@ -140,10 +136,8 @@ function OpenIdLogin({ setError }) {
   }, [loginMethods]);
 
   async function onSubmitOpenId() {
-    const { error, redirectUrl } = await send('subscribe-sign-in', {
-      returnUrl: isElectron()
-        ? await window.Actual.startOAuthServer()
-        : window.location.origin,
+    const {error, redirectUrl} = await send('subscribe-sign-in', {
+      returnUrl: isElectron() ? await window.Actual.startOAuthServer() : window.location.origin,
       loginMethod: 'openid',
       password: firstLoginPassword,
     });
@@ -179,7 +173,7 @@ function OpenIdLogin({ setError }) {
                 onChangeValue={newValue => {
                   setFirstLoginPassword(newValue);
                 }}
-                style={{ flex: 1 }}
+                style={{flex: 1}}
               />
             )}
             <Button
@@ -190,11 +184,7 @@ function OpenIdLogin({ setError }) {
                 fontSize: 14,
                 width: 170,
               }}
-              isDisabled={
-                firstLoginPassword === '' &&
-                askForPassword &&
-                warnMasterCreation
-              }
+              isDisabled={firstLoginPassword === '' && askForPassword && warnMasterCreation}
             >
               {warnMasterCreation ? (
                 <Trans>Start using OpenID</Trans>
@@ -205,11 +195,11 @@ function OpenIdLogin({ setError }) {
           </View>
           {warnMasterCreation && (
             <>
-              <label style={{ color: theme.warningText, marginTop: 10 }}>
+              <label style={{color: theme.warningText, marginTop: 10}}>
                 <Trans>
                   The first user to login with OpenID will be the{' '}
-                  <Text style={{ fontWeight: 'bold' }}>server owner</Text>. This
-                  can&apos;t be changed using UI.
+                  <Text style={{fontWeight: 'bold'}}>server owner</Text>. This can&apos;t be changed
+                  using UI.
                 </Trans>
               </label>
               {askForPassword && (
@@ -231,7 +221,7 @@ function OpenIdLogin({ setError }) {
                   }}
                   style={{
                     marginTop: 5,
-                    ...(isNarrowWidth ? { padding: 10 } : null),
+                    ...(isNarrowWidth ? {padding: 10} : null),
                   }}
                 >
                   <Trans>Review OpenID configuration</Trans>
@@ -242,7 +232,7 @@ function OpenIdLogin({ setError }) {
         </>
       )}
       {reviewOpenIdConfiguration && (
-        <View style={{ marginTop: 20 }}>
+        <View style={{marginTop: 20}}>
           <Text
             style={{
               ...styles.verySmallText,
@@ -262,7 +252,7 @@ function OpenIdLogin({ setError }) {
                 variant="bare"
                 style={{
                   marginRight: 10,
-                  ...(isNarrowWidth && { padding: 10 }),
+                  ...(isNarrowWidth && {padding: 10}),
                 }}
                 onPress={() => {
                   setReviewOpenIdConfiguration(false);
@@ -283,7 +273,7 @@ function OpenIdLogin({ setError }) {
   );
 }
 
-function HeaderLogin({ error }) {
+function HeaderLogin({error}) {
   return (
     <View
       style={{
@@ -296,7 +286,7 @@ function HeaderLogin({ error }) {
         <Link
           variant="button"
           type="button"
-          style={{ fontSize: 15 }}
+          style={{fontSize: 15}}
           to={'/login/password?error=' + error}
         >
           <Trans>Log in with password</Trans>
@@ -304,7 +294,7 @@ function HeaderLogin({ error }) {
       ) : (
         <span>
           <Trans>Checking Header Token Login ...</Trans>{' '}
-          <AnimatedLoading style={{ width: 20, height: 20 }} />
+          <AnimatedLoading style={{width: 20, height: 20}} />
         </span>
       )}
     </View>
@@ -312,15 +302,15 @@ function HeaderLogin({ error }) {
 }
 
 export function Login() {
-  const { t } = useTranslation();
-  const { isNarrowWidth } = useResponsive();
+  const {t} = useTranslation();
+  const {isNarrowWidth} = useResponsive();
 
   const dispatch = useDispatch();
   const defaultLoginMethod = useLoginMethod();
   const [method, setMethod] = useState(defaultLoginMethod);
   const [searchParams, _setSearchParams] = useSearchParams();
   const [error, setError] = useState(null);
-  const { checked } = useBootstrapped();
+  const {checked} = useBootstrapped();
   const loginMethods = useAvailableLoginMethods();
   const loginMethodRef = useRef<HTMLButtonElement>(null);
   const [loginMethodMenuOpen, setLoginMethodMenuOpen] = useState(false);
@@ -334,7 +324,7 @@ export function Login() {
       void (async () => {
         if (method === 'header') {
           setError(null);
-          const { error } = await send('subscribe-sign-in', {
+          const {error} = await send('subscribe-sign-in', {
             password: '',
             loginMethod: method,
           });
@@ -362,7 +352,7 @@ export function Login() {
       case 'internal-error':
         return t('Internal error');
       default:
-        return t(`An unknown error occurred: {{error}}`, { error });
+        return t(`An unknown error occurred: {{error}}`, {error});
     }
   }
 
@@ -371,7 +361,7 @@ export function Login() {
   }
 
   return (
-    <View style={{ maxWidth: 450, marginTop: -30, color: theme.pageText }}>
+    <View style={{maxWidth: 450, marginTop: -30, color: theme.pageText}}>
       <Title text={t('Sign in to this Actual instance')} />
 
       {loginMethods?.length > 1 && (
@@ -384,22 +374,20 @@ export function Login() {
           }}
         >
           <Trans>
-            If you lost your password, you likely still have access to your
-            server to manually reset it.
+            If you lost your password, you likely still have access to your server to manually reset
+            it.
           </Trans>
         </Text>
       )}
 
-      {method === 'password' && (
-        <PasswordLogin setError={setError} dispatch={dispatch} />
-      )}
+      {method === 'password' && <PasswordLogin setError={setError} dispatch={dispatch} />}
 
       {method === 'openid' && <OpenIdLogin setError={setError} />}
 
       {method === 'header' && <HeaderLogin error={error} />}
 
       {loginMethods?.length > 1 && (
-        <View style={{ marginTop: 10 }}>
+        <View style={{marginTop: 10}}>
           <View
             style={{
               width: '100%',
@@ -416,11 +404,10 @@ export function Login() {
                 color: theme.pageTextLight,
                 paddingTop: 5,
                 width: 'fit-content',
-                ...(isNarrowWidth ? { padding: 10 } : null),
+                ...(isNarrowWidth ? {padding: 10} : null),
               }}
             >
-              <Trans>Select the login method</Trans>{' '}
-              <SvgCheveronDown width={12} height={12} />
+              <Trans>Select the login method</Trans> <SvgCheveronDown width={12} height={12} />
             </Button>
           </View>
           <Popover

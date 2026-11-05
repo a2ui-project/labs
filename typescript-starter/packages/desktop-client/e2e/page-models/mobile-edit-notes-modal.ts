@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 export class EditNotesModal {
   readonly page: Page;
@@ -29,11 +29,11 @@ export class EditNotesModal {
 
     this.heading = locator.getByRole('heading');
     this.textArea = locator.getByRole('textbox');
-    this.saveNotesButton = locator.getByRole('button', { name: 'Save notes' });
+    this.saveNotesButton = locator.getByRole('button', {name: 'Save notes'});
   }
 
   async close() {
-    await this.heading.getByRole('button', { name: 'Close' }).click();
+    await this.heading.getByRole('button', {name: 'Close'}).click();
   }
 
   async updateNotes(notes: string) {

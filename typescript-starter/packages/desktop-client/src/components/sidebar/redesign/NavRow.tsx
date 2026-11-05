@@ -14,27 +14,25 @@
  * limitations under the License.
  */
 
-import type { ComponentType, SVGProps } from 'react';
+import type {ComponentType, SVGProps} from 'react';
 
-import { styles } from '@actual-app/components/styles';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { radius, spacing } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
+import {styles} from '@actual-app/components/styles';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {radius, spacing} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
 
-import { Link } from '#components/common/Link';
+import {Link} from '#components/common/Link';
 
 type NavRowProps = {
   title: string;
-  Icon:
-    | ComponentType<SVGProps<SVGElement>>
-    | ComponentType<SVGProps<SVGSVGElement>>;
+  Icon: ComponentType<SVGProps<SVGElement>> | ComponentType<SVGProps<SVGSVGElement>>;
   to: string;
 };
 
-export function NavRow({ title, Icon, to }: NavRowProps) {
+export function NavRow({title, Icon, to}: NavRowProps) {
   return (
-    <View style={{ flexShrink: 0 }}>
+    <View style={{flexShrink: 0}}>
       <Link
         variant="internal"
         to={to}
@@ -50,7 +48,7 @@ export function NavRow({ title, Icon, to }: NavRowProps) {
           fontWeight: 500,
           textDecoration: 'none',
           color: theme.sidebarItemText,
-          ':hover': { backgroundColor: theme.sidebarItemBackgroundHover },
+          ':hover': {backgroundColor: theme.sidebarItemBackgroundHover},
         }}
         activeStyle={{
           backgroundColor: theme.sidebarItemBackgroundSelected,
@@ -58,7 +56,7 @@ export function NavRow({ title, Icon, to }: NavRowProps) {
           fontWeight: 600,
         }}
       >
-        <Icon width={15} height={15} style={{ flexShrink: 0 }} />
+        <Icon width={15} height={15} style={{flexShrink: 0}} />
         <Text style={styles.ellipsisText}>{title}</Text>
       </Link>
     </View>

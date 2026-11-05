@@ -15,22 +15,15 @@
  */
 
 // @ts-strict-ignore
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useReducer,
-  useRef,
-} from 'react';
-import type { Dispatch, ReactElement, ReactNode } from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useReducer, useRef} from 'react';
+import type {Dispatch, ReactElement, ReactNode} from 'react';
 
-import { listen } from '@actual-app/core/platform/client/connection';
+import {listen} from '@actual-app/core/platform/client/connection';
 import * as undo from '@actual-app/core/platform/client/undo';
-import type { UndoState } from '@actual-app/core/server/undo';
+import type {UndoState} from '@actual-app/core/server/undo';
 
-type Range<T> = { start: T; end: T | null };
-type Item = { id: string };
+type Range<T> = {start: T; end: T | null};
+type Item = {id: string};
 
 function iterateRange(range: Range<number>, func: (i: number) => void): void {
   const from = Math.min(range.start, range.end);
@@ -73,9 +66,9 @@ export function useSelected<T extends Item>(
     (state: SelectedState, action: Actions) => {
       switch (action.type) {
         case 'select': {
-          const { selectedRange } = state;
+          const {selectedRange} = state;
           const selectedItems = new Set(state.selectedItems);
-          const { id, isRangeSelect } = action;
+          const {id, isRangeSelect} = action;
 
           if (isRangeSelect && selectedRange) {
             const idx = items.findIndex(p => p.id === id);
@@ -85,28 +78,28 @@ export function useSelected<T extends Item>(
             let deleteUntil: Range<number>;
 
             if (endIdx === -1) {
-              range = { start: startIdx, end: idx };
+              range = {start: startIdx, end: idx};
             } else if (endIdx < startIdx) {
               if (idx <= startIdx) {
-                range = { start: startIdx, end: idx };
+                range = {start: startIdx, end: idx};
 
                 if (idx > endIdx) {
-                  deleteUntil = { start: idx - 1, end: endIdx };
+                  deleteUntil = {start: idx - 1, end: endIdx};
                 }
               } else {
                 // Switching directions
-                range = { start: endIdx, end: idx };
+                range = {start: endIdx, end: idx};
               }
             } else {
               if (idx >= startIdx) {
-                range = { start: startIdx, end: idx };
+                range = {start: startIdx, end: idx};
 
                 if (idx < endIdx) {
-                  deleteUntil = { start: idx + 1, end: endIdx };
+                  deleteUntil = {start: idx + 1, end: endIdx};
                 }
               } else {
                 // Switching directions
-                range = { start: endIdx, end: idx };
+                range = {start: endIdx, end: idx};
               }
             }
 
@@ -128,7 +121,7 @@ export function useSelected<T extends Item>(
             let range = null;
             if (!selectedItems.delete(id)) {
               selectedItems.add(id);
-              range = { start: id, end: null };
+              range = {start: id, end: null};
             }
 
             return {
@@ -140,14 +133,12 @@ export function useSelected<T extends Item>(
         }
 
         case 'select-none':
-          return { ...state, selectedItems: new Set<string>() };
+          return {...state, selectedItems: new Set<string>()};
 
         case 'select-all':
           let selectedItems: string[] = [];
           if (action.ids && items && selectAllFilter) {
-            const idsToInclude = new Set(
-              items.filter(selectAllFilter).map(item => item.id),
-            );
+            const idsToInclude = new Set(items.filter(selectAllFilter).map(item => item.id));
             selectedItems = action.ids.filter(id => idsToInclude.has(id));
           } else if (items && selectAllFilter) {
             selectedItems = items.filter(selectAllFilter).map(item => item.id);
@@ -158,9 +149,7 @@ export function useSelected<T extends Item>(
             ...state,
             selectedItems: new Set(selectedItems),
             selectedRange:
-              action.ids && action.ids.length === 1
-                ? { start: action.ids[0], end: null }
-                : null,
+              action.ids && action.ids.length === 1 ? {start: action.ids[0], end: null} : null,
           };
 
         default:
@@ -172,7 +161,7 @@ export function useSelected<T extends Item>(
       selectedItems: new Set<string>(initialSelectedIds || []),
       selectedRange:
         initialSelectedIds && initialSelectedIds.length === 1
-          ? { start: initialSelectedIds[0], end: null }
+          ? {start: initialSelectedIds[0], end: null}
           : null,
     }),
   );
@@ -206,7 +195,7 @@ export function useSelected<T extends Item>(
 
         // If the selected items has changed, update the selection
         if (selected.length !== filtered.length) {
-          dispatch({ type: 'select-all', ids: filtered });
+          dispatch({type: 'select-all', ids: filtered});
         }
       }
     }
@@ -216,27 +205,23 @@ export function useSelected<T extends Item>(
 
   useEffect(() => {
     const prevState = undo.getUndoState('selectedItems');
-    undo.setUndoState('selectedItems', { name, items: state.selectedItems });
+    undo.setUndoState('selectedItems', {name, items: state.selectedItems});
     return () => undo.setUndoState('selectedItems', prevState);
   }, [name, state.selectedItems]);
 
   useEffect(() => {
-    function onUndo({ messages, undoTag }: UndoState) {
+    function onUndo({messages, undoTag}: UndoState) {
       const tagged = undo.getTaggedState(undoTag);
 
       const deletedIds = new Set(
-        messages
-          .filter(msg => msg.column === 'tombstone' && msg.value === 1)
-          .map(msg => msg.row),
+        messages.filter(msg => msg.column === 'tombstone' && msg.value === 1).map(msg => msg.row),
       );
 
       if (tagged?.selectedItems?.name === name) {
         dispatch({
           type: 'select-all',
           // Coerce the Set into an array
-          ids: [...tagged.selectedItems.items].filter(
-            id => !deletedIds.has(id),
-          ),
+          ids: [...tagged.selectedItems.items].filter(id => !deletedIds.has(id)),
         });
       }
     }
@@ -277,7 +262,7 @@ export function SelectedProvider<T extends Item>({
   fetchAllIds,
   children,
 }: SelectedProviderProps<T>) {
-  const { items: instanceItems, dispatch: instanceDispatch } = instance;
+  const {items: instanceItems, dispatch: instanceDispatch} = instance;
   const latestItems = useRef(instanceItems);
   latestItems.current = instanceItems;
 
@@ -310,9 +295,7 @@ export function SelectedProvider<T extends Item>({
 
   return (
     <SelectedItems.Provider value={instance.items}>
-      <SelectedDispatch.Provider value={dispatch}>
-        {children}
-      </SelectedDispatch.Provider>
+      <SelectedDispatch.Provider value={dispatch}>{children}</SelectedDispatch.Provider>
     </SelectedItems.Provider>
   );
 }
@@ -338,12 +321,7 @@ export function SelectedProviderWithItems<T extends Item>({
   selectAllFilter,
   children,
 }: SelectedProviderWithItemsProps<T>) {
-  const selected = useSelected<T>(
-    name,
-    items,
-    initialSelectedIds,
-    selectAllFilter,
-  );
+  const selected = useSelected<T>(name, items, initialSelectedIds, selectAllFilter);
 
   useEffect(() => {
     registerDispatch?.(selected.dispatch);

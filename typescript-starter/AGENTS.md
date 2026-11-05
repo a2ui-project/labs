@@ -338,7 +338,7 @@ export function MyComponent({ prop1, prop2 }: MyComponentProps) {
 ### Test File
 
 ```typescript
-import { describe, it, expect, beforeEach } from 'vitest';
+import {describe, it, expect, beforeEach} from 'vitest';
 // ... imports
 
 describe('ComponentName', () => {
@@ -355,8 +355,8 @@ describe('ComponentName', () => {
 
 - `/package.json` - Root workspace configuration, scripts
 - `/lage.config.js` - Lage task runner configuration
-- `/.oxlintrc.json` - Lint rules (oxlint); `/.oxfmtrc.json` - formatting (oxfmt)
-- `/.nano-staged.json` - pre-commit format/lint config (run via Husky)
+- `/.oxlintrc.json` - Lint rules (oxlint). Formatting is configured at the root of the A2UI Labs repository.
+- `/.nano-staged.json` - pre-commit lint and format config (run via Husky)
 - `/.claude/settings.json`, `/.codex/config.toml`, `/.cursor/hooks.json` - agent
   hook wiring; shared scripts live in `/scripts/agent-hooks/` and require `jq`
   on PATH (a missing `jq` fails the hooks with an install message)
@@ -591,7 +591,8 @@ All storage is **SQLite** (file-based via `better-sqlite3`). No external databas
 
 Standard commands documented in `package.json` scripts and the Quick Start section above:
 
-- `yarn lint` / `yarn lint:fix` (uses oxlint + oxfmt)
+- `yarn lint` / `yarn lint:fix` (uses oxlint)
+- `../scripts/fix_format.sh` formats this project with the rest of the A2UI Labs repository
 - `yarn test` (lage across all workspaces)
 - `yarn typecheck` (tsgo + lage typecheck)
 
@@ -602,7 +603,7 @@ When running the app for manual testing or demos, use **"View demo"** on the ini
 ### Gotchas
 
 - The `engines` field requires **Node.js >=22** and **Yarn ^4.9.1**. The `.nvmrc` specifies `v24.18.1`.
-- Pre-commit hook runs `nano-staged` (oxfmt + oxlint, configured in `.nano-staged.json`) via Husky. Run `yarn prepare` once after install to set up hooks.
+- Pre-commit hook runs `nano-staged` (oxlint and Prettier, configured in `.nano-staged.json`) via Husky. Run `yarn prepare` once after install to set up hooks.
 - Lage caches test results in `.lage/`. If tests behave unexpectedly, clear with `rm -rf .lage`.
 - Native modules (`better-sqlite3`, `bcrypt`) require build tools (`gcc`, `make`, `python3`). These are pre-installed in the Cloud VM.
 - All yarn commands must be run from the repository root, never from child workspaces.

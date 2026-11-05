@@ -17,26 +17,23 @@
 // @ts-strict-ignore
 import React from 'react';
 
-import { theme } from '@actual-app/components/theme';
-import type { CategoryGroupEntity } from '@actual-app/core/types/models';
+import {theme} from '@actual-app/components/theme';
+import type {CategoryGroupEntity} from '@actual-app/core/types/models';
 
-import { Row } from '#components/table';
+import {Row} from '#components/table';
 
-import { RenderMonths } from './RenderMonths';
-import { SidebarGroup } from './SidebarGroup';
+import {RenderMonths} from './RenderMonths';
+import {SidebarGroup} from './SidebarGroup';
 
-import { useBudgetComponents } from '.';
+import {useBudgetComponents} from '.';
 
 type IncomeGroupProps = {
   group: CategoryGroupEntity;
-  editingCell: { id: CategoryGroupEntity['id']; cell: string } | null;
+  editingCell: {id: CategoryGroupEntity['id']; cell: string} | null;
   collapsed: boolean;
   onEditName: (id: CategoryGroupEntity['id']) => void;
   onSave: (group: CategoryGroupEntity) => void;
-  onSortCategories?: (
-    groupId: CategoryGroupEntity['id'],
-    direction: 'asc' | 'desc',
-  ) => void;
+  onSortCategories?: (groupId: CategoryGroupEntity['id'], direction: 'asc' | 'desc') => void;
   onToggleCollapse: (id: CategoryGroupEntity['id']) => void;
   onShowNewCategory: (groupId: CategoryGroupEntity['id']) => void;
 };
@@ -51,7 +48,7 @@ export function IncomeGroup({
   onToggleCollapse,
   onShowNewCategory,
 }: IncomeGroupProps) {
-  const { IncomeGroupComponent: MonthComponent } = useBudgetComponents();
+  const {IncomeGroupComponent: MonthComponent} = useBudgetComponents();
   return (
     <Row
       collapsed
@@ -63,20 +60,14 @@ export function IncomeGroup({
       <SidebarGroup
         group={group}
         collapsed={collapsed}
-        editing={
-          editingCell &&
-          editingCell.cell === 'name' &&
-          editingCell.id === group.id
-        }
+        editing={editingCell && editingCell.cell === 'name' && editingCell.id === group.id}
         onEdit={onEditName}
         onSave={onSave}
         onSortCategories={onSortCategories}
         onToggleCollapse={onToggleCollapse}
         onShowNewCategory={onShowNewCategory}
       />
-      <RenderMonths>
-        {({ month }) => <MonthComponent month={month} group={group} />}
-      </RenderMonths>
+      <RenderMonths>{({month}) => <MonthComponent month={month} group={group} />}</RenderMonths>
     </Row>
   );
 }

@@ -16,19 +16,16 @@
 
 import React from 'react';
 
-import type { CSSProperties } from '@actual-app/components/styles';
-import { View } from '@actual-app/components/view';
-import type { RuleConditionEntity } from '@actual-app/core/types/models';
+import type {CSSProperties} from '@actual-app/components/styles';
+import {View} from '@actual-app/components/view';
+import type {RuleConditionEntity} from '@actual-app/core/types/models';
 
-import { ConditionsOpMenu } from './ConditionsOpMenu';
-import { FilterExpression } from './FilterExpression';
+import {ConditionsOpMenu} from './ConditionsOpMenu';
+import {FilterExpression} from './FilterExpression';
 
 type AppliedFiltersProps = {
   conditions: RuleConditionEntity[];
-  onUpdate: (
-    filter: RuleConditionEntity,
-    newFilter: RuleConditionEntity,
-  ) => void;
+  onUpdate: (filter: RuleConditionEntity, newFilter: RuleConditionEntity) => void;
   onDelete: (filter: RuleConditionEntity) => void;
   conditionsOp: 'and' | 'or';
   onConditionsOpChange: (value: 'and' | 'or') => void;

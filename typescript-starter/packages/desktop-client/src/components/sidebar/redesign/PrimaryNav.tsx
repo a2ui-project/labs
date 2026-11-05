@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
 import {
   SvgLibrary,
@@ -24,17 +24,17 @@ import {
   SvgUserGroup,
   SvgWallet,
 } from '@actual-app/components/icons/v1';
-import { SvgCalendar3 } from '@actual-app/components/icons/v2';
-import { spacing } from '@actual-app/components/tokens';
-import { View } from '@actual-app/components/view';
+import {SvgCalendar3} from '@actual-app/components/icons/v2';
+import {spacing} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
 
-import { useIsTestEnv } from '#hooks/useIsTestEnv';
-import { useSyncServerStatus } from '#hooks/useSyncServerStatus';
+import {useIsTestEnv} from '#hooks/useIsTestEnv';
+import {useSyncServerStatus} from '#hooks/useSyncServerStatus';
 
-import { NavRow } from './NavRow';
+import {NavRow} from './NavRow';
 
 export function PrimaryNav() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const syncServerStatus = useSyncServerStatus();
   const isTestEnv = useIsTestEnv();
   const isUsingServer = syncServerStatus !== 'no-server' || isTestEnv;
@@ -52,9 +52,7 @@ export function PrimaryNav() {
       <NavRow title={t('Schedules')} Icon={SvgCalendar3} to="/schedules" />
       <NavRow title={t('Payees')} Icon={SvgUserGroup} to="/payees" />
       <NavRow title={t('Rules')} Icon={SvgTuning} to="/rules" />
-      {isUsingServer && (
-        <NavRow title={t('Bank Sync')} Icon={SvgLibrary} to="/bank-sync" />
-      )}
+      {isUsingServer && <NavRow title={t('Bank Sync')} Icon={SvgLibrary} to="/bank-sync" />}
       <NavRow title={t('Tags')} Icon={SvgTag} to="/tags" />
     </View>
   );

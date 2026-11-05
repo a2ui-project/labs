@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-import { useCallback, useEffect, useRef } from 'react';
-import type { ComponentProps } from 'react';
-import { Popover as ReactAriaPopover } from 'react-aria-components';
+import {useCallback, useEffect, useRef} from 'react';
+import type {ComponentProps} from 'react';
+import {Popover as ReactAriaPopover} from 'react-aria-components';
 
-import { css } from '@emotion/css';
+import {css} from '@emotion/css';
 
-import { styles } from './styles';
+import {styles} from './styles';
 
 type PopoverProps = ComponentProps<typeof ReactAriaPopover>;
 
-export const Popover = ({
-  style = {},
-  shouldCloseOnInteractOutside,
-  ...props
-}: PopoverProps) => {
+export const Popover = ({style = {}, shouldCloseOnInteractOutside, ...props}: PopoverProps) => {
   const ref = useRef<HTMLElement>(null);
 
   const handleFocus = useCallback(

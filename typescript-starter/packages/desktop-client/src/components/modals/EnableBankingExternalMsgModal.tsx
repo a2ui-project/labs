@@ -14,32 +14,32 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useEffect, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { sendCatch } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {sendCatch} from '@actual-app/core/platform/client/connection';
 import type {
   EnableBankingAspsp,
   SyncServerEnableBankingAccount,
 } from '@actual-app/core/types/models';
 
-import { Error, Warning } from '#components/alerts';
-import { Autocomplete } from '#components/autocomplete/Autocomplete';
-import { Link } from '#components/common/Link';
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { FormField, FormLabel } from '#components/forms';
-import { COUNTRY_OPTIONS } from '#components/util/countries';
-import { getCountryFromBrowser } from '#components/util/localeToCountry';
-import { useEnableBankingStatus } from '#hooks/useEnableBankingStatus';
-import { useGlobalPref } from '#hooks/useGlobalPref';
-import { pushModal } from '#modals/modalsSlice';
-import type { Modal as ModalType } from '#modals/modalsSlice';
-import { useDispatch } from '#redux';
+import {Error, Warning} from '#components/alerts';
+import {Autocomplete} from '#components/autocomplete/Autocomplete';
+import {Link} from '#components/common/Link';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {FormField, FormLabel} from '#components/forms';
+import {COUNTRY_OPTIONS} from '#components/util/countries';
+import {getCountryFromBrowser} from '#components/util/localeToCountry';
+import {useEnableBankingStatus} from '#hooks/useEnableBankingStatus';
+import {useGlobalPref} from '#hooks/useGlobalPref';
+import {pushModal} from '#modals/modalsSlice';
+import type {Modal as ModalType} from '#modals/modalsSlice';
+import {useDispatch} from '#redux';
 
 type BankOption = {
   id: string;
@@ -47,11 +47,8 @@ type BankOption = {
   maxConsentValidity?: number;
 };
 
-function useAvailableBanks(
-  country: string | undefined,
-  refetchKey?: boolean | null,
-) {
-  const { t } = useTranslation();
+function useAvailableBanks(country: string | undefined, refetchKey?: boolean | null) {
+  const {t} = useTranslation();
   const [banks, setBanks] = useState<BankOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -72,10 +69,7 @@ function useAvailableBanks(
 
       setIsLoading(true);
 
-      const { data, error } = await sendCatch(
-        'enablebanking-aspsps',
-        country.toUpperCase(),
-      );
+      const {data, error} = await sendCatch('enablebanking-aspsps', country.toUpperCase());
 
       if (cancelled) return;
 
@@ -110,16 +104,16 @@ function useAvailableBanks(
 }
 
 function renderError(
-  error: { code: 'unknown' | 'timeout'; message?: string },
+  error: {code: 'unknown' | 'timeout'; message?: string},
   t: ReturnType<typeof useTranslation>['t'],
 ) {
   return (
-    <Error style={{ alignSelf: 'center', marginBottom: 10 }}>
+    <Error style={{alignSelf: 'center', marginBottom: 10}}>
       {error.code === 'timeout'
         ? t('Timed out. Please try again.')
         : t(
             'An error occurred while linking your account, sorry! The potential issue could be: {{ message }}',
-            { message: error.message },
+            {message: error.message},
           )}
     </Error>
   );
@@ -127,7 +121,7 @@ function renderError(
 
 type EnableBankingExternalMsgModalProps = Extract<
   ModalType,
-  { name: 'enablebanking-external-msg' }
+  {name: 'enablebanking-external-msg'}
 >['options'];
 
 export function EnableBankingExternalMsgModal({
@@ -135,19 +129,14 @@ export function EnableBankingExternalMsgModal({
   onSuccess,
   onClose,
 }: EnableBankingExternalMsgModalProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const dispatch = useDispatch();
   const [language] = useGlobalPref('language');
 
-  const browserTimezone =
-    Intl.DateTimeFormat().resolvedOptions().timeZone || '';
+  const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
   const browserLocale = language || navigator.language || 'en-US';
-  const detectedCountry = getCountryFromBrowser(
-    browserTimezone,
-    browserLocale,
-    COUNTRY_OPTIONS,
-  );
+  const detectedCountry = getCountryFromBrowser(browserTimezone, browserLocale, COUNTRY_OPTIONS);
 
   const [waiting, setWaiting] = useState<string | null>(null);
   const [selectedAspsp, setSelectedAspsp] = useState<string>();
@@ -157,21 +146,18 @@ export function EnableBankingExternalMsgModal({
     code: 'unknown' | 'timeout';
     message?: string;
   } | null>(null);
-  const [isEnableBankingSetupComplete, setIsEnableBankingSetupComplete] =
-    useState<boolean | null>(null);
-  const data = useRef<{ accounts: SyncServerEnableBankingAccount[] } | null>(
+  const [isEnableBankingSetupComplete, setIsEnableBankingSetupComplete] = useState<boolean | null>(
     null,
   );
+  const data = useRef<{accounts: SyncServerEnableBankingAccount[]} | null>(null);
 
   const {
     data: bankOptions,
     isLoading: isBankOptionsLoading,
     isError: isBankOptionError,
   } = useAvailableBanks(country, isEnableBankingSetupComplete);
-  const {
-    configuredEnableBanking: isConfigured,
-    isLoading: isConfigurationLoading,
-  } = useEnableBankingStatus();
+  const {configuredEnableBanking: isConfigured, isLoading: isConfigurationLoading} =
+    useEnableBankingStatus();
 
   const isJumpingRef = useRef(false);
   const stateRef = useRef<string | null>(null);
@@ -272,12 +258,9 @@ export function EnableBankingExternalMsgModal({
 
   const renderLinkButton = () => {
     return (
-      <View style={{ gap: 10 }}>
+      <View style={{gap: 10}}>
         <FormField>
-          <FormLabel
-            title={t('Choose your country:')}
-            htmlFor="country-field"
-          />
+          <FormLabel title={t('Choose your country:')} htmlFor="country-field" />
           <Autocomplete
             strict
             highlightFirst
@@ -297,12 +280,12 @@ export function EnableBankingExternalMsgModal({
         {isBankOptionError ? (
           <Error>
             <Trans>
-              Failed loading available banks: Enable Banking access credentials
-              might be misconfigured. Please{' '}
+              Failed loading available banks: Enable Banking access credentials might be
+              misconfigured. Please{' '}
               <Link
                 variant="text"
                 onClick={onEnableBankingInit}
-                style={{ color: theme.formLabelText, display: 'inline' }}
+                style={{color: theme.formLabelText, display: 'inline'}}
               >
                 set them up
               </Link>{' '}
@@ -316,10 +299,7 @@ export function EnableBankingExternalMsgModal({
           ) : (
             <>
               <FormField>
-                <FormLabel
-                  title={t('Choose your bank:')}
-                  htmlFor="bank-field"
-                />
+                <FormLabel title={t('Choose your bank:')} htmlFor="bank-field" />
                 <Autocomplete
                   focused
                   strict
@@ -335,20 +315,15 @@ export function EnableBankingExternalMsgModal({
               </FormField>
 
               <FormField>
-                <FormLabel
-                  title={t('Usage type:')}
-                  htmlFor="usage-type-field"
-                />
+                <FormLabel title={t('Usage type:')} htmlFor="usage-type-field" />
                 <Autocomplete
                   strict
                   highlightFirst
                   suggestions={[
-                    { id: 'personal', name: t('personal') },
-                    { id: 'business', name: t('business') },
+                    {id: 'personal', name: t('personal')},
+                    {id: 'business', name: t('business')},
                   ]}
-                  onSelect={value =>
-                    setPsuType(value === 'business' ? 'business' : 'personal')
-                  }
+                  onSelect={value => setPsuType(value === 'business' ? 'business' : 'personal')}
                   value={psuType}
                   inputProps={{
                     id: 'usage-type-field',
@@ -362,10 +337,9 @@ export function EnableBankingExternalMsgModal({
 
         <Warning>
           <Trans>
-            By enabling bank sync, you will be granting Enable Banking (a third
-            party service) read-only access to your entire account's transaction
-            history. This service is not affiliated with Actual in any way. Make
-            sure you've read and understand Enable Banking's{' '}
+            By enabling bank sync, you will be granting Enable Banking (a third party service)
+            read-only access to your entire account's transaction history. This service is not
+            affiliated with Actual in any way. Make sure you've read and understand Enable Banking's{' '}
             <Link
               variant="external"
               to="https://enablebanking.com/privacy-policy/"
@@ -377,7 +351,7 @@ export function EnableBankingExternalMsgModal({
           </Trans>
         </Warning>
 
-        <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+        <View style={{flexDirection: 'row', gap: 10, alignItems: 'center'}}>
           <Button
             variant="primary"
             autoFocus
@@ -401,32 +375,29 @@ export function EnableBankingExternalMsgModal({
     <Modal
       name="enablebanking-external-msg"
       onClose={handleClose}
-      containerProps={{ style: { width: '30vw' } }}
+      containerProps={{style: {width: '30vw'}}}
     >
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Link Your Bank')}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
           <View>
-            <Paragraph style={{ fontSize: 15 }}>
+            <Paragraph style={{fontSize: 15}}>
               <Trans>
-                To link your bank account, you will be redirected to a new page
-                where Enable Banking will ask to connect to your bank. Enable
-                Banking will not be able to withdraw funds from your accounts.
+                To link your bank account, you will be redirected to a new page where Enable Banking
+                will ask to connect to your bank. Enable Banking will not be able to withdraw funds
+                from your accounts.
               </Trans>
             </Paragraph>
 
             {error && renderError(error, t)}
 
             {waiting || isConfigurationLoading ? (
-              <View style={{ alignItems: 'center', marginTop: 15 }}>
-                <AnimatedLoading
-                  color={theme.pageTextDark}
-                  style={{ width: 20, height: 20 }}
-                />
-                <View style={{ marginTop: 10, color: theme.pageText }}>
+              <View style={{alignItems: 'center', marginTop: 15}}>
+                <AnimatedLoading color={theme.pageTextDark} style={{width: 20, height: 20}} />
+                <View style={{marginTop: 10, color: theme.pageText}}>
                   {isConfigurationLoading
                     ? t('Checking Enable Banking configuration...')
                     : waiting === 'browser'
@@ -437,16 +408,8 @@ export function EnableBankingExternalMsgModal({
                 </View>
 
                 {waiting === 'browser' && (
-                  <Link
-                    variant="text"
-                    onClick={onJump}
-                    style={{ marginTop: 10 }}
-                  >
-                    (
-                    <Trans>
-                      Account linking not opening in a new tab? Click here
-                    </Trans>
-                    )
+                  <Link variant="text" onClick={onJump} style={{marginTop: 10}}>
+                    (<Trans>Account linking not opening in a new tab? Click here</Trans>)
                   </Link>
                 )}
               </View>
@@ -454,10 +417,8 @@ export function EnableBankingExternalMsgModal({
               renderLinkButton()
             ) : (
               <>
-                <Paragraph style={{ color: theme.errorText }}>
-                  <Trans>
-                    Enable Banking integration has not yet been configured.
-                  </Trans>
+                <Paragraph style={{color: theme.errorText}}>
+                  <Trans>Enable Banking integration has not yet been configured.</Trans>
                 </Paragraph>
                 <Button variant="primary" onPress={onEnableBankingInit}>
                   <Trans>Configure Enable Banking integration</Trans>

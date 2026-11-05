@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type { Transaction } from '#app-gocardless/gocardless-node.types';
-import { formatPayeeName } from '#util/payee-name';
-import { title } from '#util/title';
+import type {Transaction} from '#app-gocardless/gocardless-node.types';
+import {formatPayeeName} from '#util/payee-name';
+import {title} from '#util/title';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -27,7 +27,7 @@ export default {
   institutionIds: ['RAIFFEISEN_AT_RZBAATWW'],
 
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     let payeeName = formatPayeeName(transaction);
     if (!payeeName) {

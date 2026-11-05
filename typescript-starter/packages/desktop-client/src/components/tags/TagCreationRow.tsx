@@ -14,30 +14,30 @@
  * limitations under the License.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import type { KeyboardEvent } from 'react';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {KeyboardEvent} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { ColorPicker } from '@actual-app/components/color-picker';
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import type { TagEntity } from '@actual-app/core/types/models';
+import {Button} from '@actual-app/components/button';
+import {ColorPicker} from '@actual-app/components/color-picker';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import type {TagEntity} from '@actual-app/core/types/models';
 
-import { InputCell, Row, useTableNavigator } from '#components/table';
-import { useInitialMount } from '#hooks/useInitialMount';
-import { useProperFocus } from '#hooks/useProperFocus';
-import { useTagCSS } from '#hooks/useTagCSS';
-import { useCreateTagMutation } from '#tags';
+import {InputCell, Row, useTableNavigator} from '#components/table';
+import {useInitialMount} from '#hooks/useInitialMount';
+import {useProperFocus} from '#hooks/useProperFocus';
+import {useTagCSS} from '#hooks/useTagCSS';
+import {useCreateTagMutation} from '#tags';
 
 type TagCreationRowProps = {
   tags: TagEntity[];
   onClose: () => void;
 };
 
-export const TagCreationRow = ({ onClose, tags }: TagCreationRowProps) => {
-  const { t } = useTranslation();
+export const TagCreationRow = ({onClose, tags}: TagCreationRowProps) => {
+  const {t} = useTranslation();
   const [tag, setTag] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState<string | null>(null);
@@ -47,7 +47,7 @@ export const TagCreationRow = ({ onClose, tags }: TagCreationRowProps) => {
   const tagNames = useMemo(() => tags.map(tag => tag.tag), [tags]);
 
   const tableNavigator = useTableNavigator(
-    [{ id: 'new-tag' }],
+    [{id: 'new-tag'}],
     !tag || tagNames.includes(tag)
       ? ['tag', 'description', 'color', 'cancel']
       : ['tag', 'description', 'color', 'cancel', 'add'],
@@ -76,14 +76,14 @@ export const TagCreationRow = ({ onClose, tags }: TagCreationRowProps) => {
     );
   };
 
-  const { mutate: createTag } = useCreateTagMutation();
+  const {mutate: createTag} = useCreateTagMutation();
 
   const onAddTag = () => {
     if (!isTagValid()) {
       return;
     }
 
-    createTag({ tag: { tag, color, description } });
+    createTag({tag: {tag, color, description}});
     resetInputs();
   };
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
@@ -135,9 +135,7 @@ export const TagCreationRow = ({ onClose, tags }: TagCreationRowProps) => {
           exposed={tableNavigator.focusedField === 'tag'}
           onExpose={name => tableNavigator.onEdit('new-tag', name)}
           value={tag || t('New tag')}
-          valueStyle={
-            tag ? {} : { fontStyle: 'italic', color: theme.tableTextLight }
-          }
+          valueStyle={tag ? {} : {fontStyle: 'italic', color: theme.tableTextLight}}
           inputProps={{
             value: tag || '',
             onChange: e => setTag(e.target.value.replace(/\s/g, '')),
@@ -154,11 +152,7 @@ export const TagCreationRow = ({ onClose, tags }: TagCreationRowProps) => {
           exposed={tableNavigator.focusedField === 'description'}
           onExpose={name => tableNavigator.onEdit('new-tag', name)}
           value={description || t('Tag description')}
-          valueStyle={
-            description
-              ? {}
-              : { fontStyle: 'italic', color: theme.tableTextLight }
-          }
+          valueStyle={description ? {} : {fontStyle: 'italic', color: theme.tableTextLight}}
           inputProps={{
             value: description || '',
             onUpdate: setDescription,
@@ -180,15 +174,8 @@ export const TagCreationRow = ({ onClose, tags }: TagCreationRowProps) => {
         collapsed
       >
         <Trans>Choose Color:</Trans>
-        <ColorPicker
-          value={color ?? undefined}
-          onChange={color => setColor(color.toString('hex'))}
-        >
-          <Button
-            ref={colorButtonRef}
-            variant="bare"
-            className={getTagCSS('', { color })}
-          >
+        <ColorPicker value={color ?? undefined} onChange={color => setColor(color.toString('hex'))}>
+          <Button ref={colorButtonRef} variant="bare" className={getTagCSS('', {color})}>
             #{tag}
           </Button>
         </ColorPicker>
@@ -202,7 +189,7 @@ export const TagCreationRow = ({ onClose, tags }: TagCreationRowProps) => {
         >
           <Button
             variant="normal"
-            style={{ padding: '4px 10px' }}
+            style={{padding: '4px 10px'}}
             onPress={onClose}
             data-testid="close-button"
             ref={cancelButtonRef}
@@ -211,7 +198,7 @@ export const TagCreationRow = ({ onClose, tags }: TagCreationRowProps) => {
           </Button>
           <Button
             variant="primary"
-            style={{ padding: '4px 10px' }}
+            style={{padding: '4px 10px'}}
             onPress={onAddTag}
             data-testid="add-button"
             isDisabled={!isTagValid()}

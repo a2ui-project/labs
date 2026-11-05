@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import { number } from '#server/spreadsheet/globals';
+import {number} from '#server/spreadsheet/globals';
 // @ts-strict-ignore
-import { safeNumber } from '#shared/util';
+import {safeNumber} from '#shared/util';
 
-export { number } from '#server/spreadsheet/globals';
+export {number} from '#server/spreadsheet/globals';
 
 export function sumAmounts(...amounts) {
   return safeNumber(

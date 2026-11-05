@@ -15,7 +15,7 @@
  */
 
 import convict from 'convict';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 // Import the custom format
 import './load-config';
@@ -24,7 +24,7 @@ describe('tokenExpiration format', () => {
   let originalEnv;
 
   beforeEach(() => {
-    originalEnv = { ...process.env };
+    originalEnv = {...process.env};
   });
 
   afterEach(() => {
@@ -114,23 +114,18 @@ describe('tokenExpiration format', () => {
     // Test invalid string
     process.env.TEST_TOKEN_EXPIRATION = 'invalid';
     testSchema.load({});
-    expect(() => testSchema.validate()).toThrow(
-      /Invalid token_expiration value/,
-    );
+    expect(() => testSchema.validate()).toThrow(/Invalid token_expiration value/);
 
     // Test negative number as string
     process.env.TEST_TOKEN_EXPIRATION = '-100';
     testSchema.load({});
-    expect(() => testSchema.validate()).toThrow(
-      /Invalid token_expiration value/,
-    );
+    expect(() => testSchema.validate()).toThrow(/Invalid token_expiration value/);
   });
 });
 
 describe('config schema', () => {
   it('should parse nested object from environment variables correctly', () => {
-    const authorizationEndpoint =
-      'https://testprovider.com/.well-known/openid-configuration';
+    const authorizationEndpoint = 'https://testprovider.com/.well-known/openid-configuration';
     process.env.TEST_OPENID_AUTHORIZATION_ENDPOINT = authorizationEndpoint;
 
     const testSchema = convict({
@@ -150,8 +145,6 @@ describe('config schema', () => {
       },
     });
     expect(() => testSchema.validate()).not.toThrow();
-    expect(testSchema.get('openId.issuer.authorization_endpoint')).toBe(
-      authorizationEndpoint,
-    );
+    expect(testSchema.get('openId.issuer.authorization_endpoint')).toBe(authorizationEndpoint);
   });
 });

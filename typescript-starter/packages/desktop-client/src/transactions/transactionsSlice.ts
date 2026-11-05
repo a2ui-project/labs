@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type { TransactionEntity } from '@actual-app/core/types/models';
-import { createSlice } from '@reduxjs/toolkit';
-import type { PayloadAction } from '@reduxjs/toolkit';
+import type {TransactionEntity} from '@actual-app/core/types/models';
+import {createSlice} from '@reduxjs/toolkit';
+import type {PayloadAction} from '@reduxjs/toolkit';
 
-import { resetApp } from '#app/appSlice';
+import {resetApp} from '#app/appSlice';
 
 const sliceName = 'transactions';
 
@@ -51,10 +51,7 @@ const transactionsSlice = createSlice({
   name: sliceName,
   initialState,
   reducers: {
-    setNewTransactions(
-      state,
-      action: PayloadAction<SetNewTransactionsPayload>,
-    ) {
+    setNewTransactions(state, action: PayloadAction<SetNewTransactionsPayload>) {
       state.newTransactions = action.payload.newTransactions
         ? [...state.newTransactions, ...action.payload.newTransactions]
         : state.newTransactions;
@@ -63,21 +60,11 @@ const transactionsSlice = createSlice({
         ? [...state.matchedTransactions, ...action.payload.matchedTransactions]
         : state.matchedTransactions;
     },
-    updateNewTransactions(
-      state,
-      action: PayloadAction<UpdateNewTransactionsPayload>,
-    ) {
-      state.newTransactions = state.newTransactions.filter(
-        id => id !== action.payload.id,
-      );
-      state.matchedTransactions = state.matchedTransactions.filter(
-        id => id !== action.payload.id,
-      );
+    updateNewTransactions(state, action: PayloadAction<UpdateNewTransactionsPayload>) {
+      state.newTransactions = state.newTransactions.filter(id => id !== action.payload.id);
+      state.matchedTransactions = state.matchedTransactions.filter(id => id !== action.payload.id);
     },
-    setLastTransaction(
-      state,
-      action: PayloadAction<SetLastTransactionPayload>,
-    ) {
+    setLastTransaction(state, action: PayloadAction<SetLastTransactionPayload>) {
       state.lastTransaction = action.payload.transaction;
     },
   },
@@ -86,10 +73,10 @@ const transactionsSlice = createSlice({
   },
 });
 
-export const { name, reducer, getInitialState } = transactionsSlice;
+export const {name, reducer, getInitialState} = transactionsSlice;
 export const actions = {
   ...transactionsSlice.actions,
 };
 
-export const { setNewTransactions, updateNewTransactions, setLastTransaction } =
+export const {setNewTransactions, updateNewTransactions, setLastTransaction} =
   transactionsSlice.actions;

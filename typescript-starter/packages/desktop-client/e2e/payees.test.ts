@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import type { Page } from '@playwright/test';
+import type {Page} from '@playwright/test';
 
-import { expect, test } from './fixtures';
-import { ConfigurationPage } from './page-models/configuration-page';
-import { Navigation } from './page-models/navigation';
-import type { PayeesPage } from './page-models/payees-page';
+import {expect, test} from './fixtures';
+import {ConfigurationPage} from './page-models/configuration-page';
+import {Navigation} from './page-models/navigation';
+import type {PayeesPage} from './page-models/payees-page';
 
 test.describe('Payees', () => {
   let page: Page;
@@ -27,7 +27,7 @@ test.describe('Payees', () => {
   let navigation: Navigation;
   let payeesPage: PayeesPage;
 
-  test.beforeEach(async ({ browser }) => {
+  test.beforeEach(async ({browser}) => {
     page = await browser.newPage();
     navigation = new Navigation(page);
     configurationPage = new ConfigurationPage(page);
@@ -79,8 +79,6 @@ test.describe('Payees', () => {
     await payeesPage.rightClickNthPayee(0);
     const menu = page.getByRole('menu');
     await expect(menu).toBeVisible();
-    await expect(
-      menu.getByRole('button', { name: 'Create rule' }),
-    ).toBeVisible();
+    await expect(menu.getByRole('button', {name: 'Create rule'})).toBeVisible();
   });
 });

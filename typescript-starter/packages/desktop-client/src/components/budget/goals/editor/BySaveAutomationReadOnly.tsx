@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { amountToInteger } from '@actual-app/core/shared/util';
-import type {
-  ByTemplate,
-  SpendTemplate,
-} from '@actual-app/core/types/models/templates';
-import type { TransObjectLiteral } from '@actual-app/core/types/util';
+import {amountToInteger} from '@actual-app/core/shared/util';
+import type {ByTemplate, SpendTemplate} from '@actual-app/core/types/models/templates';
+import type {TransObjectLiteral} from '@actual-app/core/types/util';
 
-import { formatMonthLabel } from '#components/budget/goals/formatMonthLabel';
-import { FinancialText } from '#components/FinancialText';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
+import {formatMonthLabel} from '#components/budget/goals/formatMonthLabel';
+import {FinancialText} from '#components/FinancialText';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
 
 type BySaveAutomationReadOnlyProps = {
   template: ByTemplate | SpendTemplate;
 };
 
-export const BySaveAutomationReadOnly = ({
-  template,
-}: BySaveAutomationReadOnlyProps) => {
+export const BySaveAutomationReadOnly = ({template}: BySaveAutomationReadOnlyProps) => {
   const format = useFormat();
   const locale = useLocale();
   const amount = format(
@@ -43,23 +38,21 @@ export const BySaveAutomationReadOnly = ({
   );
   const month = formatMonthLabel(template.month, locale);
   const repeat = template.repeat ?? 1;
-  const from =
-    template.type === 'spend' ? formatMonthLabel(template.from, locale) : null;
+  const from = template.type === 'spend' ? formatMonthLabel(template.from, locale) : null;
 
   if (template.annual) {
     if (from) {
       return (
         <Trans count={repeat}>
-          Save <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText>{' '}
-          by {{ month }}, early spending from {{ from }}, repeating every{' '}
-          {{ count: repeat }} years
+          Save <FinancialText>{{amount} as TransObjectLiteral}</FinancialText> by {{month}}, early
+          spending from {{from}}, repeating every {{count: repeat}} years
         </Trans>
       );
     }
     return (
       <Trans count={repeat}>
-        Save <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText>{' '}
-        by {{ month }}, repeating every {{ count: repeat }} years
+        Save <FinancialText>{{amount} as TransObjectLiteral}</FinancialText> by {{month}}, repeating
+        every {{count: repeat}} years
       </Trans>
     );
   }
@@ -68,16 +61,15 @@ export const BySaveAutomationReadOnly = ({
     if (from) {
       return (
         <Trans count={repeat}>
-          Save <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText>{' '}
-          by {{ month }}, early spending from {{ from }}, repeating every{' '}
-          {{ count: repeat }} months
+          Save <FinancialText>{{amount} as TransObjectLiteral}</FinancialText> by {{month}}, early
+          spending from {{from}}, repeating every {{count: repeat}} months
         </Trans>
       );
     }
     return (
       <Trans count={repeat}>
-        Save <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText>{' '}
-        by {{ month }}, repeating every {{ count: repeat }} months
+        Save <FinancialText>{{amount} as TransObjectLiteral}</FinancialText> by {{month}}, repeating
+        every {{count: repeat}} months
       </Trans>
     );
   }
@@ -85,16 +77,15 @@ export const BySaveAutomationReadOnly = ({
   if (from) {
     return (
       <Trans>
-        Save <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText>{' '}
-        by {{ month }}, early spending from {{ from }}
+        Save <FinancialText>{{amount} as TransObjectLiteral}</FinancialText> by {{month}}, early
+        spending from {{from}}
       </Trans>
     );
   }
 
   return (
     <Trans>
-      Save <FinancialText>{{ amount } as TransObjectLiteral}</FinancialText> by{' '}
-      {{ month }}
+      Save <FinancialText>{{amount} as TransObjectLiteral}</FinancialText> by {{month}}
     </Trans>
   );
 };

@@ -14,60 +14,50 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import { currentDay } from '@actual-app/core/shared/months';
-import { q } from '@actual-app/core/shared/query';
+import {send} from '@actual-app/core/platform/client/connection';
+import {currentDay} from '@actual-app/core/shared/months';
+import {q} from '@actual-app/core/shared/query';
 import {
   realizeTempTransactions,
   ungroupTransactions,
   updateTransaction,
 } from '@actual-app/core/shared/transactions';
-import { applyChanges } from '@actual-app/core/shared/util';
-import type {
-  AccountEntity,
-  TransactionEntity,
-} from '@actual-app/core/types/models';
-import { t } from 'i18next';
+import {applyChanges} from '@actual-app/core/shared/util';
+import type {AccountEntity, TransactionEntity} from '@actual-app/core/types/models';
+import {t} from 'i18next';
 
-import { aqlQuery } from '#queries/aqlQuery';
+import {aqlQuery} from '#queries/aqlQuery';
 
 export async function lockTransactions(accountId: AccountEntity['id']) {
-  const { data } = await aqlQuery(
+  const {data} = await aqlQuery(
     q('transactions')
-      .filter({ cleared: true, reconciled: false, account: accountId })
+      .filter({cleared: true, reconciled: false, account: accountId})
       .select('*')
-      .options({ splits: 'grouped' }),
+      .options({splits: 'grouped'}),
   );
   let transactions = ungroupTransactions(data);
 
-  const changes: { updated: Array<Partial<TransactionEntity>> } = {
+  const changes: {updated: Array<Partial<TransactionEntity>>} = {
     updated: [],
   };
 
   transactions.forEach(trans => {
-    const { diff } = updateTransaction(transactions, {
+    const {diff} = updateTransaction(transactions, {
       ...trans,
       reconciled: true,
     });
 
     transactions = applyChanges(diff, transactions);
 
-    changes.updated = changes.updated
-      ? changes.updated.concat(diff.updated)
-      : diff.updated;
+    changes.updated = changes.updated ? changes.updated.concat(diff.updated) : diff.updated;
   });
 
   await send('transactions-batch-update', changes);
 }
 
-export async function unlockTransaction(
-  transactionId: TransactionEntity['id'],
-) {
-  const { data } = await aqlQuery(
-    q('transactions')
-      .filter({ id: transactionId })
-      .select('*')
-      .options({ splits: 'grouped' }),
+export async function unlockTransaction(transactionId: TransactionEntity['id']) {
+  const {data} = await aqlQuery(
+    q('transactions').filter({id: transactionId}).select('*').options({splits: 'grouped'}),
   );
   const transactions = ungroupTransactions(data);
 
@@ -76,20 +66,20 @@ export async function unlockTransaction(
     return;
   }
 
-  const { diff } = updateTransaction(transactions, {
+  const {diff} = updateTransaction(transactions, {
     ...transaction,
     reconciled: false,
   });
 
-  await send('transactions-batch-update', { updated: diff.updated });
+  await send('transactions-batch-update', {updated: diff.updated});
 }
 
 export async function getClearedBalance(accountId: AccountEntity['id']) {
-  const { data } = await aqlQuery(
+  const {data} = await aqlQuery(
     q('transactions')
-      .filter({ cleared: true, account: accountId })
-      .options({ splits: 'none' })
-      .calculate({ $sum: '$amount' }),
+      .filter({cleared: true, account: accountId})
+      .options({splits: 'none'})
+      .calculate({$sum: '$amount'}),
   );
 
   return data ?? 0;
@@ -128,9 +118,7 @@ export async function createReconciliationTransaction(
   onRealized?.(reconciliationTransactions);
 
   const ruledTransactions = await Promise.all(
-    reconciliationTransactions.map(transaction =>
-      send('rules-run', { transaction }),
-    ),
+    reconciliationTransactions.map(transaction => send('rules-run', {transaction})),
   );
 
   await send('transactions-batch-update', {

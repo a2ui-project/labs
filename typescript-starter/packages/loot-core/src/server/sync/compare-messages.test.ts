@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import { getClock, Timestamp } from '@actual-app/crdt';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {getClock, Timestamp} from '@actual-app/crdt';
+import {afterEach, beforeEach, describe, expect, it} from 'vitest';
 
 import * as budget from '#server/budget/base';
 import * as db from '#server/db';
 import * as sheet from '#server/sheet';
 
-import { applyMessages, setSyncingMode } from './index';
-import type { Message } from './index';
+import {applyMessages, setSyncingMode} from './index';
+import type {Message} from './index';
 
 beforeEach(() => {
   setSyncingMode('enabled');
@@ -41,11 +41,7 @@ function sendTimestamp(): Timestamp {
   return timestamp;
 }
 
-function amountMessage(
-  row: string,
-  amount: number,
-  timestamp: Timestamp,
-): Message {
+function amountMessage(row: string, amount: number, timestamp: Timestamp): Message {
   return {
     dataset: 'transactions',
     row,
@@ -56,18 +52,13 @@ function amountMessage(
 }
 
 function getCrdtRows(): db.DbCrdtMessage[] {
-  return db.runQuery<db.DbCrdtMessage>(
-    'SELECT * FROM messages_crdt ORDER BY timestamp',
-    [],
-    true,
-  );
+  return db.runQuery<db.DbCrdtMessage>('SELECT * FROM messages_crdt ORDER BY timestamp', [], true);
 }
 
 async function getAmount(row: string): Promise<number | undefined> {
-  const result = await db.first<{ amount: number }>(
-    'SELECT amount FROM transactions WHERE id = ?',
-    [row],
-  );
+  const result = await db.first<{amount: number}>('SELECT amount FROM transactions WHERE id = ?', [
+    row,
+  ]);
   return result?.amount;
 }
 
@@ -82,9 +73,7 @@ async function applyAll(messages: Message[]): Promise<Message[]> {
 }
 
 function findByTimestamp(messages: Message[], timestamp: Timestamp) {
-  return messages.find(
-    message => message.timestamp.toString() === timestamp.toString(),
-  );
+  return messages.find(message => message.timestamp.toString() === timestamp.toString());
 }
 
 describe('compareMessages', () => {
@@ -125,16 +114,14 @@ describe('compareMessages', () => {
 
   it('flags old and new messages correctly across more than one chunk', async () => {
     const rowCount = 250;
-    const rows = Array.from({ length: rowCount }, (_, index) => `t${index}`);
+    const rows = Array.from({length: rowCount}, (_, index) => `t${index}`);
 
     const earlyTimestamps = rows.map(() => sendTimestamp());
     const loggedTimestamps = rows.map(() => sendTimestamp());
     const lateTimestamps = rows.map(() => sendTimestamp());
 
     await applyMessages(
-      rows.map((row, index) =>
-        amountMessage(row, 1000, loggedTimestamps[index]),
-      ),
+      rows.map((row, index) => amountMessage(row, 1000, loggedTimestamps[index])),
     );
 
     // Even rows get an older value, odd rows get a newer one
@@ -174,7 +161,7 @@ describe('compareMessages', () => {
           timestamp: sendTimestamp(),
         },
       ]),
-    ).rejects.toMatchObject({ reason: 'invalid-schema' });
+    ).rejects.toMatchObject({reason: 'invalid-schema'});
 
     expect(getCrdtRows().length).toBe(0);
     expect(await getAmount('t1')).toBeUndefined();
@@ -220,7 +207,7 @@ describe('compareMessages', () => {
     await sheet.waitOnSpreadsheet();
 
     expect(sheet.get().meta().budgetType).toBe('tracking');
-    const preference = await db.first<{ value: string }>(
+    const preference = await db.first<{value: string}>(
       'SELECT value FROM preferences WHERE id = ?',
       ['budgetType'],
     );

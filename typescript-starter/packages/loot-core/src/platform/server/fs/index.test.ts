@@ -15,21 +15,13 @@
  */
 
 import 'fake-indexeddb/auto';
-import { IDBFactory } from 'fake-indexeddb';
+import {IDBFactory} from 'fake-indexeddb';
 
-import { patchFetchForSqlJS } from '#mocks/util';
+import {patchFetchForSqlJS} from '#mocks/util';
 import * as idb from '#platform/server/indexeddb';
 import * as sqlite from '#platform/server/sqlite';
 
-import {
-  _setDocumentDir,
-  exists,
-  init,
-  join,
-  pathToId,
-  readFile,
-  writeFile,
-} from './index';
+import {_setDocumentDir, exists, init, join, pathToId, readFile, writeFile} from './index';
 
 beforeAll(() => {
   const baseURL = `${__dirname}/../../../../../../node_modules/@jlongster/sql.js/dist/`;
@@ -67,7 +59,7 @@ describe('web filesystem', () => {
     expect(await readFile('/documents/foo.bin')).toBe('hello, world');
 
     const db = await idb.openDatabase();
-    const { store } = idb.getStore(db, 'files');
+    const {store} = idb.getStore(db, 'files');
 
     // Make sure they are in idb
     expect(await idb.get(store, '/documents/foo.txt')).toEqual({
@@ -76,9 +68,7 @@ describe('web filesystem', () => {
     });
     const binResult = await idb.get(store, '/documents/foo.bin');
     expect(binResult.filepath).toBe('/documents/foo.bin');
-    expect(Array.from(binResult.contents)).toEqual(
-      Array.from(new Uint8Array(buf)),
-    );
+    expect(Array.from(binResult.contents)).toEqual(Array.from(new Uint8Array(buf)));
 
     // Write a file outside of documents
     await writeFile('/outside.txt', 'some junk');
@@ -96,14 +86,12 @@ describe('web filesystem', () => {
     await writeFile('/documents/db.sqlite', 'some junk');
 
     expect(await readFile('/documents/db.sqlite')).toBe('some junk');
-    expect(await readFile('/blocked/' + pathToId('/documents/db.sqlite'))).toBe(
-      'some junk',
-    );
+    expect(await readFile('/blocked/' + pathToId('/documents/db.sqlite'))).toBe('some junk');
   });
 
   test('files are restored from idb', async () => {
     const db = await idb.openDatabase();
-    const { store } = idb.getStore(db, 'files');
+    const {store} = idb.getStore(db, 'files');
     await idb.set(store, {
       filepath: '/documents/ok.txt',
       contents: 'oh yeah',
@@ -125,10 +113,8 @@ describe('web filesystem', () => {
     expect(await readFile('/documents/deep/nested/file/ok.txt')).toBe('deeper');
 
     const FS = sqlite._getModule().FS;
-    const { node } = FS.lookupPath('/documents/deep/nested/db.sqlite', {});
-    expect(node.link).toBe(
-      '/blocked/' + pathToId('/documents/deep/nested/db.sqlite'),
-    );
+    const {node} = FS.lookupPath('/documents/deep/nested/db.sqlite', {});
+    expect(node.link).toBe('/blocked/' + pathToId('/documents/deep/nested/db.sqlite'));
   });
 
   test('files under a custom document dir are persisted', async () => {
@@ -144,7 +130,7 @@ describe('web filesystem', () => {
     expect(await readFile('/budget/foo.txt')).toBe('hello');
 
     const db = await idb.openDatabase();
-    const { store } = idb.getStore(db, 'files');
+    const {store} = idb.getStore(db, 'files');
     expect(await idb.get(store, '/budget/foo.txt')).toEqual({
       filepath: '/budget/foo.txt',
       contents: 'hello',
@@ -152,16 +138,14 @@ describe('web filesystem', () => {
 
     // sqlite files are symlinked into the blocked fs
     await writeFile('/budget/db.sqlite', 'some junk');
-    expect(await readFile('/blocked/' + pathToId('/budget/db.sqlite'))).toBe(
-      'some junk',
-    );
+    expect(await readFile('/blocked/' + pathToId('/budget/db.sqlite'))).toBe('some junk');
 
     await idb.closeDatabase();
   });
 
   test('files under a custom document dir are restored from idb', async () => {
     const db = await idb.openDatabase();
-    const { store } = idb.getStore(db, 'files');
+    const {store} = idb.getStore(db, 'files');
     await idb.set(store, {
       filepath: '/custom/xyz/metadata.json',
       contents: '{"id":"xyz"}',
@@ -178,7 +162,7 @@ describe('web filesystem', () => {
     expect(await readFile('/custom/xyz/metadata.json')).toBe('{"id":"xyz"}');
 
     const FS = sqlite._getModule().FS;
-    const { node } = FS.lookupPath('/custom/xyz/db.sqlite', {});
+    const {node} = FS.lookupPath('/custom/xyz/db.sqlite', {});
     expect(node.link).toBe('/blocked/' + pathToId('/custom/xyz/db.sqlite'));
   });
 });

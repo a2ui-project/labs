@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-import { FIELD_TYPES, makeValue } from '@actual-app/core/shared/rules';
-import type { RuleConditionEntity } from '@actual-app/core/types/models';
+import {FIELD_TYPES, makeValue} from '@actual-app/core/shared/rules';
+import type {RuleConditionEntity} from '@actual-app/core/types/models';
 
 export function updateFilterReducer<T extends RuleConditionEntity>(
-  state: Pick<T, 'op' | 'field'> & { value: T['value'] | null },
-  action:
-    | { type: 'set-op'; op: T['op'] }
-    | { type: 'set-value'; value: T['value'] },
+  state: Pick<T, 'op' | 'field'> & {value: T['value'] | null},
+  action: {type: 'set-op'; op: T['op']} | {type: 'set-value'; value: T['value']},
 ) {
   switch (action.type) {
     case 'set-op': {
@@ -57,13 +55,13 @@ export function updateFilterReducer<T extends RuleConditionEntity>(
           value = [value];
         }
       }
-      return { ...state, op: action.op, value };
+      return {...state, op: action.op, value};
     }
     case 'set-value': {
-      const { value } = makeValue(action.value, {
+      const {value} = makeValue(action.value, {
         type: FIELD_TYPES.get(state.field),
       });
-      return { ...state, value };
+      return {...state, value};
     }
     default:
       // @ts-expect-error - fix me

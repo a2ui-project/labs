@@ -14,35 +14,32 @@
  * limitations under the License.
  */
 
-import type { ReactNode } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { Route, Routes, useLocation } from 'react-router';
+import type {ReactNode} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
+import {Route, Routes, useLocation} from 'react-router';
 
-import { FeatureErrorFallback } from '#components/FeatureErrorFallback';
-import { useFeatureFlag } from '#hooks/useFeatureFlag';
+import {FeatureErrorFallback} from '#components/FeatureErrorFallback';
+import {useFeatureFlag} from '#hooks/useFeatureFlag';
 
-import { AgeOfMoney } from './reports/AgeOfMoney';
-import { BalanceForecast } from './reports/BalanceForecast';
-import { BudgetAnalysis } from './reports/BudgetAnalysis';
-import { Calendar } from './reports/Calendar';
-import { CashFlow } from './reports/CashFlow';
-import { Crossover } from './reports/Crossover';
-import { CustomReport } from './reports/CustomReport';
-import { Formula } from './reports/Formula';
-import { MonteCarlo } from './reports/monte-carlo/MonteCarlo';
-import { NetWorth } from './reports/NetWorth';
-import { Sankey } from './reports/Sankey';
-import { Spending } from './reports/Spending';
-import { Summary } from './reports/Summary';
-import { ReportsDashboardRouter } from './ReportsDashboardRouter';
+import {AgeOfMoney} from './reports/AgeOfMoney';
+import {BalanceForecast} from './reports/BalanceForecast';
+import {BudgetAnalysis} from './reports/BudgetAnalysis';
+import {Calendar} from './reports/Calendar';
+import {CashFlow} from './reports/CashFlow';
+import {Crossover} from './reports/Crossover';
+import {CustomReport} from './reports/CustomReport';
+import {Formula} from './reports/Formula';
+import {MonteCarlo} from './reports/monte-carlo/MonteCarlo';
+import {NetWorth} from './reports/NetWorth';
+import {Sankey} from './reports/Sankey';
+import {Spending} from './reports/Spending';
+import {Summary} from './reports/Summary';
+import {ReportsDashboardRouter} from './ReportsDashboardRouter';
 
-function ReportBoundary({ children }: { children: ReactNode }) {
+function ReportBoundary({children}: {children: ReactNode}) {
   const location = useLocation();
   return (
-    <ErrorBoundary
-      FallbackComponent={FeatureErrorFallback}
-      resetKeys={[location.pathname]}
-    >
+    <ErrorBoundary FallbackComponent={FeatureErrorFallback} resetKeys={[location.pathname]}>
       {children}
     </ErrorBoundary>
   );

@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 
-export { ImportTransactionsModal } from './ImportTransactionsModal';
+export {ImportTransactionsModal} from './ImportTransactionsModal';

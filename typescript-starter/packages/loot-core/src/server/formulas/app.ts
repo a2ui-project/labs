@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { createApp } from '#server/app';
-import { loadUserPreferencesForFormulas } from '#server/formulas/customFunctionsPreferences';
+import {createApp} from '#server/app';
+import {loadUserPreferencesForFormulas} from '#server/formulas/customFunctionsPreferences';
 
 export type FormulasHandlers = {
   'formula-load-user-preferences': typeof loadUserPreferencesForFormulas;

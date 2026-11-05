@@ -17,7 +17,7 @@ name: Extract and upload i18n strings
 on:
   schedule:
     # 4am UTC
-    - cron: '0 4 * * *'
+    - cron: "0 4 * * *"
   workflow_dispatch:
 
 permissions:

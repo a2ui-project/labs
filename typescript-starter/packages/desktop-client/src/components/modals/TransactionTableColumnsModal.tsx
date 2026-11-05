@@ -14,25 +14,20 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import type { DragItem } from 'react-aria';
-import { DropIndicator, GridList, useDragAndDrop } from 'react-aria-components';
-import { Trans, useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import type {DragItem} from 'react-aria';
+import {DropIndicator, GridList, useDragAndDrop} from 'react-aria-components';
+import {Trans, useTranslation} from 'react-i18next';
 
-import { Button } from '@actual-app/components/button';
-import { Text } from '@actual-app/components/text';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { css } from '@emotion/css';
+import {Button} from '@actual-app/components/button';
+import {Text} from '@actual-app/components/text';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {css} from '@emotion/css';
 
-import {
-  Modal,
-  ModalButtons,
-  ModalCloseButton,
-  ModalHeader,
-} from '#components/common/Modal';
-import { Checkbox } from '#components/forms';
-import { TransactionTableColumnListItem } from '#components/modals/TransactionTableColumnListItem';
+import {Modal, ModalButtons, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {Checkbox} from '#components/forms';
+import {TransactionTableColumnListItem} from '#components/modals/TransactionTableColumnListItem';
 import {
   getDefaultTransactionTableColumns,
   useTransactionTableColumnLabels,
@@ -41,22 +36,21 @@ import type {
   TransactionTableColumn,
   TransactionTableColumnId,
 } from '#components/transactions/table/columns';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
 type TransactionTableColumnsModalProps = Extract<
   ModalType,
-  { name: 'transaction-table-columns' }
+  {name: 'transaction-table-columns'}
 >['options'];
 
 export function TransactionTableColumnsModal({
   columns: initialColumns,
   onSave,
 }: TransactionTableColumnsModalProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const columnLabels = useTransactionTableColumnLabels();
 
-  const [columns, setColumns] =
-    useState<TransactionTableColumn[]>(initialColumns);
+  const [columns, setColumns] = useState<TransactionTableColumn[]>(initialColumns);
   const [applyToAll, setApplyToAll] = useState(false);
 
   const onToggleColumn = (id: TransactionTableColumnId, isVisible: boolean) => {
@@ -69,9 +63,7 @@ export function TransactionTableColumnsModal({
           return prev;
         }
       }
-      return prev.map(column =>
-        column.id === id ? { ...column, hidden: !isVisible } : column,
-      );
+      return prev.map(column => (column.id === id ? {...column, hidden: !isVisible} : column));
     });
   };
 
@@ -84,9 +76,8 @@ export function TransactionTableColumnsModal({
     );
   };
 
-  const { dragAndDropHooks } = useDragAndDrop({
-    getItems: keys =>
-      [...keys].map(key => ({ 'text/plain': String(key) }) satisfies DragItem),
+  const {dragAndDropHooks} = useDragAndDrop({
+    getItems: keys => [...keys].map(key => ({'text/plain': String(key)}) satisfies DragItem),
     renderDropIndicator: target => (
       <DropIndicator
         target={target}
@@ -116,33 +107,25 @@ export function TransactionTableColumnsModal({
           return prev;
         }
 
-        const insertAt =
-          e.target.dropPosition === 'after' ? targetIdx + 1 : targetIdx;
-        return [
-          ...remaining.slice(0, insertAt),
-          moved,
-          ...remaining.slice(insertAt),
-        ];
+        const insertAt = e.target.dropPosition === 'after' ? targetIdx + 1 : targetIdx;
+        return [...remaining.slice(0, insertAt), moved, ...remaining.slice(insertAt)];
       });
     },
   });
 
   return (
-    <Modal
-      name="transaction-table-columns"
-      containerProps={{ style: { width: 400 } }}
-    >
-      {({ state }) => (
+    <Modal name="transaction-table-columns" containerProps={{style: {width: 400}}}>
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Table columns')}
             rightContent={<ModalCloseButton onPress={() => state.close()} />}
           />
-          <View style={{ gap: 15 }}>
-            <Text style={{ color: theme.pageTextLight, lineHeight: 1.5 }}>
+          <View style={{gap: 15}}>
+            <Text style={{color: theme.pageTextLight, lineHeight: 1.5}}>
               <Trans>
-                Choose which columns appear in the transaction table and drag
-                them into the order you prefer.
+                Choose which columns appear in the transaction table and drag them into the order
+                you prefer.
               </Trans>
             </Text>
 
@@ -151,7 +134,7 @@ export function TransactionTableColumnsModal({
               items={columns}
               dragAndDropHooks={dragAndDropHooks}
               dependencies={[columnLabels]}
-              className={css({ display: 'flex', flexDirection: 'column' })}
+              className={css({display: 'flex', flexDirection: 'column'})}
             >
               {column => (
                 <TransactionTableColumnListItem
@@ -176,13 +159,13 @@ export function TransactionTableColumnsModal({
                 id="apply-columns-to-all"
                 checked={applyToAll}
                 onChange={e => setApplyToAll(e.target.checked)}
-                style={{ marginTop: 2 }}
+                style={{marginTop: 2}}
               />
               <label
                 htmlFor="apply-columns-to-all"
-                style={{ flex: 1, userSelect: 'none', cursor: 'pointer' }}
+                style={{flex: 1, userSelect: 'none', cursor: 'pointer'}}
               >
-                <Text style={{ display: 'block' }}>
+                <Text style={{display: 'block'}}>
                   <Trans>Apply to all transaction tables</Trans>
                 </Text>
                 <Text
@@ -193,22 +176,20 @@ export function TransactionTableColumnsModal({
                     marginTop: 2,
                   }}
                 >
-                  <Trans>
-                    Use this layout everywhere, not just in the current view.
-                  </Trans>
+                  <Trans>Use this layout everywhere, not just in the current view.</Trans>
                 </Text>
               </label>
             </View>
 
             <ModalButtons
-              style={{ marginTop: 0 }}
+              style={{marginTop: 0}}
               leftContent={
                 <Button variant="bare" onPress={onResetToDefault}>
                   <Trans>Reset to default</Trans>
                 </Button>
               }
             >
-              <Button style={{ marginRight: 10 }} onPress={() => state.close()}>
+              <Button style={{marginRight: 10}} onPress={() => state.close()}>
                 <Trans>Cancel</Trans>
               </Button>
               <Button

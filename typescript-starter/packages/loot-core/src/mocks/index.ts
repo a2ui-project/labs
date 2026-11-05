@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 import * as monthUtils from '#shared/months';
 import type {
@@ -24,7 +24,7 @@ import type {
   TransactionEntity,
 } from '#types/models';
 
-import { random } from './random';
+import {random} from './random';
 
 export function generateAccount(
   name: AccountEntity['name'],
@@ -123,10 +123,7 @@ export function generateCategoryGroup(
   };
 }
 
-export type CategoryGroupDefinition = Omit<
-  CategoryGroupEntity,
-  'id' | 'categories'
-> & {
+export type CategoryGroupDefinition = Omit<CategoryGroupEntity, 'id' | 'categories'> & {
   categories: Omit<CategoryEntity, 'id' | 'group'>[];
 };
 
@@ -142,9 +139,7 @@ export function generateCategoryGroups(
 
     return {
       ...g,
-      categories: group.categories.map(cat =>
-        generateCategory(cat.name, g.id, cat.is_income),
-      ),
+      categories: group.categories.map(cat => generateCategory(cat.name, g.id, cat.is_income)),
     };
   });
 }
@@ -162,7 +157,7 @@ function _generateTransaction(
     sort_order: data.sort_order != null ? data.sort_order : 1,
     cleared: false,
     reconciled: false,
-    ...(data.category && { category: data.category }),
+    ...(data.category && {category: data.category}),
   };
 }
 
@@ -229,7 +224,7 @@ export function generateTransactions(
         {
           account: accountId,
           category: groupId,
-          ...(isSplit && { amount: 50 }),
+          ...(isSplit && {amount: 50}),
           sort_order: i,
         },
         isSplit ? 30 : undefined,

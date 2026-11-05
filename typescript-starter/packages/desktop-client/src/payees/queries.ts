@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-import { send } from '@actual-app/core/platform/client/connection';
-import { memoizeOne } from '@actual-app/core/shared/memoize';
-import { groupById } from '@actual-app/core/shared/util';
-import type {
-  AccountEntity,
-  NearbyPayeeEntity,
-  PayeeEntity,
-} from '@actual-app/core/types/models';
-import { queryOptions } from '@tanstack/react-query';
-import { t } from 'i18next';
+import {send} from '@actual-app/core/platform/client/connection';
+import {memoizeOne} from '@actual-app/core/shared/memoize';
+import {groupById} from '@actual-app/core/shared/util';
+import type {AccountEntity, NearbyPayeeEntity, PayeeEntity} from '@actual-app/core/types/models';
+import {queryOptions} from '@tanstack/react-query';
+import {t} from 'i18next';
 
-import { getAccountsById } from '#accounts/accountsSlice';
+import {getAccountsById} from '#accounts/accountsSlice';
 
-import { locationService } from './location';
+import {locationService} from './location';
 
 export const payeeQueries = {
   all: () => ['payees'],
@@ -58,8 +54,7 @@ export const payeeQueries = {
     queryOptions<Pick<PayeeEntity, 'id'>[]>({
       queryKey: [...payeeQueries.lists(), 'orphaned'],
       queryFn: async () => {
-        const payees: Pick<PayeeEntity, 'id'>[] =
-          (await send('payees-get-orphaned')) ?? [];
+        const payees: Pick<PayeeEntity, 'id'>[] = (await send('payees-get-orphaned')) ?? [];
         return payees;
       },
       placeholderData: [],
@@ -91,31 +86,26 @@ export const payeeQueries = {
     }),
 };
 
-export const getActivePayees = memoizeOne(
-  (payees: PayeeEntity[], accounts: AccountEntity[]) => {
-    const accountsById = getAccountsById(accounts);
+export const getActivePayees = memoizeOne((payees: PayeeEntity[], accounts: AccountEntity[]) => {
+  const accountsById = getAccountsById(accounts);
 
-    return translatePayees(
-      payees.filter(payee => {
-        if (payee.transfer_acct) {
-          const account = accountsById[payee.transfer_acct];
-          return account != null && !account.closed;
-        }
-        return true;
-      }),
-    );
-  },
-);
+  return translatePayees(
+    payees.filter(payee => {
+      if (payee.transfer_acct) {
+        const account = accountsById[payee.transfer_acct];
+        return account != null && !account.closed;
+      }
+      return true;
+    }),
+  );
+});
 
-export const getPayeesById = memoizeOne(
-  (payees: PayeeEntity[] | null | undefined) =>
-    groupById(translatePayees(payees || [])),
+export const getPayeesById = memoizeOne((payees: PayeeEntity[] | null | undefined) =>
+  groupById(translatePayees(payees || [])),
 );
 
 function translatePayees(payees: PayeeEntity[]): PayeeEntity[] {
   return payees.map(payee =>
-    payee.name === 'Starting Balance'
-      ? { ...payee, name: t('Starting Balance') }
-      : payee,
+    payee.name === 'Starting Balance' ? {...payee, name: t('Starting Balance')} : payee,
   );
 }

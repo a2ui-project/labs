@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import type { AccountGroupEntity } from '@actual-app/core/types/models';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import type { QueryClient, QueryKey } from '@tanstack/react-query';
-import { v4 as uuidv4 } from 'uuid';
+import {send} from '@actual-app/core/platform/client/connection';
+import type {AccountGroupEntity} from '@actual-app/core/types/models';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import type {QueryClient, QueryKey} from '@tanstack/react-query';
+import {v4 as uuidv4} from 'uuid';
 
-import { accountQueries } from '#accounts';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import type { AppDispatch } from '#redux/store';
+import {accountQueries} from '#accounts';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import type {AppDispatch} from '#redux/store';
 
-import { accountGroupQueries } from './queries';
+import {accountGroupQueries} from './queries';
 
 function invalidateQueries(queryClient: QueryClient, queryKey?: QueryKey) {
   void queryClient.invalidateQueries({
@@ -35,11 +35,7 @@ function invalidateQueries(queryClient: QueryClient, queryKey?: QueryKey) {
   });
 }
 
-function dispatchErrorNotification(
-  dispatch: AppDispatch,
-  message: string,
-  error?: Error,
-) {
+function dispatchErrorNotification(dispatch: AppDispatch, message: string, error?: Error) {
   dispatch(
     addNotification({
       notification: {
@@ -59,11 +55,11 @@ type CreateAccountGroupPayload = {
 export function useCreateAccountGroupMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ name }: CreateAccountGroupPayload) => {
-      return await send('account-group-create', { name });
+    mutationFn: async ({name}: CreateAccountGroupPayload) => {
+      return await send('account-group-create', {name});
     },
     onSuccess: () => invalidateQueries(queryClient),
     onError: error => {
@@ -85,11 +81,11 @@ type UpdateAccountGroupPayload = {
 export function useUpdateAccountGroupMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id, name }: UpdateAccountGroupPayload) => {
-      return await send('account-group-update', { id, name });
+    mutationFn: async ({id, name}: UpdateAccountGroupPayload) => {
+      return await send('account-group-update', {id, name});
     },
     onSuccess: () => invalidateQueries(queryClient),
     onError: error => {
@@ -110,11 +106,11 @@ type DeleteAccountGroupPayload = {
 export function useDeleteAccountGroupMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id }: DeleteAccountGroupPayload) => {
-      return await send('account-group-delete', { id });
+    mutationFn: async ({id}: DeleteAccountGroupPayload) => {
+      return await send('account-group-delete', {id});
     },
     onSuccess: () => {
       invalidateQueries(queryClient);
@@ -139,11 +135,11 @@ type MoveAccountGroupPayload = {
 export function useMoveAccountGroupMutation() {
   const queryClient = useQueryClient();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return useMutation({
-    mutationFn: async ({ id, targetId }: MoveAccountGroupPayload) => {
-      return await send('account-group-move', { id, targetId });
+    mutationFn: async ({id, targetId}: MoveAccountGroupPayload) => {
+      return await send('account-group-move', {id, targetId});
     },
     onSuccess: () => invalidateQueries(queryClient),
     onError: error => {

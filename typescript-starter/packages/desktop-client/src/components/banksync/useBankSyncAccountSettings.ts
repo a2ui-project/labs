@@ -14,28 +14,26 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
+import {useState} from 'react';
 
 import {
   defaultMappings,
   mappingsFromString,
   mappingsToString,
 } from '@actual-app/core/server/util/custom-sync-mapping';
-import type { Mappings } from '@actual-app/core/server/util/custom-sync-mapping';
-import { q } from '@actual-app/core/shared/query';
+import type {Mappings} from '@actual-app/core/server/util/custom-sync-mapping';
+import {q} from '@actual-app/core/shared/query';
 
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { useTransactions } from '#hooks/useTransactions';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {useTransactions} from '#hooks/useTransactions';
 
-import { getFields } from './EditSyncAccount';
-import type {
-  MappableFieldWithExample,
-  TransactionDirection,
-} from './EditSyncAccount';
+import {getFields} from './EditSyncAccount';
+import type {MappableFieldWithExample, TransactionDirection} from './EditSyncAccount';
 
 export function useBankSyncAccountSettings(accountId: string) {
-  const [savedMappings = mappingsToString(defaultMappings), setSavedMappings] =
-    useSyncedPref(`custom-sync-mappings-${accountId}`);
+  const [savedMappings = mappingsToString(defaultMappings), setSavedMappings] = useSyncedPref(
+    `custom-sync-mappings-${accountId}`,
+  );
   const [savedImportNotes = true, setSavedImportNotes] = useSyncedPref(
     `sync-import-notes-${accountId}`,
   );
@@ -45,44 +43,34 @@ export function useBankSyncAccountSettings(accountId: string) {
   const [savedReimportDeleted = true, setSavedReimportDeleted] = useSyncedPref(
     `sync-reimport-deleted-${accountId}`,
   );
-  const [savedImportTransactions = true, setSavedImportTransactions] =
-    useSyncedPref(`sync-import-transactions-${accountId}`);
+  const [savedImportTransactions = true, setSavedImportTransactions] = useSyncedPref(
+    `sync-import-transactions-${accountId}`,
+  );
 
   const [savedUpdateDates = false, setSavedUpdateDates] = useSyncedPref(
     `sync-update-dates-${accountId}`,
   );
 
-  const [transactionDirection, setTransactionDirection] =
-    useState<TransactionDirection>('payment');
-  const [importPending, setImportPending] = useState(
-    String(savedImportPending) === 'true',
-  );
-  const [importNotes, setImportNotes] = useState(
-    String(savedImportNotes) === 'true',
-  );
-  const [reimportDeleted, setReimportDeleted] = useState(
-    String(savedReimportDeleted) === 'true',
-  );
-  const [mappings, setMappings] = useState<Mappings>(
-    mappingsFromString(savedMappings),
-  );
+  const [transactionDirection, setTransactionDirection] = useState<TransactionDirection>('payment');
+  const [importPending, setImportPending] = useState(String(savedImportPending) === 'true');
+  const [importNotes, setImportNotes] = useState(String(savedImportNotes) === 'true');
+  const [reimportDeleted, setReimportDeleted] = useState(String(savedReimportDeleted) === 'true');
+  const [mappings, setMappings] = useState<Mappings>(mappingsFromString(savedMappings));
   const [importTransactions, setImportTransactions] = useState(
     String(savedImportTransactions) === 'true',
   );
-  const [updateDates, setUpdateDates] = useState(
-    String(savedUpdateDates) === 'true',
-  );
+  const [updateDates, setUpdateDates] = useState(String(savedUpdateDates) === 'true');
 
   const transactionQuery = q('transactions')
     .filter({
       account: accountId,
-      amount: transactionDirection === 'payment' ? { $lte: 0 } : { $gt: 0 },
-      raw_synced_data: { $ne: null },
+      amount: transactionDirection === 'payment' ? {$lte: 0} : {$gt: 0},
+      raw_synced_data: {$ne: null},
     })
-    .options({ splits: 'none' })
+    .options({splits: 'none'})
     .select('*');
 
-  const { transactions } = useTransactions({
+  const {transactions} = useTransactions({
     query: transactionQuery,
   });
 

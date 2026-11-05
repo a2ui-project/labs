@@ -15,22 +15,14 @@
  */
 
 // @ts-strict-ignore
-export async function incrFetch(
-  runQuery,
-  terms,
-  compare,
-  makeQuery,
-  params = [],
-) {
+export async function incrFetch(runQuery, terms, compare, makeQuery, params = []) {
   const pageCount = 500;
   let results = [];
 
   let fetchedIds = new Set();
 
   for (let i = 0; i < terms.length; i += pageCount) {
-    const slice = terms
-      .slice(i, i + pageCount)
-      .filter(id => !fetchedIds.has(id));
+    const slice = terms.slice(i, i + pageCount).filter(id => !fetchedIds.has(id));
     if (slice.length > 0) {
       const filter = slice.map(id => compare(id)).join(' OR ');
       const query = makeQuery('(' + filter + ')');

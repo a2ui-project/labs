@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { useState } from 'react';
+import {useState} from 'react';
 
-import type { Meta, StoryObj } from '@storybook/react-vite';
+import type {Meta, StoryObj} from '@storybook/react-vite';
 
-import { Text } from './Text';
-import { Toggle } from './Toggle';
-import { View } from './View';
+import {Text} from './Text';
+import {Toggle} from './Toggle';
+import {View} from './View';
 
 const meta = {
   title: 'Components/Toggle',
@@ -102,7 +102,7 @@ export const Interactive: Story = {
     const [isOn, setIsOn] = useState(false);
 
     return (
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
         <Toggle id="toggle-interactive" isOn={isOn} onToggle={setIsOn} />
         <Text>{isOn ? 'Enabled' : 'Disabled'}</Text>
       </View>
@@ -128,29 +128,17 @@ export const WithLabels: Story = {
     const [autoSave, setAutoSave] = useState(true);
 
     return (
-      <View style={{ gap: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Toggle
-            id="toggle-notifications"
-            isOn={notifications}
-            onToggle={setNotifications}
-          />
+      <View style={{gap: 12}}>
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <Toggle id="toggle-notifications" isOn={notifications} onToggle={setNotifications} />
           <Text>Notifications</Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Toggle
-            id="toggle-dark-mode"
-            isOn={darkMode}
-            onToggle={setDarkMode}
-          />
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <Toggle id="toggle-dark-mode" isOn={darkMode} onToggle={setDarkMode} />
           <Text>Dark Mode</Text>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Toggle
-            id="toggle-auto-save"
-            isOn={autoSave}
-            onToggle={setAutoSave}
-          />
+        <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
+          <Toggle id="toggle-auto-save" isOn={autoSave} onToggle={setAutoSave} />
           <Text>Auto Save</Text>
         </View>
       </View>

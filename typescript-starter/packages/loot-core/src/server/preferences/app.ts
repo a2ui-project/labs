@@ -16,21 +16,18 @@
 
 import * as asyncStorage from '#platform/server/asyncStorage';
 import * as fs from '#platform/server/fs';
-import { createApp } from '#server/app';
+import {createApp} from '#server/app';
 import * as db from '#server/db';
-import { PostError } from '#server/errors';
-import { resetFormulaPreferencesCache } from '#server/formulas/bootstrap';
-import { getDefaultDocumentDir } from '#server/main';
-import { mutator } from '#server/mutators';
-import { post } from '#server/post';
-import {
-  getPrefs as _getMetadataPrefs,
-  savePrefs as _saveMetadataPrefs,
-} from '#server/prefs';
-import { getServer } from '#server/server-config';
-import { undoable } from '#server/undo';
-import { stringToInteger } from '#shared/util';
-import type { GlobalPrefs, MetadataPrefs, SyncedPrefs } from '#types/prefs';
+import {PostError} from '#server/errors';
+import {resetFormulaPreferencesCache} from '#server/formulas/bootstrap';
+import {getDefaultDocumentDir} from '#server/main';
+import {mutator} from '#server/mutators';
+import {post} from '#server/post';
+import {getPrefs as _getMetadataPrefs, savePrefs as _saveMetadataPrefs} from '#server/prefs';
+import {getServer} from '#server/server-config';
+import {undoable} from '#server/undo';
+import {stringToInteger} from '#shared/util';
+import type {GlobalPrefs, MetadataPrefs, SyncedPrefs} from '#types/prefs';
 
 export type PreferencesHandlers = {
   'preferences/save': typeof saveSyncedPrefs;
@@ -60,13 +57,7 @@ app.method('save-prefs', saveMetadataPrefs);
 app.method('load-prefs', loadMetadataPrefs);
 app.method('save-server-prefs', saveServerPrefs);
 
-async function saveSyncedPrefs({
-  id,
-  value,
-}: {
-  id: keyof SyncedPrefs;
-  value: string | undefined;
-}) {
+async function saveSyncedPrefs({id, value}: {id: keyof SyncedPrefs; value: string | undefined}) {
   if (!id) {
     return;
   }
@@ -86,7 +77,7 @@ async function getSyncedPrefs(): Promise<SyncedPrefs> {
     'SELECT id, value FROM preferences',
   );
 
-  return prefs.reduce<SyncedPrefs>((carry, { value, id }) => {
+  return prefs.reduce<SyncedPrefs>((carry, {value, id}) => {
     carry[id as keyof SyncedPrefs] = value;
     return carry;
   }, {});
@@ -101,10 +92,7 @@ async function saveGlobalPrefs(prefs: GlobalPrefs) {
     await asyncStorage.setItem('max-months', '' + prefs.maxMonths);
   }
   if (prefs.categoryExpandedState !== undefined) {
-    await asyncStorage.setItem(
-      'category-expanded-state',
-      '' + prefs.categoryExpandedState,
-    );
+    await asyncStorage.setItem('category-expanded-state', '' + prefs.categoryExpandedState);
   }
   if (prefs.documentDir !== undefined && (await fs.exists(prefs.documentDir))) {
     await asyncStorage.setItem('document-dir', prefs.documentDir);
@@ -120,40 +108,25 @@ async function saveGlobalPrefs(prefs: GlobalPrefs) {
     await asyncStorage.setItem('theme', prefs.theme);
   }
   if (prefs.preferredDarkTheme !== undefined) {
-    await asyncStorage.setItem(
-      'preferred-dark-theme',
-      prefs.preferredDarkTheme,
-    );
+    await asyncStorage.setItem('preferred-dark-theme', prefs.preferredDarkTheme);
   }
   if (prefs.installedCustomLightTheme !== undefined) {
-    await asyncStorage.setItem(
-      'installed-custom-theme',
-      prefs.installedCustomLightTheme,
-    );
+    await asyncStorage.setItem('installed-custom-theme', prefs.installedCustomLightTheme);
   }
   if (prefs.installedCustomDarkTheme !== undefined) {
-    await asyncStorage.setItem(
-      'installed-custom-dark-theme',
-      prefs.installedCustomDarkTheme,
-    );
+    await asyncStorage.setItem('installed-custom-dark-theme', prefs.installedCustomDarkTheme);
   }
   if (prefs.customCssOverride !== undefined) {
     await asyncStorage.setItem('custom-css-override', prefs.customCssOverride);
   }
   if (prefs.serverSelfSignedCert !== undefined) {
-    await asyncStorage.setItem(
-      'server-self-signed-cert',
-      prefs.serverSelfSignedCert,
-    );
+    await asyncStorage.setItem('server-self-signed-cert', prefs.serverSelfSignedCert);
   }
   if (prefs.syncServerConfig !== undefined) {
     await asyncStorage.setItem('syncServerConfig', prefs.syncServerConfig);
   }
   if (prefs.notifyWhenUpdateIsAvailable !== undefined) {
-    await asyncStorage.setItem(
-      'notifyWhenUpdateIsAvailable',
-      prefs.notifyWhenUpdateIsAvailable,
-    );
+    await asyncStorage.setItem('notifyWhenUpdateIsAvailable', prefs.notifyWhenUpdateIsAvailable);
   }
   if (prefs.lastSeenNewsDate !== undefined) {
     await asyncStorage.setItem('lastSeenNewsDate', prefs.lastSeenNewsDate);
@@ -208,10 +181,7 @@ async function loadGlobalPrefs(): Promise<GlobalPrefs> {
     keyId: encryptKey && JSON.parse(encryptKey).id,
     language,
     theme:
-      theme === 'light' ||
-      theme === 'dark' ||
-      theme === 'auto' ||
-      theme === 'midnight'
+      theme === 'light' || theme === 'dark' || theme === 'auto' || theme === 'midnight'
         ? theme
         : 'auto',
     preferredDarkTheme:
@@ -224,9 +194,7 @@ async function loadGlobalPrefs(): Promise<GlobalPrefs> {
     serverSelfSignedCert: serverSelfSignedCert || undefined,
     syncServerConfig: syncServerConfig || undefined,
     notifyWhenUpdateIsAvailable:
-      notifyWhenUpdateIsAvailable === undefined
-        ? true
-        : notifyWhenUpdateIsAvailable, // default to true
+      notifyWhenUpdateIsAvailable === undefined ? true : notifyWhenUpdateIsAvailable, // default to true
     lastSeenNewsDate: lastSeenNewsDate || undefined,
     showNewsFeed: showNewsFeed === undefined ? true : showNewsFeed, // default to true
   };
@@ -237,7 +205,7 @@ async function saveMetadataPrefs(prefsToSet: MetadataPrefs) {
     return 'ok';
   }
 
-  const { cloudFileId } = _getMetadataPrefs();
+  const {cloudFileId} = _getMetadataPrefs();
 
   // Need to sync the budget name on the server as well
   if (prefsToSet.budgetName && cloudFileId) {
@@ -263,10 +231,10 @@ async function loadMetadataPrefs(): Promise<MetadataPrefs> {
   return _getMetadataPrefs();
 }
 
-async function saveServerPrefs({ prefs }: { prefs: Record<string, string> }) {
+async function saveServerPrefs({prefs}: {prefs: Record<string, string>}) {
   const userToken = await asyncStorage.getItem('user-token');
   if (!userToken) {
-    return { error: 'not-logged-in' };
+    return {error: 'not-logged-in'};
   }
 
   try {

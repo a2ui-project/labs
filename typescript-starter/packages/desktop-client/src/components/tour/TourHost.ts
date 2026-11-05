@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-import { useEffect, useEffectEvent, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useJoyride } from 'react-joyride';
-import type { Controls, EventData } from 'react-joyride';
+import {useEffect, useEffectEvent, useRef} from 'react';
+import {useTranslation} from 'react-i18next';
+import {useJoyride} from 'react-joyride';
+import type {Controls, EventData} from 'react-joyride';
 
-import { theme } from '@actual-app/components/theme';
+import {theme} from '@actual-app/components/theme';
 
-import { useLocalPref } from '#hooks/useLocalPref';
-import { useModalState } from '#hooks/useModalState';
-import { useNavigate } from '#hooks/useNavigate';
-import { useReducedMotion } from '#hooks/useReducedMotion';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { removeNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {useLocalPref} from '#hooks/useLocalPref';
+import {useModalState} from '#hooks/useModalState';
+import {useNavigate} from '#hooks/useNavigate';
+import {useReducedMotion} from '#hooks/useReducedMotion';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {removeNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
-import { ADD_ACCOUNT_STEP_ID, getTourSteps } from './steps';
-import { TOUR_OFFER_NOTIFICATION_ID, useTour } from './TourProvider';
-import type { TourId } from './TourProvider';
-import { TourTooltip } from './TourTooltip';
+import {ADD_ACCOUNT_STEP_ID, getTourSteps} from './steps';
+import {TOUR_OFFER_NOTIFICATION_ID, useTour} from './TourProvider';
+import type {TourId} from './TourProvider';
+import {TourTooltip} from './TourTooltip';
 
 // Must stay below MODAL_Z_INDEX (3000) and the notifications layer (2999).
 const TOUR_Z_INDEX = 2900;
@@ -41,12 +41,12 @@ type TourHostProps = {
   tourId: TourId;
 };
 
-export function TourHost({ tourId }: TourHostProps) {
-  const { t } = useTranslation();
+export function TourHost({tourId}: TourHostProps) {
+  const {t} = useTranslation();
   const dispatch = useDispatch();
-  const { stopTour } = useTour();
+  const {stopTour} = useTour();
   const [, setIntroSeen] = useLocalPref('tour.introSeen');
-  const { activeModal, modalStack } = useModalState();
+  const {activeModal, modalStack} = useModalState();
   const reducedMotion = useReducedMotion();
   const navigate = useNavigate();
   const [budgetTypePref] = useSyncedPref('budgetType');
@@ -75,7 +75,7 @@ export function TourHost({ tourId }: TourHostProps) {
     }
   };
 
-  const { controls, Tour } = useJoyride({
+  const {controls, Tour} = useJoyride({
     continuous: true,
     run: true,
     steps,
@@ -102,11 +102,11 @@ export function TourHost({ tourId }: TourHostProps) {
       textColor: theme.pageText,
       zIndex: TOUR_Z_INDEX,
     },
-    styles: reducedMotion ? { floater: { transition: 'none' } } : undefined,
+    styles: reducedMotion ? {floater: {transition: 'none'}} : undefined,
   });
 
   useEffect(() => {
-    dispatch(removeNotification({ id: TOUR_OFFER_NOTIFICATION_ID }));
+    dispatch(removeNotification({id: TOUR_OFFER_NOTIFICATION_ID}));
   }, [dispatch]);
 
   const syncTourWithModals = useEffectEvent((modalCount: number) => {
@@ -115,10 +115,7 @@ export function TourHost({ tourId }: TourHostProps) {
       if (state.status !== 'running') {
         return;
       }
-      if (
-        activeModal === 'add-account' &&
-        steps[state.index]?.id === ADD_ACCOUNT_STEP_ID
-      ) {
+      if (activeModal === 'add-account' && steps[state.index]?.id === ADD_ACCOUNT_STEP_ID) {
         completeTour();
         return;
       }

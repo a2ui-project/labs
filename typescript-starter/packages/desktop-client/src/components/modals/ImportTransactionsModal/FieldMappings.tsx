@@ -15,17 +15,17 @@
  */
 
 import React from 'react';
-import { useTranslation } from 'react-i18next';
+import {useTranslation} from 'react-i18next';
 
-import { SpaceBetween } from '@actual-app/components/space-between';
-import { View } from '@actual-app/components/view';
+import {SpaceBetween} from '@actual-app/components/space-between';
+import {View} from '@actual-app/components/view';
 
-import { SectionLabel } from '#components/forms';
+import {SectionLabel} from '#components/forms';
 
-import { SelectField } from './SelectField';
-import { SubLabel } from './SubLabel';
-import { stripCsvImportTransaction } from './utils';
-import type { FieldMapping, ImportTransaction } from './utils';
+import {SelectField} from './SelectField';
+import {SubLabel} from './SubLabel';
+import {stripCsvImportTransaction} from './utils';
+import type {FieldMapping, ImportTransaction} from './utils';
 
 type FieldMappingsProps = {
   transactions: ImportTransaction[];
@@ -53,7 +53,7 @@ export function FieldMappings({
   inOutMode,
   hasHeaderRow,
 }: FieldMappingsProps) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   if (transactions.length === 0) {
     return null;
   }
@@ -64,8 +64,8 @@ export function FieldMappings({
   return (
     <View>
       <SectionLabel title={t('CSV FIELDS')} />
-      <SpaceBetween gap={10} style={{ marginTop: 5, alignItems: 'flex-start' }}>
-        <View style={{ flex: 1 }}>
+      <SpaceBetween gap={10} style={{marginTop: 5, alignItems: 'flex-start'}}>
+        <View style={{flex: 1}}>
           <SubLabel title={t('Date')} />
           <SelectField
             options={options}
@@ -75,7 +75,7 @@ export function FieldMappings({
             firstTransaction={transactions[0]}
           />
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={{flex: 1}}>
           <SubLabel title={t('Payee')} />
           <SelectField
             options={options}
@@ -85,7 +85,7 @@ export function FieldMappings({
             firstTransaction={transactions[0]}
           />
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={{flex: 1}}>
           <SubLabel title={t('Notes')} />
           <SelectField
             options={options}
@@ -95,7 +95,7 @@ export function FieldMappings({
             firstTransaction={transactions[0]}
           />
         </View>
-        <View style={{ flex: 1 }}>
+        <View style={{flex: 1}}>
           <SubLabel title={t('Category')} />
           <SelectField
             options={options}
@@ -107,7 +107,7 @@ export function FieldMappings({
         </View>
         {splitMode && !inOutMode ? (
           <>
-            <View style={{ flex: 0.5 }}>
+            <View style={{flex: 0.5}}>
               <SubLabel title={t('Outflow')} />
               <SelectField
                 options={options}
@@ -117,7 +117,7 @@ export function FieldMappings({
                 firstTransaction={transactions[0]}
               />
             </View>
-            <View style={{ flex: 0.5 }}>
+            <View style={{flex: 0.5}}>
               <SubLabel title={t('Inflow')} />
               <SelectField
                 options={options}
@@ -131,7 +131,7 @@ export function FieldMappings({
         ) : (
           <>
             {inOutMode && (
-              <View style={{ flex: 1 }}>
+              <View style={{flex: 1}}>
                 <SubLabel title={t('In/Out')} />
                 <SelectField
                   options={options}
@@ -142,7 +142,7 @@ export function FieldMappings({
                 />
               </View>
             )}
-            <View style={{ flex: 1 }}>
+            <View style={{flex: 1}}>
               <SubLabel title={t('Amount')} />
               <SelectField
                 options={options}

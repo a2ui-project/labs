@@ -16,16 +16,13 @@
 
 import express from 'express';
 
-import { handleError } from '#app-gocardless/util/handle-error';
-import { SecretName, secretsService } from '#services/secrets-service';
-import {
-  requestLoggerMiddleware,
-  validateSessionMiddleware,
-} from '#util/middlewares';
-import { assertUrlAllowed } from '#util/ssrf';
+import {handleError} from '#app-gocardless/util/handle-error';
+import {SecretName, secretsService} from '#services/secrets-service';
+import {requestLoggerMiddleware, validateSessionMiddleware} from '#util/middlewares';
+import {assertUrlAllowed} from '#util/ssrf';
 
 const app = express();
-export { app as handlers };
+export {app as handlers};
 app.use(requestLoggerMiddleware);
 app.use(express.json());
 app.use(validateSessionMiddleware);
@@ -59,9 +56,7 @@ app.post(
 
       const claimUrl = decodeClaimUrl(token);
       if (claimUrl == null) {
-        console.log(
-          'SimpleFIN setup token does not decode to a claim URL - re-enter the token',
-        );
+        console.log('SimpleFIN setup token does not decode to a claim URL - re-enter the token');
         invalidToken(res);
         return;
       }
@@ -106,7 +101,7 @@ app.post(
 app.post(
   '/transactions',
   handleError(async (req, res) => {
-    const { accountId, startDate } = req.body || {};
+    const {accountId, startDate} = req.body || {};
 
     const accessKey = secretsService.get(SecretName.simplefin_accessKey);
 
@@ -116,13 +111,11 @@ app.post(
     }
 
     if (Array.isArray(accountId) !== Array.isArray(startDate)) {
-      console.log({ accountId, startDate });
-      throw new Error(
-        'accountId and startDate must either both be arrays or both be strings',
-      );
+      console.log({accountId, startDate});
+      throw new Error('accountId and startDate must either both be arrays or both be strings');
     }
     if (Array.isArray(accountId) && accountId.length !== startDate.length) {
-      console.log({ accountId, startDate });
+      console.log({accountId, startDate});
       throw new Error('accountId and startDate arrays must be the same length');
     }
 
@@ -183,12 +176,9 @@ function logAccountError(results, accountId, data) {
 }
 
 function getAccountResponse(results, accountId, startDate) {
-  const account =
-    !results?.accounts || results.accounts.find(a => a.id === accountId);
+  const account = !results?.accounts || results.accounts.find(a => a.id === accountId);
   if (!account) {
-    console.log(
-      `The account "${accountId}" was not found. Here were the accounts returned:`,
-    );
+    console.log(`The account "${accountId}" was not found. Here were the accounts returned:`);
     if (results?.accounts) {
       results.accounts.forEach(a => console.log(`${a.id} - ${a.org.name}`));
     }
@@ -261,7 +251,7 @@ function getAccountResponse(results, accountId, startDate) {
     newTrans.date = getDate(transactionDate);
     newTrans.payeeName = trans.payee;
     newTrans.notes = trans.description;
-    newTrans.transactionAmount = { amount: trans.amount, currency: 'USD' };
+    newTrans.transactionAmount = {amount: trans.amount, currency: 'USD'};
     newTrans.transactionId = trans.id;
     newTrans.valueDate = newTrans.bookingDate;
 
@@ -305,8 +295,7 @@ function invalidToken(res) {
       error_type: 'INVALID_ACCESS_TOKEN',
       error_code: 'INVALID_ACCESS_TOKEN',
       status: 'rejected',
-      reason:
-        'Invalid SimpleFIN access token.  Reset the token and re-link any broken accounts.',
+      reason: 'Invalid SimpleFIN access token.  Reset the token and re-link any broken accounts.',
     },
   });
 }
@@ -369,7 +358,7 @@ async function claimAccessKey(claimUrl) {
   // Self-hosters may run their own SimpleFIN bridge on the local network, so
   // private addresses are allowed here; cloud metadata and other always-blocked
   // ranges are still rejected.
-  await assertUrlAllowed(claimUrl, { allowPrivateNetwork: true });
+  await assertUrlAllowed(claimUrl, {allowPrivateNetwork: true});
 
   // don't auto-follow redirects for SSRF safety
   const response = await fetch(claimUrl, {
@@ -390,9 +379,7 @@ function isForbidden(value) {
 
 function isInvalidAccessKey(accessKey) {
   return (
-    typeof accessKey !== 'string' ||
-    isForbidden(accessKey) ||
-    !ACCESS_KEY_FORMAT.test(accessKey)
+    typeof accessKey !== 'string' || isForbidden(accessKey) || !ACCESS_KEY_FORMAT.test(accessKey)
   );
 }
 
@@ -412,19 +399,11 @@ function normalizeDate(date) {
   return (date.valueOf() - date.getTimezoneOffset() * 60 * 1000) / 1000;
 }
 
-async function getAccounts(
-  accessKey,
-  accounts,
-  startDate,
-  endDate,
-  noTransactions = false,
-) {
+async function getAccounts(accessKey, accounts, startDate, endDate, noTransactions = false) {
   const sfin = parseAccessKey(accessKey);
 
   const headers = {
-    Authorization: `Basic ${Buffer.from(
-      `${sfin.username}:${sfin.password}`,
-    ).toString('base64')}`,
+    Authorization: `Basic ${Buffer.from(`${sfin.username}:${sfin.password}`).toString('base64')}`,
   };
 
   const params = new URLSearchParams();
@@ -458,7 +437,7 @@ async function getAccounts(
   let currentUrl = url.toString();
   let response;
   for (let hop = 0; ; hop++) {
-    await assertUrlAllowed(currentUrl, { allowPrivateNetwork: true });
+    await assertUrlAllowed(currentUrl, {allowPrivateNetwork: true});
 
     response = await fetch(currentUrl, {
       method: 'GET',

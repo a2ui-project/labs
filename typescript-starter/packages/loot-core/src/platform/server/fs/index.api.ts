@@ -18,14 +18,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { logger } from '#platform/server/log';
-import { retry as promiseRetry } from '#shared/retry';
+import {logger} from '#platform/server/log';
+import {retry as promiseRetry} from '#shared/retry';
 
-import { getDocumentDir } from './shared';
+import {getDocumentDir} from './shared';
 
 import type * as T from './index';
 
-export { getDocumentDir, getBudgetDir, _setDocumentDir } from './shared';
+export {getDocumentDir, getBudgetDir, _setDocumentDir} from './shared';
 
 export const init: typeof T.init = async () => {
   // Nothing to do
@@ -38,18 +38,11 @@ export const bundledDatabasePath: typeof T.bundledDatabasePath = path.join(
   'default-db.sqlite',
 );
 
-export const migrationsPath: typeof T.migrationsPath = path.join(
-  __dirname,
-  'migrations',
-);
+export const migrationsPath: typeof T.migrationsPath = path.join(__dirname, 'migrations');
 
-export const demoBudgetPath: typeof T.demoBudgetPath = path.join(
-  __dirname,
-  'demo-budget',
-);
+export const demoBudgetPath: typeof T.demoBudgetPath = path.join(__dirname, 'demo-budget');
 
-export const join: typeof T.join = (...args: Parameters<typeof path.join>) =>
-  path.join(...args);
+export const join: typeof T.join = (...args: Parameters<typeof path.join>) => path.join(...args);
 
 export const basename: typeof T.basename = filepath => path.basename(filepath);
 
@@ -141,9 +134,7 @@ export const writeFile: typeof T.writeFile = async (filepath, contents) => {
               reject(err);
             } else {
               if (attempt > 1) {
-                logger.info(
-                  `Successfully recovered from file lock. It took ${attempt} retries`,
-                );
+                logger.info(`Successfully recovered from file lock. It took ${attempt} retries`);
               }
               resolve(undefined);
             }
@@ -181,21 +172,20 @@ export const removeDir: typeof T.removeDir = dirpath => {
   });
 };
 
-export const removeDirRecursively: typeof T.removeDirRecursively =
-  async dirpath => {
-    if (await exists(dirpath)) {
-      for (const file of await listDir(dirpath)) {
-        const fullpath = join(dirpath, file);
-        if (fs.statSync(fullpath).isDirectory()) {
-          await removeDirRecursively(fullpath);
-        } else {
-          await removeFile(fullpath);
-        }
+export const removeDirRecursively: typeof T.removeDirRecursively = async dirpath => {
+  if (await exists(dirpath)) {
+    for (const file of await listDir(dirpath)) {
+      const fullpath = join(dirpath, file);
+      if (fs.statSync(fullpath).isDirectory()) {
+        await removeDirRecursively(fullpath);
+      } else {
+        await removeFile(fullpath);
       }
-
-      await removeDir(dirpath);
     }
-  };
+
+    await removeDir(dirpath);
+  }
+};
 
 export const getModifiedTime: typeof T.getModifiedTime = filepath => {
   return new Promise(function (resolve, reject) {

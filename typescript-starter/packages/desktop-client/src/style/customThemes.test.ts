@@ -15,7 +15,7 @@
  */
 
 // oxlint-disable eslint/no-script-url
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 
 import {
   embedThemeFonts,
@@ -27,7 +27,7 @@ import {
   validateThemeCss,
   validateThemeCssSafely,
 } from './customThemes';
-import type { InstalledTheme } from './customThemes';
+import type {InstalledTheme} from './customThemes';
 
 // Small valid woff2 data URI for testing (actual content doesn't matter for validation)
 const TINY_WOFF2_BASE64 = 'AAAAAAAAAA==';
@@ -106,7 +106,7 @@ describe('validateThemeCss', () => {
         css: `--color-primary: #007bff;
 --color-secondary: #6c757d;`,
       },
-    ])('should reject $description', ({ css }) => {
+    ])('should reject $description', ({css}) => {
       expect(() => validateThemeCss(css)).toThrow(
         'Theme CSS must contain :root { ... } with CSS variable definitions. No other selectors or content allowed.',
       );
@@ -161,7 +161,7 @@ describe('validateThemeCss', () => {
         expectedError:
           'Theme CSS must contain :root { ... } with CSS variable definitions. No other selectors or content allowed.',
       },
-    ])('should reject CSS with $description', ({ css, expectedError }) => {
+    ])('should reject CSS with $description', ({css, expectedError}) => {
       expect(() => validateThemeCss(css)).toThrow(expectedError);
     });
 
@@ -207,7 +207,7 @@ describe('validateThemeCss', () => {
         }
       }`,
       },
-    ])('should reject CSS with $description', ({ css }) => {
+    ])('should reject CSS with $description', ({css}) => {
       expect(() => validateThemeCss(css)).toThrow(/forbidden at-rules/);
     });
   });
@@ -237,7 +237,7 @@ describe('validateThemeCss', () => {
         margin: 0;
       }`,
       },
-    ])('should reject CSS with $description', ({ property, css }) => {
+    ])('should reject CSS with $description', ({property, css}) => {
       expect(() => validateThemeCss(css)).toThrow(
         `Invalid property "${property}". Only CSS custom properties (starting with --) are allowed.`,
       );
@@ -303,7 +303,7 @@ describe('validateThemeCss', () => {
         description: 'whitespace only',
         css: '   ',
       },
-    ])('should reject $description', ({ css }) => {
+    ])('should reject $description', ({css}) => {
       expect(() => validateThemeCss(css)).toThrow(
         'Theme CSS must contain :root { ... } with CSS variable definitions. No other selectors or content allowed.',
       );
@@ -429,7 +429,7 @@ describe('validateThemeCss', () => {
         );
       }`,
         },
-      ])('should reject CSS with $description', ({ css }) => {
+      ])('should reject CSS with $description', ({css}) => {
         expect(() => validateThemeCss(css)).toThrow();
       });
     });
@@ -485,7 +485,7 @@ describe('validateThemeCss', () => {
         --bg-image: url("x" onerror="alert(1)");
       }`,
       },
-    ])('should reject CSS with $description', ({ css }) => {
+    ])('should reject CSS with $description', ({css}) => {
       expect(() => validateThemeCss(css)).toThrow();
     });
   });
@@ -517,7 +517,7 @@ describe('validateThemeCss', () => {
         --color-primary: VaR(--other-var);
       }`,
         },
-      ])('should accept CSS with $description', ({ css }) => {
+      ])('should accept CSS with $description', ({css}) => {
         expect(() => validateThemeCss(css)).not.toThrow();
       });
     });
@@ -548,7 +548,7 @@ describe('validateThemeCss', () => {
         --color-primary: var(--other-var;
       }`,
         },
-      ])('should reject CSS with $description', ({ css }) => {
+      ])('should reject CSS with $description', ({css}) => {
         expect(() => validateThemeCss(css)).toThrow();
       });
     });
@@ -604,13 +604,12 @@ describe('validateThemeCss', () => {
       }`,
         },
         {
-          description:
-            'url() function (already tested but included for completeness)',
+          description: 'url() function (already tested but included for completeness)',
           css: `:root {
         --bg: url("image.png");
       }`,
         },
-      ])('should reject CSS with $description', ({ css }) => {
+      ])('should reject CSS with $description', ({css}) => {
         expect(() => validateThemeCss(css)).toThrow();
       });
     });
@@ -715,7 +714,7 @@ describe('validateThemeCss', () => {
         --border: none;
       }`,
       },
-    ])('should allow CSS with $description', ({ css }) => {
+    ])('should allow CSS with $description', ({css}) => {
       expect(() => validateThemeCss(css)).not.toThrow();
     });
   });
@@ -788,7 +787,7 @@ describe('validateThemeCss', () => {
         }
       }`,
       },
-    ])('should reject CSS with $description', ({ css }) => {
+    ])('should reject CSS with $description', ({css}) => {
       expect(() => validateThemeCss(css)).toThrow(/forbidden at-rules/);
     });
   });
@@ -873,7 +872,7 @@ describe('validateThemeCss', () => {
         --color-primary: rgb(255: 0: 0);
       }`,
       },
-    ])('should reject CSS with $description', ({ css }) => {
+    ])('should reject CSS with $description', ({css}) => {
       expect(() => validateThemeCss(css)).toThrow();
     });
 
@@ -975,7 +974,7 @@ describe('validateThemeCss - font properties (--font-*)', () => {
         description: '--font-heading property',
         css: `:root { --font-heading: Palatino, 'Book Antiqua', serif; }`,
       },
-    ])('should accept CSS with $description', ({ css }) => {
+    ])('should accept CSS with $description', ({css}) => {
       expect(() => validateThemeCss(css)).not.toThrow();
     });
   });
@@ -1027,7 +1026,7 @@ describe('validateThemeCss - font properties (--font-*)', () => {
         css: `:root { --font-family: rgb(0, 0, 0); }`,
         expectedPattern: /function calls are not allowed/,
       },
-    ])('should reject CSS with $description', ({ css, expectedPattern }) => {
+    ])('should reject CSS with $description', ({css, expectedPattern}) => {
       expect(() => validateThemeCss(css)).toThrow(expectedPattern);
     });
   });
@@ -1046,8 +1045,8 @@ describe('validateThemeCss - font properties (--font-*)', () => {
         description: 'arbitrary string',
         css: `:root { --font-family: something-random; }`,
       },
-      { description: 'Papyrus', css: `:root { --font-family: Papyrus; }` },
-    ])('should accept $description as a font name', ({ css }) => {
+      {description: 'Papyrus', css: `:root { --font-family: Papyrus; }`},
+    ])('should accept $description as a font name', ({css}) => {
       expect(() => validateThemeCss(css)).not.toThrow();
     });
   });
@@ -1195,9 +1194,7 @@ describe('validateThemeCss - @font-face blocks', () => {
 
     it('should reject oversized font data', () => {
       // Create a base64 string that would decode to > MAX_FONT_FILE_SIZE
-      const oversizedBase64 = 'A'.repeat(
-        Math.ceil((MAX_FONT_FILE_SIZE * 4) / 3) + 100,
-      );
+      const oversizedBase64 = 'A'.repeat(Math.ceil((MAX_FONT_FILE_SIZE * 4) / 3) + 100);
       const css = `@font-face {
   font-family: 'Big Font';
   src: url('data:font/woff2;base64,${oversizedBase64}') format('woff2');
@@ -1329,7 +1326,7 @@ describe('parseInstalledTheme', () => {
           repo: 'owner/repo',
         },
       },
-    ])('should return null when $description', ({ theme }) => {
+    ])('should return null when $description', ({theme}) => {
       const json = JSON.stringify(theme);
       const result = parseInstalledTheme(json);
       expect(result).toBeNull();
@@ -1359,7 +1356,7 @@ describe('parseInstalledTheme', () => {
       {
         description: 'id is an object',
         theme: {
-          id: { value: 'theme-abc123' },
+          id: {value: 'theme-abc123'},
           name: 'My Theme',
           repo: 'owner/repo',
           cssContent: ':root { --color-primary: #007bff; }',
@@ -1389,7 +1386,7 @@ describe('parseInstalledTheme', () => {
           id: 'theme-abc123',
           name: 'My Theme',
           repo: 'owner/repo',
-          cssContent: { content: ':root { --color-primary: #007bff; }' },
+          cssContent: {content: ':root { --color-primary: #007bff; }'},
         },
       },
       {
@@ -1410,7 +1407,7 @@ describe('parseInstalledTheme', () => {
           cssContent: 12345,
         },
       },
-    ])('should return null when $description', ({ theme }) => {
+    ])('should return null when $description', ({theme}) => {
       const json = JSON.stringify(theme);
       const result = parseInstalledTheme(json);
       expect(result).toBeNull();
@@ -1446,7 +1443,7 @@ describe('parseInstalledTheme', () => {
         description: 'parsed value is a boolean',
         json: JSON.stringify(true),
       },
-    ])('should return null when $description', ({ json }) => {
+    ])('should return null when $description', ({json}) => {
       const result = parseInstalledTheme(json);
       expect(result).toBeNull();
     });
@@ -1466,7 +1463,7 @@ describe('parseInstalledTheme', () => {
         description: 'empty object',
         json: '{}',
       },
-    ])('should return null for $description', ({ json }) => {
+    ])('should return null for $description', ({json}) => {
       const result = parseInstalledTheme(json);
       expect(result).toBeNull();
     });
@@ -1487,11 +1484,10 @@ describe('parseInstalledTheme', () => {
         input: '   ',
       },
       {
-        description:
-          'empty array (parsed value should be distinguished from object)',
+        description: 'empty array (parsed value should be distinguished from object)',
         input: '[]',
       },
-    ])('should return null for $description', ({ input }) => {
+    ])('should return null for $description', ({input}) => {
       const result = parseInstalledTheme(input);
       expect(result).toBeNull();
     });
@@ -1514,11 +1510,7 @@ describe('parseInstalledTheme', () => {
 });
 
 describe('embedThemeFonts', () => {
-  const mockFetch = (
-    responseBody: ArrayBuffer,
-    ok = true,
-    status = 200,
-  ): typeof globalThis.fetch =>
+  const mockFetch = (responseBody: ArrayBuffer, ok = true, status = 200): typeof globalThis.fetch =>
     vi.fn().mockResolvedValue({
       ok,
       status,
@@ -1569,9 +1561,7 @@ describe('embedThemeFonts', () => {
 }
 :root { --color-primary: #007bff; }`;
 
-    await expect(embedThemeFonts(css, 'owner/repo')).rejects.toThrow(
-      'is not allowed',
-    );
+    await expect(embedThemeFonts(css, 'owner/repo')).rejects.toThrow('is not allowed');
   });
 
   it('should reject root-anchored paths', async () => {
@@ -1581,9 +1571,7 @@ describe('embedThemeFonts', () => {
 }
 :root { --color-primary: #007bff; }`;
 
-    await expect(embedThemeFonts(css, 'owner/repo')).rejects.toThrow(
-      'is not allowed',
-    );
+    await expect(embedThemeFonts(css, 'owner/repo')).rejects.toThrow('is not allowed');
   });
 
   it('should reject oversized font files', async () => {
@@ -1596,9 +1584,7 @@ describe('embedThemeFonts', () => {
 }
 :root { --color-primary: #007bff; }`;
 
-    await expect(embedThemeFonts(css, 'owner/repo')).rejects.toThrow(
-      'exceeds maximum size',
-    );
+    await expect(embedThemeFonts(css, 'owner/repo')).rejects.toThrow('exceeds maximum size');
   });
 
   it('should reject when total font size exceeds budget', async () => {
@@ -1608,7 +1594,7 @@ describe('embedThemeFonts', () => {
     vi.stubGlobal('fetch', mockFetch(bigBuffer));
 
     const fontBlocks = Array.from(
-      { length: 6 },
+      {length: 6},
       (_, i) => `@font-face {
   font-family: 'Font${i}';
   src: url('font${i}.woff2') format('woff2');
@@ -1642,9 +1628,7 @@ describe('extractLegacyOverride', () => {
       cssContent: ':root { --color-primary: #007bff; }',
       overrideCss: ':root { --color-accent: #ff00aa; }',
     });
-    expect(extractLegacyOverride(json)).toBe(
-      ':root { --color-accent: #ff00aa; }',
-    );
+    expect(extractLegacyOverride(json)).toBe(':root { --color-accent: #ff00aa; }');
   });
 
   it('returns null when overrideCss is missing', () => {
@@ -1687,9 +1671,7 @@ describe('extractLegacyOverride', () => {
       cssContent: ':root { --color-primary: #007bff; }',
       overrideCss: '  :root { --color-accent: #ff00aa; }  ',
     });
-    expect(extractLegacyOverride(json)).toBe(
-      ':root { --color-accent: #ff00aa; }',
-    );
+    expect(extractLegacyOverride(json)).toBe(':root { --color-accent: #ff00aa; }');
   });
 
   it('returns null when overrideCss is not a string', () => {
@@ -1771,9 +1753,7 @@ describe('migrateLegacyOverride', () => {
     expect(result?.override).toBe(':root { --color-accent: #ff00aa; }');
     expect(result?.newLightJson).toBe(JSON.stringify(baseTheme));
     expect(result?.newDarkJson).toBe(darkJson);
-    expect(
-      JSON.parse(result?.newLightJson ?? '{}').overrideCss,
-    ).toBeUndefined();
+    expect(JSON.parse(result?.newLightJson ?? '{}').overrideCss).toBeUndefined();
   });
 
   it('migrates from dark when only dark has legacy overrideCss', () => {
@@ -1811,9 +1791,7 @@ describe('migrateLegacyOverride', () => {
     expect(result?.override).toBe(':root { --color-accent: red; }');
     expect(result?.newLightJson).toBe(JSON.stringify(baseTheme));
     expect(result?.newDarkJson).toBe(JSON.stringify(baseTheme));
-    expect(
-      JSON.parse(result?.newLightJson ?? '{}').overrideCss,
-    ).toBeUndefined();
+    expect(JSON.parse(result?.newLightJson ?? '{}').overrideCss).toBeUndefined();
     expect(JSON.parse(result?.newDarkJson ?? '{}').overrideCss).toBeUndefined();
   });
 
@@ -1871,9 +1849,9 @@ describe('migrateLegacyOverride', () => {
 
 describe('validateThemeCssSafely', () => {
   it('returns the validated CSS for a valid theme', () => {
-    expect(
-      validateThemeCssSafely(':root { --color-pageBackground: #fff; }'),
-    ).toContain('--color-pageBackground');
+    expect(validateThemeCssSafely(':root { --color-pageBackground: #fff; }')).toContain(
+      '--color-pageBackground',
+    );
   });
 
   it('returns an empty string and reports invalid CSS', () => {
@@ -1903,13 +1881,9 @@ describe('validateThemeCssSafely', () => {
 describe('usesRedesignSidebarPalette', () => {
   it('keeps the redesign palette for themes that leave the sidebar alone', () => {
     expect(usesRedesignSidebarPalette('')).toBe(true);
+    expect(usesRedesignSidebarPalette(':root { --color-pageBackground: #fff; }')).toBe(true);
     expect(
-      usesRedesignSidebarPalette(':root { --color-pageBackground: #fff; }'),
-    ).toBe(true);
-    expect(
-      usesRedesignSidebarPalette(
-        ':root { --color-pageText: var(--color-sidebarBackground); }',
-      ),
+      usesRedesignSidebarPalette(':root { --color-pageText: var(--color-sidebarBackground); }'),
     ).toBe(true);
     expect(
       usesRedesignSidebarPalette(
@@ -1924,16 +1898,12 @@ describe('usesRedesignSidebarPalette', () => {
         ':root {\n  --color-pageBackground: #fff;\n  --color-sidebarBackground: hsl(237, 51%, 23%);\n}',
       ),
     ).toBe(false);
-    expect(
-      usesRedesignSidebarPalette(':root { --color-sidebarItemText:#fff; }'),
-    ).toBe(false);
+    expect(usesRedesignSidebarPalette(':root { --color-sidebarItemText:#fff; }')).toBe(false);
   });
 
   it('keeps the redesign palette when redesign tokens are overridden', () => {
     expect(
-      usesRedesignSidebarPalette(
-        ':root { --color-sidebarRedesignItemTextSelected: red; }',
-      ),
+      usesRedesignSidebarPalette(':root { --color-sidebarRedesignItemTextSelected: red; }'),
     ).toBe(true);
     expect(
       usesRedesignSidebarPalette(

@@ -15,11 +15,11 @@
  */
 
 import React from 'react';
-import { Trans } from 'react-i18next';
+import {Trans} from 'react-i18next';
 
-import { Text } from '@actual-app/components/text';
+import {Text} from '@actual-app/components/text';
 
-import { Setting } from './UI';
+import {Setting} from './UI';
 
 export function Backups() {
   const BACKUP_FREQUENCY_MINS = 15;
@@ -33,12 +33,11 @@ export function Backups() {
         </strong>
         <p>
           <Trans>
-            Backups are taken every {{ BACKUP_FREQUENCY_MINS }} minutes and
-            stored in{' '}
+            Backups are taken every {{BACKUP_FREQUENCY_MINS}} minutes and stored in{' '}
             <strong>
               <i>Actual's data directory</i>
             </strong>
-            . Actual retains a maximum of {{ MAX_BACKUPS }} backups at any time.
+            . Actual retains a maximum of {{MAX_BACKUPS}} backups at any time.
           </Trans>
         </p>
       </Text>

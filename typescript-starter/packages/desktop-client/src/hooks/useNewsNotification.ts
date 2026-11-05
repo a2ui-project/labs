@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useLocation } from 'react-router';
+import {useEffect} from 'react';
+import {useTranslation} from 'react-i18next';
+import {useLocation} from 'react-router';
 
-import { getNewestDate, getReleaseToNotify } from '#news/utils';
-import {
-  addNotification,
-  removeNotification,
-} from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
+import {getNewestDate, getReleaseToNotify} from '#news/utils';
+import {addNotification, removeNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
 
-import { useGlobalPref } from './useGlobalPref';
-import { useNavigate } from './useNavigate';
-import { useNewsFeed } from './useNewsFeed';
+import {useGlobalPref} from './useGlobalPref';
+import {useNavigate} from './useNavigate';
+import {useNewsFeed} from './useNewsFeed';
 
 const NOTIFICATION_ID = 'news-release-notification';
 const NOTIFICATIONS_PAGE_PATH = '/notifications';
@@ -38,19 +35,18 @@ const NOTIFICATIONS_PAGE_PATH = '/notifications';
  * is disabled (the user turned it off in settings).
  */
 export function useNewsNotification() {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isEnabled, entries } = useNewsFeed();
-  const [lastSeenNewsDate, setLastSeenNewsDate] =
-    useGlobalPref('lastSeenNewsDate');
+  const {isEnabled, entries} = useNewsFeed();
+  const [lastSeenNewsDate, setLastSeenNewsDate] = useGlobalPref('lastSeenNewsDate');
 
   // Reaching the page (via the bell, settings, or the notification itself)
   // makes the notification redundant.
   useEffect(() => {
     if (location.pathname === NOTIFICATIONS_PAGE_PATH) {
-      dispatch(removeNotification({ id: NOTIFICATION_ID }));
+      dispatch(removeNotification({id: NOTIFICATION_ID}));
     }
   }, [dispatch, location.pathname]);
 
@@ -70,11 +66,7 @@ export function useNewsNotification() {
       return;
     }
 
-    const release = getReleaseToNotify(
-      entries,
-      window.Actual.ACTUAL_VERSION,
-      lastSeenNewsDate,
-    );
+    const release = getReleaseToNotify(entries, window.Actual.ACTUAL_VERSION, lastSeenNewsDate);
     if (!release) {
       return;
     }
@@ -104,13 +96,5 @@ export function useNewsNotification() {
         },
       }),
     );
-  }, [
-    dispatch,
-    entries,
-    isEnabled,
-    lastSeenNewsDate,
-    navigate,
-    setLastSeenNewsDate,
-    t,
-  ]);
+  }, [dispatch, entries, isEnabled, lastSeenNewsDate, navigate, setLastSeenNewsDate, t]);
 }

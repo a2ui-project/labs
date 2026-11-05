@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { PluggyClient } from 'pluggy-sdk';
+import {PluggyClient} from 'pluggy-sdk';
 
-import { SecretName, secretsService } from '#services/secrets-service';
+import {SecretName, secretsService} from '#services/secrets-service';
 
 const pluggyClients = new Map();
 
@@ -41,14 +41,8 @@ function getCredentialSource(fileId) {
 }
 
 function getCredentialsCacheEntry(credentialFileId) {
-  const clientId = secretsService.get(
-    SecretName.pluggyai_clientId,
-    credentialFileId,
-  );
-  const clientSecret = secretsService.get(
-    SecretName.pluggyai_clientSecret,
-    credentialFileId,
-  );
+  const clientId = secretsService.get(SecretName.pluggyai_clientId, credentialFileId);
+  const clientSecret = secretsService.get(SecretName.pluggyai_clientSecret, credentialFileId);
 
   return {
     cacheKey: JSON.stringify({
@@ -67,10 +61,8 @@ function getPluggyClient(fileId) {
     throw new Error('Pluggy credentials are not configured');
   }
 
-  const credentialFileId =
-    credentialSource === 'per-budget-file' ? fileId : null;
-  const { cacheKey, clientId, clientSecret } =
-    getCredentialsCacheEntry(credentialFileId);
+  const credentialFileId = credentialSource === 'per-budget-file' ? fileId : null;
+  const {cacheKey, clientId, clientSecret} = getCredentialsCacheEntry(credentialFileId);
   let pluggyClient = pluggyClients.get(cacheKey);
   if (!pluggyClient) {
     pluggyClient = new PluggyClient({
@@ -91,7 +83,7 @@ export const pluggyaiService = {
   getAccountsByItemId: async (itemId, fileId) => {
     try {
       const client = getPluggyClient(fileId);
-      const { results, total, ...rest } = await client.fetchAccounts(itemId);
+      const {results, total, ...rest} = await client.fetchAccounts(itemId);
       return {
         results,
         total,

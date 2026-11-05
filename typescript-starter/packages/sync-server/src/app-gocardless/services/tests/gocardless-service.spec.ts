@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { MockInstance } from 'vitest';
+import type {MockInstance} from 'vitest';
 
 import {
   AccessDeniedError,
@@ -35,7 +35,7 @@ import type {
   GoCardlessInstitutionId,
   GoCardlessRequisitionId,
 } from '#app-gocardless/gocardless-node.types';
-import { GoCardlessApiError } from '#app-gocardless/services/gocardless-api';
+import {GoCardlessApiError} from '#app-gocardless/services/gocardless-api';
 import {
   client,
   goCardlessService,
@@ -94,13 +94,9 @@ describe('goCardlessService', () => {
     it('returns requisition', async () => {
       setTokenSpy.mockResolvedValue(undefined);
 
-      vi.spyOn(goCardlessService, 'getRequisition').mockResolvedValue(
-        mockRequisition,
-      );
+      vi.spyOn(goCardlessService, 'getRequisition').mockResolvedValue(mockRequisition);
 
-      expect(
-        await goCardlessService.getLinkedRequisition(requisitionId),
-      ).toEqual(mockRequisition);
+      expect(await goCardlessService.getLinkedRequisition(requisitionId)).toEqual(mockRequisition);
     });
 
     it('throws RequisitionNotLinked error if requisition status is different than LN', async () => {
@@ -111,9 +107,9 @@ describe('goCardlessService', () => {
         status: 'ER',
       });
 
-      await expect(() =>
-        goCardlessService.getLinkedRequisition(requisitionId),
-      ).rejects.toThrow(RequisitionNotLinked);
+      await expect(() => goCardlessService.getLinkedRequisition(requisitionId)).rejects.toThrow(
+        RequisitionNotLinked,
+      );
     });
   });
 
@@ -128,13 +124,8 @@ describe('goCardlessService', () => {
       vi.spyOn(goCardlessService, 'getDetailedAccount').mockResolvedValueOnce(
         mockDetailedAccountExample2,
       );
-      vi.spyOn(goCardlessService, 'getInstitution').mockResolvedValue(
-        mockInstitution,
-      );
-      vi.spyOn(
-        goCardlessService,
-        'extendAccountsAboutInstitutions',
-      ).mockResolvedValue([
+      vi.spyOn(goCardlessService, 'getInstitution').mockResolvedValue(mockInstitution);
+      vi.spyOn(goCardlessService, 'extendAccountsAboutInstitutions').mockResolvedValue([
         {
           ...mockExtendAccountsAboutInstitutions[0],
           institution_id: 'NEWONE' as GoCardlessInstitutionId,
@@ -171,18 +162,10 @@ describe('goCardlessService', () => {
   describe('#getTransactionsWithBalance', () => {
     const requisitionId = mockRequisition.id;
     it('returns transaction with starting balance', async () => {
-      vi.spyOn(goCardlessService, 'getLinkedRequisition').mockResolvedValue(
-        mockRequisition,
-      );
-      vi.spyOn(goCardlessService, 'getAccountMetadata').mockResolvedValue(
-        mockAccountMetaData,
-      );
-      vi.spyOn(goCardlessService, 'getTransactions').mockResolvedValue(
-        mockTransactions,
-      );
-      vi.spyOn(goCardlessService, 'getBalances').mockResolvedValue(
-        mockedBalances,
-      );
+      vi.spyOn(goCardlessService, 'getLinkedRequisition').mockResolvedValue(mockRequisition);
+      vi.spyOn(goCardlessService, 'getAccountMetadata').mockResolvedValue(mockAccountMetaData);
+      vi.spyOn(goCardlessService, 'getTransactions').mockResolvedValue(mockTransactions);
+      vi.spyOn(goCardlessService, 'getBalances').mockResolvedValue(mockedBalances);
 
       expect(
         await goCardlessService.getTransactionsWithBalance(
@@ -241,9 +224,7 @@ describe('goCardlessService', () => {
     });
 
     it('throws AccountNotLinkedToRequisition error if requisition accounts not includes requested account', async () => {
-      vi.spyOn(goCardlessService, 'getLinkedRequisition').mockResolvedValue(
-        mockRequisition,
-      );
+      vi.spyOn(goCardlessService, 'getLinkedRequisition').mockResolvedValue(mockRequisition);
 
       await expect(() =>
         goCardlessService.getTransactionsWithBalance(
@@ -289,7 +270,7 @@ describe('goCardlessService', () => {
       await goCardlessService.createRequisition(params);
 
       expect(createRequisitionSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ maxHistoricalDays: '730' }),
+        expect.objectContaining({maxHistoricalDays: '730'}),
       );
     });
 
@@ -305,7 +286,7 @@ describe('goCardlessService', () => {
       await goCardlessService.createRequisition(params);
 
       expect(createRequisitionSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ maxHistoricalDays: 90 }),
+        expect.objectContaining({maxHistoricalDays: 90}),
       );
     });
   });
@@ -335,9 +316,7 @@ describe('goCardlessService', () => {
       setTokenSpy.mockResolvedValue(undefined);
       getRequisitionsSpy.mockResolvedValue(mockRequisition);
 
-      expect(await goCardlessService.getRequisition(requisitionId)).toEqual(
-        mockRequisition,
-      );
+      expect(await goCardlessService.getRequisition(requisitionId)).toEqual(mockRequisition);
 
       expect(setTokenSpy).toBeCalledTimes(1);
       expect(getRequisitionsSpy).toBeCalledTimes(1);
@@ -384,9 +363,7 @@ describe('goCardlessService', () => {
     it('calls goCardlessClient and fetch institution details', async () => {
       getInstitutionsSpy.mockResolvedValue([mockInstitution]);
 
-      expect(await goCardlessService.getInstitutions(country)).toEqual([
-        mockInstitution,
-      ]);
+      expect(await goCardlessService.getInstitutions(country)).toEqual([mockInstitution]);
       expect(getInstitutionsSpy).toBeCalledTimes(1);
     });
   });
@@ -396,9 +373,7 @@ describe('goCardlessService', () => {
     it('calls goCardlessClient and fetch institution details', async () => {
       getInstitutionSpy.mockResolvedValue(mockInstitution);
 
-      expect(await goCardlessService.getInstitution(institutionId)).toEqual(
-        mockInstitution,
-      );
+      expect(await goCardlessService.getInstitution(institutionId)).toEqual(mockInstitution);
       expect(getInstitutionSpy).toBeCalledTimes(1);
     });
   });
@@ -561,43 +536,33 @@ describe('goCardlessService', () => {
     it('calls goCardlessClient and fetch balances for provided accountId', async () => {
       getBalancesSpy.mockResolvedValue(mockedBalances);
 
-      expect(await goCardlessService.getBalances(accountId)).toEqual(
-        mockedBalances,
-      );
+      expect(await goCardlessService.getBalances(accountId)).toEqual(mockedBalances);
       expect(getBalancesSpy).toBeCalledTimes(1);
     });
   });
 });
 
 describe('#handleGoCardlessError', () => {
-  const apiError = (status: number) =>
-    new GoCardlessApiError(`error: ${status}`, status, {});
+  const apiError = (status: number) => new GoCardlessApiError(`error: ${status}`, status, {});
 
   it('throws InvalidInputDataError for status code 400', () => {
-    expect(() => handleGoCardlessError(apiError(400))).toThrow(
-      InvalidInputDataError,
-    );
+    expect(() => handleGoCardlessError(apiError(400))).toThrow(InvalidInputDataError);
   });
 
   it('throws InvalidGoCardlessTokenError for status code 401', () => {
-    expect(() => handleGoCardlessError(apiError(401))).toThrow(
-      InvalidGoCardlessTokenError,
-    );
+    expect(() => handleGoCardlessError(apiError(401))).toThrow(InvalidGoCardlessTokenError);
   });
 
   it('throws EndUserAgreementExpiredError for status code 401 with an expired EUA', () => {
     const error = apiError(401);
     error.response.data = {
-      summary:
-        'End User Agreement (EUA) 76c790ff-274b-46cc-8c5e-1aefb2bee25f has expired',
+      summary: 'End User Agreement (EUA) 76c790ff-274b-46cc-8c5e-1aefb2bee25f has expired',
       detail:
         'EUA was valid for 90 days and it expired at 2026-06-30 15:57:27.203016+00:00. The end user must connect the account once more with new EUA and Requisition',
       status_code: 401,
     };
 
-    expect(() => handleGoCardlessError(error)).toThrow(
-      EndUserAgreementExpiredError,
-    );
+    expect(() => handleGoCardlessError(error)).toThrow(EndUserAgreementExpiredError);
   });
 
   it('throws InvalidGoCardlessTokenError for status code 401 with an unrelated body', () => {
@@ -607,15 +572,11 @@ describe('#handleGoCardlessError', () => {
       status_code: 401,
     };
 
-    expect(() => handleGoCardlessError(error)).toThrow(
-      InvalidGoCardlessTokenError,
-    );
+    expect(() => handleGoCardlessError(error)).toThrow(InvalidGoCardlessTokenError);
   });
 
   it('throws AccessDeniedError for status code 403', () => {
-    expect(() => handleGoCardlessError(apiError(403))).toThrow(
-      AccessDeniedError,
-    );
+    expect(() => handleGoCardlessError(apiError(403))).toThrow(AccessDeniedError);
   });
 
   it('throws NotFoundError for status code 404', () => {
@@ -623,9 +584,7 @@ describe('#handleGoCardlessError', () => {
   });
 
   it('throws ResourceSuspended for status code 409', () => {
-    expect(() => handleGoCardlessError(apiError(409))).toThrow(
-      ResourceSuspended,
-    );
+    expect(() => handleGoCardlessError(apiError(409))).toThrow(ResourceSuspended);
   });
 
   it('throws RateLimitError for status code 429', () => {
@@ -641,14 +600,10 @@ describe('#handleGoCardlessError', () => {
   });
 
   it('throws GenericGoCardlessError for unrecognised status codes', () => {
-    expect(() => handleGoCardlessError(apiError(0))).toThrow(
-      GenericGoCardlessError,
-    );
+    expect(() => handleGoCardlessError(apiError(0))).toThrow(GenericGoCardlessError);
   });
 
   it('throws GenericGoCardlessError for non-API errors', () => {
-    expect(() => handleGoCardlessError(new Error('network down'))).toThrow(
-      GenericGoCardlessError,
-    );
+    expect(() => handleGoCardlessError(new Error('network down'))).toThrow(GenericGoCardlessError);
   });
 });

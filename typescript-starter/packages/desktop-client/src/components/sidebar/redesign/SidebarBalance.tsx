@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import type { CSSProperties } from '@actual-app/components/styles';
+import type {CSSProperties} from '@actual-app/components/styles';
 
-import { CellValue, CellValueText } from '#components/spreadsheet/CellValue';
-import type { Binding, SheetFields } from '#spreadsheet';
+import {CellValue, CellValueText} from '#components/spreadsheet/CellValue';
+import type {Binding, SheetFields} from '#spreadsheet';
 
 type SidebarBalanceProps<FieldName extends SheetFields<'account'>> = {
   binding: Binding<'account', FieldName>;
@@ -36,7 +36,7 @@ export function SidebarBalance<FieldName extends SheetFields<'account'>>({
         <CellValueText<'account', FieldName>
           {...props}
           data-testid={testId ?? props.name}
-          style={{ textAlign: 'right', ...style }}
+          style={{textAlign: 'right', ...style}}
         />
       )}
     </CellValue>

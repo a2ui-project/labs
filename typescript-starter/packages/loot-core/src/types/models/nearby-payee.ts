@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import type { PayeeEntity } from './payee';
-import type { PayeeLocationEntity } from './payee-location';
+import type {PayeeEntity} from './payee';
+import type {PayeeLocationEntity} from './payee-location';
 
 export type NearbyPayeeEntity = {
   payee: PayeeEntity;

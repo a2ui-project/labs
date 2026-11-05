@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import { readFileSync } from 'fs';
-import { homedir } from 'os';
-import { join } from 'path';
+import {readFileSync} from 'fs';
+import {homedir} from 'os';
+import {join} from 'path';
 
-import { cosmiconfig } from 'cosmiconfig';
+import {cosmiconfig} from 'cosmiconfig';
 
-import { isRecord, parseBoolEnv, parseNonNegativeIntFlag } from './utils';
+import {isRecord, parseBoolEnv, parseNonNegativeIntFlag} from './utils';
 
 export type CliConfig = {
   serverUrl: string;
@@ -77,17 +77,12 @@ type ConfigFileContent = {
   noLock?: boolean;
 };
 
-const configFileKeys: readonly string[] = [
-  ...stringKeys,
-  ...numberKeys,
-  ...booleanKeys,
-];
+const configFileKeys: readonly string[] = [...stringKeys, ...numberKeys, ...booleanKeys];
 
 function validateConfigFileContent(value: unknown): ConfigFileContent {
   if (!isRecord(value)) {
     throw new Error(
-      'Invalid config file: expected an object with keys: ' +
-        configFileKeys.join(', '),
+      'Invalid config file: expected an object with keys: ' + configFileKeys.join(', '),
     );
   }
   for (const key of Object.keys(value)) {
@@ -96,29 +91,17 @@ function validateConfigFileContent(value: unknown): ConfigFileContent {
     }
     const v = value[key];
     if (v === undefined) continue;
-    if (
-      (stringKeys as readonly string[]).includes(key) &&
-      typeof v !== 'string'
-    ) {
-      throw new Error(
-        `Invalid config file: key "${key}" must be a string, got ${typeof v}`,
-      );
+    if ((stringKeys as readonly string[]).includes(key) && typeof v !== 'string') {
+      throw new Error(`Invalid config file: key "${key}" must be a string, got ${typeof v}`);
     }
     if (
       (numberKeys as readonly string[]).includes(key) &&
       (typeof v !== 'number' || !Number.isInteger(v) || v < 0)
     ) {
-      throw new Error(
-        `Invalid config file: key "${key}" must be a non-negative integer`,
-      );
+      throw new Error(`Invalid config file: key "${key}" must be a non-negative integer`);
     }
-    if (
-      (booleanKeys as readonly string[]).includes(key) &&
-      typeof v !== 'boolean'
-    ) {
-      throw new Error(
-        `Invalid config file: key "${key}" must be a boolean, got ${typeof v}`,
-      );
+    if ((booleanKeys as readonly string[]).includes(key) && typeof v !== 'boolean') {
+      throw new Error(`Invalid config file: key "${key}" must be a boolean, got ${typeof v}`);
     }
   }
   return value as ConfigFileContent;
@@ -158,38 +141,26 @@ function readFileEnv(fileEnvVar: string): string | undefined {
     return readFileSync(filePath, 'utf-8').trim();
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(
-      `Could not read ${fileEnvVar} from "${filePath}": ${reason}`,
-    );
+    throw new Error(`Could not read ${fileEnvVar} from "${filePath}": ${reason}`);
   }
 }
 
-function parseNonNegativeIntEnv(
-  raw: string | undefined,
-  source: string,
-): number | undefined {
+function parseNonNegativeIntEnv(raw: string | undefined, source: string): number | undefined {
   return raw === undefined ? undefined : parseNonNegativeIntFlag(raw, source);
 }
 
 function validateNonNegativeInt(value: number, name: string): number {
   if (!Number.isInteger(value) || value < 0) {
-    throw new Error(
-      `Invalid ${name}: expected a non-negative integer, got ${value}`,
-    );
+    throw new Error(`Invalid ${name}: expected a non-negative integer, got ${value}`);
   }
   return value;
 }
 
-export async function resolveConfig(
-  cliOpts: CliGlobalOpts,
-): Promise<CliConfig> {
+export async function resolveConfig(cliOpts: CliGlobalOpts): Promise<CliConfig> {
   const fileConfig = await loadConfigFile();
 
   const serverUrl =
-    cliOpts.serverUrl ??
-    process.env.ACTUAL_SERVER_URL ??
-    fileConfig.serverUrl ??
-    '';
+    cliOpts.serverUrl ?? process.env.ACTUAL_SERVER_URL ?? fileConfig.serverUrl ?? '';
 
   const password =
     cliOpts.password ??
@@ -203,8 +174,7 @@ export async function resolveConfig(
     process.env.ACTUAL_SESSION_TOKEN ??
     fileConfig.sessionToken;
 
-  const syncId =
-    cliOpts.syncId ?? process.env.ACTUAL_SYNC_ID ?? fileConfig.syncId;
+  const syncId = cliOpts.syncId ?? process.env.ACTUAL_SYNC_ID ?? fileConfig.syncId;
 
   const dataDir =
     cliOpts.dataDir ??
@@ -232,10 +202,7 @@ export async function resolveConfig(
 
   const cacheTtl = validateNonNegativeInt(
     cliOpts.cacheTtl ??
-      parseNonNegativeIntEnv(
-        process.env.ACTUAL_CACHE_TTL,
-        'ACTUAL_CACHE_TTL',
-      ) ??
+      parseNonNegativeIntEnv(process.env.ACTUAL_CACHE_TTL, 'ACTUAL_CACHE_TTL') ??
       fileConfig.cacheTtl ??
       60,
     'cacheTtl',
@@ -243,10 +210,7 @@ export async function resolveConfig(
 
   const lockTimeout = validateNonNegativeInt(
     cliOpts.lockTimeout ??
-      parseNonNegativeIntEnv(
-        process.env.ACTUAL_LOCK_TIMEOUT,
-        'ACTUAL_LOCK_TIMEOUT',
-      ) ??
+      parseNonNegativeIntEnv(process.env.ACTUAL_LOCK_TIMEOUT, 'ACTUAL_LOCK_TIMEOUT') ??
       fileConfig.lockTimeout ??
       10,
     'lockTimeout',

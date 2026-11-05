@@ -38,19 +38,11 @@
   border-right: 2px solid var(--color-sidebarRedesignRightBorder);
   --color-sidebarBackground: var(--color-sidebarRedesignBackground);
   --color-sidebarItemText: var(--color-sidebarRedesignItemText);
-  --color-sidebarItemBackgroundHover: var(
-    --color-sidebarRedesignItemBackgroundHover
-  );
-  --color-sidebarItemAccentSelected: var(
-    --color-sidebarRedesignItemAccentSelected
-  );
+  --color-sidebarItemBackgroundHover: var(--color-sidebarRedesignItemBackgroundHover);
+  --color-sidebarItemAccentSelected: var(--color-sidebarRedesignItemAccentSelected);
   --color-sidebarItemTextSelected: var(--color-sidebarRedesignItemTextSelected);
-  --color-sidebarItemBackgroundSelected: var(
-    --color-sidebarRedesignItemBackgroundSelected
-  );
-  --color-sidebarItemBackgroundFailed: var(
-    --color-sidebarRedesignItemBackgroundFailed
-  );
+  --color-sidebarItemBackgroundSelected: var(--color-sidebarRedesignItemBackgroundSelected);
+  --color-sidebarItemBackgroundFailed: var(--color-sidebarRedesignItemBackgroundFailed);
   --color-sidebarHeaderText: var(--color-sidebarRedesignHeaderText);
   --color-sidebarTextSubdued: var(--color-sidebarRedesignTextSubdued);
   --color-sidebarTextMuted: var(--color-sidebarRedesignTextMuted);

@@ -15,7 +15,7 @@
  */
 
 import React from 'react';
-import type { SVGProps } from 'react';
+import type {SVGProps} from 'react';
 
 type PieProgressProps = {
   style?: SVGProps<SVGSVGElement>['style'];
@@ -23,12 +23,7 @@ type PieProgressProps = {
   color: string;
   backgroundColor: string;
 };
-export function PieProgress({
-  style,
-  progress,
-  color,
-  backgroundColor,
-}: PieProgressProps) {
+export function PieProgress({style, progress, color, backgroundColor}: PieProgressProps) {
   const radius = 4;
   const circum = 2 * Math.PI * radius;
   const dash = progress * circum;

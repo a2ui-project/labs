@@ -40,7 +40,7 @@ export async function resolveBuildRun({
   const deadline = now() + timeoutMs;
 
   while (true) {
-    const { data } = await github.rest.actions.listWorkflowRuns({
+    const {data} = await github.rest.actions.listWorkflowRuns({
       owner,
       repo,
       workflow_id: workflowId,
@@ -48,9 +48,7 @@ export async function resolveBuildRun({
       status: 'success',
       per_page: 20,
     });
-    const run = data.workflow_runs.find(
-      candidate => candidate.head_sha === headSha,
-    );
+    const run = data.workflow_runs.find(candidate => candidate.head_sha === headSha);
 
     if (run) {
       log?.(`Found ${label} build run ${run.id} (${run.html_url})`);
@@ -70,9 +68,7 @@ export async function resolveBuildRun({
       );
     }
 
-    log?.(
-      `No successful ${label} build run yet — sleeping ${sleepMs / 1000}s.`,
-    );
+    log?.(`No successful ${label} build run yet — sleeping ${sleepMs / 1000}s.`);
     await sleep(sleepMs);
   }
 }

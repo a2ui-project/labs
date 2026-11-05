@@ -94,10 +94,7 @@ module.exports = {
         normalizedFilename = context.filename.replace(/\\/g, '/');
         const pkgMatch = normalizedFilename.match(/packages\/[^/]+\/src\//);
         if (!pkgMatch) return false;
-        srcDir = normalizedFilename.slice(
-          0,
-          pkgMatch.index + pkgMatch[0].length,
-        );
+        srcDir = normalizedFilename.slice(0, pkgMatch.index + pkgMatch[0].length);
       },
       ImportDeclaration(node) {
         checkAndReport(node, node.source);

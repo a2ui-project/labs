@@ -15,25 +15,22 @@
  */
 
 // @ts-strict-ignore
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, {useState} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { ManageRules } from '#components/ManageRules';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {ManageRules} from '#components/ManageRules';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
-type ManageRulesModalProps = Extract<
-  ModalType,
-  { name: 'manage-rules' }
->['options'];
+type ManageRulesModalProps = Extract<ModalType, {name: 'manage-rules'}>['options'];
 
-export function ManageRulesModal({ payeeId }: ManageRulesModalProps) {
-  const { t } = useTranslation();
+export function ManageRulesModal({payeeId}: ManageRulesModalProps) {
+  const {t} = useTranslation();
   const [loading, setLoading] = useState(true);
 
   return (
     <Modal name="manage-rules" isLoading={loading}>
-      {({ state }) => (
+      {({state}) => (
         <>
           <ModalHeader
             title={t('Rules')}

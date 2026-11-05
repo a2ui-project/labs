@@ -39,12 +39,7 @@ class RetrySignal {
  */
 export function retry<T>(
   fn: (retry: RetryCallback, attempt: number) => Promise<T>,
-  {
-    retries = 10,
-    minTimeout = 1000,
-    maxTimeout = Infinity,
-    factor = 2,
-  }: RetryOptions = {},
+  {retries = 10, minTimeout = 1000, maxTimeout = Infinity, factor = 2}: RetryOptions = {},
 ): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     let attempt = 0;
@@ -66,10 +61,7 @@ export function retry<T>(
             reject(error.error);
             return;
           }
-          const timeout = Math.min(
-            minTimeout * factor ** (attempt - 1),
-            maxTimeout,
-          );
+          const timeout = Math.min(minTimeout * factor ** (attempt - 1), maxTimeout);
           setTimeout(run, timeout);
         });
     };

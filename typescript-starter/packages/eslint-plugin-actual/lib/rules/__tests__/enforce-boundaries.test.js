@@ -18,7 +18,7 @@
 // Requirements
 //------------------------------------------------------------------------------
 
-import { runClassic } from 'eslint-vitest-rule-tester';
+import {runClassic} from 'eslint-vitest-rule-tester';
 
 import * as rule from '../enforce-boundaries';
 
@@ -76,7 +76,7 @@ void runClassic(
         errors: [
           {
             messageId: 'noBacktrackedImport',
-            data: { source: '../../deep/path' },
+            data: {source: '../../deep/path'},
           },
         ],
       },
@@ -86,7 +86,7 @@ void runClassic(
         errors: [
           {
             messageId: 'noBacktrackedImport',
-            data: { source: '../../../even/deeper' },
+            data: {source: '../../../even/deeper'},
           },
         ],
       },
@@ -98,7 +98,7 @@ void runClassic(
         errors: [
           {
             messageId: 'noBacktrackedImport',
-            data: { source: '../../somewhere' },
+            data: {source: '../../somewhere'},
           },
         ],
       },
@@ -108,7 +108,7 @@ void runClassic(
         errors: [
           {
             messageId: 'noBacktrackedImport',
-            data: { source: '../../somewhere' },
+            data: {source: '../../somewhere'},
           },
         ],
       },
@@ -120,7 +120,7 @@ void runClassic(
         errors: [
           {
             messageId: 'noBacktrackedImport',
-            data: { source: '../../deep' },
+            data: {source: '../../deep'},
           },
         ],
       },
@@ -132,7 +132,7 @@ void runClassic(
         errors: [
           {
             messageId: 'noBacktrackedImport',
-            data: { source: '../../deep' },
+            data: {source: '../../deep'},
           },
         ],
       },
@@ -141,36 +141,36 @@ void runClassic(
       {
         code: `const config = { compilerOptions: { paths: { "@/*": ["./src/*"] } } }`,
         output: null,
-        errors: [{ messageId: 'noTsconfigPaths' }],
+        errors: [{messageId: 'noTsconfigPaths'}],
       },
       {
         code: `module.exports = { compilerOptions: { paths: { "~/*": ["./src/*"] } } }`,
         output: null,
-        errors: [{ messageId: 'noTsconfigPaths' }],
+        errors: [{messageId: 'noTsconfigPaths'}],
       },
 
       // ── Vite resolve.alias ──────────────────────────────────────
       {
         code: `const config = { resolve: { alias: { "@": "./src" } } }`,
         output: null,
-        errors: [{ messageId: 'noResolveAlias' }],
+        errors: [{messageId: 'noResolveAlias'}],
       },
       {
         code: `export default { resolve: { alias: { "~": "/src" } } }`,
         output: null,
-        errors: [{ messageId: 'noResolveAlias' }],
+        errors: [{messageId: 'noResolveAlias'}],
       },
 
       // ── String-keyed config properties ─────────────────────────
       {
         code: `const config = { "compilerOptions": { "paths": { "@/*": ["./src/*"] } } }`,
         output: null,
-        errors: [{ messageId: 'noTsconfigPaths' }],
+        errors: [{messageId: 'noTsconfigPaths'}],
       },
       {
         code: `const config = { "resolve": { "alias": { "@": "./src" } } }`,
         output: null,
-        errors: [{ messageId: 'noResolveAlias' }],
+        errors: [{messageId: 'noResolveAlias'}],
       },
 
       // ── Multiple violations in one file ─────────────────────────
@@ -180,11 +180,11 @@ void runClassic(
         errors: [
           {
             messageId: 'noBacktrackedImport',
-            data: { source: '../../foo' },
+            data: {source: '../../foo'},
           },
           {
             messageId: 'noBacktrackedImport',
-            data: { source: '../../bar' },
+            data: {source: '../../bar'},
           },
         ],
       },

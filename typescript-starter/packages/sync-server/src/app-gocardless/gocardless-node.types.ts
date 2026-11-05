@@ -14,25 +14,14 @@
  * limitations under the License.
  */
 
-import type { BrandedId } from '#util/types';
+import type {BrandedId} from '#util/types';
 
 export type GoCardlessAccountId = BrandedId<'gocardless-account'>;
 export type GoCardlessRequisitionId = BrandedId<'gocardless-requisition'>;
 export type GoCardlessInstitutionId = BrandedId<'gocardless-institution'>;
 export type GoCardlessAgreementId = BrandedId<'gocardless-agreement'>;
 
-type RequisitionStatus =
-  | 'CR'
-  | 'ID'
-  | 'LN'
-  | 'RJ'
-  | 'ER'
-  | 'SU'
-  | 'EX'
-  | 'GC'
-  | 'UA'
-  | 'GA'
-  | 'SA';
+type RequisitionStatus = 'CR' | 'ID' | 'LN' | 'RJ' | 'ER' | 'SU' | 'EX' | 'GC' | 'UA' | 'GA' | 'SA';
 
 export type Requisition = {
   /**
@@ -229,13 +218,7 @@ export type GoCardlessAccountMetadata = {
    * READY: Account has been successfully processed
    * SUSPENDED: Account has been suspended (more than 10 consecutive failed attempts to access the account)
    */
-  status:
-    | 'DISCOVERED'
-    | 'PROCESSING'
-    | 'ERROR'
-    | 'EXPIRED'
-    | 'READY'
-    | 'SUSPENDED';
+  status: 'DISCOVERED' | 'PROCESSING' | 'ERROR' | 'EXPIRED' | 'READY' | 'SUSPENDED';
   /**
    * Name of the owner of the GoCardless account metadata
    */

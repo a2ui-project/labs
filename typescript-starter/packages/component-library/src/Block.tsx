@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import type { HTMLProps, Ref } from 'react';
+import type {HTMLProps, Ref} from 'react';
 
-import { css, cx } from '@emotion/css';
+import {css, cx} from '@emotion/css';
 
-import type { CSSProperties } from './styles';
+import type {CSSProperties} from './styles';
 
 type BlockProps = Omit<HTMLProps<HTMLDivElement>, 'style'> & {
   innerRef?: Ref<HTMLDivElement>;
@@ -26,8 +26,6 @@ type BlockProps = Omit<HTMLProps<HTMLDivElement>, 'style'> & {
 };
 
 export function Block(props: BlockProps) {
-  const { className = '', style, innerRef, ...restProps } = props;
-  return (
-    <div {...restProps} ref={innerRef} className={cx(className, css(style))} />
-  );
+  const {className = '', style, innerRef, ...restProps} = props;
+  return <div {...restProps} ref={innerRef} className={cx(className, css(style))} />;
 }

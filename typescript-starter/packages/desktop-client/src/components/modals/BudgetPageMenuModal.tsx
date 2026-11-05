@@ -15,21 +15,18 @@
  */
 
 import React from 'react';
-import type { ComponentPropsWithoutRef, CSSProperties } from 'react';
-import { useTranslation } from 'react-i18next';
+import type {ComponentPropsWithoutRef, CSSProperties} from 'react';
+import {useTranslation} from 'react-i18next';
 
-import { Menu } from '@actual-app/components/menu';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
+import {Menu} from '@actual-app/components/menu';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
 
-import { Modal, ModalCloseButton, ModalHeader } from '#components/common/Modal';
-import { useLocalPref } from '#hooks/useLocalPref';
-import type { Modal as ModalType } from '#modals/modalsSlice';
+import {Modal, ModalCloseButton, ModalHeader} from '#components/common/Modal';
+import {useLocalPref} from '#hooks/useLocalPref';
+import type {Modal as ModalType} from '#modals/modalsSlice';
 
-type BudgetPageMenuModalProps = Extract<
-  ModalType,
-  { name: 'budget-page-menu' }
->['options'];
+type BudgetPageMenuModalProps = Extract<ModalType, {name: 'budget-page-menu'}>['options'];
 
 export function BudgetPageMenuModal({
   onAddCategoryGroup,
@@ -45,12 +42,9 @@ export function BudgetPageMenuModal({
 
   return (
     <Modal name="budget-page-menu">
-      {({ state }) => (
+      {({state}) => (
         <>
-          <ModalHeader
-            showLogo
-            rightContent={<ModalCloseButton onPress={() => state.close()} />}
-          />
+          <ModalHeader showLogo rightContent={<ModalCloseButton onPress={() => state.close()} />} />
           <BudgetPageMenu
             getItemStyle={() => defaultMenuItemStyle}
             onAddCategoryGroup={onAddCategoryGroup}
@@ -63,10 +57,7 @@ export function BudgetPageMenuModal({
   );
 }
 
-type BudgetPageMenuProps = Omit<
-  ComponentPropsWithoutRef<typeof Menu>,
-  'onMenuSelect' | 'items'
-> & {
+type BudgetPageMenuProps = Omit<ComponentPropsWithoutRef<typeof Menu>, 'onMenuSelect' | 'items'> & {
   onAddCategoryGroup: () => void;
   onToggleHiddenCategories: () => void;
   onSwitchBudgetFile: () => void;
@@ -98,7 +89,7 @@ function BudgetPageMenu({
         throw new Error(`Unrecognized menu item: ${name}`);
     }
   };
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   return (
     <Menu

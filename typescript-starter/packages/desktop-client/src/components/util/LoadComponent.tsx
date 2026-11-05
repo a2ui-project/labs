@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-import { useEffect, useState } from 'react';
-import type { ComponentType } from 'react';
+import {useEffect, useState} from 'react';
+import type {ComponentType} from 'react';
 
-import { Block } from '@actual-app/components/block';
-import { AnimatedLoading } from '@actual-app/components/icons/AnimatedLoading';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { LazyLoadFailedError } from '@actual-app/core/shared/errors';
-import { retry as promiseRetry } from '@actual-app/core/shared/retry';
+import {Block} from '@actual-app/components/block';
+import {AnimatedLoading} from '@actual-app/components/icons/AnimatedLoading';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {LazyLoadFailedError} from '@actual-app/core/shared/errors';
+import {retry as promiseRetry} from '@actual-app/core/shared/retry';
 
 type ProplessComponent = ComponentType<Record<string, never>>;
 type LoadComponentProps<K extends string> = {
   name: K;
   message?: string;
-  importer: () => Promise<{ [key in K]: ProplessComponent }>;
+  importer: () => Promise<{[key in K]: ProplessComponent}>;
 };
 export function LoadComponent<K extends string>(props: LoadComponentProps<K>) {
   // need to set `key` so the component is reloaded when the name changes
@@ -37,11 +37,7 @@ export function LoadComponent<K extends string>(props: LoadComponentProps<K>) {
   return <LoadComponentInner key={props.name} {...props} />;
 }
 
-function LoadComponentInner<K extends string>({
-  name,
-  message,
-  importer,
-}: LoadComponentProps<K>) {
+function LoadComponentInner<K extends string>({name, message, importer}: LoadComponentProps<K>) {
   const [Component, setComponent] = useState<ProplessComponent | null>(null);
   const [error, setError] = useState<Error | null>(null);
 
@@ -90,9 +86,7 @@ function LoadComponentInner<K extends string>({
           ...styles.delayedFadeIn,
         }}
       >
-        {message && (
-          <Block style={{ marginBottom: 20, fontSize: 18 }}>{message}</Block>
-        )}
+        {message && <Block style={{marginBottom: 20, fontSize: 18}}>{message}</Block>}
         <AnimatedLoading width={25} color={theme.pageTextDark} />
       </View>
     );

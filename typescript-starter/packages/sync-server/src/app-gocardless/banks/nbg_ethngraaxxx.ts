@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { amountToInteger } from '#app-gocardless/utils';
+import {amountToInteger} from '#app-gocardless/utils';
 
-import type { IBank } from './bank.interface';
+import type {IBank} from './bank.interface';
 import Fallback from './integration-bank';
 
 export default {
@@ -30,7 +30,7 @@ export default {
    * - Removes prefix 'ΑΓΟΡΑ' from remittance information to align with the booked transaction (necessary for fuzzy matching to work)
    */
   normalizeTransaction(transaction, booked) {
-    const editedTrans = { ...transaction };
+    const editedTrans = {...transaction};
 
     if (
       !transaction.transactionId &&
@@ -57,9 +57,7 @@ export default {
    *  it includes transaction placed during current day
    */
   calculateStartingBalance(sortedTransactions = [], balances = []) {
-    const currentBalance = balances.find(
-      balance => 'interimAvailable' === balance.balanceType,
-    );
+    const currentBalance = balances.find(balance => 'interimAvailable' === balance.balanceType);
 
     return sortedTransactions.reduce(
       (total, trans) => {

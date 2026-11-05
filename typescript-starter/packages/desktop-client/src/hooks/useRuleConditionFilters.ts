@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-import { useCallback, useMemo, useState } from 'react';
+import {useCallback, useMemo, useState} from 'react';
 
-import type { RuleConditionEntity } from '@actual-app/core/types/models';
+import type {RuleConditionEntity} from '@actual-app/core/types/models';
 
 export function useRuleConditionFilters<T extends RuleConditionEntity>(
   initialConditions: T[] = [],
   initialConditionsOp: 'and' | 'or' = 'and',
 ) {
   const [conditions, setConditions] = useState<T[]>(initialConditions);
-  const [conditionsOp, setConditionsOp] = useState<'and' | 'or'>(
-    initialConditionsOp,
-  );
+  const [conditionsOp, setConditionsOp] = useState<'and' | 'or'>(initialConditionsOp);
   const [saved, setSaved] = useState<T[] | null>(null);
 
   const onApply = useCallback(
     (
       conditionsOrSavedFilter:
         | null
-        | { conditions: T[]; conditionsOp: 'and' | 'or'; id: T[] | null }
+        | {conditions: T[]; conditionsOp: 'and' | 'or'; id: T[] | null}
         | T,
     ) => {
       if (conditionsOrSavedFilter === null) {
@@ -52,9 +50,7 @@ export function useRuleConditionFilters<T extends RuleConditionEntity>(
 
   const onUpdate = useCallback(
     (oldFilter: T, updatedFilter: T) => {
-      setConditions(state =>
-        state.map(f => (f === oldFilter ? updatedFilter : f)),
-      );
+      setConditions(state => state.map(f => (f === oldFilter ? updatedFilter : f)));
       setSaved(null);
     },
     [setConditions],
@@ -78,14 +74,6 @@ export function useRuleConditionFilters<T extends RuleConditionEntity>(
       onDelete,
       onConditionsOpChange: setConditionsOp,
     }),
-    [
-      conditions,
-      saved,
-      onApply,
-      onUpdate,
-      onDelete,
-      setConditionsOp,
-      conditionsOp,
-    ],
+    [conditions, saved, onApply, onUpdate, onDelete, setConditionsOp, conditionsOp],
   );
 }

@@ -15,7 +15,7 @@
  */
 
 // @ts-strict-ignore
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 import * as undo from '#platform/client/undo';
 
@@ -50,15 +50,15 @@ function connectSocket(onOpen) {
         // An error happened while handling a message so cleanup the
         // current reply handler and reject the promise. The error will
         // be propagated to the caller through this promise rejection.
-        const { id, error } = msg;
+        const {id, error} = msg;
         const handler = replyHandlers.get(id);
         if (handler) {
           replyHandlers.delete(id);
           handler.reject(error);
         }
       } else if (msg.type === 'reply') {
-        let { result } = msg;
-        const { id, mutated, undoTag, error } = msg;
+        let {result} = msg;
+        const {id, mutated, undoTag, error} = msg;
 
         // Check if the result is a serialized buffer, and if so
         // convert it to a Uint8Array. This is only needed when working
@@ -84,7 +84,7 @@ function connectSocket(onOpen) {
           }
         }
       } else if (msg.type === 'push') {
-        const { name, args } = msg;
+        const {name, args} = msg;
 
         const listens = listeners.get(name);
         if (listens) {
@@ -116,10 +116,8 @@ export const init: T.Init = async function () {
   return new Promise(connectSocket);
 };
 
-export const send: T.Send = function (
-  ...params: Parameters<T.Send>
-): ReturnType<T.Send> {
-  const [name, args, { catchErrors = false } = {}] = params;
+export const send: T.Send = function (...params: Parameters<T.Send>): ReturnType<T.Send> {
+  const [name, args, {catchErrors = false} = {}] = params;
   return new Promise((resolve, reject) => {
     if (appInitFailure) {
       reject(appInitFailure);
@@ -127,7 +125,7 @@ export const send: T.Send = function (
     }
 
     const id = uuidv4();
-    replyHandlers.set(id, { resolve, reject });
+    replyHandlers.set(id, {resolve, reject});
 
     if (socketClient) {
       socketClient.emit('message', {
@@ -150,7 +148,7 @@ export const send: T.Send = function (
 };
 
 export const sendCatch: T.SendCatch = function (name, args) {
-  return send(name, args, { catchErrors: true });
+  return send(name, args, {catchErrors: true});
 };
 
 export const listen: T.Listen = function (name, cb) {

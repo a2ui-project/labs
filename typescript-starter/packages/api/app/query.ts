@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-import type {
-  ObjectExpression,
-  QueryState,
-} from '@actual-app/core/shared/query';
-import type { WithRequired } from '@actual-app/core/types/util';
+import type {ObjectExpression, QueryState} from '@actual-app/core/shared/query';
+import type {WithRequired} from '@actual-app/core/types/util';
 
 class Query {
   /** @type {import('@actual-app/core/shared/query').QueryState} */
@@ -58,14 +55,7 @@ class Query {
     });
   }
 
-  select(
-    exprs:
-      | Array<ObjectExpression | string>
-      | ObjectExpression
-      | string
-      | '*'
-      | ['*'] = [],
-  ) {
+  select(exprs: Array<ObjectExpression | string> | ObjectExpression | string | '*' | ['*'] = []) {
     if (!Array.isArray(exprs)) {
       exprs = [exprs];
     }
@@ -81,7 +71,7 @@ class Query {
   calculate(expr: ObjectExpression | string) {
     return new Query({
       ...this.state,
-      selectExpressions: [{ result: expr }],
+      selectExpressions: [{result: expr}],
       calculation: true,
     });
   }
@@ -109,27 +99,27 @@ class Query {
   }
 
   limit(num: number) {
-    return new Query({ ...this.state, limit: num });
+    return new Query({...this.state, limit: num});
   }
 
   offset(num: number) {
-    return new Query({ ...this.state, offset: num });
+    return new Query({...this.state, offset: num});
   }
 
   raw() {
-    return new Query({ ...this.state, rawMode: true });
+    return new Query({...this.state, rawMode: true});
   }
 
   withDead() {
-    return new Query({ ...this.state, withDead: true });
+    return new Query({...this.state, withDead: true});
   }
 
   withoutValidatedRefs() {
-    return new Query({ ...this.state, validateRefs: false });
+    return new Query({...this.state, validateRefs: false});
   }
 
   options(opts: Record<string, unknown>) {
-    return new Query({ ...this.state, tableOptions: opts });
+    return new Query({...this.state, tableOptions: opts});
   }
 
   serialize() {
@@ -146,5 +136,5 @@ class Query {
 }
 
 export function q(table: QueryState['table']) {
-  return new Query({ table });
+  return new Query({table});
 }

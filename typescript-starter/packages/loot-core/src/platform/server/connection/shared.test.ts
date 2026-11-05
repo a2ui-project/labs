@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { safePost, serializeError } from './shared';
+import {safePost, serializeError} from './shared';
 
 describe('serializeError', () => {
   test('serializes a plain Error', () => {
@@ -31,7 +31,7 @@ describe('serializeError', () => {
       errno: 44,
       code: 'ENOENT',
       setErrno: () => undefined,
-      node: { some: 'object' },
+      node: {some: 'object'},
     });
 
     const result = serializeError(error);
@@ -42,15 +42,15 @@ describe('serializeError', () => {
   });
 
   test('handles non-object errors', () => {
-    expect(serializeError('oops')).toEqual({ name: 'Error', message: 'oops' });
-    expect(serializeError(null)).toEqual({ name: 'Error', message: 'null' });
+    expect(serializeError('oops')).toEqual({name: 'Error', message: 'oops'});
+    expect(serializeError(null)).toEqual({name: 'Error', message: 'null'});
   });
 });
 
 describe('safePost', () => {
   test('posts the original message when it is cloneable', () => {
     const posted: unknown[] = [];
-    const msg = { type: 'reply', id: '1', result: { data: 42, error: null } };
+    const msg = {type: 'reply', id: '1', result: {data: 42, error: null}};
 
     safePost(m => posted.push(m), msg);
 
@@ -68,7 +68,7 @@ describe('safePost', () => {
     const msg = {
       type: 'error',
       id: '1',
-      error: { type: 'ServerError', message: 'FS error', cause: fsError },
+      error: {type: 'ServerError', message: 'FS error', cause: fsError},
     };
 
     const posted: unknown[] = [];
@@ -90,7 +90,7 @@ describe('safePost', () => {
     const msg = {
       type: 'reply',
       id: '1',
-      result: { fn: () => undefined, big: BigInt(1) },
+      result: {fn: () => undefined, big: BigInt(1)},
     };
 
     safePost(m => posted.push(structuredClone(m)), msg);
@@ -99,7 +99,7 @@ describe('safePost', () => {
     const fallback = posted[0] as {
       type: string;
       id: string;
-      error: { type: string; message: string };
+      error: {type: string; message: string};
     };
     expect(fallback.type).toBe('error');
     expect(fallback.id).toBe('1');

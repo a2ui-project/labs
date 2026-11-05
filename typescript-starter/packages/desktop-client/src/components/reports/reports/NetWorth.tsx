@@ -14,59 +14,53 @@
  * limitations under the License.
  */
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { Trans, useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
 
-import { Button } from '@actual-app/components/button';
-import { useResponsive } from '@actual-app/components/hooks/useResponsive';
-import { SvgCalendar, SvgChart } from '@actual-app/components/icons/v1';
-import { Menu } from '@actual-app/components/menu';
-import { Paragraph } from '@actual-app/components/paragraph';
-import { Popover } from '@actual-app/components/popover';
-import { styles } from '@actual-app/components/styles';
-import { theme } from '@actual-app/components/theme';
-import { View } from '@actual-app/components/view';
-import { send } from '@actual-app/core/platform/client/connection';
+import {Button} from '@actual-app/components/button';
+import {useResponsive} from '@actual-app/components/hooks/useResponsive';
+import {SvgCalendar, SvgChart} from '@actual-app/components/icons/v1';
+import {Menu} from '@actual-app/components/menu';
+import {Paragraph} from '@actual-app/components/paragraph';
+import {Popover} from '@actual-app/components/popover';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import {send} from '@actual-app/core/platform/client/connection';
 import * as monthUtils from '@actual-app/core/shared/months';
-import type { NetWorthWidget, TimeFrame } from '@actual-app/core/types/models';
+import type {NetWorthWidget, TimeFrame} from '@actual-app/core/types/models';
 import * as d from 'date-fns';
 
-import { EditablePageHeaderTitle } from '#components/EditablePageHeaderTitle';
-import { FinancialText } from '#components/FinancialText';
-import { MobileBackButton } from '#components/mobile/MobileBackButton';
-import { MobilePageHeader, Page, PageHeader } from '#components/Page';
-import { PrivacyFilter } from '#components/PrivacyFilter';
-import { Change } from '#components/reports/Change';
-import { NetWorthGraph } from '#components/reports/graphs/NetWorthGraph';
-import { Header } from '#components/reports/Header';
-import { LoadingIndicator } from '#components/reports/LoadingIndicator';
-import { ReportOptions } from '#components/reports/ReportOptions';
-import { calculateTimeRange } from '#components/reports/reportRanges';
-import { createSpreadsheet as netWorthSpreadsheet } from '#components/reports/spreadsheets/net-worth-spreadsheet';
-import { useReport } from '#components/reports/useReport';
-import { fromDateRepr } from '#components/reports/util';
-import { useAccounts } from '#hooks/useAccounts';
-import { useDashboardWidget } from '#hooks/useDashboardWidget';
-import { useDateFormat } from '#hooks/useDateFormat';
-import { useFormat } from '#hooks/useFormat';
-import { useLocale } from '#hooks/useLocale';
-import { useNavigate } from '#hooks/useNavigate';
-import { useRuleConditionFilters } from '#hooks/useRuleConditionFilters';
-import { useSyncedPref } from '#hooks/useSyncedPref';
-import { addNotification } from '#notifications/notificationsSlice';
-import { useDispatch } from '#redux';
-import { useUpdateDashboardWidgetMutation } from '#reports/mutations';
+import {EditablePageHeaderTitle} from '#components/EditablePageHeaderTitle';
+import {FinancialText} from '#components/FinancialText';
+import {MobileBackButton} from '#components/mobile/MobileBackButton';
+import {MobilePageHeader, Page, PageHeader} from '#components/Page';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {Change} from '#components/reports/Change';
+import {NetWorthGraph} from '#components/reports/graphs/NetWorthGraph';
+import {Header} from '#components/reports/Header';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportOptions} from '#components/reports/ReportOptions';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {createSpreadsheet as netWorthSpreadsheet} from '#components/reports/spreadsheets/net-worth-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {fromDateRepr} from '#components/reports/util';
+import {useAccounts} from '#hooks/useAccounts';
+import {useDashboardWidget} from '#hooks/useDashboardWidget';
+import {useDateFormat} from '#hooks/useDateFormat';
+import {useFormat} from '#hooks/useFormat';
+import {useLocale} from '#hooks/useLocale';
+import {useNavigate} from '#hooks/useNavigate';
+import {useRuleConditionFilters} from '#hooks/useRuleConditionFilters';
+import {useSyncedPref} from '#hooks/useSyncedPref';
+import {addNotification} from '#notifications/notificationsSlice';
+import {useDispatch} from '#redux';
+import {useUpdateDashboardWidgetMutation} from '#reports/mutations';
 
 export function NetWorth() {
   const params = useParams();
-  const { data: widget, isLoading } = useDashboardWidget<NetWorthWidget>({
+  const {data: widget, isLoading} = useDashboardWidget<NetWorthWidget>({
     id: params.id,
     type: 'net-worth-card',
   });
@@ -82,10 +76,10 @@ type NetWorthInnerProps = {
   widget?: NetWorthWidget;
 };
 
-function NetWorthInner({ widget }: NetWorthInnerProps) {
+function NetWorthInner({widget}: NetWorthInnerProps) {
   const locale = useLocale();
   const dispatch = useDispatch();
-  const { t } = useTranslation();
+  const {t} = useTranslation();
   const format = useFormat();
 
   const getDefaultIntervalForMode = useCallback(
@@ -98,7 +92,7 @@ function NetWorthInner({ widget }: NetWorthInnerProps) {
     [],
   );
 
-  const { data: accounts = [] } = useAccounts();
+  const {data: accounts = []} = useAccounts();
   const {
     conditions,
     conditionsOp,
@@ -106,10 +100,7 @@ function NetWorthInner({ widget }: NetWorthInnerProps) {
     onDelete: onDeleteFilter,
     onUpdate: onUpdateFilter,
     onConditionsOpChange,
-  } = useRuleConditionFilters(
-    widget?.meta?.conditions,
-    widget?.meta?.conditionsOp,
-  );
+  } = useRuleConditionFilters(widget?.meta?.conditions, widget?.meta?.conditionsOp);
 
   const [allMonths, setAllMonths] = useState<Array<{
     name: string;
@@ -122,9 +113,7 @@ function NetWorthInner({ widget }: NetWorthInnerProps) {
   const [interval, setInterval] = useState(
     widget?.meta?.interval || getDefaultIntervalForMode(mode),
   );
-  const [graphMode, setGraphMode] = useState<'trend' | 'stacked'>(
-    widget?.meta?.mode || 'trend',
-  );
+  const [graphMode, setGraphMode] = useState<'trend' | 'stacked'>(widget?.meta?.mode || 'trend');
   // Combined setter: set mode and update interval (unless interval was set in widget meta)
   const setModeAndInterval = useCallback(
     (newMode: TimeFrame['mode']) => {
@@ -174,32 +163,22 @@ function NetWorthInner({ widget }: NetWorthInnerProps) {
     async function run() {
       const earliestTransaction = await send('get-earliest-transaction');
       setEarliestTransaction(
-        earliestTransaction
-          ? earliestTransaction.date
-          : monthUtils.currentDay(),
+        earliestTransaction ? earliestTransaction.date : monthUtils.currentDay(),
       );
 
       const latestTransaction = await send('get-latest-transaction');
-      setLatestTransaction(
-        latestTransaction ? latestTransaction.date : monthUtils.currentDay(),
-      );
+      setLatestTransaction(latestTransaction ? latestTransaction.date : monthUtils.currentDay());
 
       const currentMonth = monthUtils.currentMonth();
       let earliestMonth = earliestTransaction
-        ? monthUtils.monthFromDate(
-            d.parseISO(fromDateRepr(earliestTransaction.date)),
-          )
+        ? monthUtils.monthFromDate(d.parseISO(fromDateRepr(earliestTransaction.date)))
         : currentMonth;
       const latestTransactionMonth = latestTransaction
-        ? monthUtils.monthFromDate(
-            d.parseISO(fromDateRepr(latestTransaction.date)),
-          )
+        ? monthUtils.monthFromDate(d.parseISO(fromDateRepr(latestTransaction.date)))
         : currentMonth;
 
       const latestMonth =
-        latestTransactionMonth > currentMonth
-          ? latestTransactionMonth
-          : currentMonth;
+        latestTransactionMonth > currentMonth ? latestTransactionMonth : currentMonth;
 
       // Make sure the month selects are at least populates with a
       // year's worth of months. We can undo this when we have fancier
@@ -282,7 +261,7 @@ function NetWorthInner({ widget }: NetWorthInnerProps) {
   }
 
   const navigate = useNavigate();
-  const { isNarrowWidth } = useResponsive();
+  const {isNarrowWidth} = useResponsive();
 
   const title = widget?.meta?.name || t('Net Worth');
   const onSaveWidgetName = async (newName: string) => {
@@ -314,21 +293,12 @@ function NetWorthInner({ widget }: NetWorthInnerProps) {
         isNarrowWidth ? (
           <MobilePageHeader
             title={title}
-            leftContent={
-              <MobileBackButton onPress={() => navigate('/reports')} />
-            }
+            leftContent={<MobileBackButton onPress={() => navigate('/reports')} />}
           />
         ) : (
           <PageHeader
             title={
-              widget ? (
-                <EditablePageHeaderTitle
-                  title={title}
-                  onSave={onSaveWidgetName}
-                />
-              ) : (
-                title
-              )
+              widget ? <EditablePageHeaderTitle title={title} onSave={onSaveWidgetName} /> : title
             }
           />
         )
@@ -380,13 +350,9 @@ function NetWorthInner({ widget }: NetWorthInnerProps) {
             paddingTop: 20,
           }}
         >
-          <View
-            style={{ ...styles.largeText, fontWeight: 400, marginBottom: 5 }}
-          >
+          <View style={{...styles.largeText, fontWeight: 400, marginBottom: 5}}>
             <PrivacyFilter>
-              <FinancialText>
-                {format(data.netWorth, 'financial')}
-              </FinancialText>
+              <FinancialText>{format(data.netWorth, 'financial')}</FinancialText>
             </PrivacyFilter>
           </View>
           <PrivacyFilter>
@@ -402,7 +368,7 @@ function NetWorthInner({ widget }: NetWorthInnerProps) {
           mode={graphMode}
         />
 
-        <View style={{ marginTop: 30, userSelect: 'none' }}>
+        <View style={{marginTop: 30, userSelect: 'none'}}>
           <Paragraph>
             <strong>
               <Trans>How is net worth calculated?</Trans>
@@ -410,11 +376,10 @@ function NetWorthInner({ widget }: NetWorthInnerProps) {
           </Paragraph>
           <Paragraph>
             <Trans>
-              Net worth shows the balance of all accounts over time, including
-              all of your investments. Your "net worth" is considered to be the
-              amount you'd have if you sold all your assets and paid off as much
-              debt as possible. If you hover over the graph, you can also see
-              the amount of assets and debt individually.
+              Net worth shows the balance of all accounts over time, including all of your
+              investments. Your "net worth" is considered to be the amount you'd have if you sold
+              all your assets and paid off as much debt as possible. If you hover over the graph,
+              you can also see the amount of assets and debt individually.
             </Trans>
           </Paragraph>
         </View>
@@ -431,14 +396,13 @@ function IntervalSelector({
   interval: 'Daily' | 'Weekly' | 'Monthly' | 'Yearly';
   onChange: (val: 'Daily' | 'Weekly' | 'Monthly' | 'Yearly') => void;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const currentLabel =
-    ReportOptions.interval.find(opt => opt.key === interval)?.description ??
-    interval;
+    ReportOptions.interval.find(opt => opt.key === interval)?.description ?? interval;
 
   return (
     <>
@@ -448,8 +412,8 @@ function IntervalSelector({
         onPress={() => setIsOpen(true)}
         aria-label={t('Change interval')}
       >
-        <SvgCalendar style={{ width: 12, height: 12 }} />
-        <span style={{ marginLeft: 5 }}>{currentLabel}</span>
+        <SvgCalendar style={{width: 12, height: 12}} />
+        <span style={{marginLeft: 5}}>{currentLabel}</span>
       </Button>
 
       <Popover
@@ -463,7 +427,7 @@ function IntervalSelector({
             onChange(item as 'Daily' | 'Weekly' | 'Monthly' | 'Yearly');
             setIsOpen(false);
           }}
-          items={ReportOptions.interval.map(({ key, description }) => ({
+          items={ReportOptions.interval.map(({key, description}) => ({
             name: key as 'Daily' | 'Weekly' | 'Monthly' | 'Yearly',
             text: description,
           }))}
@@ -480,18 +444,17 @@ function ModeSelector({
   mode: 'trend' | 'stacked';
   onChange: (val: 'trend' | 'stacked') => void;
 }) {
-  const { t } = useTranslation();
+  const {t} = useTranslation();
 
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const options = [
-    { key: 'trend', description: t('Trend') },
-    { key: 'stacked', description: t('Stacked') },
+    {key: 'trend', description: t('Trend')},
+    {key: 'stacked', description: t('Stacked')},
   ];
 
-  const currentLabel =
-    options.find(opt => opt.key === mode)?.description ?? mode;
+  const currentLabel = options.find(opt => opt.key === mode)?.description ?? mode;
 
   return (
     <>
@@ -501,8 +464,8 @@ function ModeSelector({
         onPress={() => setIsOpen(true)}
         aria-label={t('Change mode')}
       >
-        <SvgChart style={{ width: 12, height: 12 }} />
-        <span style={{ marginLeft: 5 }}>{currentLabel}</span>
+        <SvgChart style={{width: 12, height: 12}} />
+        <span style={{marginLeft: 5}}>{currentLabel}</span>
       </Button>
 
       <Popover
@@ -516,7 +479,7 @@ function ModeSelector({
             onChange(item as 'trend' | 'stacked');
             setIsOpen(false);
           }}
-          items={options.map(({ key, description }) => ({
+          items={options.map(({key, description}) => ({
             name: key,
             text: description,
           }))}

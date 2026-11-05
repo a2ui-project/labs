@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-import React, { useState } from 'react';
-import { Trans } from 'react-i18next';
+import React, {useState} from 'react';
+import {Trans} from 'react-i18next';
 
-import { ButtonWithLoading } from '@actual-app/components/button';
-import { Text } from '@actual-app/components/text';
-import { send } from '@actual-app/core/platform/client/connection';
+import {ButtonWithLoading} from '@actual-app/components/button';
+import {Text} from '@actual-app/components/text';
+import {send} from '@actual-app/core/platform/client/connection';
 
-import { Link } from '#components/common/Link';
-import { useSyncedPref } from '#hooks/useSyncedPref';
+import {Link} from '#components/common/Link';
+import {useSyncedPref} from '#hooks/useSyncedPref';
 
-import { Setting } from './UI';
+import {Setting} from './UI';
 
 export function BudgetTypeSettings() {
   const [budgetType = 'envelope', setBudgetType] = useSyncedPref('budgetType');
@@ -57,10 +57,9 @@ export function BudgetTypeSettings() {
     >
       <Text>
         <Trans>
-          <strong>Envelope budgeting</strong> (recommended) digitally mimics
-          physical envelope budgeting system by allocating funds into virtual
-          envelopes for different expenses. It helps track spending and ensure
-          you don't overspend in any category.
+          <strong>Envelope budgeting</strong> (recommended) digitally mimics physical envelope
+          budgeting system by allocating funds into virtual envelopes for different expenses. It
+          helps track spending and ensure you don't overspend in any category.
         </Trans>{' '}
         <Link
           variant="external"
@@ -72,10 +71,9 @@ export function BudgetTypeSettings() {
       </Text>
       <Text>
         <Trans>
-          With <strong>tracking budgeting</strong>, category balances reset each
-          month, and funds are managed using a "Saved" metric instead of "To Be
-          Budgeted." Income is forecasted to plan future spending, rather than
-          relying on current available funds.
+          With <strong>tracking budgeting</strong>, category balances reset each month, and funds
+          are managed using a "Saved" metric instead of "To Be Budgeted." Income is forecasted to
+          plan future spending, rather than relying on current available funds.
         </Trans>{' '}
         <Link
           variant="external"

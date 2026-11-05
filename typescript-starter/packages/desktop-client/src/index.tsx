@@ -20,34 +20,34 @@ import '#browser-preload';
 import './fonts.scss';
 import './i18n';
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { Provider } from 'react-redux';
-import type { NavigateFunction } from 'react-router';
+import {createRoot} from 'react-dom/client';
+import {Provider} from 'react-redux';
+import type {NavigateFunction} from 'react-router';
 
-import { send } from '@actual-app/core/platform/client/connection';
-import { q } from '@actual-app/core/shared/query';
-import { bindActionCreators } from '@reduxjs/toolkit';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {send} from '@actual-app/core/platform/client/connection';
+import {q} from '@actual-app/core/shared/query';
+import {bindActionCreators} from '@reduxjs/toolkit';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
 
 import * as accountsSlice from './accounts/accountsSlice';
 import * as appSlice from './app/appSlice';
-import { AuthProvider } from './auth/AuthProvider';
+import {AuthProvider} from './auth/AuthProvider';
 import * as budgetfilesSlice from './budgetfiles/budgetfilesSlice';
-import { App } from './components/App';
-import { ServerProvider } from './components/ServerContext';
+import {App} from './components/App';
+import {ServerProvider} from './components/ServerContext';
 import * as modalsSlice from './modals/modalsSlice';
 import * as notificationsSlice from './notifications/notificationsSlice';
 import * as prefsSlice from './prefs/prefsSlice';
-import { aqlQuery } from './queries/aqlQuery';
-import { configureAppStore } from './redux/store';
+import {aqlQuery} from './queries/aqlQuery';
+import {configureAppStore} from './redux/store';
 import * as transactionsSlice from './transactions/transactionsSlice';
-import { redo, undo } from './undo';
+import {redo, undo} from './undo';
 import * as usersSlice from './users/usersSlice';
 
 const queryClient = new QueryClient();
 window.__TANSTACK_QUERY_CLIENT__ = queryClient;
 
-const store = configureAppStore({ queryClient });
+const store = configureAppStore({queryClient});
 
 const boundActions = bindActionCreators(
   {

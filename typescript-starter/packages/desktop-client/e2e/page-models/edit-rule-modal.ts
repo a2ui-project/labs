@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type {Locator, Page} from '@playwright/test';
 
 type ConditionsEntry = {
   field: string;
@@ -57,16 +57,12 @@ export class EditRuleModal {
     this.page = locator.page();
 
     this.heading = locator.getByRole('heading');
-    this.conditionsOpButton = locator
-      .getByTestId('conditions-op')
-      .getByRole('button');
+    this.conditionsOpButton = locator.getByTestId('conditions-op').getByRole('button');
     this.conditionList = locator.getByTestId('condition-list');
     this.actionList = locator.getByTestId('action-list');
-    this.splitIntoMultipleTransactionsButton = locator.getByTestId(
-      'add-split-transactions',
-    );
-    this.saveButton = locator.getByRole('button', { name: 'Save' });
-    this.cancelButton = locator.getByRole('button', { name: 'Cancel' });
+    this.splitIntoMultipleTransactionsButton = locator.getByTestId('add-split-transactions');
+    this.saveButton = locator.getByRole('button', {name: 'Save'});
+    this.cancelButton = locator.getByRole('button', {name: 'Cancel'});
   }
 
   async fill(data: RuleEntry) {
@@ -98,7 +94,7 @@ export class EditRuleModal {
     fieldFirst = false,
   ) {
     for (const [idx, entry] of data.entries()) {
-      const { field, op, value } = entry;
+      const {field, op, value} = entry;
 
       const row = await this.getRow(rootElement, idx);
 
@@ -137,8 +133,7 @@ export class EditRuleModal {
   async selectConditionsOp(conditionsOp: string | RegExp) {
     await this.conditionsOpButton.click();
 
-    const conditionsOpSelectOption =
-      await this.getPopoverSelectOption(conditionsOp);
+    const conditionsOpSelectOption = await this.getPopoverSelectOption(conditionsOp);
     await conditionsOpSelectOption.click();
   }
 
@@ -146,7 +141,7 @@ export class EditRuleModal {
     await row.getByTestId('op-select').getByRole('button').click();
 
     const opSelectOption = await this.getPopoverSelectOption(op);
-    await opSelectOption.waitFor({ state: 'visible' });
+    await opSelectOption.waitFor({state: 'visible'});
     await opSelectOption.click();
   }
 
@@ -154,7 +149,7 @@ export class EditRuleModal {
     await row.getByTestId('field-select').getByRole('button').click();
 
     const fieldSelectOption = await this.getPopoverSelectOption(field);
-    await fieldSelectOption.waitFor({ state: 'visible' });
+    await fieldSelectOption.waitFor({state: 'visible'});
     await fieldSelectOption.click();
   }
 
@@ -163,14 +158,12 @@ export class EditRuleModal {
   }
 
   async addEntry(locator: Locator) {
-    await locator.getByRole('button', { name: 'Add entry' }).click();
+    await locator.getByRole('button', {name: 'Add entry'}).click();
   }
 
   async getPopoverSelectOption(value: string | RegExp) {
     // Need to use page because popover is rendered outside of modal locator
-    return this.page
-      .locator('[data-popover]')
-      .getByRole('button', { name: value, exact: true });
+    return this.page.locator('[data-popover]').getByRole('button', {name: value, exact: true});
   }
 
   async save() {
@@ -182,6 +175,6 @@ export class EditRuleModal {
   }
 
   async close() {
-    await this.heading.getByRole('button', { name: 'Close' }).click();
+    await this.heading.getByRole('button', {name: 'Close'}).click();
   }
 }

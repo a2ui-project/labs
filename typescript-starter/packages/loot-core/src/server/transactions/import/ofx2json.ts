@@ -15,9 +15,9 @@
  */
 
 // @ts-strict-ignore
-import { parseStringPromise } from 'xml2js';
+import {parseStringPromise} from 'xml2js';
 
-import { dayFromDate } from '#shared/months';
+import {dayFromDate} from '#shared/months';
 
 type OFXTransaction = {
   amount: string;
@@ -142,9 +142,7 @@ function mapOfxTransaction(stmtTrn): OFXTransaction {
 function decodeOfxBytes(bytes: Uint8Array): string {
   // OFX headers are always ASCII. Peek at the header section to detect
   // the declared encoding before decoding the full content.
-  const headerPreview = new TextDecoder('latin1').decode(
-    bytes.subarray(0, 2048),
-  );
+  const headerPreview = new TextDecoder('latin1').decode(bytes.subarray(0, 2048));
 
   const encodingMatch = headerPreview.match(/^ENCODING:(.+)/m);
   const charsetMatch = headerPreview.match(/^CHARSET:(.+)/m);
@@ -168,9 +166,7 @@ function decodeOfxBytes(bytes: Uint8Array): string {
   return new TextDecoder('utf-8').decode(bytes);
 }
 
-export async function ofx2json(
-  ofx: string | Uint8Array,
-): Promise<OFXParseResult> {
+export async function ofx2json(ofx: string | Uint8Array): Promise<OFXParseResult> {
   const ofxString = typeof ofx === 'string' ? ofx : decodeOfxBytes(ofx);
 
   // firstly, split into the header attributes and the footer sgml
