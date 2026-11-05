@@ -1,0 +1,74 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {useEffect} from 'react';
+import {Trans, useTranslation} from 'react-i18next';
+import {useParams} from 'react-router';
+
+import {Block} from '@actual-app/components/block';
+import {View} from '@actual-app/components/view';
+
+import {useDashboardPages} from '#hooks/useDashboardPages';
+import {useNavigate} from '#hooks/useNavigate';
+
+import {LoadingIndicator} from './LoadingIndicator';
+import {Overview} from './Overview';
+
+export function ReportsDashboardRouter() {
+  const {t} = useTranslation();
+  const {dashboardId} = useParams<{dashboardId?: string}>();
+  const navigate = useNavigate();
+  const {data: dashboardPages = [], isPending} = useDashboardPages();
+
+  // Redirect to first dashboard if no dashboardId in URL
+  useEffect(() => {
+    if (!dashboardId && !isPending && dashboardPages.length > 0) {
+      void navigate(`/reports/${dashboardPages[0].id}`, {replace: true});
+    }
+  }, [dashboardId, isPending, dashboardPages, navigate]);
+
+  // Show loading while we're fetching dashboards or redirecting
+  if (isPending || (!dashboardId && dashboardPages.length > 0)) {
+    return <LoadingIndicator message={t('Loading dashboards...')} />;
+  }
+
+  // If we have a dashboardId, render Overview with it
+  if (dashboardId) {
+    const dashboard = dashboardPages.find(d => d.id === dashboardId);
+    if (dashboard) {
+      return <Overview dashboard={dashboard} />;
+    } else {
+      // Invalid dashboardId - show error
+      return (
+        <View
+          style={{
+            flex: 1,
+            gap: 20,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Block style={{marginBottom: 20, fontSize: 18}}>
+            <Trans>Dashboard not found</Trans>
+          </Block>
+        </View>
+      );
+    }
+  }
+
+  // No dashboards exist (NOTE: This should not happen invariant is we always should have at least 1 dashboard)
+  return <LoadingIndicator message={t('No dashboards available')} />;
+}

@@ -1,0 +1,93 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import * as api from '@actual-app/api';
+import type {Command} from 'commander';
+
+import {withConnection} from '#connection';
+import {readJsonInput} from '#input';
+import {printOutput} from '#output';
+
+export function registerSchedulesCommand(program: Command) {
+  const schedules = program.command('schedules').description('Manage scheduled transactions');
+
+  schedules
+    .command('list')
+    .description('List all schedules')
+    .action(async () => {
+      const opts = program.opts();
+      await withConnection(
+        opts,
+        async () => {
+          const result = await api.getSchedules();
+          printOutput(result, opts.format);
+        },
+        {mutates: false},
+      );
+    });
+
+  schedules
+    .command('create')
+    .description('Create a new schedule')
+    .option('--data <json>', 'Schedule definition as JSON')
+    .option('--file <path>', 'Read schedule from JSON file (use - for stdin)')
+    .action(async cmdOpts => {
+      const opts = program.opts();
+      await withConnection(
+        opts,
+        async () => {
+          const schedule = readJsonInput(cmdOpts) as Parameters<typeof api.createSchedule>[0];
+          const id = await api.createSchedule(schedule);
+          printOutput({id}, opts.format);
+        },
+        {mutates: true},
+      );
+    });
+
+  schedules
+    .command('update <id>')
+    .description('Update a schedule')
+    .option('--data <json>', 'Fields to update as JSON')
+    .option('--file <path>', 'Read fields from JSON file (use - for stdin)')
+    .option('--reset-next-date', 'Reset next occurrence date', false)
+    .action(async (id: string, cmdOpts) => {
+      const opts = program.opts();
+      await withConnection(
+        opts,
+        async () => {
+          const fields = readJsonInput(cmdOpts) as Parameters<typeof api.updateSchedule>[1];
+          await api.updateSchedule(id, fields, cmdOpts.resetNextDate);
+          printOutput({success: true, id}, opts.format);
+        },
+        {mutates: true},
+      );
+    });
+
+  schedules
+    .command('delete <id>')
+    .description('Delete a schedule')
+    .action(async (id: string) => {
+      const opts = program.opts();
+      await withConnection(
+        opts,
+        async () => {
+          await api.deleteSchedule(id);
+          printOutput({success: true, id}, opts.format);
+        },
+        {mutates: true},
+      );
+    });
+}

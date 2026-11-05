@@ -1,0 +1,18 @@
+#!/bin/bash
+set -euo pipefail
+
+cd "$(dirname "$(dirname "$0")")"
+
+if ! [ -x "$(command -v protoc)" ]; then
+  echo 'Error: protoc is not installed. See the readme for installation instructions.' >&2
+  exit 1
+fi
+
+protoc --plugin="protoc-gen-es=../../node_modules/.bin/protoc-gen-es" \
+  --es_opt=target=ts \
+  --es_out="src/proto" \
+  --proto_path=src/proto \
+  sync.proto
+
+# Prettier reads its settings from the root of the A2UI Labs repository.
+npx --yes prettier@3.8.4 --write src/proto/*.ts
