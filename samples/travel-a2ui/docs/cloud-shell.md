@@ -32,6 +32,17 @@ Once per project:
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
 ```
 
+Then let the build read your source and push its image. A source deploy
+builds as the project's default Compute Engine service account, and in projects
+created since mid-2024 that account starts with no roles, so without this the
+build fails with `PERMISSION_DENIED ... missing required IAM permissions`. Once
+per project:
+
+```sh
+PROJECT_NUMBER=$(gcloud projects describe "$(gcloud config get-value project)" --format='value(projectNumber)')
+gcloud projects add-iam-policy-binding "$(gcloud config get-value project)" --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" --role=roles/run.builder --condition=None
+```
+
 ## Deploy
 
 From this folder, `samples/travel-a2ui`:

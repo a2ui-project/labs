@@ -19,18 +19,31 @@ copy the commands below one at a time. It all runs as you, in your project.
 ## Deploy
 
 From `samples/travel-a2ui` in a clone, turn on the services the deploy uses
-once per project, then deploy:
+and let the build use them, once per project, then deploy:
 
 ```bash
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com \
   artifactregistry.googleapis.com
+PROJECT_ID=$(gcloud config get-value project)
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')
+gcloud projects add-iam-policy-binding "$PROJECT_ID" --condition=None \
+  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+  --role=roles/run.builder
 gcloud run deploy travel-a2ui --source . \
   --region us-central1 --allow-unauthenticated \
   --memory 1Gi --cpu 1 --concurrency 40 --max-instances 1 --timeout 600
 ```
 
+Everything before the deploy is once per project. The grant gives the project's
+default Compute Engine service account the Cloud Run Builder role
+(`roles/run.builder`): a source deploy builds as that account, and in projects
+created since mid-2024 it starts with no roles, so without it the build fails
+with `PERMISSION_DENIED ... missing required IAM permissions`. To build as an
+account of your own instead, grant it that role and pass
+`--build-service-account` to the deploy.
+
 Cloud Build builds the `Dockerfile` and Cloud Run serves it. The first build
-takes about ten minutes, because it builds both clients. Run the second command
+takes about ten minutes, because it builds both clients. Run the last command
 again to deploy a change.
 
 No Gemini key is set on the service. Each visitor pastes their own in the

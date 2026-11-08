@@ -524,10 +524,11 @@ gcloud run deploy travel-a2ui --source . \
   --memory 1Gi --cpu 1 --concurrency 40 --max-instances 1 --timeout 600
 ```
 
-Cloud Build builds the `Dockerfile` (about ten minutes the first time). No key
-is stored on the service, because each visitor pastes their own.
-**[docs/deploying.md](docs/deploying.md)** has the details, including the one
-setting not to change: `--max-instances 1`, because conversations live in the
+Cloud Build builds the `Dockerfile` (about ten minutes the first time). A new
+project first needs its services turned on and one permission granted to the
+build: **[docs/deploying.md](docs/deploying.md)** has those commands. No key is
+stored on the service, because each visitor pastes their own. The same page has
+the one setting not to change: `--max-instances 1`, because conversations live in the
 server's memory.
 
 One thing the image does that is worth copying: it ends with
