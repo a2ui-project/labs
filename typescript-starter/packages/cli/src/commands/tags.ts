@@ -1,0 +1,104 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import * as api from '@actual-app/api';
+import type {Command} from 'commander';
+
+import {withConnection} from '#connection';
+import {printOutput} from '#output';
+
+export function registerTagsCommand(program: Command) {
+  const tags = program.command('tags').description('Manage tags');
+
+  tags
+    .command('list')
+    .description('List all tags')
+    .action(async () => {
+      const opts = program.opts();
+      await withConnection(
+        opts,
+        async () => {
+          const result = await api.getTags();
+          printOutput(result, opts.format);
+        },
+        {mutates: false},
+      );
+    });
+
+  tags
+    .command('create')
+    .description('Create a new tag')
+    .requiredOption('--tag <tag>', 'Tag name')
+    .option('--color <color>', 'Tag color')
+    .option('--description <description>', 'Tag description')
+    .action(async cmdOpts => {
+      const opts = program.opts();
+      await withConnection(
+        opts,
+        async () => {
+          const id = await api.createTag({
+            tag: cmdOpts.tag,
+            color: cmdOpts.color,
+            description: cmdOpts.description,
+          });
+          printOutput({id}, opts.format);
+        },
+        {mutates: true},
+      );
+    });
+
+  tags
+    .command('update <id>')
+    .description('Update a tag')
+    .option('--tag <tag>', 'New tag name')
+    .option('--color <color>', 'New tag color')
+    .option('--description <description>', 'New tag description')
+    .action(async (id: string, cmdOpts) => {
+      const fields: Record<string, unknown> = {};
+      if (cmdOpts.tag !== undefined) fields.tag = cmdOpts.tag;
+      if (cmdOpts.color !== undefined) fields.color = cmdOpts.color;
+      if (cmdOpts.description !== undefined) {
+        fields.description = cmdOpts.description;
+      }
+      if (Object.keys(fields).length === 0) {
+        throw new Error('At least one of --tag, --color, or --description is required');
+      }
+      const opts = program.opts();
+      await withConnection(
+        opts,
+        async () => {
+          await api.updateTag(id, fields);
+          printOutput({success: true, id}, opts.format);
+        },
+        {mutates: true},
+      );
+    });
+
+  tags
+    .command('delete <id>')
+    .description('Delete a tag')
+    .action(async (id: string) => {
+      const opts = program.opts();
+      await withConnection(
+        opts,
+        async () => {
+          await api.deleteTag(id);
+          printOutput({success: true, id}, opts.format);
+        },
+        {mutates: true},
+      );
+    });
+}

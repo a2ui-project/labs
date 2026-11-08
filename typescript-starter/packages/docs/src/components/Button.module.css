@@ -1,0 +1,58 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+.button {
+  border: 1px solid currentColor;
+
+  padding: 6px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  flex: 1;
+  text-decoration: none;
+  margin: 3px;
+  transition-property: color, background-color, filter;
+  transition-duration: 0.15s;
+  display: inline-block;
+}
+
+.button:hover,
+.button:focus {
+  text-decoration: none;
+}
+
+.button:active {
+  transform: translateY(1px);
+}
+
+.button:not(.primary):is(:hover, :focus) {
+  background: rgba(0, 0, 0, 0.1);
+}
+[data-theme='dark'] .button:not(.primary):is(:hover, :focus) {
+  background: hsla(0, 0%, 50%, 0.2);
+}
+
+.primary {
+  color: #ffffff;
+  background-color: var(--ifm-link-color);
+  border: none;
+  padding: 7px 16px;
+}
+.primary:hover,
+.primary:focus {
+  color: #ffffff;
+  border: none;
+  filter: brightness(0.8);
+}

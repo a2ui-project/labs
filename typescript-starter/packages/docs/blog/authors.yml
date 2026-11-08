@@ -1,0 +1,55 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+trevdor:
+  name: Trevor Farlow
+  title: Actual Budget Maintainer
+  url: https://github.com/trevdor
+  image_url: /img/authors/trevdor.webp
+
+MatissJanis:
+  name: Matiss Janis Aboltins
+  title: Actual Budget Maintainer
+  url: https://github.com/MatissJanis
+  image_url: /img/authors/Matiss-Janis.webp
+
+j-f1:
+  name: Jed Fox
+  title: Actual Budget Maintainer
+  url: https://github.com/j-f1
+  image_url: /img/authors/jed-fox.webp
+
+youngcw:
+  name: youngcw
+  title: Actual Budget Maintainer
+  url: https://github.com/youngcw
+  image_url: /img/authors/youngcw.webp
+
+jfdoming:
+  name: Julian Dominguez-Schatz
+  title: Actual Budget Maintainer
+  url: https://github.com/jfdoming
+  image_url: /img/authors/jfdoming.webp
+
+matt-fidd:
+  name: Matt Fiddaman
+  title: Actual Budget Maintainer
+  url: https://github.com/matt-fidd
+  image_url: /img/authors/matt-fidd.webp
+
+tim-smart:
+  name: Tim Smart
+  title: Actual Budget Maintainer
+  url: https://github.com/tim-smart
+  image_url: /img/authors/tim-smart.webp

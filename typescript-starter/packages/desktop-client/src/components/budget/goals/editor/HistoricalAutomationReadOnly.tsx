@@ -1,0 +1,51 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {Trans} from 'react-i18next';
+
+import type {AverageTemplate, CopyTemplate} from '@actual-app/core/types/models/templates';
+
+import {AmountAdjustmentSummary} from './AmountAdjustmentSummary';
+
+type HistoricalAutomationReadOnlyProps = {
+  template: CopyTemplate | AverageTemplate;
+};
+
+export const HistoricalAutomationReadOnly = ({template}: HistoricalAutomationReadOnlyProps) => {
+  if (template.type === 'copy') {
+    return (
+      <Trans count={template.lookBack}>
+        Budget the same amount as {{count: template.lookBack}} months ago
+      </Trans>
+    );
+  }
+
+  const base = (
+    <Trans count={template.numMonths}>
+      Budget the average of the last {{count: template.numMonths}} complete months
+    </Trans>
+  );
+
+  if (template.adjustment === undefined) {
+    return base;
+  }
+
+  return (
+    <>
+      {base} <AmountAdjustmentSummary template={template} />
+    </>
+  );
+};

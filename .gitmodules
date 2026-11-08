@@ -1,0 +1,6 @@
+[submodule "third_party/a2ui"]
+	path = third_party/a2ui
+	url = https://github.com/a2ui-project/a2ui.git
+	shallow = true
+	branch = main
+	ignore = all

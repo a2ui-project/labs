@@ -1,0 +1,147 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import React, {useMemo, useState} from 'react';
+import {useTranslation} from 'react-i18next';
+
+import {Block} from '@actual-app/components/block';
+import {styles} from '@actual-app/components/styles';
+import {theme} from '@actual-app/components/theme';
+import {View} from '@actual-app/components/view';
+import * as monthUtils from '@actual-app/core/shared/months';
+import type {BudgetAnalysisWidget} from '@actual-app/core/types/models';
+
+import {FinancialText} from '#components/FinancialText';
+import {PrivacyFilter} from '#components/PrivacyFilter';
+import {DateRange} from '#components/reports/DateRange';
+import {BudgetAnalysisGraph} from '#components/reports/graphs/BudgetAnalysisGraph';
+import {LoadingIndicator} from '#components/reports/LoadingIndicator';
+import {ReportCard} from '#components/reports/ReportCard';
+import {ReportCardName} from '#components/reports/ReportCardName';
+import {calculateTimeRange} from '#components/reports/reportRanges';
+import {createBudgetAnalysisSpreadsheet} from '#components/reports/spreadsheets/budget-analysis-spreadsheet';
+import {useReport} from '#components/reports/useReport';
+import {useFormat} from '#hooks/useFormat';
+
+type BudgetAnalysisCardProps = {
+  widgetId: string;
+  isEditing?: boolean;
+  meta?: BudgetAnalysisWidget['meta'];
+  onMetaChange: (newMeta: BudgetAnalysisWidget['meta']) => void;
+};
+
+export function BudgetAnalysisCard({
+  widgetId,
+  isEditing,
+  meta = {},
+  onMetaChange,
+}: BudgetAnalysisCardProps) {
+  const {t} = useTranslation();
+  const format = useFormat();
+
+  const [isCardHovered, setIsCardHovered] = useState(false);
+  const [nameMenuOpen, setNameMenuOpen] = useState(false);
+
+  const timeFrame = meta?.timeFrame ?? {
+    start: monthUtils.subMonths(monthUtils.currentMonth(), 5),
+    end: monthUtils.currentMonth(),
+    mode: 'sliding-window' as const,
+  };
+
+  const [startMonth, endMonth] = calculateTimeRange(timeFrame);
+  const startDate = monthUtils.monthFromDate(startMonth) + '-01';
+  const endDate = monthUtils.getMonthEnd(monthUtils.monthFromDate(endMonth) + '-01');
+
+  const getGraphData = useMemo(() => {
+    return createBudgetAnalysisSpreadsheet({
+      conditions: meta?.conditions,
+      conditionsOp: meta?.conditionsOp,
+      startDate,
+      endDate,
+      showHiddenCategories: meta?.showHiddenCategories ?? false,
+    });
+  }, [meta?.conditions, meta?.conditionsOp, meta?.showHiddenCategories, startDate, endDate]);
+
+  const data = useReport('default', getGraphData);
+
+  const latestInterval =
+    data && data.intervalData.length > 0
+      ? data.intervalData[data.intervalData.length - 1]
+      : undefined;
+  const balance = latestInterval?.balance ?? 0;
+  return (
+    <ReportCard
+      widgetId={widgetId}
+      isEditing={isEditing}
+      disableClick={nameMenuOpen}
+      to={`/reports/budget-analysis/${widgetId}`}
+      onRename={() => setNameMenuOpen(true)}
+    >
+      <View
+        style={{flex: 1}}
+        onPointerEnter={() => setIsCardHovered(true)}
+        onPointerLeave={() => setIsCardHovered(false)}
+      >
+        <View style={{flexDirection: 'row', padding: 20}}>
+          <View style={{flex: 1}}>
+            <ReportCardName
+              name={meta?.name || t('Budget Analysis')}
+              isEditing={nameMenuOpen}
+              onChange={newName => {
+                onMetaChange({
+                  ...meta,
+                  name: newName,
+                });
+                setNameMenuOpen(false);
+              }}
+              onClose={() => setNameMenuOpen(false)}
+            />
+            <DateRange start={monthUtils.getMonth(startDate)} end={monthUtils.getMonth(endDate)} />
+          </View>
+          {data && (
+            <View style={{textAlign: 'right'}}>
+              <Block
+                style={{
+                  ...styles.mediumText,
+                  fontWeight: 500,
+                  marginBottom: 5,
+                  color: balance >= 0 ? theme.noticeTextLight : theme.errorText,
+                }}
+              >
+                <FinancialText>
+                  <PrivacyFilter activationFilters={[!isCardHovered]}>
+                    {format(balance, 'financial')}
+                  </PrivacyFilter>
+                </FinancialText>
+              </Block>
+            </View>
+          )}
+        </View>
+        {data ? (
+          <BudgetAnalysisGraph
+            style={{flex: 1}}
+            data={data}
+            graphType={meta?.graphType || 'Bar'}
+            showBalance={meta?.showBalance ?? true}
+            balanceOnly={meta?.balanceOnly ?? false}
+          />
+        ) : (
+          <LoadingIndicator />
+        )}
+      </View>
+    </ReportCard>
+  );
+}

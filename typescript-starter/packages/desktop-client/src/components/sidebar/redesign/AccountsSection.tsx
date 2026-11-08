@@ -1,0 +1,114 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {useState} from 'react';
+import {useTranslation} from 'react-i18next';
+
+import {spacing} from '@actual-app/components/tokens';
+import {View} from '@actual-app/components/view';
+
+import * as bindings from '#spreadsheet/bindings';
+
+import {AccountSearchField} from './AccountSearchField';
+import {AccountsHeaderRow} from './AccountsHeaderRow';
+import {ClosedSection} from './ClosedSection';
+import {SideGroup} from './SideGroup';
+import {filterSidebarTree, useSidebarAccountTree} from './useSidebarAccountTree';
+import {bucketKey, useSidebarCollapseState} from './useSidebarCollapseState';
+
+export function AccountsSection() {
+  const {t} = useTranslation();
+  const tree = useSidebarAccountTree();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const trimmedQuery = query.trim().toLowerCase();
+  const isSearching = trimmedQuery !== '';
+
+  const collapse = useSidebarCollapseState({tree, isSearching});
+
+  const onToggleSearch = () => {
+    setIsSearchOpen(!isSearchOpen);
+    setQuery('');
+  };
+
+  const visibleTree = filterSidebarTree(tree, trimmedQuery);
+
+  const showSyncDot = [
+    ...tree.onBudget.buckets.map(b => b.accounts).flat(),
+    ...tree.offBudget.buckets.map(b => b.accounts).flat(),
+  ].reduce((seen, account) => seen || account.bank !== null, false);
+
+  return (
+    <View
+      style={{
+        flexGrow: 1,
+        minHeight: 0,
+        overflowY: 'auto',
+        paddingInline: spacing.sm,
+      }}
+    >
+      <View style={{flexShrink: 0}}>
+        <AccountsHeaderRow
+          allOpen={collapse.allOpen}
+          onToggleAll={collapse.toggleAll}
+          isToggleAllDisabled={isSearching}
+          isSearchOpen={isSearchOpen}
+          onToggleSearch={onToggleSearch}
+        />
+        {isSearchOpen && (
+          <AccountSearchField value={query} onChange={setQuery} onClose={onToggleSearch} />
+        )}
+        {tree.onBudget.buckets.length > 0 && (
+          <SideGroup
+            label={t('On budget')}
+            side="on"
+            isDragDisabled={isSearching}
+            showSyncDot={showSyncDot}
+            sideData={visibleTree.onBudget}
+            totalBinding={bindings.onBudgetAccountBalance()}
+            balanceTestId="sidebar-on-budget-balance"
+            isOpen={collapse.isOpen('onbudget')}
+            onToggle={() => collapse.toggle('onbudget')}
+            isBucketOpen={bucket => collapse.isOpen(bucketKey('on', bucket))}
+            onToggleBucket={bucket => collapse.toggle(bucketKey('on', bucket))}
+          />
+        )}
+        {tree.offBudget.buckets.length > 0 && (
+          <SideGroup
+            label={t('Off budget')}
+            side="off"
+            isDragDisabled={isSearching}
+            showSyncDot={showSyncDot}
+            sideData={visibleTree.offBudget}
+            totalBinding={bindings.offBudgetAccountBalance()}
+            balanceTestId="sidebar-off-budget-balance"
+            isOpen={collapse.isOpen('offbudget')}
+            onToggle={() => collapse.toggle('offbudget')}
+            isBucketOpen={bucket => collapse.isOpen(bucketKey('off', bucket))}
+            onToggleBucket={bucket => collapse.toggle(bucketKey('off', bucket))}
+          />
+        )}
+        <ClosedSection
+          accounts={visibleTree.closed}
+          isOpen={collapse.isOpen('closed')}
+          onToggle={() => collapse.toggle('closed')}
+          isDragDisabled={isSearching}
+        />
+        <View style={{height: spacing.md}} />
+      </View>
+    </View>
+  );
+}
