@@ -39,7 +39,7 @@
  * Needs a key and spends tokens, so it is not in `npm run e2e`.
  *
  *   GEMINI_API_KEY=... node tools/e2e/live.mjs
- *   GEMINI_API_KEY=... BASE_URL=https://…run.app/ node tools/e2e/live.mjs
+ *   GEMINI_API_KEY=... BASE_URL=https://your-deployment.example/ node tools/e2e/live.mjs
  */
 
 import {launchBrowser} from '../browser.mjs';

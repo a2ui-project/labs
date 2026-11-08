@@ -11,8 +11,7 @@ in that moment**, not chosen from screens somebody designed in advance.
 </p>
 
 <p align="center">
-  <b><a href="https://travel-a2ui-vy7stnte2a-uc.a.run.app">Try it live</a></b> ·
-  <a href="#run-it-on-your-machine">run it locally</a> ·
+  <b><a href="#run-it-on-your-machine">Run it locally</a></b> ·
   <a href="#deploy-it">deploy in one click</a> ·
   <a href="#build-one-of-your-own">build one</a> ·
   <a href="docs/architecture.md">how it works</a>
@@ -115,15 +114,14 @@ travel.
 [aistudio.google.com/apikey](https://aistudio.google.com/apikey), sign in with a
 Google account, and press **Create API key**. The free tier is enough for this.
 
-**2. Open the app** and paste it when asked:
-
-> ### **[travel-a2ui-vy7stnte2a-uc.a.run.app](https://travel-a2ui-vy7stnte2a-uc.a.run.app)**
+**2. Start the app** with [three commands](#run-it-on-your-machine), open
+http://127.0.0.1:8080 and paste the key when asked.
 
 Or skip the form by putting the key in the URL fragment, which never leaves your
 browser:
 
 ```
-https://travel-a2ui-vy7stnte2a-uc.a.run.app/#key=AIza...
+http://127.0.0.1:8080/#key=AIza...
 ```
 
 The key is held in _your_ browser and sent with each request. It is never stored
@@ -140,7 +138,8 @@ use, with the real renderer. It is the fastest way to see A2UI render with
 nothing else in the path.
 
 **Other ways in:** the same agent, the same catalog and the same surfaces drawn
-by the [Flutter client](https://travel-a2ui-vy7stnte2a-uc.a.run.app/flutter) —
+by the Flutter client at http://127.0.0.1:8080/flutter/ (start it with
+`./scripts/quickstart.sh flutter`) —
 a second renderer of the same messages, which is the clearest demonstration that
 the agent is describing an interface rather than emitting one.
 

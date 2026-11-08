@@ -17,8 +17,8 @@ same protocol, written against the official
 against our renderer's internals. It talks to the same server, over the same
 endpoint, and receives the same bytes.
 
-It is served at **`/flutter`** on the same deployment as everything else —
-[travel-a2ui-vy7stnte2a-uc.a.run.app/flutter](https://travel-a2ui-vy7stnte2a-uc.a.run.app/flutter).
+It is served at **`/flutter`** by the same server as everything else:
+http://127.0.0.1:8080/flutter/ when you run `./scripts/quickstart.sh flutter`.
 
 ## What is _not_ in here is the point
 

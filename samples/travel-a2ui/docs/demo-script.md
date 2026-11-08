@@ -218,7 +218,7 @@ flight and asserts the click became the next turn, as an A2UI v1.0 action.
 To point one at a deployment instead of localhost:
 
 ```bash
-BASE_URL=https://travel-a2ui-vy7stnte2a-uc.a.run.app node tools/e2e/chat.mjs
+BASE_URL=https://your-deployment.example node tools/e2e/chat.mjs
 ```
 
 And to regenerate the README's screenshots from the same runs:
