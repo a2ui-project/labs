@@ -71,13 +71,18 @@ RUN git config --global --add safe.directory /opt/flutter \
  && flutter --version \
  && flutter precache --web
 
-WORKDIR /build
+# The app depends on the renderer by a relative path, so both keep their places
+# in the sample: /build/apps/flutter and /build/renderers/flutter.
+WORKDIR /build/apps/flutter
 
 # Manifests first, so editing a widget does not re-resolve the package graph.
-COPY renderers/flutter/pubspec.yaml renderers/flutter/pubspec.lock ./
+# No pubspec.lock: the repository does not commit one.
+COPY renderers/flutter/pubspec.yaml /build/renderers/flutter/
+COPY apps/flutter/pubspec.yaml ./
 RUN flutter pub get
 
-COPY renderers/flutter/ ./
+COPY renderers/flutter/ /build/renderers/flutter/
+COPY apps/flutter/ ./
 # `--base-href` because the client is served under `/flutter/`, not at the root:
 # without it the bundle asks for `/main.dart.js` and gets the React app's HTML,
 # which fails as a syntax error rather than as a missing file.
@@ -120,7 +125,7 @@ COPY data/ data/
 COPY apps/server/src/ apps/server/src/
 
 COPY --from=web /build/apps/web/dist/ apps/web/dist/
-COPY --from=flutter /build/build/web/ renderers/flutter/build/web/
+COPY --from=flutter /build/apps/flutter/build/web/ apps/flutter/build/web/
 
 # The import uvicorn does at startup, at build time: a missing file or package
 # fails the build with its name, not the deploy with "failed to listen".

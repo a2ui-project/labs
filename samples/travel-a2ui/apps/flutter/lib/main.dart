@@ -27,7 +27,7 @@
 import 'package:flutter/material.dart';
 
 import 'api.dart';
-import 'catalog.dart';
+import 'package:travel_a2ui_renderer/catalog.dart';
 import 'chat.dart';
 import 'url_fragment.dart';
 

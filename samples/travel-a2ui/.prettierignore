@@ -6,6 +6,7 @@ apps/web/src/generated
 .venv
 docs
 renderers/flutter
+apps/flutter
 catalogs
 skills
 *.json

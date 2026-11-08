@@ -28,16 +28,8 @@
 // third party to be reachable before it can draw anything. The third is that
 // every visitor's browser announces itself to Google on every cold load, which
 // is not a thing to do quietly on someone else's behalf.
-{
-  {
-    flutter_js;
-  }
-}
-{
-  {
-    flutter_build_config;
-  }
-}
+{{flutter_js}}
+{{flutter_build_config}}
 
 _flutter.loader.load({
   config: {

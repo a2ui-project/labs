@@ -778,8 +778,8 @@ prompts/*.md   ─────────►│             processor that read
                                           │
                           ┌───────────────┴───────────────┐
                           ▼                               ▼
-                  renderers/react                  renderers/flutter
-                  React                            Flutter
+                  apps/web                         apps/flutter
+                  on renderers/react               on renderers/flutter
 ```
 
 The **brain** holds every decision worth making: the catalog and the processor
@@ -929,10 +929,11 @@ travel-a2ui/
 │   └── a2ui-travel/            catalog.json (generated), agent-components.json, examples/*.json
 ├── apps/
 │   ├── server/                 ★ the whole backend: brain/ and doors/
-│   └── web/                    React client: the flows, /catalog, and the wire inspector
+│   ├── web/                    React client: the flows, /catalog, and the wire inspector
+│   └── flutter/                Flutter client: the shell, the conversation, the turn
 ├── renderers/
 │   ├── react/                  the travel catalog for @a2ui/react: 14 views, 2 functions, the design
-│   └── flutter/                the same catalog for a2ui_flutter
+│   └── flutter/                the same catalog for a2ui_flutter, and its render tests
 ├── tools/
 │   ├── sample/                 records the sample trip a first visit opens on
 │   ├── e2e/                    a whole browser turn against a scripted model

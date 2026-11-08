@@ -71,7 +71,7 @@ _ROOT = ROOT
 #: Where the built clients are. Either may be missing: `npm run dev:web`
 #: serves React on its own port against this API, and Flutter is optional.
 WEB_DIST = _ROOT / "apps" / "web" / "dist"
-FLUTTER_DIST = _ROOT / "renderers" / "flutter" / "build" / "web"
+FLUTTER_DIST = _ROOT / "apps" / "flutter" / "build" / "web"
 
 #: What this deployment can run, reported for information.
 #:
@@ -663,7 +663,7 @@ def mount_clients() -> None:
         "/flutter",
         BuiltClient(
             FLUTTER_DIST,
-            "Build the Flutter client: cd renderers/flutter && flutter build web"
+            "Build the Flutter client: cd apps/flutter && flutter build web"
             " --base-href=/flutter/",
         ),
         name="flutter",

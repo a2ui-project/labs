@@ -1,0 +1,90 @@
+# The Flutter client
+
+**The same agent, drawn by a different toolkit.**
+
+This client exists to test one claim, and it is the claim the whole repository
+is built around:
+
+> If a generative interface is really a _protocol_ rather than a feature of one
+> app, then a second client should be a **renderer and nothing else** — no travel
+> logic, no idea what a trip is, no private agreement with the server about what
+> a button means.
+
+So this is not a port of the React client. It is a second implementation of the
+same protocol, written against the official
+[`a2ui_core`](https://pub.dev/packages/a2ui_core) and
+[`a2ui_flutter`](https://pub.dev/packages/a2ui_flutter) packages rather than
+against our renderer's internals. It talks to the same server, over the same
+endpoint, and receives the same bytes.
+
+It comes in two parts, as the React client does:
+
+- **`apps/flutter/`** (here) is the app: the shell, the conversation and the
+  turn.
+- **[`renderers/flutter/`](../../renderers/flutter/)** is the travel catalog:
+  the views, the functions and the surface widget. This app depends on it by
+  path.
+
+It is served at **`/flutter`** by the same server as everything else:
+http://127.0.0.1:8080/flutter/ when you run `./scripts/quickstart.sh flutter`.
+
+## What is _not_ in here is the point
+
+The SDK does the rendering. `a2ui_core`'s `MessageProcessor` holds the surfaces
+and their data models, its binder resolves every `@path` and `@call`, and
+`a2ui_flutter` draws them: `A2uiSurface` for a surface, and `basicCatalog()` for
+every basic component (Text, Row, Column, List, Card, Button, TextField, Slider,
+the rest) and every basic function. What is left, here and in the renderer, is
+short, and none of it is about what a trip is:
+
+| File                                    | What it is                                                                                                                                                            |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/flutter/lib/main.dart`            | the app shell and the theme                                                                                                                                           |
+| `apps/flutter/lib/api.dart`             | the turn: post a message, read the A2UI messages back                                                                                                                 |
+| `apps/flutter/lib/chat.dart`            | the conversation, and where each surface is placed                                                                                                                    |
+| `renderers/flutter/lib/catalog.dart`    | the catalog document from `/api/catalog`, read by `Catalog.fromJson`, with an implementation for each entry                                                           |
+| `renderers/flutter/lib/components.dart` | the fourteen travel views as `a2ui_flutter` `ComponentImplementation`s: the one file that knows a flight card has a price on it, and even here only how to _draw_ one |
+| `renderers/flutter/lib/functions.dart`  | the two travel functions, `calcNights` and `equals`                                                                                                                   |
+| `renderers/flutter/lib/surface.dart`    | `TravelSurface`: the SDK's `A2uiSurface`, with the Markdown in the basic `Text` rendered                                                                              |
+
+A catalog that offers a component or function none of these can draw is refused
+at startup, by name, rather than rendering a hole later.
+
+There is no list of trip fields. No code deciding when the panel needs
+redrawing. No sentence composed here to describe what somebody pressed. All of
+that lives on the server, where it is shared with the React client and with
+the model — which is why this client stays this small.
+
+The one idea worth carrying across from the React renderer is the **pending**
+state: a binding whose path does not resolve is _pending_, and a path resolving
+to an empty string is _empty_. That distinction is not a convention invented
+here — it falls out of the data model — and it is what lets a surface paint its
+layout the moment a search starts and fill in when the rows land.
+
+## Running it
+
+```bash
+flutter run -d chrome                       # against a server on :8080
+flutter build web --release --base-href=/flutter/
+```
+
+The tests are the renderer's: `cd ../../renderers/flutter && flutter test`
+runs `render_test.dart`, every component's reference example through the SDK.
+
+The `--base-href` is not optional for a release build: the client is served
+under `/flutter/`, and without it the bundle asks for `/main.dart.js`, gets the
+React app's HTML, and fails as a syntax error rather than as a missing file.
+
+The SDK version is pinned in the root `Dockerfile` (`FLUTTER_VERSION`) and should
+match the one the tests are run with — `flutter build web` can otherwise succeed
+on code that was never analysed at that version, and the first sign of it is a
+rendering difference in production.
+
+## Known gap
+
+**There is no voice path here.** Choosing Gemini Live in the React client puts a
+microphone in the composer; this client has no equivalent, so it is typed-only.
+Nothing about the architecture prevents it — the relay carries microphone bytes
+up and audio plus A2UI down, which is transport this client could speak — it
+simply has not been written. See the root [README](../../README.md#talking-to-it)
+for what that path does.

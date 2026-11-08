@@ -27,8 +27,9 @@ Two packages, and the split is the architecture:
   `doors`   the same brain reachable three ways: a typed turn over SSE, a
             voice call over a WebSocket, and the HTTP app that mounts them.
 
-The renderers are outside this package entirely — `renderers/react` and
-`renderers/flutter` — and neither holds any travel logic. They
+The clients are outside this package entirely — `apps/web` on
+`renderers/react`, and `apps/flutter` on `renderers/flutter` — and none of
+them holds any travel logic. They
 draw A2UI, send actions back, and wait for the next A2UI.
 """
 

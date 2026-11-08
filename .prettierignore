@@ -27,4 +27,7 @@ third_party/
 samples/travel-a2ui/catalogs/a2ui-travel/catalog.json
 samples/travel-a2ui/apps/web/src/generated/
 samples/travel-a2ui/renderers/flutter/test/fixtures/
+# A Flutter template: `flutter build web` replaces its {{flutter_js}} and
+# {{flutter_build_config}} tags, which Prettier would rewrite as JavaScript.
+samples/travel-a2ui/apps/flutter/web/flutter_bootstrap.js
 samples/travel-a2ui/skills/express-modular/

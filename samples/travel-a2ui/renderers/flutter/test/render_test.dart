@@ -36,9 +36,9 @@ import 'package:a2ui_flutter/a2ui_flutter.dart';
 import 'package:a2ui_flutter/basic_catalog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:travel_a2ui_flutter/catalog.dart';
-import 'package:travel_a2ui_flutter/chat.dart' show TravelSurface;
-import 'package:travel_a2ui_flutter/components.dart';
+import 'package:travel_a2ui_renderer/catalog.dart';
+import 'package:travel_a2ui_renderer/components.dart';
+import 'package:travel_a2ui_renderer/surface.dart';
 
 final String _wire = A2uiProtocolVersion.v1_0.jsonValue;
 

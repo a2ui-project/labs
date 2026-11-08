@@ -82,7 +82,7 @@ fi
 
 if wants flutter; then
   step "The Flutter client"
-  (cd renderers/flutter && flutter pub get >/dev/null && flutter build web --release --base-href=/flutter/)
+  (cd apps/flutter && flutter pub get >/dev/null && flutter build web --release --base-href=/flutter/)
 fi
 
 step "Starting on port $port"

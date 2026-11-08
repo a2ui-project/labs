@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: travel_a2ui_flutter
+name: travel_a2ui_renderer
 description: >-
-  The same agent, drawn by Flutter. A second renderer against one server, which
-  is the claim the whole project exists to test.
+  The travel catalog for a2ui_flutter: fifteen travel views, two functions and
+  the surface widget. No app logic: apps/flutter is the app that uses it.
 publish_to: "none"
 version: 0.1.0
 
@@ -27,17 +27,11 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The official A2UI packages. The point of this client is that it renders the
-  # protocol rather than this app's idea of it, so the core types and the
-  # widget host both come from upstream.
+  # The official A2UI packages: the core types and the widget host both come
+  # from upstream, so this package renders the protocol rather than this app's
+  # idea of it.
   a2ui_core: ^0.5.0
   a2ui_flutter: ^0.1.0
-
-  # The SDK's basic Icon draws some names from the Cupertino set; without the
-  # font they render as empty boxes.
-  cupertino_icons: ^1.0.8
-
-  http: ^1.2.0
 
   # Markdown in the basic `Text`, as `a2ui_flutter`'s README renders it
   # (`A2uiMarkdown` over `MarkdownBody`), and links and `openUrl` opened in the
@@ -45,27 +39,7 @@ dependencies:
   flutter_markdown_plus: ^1.0.7
   url_launcher: ^6.3.2
 
-  # Removing the `#key=` fragment from the address bar on the web.
-  web: ^1.1.0
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-
-flutter:
-  uses-material-design: true
-
-  # Roboto, bundled rather than fetched.
-  #
-  # Flutter web's default theme asks for Roboto and the engine then downloads it
-  # from `fonts.gstatic.com`, blocking the first frame until it arrives; on a
-  # network that cannot reach Google nothing ever paints. Naming a font the
-  # engine cannot resolve is worse: every glyph is invisible. So it is bundled. Apache-2.0, the same licence as
-  # this project, and 340 KB against a 40 MB engine.
-  fonts:
-    - family: Roboto
-      fonts:
-        - asset: assets/fonts/Roboto-Regular.ttf
-        - asset: assets/fonts/Roboto-Medium.ttf
-          weight: 500

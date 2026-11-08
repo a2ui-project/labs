@@ -103,7 +103,7 @@ around them.
  ══════════╪═════════════════════════╪═════════════════════════╪════════
            │      consumed, never reimplemented, by            │
  ┌─────────▼───────────────┬─────────▼──────────┬──────────────▼────────┐
- │ apps/server/…/brain     │ apps/web           │ renderers/flutter     │
+ │ apps/server/…/brain     │ apps/web           │ apps/flutter          │
  │ skills, tools, the trip │ the React client   │ the second client,    │
  │ record, the canvas      │ (3 flows)          │ the same messages     │
  ├─────────────────────────┼────────────────────┼───────────────────────┤

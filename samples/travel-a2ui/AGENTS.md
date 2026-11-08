@@ -29,7 +29,8 @@ the scripted server: `GEMINI_API_KEY=scripted python tools/e2e/scripted_server.p
 | Types                                          | `npm run typecheck`                                       |
 | Generated files are current                    | `npm run check`                                           |
 | Browser end-to-end (needs the scripted server) | `npm run e2e`                                             |
-| Flutter                                        | `cd renderers/flutter && flutter analyze && flutter test` |
+| Flutter renderer                               | `cd renderers/flutter && flutter analyze && flutter test` |
+| Flutter app                                    | `cd apps/flutter && flutter analyze`                      |
 
 ## Things to know before editing
 
