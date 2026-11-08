@@ -12,7 +12,7 @@ in that moment**, not chosen from screens somebody designed in advance.
 
 <p align="center">
   <b><a href="#run-it-on-your-machine">Run it locally</a></b> ·
-  <a href="#deploy-it">deploy in one click</a> ·
+  <a href="#deploy-it">deploy it</a> ·
   <a href="#build-one-of-your-own">build one</a> ·
   <a href="docs/architecture.md">how it works</a>
 </p>
@@ -509,17 +509,22 @@ with nothing else in the path.
 
 ### Deploy it
 
-[![Run on Google Cloud](https://deploy.cloud.run/button.svg)](https://deploy.cloud.run/?git_repo=https://github.com/a2ui-project/labs&dir=samples/travel-a2ui)
+One command deploys it to Cloud Run in your own Google Cloud project: the
+server and both clients, on one URL. From this folder, with the
+[gcloud CLI](https://cloud.google.com/sdk/docs/install) signed in (Cloud Shell
+has it):
 
-One click deploys it to Cloud Run in your own Google Cloud project: the server
-and both clients, on one URL. The button opens Cloud Shell, builds the
-`Dockerfile` (about ten minutes the first time) and asks only for a project and
-a region; its settings are in [`app.json`](app.json). No key is stored on the
-service, because each visitor pastes their own.
+```bash
+gcloud run deploy travel-a2ui --source . \
+  --region us-central1 --allow-unauthenticated \
+  --memory 1Gi --cpu 1 --concurrency 40 --max-instances 1 --timeout 600
+```
 
-**[docs/deploying.md](docs/deploying.md)** has the one-command version
-(`gcloud run deploy --source .`) and the one setting not to change: `--max-instances 1`, because conversations live in
-the server's memory.
+Cloud Build builds the `Dockerfile` (about ten minutes the first time). No key
+is stored on the service, because each visitor pastes their own.
+**[docs/deploying.md](docs/deploying.md)** has the details, including the one
+setting not to change: `--max-instances 1`, because conversations live in the
+server's memory.
 
 One thing the image does that is worth copying: it ends with
 

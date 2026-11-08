@@ -119,5 +119,5 @@ Other things you can do:
   npm run screenshots       regenerate docs/screenshots
   npm run check             every generated file and golden is current
 
-To deploy to Cloud Run, see docs/deploying.md: one click, or one command.
+To deploy to Cloud Run, see docs/deploying.md: one command.
 DONE
