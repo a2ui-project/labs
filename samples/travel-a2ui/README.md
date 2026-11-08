@@ -511,25 +511,21 @@ with nothing else in the path.
 
 [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/a2ui-project/labs&cloudshell_git_branch=main&cloudshell_workspace=samples/travel-a2ui&cloudshell_tutorial=docs/cloud-shell.md&show=ide%2Cterminal)
 
-The button opens Cloud Shell with a short guide: sign in, choose a project,
-and run the deploy. Or, without it: one command deploys it to Cloud Run in
-your own Google Cloud project, the server and both clients on one URL. From
-this folder, with the
-[gcloud CLI](https://cloud.google.com/sdk/docs/install) signed in (Cloud Shell
-has it):
+The button opens Cloud Shell with a short guide: sign in, choose a project, and
+run the deploy. From a clone, with the
+[gcloud CLI](https://cloud.google.com/sdk/docs/install) signed in, it is one
+command:
 
 ```bash
-gcloud run deploy travel-a2ui --source . \
-  --region us-central1 --allow-unauthenticated \
-  --memory 1Gi --cpu 1 --concurrency 40 --max-instances 1 --timeout 600
+./scripts/deploy.sh
 ```
 
-Cloud Build builds the `Dockerfile` (about ten minutes the first time). A new
-project first needs its services turned on and one permission granted to the
-build: **[docs/deploying.md](docs/deploying.md)** has those commands. No key is
-stored on the service, because each visitor pastes their own. The same page has
-the one setting not to change: `--max-instances 1`, because conversations live in the
-server's memory.
+It turns on the services the deploy needs, lets the build use them, and
+deploys the server and both clients to Cloud Run in your project, on one URL
+(about ten minutes the first time). No key is stored on the service, because
+each visitor pastes their own. **[docs/deploying.md](docs/deploying.md)** has
+what it runs, a shared key, and the one setting not to change:
+`--max-instances 1`, because conversations live in the server's memory.
 
 One thing the image does that is worth copying: it ends with
 

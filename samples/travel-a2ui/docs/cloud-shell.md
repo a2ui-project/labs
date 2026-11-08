@@ -3,8 +3,8 @@
 <walkthrough-tutorial-duration duration="15"></walkthrough-tutorial-duration>
 
 This deploys the sample to Cloud Run in your own Google Cloud project: the
-Python server and both clients, on one URL. Each step runs in this terminal,
-as you, in the project you choose.
+Python server and both clients, on one URL. It runs in this terminal, as you,
+in the project you choose.
 
 **Time to complete**: about 15 minutes, most of it the first build.
 
@@ -24,43 +24,22 @@ Then choose the project to deploy to. Replace `YOUR_PROJECT_ID` with its ID:
 gcloud config set project YOUR_PROJECT_ID
 ```
 
-## Turn on the services the deploy uses
-
-Once per project:
-
-```sh
-gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com
-```
-
-Then let the build read your source and push its image. A source deploy
-builds as the project's default Compute Engine service account, and in projects
-created since mid-2024 that account starts with no roles, so without this the
-build fails with `PERMISSION_DENIED ... missing required IAM permissions`. Once
-per project:
-
-```sh
-PROJECT_NUMBER=$(gcloud projects describe "$(gcloud config get-value project)" --format='value(projectNumber)')
-gcloud projects add-iam-policy-binding "$(gcloud config get-value project)" --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" --role=roles/run.builder --condition=None
-```
-
 ## Deploy
 
 From this folder, `samples/travel-a2ui`:
 
 ```sh
-gcloud run deploy travel-a2ui --source . --region us-central1 --allow-unauthenticated --memory 1Gi --cpu 1 --concurrency 40 --max-instances 1 --timeout 600
+./scripts/deploy.sh
 ```
 
-Cloud Build builds the `Dockerfile` and Cloud Run serves it. The first build
-takes about ten minutes, because it builds both clients. If it asks to create
-an Artifact Registry repository, answer yes.
-
-**Tip:** keep `--max-instances 1`. Conversations live in the server's memory,
-so a second instance would not know them.
+It turns on Cloud Run, Cloud Build and Artifact Registry, lets the build use
+them (a project created since mid-2024 needs this, or the build fails with
+`PERMISSION_DENIED`), then builds and deploys. The first build takes about ten
+minutes, because it builds both clients. Run it again to deploy a change.
 
 ## Open it
 
-The deploy prints the service URL. Open it, paste a Gemini API key from
+The script ends with the URL. Open it, paste a Gemini API key from
 [Google AI Studio](https://aistudio.google.com/apikey) when the app asks, and
 the Flutter client is at the same URL with `/flutter/` on the end.
 
