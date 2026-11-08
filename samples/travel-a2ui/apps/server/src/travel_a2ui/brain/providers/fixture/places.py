@@ -23,6 +23,8 @@ labelled as invented in its provenance, which is what keeps it honest.
 
 from __future__ import annotations
 
+import re
+
 from typing import Any
 
 from ..types import not_found
@@ -58,10 +60,13 @@ def _resolve(query: str) -> dict[str, Any] | None:
     if alias:
         return alias
     # A phrase like "a few days in Madrid" still resolves to the written-down
-    # Madrid, rather than inventing a city called "a few days in madrid".
+    # Madrid, rather than inventing a city called "a few days in madrid". As a
+    # whole word only: inside another word, a short alias is a coincidence, and
+    # "chill weekend" came back as Chicago ("chi") and "transfer" as San
+    # Francisco ("sf").
     lowered = trimmed.lower()
     for name, entry in _BY_ALIAS.items():
-        if name in lowered:
+        if re.search(rf"\b{re.escape(name)}\b", lowered):
             return entry
     return _invent_destination(trimmed)
 

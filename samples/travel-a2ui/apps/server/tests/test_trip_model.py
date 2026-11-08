@@ -194,6 +194,22 @@ class TestJavaScriptSemanticsThatDoNotPortForFree:
         assert "origin" not in legs[0]
 
 
+class TestAMalformedLeg:
+
+    def test_a_leg_that_is_not_an_object_is_skipped(self) -> None:
+        """`stops` reads the legs as `_legs_of` does, so a stray string on the
+        record is left out rather than taken for a stop."""
+        trip = {
+            "destination": "Madrid",
+            "origin": "JFK",
+            "legs": ["oops", {"destination": "Lisbon"}],
+        }
+        assert model.route.stops(trip) == [
+            {"destination": "Madrid", "origin": "JFK"},
+            {"destination": "Lisbon", "origin": "Madrid"},
+        ]
+
+
 class TestAPartyThatChangesAlongTheWay:
     """One number cannot describe a trip that flies home with a different one.
 

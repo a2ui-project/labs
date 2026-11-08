@@ -186,7 +186,11 @@ class TravelApi {
     // across chunks — so the buffer is the whole of the parsing.
     var buffer = '';
     await for (final chunk in response.stream.transform(utf8.decoder)) {
-      buffer += chunk;
+      // SSE lines may end in CRLF as well as LF. Normalised on the whole
+      // buffer rather than the chunk, so a CRLF split across two chunks is
+      // still one line ending; and only CRLF, because a lone CR at the end of
+      // the buffer may be the first half of one.
+      buffer = (buffer + chunk).replaceAll('\r\n', '\n');
       while (true) {
         final boundary = buffer.indexOf('\n\n');
         if (boundary == -1) break;

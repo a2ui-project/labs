@@ -62,7 +62,7 @@ def stops(trip: Trip) -> list[Leg]:
         if trip.get("travelers") is not None:
             first["travelers"] = trip["travelers"]
 
-    all_legs = ([first] if first else []) + list(trip.get("legs") or [])
+    all_legs = ([first] if first else []) + _legs_of(trip)
 
     resolved: list[Leg] = []
     for index, leg in enumerate(all_legs):
