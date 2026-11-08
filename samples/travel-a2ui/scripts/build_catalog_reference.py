@@ -1,0 +1,437 @@
+#!/usr/bin/env python3
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Builds what the Catalog view shows: every component's signature and a working example.
+
+It is build-time work: the signatures are read off the catalog document in
+declaration order (the order the model is taught), and each example is parsed
+by an A2UI SDK processor over the whole catalog (`wire_processor`) and
+validated as a renderer validates it. The browser receives JSON and renders it
+with `@a2ui/web_core`, which is the whole of what a renderer should have to do.
+
+    python3 scripts/build_catalog_reference.py            # write
+    python3 scripts/build_catalog_reference.py --check    # fail if stale
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import pathlib
+import re
+import sys
+from typing import Any
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+OUT = ROOT / "apps" / "web" / "src" / "generated" / "catalog-reference.json"
+sys.path.insert(0, str(ROOT / "apps" / "server" / "src"))
+
+#: Hand-written where a derived example would not show the component off: a
+#: list needs rows, a map needs real coordinates, and `CheckBox("Madrid", 3)`
+#: compiles, draws and teaches nothing.
+SPECIAL: dict[str, str] = {
+    "AirportPicker": (
+        '$/trip/origin = "JFK"\nroot = AirportPicker("Where from?", $/trip/origin,'
+        ' [{value: "JFK", label: "New York", code: "JFK", detail: "North America"},'
+        ' {value: "CPH", label: "Copenhagen", code: "CPH", detail: "Europe"}, {value:'
+        ' "SFO", label: "San Francisco", code: "SFO", detail: "North America"}],'
+        ' kind="origin", placeholder="City or airport")'
+    ),
+    "List": (
+        '$/items/0/label = "Passport"\n$/items/1/label = "Adapter"\nrow ='
+        " Text($label)\nroot = List(_template($/items, row))"
+    ),
+    "Column": (
+        'a = Text("#### Outbound")\nb = Text("JFK → MAD · Sun 12 Apr")\nroot ='
+        ' Column([a, b], align="stretch")'
+    ),
+    "Row": (
+        'a = Text("Total")\nb = Text("$1,236")\nroot = Row([a, b],'
+        ' justify="spaceBetween")'
+    ),
+    "Card": 'inner = Text("Anything can go in a card.")\nroot = Card(inner)',
+    "Tabs": (
+        'one = Text("Prado at opening, then lunch at Sobrino.")\n'
+        'two = Text("Retiro in the morning, Malasaña after dark.")\n'
+        'root = Tabs([{title: "Day 1", child: one}, {title: "Day 2", child: two}])'
+    ),
+    "ItineraryDay": (
+        'a1 = ActivityItem("Prado Museum", "10:00", category="sight",'
+        ' duration="2h")\na2 = ActivityItem("Lunch at Sobrino", "13:30",'
+        ' category="food", duration="1h 30m")\nroot = ItineraryDay("Day 2 — Old'
+        ' Madrid", [a1, a2], date="Mon 13 Apr", summary="Art, then a long lunch")'
+    ),
+    "PriceSummary": (
+        'root = PriceSummary([{label: "Flights", amount: "$824"}, {label: "Hotel · 6'
+        ' nights", amount: "$1,746"}, {label: "Estimated meals", amount: "$540"}],'
+        ' total="$3,110", caption="2 travellers")'
+    ),
+    "ExpenseSplit": (
+        'root = ExpenseSplit("Dinner at Sobrino", "€96", [{name: "You"}, {name:'
+        ' "Sam"}])'
+    ),
+    "GoogleMap": (
+        "root = GoogleMap(center={lat: 40.4168, lng: -3.7038}, zoom=12, markers=[{lat:"
+        ' 40.4260, lng: -3.7040, label: "Malasaña"}, {lat: 40.4110, lng: -3.7100,'
+        ' label: "La Latina"}, {lat: 40.4153, lng: -3.6844, label: "Retiro Park"}])'
+    ),
+    "MapPreview": (
+        'root = MapPreview([{label: "Madrid"}, {label: "Toledo"}], caption="Day trip,'
+        ' 70km south")'
+    ),
+    "WeatherStrip": (
+        'root = WeatherStrip([{day: "Mon", high: "21°", low: "11°", condition: "sun"},'
+        ' {day: "Tue", high: "19°", low: "10°", condition: "cloud"}, {day: "Wed", high:'
+        ' "17°", low: "9°", condition: "rain"}], place="Madrid", caption="Pack a light'
+        ' jacket for Wednesday")'
+    ),
+    "TripCalendar": (
+        'root = TripCalendar("2027-04-12", "2027-04-18", marks=[{date: "2027-04-12",'
+        ' icon: "plane", label: "Fly out"}, {date: "2027-04-14", icon: "🎨", label:'
+        ' "Prado"}, {date: "2027-04-18", icon: "plane", label: "Fly home"}],'
+        ' title="Madrid", caption="6 nights")'
+    ),
+    "ChoicePicker": (
+        'root = ChoicePicker("Cabin", "mutuallyExclusive", [{label: "Economy", value:'
+        ' "economy"}, {label: "Premium", value: "premium"}], $/cabin)'
+    ),
+    "CheckBox": (
+        'root = CheckBox("I need somewhere to stay in Chicago", $/stops/1/needsStay)'
+    ),
+    "ActivityItem": (
+        'root = ActivityItem("Prado Museum", "10:00", category="sight", '
+        'location="Paseo del Prado 23", duration="2h", note="Book the timed entry")'
+    ),
+    "TextField": (
+        'root = TextField("Flying from", $/trip/origin, placeholder="City or airport")'
+    ),
+    "Slider": (
+        '$/trip/budget = 2400\nroot = Slider("Budget, all in", 500, 6000,'
+        " $/trip/budget)"
+    ),
+    "Button": (
+        'face = Text("Search flights")\nroot = Button(face,'
+        ' action=Event("search_flights"), variant="primary")'
+    ),
+    "DateTimeInput": (
+        '$/trip/startDate = "2027-04-12"\n'
+        'root = DateTimeInput($/trip/startDate, label="Departure", enableDate=true)'
+    ),
+    "TravelerCounter": (
+        '$/trip/travelers = 2\nroot = TravelerCounter("Travelers", $/trip/travelers,'
+        ' min=1, max=9, caption="Adults on this leg")'
+    ),
+    "DateRangePicker": (
+        '$/trip/startDate = "2027-04-12"\n$/trip/endDate = "2027-04-19"\nroot ='
+        ' DateRangePicker("Trip dates", $/trip/startDate, $/trip/endDate,'
+        ' nightsLabel=formatString("${calcNights(start: ${/trip/startDate}, end:'
+        ' ${/trip/endDate})} nights"))'
+    ),
+    "StatTile": (
+        'root = StatTile("Nights in Madrid", "7", caption="12–19 April", tone="accent")'
+    ),
+    "ProgressMeter": (
+        'root = ProgressMeter("Spent of budget", 1840, 3000, caption="$1,160 left")'
+    ),
+    "Text": 'root = Text("### Madrid · 2 travellers · 12–19 April")',
+    "HotelCard": (
+        'root = HotelCard("Hotel Único Madrid", "$291 / night", Event("select_hotel",'
+        ' {id: "unico"}), neighborhood="Salamanca", rating="9.1 · Superb",'
+        ' amenities=["Breakfast", "Rooftop", "Free cancellation"], badge="Best'
+        ' located")'
+    ),
+    "FlightOption": (
+        'root = FlightOption("Iberia", "18:40", "08:15 +1", "JFK", "MAD", "$412", '
+        'Event("select_flight", {id: "IB6252"}), duration="7h 35m", stops="Nonstop", '
+        'flightNumber="IB6252", cabin="economy", badge="Cheapest")'
+    ),
+}
+
+#: Plausible values by property name, for the components with no hand-written example.
+FLAVOUR: list[tuple[str, Any]] = [
+    (r"^(airline|carrier)$", "Iberia"),
+    (r"^flightNumber$", "IB6250"),
+    (r"^(origin|from)$", "JFK"),
+    (r"^(destination|to)$", "MAD"),
+    (r"^(value|current)$", 3),
+    (r"^max$", 10),
+    (r"^min$", 1),
+    (r"(price|fare|amount|total|budget|nightly)$", "$412"),
+    (r"^(caption|summary|note|description|subtitle)$", "Lands early enough for dinner"),
+    (r"^(label|title|text|heading|name|place|city)$", "Madrid"),
+    (
+        r"^(url|href|src|image)$",
+        "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=640",
+    ),
+]
+
+BASIC = {
+    "Text", "Image", "Icon", "Video", "AudioPlayer", "Row", "Column", "List", "Card",
+    "Tabs", "Modal", "Divider", "Button", "TextField", "CheckBox", "ChoicePicker",
+    "Slider", "DateTimeInput",
+}  # fmt: skip
+
+
+def _quote(value: str) -> str:
+    return json.dumps(value, ensure_ascii=False)
+
+
+def _value_for(prop: str, schema: dict[str, Any] | None, enum: list[str] | None) -> str:
+    if enum:
+        return _quote(enum[0])
+    for pattern, value in FLAVOUR:
+        if re.search(pattern, prop, re.IGNORECASE):
+            return _quote(value) if isinstance(value, str) else json.dumps(value)
+    kind = (schema or {}).get("type")
+    if kind in ("number", "integer"):
+        return "1"
+    if kind == "boolean":
+        return "true"
+    if kind == "array":
+        return "[]"
+    return _quote(prop)
+
+
+class Vocabulary:
+    """The catalog document, read for signatures: properties in declaration order."""
+
+    def __init__(self, document: dict[str, Any]) -> None:
+        self.document = document
+        self.components = list(document["components"])
+        self.functions = list(document.get("functions") or {})
+
+    def _parts(self, entry: dict[str, Any]) -> list[dict[str, Any]]:
+        parts: list[dict[str, Any]] = []
+        for part in entry.get("allOf") or [entry]:
+            ref = part.get("$ref", "")
+            if ref.startswith("#/$defs/"):
+                parts.extend(
+                    self._parts(self.document["$defs"][ref.rsplit("/", 1)[-1]])
+                )
+            elif ref.endswith("/Checkable"):
+                # The spec's mixin for inputs: it adds `checks`.
+                parts.append({"properties": {"checks": {"type": "array"}}})
+            else:
+                parts.append(part)
+        return parts
+
+    def resolved(self, schema: dict[str, Any]) -> dict[str, Any]:
+        """A property schema with a local `$ref` folded in, for its description."""
+        ref = schema.get("$ref", "")
+        if ref.startswith("#/$defs/"):
+            return {**self.document["$defs"][ref.rsplit("/", 1)[-1]], **schema}
+        return schema
+
+    def component(self, name: str) -> tuple[dict[str, Any], set[str], str | None]:
+        properties: dict[str, Any] = {}
+        required: set[str] = set()
+        description = None
+        for part in self._parts(self.document["components"][name]):
+            properties.update(part.get("properties") or {})
+            required.update(part.get("required") or [])
+            description = description or part.get("description")
+        return properties, required, description
+
+    def function(self, name: str) -> tuple[dict[str, Any], set[str], str | None]:
+        entry = self.document["functions"][name]
+        args = (entry.get("properties") or {}).get("args") or {}
+        return (
+            dict(args.get("properties") or {}),
+            set(args.get("required") or []),
+            entry.get("description"),
+        )
+
+
+def _enum(schema: dict[str, Any]) -> list[str] | None:
+    """The literal choices a property offers, wherever the schema keeps them."""
+    if isinstance(schema.get("enum"), list):
+        return list(schema["enum"])
+    for key in ("oneOf", "anyOf"):
+        for variant in schema.get(key) or []:
+            found = _enum(variant) if isinstance(variant, dict) else None
+            if found:
+                return found
+    return None
+
+
+def _kind(schema: dict[str, Any]) -> str | None:
+    ref = schema.get("$ref", "")
+    return ref.rsplit("/", 1)[-1] if ref else schema.get("type")
+
+
+def example(vocabulary: Vocabulary, name: str) -> str:
+    """Express that draws one component: required properties, plus any with an enum."""
+    if name in SPECIAL:
+        return SPECIAL[name]
+    properties, required, _ = vocabulary.component(name)
+    parts: list[str] = []
+    lines: list[str] = []
+    named = False  # once one is skipped, everything after must be named
+    for prop, schema in properties.items():
+        if prop in ("component", "id"):
+            continue
+        enum = _enum(schema)
+        if prop not in required and not enum:
+            named = True
+            continue
+        kind = _kind(schema)
+
+        def emit(literal: str) -> None:
+            nonlocal named
+            positional = prop in required and not named
+            if not positional:
+                named = True
+            parts.append(literal if positional else f"{prop}={literal}")
+
+        if kind in ("Child", "ChildList", "ComponentId"):
+            child = f"{name[0].lower()}{name[1:]}Child"
+            lines.append(f'{child} = Text("Inside {name}")')
+            emit(f"[{child}]" if kind == "ChildList" else child)
+        elif prop == "action":
+            emit(f'Event("example", {{component: {_quote(name)}}})')
+        else:
+            emit(_value_for(prop, schema, enum))
+    lines.append(f"root = {name}({', '.join(parts)})")
+    return "\n".join(lines)
+
+
+def _props(
+    vocabulary: Vocabulary, name: str, *, function: bool = False
+) -> list[dict[str, Any]]:
+    properties, required, _ = (
+        vocabulary.function(name) if function else vocabulary.component(name)
+    )
+    out = []
+    for prop, schema in properties.items():
+        if prop in ("component", "id", "call", "returnType", "@call"):
+            continue
+        ref = json.dumps(schema)
+        schema = vocabulary.resolved(schema)
+        entry: dict[str, Any] = {
+            "name": prop,
+            "required": prop in required,
+            "static": not re.search(r"DataBinding|Dynamic|ChildList|ComponentId", ref),
+        }
+        if _enum(schema) and not function:
+            entry["enum"] = _enum(schema)
+        if isinstance(schema.get("description"), str):
+            entry["description"] = schema["description"]
+        out.append(entry)
+    return out
+
+
+def build() -> dict[str, Any]:
+    from a2ui.parser import A2uiPart, to_message_dicts
+    from a2ui.utils import validate_payload
+
+    from travel_a2ui.brain.catalog import CATALOG, CATALOG_ID, CATALOG_JSON, wire_processor
+
+    vocabulary = Vocabulary(CATALOG.to_json())
+    processor = wire_processor()
+    components = []
+    for name in sorted(vocabulary.components):
+        props = _props(vocabulary, name)
+        source = example(vocabulary, name)
+        _, _, description = vocabulary.component(name)
+        entry: dict[str, Any] = {
+            "name": name,
+            "travel": name not in BASIC,
+            "args": ", ".join(
+                f"{p['name']}{'' if p['required'] else '?'}" for p in props
+            ),
+            "props": props,
+            "express": source,
+        }
+        if description:
+            entry["description"] = description
+        try:
+            parts = processor.parse_response(
+                f'<a2ui>\nsurface("preview_{name}")\n{source}\n</a2ui>'
+            )
+            messages = [
+                m
+                for part in parts
+                if isinstance(part, A2uiPart)
+                for m in to_message_dicts(part.a2ui)
+            ]
+            validate_payload([CATALOG], messages)
+            entry["messages"] = messages
+        except Exception as error:  # noqa: BLE001 - shown on the page, and fails --check
+            entry["error"] = f"{type(error).__name__}: {error}"
+        components.append(entry)
+
+    functions = []
+    for name in sorted(vocabulary.functions):
+        props = _props(vocabulary, name, function=True)
+        _, _, description = vocabulary.function(name)
+        entry = {
+            "name": name,
+            "args": ", ".join(
+                f"{p['name']}{'' if p['required'] else '?'}" for p in props
+            ),
+            "props": props,
+        }
+        if description:
+            entry["description"] = description
+        functions.append(entry)
+
+    return {
+        "catalogId": CATALOG_ID,
+        "version": CATALOG_JSON.get("version") or CATALOG_JSON.get("protocolVersion"),
+        "components": components,
+        "functions": functions,
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument(
+        "--check", action="store_true", help="fail if the file on disk is stale"
+    )
+    args = parser.parse_args()
+
+    reference = build()
+    broken = [c["name"] for c in reference["components"] if "error" in c]
+    text = json.dumps(reference, ensure_ascii=False, indent=1) + "\n"
+    if broken:
+        for c in reference["components"]:
+            if "error" in c:
+                print(f"{c['name']}: {c['error']}", file=sys.stderr)
+        return 1
+    if args.check:
+        current = OUT.read_text(encoding="utf-8") if OUT.exists() else ""
+        if current != text:
+            print(
+                "The catalog reference is stale. Regenerate: python3"
+                " scripts/build_catalog_reference.py",
+                file=sys.stderr,
+            )
+            return 1
+        print(
+            f"The catalog reference is current: {len(reference['components'])}"
+            " components."
+        )
+        return 0
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(text, encoding="utf-8")
+    print(
+        f"Wrote {OUT.relative_to(ROOT)}: {len(reference['components'])} components, "
+        f"{len(reference['functions'])} functions."
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

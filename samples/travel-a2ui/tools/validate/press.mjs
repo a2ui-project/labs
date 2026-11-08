@@ -1,0 +1,408 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * The real client, pressing a fare the moment it appears.
+ *
+ * `tools/validate/journey.py` posts to `/api/chat` itself, so it has never
+ * exercised what the *browser* sends — the receipt it carries, the surface's
+ * data model, the session id — nor what it does to a turn still streaming when
+ * somebody presses something. That gap hid a real bug for a day: the receipt
+ * and the session write both happened after the sidebar rebuild, so pressing a
+ * fare as soon as it drew aborted the stream before either landed, and the next
+ * turn ran against an empty trip and asked for the route, the dates and the
+ * party all over again.
+ *
+ * So this drives Chromium against the app, presses the first fare as soon as it
+ * can see one, and prints every request body.
+ *
+ *   GEMINI_API_KEY=… BASE_URL=http://127.0.0.1:8787 node tools/validate/press.mjs
+ *
+ * It costs real money and needs a browser, so it is not in CI.
+ */
+import {chromium} from 'playwright';
+
+const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:8191';
+const KEY = process.env.GEMINI_API_KEY ?? '';
+const PROMPT =
+  'A trip for two from Copenhagen to Berlin, leaving next monday, coming back next thursday, ' +
+  'but only one person on the way back. Include hotel close to Kurfürstendamm.';
+
+const browser = await chromium.launch({
+  executablePath: process.env.CHROMIUM_PATH || undefined,
+  // The session's egress proxy terminates TLS with its own CA, which Chromium
+  // does not carry. Only used to reach our own deployment from inside here.
+  args: ['--ignore-certificate-errors'],
+});
+const page = await browser.newPage({
+  viewport: {width: 1280, height: 1600},
+  ignoreHTTPSErrors: true,
+});
+
+const sent = [];
+page.on('request', request => {
+  if (request.method() !== 'POST' || !request.url().includes('/api/chat')) return;
+  try {
+    sent.push(JSON.parse(request.postData() ?? '{}'));
+  } catch {
+    /* ignore */
+  }
+});
+
+await page.addInitScript(key => {
+  try {
+    // The name the app actually reads — see `API_KEY` in useAgent.ts.
+    window.localStorage.setItem('travel-a2ui:key', key);
+  } catch {
+    /* ignore */
+  }
+}, KEY);
+
+await page.goto(BASE, {waitUntil: 'networkidle'});
+
+const box = page.locator('textarea, input[type="text"]').last();
+await box.waitFor({timeout: 20000});
+await box.fill(PROMPT);
+await page.keyboard.press('Enter');
+
+// Everything pressed here is scoped to the conversation column, and within it
+// to the *live* card: `.turn__surface--spent` is how the client marks a card the
+// turn has moved past. Page-wide selectors read the panel too, which has an
+// "Outbound flight — … Change" row on it, and the first run of this script
+// pressed that Change link instead of the return fare and measured nothing.
+const FEED = '.chat__feed';
+const LIVE = `${FEED} .turn__surface:not(.turn__surface--spent)`;
+const SPENT = `${FEED} .turn__surface--spent`;
+// Option rows, not the boxes around them: the renderer's class names repeat
+// down the tree, so a bare match counts a card several times over.
+const leaf = word => `[class*="${word}" i]:not(:has([class*="${word}" i]))`;
+
+/** Wait until the live card holds options of this kind, or give up. */
+async function liveOptions(word, timeout = 240000) {
+  const rows = page.locator(`${LIVE} ${leaf(word)}`);
+  const until = Date.now() + timeout;
+  while (Date.now() < until) {
+    if (await rows.count()) return rows;
+    await page.waitForTimeout(2000);
+  }
+  return null;
+}
+
+// Wait for fares to appear.
+const fares = (await liveOptions('flight')) ?? page.locator(`${LIVE} ${leaf('flight')}`);
+await page.waitForTimeout(6000);
+
+const shot = process.env.SHOTS ?? '/tmp/shots';
+await page.screenshot({path: `${shot}/1-outbound.png`, fullPage: true});
+
+console.log('fare cards on the live card:', await fares.count());
+
+/** What a screen reader would be told about the fares and stays on screen. */
+async function spokenCards() {
+  const cards = page.locator(`${FEED} [class*="tv-flight" i], ${FEED} [class*="tv-hotel" i]`);
+  return cards.evaluateAll(nodes =>
+    nodes.map(node => node.getAttribute('aria-label')).filter(label => label && label.trim()),
+  );
+}
+
+// Read twice, and the first reading is the less interesting one.
+//
+// A lookup paints a skeleton the instant it starts and the model's own card
+// replaces it a few seconds later, so a reading taken here catches whichever
+// producer happens to be on screen — the host's, usually, because it is
+// faster. Which is the measurement this probe got wrong once already: it
+// printed the host's sentences in production and the agent's locally, off the
+// same code, and the difference was the clock.
+//
+// The reading that answers the question is the one after the turn settles, and
+// it is below. Both are printed rather than asserted, because the count
+// depends on how many cards this particular turn drew.
+{
+  const labels = await spokenCards();
+  console.log(`cards a screen reader is told about, mid-stream: ${labels.length}`);
+  for (const label of labels.slice(0, 3)) console.log(`   "${label}"`);
+}
+
+// The panel *before* anything is pressed. "Why does the sidebar not start to
+// build until I select the first flight" is this line coming back empty.
+const before = await page
+  .locator('aside, [class*="sidebar" i]')
+  .first()
+  .innerText()
+  .catch(() => '');
+console.log('\n=== the panel, before the press ===');
+console.log(before.slice(0, 260) || '(nothing)');
+// A turn that drew no fares is a finding, not a crash.
+//
+// This was a bare `.click()`, so a run where the agent recorded the trip and
+// did not search timed out after 30s and threw an uncaught `TimeoutError` —
+// taking every verdict the probe had already earned with it, and reading like
+// a protocol failure when it was one turn of model weather. Say what was on
+// screen and stop.
+// Press once the turn has stopped painting.
+//
+// A click landed on `<span class="tv-flight__mark">EW</span>` — `leaf()`
+// matches the innermost flight-classed elements, which is several per card —
+// while a newer `turn__surface` was still being drawn over it. Playwright
+// retried for 30s against "intercepts pointer events" and then threw. The card
+// was fine; the probe was pressing mid-paint.
+for (let waited = 0; waited < 180000; waited += 2000) {
+  if (!(await page.locator('.composer__stop').count())) break;
+  await page.waitForTimeout(2000);
+}
+
+if ((await fares.count()) === 0) {
+  console.log('\nFAIL — the opening turn drew no fares to press.');
+  console.log('   The agent recorded the trip and did not search this run.');
+  await page.screenshot({path: `${shot}/0-no-fares.png`, fullPage: true});
+  await browser.close();
+  process.exit(1);
+}
+await fares.first().click();
+
+await page.waitForTimeout(25000);
+await page.screenshot({path: `${shot}/2-after-press.png`, fullPage: true});
+
+// Carry on to the stay, and watch whether the card survives being pressed.
+//
+// "Sometimes selecting the hotel makes the hotel disappear." A turn draws onto
+// the surface it was given, so every card pressed should stay exactly where it
+// is — greyed, with the choice still on it. This walks outbound → return → stay
+// and checks every option the traveler was choosing between is still readable
+// in the conversation once the next turn has finished.
+//
+// By name, not by counting a card: the first attempt counted rows inside
+// `.turn__surface--spent` and called a run failed while the screenshot beside
+// it showed all three hotels on screen. The card had simply not gone spent yet,
+// because the turn that answers the press is still streaming. What the
+// complaint is actually about is whether the names are still there, so look for
+// the names, and look once the turn has gone quiet.
+if (process.env.THROUGH_TO_HOTEL) {
+  /**
+   * A name off each option that will still read the same in ten seconds.
+   *
+   * Not the price. A card re-sends itself as it streams, and the press lands
+   * while it is still doing that: one run pressed a stay showing "€112 / night"
+   * and checked afterwards for a card that by then said "€112 a night". The
+   * cards were all there — the screenshot beside the failure showed three of
+   * them, greyed, with the booking made — and the probe had compared the one
+   * piece of text the model was still editing.
+   *
+   * So: skip badges (all caps), skip anything that opens with a number or a
+   * currency symbol, and keep what is left — "Pension Savignyplatz",
+   * "Norwegian", "Charlottenburg".
+   */
+  const namesOf = async rows =>
+    (await rows.allInnerTexts())
+      .map(text =>
+        text
+          .split('\n')
+          .map(line => line.trim())
+          .find(
+            line =>
+              line.length > 2 &&
+              !/^[A-Z ]+$/.test(line) && // BEST VALUE, CHEAPEST
+              !/^[\d€$£¥]/.test(line), // 4.3 (612), €112 a night
+          ),
+      )
+      .filter(Boolean);
+
+  /** Wait for the turn to stop streaming — the composer's Stop button goes. */
+  async function settled(timeout = 180000) {
+    const until = Date.now() + timeout;
+    while (Date.now() < until) {
+      if (!(await page.locator('.composer__stop').count())) return true;
+      await page.waitForTimeout(2000);
+    }
+    return false;
+  }
+
+  /** The panel's text, for watching a decision arrive in it. */
+  const panelText = () =>
+    page
+      .locator('aside, [class*="sidebar" i]')
+      .first()
+      .innerText()
+      .catch(() => '');
+
+  /**
+   * How long after a press the panel moves.
+   *
+   * The panels are bound to `$/trip/...`, so bringing them up to date is one
+   * `updateDataModel` and no model call — and the host records a press before
+   * the model is even asked. They were only *sent* at the end of the turn,
+   * which left the one surface whose job is showing what has been decided as
+   * the last thing told that anything had been.
+   *
+   * Measured as "the panel's text changed", not "the panel contains the name
+   * of the card I pressed". The first version did the latter and reported the
+   * panel never mentioning `SK502` while the settled check beside it said the
+   * panel had caught up with both choices — because a card's name, as scraped
+   * off the card, is not a string the panel displays. What is being claimed
+   * here is that the panel reacts; that is what this waits for.
+   */
+  async function panelMoves(before, began, budget = 90000) {
+    while (Date.now() - began < budget) {
+      const now = await panelText();
+      if (now && now !== before) return Date.now() - began;
+      await page.waitForTimeout(200);
+    }
+    return null;
+  }
+
+  /** Press the first option of a kind, then check none of them went missing. */
+  async function pick(word, label) {
+    const rows = await liveOptions(word);
+    if (!rows) {
+      console.log(`\n${label}: nothing to press — the turn never drew one`);
+      return;
+    }
+    const before = await namesOf(rows);
+    console.log(`\n${label}: ${before.length} on the live card — ${before.join(', ')}`);
+    const panelBefore = await panelText();
+    const pressedAt = Date.now();
+    await rows.first().click();
+    const moved = await panelMoves(panelBefore, pressedAt);
+    console.log(
+      moved === null
+        ? '   the panel never moved'
+        : `   the panel moved ${(moved / 1000).toFixed(1)}s after the press`,
+    );
+    const quiet = await settled();
+    const feed = await page.locator(FEED).innerText();
+    const lost = before.filter(name => !feed.includes(name));
+    console.log(
+      lost.length === 0
+        ? `ok — all ${before.length} are still in the conversation${quiet ? '' : ' (turn still streaming)'}`
+        : `FAIL — these disappeared when one was pressed: ${lost.join(', ')}`,
+    );
+  }
+
+  await pick('flight', 'return flights');
+  await pick('hotel', 'stays');
+  await page.screenshot({path: `${shot}/3-after-hotel.png`, fullPage: true});
+
+  // The panel catches up in a request of its own, fired once the turn is over,
+  // so a screenshot taken the moment the Stop button goes can still show the
+  // panel as it was two decisions ago. Give it time and read it again: if it
+  // still says a flight is awaited after one was chosen, that is the panel
+  // being stale rather than the shot being early.
+  // Long enough for the turn *after* the last press to finish and the panel
+  // to be redrawn behind it. The itinerary turn is the longest in the app, and
+  // a panel read while it is still running is a panel one press behind — which
+  // is a true observation about the clock, not about the panel.
+  await settled();
+  await page.waitForTimeout(40000);
+  await page.screenshot({path: `${shot}/4-settled.png`, fullPage: true});
+
+  // Every fare and stay on screen, once nothing is streaming.
+  //
+  // These are the *host's* cards and that is by design, which took two wrong
+  // readings to see. A lookup paints a skeleton the instant it starts, fills
+  // it from the data model when it lands, and the model is told in the tool
+  // result not to draw that surface again — "drawing over it replaces the
+  // cards they are looking at with an empty one". So on this door the search
+  // results belong to `skeleton.py`, and their labels come from
+  // `brain/spoken.py` with them.
+  //
+  // What the brief's house rule governs is the surfaces the agent really does
+  // compose: the trip panel, the itinerary, the dashboard. The sentences below
+  // say which kind they are. The host writes the provider's own fields —
+  // "Nonstop, €138", one price, no badge. The agent writes things the host
+  // never would: "nonstop, €69 each, €138 for 2, cheapest".
+  {
+    const labels = await spokenCards();
+    const total = await page
+      .locator(`${FEED} [class*="tv-flight" i], ${FEED} [class*="tv-hotel" i]`)
+      .count();
+    console.log(`\n=== what a screen reader is told, once settled ===`);
+    console.log(`${labels.length} named, of ${total} card elements on screen`);
+    for (const label of labels.slice(0, 6)) console.log(`   "${label}"`);
+  }
+  const settledPanel = await page
+    .locator('aside, [class*="sidebar" i]')
+    .first()
+    .innerText()
+    .catch(() => '');
+  // The footer carries the turn count and the token split, which is the
+  // cheapest honest measure of whether a change made the agent faster: output
+  // tokens are most of a streaming turn's wall clock.
+  const footer = await page.locator('body').innerText();
+  const counted = footer.match(/(\d+) turns[^\n]*/);
+  console.log('\n=== the footer, as a measurement ===');
+  console.log(counted ? counted[0] : '(no counter on screen)');
+
+  console.log('\n=== the panel, once everything has settled ===');
+  console.log(settledPanel.slice(0, 700) || '(nothing)');
+  console.log(
+    // Every way the panel has been seen to say "not yet", because the check is
+    // only as good as its vocabulary: it read "selection pending" as caught up.
+    /awaiting selection|selecting hotel|selection pending|not booked|needs ticket/i.test(
+      settledPanel,
+    )
+      ? 'FAIL — the panel still says a decision is outstanding that was made'
+      : 'ok — the panel has caught up with both choices',
+  );
+}
+
+console.log('\n=== what the browser sent ===');
+for (const [index, body] of sent.entries()) {
+  const kind = body.action
+    ? `press ${body.action.name}`
+    : `say ${JSON.stringify(body.message ?? '').slice(0, 60)}`;
+  console.log(`\n-- POST ${index + 1}: ${kind}`);
+  console.log('   sessionId      :', body.sessionId);
+  console.log('   surfaceId      :', body.surfaceId ?? '(server picks)');
+  console.log('   resume.trip    :', JSON.stringify(body.resume?.trip ?? null));
+  console.log('   resume.interaction:', (body.resume?.interactionId ?? '').slice(0, 24));
+  console.log('   resume.setup   :', body.resume?.setup);
+  if (body.action) {
+    console.log('   action.context :', JSON.stringify(body.action.context));
+    console.log('   action.surface :', body.action.surfaceId);
+    console.log('   action.dataModel.trip:', JSON.stringify(body.action.dataModel?.trip ?? null));
+  }
+}
+
+const text = await page.locator('body').innerText();
+console.log('\n=== the turn after the press, as text ===');
+console.log(text.split('FROM THE INTERFACE').pop()?.slice(0, 700));
+// Is there a panel beside the conversation, and does it know the trip?
+const panel = await page
+  .locator('aside, [class*="sidebar" i]')
+  .first()
+  .innerText()
+  .catch(() => '');
+console.log('\n=== the panel, right after the press ===');
+console.log(panel.slice(0, 420) || '(nothing)');
+
+// Only the conversation column. The panel's calendar is the *record* of the
+// dates — read-only, and the right thing to show — so looking at the whole page
+// reports a question wherever the trip has dates at all.
+const said = await page
+  .locator('.turn, [class*="turn" i]')
+  .allInnerTexts()
+  .catch(() => []);
+const conversation = said.join('\n');
+const asking = /mm\/dd\/yyyy|Trip dates|Travel dates|Set trip details/i.test(conversation);
+console.log('\n=== does the conversation ask for dates again? ===');
+console.log(
+  asking
+    ? 'FAIL — a date control is in the conversation after the press'
+    : 'ok — no date control after the press',
+);
+process.exitCode = asking ? 1 : 0;
+
+await browser.close();

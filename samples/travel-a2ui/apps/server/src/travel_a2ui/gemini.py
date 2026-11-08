@@ -1,0 +1,705 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""The model, through the Interactions API.
+
+The Google GenAI SDK does the transport. `client.aio.interactions.create(stream=True)` yields typed
+events, so what is left is the part that is actually this app's: turning a
+stream of steps into one result the agent loop can act on.
+
+Two things the SDK does not decide, which cost real bugs the first time and are
+kept in comments where they were learned:
+
+  **A tool call's arguments are not whole until the step stops.** They arrive
+  as partial JSON across several deltas, and some calls arrive complete in
+  `step.start` instead. Seeding the buffer from `step.start` unconditionally
+  produced `{}{"destination":"Madrid"}` — which parses as nothing, so every
+  tool in the app was called with no arguments and nobody noticed, because a
+  tool called with no arguments politely asks for more information.
+
+  **Usage is reported in two incompatible ways.** A plain model turn reports
+  the interaction's total on `interaction.completed` and nothing per step; a
+  managed agent reports per step and not at all at the end. Adding both
+  double-counts; reading only `step.stop` shows every model turn costing zero.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import json
+import os
+import re
+from dataclasses import dataclass, field
+from typing import Any, AsyncIterator, Callable, Sequence
+
+from google.genai import Client, types
+
+
+@dataclass
+class Usage:
+    input_tokens: int = 0
+    output_tokens: int = 0
+    cached_tokens: int = 0
+    thought_tokens: int = 0
+
+    def as_dict(self) -> dict[str, int]:
+        return {
+            "inputTokens": self.input_tokens,
+            "outputTokens": self.output_tokens,
+            "cacheReadTokens": self.cached_tokens,
+            # Gemini caches implicitly: there is no write to pay for, and
+            # reporting one would invent a cost that does not exist.
+            "cacheWriteTokens": 0,
+            "thoughtTokens": self.thought_tokens,
+        }
+
+
+@dataclass
+class ToolCall:
+    id: str
+    name: str
+    args: dict[str, Any]
+    #: The model's own signature over the reasoning that produced this call.
+    #:
+    #: Needed only to hand the call *back* to the API as history — see
+    #: `replayable` below. The API rejects a replayed `function_call` step that
+    #: does not carry it, with "Request contains an invalid argument" and no
+    #: indication of which argument, so a caller that drops it silently loses
+    #: the ability to continue a turn it started.
+    signature: str | None = None
+
+    def replayable(self) -> dict[str, Any]:
+        """This call as a `function_call` step the API will accept back.
+
+        A round of tool use is two halves — what the model asked for and what
+        came back — and the API only accepts the second if it is preceded by
+        the first. Sending the result alone works while the server still holds
+        the call; when it does not, the turn dies on "please ensure that
+        function response turn comes immediately after a function call turn".
+        """
+        step: dict[str, Any] = {
+            "type": "function_call",
+            "id": self.id,
+            "name": self.name,
+            "arguments": self.args,
+        }
+        if self.signature:
+            step["signature"] = self.signature
+        return step
+
+
+@dataclass
+class InteractionResult:
+    interaction_id: str | None = None
+    tool_calls: list[ToolCall] = field(default_factory=list)
+    text: str = ""
+    usage: Usage = field(default_factory=Usage)
+    status: str | None = None
+    #: The model that actually answered, when it is not the one that was asked
+    #: for. Set only on a fallback, so a caller can say so rather than quietly
+    #: reporting a model that was busy.
+    served_by: str | None = None
+
+
+class GeminiError(Exception):
+    """An API failure in words the traveller can act on.
+
+    "401" is not a message; "that key was rejected" is. Because the key comes
+    from the person sitting in front of the app, auth failures are the most
+    likely error here and deserve the clearest wording — which is why the
+    sentence is built at the point of failure rather than reconstructed from a
+    status code at the far end.
+    """
+
+    def __init__(
+        self, message: str, status: int = 500, retryable: bool = False
+    ) -> None:
+        super().__init__(message)
+        self.status = status
+        self.retryable = retryable
+
+
+#: The SDK retries only server errors itself. A 429 comes straight back, so
+#: `_open` can tell a project over its spending cap (say so, now) from a busy
+#: model (back off, then the fallback); the SDK's own retry of a 429 honoured
+#: its 30-second Retry-After and outlasted every deadline here.
+_HTTP_OPTIONS = types.HttpOptions(
+    retry_options=types.HttpRetryOptions(http_status_codes=[500, 502, 503, 504])
+)
+
+
+def _google_message(detail: str) -> str:
+    """The `message` inside an API error, or the detail as it came."""
+    found = re.search(r"""['"]message['"]\s*:\s*['"](.+?)['"]\s*[,}]""", detail)
+    return (found.group(1) if found else detail).strip()
+
+
+def _describe(status: int, detail: str) -> GeminiError:
+    if status in (401, 403):
+        return GeminiError(
+            "That API key was rejected. Check it is a Gemini key with the Interactions"
+            " API enabled.",
+            status,
+            False,
+        )
+    if status == 429:
+        # A project over its spending cap gets 429 too, and no wait or second
+        # model gets past it. Google's own sentence says what to do, with the
+        # link, so it is passed on and not retried.
+        said = _google_message(detail)
+        if "spend" in said.lower():
+            return GeminiError(said, status, False)
+        return GeminiError(
+            "That key has hit its rate limit. Wait a moment and try again.",
+            status,
+            True,
+        )
+    if status == 404:
+        return GeminiError(
+            "That model is not available to this key. Try another model.", status, False
+        )
+    if status >= 500:
+        # Google's own words, kept. "Gemini had a problem" was all this said,
+        # and a turn that dies with a sentence carrying no information is a bug
+        # report nobody can write — it took a tracing harness to find out that
+        # one model was failing mid-stream and another was not.
+        said = detail.strip()
+        return GeminiError(
+            f"Gemini had a problem. Worth trying again. ({said[:300]})"
+            if said
+            else "Gemini had a problem. Worth trying again.",
+            status,
+            True,
+        )
+    return GeminiError(detail or f"Gemini returned {status}.", status, False)
+
+
+def _as_dict(value: Any) -> dict[str, Any]:
+    """A pydantic event, a TypedDict or a plain dict, as a plain dict.
+
+    The SDK's union is `lenient`, so an event type it does not know arrives as
+    `UnknownInteractionSSEEvent` with the raw payload on it. Reading through a
+    dict rather than through attributes means a new step type upstream degrades
+    to "ignored" rather than to an exception mid-turn.
+    """
+    if value is None:
+        return {}
+    if isinstance(value, dict):
+        return value
+    dump = getattr(value, "model_dump", None)
+    if callable(dump):
+        return dump()
+    return dict(getattr(value, "__dict__", {}) or {})
+
+
+def _read_usage(raw: dict[str, Any]) -> Usage:
+    return Usage(
+        input_tokens=int(raw.get("total_input_tokens") or 0),
+        output_tokens=int(raw.get("total_output_tokens") or 0),
+        cached_tokens=int(raw.get("total_cached_tokens") or 0),
+        thought_tokens=int(raw.get("total_thought_tokens") or 0),
+    )
+
+
+def _parse_args(raw: str) -> dict[str, Any]:
+    """Streamed tool arguments, which are only valid JSON once complete."""
+    if not raw.strip():
+        return {}
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+#: What `generation_config.thinking_level` accepts, cheapest first.
+#:
+#: `minimal` was missing here and it is the one that matters: a turn asked for
+#: `low` still spent 3,316 thought tokens — about thirteen seconds — deciding
+#: how to draw a form it draws every time.
+THINKING_LEVELS = ("minimal", "low", "medium", "high")
+
+
+def supported_level(model: str, level: str | None) -> str | None:
+    """The requested thinking level, or the cheapest one this model has.
+
+    Measured, because the API's answer and the model's answer are different
+    questions. `generation_config.thinking_level` accepts four values; ask
+    `gemini-3.8-flash` for the cheapest of them and the whole turn dies with
+
+        400 'minimal' is not a supported thinking level for this model.
+        Allowed values are: medium, low, high.
+
+    while every Flash Lite takes it. So a level this model does not have is
+    raised to the cheapest one it does rather than sent and refused — a default
+    that gets faster where it can is worth having, and a default that 400s
+    somebody's turn is not.
+    """
+    if level not in THINKING_LEVELS:
+        return None
+    if level == "minimal" and "lite" not in model.lower():
+        return "low"
+    return level
+
+
+def build_body(
+    *,
+    model: str,
+    input: Sequence[dict[str, Any]],
+    system_instruction: str | None = None,
+    tools: Sequence[dict[str, Any]] | None = None,
+    thinking_level: str | None = None,
+    previous_interaction_id: str | None = None,
+) -> dict[str, Any]:
+    """The request, as the Interactions API wants it.
+
+    Split out from the call so a test can assert what is sent without a network
+    or a key — which is the only way to check that `previous_interaction_id` is
+    threaded, and threading it is the difference between a tenth turn sending
+    one message and re-uploading nine.
+    """
+    body: dict[str, Any] = {"model": model, "input": list(input), "stream": True}
+    if system_instruction:
+        body["system_instruction"] = system_instruction
+    if tools:
+        body["tools"] = list(tools)
+    if thinking_level:
+        # Rejected outright by the API if it is not one of these — a 400 that
+        # kills the whole turn for a typo in a query string. The four are what
+        # `generation_config.thinking_level` accepts; anything else is dropped
+        # and the model's own default applies.
+        level = supported_level(model, thinking_level)
+        if level:
+            body["generation_config"] = {"thinking_level": level}
+    if previous_interaction_id:
+        body["previous_interaction_id"] = previous_interaction_id
+    return body
+
+
+async def stream_interaction(
+    *,
+    api_key: str,
+    model: str,
+    input: Sequence[dict[str, Any]],
+    system_instruction: str | None = None,
+    tools: Sequence[dict[str, Any]] | None = None,
+    thinking_level: str | None = None,
+    previous_interaction_id: str | None = None,
+    #: Where to go when the model asked for is busy. See `_open`.
+    fallback_model: str | None = None,
+    #: Whether a surface has reached the screen yet. See `_standby`.
+    has_drawn: Callable[[], bool] | None = None,
+    client: Any | None = None,
+) -> AsyncIterator[dict[str, Any]]:
+    """One model turn, streamed.
+
+    An async generator rather than a function taking an `on_text` callback, and
+    the difference is not stylistic. The caller is itself a generator feeding an
+    SSE response, and a callback cannot yield — so a callback-shaped version has
+    to buffer every delta until the model turn ends and emit them all at once,
+    which is exactly the "screen stays empty, then everything lands" behaviour
+    the streaming exists to avoid.
+
+    Yields `{"type": "text", "delta": ...}` as prose arrives, then exactly one
+    `{"type": "result", "result": InteractionResult}` last.
+
+    `client` is injectable so a test can drive the whole loop off a scripted
+    stream. Nothing else about this function knows it is being tested.
+    """
+    genai = client or Client(api_key=api_key, http_options=_HTTP_OPTIONS)
+    body = build_body(
+        model=model,
+        input=input,
+        system_instruction=system_instruction,
+        tools=tools,
+        thinking_level=thinking_level,
+        previous_interaction_id=previous_interaction_id,
+    )
+
+    result = InteractionResult()
+    # Steps are addressed by index, and a tool call's arguments arrive across
+    # several deltas as partial JSON — whole only once the step stops.
+    open_steps: dict[int, dict[str, str]] = {}
+    #: This round's thought signature, stamped onto every call it produced.
+    signature: str | None = None
+
+    stream, served_by = await _open(genai, body, model, fallback_model)
+    if served_by:
+        result.served_by = served_by
+        yield {"type": "served_by", "model": served_by}
+
+    # A capacity failure does not always arrive before the stream opens; it
+    # arrives mid-sentence, past everything `_open` guards. Restarting is
+    # only safe while nothing has happened a second run would do twice.
+    while True:
+        try:
+            async for event in stream:
+                raw = _as_dict(event)
+                kind = str(raw.get("event_type") or "")
+                index = raw.get("index")
+                index = index if isinstance(index, int) else 0
+
+                if kind in ("interaction.created", "interaction.completed"):
+                    interaction = _as_dict(raw.get("interaction"))
+                    if isinstance(interaction.get("id"), str):
+                        result.interaction_id = interaction["id"]
+                    if isinstance(interaction.get("status"), str):
+                        result.status = interaction["status"]
+                    # A plain model turn reports usage *only* here, and reports the
+                    # whole interaction's total — so this replaces the per-step tally
+                    # rather than adding to it.
+                    if interaction.get("usage"):
+                        result.usage = _read_usage(_as_dict(interaction["usage"]))
+
+                elif kind == "step.start":
+                    step = _as_dict(raw.get("step"))
+                    if step.get("type") == "function_call":
+                        # Some calls arrive whole rather than streamed — but the
+                        # streamed ones open with `arguments: {}`, which is truthy.
+                        # Only a non-empty object is a whole call; seeding from an
+                        # empty one and appending the real deltas gives `{}{"a":1}`,
+                        # which parses as nothing at all.
+                        whole = _as_dict(step.get("arguments"))
+                        open_steps[index] = {
+                            "id": str(step.get("id") or f"call_{index}"),
+                            "name": str(step.get("name") or ""),
+                            "args": json.dumps(whole) if whole else "",
+                        }
+
+                elif kind == "step.delta":
+                    delta = _as_dict(raw.get("delta"))
+                    delta_type = str(delta.get("type") or "")
+                    if delta_type == "thought_signature" and isinstance(
+                        delta.get("signature"), str
+                    ):
+                        # Arrives on the *thought* step, not on the call — but
+                        # in the unstreamed response the same signature is on
+                        # both, and the API takes it on a replayed call. One
+                        # per round: a round that calls three tools in parallel
+                        # reasons about them once, and signs that once.
+                        signature = delta["signature"]
+                    elif delta_type == "text" and isinstance(delta.get("text"), str):
+                        result.text += delta["text"]
+                        yield {"type": "text", "delta": delta["text"]}
+                    elif delta_type in ("arguments_delta", "arguments"):
+                        chunk = delta.get("arguments")
+                        if chunk is None:
+                            chunk = delta.get("partial_arguments")
+                        if isinstance(chunk, str):
+                            step = open_steps.setdefault(
+                                index, {"id": f"call_{index}", "name": "", "args": ""}
+                            )
+                            step["args"] += chunk
+
+                elif kind == "step.stop":
+                    # `step_usage` is this step; the sibling `usage` is the running
+                    # total, so adding both would double-count. A managed agent reports
+                    # here and a plain model does not, which is why this is a tally and
+                    # `interaction.completed` is allowed to replace it.
+                    if raw.get("step_usage"):
+                        step_usage = _read_usage(_as_dict(raw["step_usage"]))
+                        result.usage.input_tokens += step_usage.input_tokens
+                        result.usage.output_tokens += step_usage.output_tokens
+                        result.usage.cached_tokens += step_usage.cached_tokens
+                        result.usage.thought_tokens += step_usage.thought_tokens
+
+                    step = open_steps.get(index)
+                    if step and step["name"]:
+                        del open_steps[index]
+                        result.tool_calls.append(
+                            ToolCall(
+                                id=step["id"],
+                                name=step["name"],
+                                args=_parse_args(step["args"]),
+                                signature=signature,
+                            )
+                        )
+
+                elif kind == "error":
+                    error = _as_dict(raw.get("error"))
+                    # `code` is not always a number. A mid-stream failure carries
+                    # `"code": "api_error"`, and `int()` on that raised a ValueError
+                    # *inside the raise* — so the exception that surfaced was
+                    # "invalid literal for int() with base 10: 'api_error'" and Google's
+                    # actual message was thrown away. Every mid-stream failure this app
+                    # has ever had was reported as a bug in this line.
+                    code = error.get("code")
+                    try:
+                        status = int(code)
+                    except (TypeError, ValueError):
+                        status = 500
+                    raise GeminiError(
+                        str(
+                            error.get("message")
+                            or "The model reported an error mid-stream."
+                        ),
+                        status,
+                        True,
+                    )
+            break
+        except GeminiError as dropped:
+            standby = _standby(
+                dropped, result, served_by, model, fallback_model, has_drawn
+            )
+            if standby is None:
+                raise
+            # The prose already on screen belongs to a turn being abandoned,
+            # so the client is told to drop it rather than show half a
+            # sentence with a second opening underneath.
+            yield {"type": "restart", "reason": str(dropped)}
+            result = InteractionResult(served_by=standby)
+            open_steps = {}
+            signature = None
+            stream, _ = await _open(genai, {**body, "model": standby}, standby, None)
+            served_by = standby
+            yield {"type": "served_by", "model": standby}
+
+    # A stream that ends without `step.stop` still owes us its calls; dropping
+    # them would end the turn silently having done nothing.
+    for step in open_steps.values():
+        if step["name"]:
+            result.tool_calls.append(
+                ToolCall(
+                    id=step["id"],
+                    name=step["name"],
+                    args=_parse_args(step["args"]),
+                    signature=signature,
+                )
+            )
+
+    yield {"type": "result", "result": result}
+
+
+#: How long a stream may take to *start*, per attempt, in seconds.
+#:
+#: Covers both halves of starting: the `interactions.create` call itself, and
+#: the first chunk after it. Either can hang without raising — measured on the
+#: deployment, a model that was up but stalled held the request open with no
+#: error at all — and a hang that never raises never reaches `_BACKOFF` or the
+#: fallback model, so `/api/warm` and `/api/chat` simply waited for ever.
+#:
+#: Fifteen seconds is longer than any healthy first chunk this app has measured
+#: (a cold opening turn starts speaking in about five) and short enough that a
+#: traveller on a stalled model is moved to the fallback before giving up.
+#: Read from the environment so a deployment on a slower model can loosen it.
+_OPEN_DEADLINE = float(os.environ.get("GEMINI_OPEN_TIMEOUT", "15"))
+
+
+async def _started(stream: Any) -> AsyncIterator[Any]:
+    """The stream, once its first chunk has actually arrived.
+
+    `interactions.create(stream=True)` returns as soon as the request is
+    accepted; the model can then send nothing. So the first chunk is pulled
+    here, inside the deadline, and replayed in front of the rest — the caller
+    iterates exactly what it would have, and a stream that never starts is a
+    timeout rather than a hang.
+    """
+    iterator = stream.__aiter__()
+    try:
+        first = await iterator.__anext__()
+    except StopAsyncIteration:
+        first = None
+        empty = True
+    else:
+        empty = False
+
+    async def replay() -> AsyncIterator[Any]:
+        if not empty:
+            yield first
+        async for chunk in iterator:
+            yield chunk
+
+    return replay()
+
+
+#: How long to wait before trying a busy model again, in seconds.
+#:
+#: Two attempts, not ten. "Currently experiencing high demand" is a capacity
+#: spike on Google's side, and it either clears in a couple of seconds or it is
+#: lasting minutes — measured, it lasted minutes. A retry loop long enough to
+#: outlast one of those is a traveller watching a spinner for a minute, which is
+#: worse than an answer from a smaller model.
+_BACKOFF = (1.5, 4.0)
+
+
+def _standby(
+    dropped: GeminiError,
+    result: InteractionResult,
+    served_by: str | None,
+    model: str,
+    fallback_model: str | None,
+    has_drawn: Callable[[], bool] | None = None,
+) -> str | None:
+    """The model to finish this turn on, if starting it over is still safe.
+
+    `_open` covers a model that is busy when asked. It does not cover a model
+    that is busy *halfway through answering*, which is what actually happens:
+    the stream opens, the opening sentence arrives, and then the interaction
+    fails with "currently experiencing high demand". By then `_open` has long
+    returned, so every retry and the fallback it exists for are behind us, and
+    the turn ends with one dangling clause on screen and nothing drawn.
+
+    Measured on the opening-turn eval, sixteen of thirty-six turns drew nothing;
+    of eight re-run with the failure printed, six were this, mid-stream, every
+    one after the first few words. It is not a rare edge.
+
+    Starting over is only safe while the turn has done nothing a second run
+    would do twice:
+
+    - **No tool calls *that ran*.** This is not the same as "the model asked
+      for one". Tool calls are collected while the stream runs and dispatched
+      only after it finishes, so a call recorded on a dropped stream never
+      executed — it is a request that died with the turn, and discarding it
+      costs nothing. Refusing on it was the second thing blocking every
+      opening: the model asks for `save_trip` in the same round it draws the
+      form, so `result.tool_calls` was populated before the drop on nearly
+      every first message, and the standby was ruled out again. The caller
+      knows what actually ran, and says so through `has_drawn`.
+    - **Nothing drawn.** A surface is compiled and painted as it streams, so
+      restarting after one has appeared would leave the first half of it under
+      the whole of another.
+
+      Whether anything was drawn is the caller's to answer, and `has_drawn` is
+      how it does. Guessing at it from the text — "does `<a2ui` appear yet" —
+      was measurably too strict: a block that has *begun* has not been drawn,
+      and a stream that drops part-way through writing one leaves a fragment
+      that never compiled and never reached the screen. Traced against the real
+      API, three of four refusals were exactly that, every one of them a turn
+      that could have been finished on the standby and instead ended blank. The
+      text check stays as the answer for a caller that does not say.
+    - **A standby that is actually different.** Falling back to the model that
+      just dropped the stream is a second wait for the same answer.
+
+    Returns the model to restart on, or None to let the failure through — which
+    is the right outcome for a turn too far along to repeat.
+    """
+    if not dropped.retryable:
+        return None
+    standby = fallback_model
+    if not standby or standby == model or standby == served_by:
+        return None
+    # No `result.tool_calls` check: see above — those are requests, not
+    # effects, and on a dropped stream they were never dispatched.
+    drawn = has_drawn() if has_drawn is not None else "<a2ui" in result.text.lower()
+    if drawn:
+        return None
+    return standby
+
+
+async def _open(
+    genai: Any, body: dict[str, Any], model: str, fallback_model: str | None
+) -> tuple[Any, str | None]:
+    """The stream, from the model asked for or from one that is actually up.
+
+    A demo dies differently from a product. A product can return 503 and let the
+    caller decide; a demo has one traveller in front of it, halfway through
+    planning a trip, and "the model is busy" ends the conversation.
+
+    So: two attempts at what was asked for, then — if the deployment named a
+    fallback — the same turn on that instead, and the caller is told which model
+    answered so it can say so on screen. Only for failures that are about
+    capacity. A rejected key, a bad request or a model that does not exist are
+    not going to go better on a second model, and pretending otherwise turns one
+    clear error into three confusing ones.
+
+    Measured, and the reason this exists: twelve of thirty-six eval turns on
+    Flash 3.8 came back with no surface at all, every one of them "currently
+    experiencing high demand". Not a wrong component, not a compile failure —
+    the model was simply not there. What that sample did not separate is how
+    many of those failed *before* the stream opened, where this helps, and how
+    many failed part-way through it, where `_standby` does — re-measured, most
+    were mid-stream.
+    """
+    attempts = len(_BACKOFF) + 1
+    last: GeminiError | None = None
+
+    async def start(request: dict[str, Any]) -> Any:
+        """Open, and wait for the first chunk, within one deadline."""
+
+        async def opened() -> Any:
+            # Both awaits inside the timed coroutine. Written as
+            # `wait_for(_started(await create(...)), …)` the `create` is an
+            # *argument*, evaluated before `wait_for` starts its clock — so a
+            # model that hangs on open, the case this exists for, was never
+            # timed at all. Only the first-chunk half was.
+            return await _started(await genai.aio.interactions.create(**request))
+
+        return await asyncio.wait_for(opened(), _OPEN_DEADLINE)
+
+    for attempt in range(attempts):
+        try:
+            return await start(body), None
+        except TimeoutError:
+            # A stall, not a refusal: retryable, and the reason the fallback
+            # exists. `asyncio.TimeoutError` is this same class from 3.11.
+            last = GeminiError(
+                f"{model} did not start answering within {_OPEN_DEADLINE:g} seconds.",
+                504,
+                True,
+            )
+        except Exception as error:  # noqa: BLE001 - every failure gets a sentence
+            described = _from_sdk_error(error)
+            if not described.retryable:
+                raise described from error
+            last = described
+        if attempt < len(_BACKOFF):
+            await asyncio.sleep(_BACKOFF[attempt])
+
+    if fallback_model and fallback_model != model:
+        try:
+            return await start({**body, "model": fallback_model}), fallback_model
+        except TimeoutError as error:
+            raise GeminiError(
+                f"Neither {model} nor {fallback_model} started answering in time.",
+                504,
+                True,
+            ) from error
+        except Exception as error:  # noqa: BLE001
+            raise _from_sdk_error(error) from error
+
+    raise last or GeminiError("The model did not answer.", 503, True)
+
+
+def _from_sdk_error(error: Exception) -> GeminiError:
+    """An SDK exception, turned into one of ours.
+
+    Matched on the status code the SDK carries rather than on the class, so a
+    rename upstream degrades to the generic message instead of to a crash.
+    """
+    if isinstance(error, GeminiError):
+        return error
+    status = (
+        getattr(error, "status_code", None)
+        or getattr(error, "code", None)
+        or getattr(getattr(error, "response", None), "status_code", None)
+    )
+    try:
+        status = int(status)
+    except (TypeError, ValueError):
+        status = 500
+    return _describe(status, str(error))
+
+
+def describe_api_error(error: Exception) -> dict[str, Any]:
+    """The error, as the event the browser renders."""
+    if isinstance(error, GeminiError):
+        return {"type": "error", "message": str(error), "retryable": error.retryable}
+    if isinstance(error, (TimeoutError, __import__("asyncio").CancelledError)):
+        return {"type": "error", "message": "Stopped.", "retryable": False}
+    described = _from_sdk_error(error)
+    return {
+        "type": "error",
+        "message": str(described),
+        "retryable": described.retryable,
+    }

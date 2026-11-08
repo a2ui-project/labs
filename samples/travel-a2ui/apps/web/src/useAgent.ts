@@ -1,0 +1,1181 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * The app's state: one conversation, several surfaces, one store.
+ *
+ * One `MessageProcessor` (`Surfaces`) holds every surface, and each surface has
+ * its own data model, as A2UI defines it. They are views of one trip because
+ * the server keeps the trip's values current on every surface that binds them
+ * (`updateDataModel`), not because they share a model.
+ *
+ * Interactions come back as A2UI events. An event is not a side channel: it is
+ * the user's next turn, phrased in the interface instead of in prose. So it goes
+ * to the model as a message, with the surface's current data model attached, and
+ * the conversation continues.
+ *
+ * This file is the hook: the state, and what each event does to it. What a turn
+ * *is* — and the two pure functions that grow one — is `conversation.ts`; what
+ * the browser remembers between visits is `storage.ts`. Both are re-exported
+ * here, because `Turn`, `Trip` and the rest are this hook's vocabulary to every
+ * component that reads them.
+ *
+ * Trip facts live at `/trip` in every surface's data model, and the server puts
+ * them there, in A2UI's own words (`updateDataModel`), so every client — the
+ * Flutter one included — gets pre-filled controls and a live panel with no
+ * travel-specific code at all. This app does not know what a trip is.
+ */
+
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {Surfaces, actionMessage, type SurfacePress} from './surfaces.js';
+
+import {consumeKeyFromUrl} from './apiKey.js';
+import {instantiateLive, startVoice as openVoice, type VoiceSession} from './voice.js';
+import {
+  warmUp,
+  clientHints,
+  fetchMeta,
+  fetchSampleTrip,
+  getApiOrigin,
+  probeBackend,
+  resetSession,
+  setApiOrigin,
+  streamTurn,
+  type AgentEvent,
+  type BackendId,
+  type Meta,
+  type Resume,
+  type SampleRecording,
+  type SkillVariant,
+  type SurfaceAction,
+  type SurfaceKind,
+} from './api.js';
+import type {Prefs, ToolCall, Trip, Turn, TurnPart, Usage, Warmth} from './conversation.js';
+import {
+  EMPTY_USAGE,
+  STANDING,
+  actionFrom,
+  describeForTranscript,
+  isShown,
+  placeSurface,
+  type ComponentLookup,
+  withText,
+} from './conversation.js';
+import type {LiveStatus} from './storage.js';
+import {
+  API_KEY,
+  BACKEND_KEY,
+  LIVE_KEY,
+  PREFS_KEY,
+  SAMPLE_KEY,
+  newSessionId,
+  readLiveRecord,
+  readStored,
+  writeStored,
+  type LiveRecord,
+} from './storage.js';
+
+export type {Prefs, ToolCall, Trip, Turn, TurnPart, Usage, Warmth} from './conversation.js';
+export type {LiveStatus} from './storage.js';
+
+/** How a message is sent — which surface it answers, and whether it shows. */
+interface SendOptions {
+  surface?: SurfaceKind;
+  fromSurface?: boolean;
+  /** Keep the transcript clean for background surfaces like the home screen. */
+  silent?: boolean;
+}
+
+export function useAgent() {
+  const store = useMemo(() => new Surfaces(), []);
+  /** What the transcript asks to name a press: the component, on its surface. */
+  const lookup = useCallback<ComponentLookup>(
+    (surfaceId, id) => store.component(surfaceId, id),
+    [store],
+  );
+
+  const [meta, setMeta] = useState<Meta | null>(null);
+
+  const [metaError, setMetaError] = useState<string | null>(null);
+  // A key in the URL wins over a stored one and is consumed on the first read,
+  // before anything else can see it in `location`.
+  const [urlKey] = useState(() => consumeKeyFromUrl());
+  const [apiKey, setApiKeyState] = useState<string>(() => urlKey?.key ?? readStored(API_KEY) ?? '');
+  /**
+   * A fresh conversation on every load, deliberately not persisted.
+   *
+   * The trip lives server-side keyed by this id, so a new id is a clean slate:
+   * no transcript, no half-decided destination from yesterday, no surface
+   * referring to a flight nobody remembers choosing. Reloading is how a person
+   * says "start over", and honouring that is worth more here than resuming —
+   * this is a demo of an interface, not a booking system with a saved cart.
+   *
+   * The API key does persist. Losing that on reload would be a different and
+   * much more annoying kind of forgetting.
+   */
+  const [sessionId, setSessionId] = useState<string>(newSessionId);
+
+  /**
+   * The last turn's receipt, carried by this tab and handed back unread.
+   *
+   * The server keeps its own copy keyed by `sessionId`, but *only the instance
+   * that answered* has it, and the point of Cloud Run is that the next turn may
+   * land somewhere else. That instance has never heard of this conversation:
+   * without the receipt it starts a new one with an empty trip, mid-sentence,
+   * with the half-planned trip still on screen.
+   *
+   * The client is the only party present for every turn, so the client is what
+   * carries the thread. It never reads this — it is where Google's copy of the
+   * conversation lives plus what has been decided — which is what keeps the
+   * browser from needing to know what a trip is.
+   *
+   * A ref, not state: it is read where a request is built and rendering nothing
+   * depends on it, so a re-render would be pure waste.
+   */
+  const resumeRef = useRef<Resume | undefined>(undefined);
+
+  const [prefs, setPrefsState] = useState<Prefs>(() => {
+    try {
+      const stored = readStored(PREFS_KEY);
+      if (stored) return {...JSON.parse(stored)} as Prefs;
+    } catch {
+      /* fall through to defaults */
+    }
+    return {skill: 'express-modular'};
+  });
+
+  /**
+   * Which agent runtime is answering, and where it lives.
+   *
+   * Stored per browser rather than per deployment: the choice is about what you
+   * want to watch run, and it should survive a reload. `origin` is applied to
+   * the api module immediately, before the first request goes out.
+   */
+  const [backend, setBackendState] = useState<{id: BackendId; origin: string}>(() => {
+    try {
+      const stored = readStored(BACKEND_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored) as {id: string; origin: string};
+        setApiOrigin(parsed.origin ?? '');
+        // An id this app does not know reads as the typed runtime, so a chip
+        // never shows an id the server does not advertise.
+        const id: BackendId = parsed.id === 'live' ? 'live' : 'python';
+        return {...parsed, id};
+      }
+    } catch {
+      /* fall through to the server this page came from, which is always there */
+    }
+    return {id: 'python', origin: getApiOrigin()};
+  });
+  const [backendError, setBackendError] = useState<string | null>(null);
+
+  const [turns, setTurns] = useState<Turn[]>([]);
+  const [trip, setTrip] = useState<Trip>({});
+  /** True while the conversation opens on the recorded sample trip. */
+  const [sample, setSample] = useState(false);
+  /** How many turns there are, readable from an effect without depending on them. */
+  const turnCountRef = useRef(0);
+  turnCountRef.current = turns.length;
+  const [usage, setUsage] = useState<Usage>(EMPTY_USAGE);
+  const [busy, setBusy] = useState(false);
+  const [liveSurface, setLiveSurface] = useState<SurfaceKind | null>(null);
+
+  const abortRef = useRef<AbortController | null>(null);
+  // Read inside callbacks that must not be recreated on every keystroke.
+  const prefsRef = useRef(prefs);
+  prefsRef.current = prefs;
+  const keyRef = useRef(apiKey);
+  keyRef.current = apiKey;
+  /**
+   * Whether the server holds a key of its own, so a turn can run without one
+   * from the browser.
+   *
+   * Every door already falls back to it — `/api/chat`, `/api/warm` and
+   * `/api/voice` all read `GEMINI_API_KEY` when the request carries none — and
+   * typed turns worked that way. Three paths in here did not ask: warming,
+   * binding the Live agent, and starting a call each returned early on an
+   * empty browser key. So on a deployment with a server key and nothing typed
+   * into the browser, "Set up" did nothing and the microphone answered "Add
+   * your Gemini key first" to somebody who had no key to add.
+   */
+  const serverKeyRef = useRef(false);
+  serverKeyRef.current = Boolean(meta?.keyProvided);
+  /** A key from either side — the only question any of these gates means. */
+  const canRun = () => Boolean(keyRef.current) || serverKeyRef.current;
+
+  /**
+   * Somebody tried to run a model with no key anywhere, and should be asked.
+   *
+   * Asked *then*, not on arrival: the Catalog and Wire tabs run no model and
+   * need no key, and a keyless visitor should be able to reach them.
+   */
+  const [keyRequested, setKeyRequested] = useState(false);
+  /**
+   * What they were trying to send when they were asked, so it is sent once
+   * the key arrives. The composer has already cleared itself by then; without
+   * this, saving a key would answer "what was I saying?" with nothing.
+   */
+  const pendingRef = useRef<{input: string | SurfaceAction; options: SendOptions} | null>(null);
+  const backendRef = useRef(backend.origin);
+  backendRef.current = backend.origin;
+
+  /**
+   * Which framework is answering, readable from inside callbacks.
+   *
+   * `send` is memoised on things that rarely change; reading the choice from a
+   * ref keeps a switch mid-conversation from needing a new closure.
+   */
+  const frameworkRef = useRef(backend.id);
+  frameworkRef.current = backend.id;
+
+  /**
+   * Hands a typed line to the Live session, opening it if it is not open.
+   *
+   * A forward reference, because the voice block is defined below `send` and
+   * `send` is what needs it. The alternative was routing typed text to the
+   * Interactions API while the traveller had chosen Live — which is the exact
+   * confusion this switch exists to remove.
+   */
+  const speakRef = useRef<((text: string) => Promise<boolean>) | null>(null);
+  // Read while a turn is streaming, where `trip` in the closure is stale.
+  const tripRef = useRef(trip);
+  tripRef.current = trip;
+
+  // Persist a URL-supplied key so a reload does not lose it.
+  useEffect(() => {
+    if (urlKey?.key) writeStored(API_KEY, urlKey.key);
+  }, [urlKey]);
+
+  useEffect(() => {
+    fetchMeta()
+      .then(loaded => {
+        setMeta(loaded);
+        setPrefsState(current => ({
+          ...current,
+          skill: current.skill || loaded.defaultSkill,
+        }));
+      })
+      .catch((error: unknown) =>
+        setMetaError(error instanceof Error ? error.message : String(error)),
+      );
+  }, []);
+
+  const setApiKey = useCallback((value: string) => {
+    const trimmed = value.trim();
+    setApiKeyState(trimmed);
+    writeStored(API_KEY, trimmed || null);
+  }, []);
+
+  /**
+   * Switches framework, which starts the demo over.
+   *
+   * The frameworks share nothing. They are different APIs with different
+   * conversation histories, and carrying a half-decided trip from one into the
+   * other buys a subtlety nobody asked for — "they share the trip but not the
+   * transcript" is a sentence a demo should not have to explain. So the choice
+   * is written down and the page reloads, which is already how this app starts
+   * over: a reload mints a new session id, and the trip lives server-side under
+   * it, so the new framework opens on a clean slate.
+   *
+   * Reloading rather than unwinding state in place is the point. There is no
+   * order of `setTrip`, `store.reset`, `setTurns` and `setUsage` that is
+   * obviously complete, and the one that is missed shows up as a surface from
+   * the previous framework sitting in the new one.
+   *
+   * The API key survives, because it is in localStorage and losing it on every
+   * switch would be a different and much more annoying kind of forgetting.
+   *
+   * Probing first still matters: a custom origin that is not running says so
+   * here, with the URL you gave it, rather than after a reload into a blank app.
+   */
+  const setBackend = useCallback(async (id: BackendId, origin: string): Promise<boolean> => {
+    const clean = origin.replace(/\/$/, '');
+    setBackendError(null);
+    try {
+      await probeBackend(clean || window.location.origin);
+      writeStored(BACKEND_KEY, JSON.stringify({id, origin: clean}));
+      // Release the microphone before the page goes, so the recording
+      // indicator does not linger through the reload.
+      sessionRef.current?.close();
+      window.location.reload();
+      return true;
+    } catch (error) {
+      setBackendError(
+        `${clean || 'this origin'} did not answer (${error instanceof Error ? error.message : String(error)}).`,
+      );
+      return false;
+    }
+  }, []);
+
+  const setPrefs = useCallback((patch: Partial<Prefs>) => {
+    setPrefsState(current => {
+      const next = {...current, ...patch};
+      writeStored(PREFS_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const patchTurn = useCallback(
+    (id: string, patch: Partial<Turn> | ((turn: Turn) => Partial<Turn>)) => {
+      setTurns(current =>
+        current.map(turn =>
+          turn.id === id ? {...turn, ...(typeof patch === 'function' ? patch(turn) : patch)} : turn,
+        ),
+      );
+    },
+    [],
+  );
+
+  /**
+   * What a turn's events do to the transcript, the store and the trip.
+   *
+   * One handler for a turn streaming in and for a recorded one being replayed
+   * (the sample trip), so a sample is drawn by exactly the code that draws a
+   * live answer and cannot drift from it. `replay` only skips what belongs to
+   * a request in flight: the busy flag, and counting tokens nobody spent here.
+   */
+  const handlerFor = useCallback(
+    (assistantId: string, {silent = false, replay = false}: {silent?: boolean; replay?: boolean}) =>
+      (event: AgentEvent) => {
+        switch (event.type) {
+          case 'start':
+            break;
+          case 'text':
+            if (!silent) {
+              patchTurn(assistantId, turn => ({
+                text: turn.text + event.delta,
+                parts: withText(turn.parts, event.delta, event.round ?? 0),
+              }));
+            }
+            break;
+          case 'ui':
+            // A block that compiles clears any retry note: it worked.
+            if (!silent) patchTurn(assistantId, {retrying: undefined});
+            // Everything the surface should show is already in these messages:
+            // the server seeds `/trip` into the surface it creates and sends
+            // `updateDataModel` for the panels. Applying them is the whole job.
+            store.apply(event.messages);
+            if (!silent) setTurns(current => placeSurface(current, assistantId, event.surfaceId));
+            break;
+          case 'ui_error':
+            // Not surfaced as an error yet: the agent gets one attempt to
+            // rewrite the block, and a message that flashes red and then fixes
+            // itself is worse than no message.
+            break;
+          case 'retry':
+            if (!silent) patchTurn(assistantId, {retrying: event.reason});
+            break;
+          case 'restart':
+            // The model dropped the stream part-way through answering, and the
+            // turn is being run again on the standby model. What it managed to
+            // say belongs to the attempt that is being abandoned — usually a
+            // clause with no verb — so it goes, rather than sitting above the
+            // real answer as if it were the start of one.
+            if (!silent) {
+              patchTurn(assistantId, {text: '', parts: [], retrying: event.reason});
+            }
+            break;
+          case 'served_by':
+            if (!silent) patchTurn(assistantId, {servedBy: event.model});
+            break;
+          case 'tool':
+            if (!silent) {
+              patchTurn(assistantId, turn => ({
+                tools: [...turn.tools, {name: event.name, input: event.input}],
+              }));
+            }
+            break;
+          case 'tool_result':
+            if (!silent) {
+              patchTurn(assistantId, turn => {
+                const tools = [...turn.tools];
+                for (let index = tools.length - 1; index >= 0; index--) {
+                  if (tools[index]!.name === event.name && tools[index]!.result === undefined) {
+                    tools[index] = {...tools[index]!, result: event.result, isError: event.isError};
+                    break;
+                  }
+                }
+                return {tools};
+              });
+            }
+            break;
+          case 'trip':
+            setTrip(event.trip);
+            break;
+          case 'warning':
+            console.warn('[agent]', event.message);
+            break;
+          case 'resume':
+            // A recorded receipt carries what was decided and no conversation.
+            // Merged, so a warm conversation opened meanwhile is kept.
+            if (replay) {
+              resumeRef.current = {...resumeRef.current, trip: event.trip};
+              break;
+            }
+            // Kept, not read. See `resumeRef`.
+            resumeRef.current = {
+              interactionId: event.interactionId,
+              trip: event.trip,
+              // Carried rather than dropped. Without it the server falls back
+              // to its own session, and the claim that the client holds the
+              // thread is only true while there is one server.
+              setup: event.setup,
+            };
+            break;
+          case 'timing':
+            if (!silent) patchTurn(assistantId, {timing: event.ms});
+            break;
+          case 'usage':
+            // A replayed turn cost nothing in this session.
+            if (replay) break;
+            setUsage(current => ({
+              inputTokens: current.inputTokens + event.inputTokens,
+              outputTokens: current.outputTokens + event.outputTokens,
+              cacheReadTokens: current.cacheReadTokens + event.cacheReadTokens,
+              cacheWriteTokens: current.cacheWriteTokens + event.cacheWriteTokens,
+              thoughtTokens: current.thoughtTokens + event.thoughtTokens,
+              turns: current.turns + 1,
+            }));
+            break;
+          case 'error':
+            if (silent) break;
+            patchTurn(assistantId, {error: event.message});
+            break;
+          case 'done':
+            // The traveler's answer is finished, so the composer unlocks here
+            // rather than when the stream closes. What can still arrive after
+            // this is the standing panels, which the server rebuilds with a
+            // second model call — worth a few seconds of somebody *not*
+            // waiting, because nobody is looking at the sidebar while they
+            // read the card they just asked for.
+            if (!silent) patchTurn(assistantId, {streaming: false});
+            if (!replay) setBusy(false);
+            break;
+        }
+      },
+    [patchTurn, store],
+  );
+
+  /**
+   * One turn, whether the traveler typed it or pressed it.
+   *
+   * A string is a typed message. A `SurfaceAction` is an interaction, sent as
+   * the A2UI action it already is; the transcript still shows a sentence, but
+   * that sentence is written *here for display* and never goes on the wire.
+   */
+  const send = useCallback(
+    async (input: string | SurfaceAction, options: SendOptions = {}) => {
+      const action = typeof input === 'string' ? undefined : input;
+      const message = typeof input === 'string' ? input.trim() : '';
+      const text = action ? describeForTranscript(action, lookup) : message;
+      const surface = options.surface ?? 'inline';
+      // An empty message on a standing surface is a request to draw it, and the
+      // server writes the brief. Only the conversation needs something said.
+      const drawing = !action && !message && surface !== 'inline';
+      if ((!action && !message && !drawing) || busy) return;
+
+      // Only what the traveller said or pressed. A silent panel draw is the
+      // app's own bookkeeping and must never pop a form at somebody.
+      if (!drawing && !options.silent && !canRun()) {
+        pendingRef.current = {input, options};
+        setKeyRequested(true);
+        return;
+      }
+
+      /*
+       * In Live, the Live session is the conversation.
+       *
+       * Typing and pressing both go into it, so a session has one framework and
+       * one history rather than quietly straddling two. A surface press is
+       * relayed as the sentence the transcript already shows, which loses the
+       * A2UI action's structure — the Live API has no equivalent to send — and
+       * is the one place this switch costs something.
+       *
+       * `drawing` is excluded on purpose: a standing panel redraw is server-
+       * driven panel mechanics rather than something the traveller said, and it
+       * goes over HTTP in either framework. It reads the same shared trip, so
+       * the panel stays correct; it just is not part of the spoken history.
+       */
+      if (frameworkRef.current === 'live' && !drawing && !options.silent) {
+        const spoken = await speakRef.current?.(text);
+        if (spoken) return;
+        // Falling through means the microphone could not be opened — it
+        // was refused, or the key is missing. The error is already on screen.
+        return;
+      }
+
+      const assistantId = `a_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
+
+      if (!options.silent) {
+        setTurns(current => [
+          ...current,
+          {
+            id: `u_${assistantId}`,
+            role: 'user',
+            text,
+            parts: [],
+            tools: [],
+            streaming: false,
+            ...(options.fromSurface ? {fromSurface: true} : {}),
+          },
+          {id: assistantId, role: 'assistant', text: '', parts: [], tools: [], streaming: true},
+        ]);
+      }
+
+      setBusy(true);
+      setLiveSurface(surface);
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      const handle = handlerFor(assistantId, {silent: options.silent});
+
+      try {
+        await streamTurn(
+          {
+            sessionId,
+            ...(message ? {message} : {}),
+            // The press and anything the renderer refused, as A2UI v1.0
+            // renderer-to-agent messages, and the renderer's capabilities and
+            // data model as metadata. All of it the SDK's.
+            a2ui: [...store.takeErrors(), ...(action ? [actionMessage(action)] : [])],
+            metadata: store.metadata(),
+            surfaces: store.ids(),
+            surface,
+            // No model and no effort: the server picks, and picks the same one
+            // for the answer and for the panel beside it.
+            ...(resumeRef.current ? {resume: resumeRef.current} : {}),
+            ...((): object => {
+              const hints = clientHints();
+              return hints ? {client: hints} : {};
+            })(),
+          },
+          {apiKey: keyRef.current, signal: controller.signal, onEvent: handle},
+        );
+      } finally {
+        if (!options.silent) patchTurn(assistantId, {streaming: false});
+        setBusy(false);
+        setLiveSurface(null);
+        abortRef.current = null;
+      }
+    },
+    [busy, handlerFor, lookup, patchTurn, sessionId, store],
+  );
+
+  const stop = useCallback(() => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setBusy(false);
+    setLiveSurface(null);
+  }, []);
+
+  /**
+   * Wired to every surface. A *decision* is the user's next turn; an edit is not.
+   *
+   * An edit still lands in the surface's data model, where it stays until the
+   * traveler commits — so three choices on one card are three choices, not three
+   * turns against three surfaces that each forgot the last.
+   */
+  /**
+   * Asks the server to draw a standing surface.
+   *
+   * The one thing a client legitimately knows that the server does not is
+   * *which surface it is showing*. Everything else about a panel — what may go
+   * on it, how it stays current — is the agent's and the server's, so this
+   * says only which surface. A client that never calls it still gets a panel:
+   * the server runs a panel turn once the trip has a destination.
+   */
+  // Whatever they were trying to say when they were asked for a key, said now
+  // that there is one. On the key, not on a click, so a key pasted into the
+  // form and a key arriving any other way both carry the message through.
+  useEffect(() => {
+    if (!canRun() || !pendingRef.current) return;
+    const {input, options} = pendingRef.current;
+    pendingRef.current = null;
+    setKeyRequested(false);
+    void send(input, options);
+    // `canRun` reads refs; the key and the server's answer are what change it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKey, meta?.keyProvided, send]);
+
+  const dismissKeyRequest = useCallback(() => {
+    pendingRef.current = null;
+    setKeyRequested(false);
+  }, []);
+
+  const drawSurface = useCallback(
+    (surface: 'sidebar' | 'home', note?: string) => send(note ?? '', {surface, silent: true}),
+    [send],
+  );
+
+  /**
+   * Relays a press into a live call, when there is one. Returns whether it did.
+   *
+   * A ref because the voice session is set up below this, and a press and a
+   * call are mutually involved by nature.
+   */
+  const relayPressRef = useRef<((action: SurfaceAction) => boolean) | undefined>(undefined);
+
+  const handleSurfaceEvent = useCallback(
+    (event: SurfacePress) => {
+      // During a call, a press belongs to the call.
+      //
+      // Sent through the typed door, a fare tapped mid-call would open a
+      // separate turn against a thread the Live session has never heard of.
+      // So it goes to the relay as a v1.0 action, which records it and tells
+      // the Live session what was chosen (`docs/transport.md`, voice frames).
+      //
+      // Before the `busy` guard, deliberately: `busy` is the typed door's flow
+      // control and a call has its own.
+      if (relayPressRef.current?.(actionFrom(event, store.data(event.surfaceId)))) return;
+
+      if (busy) return;
+
+      const surface: SurfaceKind =
+        event.surfaceId === 'sidebar' ? 'sidebar' : event.surfaceId === 'home' ? 'home' : 'inline';
+
+      // The panel is read-only, so an interaction there is not an answer — it
+      // is a request to re-open a decision. Deciding happens in the
+      // conversation, where there is a record of it, and one place to edit a
+      // value rather than two that can disagree.
+      //
+      // The redirection is a routing decision, not a rewrite: the same action
+      // goes out, aimed at the conversation. What it *means* — release this,
+      // ask me again inline — is the server's to say, in the sentence it builds
+      // for the model, because that sentence is about how this agent works and
+      // not about what the traveler pressed.
+      void send(actionFrom(event, store.data(event.surfaceId)), {
+        surface: surface === 'inline' ? surface : 'inline',
+        fromSurface: true,
+      });
+    },
+    [busy, send, store],
+  );
+
+  // The SDK reports presses to the processor's action listener, which is fixed
+  // when the processor is made; this keeps it pointed at the current handler.
+  useEffect(() => {
+    store.onPress(handleSurfaceEvent);
+    return () => store.onPress(null);
+  }, [store, handleSurfaceEvent]);
+
+  /**
+   * Starts the conversation before the traveller finishes typing.
+   *
+   * Fired on the first touch of the composer rather than on page load, and that
+   * is the whole design: it is the moment somebody is about to type, several
+   * seconds before they are done, and it costs nothing for the visitor who
+   * reads the page and leaves.
+   *
+   * What it buys, measured (`tools/eval/latency.py`): the first interface
+   * arrives in about 11.6 s instead of 19.6 s, and the turn finishes in 13.5 s
+   * instead of 29.4 s. The Interactions API is stateful, so the fifteen
+   * thousand tokens of prompt go up once per conversation — this just moves
+   * "once" to a moment nobody is watching.
+   *
+   * Once per conversation. `reset` clears the flag with the receipt, because a
+   * new conversation is cold again.
+   */
+  const warmedRef = useRef(false);
+  const [warmth, setWarmth] = useState<Warmth>('cold');
+
+  const warm = useCallback(async () => {
+    if (warmedRef.current || !canRun()) return;
+    // Set before the request, not after: a keystroke and the page-load effect
+    // landing in the same tick would otherwise start two conversations.
+    warmedRef.current = true;
+    setWarmth('warming');
+    const warmed = await warmUp(keyRef.current);
+    if (warmed.interactionId) {
+      // Only if nothing has happened since. Somebody who typed fast enough to
+      // finish a real turn already holds a better receipt than this one.
+      //
+      // A receipt with no interaction id is the sample trip's: it carries what
+      // was decided but no conversation to continue. The warm conversation is
+      // added to it rather than replacing it, or the first live turn would
+      // forget the trip on screen.
+      if (!resumeRef.current?.interactionId) {
+        resumeRef.current = {
+          ...resumeRef.current,
+          interactionId: warmed.interactionId,
+          setup: warmed.setup ?? undefined,
+        };
+      }
+      setWarmth('ready');
+      return;
+    }
+    // Failed, or skipped for want of a key. Either way it can be tried again,
+    // and the only cost of never trying is a slow first turn.
+    warmedRef.current = false;
+    setWarmth(warmed.skipped ? 'cold' : 'failed');
+  }, []);
+
+  /**
+   * Warm as soon as there is a key, rather than waiting to be asked.
+   *
+   * The button exists for when this has not happened — no key yet, or the
+   * request failed — and not as a gate. Nothing here disables the composer
+   * while it runs: a control you cannot use until you have used another control
+   * is a control that does not work, and the worst case here is only a slower
+   * first turn.
+   */
+  useEffect(() => {
+    if (!apiKey) return;
+    void warm();
+  }, [apiKey, warm]);
+
+  const reset = useCallback(async () => {
+    abortRef.current?.abort();
+    await resetSession(sessionId).catch(() => undefined);
+    // The receipt goes with the conversation it belongs to. Keeping it would
+    // resume the trip that was just thrown away, on the next message.
+    resumeRef.current = undefined;
+    // A new conversation is cold again, so it warms again.
+    warmedRef.current = false;
+    setWarmth('cold');
+    setSessionId(newSessionId());
+    setTurns([]);
+    setTrip({});
+    setUsage(EMPTY_USAGE);
+    store.clear();
+    // Starting over is starting over: the sample does not come back after it.
+    setSample(false);
+    writeStored(SAMPLE_KEY, '1');
+  }, [sessionId, store]);
+
+  // ------------------------------------------------------------- sample trip
+
+  /**
+   * Plays a recorded conversation into an empty one.
+   *
+   * Each turn goes through `handlerFor`, the code that draws a live answer, so
+   * the sample is what this app draws and not an imitation of it. A press is
+   * written into the transcript the way a live press is — from the component
+   * it was made on, which the earlier turns have already put in the store.
+   *
+   * The last `resume` carries the trip and no interaction id, so the next live
+   * turn starts a new conversation that already knows what was decided:
+   * changing anything in the sample carries on from it.
+   */
+  const replaySample = useCallback(
+    (recording: SampleRecording) => {
+      recording.turns.forEach((recorded, index) => {
+        const assistantId = `sample_a${index}`;
+        const text = recorded.action
+          ? describeForTranscript(recorded.action, lookup)
+          : (recorded.message ?? '');
+        setTurns(current => [
+          ...current,
+          {
+            id: `sample_u${index}`,
+            role: 'user',
+            text,
+            parts: [],
+            tools: [],
+            streaming: false,
+            sample: true,
+            ...(recorded.action ? {fromSurface: true} : {}),
+          },
+          {
+            id: assistantId,
+            role: 'assistant',
+            text: '',
+            parts: [],
+            tools: [],
+            streaming: true,
+            sample: true,
+          },
+        ]);
+        const handle = handlerFor(assistantId, {replay: true});
+        for (const event of recorded.events) handle(event);
+        patchTurn(assistantId, {streaming: false});
+      });
+      setSample(true);
+    },
+    [handlerFor, lookup, patchTurn],
+  );
+
+  // Once the deployment says it has one, onto a conversation nobody has
+  // started, for somebody who has not put it away before.
+  const sampleTrip = meta?.sampleTrip;
+  useEffect(() => {
+    if (!sampleTrip || readStored(SAMPLE_KEY)) return;
+    let cancelled = false;
+    void fetchSampleTrip(sampleTrip).then(recording => {
+      if (cancelled || !recording || turnCountRef.current > 0) return;
+      replaySample(recording);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sampleTrip, replaySample]);
+
+  /** Puts the sample away for good and opens an empty conversation. */
+  const removeSample = useCallback(() => reset(), [reset]);
+
+  // ------------------------------------------------------------- voice
+  //
+  // A call is the same conversation by another route: the relay runs in the
+  // same server session, so the trip it changes is this trip, and the surfaces
+  // it draws land in this store. Nothing here knows what a flight is.
+
+  /**
+   * Adds to the transcript as a spoken turn goes on.
+   *
+   * Transcription arrives in fragments rather than whole sentences, so a run of
+   * them from the same speaker is glued into one turn — otherwise a sentence
+   * becomes six bubbles. A surface always opens a new one.
+   */
+  const appendVoiceTurn = useCallback(
+    (
+      entry:
+        | {kind: 'text'; text: string; who: 'you' | 'agent'}
+        | {kind: 'surface'; surfaceId: string},
+    ) => {
+      setTurns(current => {
+        const last = current[current.length - 1];
+
+        if (entry.kind === 'surface') {
+          if (last?.role === 'assistant') return placeSurface(current, last.id, entry.surfaceId);
+          if (isShown(current, entry.surfaceId) || STANDING.has(entry.surfaceId)) return current;
+          return [
+            ...current,
+            {
+              id: `voice-${current.length}`,
+              role: 'assistant',
+              text: '',
+              parts: [{kind: 'surface', surfaceId: entry.surfaceId}],
+              tools: [],
+              streaming: false,
+            },
+          ];
+        }
+
+        const role = entry.who === 'you' ? 'user' : 'assistant';
+        if (last?.role === role && (last.parts.at(-1)?.kind ?? 'text') === 'text') {
+          const parts = withText(last.parts, entry.text, 0);
+          return [...current.slice(0, -1), {...last, text: last.text + entry.text, parts}];
+        }
+        return [
+          ...current,
+          {
+            id: `voice-${current.length}`,
+            role,
+            text: entry.text,
+            parts: role === 'user' ? [] : [{kind: 'text', text: entry.text, round: 0}],
+            tools: [],
+            streaming: false,
+            ...(role === 'user' ? {fromSurface: false} : {}),
+          },
+        ];
+      });
+    },
+    [],
+  );
+
+  /* ------------------------------------------------- instantiating Live */
+
+  const [liveRecord, setLiveRecord] = useState<LiveRecord | null>(() => readLiveRecord());
+  const [liveBusy, setLiveBusy] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
+
+  /**
+   * Whether the stored instantiation still describes this deployment.
+   *
+   * Two ways to go stale, and they answer different questions. The stamp moving
+   * means the contract itself changed — a component added, a skill rewritten,
+   * a tool signature altered — and a session bound to the old one would compose
+   * against a catalog that is gone. The age is a backstop for what a stamp
+   * cannot see: a key revoked upstream, a quota since exhausted.
+   */
+  const liveStatus: LiveStatus = (() => {
+    if (liveBusy) return 'instantiating';
+    if (liveError) return 'failed';
+    if (!liveRecord || !apiKey) return 'absent';
+    const stamp = meta?.contract?.stamp;
+    if (stamp && liveRecord.contract !== stamp) return 'stale';
+    const maxAge = meta?.contract?.maxAgeMs ?? 24 * 60 * 60 * 1000;
+    if (Date.now() - liveRecord.at > maxAge) return 'stale';
+    return 'ready';
+  })();
+
+  const liveStatusRef = useRef(liveStatus);
+  liveStatusRef.current = liveStatus;
+
+  const runInstantiate = useCallback(async (): Promise<boolean> => {
+    if (!canRun()) {
+      setKeyRequested(true);
+      return false;
+    }
+    setLiveBusy(true);
+    setLiveError(null);
+    try {
+      const bound = await instantiateLive({
+        origin: backendRef.current,
+        sessionId,
+        apiKey: keyRef.current,
+      });
+      const record: LiveRecord = {...bound, at: Date.now()};
+      writeStored(LIVE_KEY, JSON.stringify(record));
+      setLiveRecord(record);
+      return true;
+    } catch (error) {
+      setLiveError(error instanceof Error ? error.message : String(error));
+      return false;
+    } finally {
+      setLiveBusy(false);
+    }
+  }, [sessionId]);
+
+  /**
+   * Instantiate as soon as there is a key and a reason to.
+   *
+   * "Add your key and it says instantiating" is the intended experience, so
+   * this runs on its own rather than waiting to be pressed. It is keyed on the
+   * thing being instantiated against, so a redeploy that moves the stamp
+   * re-runs it exactly once — and a failure does not, because `liveError` puts
+   * the status in `failed` and the button below is then the way back.
+   */
+  const attempted = useRef<string | null>(null);
+  useEffect(() => {
+    if (backend.id !== 'live' || !apiKey) return;
+    if (liveStatus !== 'absent' && liveStatus !== 'stale') return;
+    const target = `${apiKey.slice(-6)}:${meta?.contract?.stamp ?? ''}`;
+    if (attempted.current === target) return;
+    attempted.current = target;
+    void runInstantiate();
+  }, [backend.id, apiKey, liveStatus, meta?.contract?.stamp, runInstantiate]);
+
+  const [session, setSession] = useState<VoiceSession | null>(null);
+  /** The same session, readable synchronously — `setSession` lands a tick late. */
+  const sessionRef = useRef<VoiceSession | null>(null);
+  const [listening, setListening] = useState(false);
+
+  // Filled in here because this is the first point where both the session and
+  // the transcript exist. Keyed on the socket being alive rather than on the
+  // microphone being open: a caller who has paused the microphone is still in
+  // the call, and their press still belongs to it.
+  relayPressRef.current = (action: SurfaceAction) => {
+    const live = sessionRef.current;
+    if (!live || !live.alive()) return false;
+    const sentence = describeForTranscript(action, lookup);
+    // Shown as well as sent. A press that produces no line is the half of this
+    // the traveller actually notices: they tap a fare, the transcript says
+    // nothing, and the answer that follows is to a question not on screen.
+    appendVoiceTurn({kind: 'text', text: sentence, who: 'you'});
+    live.press(action);
+    return true;
+  };
+  const [agentSpeaking, setAgentSpeaking] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+
+  const closeVoice = useCallback(() => {
+    session?.close();
+    sessionRef.current = null;
+    setSession(null);
+    setListening(false);
+    setAgentSpeaking(false);
+  }, [session]);
+
+  /**
+   * Tap to talk. Tap again when you have finished talking.
+   *
+   * That is the whole interaction, and it is the one people already have with
+   * the assistant on their phone. It is not a call: pressing again ends what
+   * you said, not the session, so the answer still arrives.
+   *
+   * The setup is folded in rather than asked for. The Live API keeps no agent
+   * object, so the first turn needs a handshake that binds the catalog, the
+   * skill and the tools. The tap does it, and the button shows it is busy; a
+   * microphone you cannot press is not a microphone.
+   */
+  const toggleVoice = useCallback(async () => {
+    // A session whose socket has gone is not a session. It answers every method
+    // without complaint — `listen()` sets a flag and lights the microphone up —
+    // and sends nothing, because `audioprocess` checks the socket and gives up.
+    // Holding one turned the microphone into a button that visibly did
+    // something and audibly did not. Drop it and open a fresh one below.
+    if (session && !session.alive()) {
+      sessionRef.current = null;
+      setSession(null);
+      setListening(false);
+    } else if (session) {
+      // A tap while the agent is talking means "stop talking", not "stop
+      // listening to me". The microphone is gated during playback so that the
+      // model cannot hear itself — see `audioprocess` in `voice.ts` — which
+      // also means talking over it does nothing. This is the way back in.
+      if (session.speaking()) {
+        session.interrupt();
+        setListening(true);
+        return;
+      }
+      if (session.listening()) {
+        session.stopListening();
+        setListening(false);
+      } else {
+        session.listen();
+        setListening(true);
+      }
+      return;
+    }
+    if (!canRun()) {
+      setKeyRequested(true);
+      return;
+    }
+    setVoiceError(null);
+
+    // Bind the agent if this is the first thing said, or if the deployment has
+    // moved on since it was bound.
+    if (liveStatusRef.current !== 'ready' && !(await runInstantiate())) return;
+
+    try {
+      const started = await openVoice({
+        origin: backendRef.current,
+        sessionId,
+        apiKey: keyRef.current,
+        surfaces: store.ids(),
+        metadata: () => store.metadata(),
+        onSpeakingChange: setAgentSpeaking,
+        // The relay ends when either side does, so an upstream session that
+        // reaches its own limit takes this socket with it — without anybody
+        // pressing anything. Let go of it here rather than waiting for the next
+        // tap to notice.
+        onClosed: () => {
+          sessionRef.current = null;
+          setSession(null);
+          setListening(false);
+        },
+        onEvent: event => {
+          switch (event.type) {
+            case 'ui':
+              store.apply(event.messages);
+              // The panel lives beside the conversation, as on the typed side,
+              // and never joins the transcript.
+              if (STANDING.has(event.surfaceId)) break;
+              // Spoken surfaces join the transcript like any other, so the
+              // record of a spoken turn reads the same as a typed one.
+              appendVoiceTurn({kind: 'surface', surfaceId: event.surfaceId});
+              break;
+            case 'transcript':
+              appendVoiceTurn({kind: 'text', text: event.text, who: event.who});
+              break;
+            case 'trip':
+              setTrip(event.trip);
+              break;
+            case 'error':
+              setVoiceError(event.message);
+              break;
+            default:
+              break;
+          }
+        },
+      });
+      sessionRef.current = started;
+      setSession(started);
+      started.listen();
+      setListening(true);
+      return started;
+    } catch (error) {
+      setVoiceError(error instanceof Error ? error.message : String(error));
+    }
+  }, [session, runInstantiate, sessionId, store]);
+
+  /**
+   * Types into the Live session, opening it first if nothing is open.
+   *
+   * `toggleVoice` toggles, so this only reaches for it when there is
+   * demonstrably no session — otherwise a typed line would close the
+   * microphone on somebody mid-sentence.
+   */
+  const speak = useCallback(
+    async (text: string): Promise<boolean> => {
+      const existing = sessionRef.current ?? (await toggleVoice()) ?? null;
+      if (!existing) return false;
+      existing.say(text);
+      return true;
+    },
+    [toggleVoice],
+  );
+  speakRef.current = speak;
+
+  return {
+    store,
+    /** True when the chosen framework has a microphone. */
+    canSpeak: (meta?.backends ?? []).find(entry => entry.id === backend.id)?.voice === true,
+    /**
+     * Instantiating the Live agent: a real handshake that binds the catalog,
+     * the skill and the tools, and reports what it bound to.
+     */
+    live: {
+      status: liveStatus,
+      error: liveError,
+      model: liveRecord?.model ?? null,
+      boundAt: liveRecord?.at ?? null,
+      contract: liveRecord?.contract ?? null,
+      instantiate: runInstantiate,
+    },
+    voice: {
+      listening,
+      /**
+       * Whether there is a call at all, which is not the same as listening.
+       *
+       * `listening` is whether the microphone is open; somebody who paused it
+       * to read something is still in the call. Typing and pressing both have
+       * to route by this, or they leave the call for the typed door and the
+       * Live session never hears what happened.
+       */
+      inCall: Boolean(session?.alive()),
+      speaking: agentSpeaking,
+      error: voiceError,
+      toggle: toggleVoice,
+      close: closeVoice,
+      say: (text: string) => session?.say(text),
+    },
+    meta,
+    metaError,
+    apiKey,
+    /** Set when the key arrived in a query string, which the server logged. */
+    keyWasExposed: Boolean(urlKey?.exposed),
+    setApiKey,
+    /** A model action was attempted with no key anywhere; ask for one. */
+    keyRequested,
+    dismissKeyRequest,
+    /** True while the conversation opens on the recorded sample trip. */
+    sample,
+    removeSample,
+    prefs,
+    setPrefs,
+    backend,
+    setBackend,
+    backendError,
+    sessionId,
+    turns,
+    trip,
+    usage,
+    busy,
+    liveSurface,
+    send,
+    /** Whether the agent has a conversation open and ready. See `warm`. */
+    warmth,
+    /** Starts one. Safe to call repeatedly; only the first does anything. */
+    warm,
+    drawSurface,
+    stop,
+    reset,
+    handleSurfaceEvent,
+  };
+}
+
+export type Agent = ReturnType<typeof useAgent>;

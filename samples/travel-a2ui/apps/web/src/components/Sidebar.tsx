@@ -1,0 +1,113 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Modality 2 — the panel.
+ *
+ * One surface, id `sidebar`, persistent across turns and replaced rather than
+ * appended to. Where the inline card asks the question, this shows the answers:
+ * the route stop by stop, the flight and stay chosen, the dates, what it comes
+ * to.
+ *
+ * **It is read-only**, and that is a design decision rather than a limitation.
+ * Controls here would mean two places could change the same value and the
+ * conversation would have no record of which one did. Deciding happens in
+ * one place — inline, in the conversation — and this is the record. The panel's
+ * only interaction is *Change*, which releases a decision and re-opens it
+ * inline, pre-filled.
+ *
+ * There is no React in it — not a checklist, not a key/value list of what has
+ * been decided. All of it is A2UI the agent composed, which is what
+ * makes the panel portable: the Flutter renderer draws this exact panel
+ * with no travel-specific code, because there is none left to port.
+ *
+ * Values reach it as `updateDataModel` from the server, so changing the route on
+ * an inline card moves the panel with no model in the path. The agent is only
+ * asked to rebuild when the panel should be a different *shape*.
+ */
+
+import {useState} from 'react';
+
+import {SurfaceView, useSurfaces} from './SurfaceView.js';
+
+import type {Agent} from '../useAgent.js';
+import {Spinner} from './bits.js';
+
+export function Sidebar({agent}: {agent: Agent}) {
+  // Subscribe rather than reading the store during render: the panel arrives
+  // from a silent turn, which changes nothing else this component watches.
+  //
+  // `components.has('root')` rather than the surface existing, because those
+  // are different things and only one of them can be drawn. Every turn ends by
+  // sending the standing panels a data-model update, and applying one creates
+  // the surface if it is absent — so an empty `sidebar` record exists from the
+  // first turn onward, whether or not a panel was ever built.
+  useSurfaces(agent.store);
+  const hasSurface = agent.store.has('sidebar');
+
+  /*
+   * Keeping the panel current is not the browser's business: the agent draws
+   * it once, bound to `/trip` and `/panel`, and the server keeps those current
+   * with `updateDataModel`. All that is left here is the one fact a client
+   * genuinely has: this surface is on screen and empty.
+   */
+  const build = () => agent.drawSurface('sidebar');
+
+  // On a phone the panel is a bar above the conversation, opened on demand: a
+  // panel that takes the screen leaves the conversation a sliver to live in.
+  const [open, setOpen] = useState(false);
+
+  return (
+    <aside className={`sidebar${open ? ' is-open' : ''}`} aria-label="Trip controls">
+      <header className="sidebar__head">
+        <h2>
+          The trip
+          {agent.sample ? <span className="sidebar__sample"> · sample</span> : null}
+        </h2>
+        {agent.liveSurface === 'sidebar' ? <Spinner /> : null}
+        <button
+          type="button"
+          className="sidebar__toggle"
+          aria-expanded={open}
+          onClick={() => setOpen(value => !value)}
+        >
+          {open ? 'Hide' : 'Show'}
+        </button>
+      </header>
+
+      {hasSurface ? (
+        <div className="sidebar__body">
+          {/* The whole panel, and nothing but the panel. What is settled, and
+              one way to ask to change each of it — which re-opens the decision
+              in the conversation rather than editing it here. */}
+          <SurfaceView surfaces={agent.store} surfaceId="sidebar" />
+        </div>
+      ) : (
+        <div className="sidebar__placeholder">
+          <p>
+            What you have settled, as you settle it — the route, the flight, where you are staying,
+            what it comes to. Read-only on purpose: changing something sends it back to the
+            conversation, pre-filled, so there is one place to decide and one record of when you
+            did.
+          </p>
+          <button type="button" className="button" onClick={build} disabled={agent.busy}>
+            Build the panel
+          </button>
+        </div>
+      )}
+    </aside>
+  );
+}

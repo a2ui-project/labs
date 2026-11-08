@@ -1,0 +1,981 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""The HTTP surface, which is mostly about what it refuses and what it advertises.
+
+Two things here are worth real tests. The first is `/api/meta`, because every
+client configures itself from it: a field that quietly disappears does not break
+this server, it breaks the front end, on a deploy, with no error anywhere near
+the change that caused it.
+
+The second is the SSE stream, because its failure mode is silence. A turn that
+buffers instead of streaming still returns every event and still renders the
+right answer — just all at once, at the end, which is the thing the whole design
+is built to avoid.
+"""
+
+from __future__ import annotations
+
+import json
+from typing import Any
+
+import pytest
+from fastapi.testclient import TestClient
+
+from travel_a2ui.doors import http
+
+
+@pytest.fixture()
+def client() -> TestClient:
+    return TestClient(http.app)
+
+
+class TestWhatTheClientsConfigureThemselvesFrom:
+
+    def test_meta_carries_everything_a_client_needs(self, client: TestClient) -> None:
+        body = client.get("/api/meta").json()
+        # Named individually rather than snapshotted: a snapshot of this would
+        # be updated without thought the first time it failed, and the point is
+        # that removing one of these is a decision.
+        for key in (
+            "name",
+            "catalogId",
+            "protocolVersion",
+            "defaultModel",
+            "defaultSkill",
+            "models",
+            "surfaces",
+            "skills",
+            "destinations",
+            "provenance",
+            "contract",
+            "keyProvided",
+            "backends",
+        ):
+            assert key in body, f"clients read {key} out of /api/meta"
+
+    def test_it_says_where_the_data_came_from(self, client: TestClient) -> None:
+        """So the chrome can say it once instead of every surface carrying a badge."""
+        provenance = client.get("/api/meta").json()["provenance"]
+        assert provenance["live"] is False
+        assert provenance["label"]
+        assert "not real" in provenance["detail"]
+
+    def test_the_catalog_id_is_what_the_wire_will_actually_carry(
+        self, client: TestClient
+    ) -> None:
+        """The model is told this, and `createSurface` carries it. They must match.
+
+        Read from `$id` because that is what the SDK's compiler puts on the
+        wire. The catalog's other name for itself, `catalogId`, is the same
+        string today; reading the one the compiler uses is what keeps them
+        matching if that ever stops being true.
+        """
+        from travel_a2ui.doors.interactions import CATALOG_JSON
+
+        assert client.get("/api/meta").json()["catalogId"] == CATALOG_JSON["$id"]
+
+    def test_both_frameworks_are_offered_and_only_one_has_a_microphone(
+        self, client: TestClient
+    ) -> None:
+        backends = client.get("/api/meta").json()["backends"]
+        assert [backend["voice"] for backend in backends] == [False, True]
+
+    def test_the_catalog_is_served_whole(self, client: TestClient) -> None:
+        body = client.get("/api/catalog").json()
+        assert len(body["components"]) > 20
+
+
+class TestRefusals:
+
+    def test_a_session_lookup_needs_a_session(self, client: TestClient) -> None:
+        assert client.get("/api/session").status_code == 400
+
+    def test_a_reset_needs_a_session(self, client: TestClient) -> None:
+        assert client.post("/api/session/reset", json={}).status_code == 400
+
+    def test_a_turn_without_a_key_says_so(self, client: TestClient) -> None:
+        response = client.post("/api/chat", json={"message": "hi"})
+        assert response.status_code == 401
+        # And says what to do about it, because the key comes from the person
+        # sitting in front of the app.
+        assert "x-goog-api-key" in response.json()["detail"]
+
+    def test_a_malformed_body_is_a_refusal_not_a_crash(
+        self, client: TestClient
+    ) -> None:
+        response = client.post(
+            "/api/chat",
+            content=b"{not json",
+            headers={"content-type": "application/json"},
+        )
+        assert (
+            response.status_code == 401
+        ), "the missing key is reported, not a parse error"
+
+    def test_an_unknown_api_route_stays_a_404(self, client: TestClient) -> None:
+        """Not the single-page app's index.
+
+        With a built client mounted, an unknown path falls back to `index.html`
+        so the app can route it. An API path must not: a typo in a fetch would
+        then quietly receive HTML and fail somewhere much less obvious.
+        """
+        assert client.get("/api/nope").status_code == 404
+
+
+class TestTheSession:
+
+    def test_a_conversation_comes_back(self, client: TestClient) -> None:
+        http.sessions.save("t1", trip={"destination": "Madrid"})
+        body = client.get("/api/session", params={"sessionId": "t1"}).json()
+        assert body["trip"] == {"destination": "Madrid"}
+        assert body["turns"] == 1
+
+    def test_a_reset_forgets_it(self, client: TestClient) -> None:
+        http.sessions.save("t2", trip={"destination": "Madrid"})
+        client.post("/api/session/reset", json={"sessionId": "t2"})
+        assert (
+            client.get("/api/session", params={"sessionId": "t2"}).json()["trip"] == {}
+        )
+
+
+class TestTheStream:
+    """The SSE turn, with the agent replaced by a scripted one."""
+
+    @staticmethod
+    def _events(response: Any) -> list[dict[str, Any]]:
+        out = []
+        for line in response.text.splitlines():
+            if line.startswith("data: "):
+                out.append(json.loads(line[6:]))
+        return out
+
+    def test_the_session_id_comes_first(self, client: TestClient, monkeypatch) -> None:
+        """So a client that did not send one knows what to send next time."""
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        response = client.post(
+            "/api/chat", json={"message": "hi"}, headers={"x-goog-api-key": "k"}
+        )
+        events = self._events(response)
+        assert events[0]["type"] == "session"
+        assert events[0]["sessionId"]
+
+    def test_every_agent_event_reaches_the_wire(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            yield {"type": "text", "delta": "Hello", "round": 0}
+            yield {"type": "ui", "surfaceId": "inline-1", "messages": [], "done": True}
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        response = client.post(
+            "/api/chat", json={"message": "hi"}, headers={"x-goog-api-key": "k"}
+        )
+        kinds = [event["type"] for event in self._events(response)]
+        assert kinds == ["session", "text", "ui", "done"]
+
+    def test_the_internal_result_event_does_not_reach_the_client(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """It carries the trip object the server keeps, not a wire message."""
+        from travel_a2ui.doors.interactions import TurnResult
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            yield {"type": "done", "stopReason": "completed"}
+            yield {
+                "type": "__result__",
+                "result": TurnResult(
+                    interaction_id="int_7",
+                    trip={"destination": "Lisbon"},
+                    stop_reason="completed",
+                ),
+            }
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        response = client.post(
+            "/api/chat",
+            json={"message": "hi", "sessionId": "streamed"},
+            headers={"x-goog-api-key": "k"},
+        )
+        kinds = [event["type"] for event in self._events(response)]
+        assert "__result__" not in kinds
+
+        # And it was used: the turn is what updates the session.
+        session = http.sessions.get("streamed")
+        assert session.interaction_id == "int_7"
+        assert session.trip == {"destination": "Lisbon"}
+
+    def test_the_continuation_goes_to_the_client(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """The receipt: where the conversation is, and what has been decided."""
+        from travel_a2ui.doors.interactions import TurnResult
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            yield {"type": "done", "stopReason": "completed"}
+            yield {
+                "type": "__result__",
+                "result": TurnResult(
+                    interaction_id="int_9",
+                    trip={"destination": "Lisbon"},
+                    stop_reason="completed",
+                ),
+            }
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        response = client.post(
+            "/api/chat", json={"message": "hi"}, headers={"x-goog-api-key": "k"}
+        )
+        resume = [e for e in self._events(response) if e["type"] == "resume"]
+        assert len(resume) == 1
+        assert resume[0]["interactionId"] == "int_9"
+        assert resume[0]["trip"] == {"destination": "Lisbon"}
+
+    def test_another_instance_answers_from_the_receipt(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """The case this exists for, and the one nothing else covers.
+
+        Cloud Run does not promise the next turn lands on the instance that
+        answered the last one. An instance that has never heard of this session
+        finds nothing in memory, and must not start a brand-new Gemini
+        conversation with an empty trip while the half-planned one is on
+        screen.
+
+        The client is the only party present for every turn, so the client
+        carries the thread. `sessionId` here is deliberately one this process
+        has never seen: that *is* the second instance.
+        """
+        seen: dict[str, Any] = {}
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            seen["interaction"] = request.interaction_id
+            seen["trip"] = request.trip
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        client.post(
+            "/api/chat",
+            json={
+                "message": "and a hotel",
+                "sessionId": "never-seen-here",
+                "resume": {
+                    "interactionId": "int_11",
+                    "trip": {"destination": "Lisbon"},
+                },
+            },
+            headers={"x-goog-api-key": "k"},
+        )
+        assert seen["interaction"] == "int_11"
+        assert seen["trip"] == {"destination": "Lisbon"}
+
+    def test_a_junk_receipt_falls_back_rather_than_fails(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """It is untrusted input: a client that garbles it gets this instance's
+        own memory, not a 500."""
+        seen: dict[str, Any] = {}
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            seen["interaction"] = request.interaction_id
+            seen["trip"] = request.trip
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        http.sessions.save(
+            "garbled", interaction_id="int_mine", trip={"destination": "Oslo"}
+        )
+        client.post(
+            "/api/chat",
+            json={
+                "message": "hi",
+                "sessionId": "garbled",
+                "resume": {"interactionId": 7, "trip": "Lisbon", "shape": []},
+            },
+            headers={"x-goog-api-key": "k"},
+        )
+        assert seen["interaction"] == "int_mine"
+        assert seen["trip"] == {"destination": "Oslo"}
+
+    def test_the_stream_is_not_buffered_by_a_proxy(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """The header that stops a reverse proxy turning a stream into a wait.
+
+        Cheap to assert and impossible to notice missing: everything works, the
+        answer is correct, and it simply all arrives at the end — which is the
+        exact experience the streaming exists to replace.
+        """
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        response = client.post(
+            "/api/chat", json={"message": "hi"}, headers={"x-goog-api-key": "k"}
+        )
+        assert response.headers["content-type"].startswith("text/event-stream")
+        assert response.headers["x-accel-buffering"] == "no"
+        assert response.headers["cache-control"] == "no-store"
+
+    def test_a_key_on_the_request_is_used_and_not_stored(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        seen: dict[str, Any] = {}
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            seen["key"] = request.api_key
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        client.post(
+            "/api/chat", json={"message": "hi"}, headers={"x-goog-api-key": "the-key"}
+        )
+        assert seen["key"] == "the-key"
+
+        # It arrived with the request and left with it: nothing about the
+        # session mentions it.
+        assert "the-key" not in json.dumps(
+            [session.as_dict() for session in http.sessions._sessions.values()]
+        )
+
+    def test_an_action_is_read_as_a_v1_renderer_message(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """`{version, action}` in `a2ui`, the data model in the metadata."""
+        seen: dict[str, Any] = {}
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            seen["request"] = request
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        client.post(
+            "/api/chat",
+            json={
+                "a2ui": [{
+                    "version": "1.0",
+                    "action": {
+                        "name": "select_flight",
+                        "surfaceId": "inline-1",
+                        "sourceComponentId": "fares_0",
+                        "timestamp": "2027-03-01T10:00:00Z",
+                        "context": {"id": "IB614"},
+                        "userMessage": "Chose Iberia IB614",
+                    },
+                }],
+                "metadata": {
+                    "a2uiRendererDataModel": {
+                        "version": "1.0",
+                        "surfaces": {"inline-1": {"trip": {"origin": "JFK"}}},
+                    }
+                },
+            },
+            headers={"x-goog-api-key": "k"},
+        )
+        request = seen["request"]
+        action = request.action
+        assert action.name == "select_flight"
+        assert action.context == {"id": "IB614"}
+        assert action.user_message == "Chose Iberia IB614"
+        assert action.timestamp == "2027-03-01T10:00:00Z"
+        assert request.data_model == {"inline-1": {"trip": {"origin": "JFK"}}}
+
+    def test_an_action_missing_what_v1_requires_is_reported(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        seen: dict[str, Any] = {}
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            seen["action"] = request.action
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        response = client.post(
+            "/api/chat",
+            json={"a2ui": [{"version": "1.0", "action": {"name": "select_flight"}}]},
+            headers={"x-goog-api-key": "k"},
+        )
+        assert seen["action"] is None
+        warnings = [e for e in self._events(response) if e["type"] == "warning"]
+        assert warnings and "action" in warnings[0]["message"]
+
+    def test_a_renderer_error_reaches_the_turn(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        seen: dict[str, Any] = {}
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            seen["errors"] = request.errors
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        client.post(
+            "/api/chat",
+            json={
+                "message": "hi",
+                "a2ui": [{
+                    "version": "1.0",
+                    "error": {
+                        "code": "VALIDATION_FAILED",
+                        "surfaceId": "inline-1",
+                        "path": "/components/2",
+                        "message": "unknown component",
+                    },
+                }],
+            },
+            headers={"x-goog-api-key": "k"},
+        )
+        assert [error.code for error in seen["errors"]] == ["VALIDATION_FAILED"]
+
+    def test_capabilities_choose_the_catalog(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        from travel_a2ui.brain.catalog import CATALOG_ID
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        capabilities = {"1.0": {"supportedCatalogIds": [CATALOG_ID]}}
+        client.post(
+            "/api/chat",
+            json={
+                "message": "hi",
+                "sessionId": "caps",
+                "metadata": {"a2uiRendererCapabilities": capabilities},
+            },
+            headers={"x-goog-api-key": "k"},
+        )
+        assert http.sessions.get("caps").canvas.capabilities == capabilities
+
+    def test_a_renderer_with_none_of_our_catalogs_is_told_so(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """Not a crash, and not a surface drawn in a catalog it cannot show."""
+        ran: list[bool] = []
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            ran.append(True)
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        capabilities = {
+            "1.0": {"supportedCatalogIds": ["https://example.com/other/catalog.json"]}
+        }
+        response = client.post(
+            "/api/chat",
+            json={
+                "message": "hi",
+                "sessionId": "nocat",
+                "metadata": {"a2uiRendererCapabilities": capabilities},
+            },
+            headers={"x-goog-api-key": "k"},
+        )
+        events = [
+            json.loads(line[5:])
+            for line in response.text.splitlines()
+            if line.startswith("data:")
+        ]
+        assert [event["type"] for event in events] == ["session", "error", "done"]
+        assert "none of this agent's catalogs" in events[1]["message"]
+        assert ran == []
+        assert http.sessions.get("nocat").canvas.capabilities is None
+
+
+def test_health_answers_before_traffic_arrives(client: TestClient) -> None:
+    assert client.get("/healthz").json()["ok"] is True
+
+
+class TestTheVoiceSocket:
+    """The handshake, which is where a call fails before anyone speaks."""
+
+    def test_it_refuses_a_frame_that_is_not_a_start(self, client: TestClient) -> None:
+        with client.websocket_connect("/api/voice") as socket:
+            socket.send_json({"type": "audio", "data": "QUJD"})
+            reply = socket.receive_json()
+            assert reply["type"] == "error"
+            assert "start" in reply["message"]
+
+    def test_it_refuses_a_call_with_no_key(self, client: TestClient) -> None:
+        with client.websocket_connect("/api/voice") as socket:
+            socket.send_json({"type": "start"})
+            reply = socket.receive_json()
+            assert reply["type"] == "error"
+            assert "API key" in reply["message"]
+
+    def test_a_call_reads_the_trip_the_typed_conversation_holds(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """One store. Saying something out loud moves the panel beside it."""
+        seen: dict[str, Any] = {}
+
+        async def fake_relay(session, send, incoming):  # noqa: ANN001, ANN202
+            seen["trip"] = dict(session.trip)
+            seen["contract"] = session.contract
+            await send({"type": "ready", "model": "m", "contract": session.contract})
+            session.on_trip({"travelers": 3})
+
+        monkeypatch.setattr(http, "relay", fake_relay)
+        http.sessions.save("voice-1", trip={"destination": "Madrid", "travelers": 2})
+
+        # Driven the way the client drives it (`voice.ts`): the id is on the
+        # URL, not in the opening frame.
+        with client.websocket_connect("/api/voice?sessionId=voice-1") as socket:
+            socket.send_json({"type": "start", "apiKey": "k"})
+            assert socket.receive_json()["type"] == "ready"
+
+        assert seen["trip"]["destination"] == "Madrid"
+        assert seen[
+            "contract"
+        ], "a call is bound to a contract it can be checked against"
+        # And what the call changed is what the typed side reads back.
+        assert http.sessions.get("voice-1").trip["travelers"] == 3
+
+    def test_the_opening_frame_can_still_name_the_session(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """The query string is what clients use; the frame is still accepted."""
+        seen: dict[str, Any] = {}
+
+        async def fake_relay(session, send, incoming):  # noqa: ANN001, ANN202
+            seen["trip"] = dict(session.trip)
+            await send({"type": "ready", "model": "m", "contract": "c"})
+
+        monkeypatch.setattr(http, "relay", fake_relay)
+        http.sessions.save("voice-frame", trip={"destination": "Lisbon"})
+
+        with client.websocket_connect("/api/voice") as socket:
+            socket.send_json(
+                {"type": "start", "apiKey": "k", "sessionId": "voice-frame"}
+            )
+            assert socket.receive_json()["type"] == "ready"
+
+        assert seen["trip"]["destination"] == "Lisbon"
+
+    def test_a_reconnection_is_offered_the_conversation_it_left(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """A Live session ends on Google's schedule, not the traveller's.
+
+        When it reaches its own time limit the API says `go_away`, the relay
+        ends and the browser's socket closes — nobody pressed anything. The
+        conversation lives inside that session and nowhere else, so the next
+        connection has to be offered a handle back into it or the traveller has
+        released the microphone and been met by a stranger.
+
+        The trip survives regardless, which is what made this hard to see: the
+        panel still said San Francisco while the agent asked where they were
+        flying from.
+        """
+        handles: list[str | None] = []
+
+        async def fake_relay(session, send, incoming):  # noqa: ANN001, ANN202
+            handles.append(session.resume)
+            await send({"type": "ready", "model": "m", "contract": "c"})
+            # What the API does partway through a session.
+            session.on_resume("handle-from-the-first-connection")
+
+        monkeypatch.setattr(http, "relay", fake_relay)
+
+        for _ in range(2):
+            with client.websocket_connect(
+                "/api/voice?sessionId=voice-resume"
+            ) as socket:
+                socket.send_json({"type": "start", "apiKey": "k"})
+                assert socket.receive_json()["type"] == "ready"
+
+        assert handles[0] is None, "the first connection starts a conversation"
+        assert (
+            handles[1] == "handle-from-the-first-connection"
+        ), "the second one picks it up rather than starting a stranger"
+
+    def test_a_handle_is_not_a_turn(self, client: TestClient) -> None:
+        """The API refreshes it as the session runs; counting each would age a
+        conversation out for the crime of being talked to."""
+        before = http.sessions.get("voice-age").turns
+        http.sessions.set_live_handle("voice-age", "h1")
+        http.sessions.set_live_handle("voice-age", "h2")
+        assert http.sessions.get("voice-age").turns == before
+        assert http.sessions.get("voice-age").live_handle == "h2"
+
+    def test_the_key_arrives_in_the_opening_frame_and_is_not_stored(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        seen: dict[str, Any] = {}
+
+        async def fake_relay(session, send, incoming):  # noqa: ANN001, ANN202
+            seen["key"] = session.api_key
+            await send({"type": "ready", "model": "m", "contract": "c"})
+
+        monkeypatch.setattr(http, "relay", fake_relay)
+        with client.websocket_connect("/api/voice") as socket:
+            socket.send_json(
+                {"type": "start", "apiKey": "the-voice-key", "sessionId": "voice-2"}
+            )
+            socket.receive_json()
+
+        assert seen["key"] == "the-voice-key"
+        assert "the-voice-key" not in json.dumps(http.sessions.get("voice-2").as_dict())
+
+
+class TestEachInlineCardIsItsOwnSurface:
+    """The conversation is a list of things asked, not one thing rewritten.
+
+    The renderer stores surfaces by id, so two cards sharing one would be one
+    surface: answering a question would rewrite it, and every earlier card.
+
+    A standing surface is the opposite case and keeps its one id: there is one
+    panel, and redrawing it in place is the whole point.
+    """
+
+    @staticmethod
+    def _drawn(client: TestClient, monkeypatch, session_id=None, **body):
+        """The surface id this turn would draw into.
+
+        The model is stubbed: `surface_id` is settled before it is called, and
+        it is the only thing under test here.
+        """
+        seen = {}
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            seen["surfaceId"] = request.surface_id
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        payload = {"message": "flights to Madrid", **body}
+        if session_id:
+            payload["sessionId"] = session_id
+        response = client.post(
+            "/api/chat", json=payload, headers={"x-goog-api-key": "k"}
+        )
+        events = [
+            json.loads(line[6:])
+            for line in response.text.splitlines()
+            if line.startswith("data: ")
+        ]
+        session = next(e["sessionId"] for e in events if e.get("type") == "session")
+        return session, seen.get("surfaceId")
+
+    def test_a_second_turn_draws_somewhere_new(self, client, monkeypatch) -> None:
+        session, first = self._drawn(client, monkeypatch)
+        _, second = self._drawn(client, monkeypatch, session)
+        assert first and second
+        assert first != second, "a new question must not overwrite the last one"
+
+    def test_a_standing_surface_keeps_its_name(self, client, monkeypatch) -> None:
+        """The panel is one surface for the life of the conversation."""
+        session, first = self._drawn(client, monkeypatch, surface="sidebar")
+        _, second = self._drawn(client, monkeypatch, session, surface="sidebar")
+        assert first == "sidebar"
+        assert second == "sidebar"
+
+    def test_a_new_card_never_takes_an_id_the_client_holds(
+        self, client, monkeypatch
+    ) -> None:
+        """A client that outlived this instance still holds its cards."""
+        _, drawn = self._drawn(client, monkeypatch, surfaces=["inline-7", "sidebar"])
+        assert drawn == "inline-8"
+
+
+class TestWhereTheyAreFlyingFrom:
+    """Asked, not inferred.
+
+    A timezone covers a continent-slice: `America/New_York` would offer JFK to
+    Boston, Philadelphia and Atlanta alike, and Atlanta is 1,211 km from JFK.
+    The agent asks inside the surface it is drawing anyway, so nothing infers
+    it. This tests that nothing quietly guesses, and that the contract says to
+    ask.
+    """
+
+    def test_nothing_reads_the_browser_location(self) -> None:
+        """No coordinates in, no coordinates anywhere."""
+        import travel_a2ui.brain.providers.fixture as fixture_module
+        import travel_a2ui.doors.http as main_module
+
+        assert not hasattr(main_module, "_origin_hint")
+        assert not hasattr(fixture_module, "origins_near")
+        assert not hasattr(fixture_module, "origin_for_time_zone")
+
+    def test_the_contract_says_to_ask(self) -> None:
+        from travel_a2ui.brain.skills import build_system_prompt
+
+        said = build_system_prompt(
+            surface="inline", surface_id="inline-1", trip={}, today="2027-03-01"
+        )
+        assert "always asked, never inferred" in said
+        assert "AirportPicker" in said
+        assert "$/trip/origin" in said
+
+
+class TestPressesTheHostAnswersItself:
+    """Dropping an activity has nothing to decide.
+
+    Every other press is a question — pick this flight, search those dates — and
+    the answer needs judgement. Removing a museum from a day does not: the
+    outcome is completely determined by what was pressed. Routing it through the
+    model costs five to fifteen seconds and a chance of it redrawing the surface
+    while it is there.
+
+    The itinerary had nowhere to be removed *from* until today: it was drawn and
+    forgotten, living only in the Express that produced it. It is part of the
+    trip now, which is what makes editing, revisiting and sharing it possible.
+    """
+
+    TRIP = {
+        "destination": "Madrid",
+        "days": [
+            {
+                "title": "Day 1",
+                "date": "2027-04-12",
+                "activities": [
+                    {"title": "Prado Museum", "time": "10:00"},
+                    {"title": "Lunch at Sobrino", "time": "13:30"},
+                ],
+            },
+            {
+                "title": "Day 2",
+                "date": "2027-04-13",
+                "activities": [{"title": "Toledo"}],
+            },
+        ],
+    }
+
+    def _drop(
+        self, client: TestClient, monkeypatch, day: int, index: int, drawn=("inline-3",)
+    ):
+        from travel_a2ui.brain import data
+        from travel_a2ui.brain.ui import Drawing
+
+        called: dict[str, Any] = {"model": False}
+
+        async def fake_turn(request):  # noqa: ANN001, ANN202
+            called["model"] = True
+            yield {"type": "done", "stopReason": "completed"}
+
+        monkeypatch.setattr(http, "run_turn", fake_turn)
+        http.sessions.reset("plan-1")
+        session = http.sessions.save("plan-1", trip=dict(self.TRIP))
+        values = lambda _s: data.session_values(self.TRIP, {"origins": [], "destinations": []})  # noqa: E731
+        blocks = {
+            "inline-3": (
+                'surface("inline-3")\nplan = Itinerary()\nroot = Column([plan])'
+            ),
+            "sidebar": 'surface("sidebar")\npanel = Trip()\nroot = Column([panel])',
+        }
+        for surface_id in drawn:
+            Drawing(session.canvas, surface_id, values).feed(
+                f"<a2ui>\n{blocks[surface_id]}\n</a2ui>"
+            )
+        response = client.post(
+            "/api/chat",
+            json={
+                "sessionId": "plan-1",
+                "a2ui": [{
+                    "version": "1.0",
+                    "action": {
+                        "name": "drop_activity",
+                        "surfaceId": "inline-3",
+                        "sourceComponentId": "plan_day0_a0",
+                        "timestamp": "2027-03-01T10:00:00Z",
+                        "context": {"day": day, "index": index},
+                    },
+                }],
+                "surfaces": list(drawn),
+            },
+            headers={"x-goog-api-key": "k"},
+        )
+        events = [
+            json.loads(line[6:])
+            for line in response.text.splitlines()
+            if line.startswith("data: ")
+        ]
+        return called, events
+
+    def test_the_model_is_not_woken(self, client: TestClient, monkeypatch) -> None:
+        called, events = self._drop(client, monkeypatch, 0, 0)
+        assert called["model"] is False
+        assert [event["type"] for event in events][-1] == "done"
+
+    def test_the_activity_is_gone_from_the_trip(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        _, events = self._drop(client, monkeypatch, 0, 0)
+        trip = next(event["trip"] for event in events if event["type"] == "trip")
+        assert [a["title"] for a in trip["days"][0]["activities"]] == [
+            "Lunch at Sobrino"
+        ]
+        assert [a["title"] for a in trip["days"][1]["activities"]] == ["Toledo"]
+        # And it is what the next turn will read.
+        assert (
+            http.sessions.get("plan-1").trip["days"][0]["activities"][0]["title"]
+            == "Lunch at Sobrino"
+        )
+
+    def test_the_plan_on_screen_hears_about_it_the_usual_way(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """`updateDataModel` for `/days`, which `Itinerary()` binds."""
+        _, events = self._drop(client, monkeypatch, 0, 0, drawn=("inline-3", "sidebar"))
+        updates = [
+            message["updateDataModel"]
+            for event in events
+            if event["type"] == "ui"
+            for message in event["messages"]
+            if "updateDataModel" in message
+        ]
+        assert any(
+            u["surfaceId"] == "inline-3" and u["path"] == "/days" for u in updates
+        )
+        # The panel does not bind the days, so it is sent nothing.
+        assert not any(u["surfaceId"] == "sidebar" for u in updates)
+
+    def test_an_emptied_day_stays(self, client: TestClient, monkeypatch) -> None:
+        """An empty day is a rest day. Deleting the card would lose the date."""
+        _, events = self._drop(client, monkeypatch, 1, 0)
+        trip = next(event["trip"] for event in events if event["type"] == "trip")
+        assert trip["days"][1]["activities"] == []
+        assert trip["days"][1]["date"] == "2027-04-13"
+
+    def test_a_press_that_does_not_resolve_goes_to_the_model(
+        self, client: TestClient, monkeypatch
+    ) -> None:
+        """Removing the wrong activity is worse than removing none."""
+        called, _ = self._drop(client, monkeypatch, 9, 9)
+        assert called["model"] is True
+
+
+class TestTheConversationStartsBeforeAnybodyTypes:
+    """`/api/warm`, so the first interface does not take twenty seconds.
+
+    The Interactions API is stateful: the fifteen-thousand-token system
+    instruction goes up once when a conversation starts and never again. So the
+    first turn is about eight times slower to draw than the second, and it is
+    the one somebody judges the app on. Measured, same ask, same model:
+
+        cold     first surface 19.6s   done 29.4s
+        warmed   first surface 11.6s   done 13.5s
+        second   first surface  2.4s   done 15.0s
+
+    This pays that cost against a throwaway turn while somebody is still typing.
+    """
+
+    def test_it_hands_back_a_receipt_the_next_turn_can_resume(
+        self, client: TestClient
+    ) -> None:
+        from travel_a2ui.doors import http as http_module
+
+        calls: list[dict] = []
+
+        async def fake_warm(request):
+            calls.append({"skill": request.skill, "model": request.model})
+            return {"interactionId": "int-123", "setup": "abc123", "ms": 900.0}
+
+        original = http_module.warm
+        http_module.warm = fake_warm
+        try:
+            body = client.post("/api/warm", headers={"x-goog-api-key": "k"}).json()
+        finally:
+            http_module.warm = original
+
+        assert body["interactionId"] == "int-123"
+        assert body["setup"] == "abc123"
+        assert calls and calls[0]["skill"] == "express-modular"
+
+    def test_no_key_is_not_an_error(self, client: TestClient) -> None:
+        """A visitor who has not pasted one has nothing to warm.
+
+        A 400 here would put a red line in the console of somebody who has done
+        nothing wrong, on a request they did not make.
+        """
+        import os
+
+        had = os.environ.pop("GEMINI_API_KEY", None)
+        try:
+            response = client.post("/api/warm")
+        finally:
+            if had is not None:
+                os.environ["GEMINI_API_KEY"] = had
+        assert response.status_code == 200
+        assert response.json()["interactionId"] is None
+        assert response.json()["skipped"] == "no key"
+
+    def test_the_warm_up_carries_no_tools(self) -> None:
+        """A warm-up that can call something might.
+
+        `search_flights` for a trip nobody has described is the opposite of the
+        head start this exists to give.
+        """
+        import inspect
+
+        from travel_a2ui.doors import interactions
+
+        source = inspect.getsource(interactions.warm)
+        assert "tools=" not in source
+
+    def test_it_warms_the_half_of_the_prompt_that_is_actually_reused(self) -> None:
+        """The stable half, and nothing that goes stale while somebody types.
+
+        `build_prompt_parts` splits the prompt by what varies. The stable half
+        holds no surface id, no trip and no date,
+        which is the only reason a conversation can be started before there is
+        anything to say.
+        """
+        from travel_a2ui.brain.skills import build_prompt_parts
+
+        common = dict(variant="express-modular")
+        empty, _ = build_prompt_parts(
+            surface="inline",
+            surface_id="inline-1",
+            trip={},
+            today="2027-03-01",
+            **common,
+        )
+        busy, _ = build_prompt_parts(
+            surface="home",
+            surface_id="home",
+            trip={"destination": "Madrid", "travelers": 3},
+            today="2027-09-09",
+            **common,
+        )
+        assert empty == busy
+
+
+class TestTheWireViewDecompilesWithTheSdk:
+
+    def test_a_surface_comes_back_as_express(self, client: TestClient) -> None:
+        from travel_a2ui.brain.catalog import CATALOG_ID
+
+        message = {
+            "version": "1.0",
+            "createSurface": {
+                "surfaceId": "inline-1",
+                "catalogId": CATALOG_ID,
+                "components": [
+                    {"id": "root", "component": "Text", "text": "### Madrid"}
+                ],
+            },
+        }
+        response = client.post("/api/express", json={"messages": [message]})
+        assert response.status_code == 200, response.text
+        express = response.json()["express"]
+        assert 'surface("inline-1")' in express and "### Madrid" in express
+
+    def test_nothing_to_decompile_is_a_bad_request(self, client: TestClient) -> None:
+        assert client.post("/api/express", json={"messages": []}).status_code == 400

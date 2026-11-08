@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.tsbuildinfo
+__pycache__/
+.venv/
+.pytest_cache/
+*.egg-info/
+.DS_Store
+
+# Flutter build output and local tool state. The web bundle is built in the
+# image, not committed.
+renderers/flutter/build/
+renderers/flutter/.dart_tool/
+renderers/flutter/.flutter-plugins*
