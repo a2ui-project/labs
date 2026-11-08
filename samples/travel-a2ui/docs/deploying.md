@@ -8,6 +8,14 @@ You need a Google Cloud project with billing enabled, and the
 [gcloud CLI](https://cloud.google.com/sdk/docs/install) signed in to it.
 [Cloud Shell](https://shell.cloud.google.com) has the CLI already.
 
+## In Cloud Shell, guided
+
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/a2ui-project/labs&cloudshell_git_branch=main&cloudshell_workspace=samples/travel-a2ui&cloudshell_tutorial=docs/cloud-shell.md&show=ide%2Cterminal)
+
+This opens Cloud Shell with the sample cloned and a short guide beside the
+terminal ([`cloud-shell.md`](cloud-shell.md)): sign in, choose a project, and
+copy the commands below one at a time. It all runs as you, in your project.
+
 ## Deploy
 
 From `samples/travel-a2ui` in a clone, turn on the services the deploy uses

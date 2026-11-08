@@ -509,8 +509,12 @@ with nothing else in the path.
 
 ### Deploy it
 
-One command deploys it to Cloud Run in your own Google Cloud project: the
-server and both clients, on one URL. From this folder, with the
+[![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/a2ui-project/labs&cloudshell_git_branch=main&cloudshell_workspace=samples/travel-a2ui&cloudshell_tutorial=docs/cloud-shell.md&show=ide%2Cterminal)
+
+The button opens Cloud Shell with a short guide: sign in, choose a project,
+and run the deploy. Or, without it: one command deploys it to Cloud Run in
+your own Google Cloud project, the server and both clients on one URL. From
+this folder, with the
 [gcloud CLI](https://cloud.google.com/sdk/docs/install) signed in (Cloud Shell
 has it):
 
