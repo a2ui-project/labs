@@ -69,9 +69,15 @@ DEFAULT_EFFORT = "low"
 #:
 #: A capacity spike on Google's side is not something a traveller halfway
 #: through planning can do anything about, and "the model is busy" is a worse
-#: answer than a smaller model's surface. So the turn degrades instead of
+#: answer than another model's surface. So the turn degrades instead of
 #: failing, and the client is told which model actually answered.
-FALLBACK_MODEL = os.environ.get("FALLBACK_MODEL", "gemini-3.5-flash-lite")
+#:
+#: The previous Flash, not Flash Lite. Lite misses the hop home (see
+#: `DEFAULT_MODEL`), and as the fallback it was the model behind most broken
+#: turns measured: a card saying flights were being searched with no search
+#: called, a date picker the catalog refused, a surface written twice. Flash
+#: 3.7 on the same split-return prompt recorded every hop and drew the form.
+FALLBACK_MODEL = os.environ.get("FALLBACK_MODEL", "gemini-3.7-flash")
 
 
 #: Which model draws the panel, and how hard it thinks, for every door.

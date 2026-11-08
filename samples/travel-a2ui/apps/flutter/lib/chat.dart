@@ -64,6 +64,24 @@ class Failed extends Part {
   final String message;
 }
 
+/// A quiet line about the turn rather than in it: which model answered.
+class Note extends Part {
+  Note(this.message);
+  final String message;
+}
+
+/// What a lookup is doing, said while it runs, as the React client says it.
+///
+/// Tools that only record or read back what is already on screen are left
+/// out: they finish at once, and a line for them is noise that looks like work.
+const Map<String, String> _toolLabels = {
+  'search_flights': 'Finding flights',
+  'search_hotels': 'Finding places to stay',
+  'get_destination': 'Reading up on the place',
+  'get_weather': 'Checking the weather',
+  'estimate_cost': 'Working out the cost',
+};
+
 class ChatScreen extends StatefulWidget {
   const ChatScreen({
     super.key,
@@ -94,6 +112,9 @@ class _ChatScreenState extends State<ChatScreen> {
   final _scroll = ScrollController();
 
   String? _sessionId;
+
+  /// What the turn in flight is doing, while it is busy and nothing says so.
+  String? _status;
 
   /// The last turn's receipt: where the conversation is, and what has been
   /// decided. Kept, never read — see `resume` in `api.dart`.
@@ -129,6 +150,20 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
       _processor.model.onSurfaceDeleted.subscribe(_deleted),
     ]);
+    _warm();
+  }
+
+  /// Warms the conversation as soon as this screen is up, which is as soon
+  /// as there is a key. Kept only if no turn has started since: a real turn's
+  /// receipt is better than this one.
+  Future<void> _warm() async {
+    final warmed = await widget.api.warm();
+    if (!mounted || warmed == null || _resume?['interactionId'] != null) return;
+    _resume = {
+      ...?_resume,
+      'interactionId': warmed['interactionId'],
+      'setup': warmed['setup'],
+    };
   }
 
   /// What this screen subscribed to on the processor, undone on dispose.
@@ -227,6 +262,11 @@ class _ChatScreenState extends State<ChatScreen> {
     _toBottom();
 
     SaidByAgent? speaking;
+    // Where this turn's parts begin, so a restarted turn can take back what
+    // the abandoned attempt said; and the round the text is from, so the
+    // sentences either side of a tool call stay two paragraphs.
+    final turnStart = _parts.length;
+    Object? round;
 
     try {
       final stream = widget.api.chat(
@@ -257,6 +297,10 @@ class _ChatScreenState extends State<ChatScreen> {
             };
 
           case 'text':
+            if (event.raw['round'] != round) {
+              round = event.raw['round'];
+              speaking = null;
+            }
             setState(() {
               if (speaking == null) {
                 speaking = SaidByAgent(StringBuffer());
@@ -267,11 +311,41 @@ class _ChatScreenState extends State<ChatScreen> {
             _toBottom();
 
           case 'ui':
+            if (_status != null) setState(() => _status = null);
             _draw(event);
             // A new tool round starts a new paragraph: two sentences either
             // side of a tool call are two sentences, and concatenated they read
             // as a typo.
             speaking = null;
+
+          case 'tool':
+            final label = _toolLabels[event.raw['name']];
+            if (label != null) setState(() => _status = '$label…');
+
+          case 'retry':
+            setState(() => _status = 'Rewriting that answer…');
+
+          case 'restart':
+            // The stream dropped and the turn is starting over, usually on the
+            // standby model. What the abandoned attempt said goes: it is the
+            // start of an answer that is not coming.
+            setState(() {
+              for (var i = _parts.length - 1; i >= turnStart; i--) {
+                if (_parts[i] is SaidByAgent) _parts.removeAt(i);
+              }
+              _status = 'Starting over…';
+            });
+            speaking = null;
+
+          case 'served_by':
+            setState(
+              () => _parts.add(
+                Note(
+                  'The default model was busy; ${event.raw['model']} answered '
+                  'this turn.',
+                ),
+              ),
+            );
 
           case 'error':
             setState(
@@ -287,7 +361,12 @@ class _ChatScreenState extends State<ChatScreen> {
     } catch (error) {
       setState(() => _parts.add(Failed('$error')));
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _status = null;
+        });
+      }
       _toBottom();
     }
   }
@@ -438,6 +517,14 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
           ),
           if (_busy) const LinearProgressIndicator(minHeight: 2),
+          if (_busy && _status != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 6, 16, 0),
+              child: Text(
+                _status!,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
           if (hasTrip) _TripBar(changed: _panelChanged, onOpen: _openTrip),
           _Composer(
             controller: _composer,
@@ -484,6 +571,15 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Text(text, style: Theme.of(context).textTheme.bodyLarge),
       ),
       Drawn(:final surfaceId) => _drawn(surfaceId),
+      Note(:final message) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: Text(
+          message,
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+        ),
+      ),
       Failed(:final message) => Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),

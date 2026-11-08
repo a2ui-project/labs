@@ -104,6 +104,32 @@ class TravelApi {
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
+  /// Starts the conversation before anybody has typed, as the React client
+  /// does when it has a key.
+  ///
+  /// The first real turn then resumes a conversation that already holds the
+  /// role, the catalog and the component signatures, rather than paying for
+  /// all of them on the turn somebody is waiting for. Returns the receipt
+  /// (`interactionId`, `setup`), or null when it failed: the only cost of a
+  /// failed warm-up is a slower first turn, so it is never an error on screen.
+  Future<Map<String, dynamic>?> warm() async {
+    try {
+      final response = await http.post(
+        _url('/api/warm'),
+        headers: {
+          'content-type': 'application/json',
+          if (apiKey.isNotEmpty) 'x-goog-api-key': apiKey,
+        },
+        body: '{}',
+      );
+      if (response.statusCode >= 400) return null;
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      return body['interactionId'] == null ? null : body;
+    } on Exception {
+      return null;
+    }
+  }
+
   /// One turn, streamed.
   ///
   /// `client.send` with a streamed response rather than `post`, because the

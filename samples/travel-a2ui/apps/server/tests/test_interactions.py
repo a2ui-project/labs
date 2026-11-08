@@ -23,8 +23,9 @@ throwing: order, and who decided what.
     macro the model drew is bound, and the model is told where they are;
   - what the traveller pressed and changed on screen is on the trip before
     the model is asked anything;
-  - a refused block, a surface that cannot be answered, a fenced block and a
-    promise with nothing drawn are each handed back to the model, once;
+  - a refused block, a surface that cannot be answered, a fenced block, a
+    promise with nothing drawn and a card about work never started are each
+    handed back to the model, once;
   - a turn that ends with a trip and no panel asks the model for one.
 """
 
@@ -307,6 +308,40 @@ class TestHandedBackOnce:
 
     def test_a_turn_that_drew_is_left_alone(self) -> None:
         model = FakeModel([(["Let me know what you think.", ASKING], [])])
+        events_of(base(message="hi", client=model, canvas=a_panel()))
+        assert len(model.bodies) == 1
+
+    def test_a_card_about_work_never_started_is_nudged_once(self) -> None:
+        placeholder = (
+            "<a2ui>\n"
+            'surface("inline-1")\n'
+            "root = Column([head, note])\n"
+            'head = Text("### New York → San Francisco · Next weekend")\n'
+            'note = Text("Searching flights for 3 travelers...")\n'
+            "</a2ui>"
+        )
+        model = FakeModel([
+            (["Let me pull the New York–San Francisco flights.", placeholder], []),
+            ([], [SEARCH]),
+            (
+                [
+                    FLIGHTS.replace(
+                        "<a2ui>\n", '<a2ui>\nsurface("inline-1", update=true)\n'
+                    )
+                ],
+                [],
+            ),
+        ])
+        events = events_of(base(message="flights", client=model, canvas=a_panel()))
+        assert not [e for e in events if e["type"] == "ui_error"], events
+        assert len(model.bodies) == 3
+        assert "work you have not started" in said_to_model(model, 1)
+        assert any(
+            e["type"] == "retry" and "never started" in e["reason"] for e in events
+        )
+
+    def test_a_promise_with_a_form_drawn_is_left_alone(self) -> None:
+        model = FakeModel([(["Let me set up the dates.", ASKING], [])])
         events_of(base(message="hi", client=model, canvas=a_panel()))
         assert len(model.bodies) == 1
 

@@ -38,7 +38,9 @@ from .. import ROOT
 from ..brain import data, inbound
 from ..brain import trip as model
 from ..brain.presses import describe_action, record_press
+from ..brain.promises import SHOWN_NUDGE as _SHOWN_NUDGE
 from ..brain.promises import SPOKEN_NUDGE as _NUDGE
+from ..brain.promises import claimed as _claimed
 from ..brain.promises import promised as _promised
 from ..brain.skills import build_system_prompt
 from ..brain.tools import ToolContext, gemini_tools, run_tool
@@ -496,6 +498,11 @@ async def relay(
                 spoken_this_turn = ""
                 called_this_turn = False
                 cut_off = False
+                #: Whether this turn put anything on screen, and the lookup rows
+                #: it filed, so a turn that talks about a screen it never drew
+                #: is handed back.
+                rendered_this_turn = False
+                filed_this_turn: list[str] = []
                 async for frame in live.receive():
                     alive = True
                     content = getattr(frame, "server_content", None)
@@ -535,22 +542,31 @@ async def relay(
                             await announce({"type": "interrupted"})
                         if getattr(content, "turn_complete", False):
                             # A turn that promised and did nothing is handed
-                            # back once, with what it did.
-                            if (
-                                _promised(spoken_this_turn)
-                                and not called_this_turn
-                                and not cut_off
+                            # back once, with what it did. So is one that said
+                            # something is on screen, or looked something up,
+                            # and drew nothing for it.
+                            unshown = [
+                                root
+                                for root in filed_this_turn
+                                if not canvas.shows(root)
+                            ]
+                            nudge = None
+                            if _promised(spoken_this_turn) and not called_this_turn:
+                                nudge = _NUDGE
+                            elif not rendered_this_turn and (
+                                unshown or _claimed(spoken_this_turn)
                             ):
-                                if not nudged:
-                                    nudged = True
-                                    await live.send_client_content(
-                                        turns={
-                                            "role": "user",
-                                            "parts": [{"text": _NUDGE}],
-                                        },
-                                        turn_complete=True,
-                                    )
-                                    continue
+                                nudge = _SHOWN_NUDGE
+                            if nudge and not cut_off and not nudged:
+                                nudged = True
+                                await live.send_client_content(
+                                    turns={
+                                        "role": "user",
+                                        "parts": [{"text": nudge}],
+                                    },
+                                    turn_complete=True,
+                                )
+                                continue
                             await announce({"type": "turn_end"})
                             spoken_this_turn = ""
                             called_this_turn = False
@@ -580,6 +596,8 @@ async def relay(
                                 drew = sorted(
                                     {event[1] for event in events if event[0] == "ui"}
                                 )
+                                if drew:
+                                    rendered_this_turn = True
                                 if card in drew:
                                     drawings += 1
                                 this_turn.update(drew)
@@ -612,6 +630,8 @@ async def relay(
                                 changed = (
                                     changed or landed is not None or trip != before
                                 )
+                                if landed is not None:
+                                    filed_this_turn.append(landed[0])
                                 response = (
                                     {"error": result}
                                     if is_error

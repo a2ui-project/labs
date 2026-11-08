@@ -40,7 +40,7 @@ from typing import Any, AsyncIterator, Iterable
 
 from ...brain import data
 from ...brain import trip as model
-from ...brain.promises import TYPED_NUDGE, promised
+from ...brain.promises import TYPED_NUDGE, only_says, placeholder_nudge, promised
 from ...brain.providers.fixture import FixtureProvider
 from ...brain.skills import build_prompt_parts
 from ...brain.tools import ToolContext, gemini_tools, grounding_tools, run_tool
@@ -180,20 +180,31 @@ async def run_turn(request: TurnRequest) -> AsyncIterator[dict[str, Any]]:
         drawing = Drawing(canvas, request.surface_id, values)
         rejected: tuple[str, str] | None = None
         advice: list[str] = []
+        #: What this round said and drew, for the check on promised work.
+        round_said = ""
+        round_drawn: list[dict[str, Any]] = []
+        round_surfaces: list[str] = []
 
         def read(events: list[tuple]) -> list[dict[str, Any]]:
-            nonlocal rejected, spoken, drew
+            nonlocal rejected, spoken, drew, round_said
             out: list[dict[str, Any]] = []
             for event in events:
                 kind = event[0]
                 if kind == "text":
                     spoken += event[1]
+                    round_said += event[1]
                     mark("firstWord")
                     out.append(
                         {"type": "text", "delta": event[1], "round": round_index}
                     )
                 elif kind == "ui":
                     drew = True
+                    for message in event[2]:
+                        if "deleteSurface" in message:
+                            continue
+                        round_drawn.extend(data.components_of(message)[1])
+                        if event[1] not in round_surfaces:
+                            round_surfaces.append(event[1])
                     if mark("firstSurface"):
                         out.append({"type": "timing", "ms": dict(marks)})
                     out.extend(ui_events(event[2], done=not drawing.stream.is_in_block))
@@ -232,6 +243,9 @@ async def run_turn(request: TurnRequest) -> AsyncIterator[dict[str, Any]]:
                 elif event["type"] == "restart":
                     drawing = Drawing(canvas, request.surface_id, values)
                     spoken = ""
+                    round_said = ""
+                    round_drawn.clear()
+                    round_surfaces.clear()
                     yield event
                 elif event["type"] == "served_by":
                     yield event
@@ -295,6 +309,22 @@ async def run_turn(request: TurnRequest) -> AsyncIterator[dict[str, Any]]:
             told["promise"] = True
             yield {"type": "retry", "reason": "the turn promised and drew nothing"}
             corrections.append(TYPED_NUDGE)
+        # The same promise with a card that only talks about it: "Searching
+        # flights for 3 travelers..." drawn, no search called, turn over. The
+        # check above lets it through because something was drawn.
+        if (
+            not result.tool_calls
+            and not corrections
+            and promised(round_said)
+            and only_says(round_drawn)
+            and not told["promise"]
+        ):
+            told["promise"] = True
+            yield {
+                "type": "retry",
+                "reason": "the turn drew a card about work it never started",
+            }
+            corrections.append(placeholder_nudge(round_surfaces))
 
         if not result.tool_calls:
             if not corrections:
@@ -368,16 +398,20 @@ async def run_turn(request: TurnRequest) -> AsyncIterator[dict[str, Any]]:
         history.extend(call.replayable() for call in result.tool_calls)
         history.extend(results)
         drawn_this_turn.extend(sorted(drawing.drawn - set(drawn_this_turn)))
-        if drawn_this_turn:
+        # Every surface on screen, not only this turn's: the trip panel drawn
+        # in an earlier turn is on screen too, and a model told only about this
+        # turn's cards wrote `surface("sidebar")` again and had it refused.
+        on_screen = sorted(set(drawn_this_turn) | canvas.surfaces)
+        if on_screen:
             # Said with the results, because the next round is where the model
             # decides whether to write the block again.
-            names = ", ".join(f"`{surface_id}`" for surface_id in drawn_this_turn)
+            names = ", ".join(f"`{surface_id}`" for surface_id in on_screen)
             history.append(
                 _say(
-                    f"[host] Already on screen from this turn: {names}. They stay, and"
-                    " a card bound to the rows above has filled in. Do not create them"
-                    ' again; update one with surface("id", update=true) only if'
-                    " something on it must change."
+                    f"[host] Already on screen: {names}. They stay, and a card bound"
+                    " to the rows above has filled in. Do not create them again;"
+                    ' update one with surface("id", update=true) only if something'
+                    " on it must change."
                 )
             )
         history.extend(_say(text) for text in corrections)

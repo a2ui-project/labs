@@ -431,6 +431,61 @@ class TestCarryingTheCall:
         kinds = [event["type"] for event in seen]
         assert kinds.index("turn_end") > kinds.index("transcript", 1)
 
+    def test_saying_it_is_on_screen_with_nothing_drawn_is_handed_back(self) -> None:
+        """Measured on a call: the model said the options were up when it had
+        drawn nothing. Said and not drawn, the turn is handed back once."""
+        seen, client, _ = run_call([
+            [
+                transcript_frame("I've put your flight options on the screen", "agent"),
+                turn_complete_frame(),
+            ],
+            [transcript_frame("There they are", "agent"), turn_complete_frame()],
+        ])
+        nudges = [
+            kwargs["turns"]["parts"][0]["text"]
+            for kind, kwargs in client.live_session.sent
+            if kind == "text" and "[system]" in kwargs["turns"]["parts"][0]["text"]
+        ]
+        assert len(nudges) == 1 and "Nothing new was drawn" in nudges[0]
+
+    def test_a_search_nothing_shows_is_handed_back(self) -> None:
+        """Rows looked up and filed, with no surface showing them and nothing
+        rendered: the traveller heard about flights they cannot see."""
+        seen, client, _ = run_call([
+            [
+                tool_frame(
+                    "search_flights",
+                    {"origin": "JFK", "destination": "Madrid", "date": "2027-04-12"},
+                ),
+                transcript_frame("There are some good options", "agent"),
+                turn_complete_frame(),
+            ],
+            [transcript_frame("Done", "agent"), turn_complete_frame()],
+        ])
+        nudges = [
+            kwargs["turns"]["parts"][0]["text"]
+            for kind, kwargs in client.live_session.sent
+            if kind == "text" and "[system]" in kwargs["turns"]["parts"][0]["text"]
+        ]
+        assert len(nudges) == 1 and "Nothing new was drawn" in nudges[0]
+
+    def test_a_drawn_answer_is_left_alone(self) -> None:
+        """ "Here are your flights" after a real render is a turn that did its
+        job: no nudge."""
+        seen, client, _ = run_call([
+            render_frame(
+                'surface("card-1")\nroot = Column([t])\nt = Text("### Flights")'
+            ),
+            transcript_frame("Here are your flights", "agent"),
+            turn_complete_frame(),
+        ])
+        nudges = [
+            kwargs
+            for kind, kwargs in client.live_session.sent
+            if kind == "text" and "[system]" in kwargs["turns"]["parts"][0]["text"]
+        ]
+        assert nudges == []
+
     def test_a_cut_off_promise_is_not_nudged(self) -> None:
         """ "Let me find some flights" with nothing called is handed back once —
         unless the traveller is the one who ended it. Then prodding the model

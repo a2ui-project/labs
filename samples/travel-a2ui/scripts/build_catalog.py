@@ -938,7 +938,32 @@ def build() -> dict[str, Any]:
 
     # Last, so it catches the basic components, the basic functions and the
     # definitions alike. Idempotent on what already points at `COMMON`.
-    return _at_declared_version(catalog)
+    return _formats_as_any_of(_at_declared_version(catalog))
+
+
+def _formats_as_any_of(node: Any) -> Any:
+    """Turns a `oneOf` that differs only by `format` into an `anyOf`.
+
+    The basic catalog writes `DateTimeInput.min` and `max` as exactly one of
+    `{"format": "date"}`, `{"format": "time"}` and `{"format": "date-time"}`.
+    A validator treats `format` as an annotation unless told otherwise, so
+    every string matches all three branches, and `oneOf` then refuses it:
+    `min: "2026-11-15"` came back "valid under each of" the three. No literal
+    date could ever pass. `anyOf` says what was meant: any one of the formats.
+    """
+    if isinstance(node, list):
+        return [_formats_as_any_of(item) for item in node]
+    if not isinstance(node, dict):
+        return node
+    out = {key: _formats_as_any_of(value) for key, value in node.items()}
+    branches = out.get("oneOf")
+    if (
+        isinstance(branches, list)
+        and branches
+        and all(isinstance(b, dict) and set(b) == {"format"} for b in branches)
+    ):
+        out["anyOf"] = out.pop("oneOf")
+    return out
 
 
 def main() -> int:

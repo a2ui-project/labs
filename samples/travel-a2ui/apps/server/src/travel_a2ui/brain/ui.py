@@ -412,6 +412,8 @@ class Drawing:
         #: Surfaces drawn this round, for the checks run when a block ends.
         self._touched: set[str] = set()
         self.drawn: set[str] = set()
+        #: Surfaces the block being read created, and has sent the renderer.
+        self._block_created: set[str] = set()
 
     # -- feeding ---------------------------------------------------------------
 
@@ -442,7 +444,9 @@ class Drawing:
 
     def _ended(self, error: Exception, closing: bool = False) -> list[tuple]:
         events = self._read(list(getattr(error, "partial_results", None) or []))
-        events.append(("rejected", _explained(str(error)), self._last_block()))
+        removed, note = self._withdraw_block()
+        events.extend(removed)
+        events.append(("rejected", _explained(str(error)) + note, self._last_block()))
         if not closing:
             self.stream = self.processor.open_stream(
                 wrapped=True, state=self.canvas.drafted, after_rejected_block="continue"
@@ -470,16 +474,52 @@ class Drawing:
                 events.extend(self._fenced(fenced))
             elif isinstance(part, ErrorPart):
                 if self._refused is None:
-                    events.append(
-                        ("rejected", _explained(str(part.error)), self._last_block())
-                    )
+                    removed, note = self._withdraw_block()
+                    events.extend(removed)
+                    events.append((
+                        "rejected",
+                        _explained(str(part.error)) + note,
+                        self._last_block(),
+                    ))
+                self._block_created.clear()
                 self._refused = None
                 events.extend(self._block_ended())
             elif isinstance(part, A2uiPart):
                 events.extend(self._drawn(part))
         if not self.stream.is_in_block:
             self._refused = None
+            self._block_created.clear()
         return events
+
+    def _withdraw_block(self) -> tuple[list[tuple], str]:
+        """Takes back what a refused block had already put on screen.
+
+        A block streams: its surface is created and its first components are
+        drawn before a later one is read. When the SDK refuses that later one,
+        the half-drawn surface would stay on the renderer and in both mirrors,
+        so the corrected block the model writes next, which creates it again,
+        was refused in turn as "already exists" and the turn ended on half a
+        form. A surface this block created goes, everywhere, and the model is
+        told so. A surface that existed before the block keeps what it had: an
+        update fixes that.
+        """
+        events: list[tuple] = []
+        gone = sorted(
+            each
+            for each in self._block_created
+            if self.canvas.wire.get_surface(each) is not None
+        )
+        self._block_created.clear()
+        if not gone:
+            return events, ""
+        self.canvas.drop(gone)
+        for each in gone:
+            self.drawn.discard(each)
+            self._touched.discard(each)
+            self.canvas.this_turn.discard(each)
+            events.append(("ui", each, [delete_surface(each)]))
+        names = ", ".join(f'"{each}"' for each in gone)
+        return events, f" Surface {names} was removed; draw it again whole."
 
     def _drawn(self, part: A2uiPart) -> list[tuple]:
         written = to_message_dicts(part.a2ui)
@@ -534,6 +574,7 @@ class Drawing:
         drawn = list(
             dict.fromkeys(surface_of(message) or surface_id for message in expanded)
         )
+        self._block_created.update(new)
         for each in drawn:
             self._touched.add(each)
             self.drawn.add(each)

@@ -489,11 +489,14 @@ async def stream_interaction(
 #: error at all — and a hang that never raises never reaches `_BACKOFF` or the
 #: fallback model, so `/api/warm` and `/api/chat` simply waited for ever.
 #:
-#: Fifteen seconds is longer than any healthy first chunk this app has measured
-#: (a cold opening turn starts speaking in about five) and short enough that a
-#: traveller on a stalled model is moved to the fallback before giving up.
-#: Read from the environment so a deployment on a slower model can loosen it.
-_OPEN_DEADLINE = float(os.environ.get("GEMINI_OPEN_TIMEOUT", "15"))
+#: Forty-five seconds, because a healthy start is slower than it looks. The
+#: model thinks before it sends its first chunk, and with this app's prompt
+#: (about 27,000 tokens) `create` alone returned in 12 to 16 seconds on Flash
+#: 3.8, measured. At the fifteen seconds this used to allow, ordinary turns ran
+#: out of time, were thrown away half-thought, retried, and three in four ended
+#: on the fallback model after about fifty seconds. Read from the environment
+#: so a deployment on a slower model can loosen it.
+_OPEN_DEADLINE = float(os.environ.get("GEMINI_OPEN_TIMEOUT", "45"))
 
 
 async def _started(stream: Any) -> AsyncIterator[Any]:
@@ -641,13 +644,17 @@ async def _open(
         try:
             return await start(body), None
         except TimeoutError:
-            # A stall, not a refusal: retryable, and the reason the fallback
-            # exists. `asyncio.TimeoutError` is this same class from 3.11.
+            # A stall, not a refusal, and the reason the fallback exists.
+            # Straight to it: the deadline already allows a slow start, so a
+            # second wait on the same stalled model only doubles the time
+            # before the traveller sees anything. `asyncio.TimeoutError` is
+            # this same class from 3.11.
             last = GeminiError(
                 f"{model} did not start answering within {_OPEN_DEADLINE:g} seconds.",
                 504,
                 True,
             )
+            break
         except Exception as error:  # noqa: BLE001 - every failure gets a sentence
             described = _from_sdk_error(error)
             if not described.retryable:

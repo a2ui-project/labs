@@ -83,3 +83,72 @@ TYPED_NUDGE = (
     "Only the <a2ui> block. Do not repeat the sentence, and do not write another "
     "one saying you are about to."
 )
+
+
+#: Components that only say something: text, and what arranges it.
+#:
+#: A surface made of nothing else cannot be answered and shows no data, which is
+#: right for a heading and wrong for a turn's whole answer.
+SAYING_ONLY = frozenset({"Text", "Column", "Row", "Card", "Divider", "Icon", "Image"})
+
+
+def only_says(components: list[dict]) -> bool:
+    """True when something was drawn and none of it shows data or takes input."""
+    return bool(components) and all(
+        component.get("component") in SAYING_ONLY for component in components
+    )
+
+
+def placeholder_nudge(surfaces: list[str]) -> str:
+    """Handed back to a typed turn that drew a card about work it never started.
+
+    The card in front of the traveller says flights are being searched; nothing
+    is searching, and the turn has ended, so the card stays like that. Measured:
+    "Let me pull the New York to San Francisco flights", then a card reading
+    "Searching flights for 3 travelers...", and no tool call. A check for turns
+    that drew *nothing* let it through, because something was drawn.
+    """
+    named = ", ".join(f'"{surface}"' for surface in surfaces) or "it"
+    return (
+        "You drew a card about work you have not started: no tool ran, so the "
+        f"card ({named}) says something is happening and nothing is.\n\n"
+        "Do it now, in this turn. Call the lookup it describes, then draw the "
+        "result into the same surface with update=true, replacing what you "
+        "wrote there. If values are missing for that lookup, draw the controls "
+        "for them instead, as the brief says.\n\n"
+        "Only the <a2ui> block. Do not repeat the sentence."
+    )
+
+
+#: Saying something is on the screen.
+#:
+#: The voice door's other way to talk past the screen: "here are your flights",
+#: "I've put the options up for you", with nothing drawn this turn. Checked only
+#: against a turn that drew nothing, so an ordinary "here is the total" after a
+#: real surface is never questioned.
+CLAIM = re.compile(
+    r"\b("
+    r"on (your|the) screen|here (are|is)\b|"
+    r"i'?ve (put|drawn|pulled|shown|laid|set|added|listed|brought)|"
+    r"take a look|you(?:'ll| will| can) see|"
+    r"(see|find) (them|it|those|these) (below|above|there)"
+    r")",
+    re.IGNORECASE,
+)
+
+
+def claimed(said: str) -> bool:
+    """True when the turn told the traveller something is on their screen."""
+    return bool(said.strip()) and bool(CLAIM.search(said))
+
+
+#: Handed back to a spoken turn that said it showed something and did not.
+#:
+#: Measured: the voice model said it had drawn the options when no render call
+#: had been made, or after a search whose rows no surface on screen shows.
+SHOWN_NUDGE = (
+    "[system] Nothing new was drawn this turn, so what you described is not on "
+    "the screen in front of me. Draw it now in this turn: call render_a2ui_express "
+    "with the surface for it, then say one short sentence about what is on "
+    "screen."
+)
