@@ -20,8 +20,8 @@ in that moment**, not chosen from screens somebody designed in advance.
 ## About this sample
 
 A worked example of building and deploying a generative-UI application on
-[A2UI](https://github.com/a2ui-project/a2ui), not a reference implementation of
-the protocol. It is for demonstration only and is not meant for production use.
+[A2UI](https://github.com/a2ui-project/a2ui). It is for demonstration only and
+is not meant for production use.
 
 The agent runs on the Gemini API, and the map components can use the Google
 Maps JavaScript API. Both are optional external services: the Catalog tab and
