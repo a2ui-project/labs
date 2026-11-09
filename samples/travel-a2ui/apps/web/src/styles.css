@@ -1,0 +1,42 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * The app shell.
+ *
+ * Deliberately quieter than the surfaces it contains. The generated UI is the
+ * subject; the chrome around it is a frame, so it stays in greys, keeps its
+ * type small, and never competes with a flight card for attention.
+ *
+ * Design tokens come from the renderer’s stylesheet (`--tv-*`), so the shell and
+ * the surfaces are the same system in both themes rather than two palettes that
+ * happen to sit next to each other.
+ *
+ * Ten files, imported in the order they were written in. The order is the
+ * cascade, so this list is not alphabetical and must not be sorted: a rule that
+ * moves up the page starts winning arguments it used to lose.
+ */
+
+@import './styles/shell.css';
+@import './styles/chat.css';
+@import './styles/panels.css';
+@import './styles/protocol.css';
+@import './styles/surfaces.css';
+@import './styles/catalog.css';
+@import './styles/runtime.css';
+@import './styles/previews.css';
+@import './styles/voice.css';
+@import './styles/cards.css';

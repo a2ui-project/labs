@@ -1,0 +1,362 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/* -------------------------------------------------------------------- chat */
+
+.chat {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  border-right: 1px solid var(--tv-line);
+}
+
+.chat__feed {
+  overflow-y: auto;
+  padding: 28px 24px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  scroll-behavior: smooth;
+}
+
+.chat__intro {
+  max-width: 620px;
+  margin: 6vh auto 0;
+  text-align: center;
+}
+
+.chat__intro h2 {
+  font-family: var(--tv-font-display);
+  font-size: 1.9rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
+}
+
+.chat__intro p {
+  color: var(--tv-ink-muted);
+  margin: 0 0 22px;
+  text-wrap: pretty;
+}
+
+.chat__openers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.chat__openers button {
+  width: 100%;
+  appearance: none;
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  color: var(--tv-ink);
+  background: var(--tv-surface);
+  border: 1px solid var(--tv-line);
+  border-radius: var(--tv-radius);
+  padding: 11px 15px;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.chat__openers button:hover {
+  border-color: var(--tv-accent-line);
+  transform: translateY(-1px);
+}
+
+.bubble {
+  max-width: 680px;
+  border-radius: var(--tv-radius);
+  padding: 11px 15px;
+}
+
+.bubble p {
+  margin: 0;
+  white-space: pre-wrap;
+  text-wrap: pretty;
+}
+
+.bubble--user {
+  align-self: flex-end;
+  background: var(--tv-accent);
+  color: var(--tv-accent-ink);
+  border-bottom-right-radius: 5px;
+}
+
+.bubble--event {
+  background: var(--tv-surface-2);
+  color: var(--tv-ink-muted);
+  border: 1px dashed var(--tv-line-strong);
+  font-size: 0.82rem;
+  padding: 8px 13px;
+}
+
+/* The sample trip's label: first in the feed, impossible to read as yours. */
+.sample {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 12px 14px;
+  border: 1px dashed var(--tv-accent-line);
+  border-radius: var(--tv-radius);
+  background: var(--tv-accent-soft);
+  color: var(--tv-ink);
+}
+
+.sample__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1 1 260px;
+  font-size: 0.86rem;
+  text-wrap: pretty;
+}
+
+.sample__text strong {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--tv-accent);
+}
+
+.sample__text span {
+  color: var(--tv-ink-muted);
+}
+
+.sample__remove {
+  appearance: none;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--tv-accent);
+  background: var(--tv-surface);
+  border: 1px solid var(--tv-accent-line);
+  border-radius: var(--tv-radius-sm);
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.sample__remove:hover {
+  border-color: var(--tv-accent);
+}
+
+.sample__remove:focus-visible {
+  outline: 2px solid var(--tv-accent);
+  outline-offset: 2px;
+}
+
+.bubble__tag {
+  display: block;
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--tv-ink-faint);
+  margin-bottom: 2px;
+}
+
+.bubble--agent {
+  align-self: flex-start;
+  background: transparent;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.turn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 780px;
+}
+
+.turn__tools {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.turn__tools li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.74rem;
+  color: var(--tv-ink-muted);
+  background: var(--tv-surface-2);
+  border: 1px solid var(--tv-line);
+  border-radius: 999px;
+  padding: 3px 11px;
+}
+
+.turn__tools li.is-error {
+  color: var(--tv-critical);
+  border-color: var(--tv-critical);
+}
+
+.turn__toolName {
+  font-variant: small-caps;
+  letter-spacing: 0.03em;
+}
+
+.turn__tick {
+  color: var(--tv-positive);
+  font-size: 0.68rem;
+}
+
+.turn__surface {
+  border-left: 2px solid var(--tv-accent-line);
+  padding-left: 14px;
+}
+
+.composer {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 14px 24px 20px;
+  border-top: 1px solid var(--tv-line);
+  background: var(--tv-surface);
+}
+
+.composer textarea {
+  flex: 1;
+  font: inherit;
+  color: var(--tv-ink);
+  background: var(--tv-paper);
+  border: 1px solid var(--tv-line-strong);
+  border-radius: var(--tv-radius);
+  padding: 11px 14px;
+  resize: none;
+  min-height: 44px;
+  max-height: 200px;
+  field-sizing: content;
+}
+
+.composer textarea:focus {
+  outline: none;
+  border-color: var(--tv-accent);
+  box-shadow: 0 0 0 3px var(--tv-accent-soft);
+}
+
+.composer__send,
+.composer__stop {
+  appearance: none;
+  font: inherit;
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 10px 20px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.composer__send {
+  background: var(--tv-accent);
+  color: var(--tv-accent-ink);
+}
+
+.composer__send:disabled {
+  background: var(--tv-surface-2);
+  color: var(--tv-ink-faint);
+  cursor: default;
+}
+
+.composer__stop {
+  background: var(--tv-surface);
+  border-color: var(--tv-line-strong);
+  color: var(--tv-ink);
+}
+
+/*
+ * The wait before the agent has said anything.
+ *
+ * Measured against the deployed service: 14.7 seconds from the message being
+ * sent to the model's first token, and 0.5 *milliseconds* of that is the host.
+ * Nothing can be drawn in it, because nothing has been composed yet — a turn
+ * renders an empty `div` and the traveller watches a blank column while the
+ * composer spins.
+ *
+ * So this is not a surface and not an interface: it is the card-shaped hole the
+ * answer is about to fill, which is the one honest thing to show while there is
+ * nothing to show. It carries no controls, nothing to press and nothing bound,
+ * and it is replaced the instant the first block compiles.
+ *
+ * Deliberately *not* A2UI. A skeleton the host composed out of catalog
+ * components would be the host deciding what the answer looks like, and it
+ * would be wrong as often as it was right. This says "working", in the shape of
+ * the thing being worked on.
+ */
+.turn__awaiting {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--tv-line);
+  border-radius: 12px;
+  background: var(--tv-surface-1);
+}
+
+.turn__awaitingLine {
+  height: 0.85em;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    var(--tv-surface-2) 0%,
+    var(--tv-line-strong) 50%,
+    var(--tv-surface-2) 100%
+  );
+  background-size: 220% 100%;
+  animation: turn-awaiting-sweep 1.25s ease-in-out infinite;
+}
+
+/* Three lines of different widths read as a card rather than as a loading bar. */
+.turn__awaitingLine:nth-child(1) {
+  width: 46%;
+}
+.turn__awaitingLine:nth-child(2) {
+  width: 88%;
+}
+.turn__awaitingLine:nth-child(3) {
+  width: 64%;
+}
+
+@keyframes turn-awaiting-sweep {
+  0% {
+    background-position: 220% 0;
+  }
+  100% {
+    background-position: -220% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn__awaitingLine {
+    animation: none;
+    background: var(--tv-surface-2);
+  }
+}
+
+.sidebar__sample {
+  font-weight: 500;
+  color: var(--tv-accent);
+}

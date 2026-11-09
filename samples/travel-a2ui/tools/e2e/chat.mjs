@@ -1,0 +1,334 @@
+#!/usr/bin/env node
+/**
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * End-to-end check of the inline modality, with a scripted model.
+ *
+ * The unit tests cover the compiler, the store and the agent loop; the gallery
+ * proves the renderer. What none of them touch is the path a person actually
+ * takes: type a message, watch a surface appear under the reply, click
+ * something in it, and have that click become the next turn.
+ *
+ * So this drives the real app in a real browser and intercepts `/api/chat`,
+ * replaying a canned turn. The stub reads a scripted model output through the
+ * server's own pipeline (`compile.py`: the SDK processor, the macros and the
+ * renderer mirror) — the same code a live turn runs — so what reaches the browser is exactly the event sequence a live turn produces,
+ * including the partial `ui` events from a block split mid-constructor. No API
+ * key, no model, no cost, and it fails loudly when the wiring rots.
+ *
+ *   GEMINI_API_KEY=scripted python3 tools/e2e/scripted_server.py 8130   # another terminal
+ *   BASE_URL=http://127.0.0.1:8130/ \
+ *   node tools/e2e/chat.mjs [--screenshot docs/screenshots/01-chat-light.png]
+ */
+
+import {launchBrowser} from '../browser.mjs';
+import {existsSync, mkdirSync, readFileSync} from 'node:fs';
+import {dirname, join} from 'node:path';
+import {fileURLToPath} from 'node:url';
+
+import {compileAll} from './compile.mjs';
+
+/** The press a request carried, as the A2UI v1.0 renderer message it is. */
+const pressOf = body =>
+  body?.a2ui?.find(message => message?.version === '1.0' && message.action)?.action;
+
+const BASE = process.env.BASE_URL ?? 'http://127.0.0.1:8787/';
+const shotIndex = process.argv.indexOf('--screenshot');
+const SHOT = shotIndex === -1 ? null : process.argv[shotIndex + 1];
+
+/** The turn the fake model produces, in the order a real one would stream it. */
+const FIRST_TURN = [
+  {type: 'start', model: 'gemini-3.8-flash', skill: 'express-modular', surfaceId: 'inline-1'},
+  {type: 'tool', name: 'search_flights', input: {destination: 'Madrid'}, status: 'running'},
+  {type: 'tool_result', name: 'search_flights', result: {count: 3}, isError: false},
+];
+
+const EXPRESS = `surface("inline-1")
+$/trip/selectedOutbound = ""
+heading = Text("### Outbound · JFK → MAD · Sun 12 Apr")
+f1 = FlightOption("Iberia", "18:40", "08:15 +1", "JFK", "MAD", "$412", Event("select_flight", {id: "IB6250", price: "$412"}), duration="7h 35m", stops="Nonstop", flightNumber="IB6250", badge="Cheapest", accessibility={label: "Iberia IB6250, 18:40 JFK to 08:15 next day MAD, nonstop, $412"})
+f2 = FlightOption("Delta", "21:10", "10:50 +1", "JFK", "MAD", "$468", Event("select_flight", {id: "DL126", price: "$468"}), duration="7h 40m", stops="Nonstop", flightNumber="DL126")
+f3 = FlightOption("TAP", "17:25", "11:05 +1", "JFK", "MAD", "$367", Event("select_flight", {id: "TP208", price: "$367"}), duration="11h 40m", stops="1 stop · LIS", flightNumber="TP208", badge="Lowest fare")
+note = Text("Prices are per traveller, round trip.", variant="caption")
+root = Column([heading, f1, f2, f3, note])`;
+
+/**
+ * The panel the agent draws once, and the server keeps current.
+ *
+ * Bound to `$/trip/...` rather than carrying values as literal text — which is
+ * the whole point of rec 5: the agent decides the shape, and the values arrive
+ * afterwards as `updateDataModel`, with no model turn and no client-side code
+ * that knows what a trip is.
+ */
+const PANEL = `surface("sidebar")
+title = Text("### The trip")
+flight = Text($/trip/selectedFlight)
+root = Column([title, flight], align="stretch")`;
+
+const SECOND_TURN = [
+  {type: 'start', model: 'gemini-3.8-flash', skill: 'express-modular', surfaceId: 'inline-2'},
+  {type: 'tool', name: 'save_trip', input: {selectedFlight: 'IB6250'}, status: 'running'},
+  {type: 'tool_result', name: 'save_trip', result: {saved: true}, isError: false},
+  {type: 'trip', trip: {destination: 'Madrid', selectedFlight: 'IB6250', travelers: 2}},
+  {type: 'text', delta: 'Held the Iberia fare. Where do you want to stay?'},
+  {type: 'done', stopReason: 'end_turn'},
+];
+
+const failures = [];
+const check = (label, ok) => {
+  console.log(`${ok ? '  ok  ' : ' FAIL '} ${label}`);
+  if (!ok) failures.push(label);
+};
+
+const here = dirname(fileURLToPath(import.meta.url));
+const catalog = JSON.parse(
+  readFileSync(join(here, '..', '..', 'catalogs', 'a2ui-travel', 'catalog.json'), 'utf8'),
+);
+/**
+ * The canned surfaces, compiled by the A2UI SDK through the server's own
+ * pipeline (`compile.py`). The first block is also compiled cut off part-way,
+ * as a stream delivers it, so the browser has to survive a partial surface
+ * followed by a complete one.
+ */
+const [FIRST, PANEL_COMPILED] = compileAll([
+  {surfaceId: 'inline-1', source: EXPRESS, partialAt: 320},
+  {surfaceId: 'sidebar', source: PANEL},
+]);
+
+const compileFor = surfaceId =>
+  surfaceId === 'sidebar' ? PANEL_COMPILED.messages : FIRST.messages;
+
+function toSse(events) {
+  return events.map(event => `data: ${JSON.stringify(event)}\n\n`).join('');
+}
+
+/**
+ * The events of a turn that drew the canned block.
+ *
+ * The chunk boundaries matter: the block is cut mid-constructor, so the parser
+ * has to tolerate a truncated tail and the browser has to survive a partial
+ * surface followed by a complete one.
+ */
+function turnEvents(surfaceId, prose, _express, tail) {
+  return [
+    {type: 'text', delta: prose},
+    ...(FIRST.partial ? [{type: 'ui', surfaceId, messages: FIRST.partial, done: false}] : []),
+    {type: 'ui', surfaceId, messages: FIRST.messages, done: true},
+    {type: 'text', delta: tail},
+  ];
+}
+
+const browser = await launchBrowser();
+const context = await browser.newContext({viewport: {width: 1440, height: 940}});
+const page = await context.newPage();
+
+page.on('pageerror', error => check(`no page exception (${error.message})`, false));
+
+await page.addInitScript(() => {
+  localStorage.setItem('travel-a2ui:key', 'sk-ant-e2e-placeholder');
+  localStorage.setItem('travel-a2ui:session', 'e2e-session');
+});
+
+/** Every `/api/chat` body the app sent, so we can assert on the second one. */
+const sent = [];
+let turn = 0;
+
+await page.route('**/api/chat', async route => {
+  sent.push(JSON.parse(route.request().postData() ?? '{}'));
+  const index = turn++;
+
+  const body =
+    index === 0
+      ? toSse([
+          ...FIRST_TURN,
+          ...turnEvents(
+            'inline-1',
+            'Three nonstops on the 12th. The Iberia one lands early enough to still get dinner.\n\n',
+            EXPRESS,
+            '\nWant me to hold one?',
+          ),
+          {
+            type: 'usage',
+            inputTokens: 4210,
+            outputTokens: 380,
+            cacheReadTokens: 3900,
+            cacheWriteTokens: 0,
+          },
+          {type: 'done', stopReason: 'end_turn'},
+        ])
+      : toSse([
+          ...SECOND_TURN.slice(0, -1),
+          // Exactly what `tripUpdates('sidebar', trip)` produces on the server:
+          // the panel drawn once, then kept current as ordinary A2UI.
+          {type: 'ui', surfaceId: 'sidebar', messages: compileFor('sidebar', PANEL), done: true},
+          {
+            type: 'ui',
+            surfaceId: 'sidebar',
+            done: true,
+            messages: [
+              {
+                version: catalog.protocolVersion,
+                updateDataModel: {
+                  surfaceId: 'sidebar',
+                  path: '/trip/selectedFlight',
+                  value: 'IB6250',
+                },
+              },
+            ],
+          },
+          SECOND_TURN.at(-1),
+        ]);
+
+  await route.fulfill({
+    status: 200,
+    headers: {'content-type': 'text/event-stream; charset=utf-8', 'cache-control': 'no-store'},
+    body,
+  });
+});
+
+console.log(`Driving ${BASE}\n`);
+await page.goto(BASE, {waitUntil: 'networkidle'});
+
+// --- turn one: type, send, watch a surface appear -------------------------
+await page.waitForSelector('.chat__intro', {timeout: 15000});
+await page.fill('.composer textarea', 'Six days in Madrid in April, two of us');
+await page.click('.composer__send');
+
+await page.waitForSelector('.tv-fare', {timeout: 15000});
+check('an inline surface renders under the reply', true);
+
+const flights = await page.locator('.tv-fare').count();
+check(`all three flight options render (${flights})`, flights === 3);
+
+const badge = await page.locator('.tv-badge').first().textContent();
+check(`badges render (${badge?.trim()})`, Boolean(badge?.trim()));
+
+// Every card in the list shows its own fare, and says whether it is chosen.
+const fares = await page.locator('.tv-fare').evaluateAll(cards =>
+  cards.map(card => ({
+    price: card.querySelector('.tv-money')?.textContent?.trim() ?? '',
+    airline: card.querySelector('.tv-fare__airline strong')?.textContent?.trim() ?? '',
+    pressed: card.getAttribute('aria-pressed'),
+  })),
+);
+check(
+  'every fare card shows its airline and price',
+  fares.every(fare => fare.airline && /\d/.test(fare.price)),
+  JSON.stringify(fares),
+);
+check(
+  'and says whether it is the chosen one',
+  fares.every(fare => fare.pressed === 'true' || fare.pressed === 'false'),
+  JSON.stringify(fares.map(fare => fare.pressed)),
+);
+
+// What a screen reader is told about the first fare.
+//
+// Checked here because this is the only probe that drives the real renderer
+// with a payload we wrote: the first fare in `EXPRESS` carries an
+// `accessibility` block, and a card's own text in DOM order is "Iberia IB6250
+// 18:40 JFK 08:15 +1 MAD 7h 35m Nonstop $412" — every fact, no sentence. A
+// live model may or may not label its cards; whether the renderer honours a
+// label it was given should not depend on that.
+const named = await page.locator('.tv-fare').first().getAttribute('aria-label');
+check(
+  `the agent's label reaches the card (${named ?? 'nothing'})`,
+  named === 'Iberia IB6250, 18:40 JFK to 08:15 next day MAD, nonstop, $412',
+);
+check(
+  'and a card the agent did not name keeps its own text',
+  (await page.locator('.tv-fare').nth(1).getAttribute('aria-label')) === null,
+);
+
+const prose = (await page.locator('.bubble--agent').first().textContent()) ?? '';
+check('prose stays prose', prose.includes('Three nonstops'));
+check('Express never leaks into the prose', !prose.includes('FlightOption'));
+
+const tools = await page.locator('.turn__tools li').count();
+check(`tool activity is shown (${tools})`, tools === 1);
+
+// --- turn two: click a flight, and the click becomes the next turn --------
+await page.locator('.tv-fare').first().click();
+await page.waitForFunction(() => document.querySelectorAll('.bubble--event').length > 0, {
+  timeout: 15000,
+});
+
+// Find the turn the click produced rather than assuming an index: the sidebar
+// rebuilds itself on its own schedule and may get there first.
+const fromClick = sent.find(body => pressOf(body)?.name === 'select_flight');
+check('clicking a flight sends another turn', Boolean(fromClick));
+check('it goes out as an A2UI action, not a sentence', fromClick?.message === undefined);
+check(
+  'the chosen flight id travels in the action context',
+  JSON.stringify(pressOf(fromClick)?.context ?? {}).includes('IB6250'),
+  JSON.stringify(pressOf(fromClick)?.context ?? {}),
+);
+check(
+  'and the surface it was pressed on is named',
+  typeof pressOf(fromClick)?.surfaceId === 'string',
+  String(pressOf(fromClick)?.surfaceId),
+);
+
+// The panel is A2UI now — there is no React list of trip keys to read, so the
+// check is that the chosen flight reached the drawn surface.
+await page
+  .waitForFunction(
+    () => (document.querySelector('.sidebar')?.textContent ?? '').includes('IB6250'),
+    {
+      timeout: 20000,
+    },
+  )
+  .catch(() => {});
+const decided = (await page.locator('.sidebar').textContent()) ?? '';
+check('trip state reaches the sidebar', decided.includes('IB6250'), decided.slice(0, 80));
+
+const status = (await page.locator('.statusbar').textContent()) ?? '';
+check('token usage is reported', /cached/.test(status));
+
+// --- the wire inspector sees the same surface ----------------------------
+await page.click('button:has-text("Wire")');
+await page.waitForSelector('.protocol__tabs button', {timeout: 15000});
+
+// Pick the surface deliberately. Which one the pane opens on depends on what
+// else exists — the panel rebuilds itself when the trip changes shape, so
+// relying on the default made this test fail for a reason that had nothing to
+// do with the wire view.
+await page.locator('.protocol__tabs button', {hasText: 'inline-1'}).click();
+
+// The server decompiles with the A2UI SDK, so the pane starts as a placeholder.
+await page
+  .waitForFunction(
+    () => (document.querySelector('.protocol__pane')?.textContent ?? '').includes('FlightOption('),
+    {timeout: 15000},
+  )
+  .catch(() => {});
+const express = (await page.locator('.protocol__pane').first().textContent()) ?? '';
+check('the wire view recovers the Express', express.includes('FlightOption('));
+check('and reports the size difference', /% smaller/.test(express));
+
+if (SHOT) {
+  await page.click('button:has-text("Chat")');
+  await page.waitForSelector('.tv-fare', {timeout: 15000});
+  mkdirSync(dirname(SHOT), {recursive: true});
+  await page.screenshot({path: SHOT});
+  console.log(`\nScreenshot: ${SHOT}`);
+}
+
+await browser.close();
+
+console.log(`\n${failures.length === 0 ? 'All checks passed.' : `${failures.length} failed.`}`);
+process.exit(failures.length === 0 ? 0 : 1);

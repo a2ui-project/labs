@@ -1,0 +1,129 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""What is still worth asking about, and how to say it.
+
+`missing_for` is what a tool needs before it can run: a flight search needs a
+route and a date. `summarize` is what the prompt reads — what is recorded and
+any notes on it; what to ask next is the agent's call — and `basis_of` is the
+sentence that says where the facts came from.
+"""
+
+from __future__ import annotations
+
+from typing import Any, Sequence
+
+from .fields import _MONTHS, BY_KEY, FIELDS, REQUIREMENTS, Trip, _blank
+from .problems import nights, problems
+from .route import _legs_of
+
+
+def missing_for(trip: Trip, goal: str) -> list[str]:
+    """The fields a goal needs and does not have.
+
+    Strict, including on a one-way trip: pricing a stay or totalling a journey
+    needs a length, and a tool that cannot find one must say so rather than
+    invent five nights. What a one-way trip should not be *told*, every turn, is
+    that it is missing a return date — and that is `summarize` below, which is
+    what reaches the prompt.
+    """
+    return [key for key in REQUIREMENTS[goal] if _blank(trip.get(key))]
+
+
+def can_do(trip: Trip, goal: str) -> bool:
+    return not missing_for(trip, goal)
+
+
+def ask_for(keys: Sequence[str]) -> str:
+    """The missing fields as a sentence to put in front of a person."""
+    labels = [BY_KEY[key]["label"] if key in BY_KEY else key for key in keys]
+    if not labels:
+        return ""
+    if len(labels) == 1:
+        return labels[0]
+    return f"{', '.join(labels[:-1])} and {labels[-1]}"
+
+
+def summarize(trip: Trip, today: str | None = None) -> dict[str, Any]:
+    """The trip as the app and the prompt both want to show it."""
+    decided = [
+        {"key": field["key"], "value": trip.get(field["key"]), "label": field["label"]}
+        for field in FIELDS
+        if not _blank(trip.get(field["key"]))
+    ]
+
+    night_count = nights(trip)
+    out: dict[str, Any] = {"decided": decided}
+    # Key order matches the TypeScript literal: `nights` is spread in before
+    # `problems`, and omitted entirely when there is no coherent range.
+    if night_count is not None:
+        out["nights"] = night_count
+    out["problems"] = problems(trip, today)
+    return out
+
+
+def _short_date(date_string: str) -> str:
+    """`12 Apr`, the way `toLocaleDateString('en-GB', …)` writes it."""
+    from datetime import date
+
+    day = date.fromisoformat(date_string)
+    return f"{day.day} {_MONTHS[day.month - 1]}"
+
+
+def basis_of(trip: Trip) -> str:
+    """How a surface should describe what it is showing.
+
+    `LHR → Madrid · 12–19 Apr · 3 travellers`. A fare with no route, dates or
+    party size beside it is the thing that makes an answer untrustworthy, and
+    every priced surface is asked to carry this.
+    """
+    parts: list[str] = []
+
+    if trip.get("origin") and trip.get("destination"):
+        parts.append(f"{trip['origin']} → {trip['destination']}")
+    elif trip.get("destination"):
+        parts.append(trip["destination"])
+
+    start, end = trip.get("startDate"), trip.get("endDate")
+    if start and end:
+        from_text, to_text = _short_date(start), _short_date(end)
+        # Same month reads better as "12–19 Apr" than "12 Apr – 19 Apr".
+        same_month = start[:7] == end[:7]
+        parts.append(
+            f"{from_text.split(' ')[0]}–{to_text}"
+            if same_month
+            else f"{from_text} – {to_text}"
+        )
+    elif start:
+        # A one-way or half-decided trip still says when it leaves, in the same
+        # voice as the rest — a raw ISO date in a heading reads like a database.
+        parts.append(f"from {_short_date(start)}")
+
+    if trip.get("travelers") is not None:
+        count = trip["travelers"]
+        # A party that changes along the way cannot be stated as one number, and
+        # stating it as one is worse than leaving it out: "1 traveller" over a
+        # trip that flies home with two prices the whole thing for the wrong
+        # party, which is exactly the untrustworthy answer this line exists to
+        # prevent.
+        counts = {
+            count,
+            *(leg["travelers"] for leg in _legs_of(trip) if leg.get("travelers")),
+        }
+        if len(counts) > 1:
+            parts.append(f"{min(counts)}–{max(counts)} travellers")
+        else:
+            parts.append(f"{count} traveller{'' if count == 1 else 's'}")
+
+    return " · ".join(parts)

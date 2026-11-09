@@ -1,0 +1,212 @@
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// Talking to the server. The same endpoints the React client uses, because
+// there is one server and it does not know which client is asking.
+//
+// A turn arrives as server-sent events. The events are not a Flutter protocol
+// or a React protocol — they are the agent's own — so this file is a reader and
+// not a translator, which is the whole reason a second client was worth
+// building: if it had needed a translator, the first client's shape would have
+// leaked into the server.
+
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+
+/// What the server says about itself, so nothing is compiled into the client.
+class ServerMeta {
+  ServerMeta(this.raw);
+
+  final Map<String, dynamic> raw;
+
+  String get name => raw['name'] as String? ?? 'Travel A2UI';
+  String get defaultModel => raw['defaultModel'] as String? ?? '';
+  String get defaultSkill => raw['defaultSkill'] as String? ?? '';
+  bool get keyProvided => raw['keyProvided'] == true;
+
+  /// What an empty conversation offers to say first, the same list the React
+  /// client shows.
+  List<String> get openers => [
+    for (final entry in (raw['openers'] as List? ?? const []))
+      if (entry is String && entry.isNotEmpty) entry,
+  ];
+
+  /// Where the numbers came from, said once in the chrome rather than on every
+  /// card.
+  Map<String, dynamic> get provenance =>
+      (raw['provenance'] as Map?)?.cast<String, dynamic>() ?? const {};
+
+  List<Map<String, dynamic>> get backends => [
+    for (final entry in (raw['backends'] as List? ?? const []))
+      if (entry is Map) entry.cast<String, dynamic>(),
+  ];
+}
+
+/// One event from a turn, as the agent emitted it.
+class TurnEvent {
+  TurnEvent(this.raw);
+
+  final Map<String, dynamic> raw;
+
+  String get type => raw['type'] as String? ?? '';
+  String get delta => raw['delta'] as String? ?? '';
+  String get surfaceId => raw['surfaceId'] as String? ?? '';
+
+  List<Map<String, dynamic>> get messages => [
+    for (final message in (raw['messages'] as List? ?? const []))
+      if (message is Map) message.cast<String, dynamic>(),
+  ];
+}
+
+/// Today, in the traveller's own calendar, as `YYYY-MM-DD`.
+///
+/// `DateTime.now()` is already local; the only trick is not letting
+/// `toIso8601String` hand back a UTC instant, which is exactly the confusion
+/// this is here to prevent on the server.
+String _localToday() {
+  final now = DateTime.now();
+  return '${now.year.toString().padLeft(4, '0')}-'
+      '${now.month.toString().padLeft(2, '0')}-'
+      '${now.day.toString().padLeft(2, '0')}';
+}
+
+class TravelApi {
+  TravelApi({required this.origin, this.apiKey = ''});
+
+  /// Empty means same-origin, which is the deployed case: one service serves
+  /// the client and the API, so there is no base URL to configure and no
+  /// cross-origin request to allow.
+  final String origin;
+  String apiKey;
+
+  Uri _url(String path) => Uri.parse('$origin$path');
+
+  Future<ServerMeta> meta() async {
+    final response = await http.get(_url('/api/meta'));
+    return ServerMeta(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  Future<Map<String, dynamic>> catalog() async {
+    final response = await http.get(_url('/api/catalog'));
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  /// Starts the conversation before anybody has typed, as the React client
+  /// does when it has a key.
+  ///
+  /// The first real turn then resumes a conversation that already holds the
+  /// role, the catalog and the component signatures, rather than paying for
+  /// all of them on the turn somebody is waiting for. Returns the receipt
+  /// (`interactionId`, `setup`), or null when it failed: the only cost of a
+  /// failed warm-up is a slower first turn, so it is never an error on screen.
+  Future<Map<String, dynamic>?> warm() async {
+    try {
+      final response = await http.post(
+        _url('/api/warm'),
+        headers: {
+          'content-type': 'application/json',
+          if (apiKey.isNotEmpty) 'x-goog-api-key': apiKey,
+        },
+        body: '{}',
+      );
+      if (response.statusCode >= 400) return null;
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      return body['interactionId'] == null ? null : body;
+    } on Exception {
+      return null;
+    }
+  }
+
+  /// One turn, streamed.
+  ///
+  /// `client.send` with a streamed response rather than `post`, because the
+  /// point of the whole design is that a surface paints while the model is
+  /// still writing it. Reading the body to completion first would work, render
+  /// correctly, and take exactly as long as the slowest turn — which is the
+  /// behaviour this replaces.
+  Stream<TurnEvent> chat({
+    String message = '',
+    List<Map<String, dynamic>> a2ui = const [],
+    Map<String, dynamic>? metadata,
+    String? sessionId,
+    Map<String, dynamic>? resume,
+    String surface = 'inline',
+    List<String> surfaces = const [],
+  }) async* {
+    final request = http.Request('POST', _url('/api/chat'))
+      ..headers['content-type'] = 'application/json'
+      ..headers['accept'] = 'text/event-stream';
+    if (apiKey.isNotEmpty) request.headers['x-goog-api-key'] = apiKey;
+    request.body = jsonEncode({
+      if (message.isNotEmpty) 'message': message,
+      // A2UI v1.0 renderer-to-agent messages: the press, and anything the
+      // processor refused. See `docs/transport.md`.
+      if (a2ui.isNotEmpty) 'a2ui': a2ui,
+      // `a2uiRendererCapabilities` and `a2uiRendererDataModel`, every request.
+      if (metadata != null) 'metadata': metadata,
+      'surfaces': surfaces,
+      if (sessionId != null) 'sessionId': sessionId,
+      // The last turn's receipt, handed back unread: the next turn may land on
+      // a server instance that has never heard of this conversation.
+      if (resume != null) 'resume': resume,
+      'surface': surface,
+      // What day it is here. The server runs in UTC and would otherwise plan
+      // "tomorrow" against its own calendar rather than the traveller's.
+      'client': {'today': _localToday()},
+    });
+
+    final response = await http.Client().send(request);
+
+    if (response.statusCode >= 400) {
+      final body = await response.stream.bytesToString();
+      String detail = body;
+      try {
+        detail = (jsonDecode(body) as Map)['detail']?.toString() ?? body;
+      } on FormatException {
+        // The body was not JSON; the raw text is the best message there is.
+      }
+      yield TurnEvent({'type': 'error', 'message': detail, 'retryable': false});
+      return;
+    }
+
+    // SSE frames are separated by a blank line, and a frame can arrive split
+    // across chunks — so the buffer is the whole of the parsing.
+    var buffer = '';
+    await for (final chunk in response.stream.transform(utf8.decoder)) {
+      // SSE lines may end in CRLF as well as LF. Normalised on the whole
+      // buffer rather than the chunk, so a CRLF split across two chunks is
+      // still one line ending; and only CRLF, because a lone CR at the end of
+      // the buffer may be the first half of one.
+      buffer = (buffer + chunk).replaceAll('\r\n', '\n');
+      while (true) {
+        final boundary = buffer.indexOf('\n\n');
+        if (boundary == -1) break;
+        final frame = buffer.substring(0, boundary);
+        buffer = buffer.substring(boundary + 2);
+        for (final line in frame.split('\n')) {
+          if (!line.startsWith('data: ')) continue;
+          final payload = line.substring(6);
+          try {
+            yield TurnEvent(jsonDecode(payload) as Map<String, dynamic>);
+          } on FormatException {
+            // A frame we cannot read is skipped rather than ending the turn:
+            // the surfaces already on screen are still correct.
+          }
+        }
+      }
+    }
+  }
+}

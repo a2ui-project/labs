@@ -1,0 +1,57 @@
+<!doctype html>
+<!--
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Travel A2UI — an agent that answers in interfaces</title>
+    <meta
+      name="description"
+      content="A travel planner that replies with real interactive UI, generated turn by turn with the A2UI protocol. Pick flights, set dates, plan days — by typing or out loud."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    />
+    <!-- The A2UI SDK's basic Icon draws Material Icons ligatures. -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/icon?family=Material+Icons&display=block"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232257f5'/%3E%3Cpath d='M8.5 22.5c3-10 12-13 15-13' fill='none' stroke='white' stroke-width='2.2' stroke-linecap='round' stroke-dasharray='3 3.2'/%3E%3Ccircle cx='8.5' cy='22.5' r='2.6' fill='white'/%3E%3Ccircle cx='23.5' cy='9.5' r='2.6' fill='white'/%3E%3C/svg%3E"
+    />
+    <script>
+      // Applied before first paint so a dark-mode reload never flashes white.
+      try {
+        const stored = localStorage.getItem('travel-a2ui:theme');
+        if (stored === 'dark' || stored === 'light') {
+          document.documentElement.dataset.theme = stored;
+        }
+      } catch {}
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

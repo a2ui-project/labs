@@ -1,0 +1,45 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: travel_a2ui_renderer
+description: >-
+  The travel catalog for a2ui_flutter: fifteen travel views, two functions and
+  the surface widget. No app logic: apps/flutter is the app that uses it.
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  # `a2ui_flutter` 0.1.0 requires Dart >=3.10 and Flutter >=3.38.
+  sdk: ^3.10.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The official A2UI packages: the core types and the widget host both come
+  # from upstream, so this package renders the protocol rather than this app's
+  # idea of it.
+  a2ui_core: ^0.5.0
+  a2ui_flutter: ^0.1.0
+
+  # Markdown in the basic `Text`, as `a2ui_flutter`'s README renders it
+  # (`A2uiMarkdown` over `MarkdownBody`), and links and `openUrl` opened in the
+  # browser.
+  flutter_markdown_plus: ^1.0.7
+  url_launcher: ^6.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0

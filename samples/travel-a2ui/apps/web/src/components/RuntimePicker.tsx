@@ -1,0 +1,181 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Picks which agent framework answers.
+ *
+ * Two of them ship, and they are not the same program with a different flag:
+ *
+ *   Python server       Gemini Interactions API. A request/response loop the
+ *                       server drives on the traveller's own key, calling the
+ *                       travel tools directly. Typed.
+ *
+ *   Gemini Live         Gemini Live API. A bidirectional audio session Google
+ *                       drives, relayed through the same server session.
+ *                       Speak or type; it answers out loud.
+ *
+ * The claim this picker exists to test is that the interface layer is
+ * independent of the runtime — one catalog, one set of components, one set of
+ * skills, one wire protocol — so you can switch mid-conversation and watch the
+ * same surfaces come back from a different machine on a different API.
+ *
+ * They share nothing. Different APIs, different conversation histories, and no
+ * attempt to carry a half-decided trip across — so switching reloads the page
+ * and starts the demo over, which is what a reload already means here. The
+ * alternative was a caveat ("they share the trip but not the transcript") that
+ * a demo should not have to explain, and a state-unwinding bug waiting to
+ * happen.
+ *
+ * The `origin` field takes any backend answering the same `/api/chat` contract,
+ * which is how a third framework would arrive.
+ *
+ * Switching probes the target first. A runtime that is not running says so here
+ * rather than failing on the next message.
+ */
+
+import {useEffect, useState} from 'react';
+
+import type {BackendId, BackendOption} from '../api.js';
+
+export function RuntimePicker({
+  backends,
+  current,
+  error,
+  onChange,
+}: {
+  backends: BackendOption[];
+  current: {id: BackendId; origin: string};
+  error: string | null;
+  onChange: (id: BackendId, origin: string) => Promise<boolean>;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draftId, setDraftId] = useState<BackendId>(current.id);
+  const [draftOrigin, setDraftOrigin] = useState(current.origin);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setDraftId(current.id);
+    setDraftOrigin(current.origin);
+  }, [current.id, current.origin]);
+
+  const active = backends.find(entry => entry.id === current.id);
+  const draft = backends.find(entry => entry.id === draftId);
+
+  /**
+   * Where a framework lives, as the server advertises it. Empty is same-origin.
+   *
+   * The server knows which frameworks it serves itself, so the picker asks it
+   * rather than guessing from an id: Gemini Live is same-origin, and waiting
+   * for an address it does not have would leave the picker open forever.
+   */
+  const originOf = (id: BackendId) => backends.find(entry => entry.id === id)?.origin ?? '';
+  const needsOrigin = originOf(draftId) !== '';
+
+  async function pick(id: BackendId) {
+    setDraftId(id);
+    const advertised = originOf(id);
+    if (advertised === '') {
+      setBusy(true);
+      const ok = await onChange(id, '');
+      setBusy(false);
+      if (ok) setOpen(false);
+      return;
+    }
+    setDraftOrigin(draftOrigin || advertised);
+  }
+
+  async function connect() {
+    setBusy(true);
+    const ok = await onChange(draftId, draftOrigin.trim());
+    setBusy(false);
+    if (ok) setOpen(false);
+  }
+
+  return (
+    <div className="runtime">
+      <button
+        type="button"
+        className="runtime__trigger"
+        aria-expanded={open}
+        title="Which agent runtime answers"
+        onClick={() => setOpen(value => !value)}
+      >
+        <span className="runtime__label">Runtime</span>
+        <span className="runtime__value">{active?.label ?? current.id}</span>
+        <span className="runtime__caret" aria-hidden>
+          ▾
+        </span>
+      </button>
+
+      {open ? (
+        <div className="runtime__menu" role="dialog" aria-label="Agent runtime">
+          {backends.map(entry => (
+            <button
+              key={entry.id}
+              type="button"
+              className={`runtime__option${entry.id === draftId ? ' is-active' : ''}`}
+              aria-current={entry.id === current.id}
+              onClick={() => void pick(entry.id)}
+            >
+              <strong>
+                {entry.label}
+                {entry.id === current.id ? <span className="runtime__now">in use</span> : null}
+              </strong>
+              <span>{entry.note}</span>
+            </button>
+          ))}
+
+          {needsOrigin ? (
+            <div className="runtime__connect">
+              <label>
+                <span>Where it is running</span>
+                <input
+                  type="url"
+                  value={draftOrigin}
+                  spellCheck={false}
+                  placeholder="http://localhost:8000"
+                  onChange={event => setDraftOrigin(event.target.value)}
+                  onKeyDown={event => {
+                    if (event.key === 'Enter') void connect();
+                  }}
+                />
+              </label>
+              <button
+                type="button"
+                disabled={busy || !draftOrigin.trim()}
+                onClick={() => void connect()}
+              >
+                {busy ? 'Checking…' : 'Connect'}
+              </button>
+              <p>
+                A runtime somewhere other than this server. Both of the built-in ones are served
+                from here, so this is only for a backend you are running yourself.
+              </p>
+            </div>
+          ) : null}
+
+          {error ? <p className="runtime__error">{error}</p> : null}
+          {!error && draft && draftId === current.id ? (
+            <p className="runtime__note">
+              Your key goes to whichever runtime is selected. Both call Gemini with it directly, and
+              neither stores it.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}

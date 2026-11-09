@@ -1,0 +1,92 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""The deterministic fixture provider.
+
+Reads `data/` directly: the CSV and JSON a person edits, with no build step.
+
+Determinism is the point. The same query returns the same flights on every run,
+so a screenshot stays true and a test can assert on a price;
+`tests/goldens/fixtures.json` pins it, down to the last dollar.
+
+Five files, innermost first:
+
+  `tables`    the data, read straight from `data/`
+  `numbers`   the seeded arithmetic, 32-bit and masked, so every run agrees
+  `routes`    which airline flies this, and where it stops on the way
+  `places`    finding the place asked for, and inventing one when it is not here
+  `provider`  the eight lookups, answered from all of the above
+
+Everything that was importable from `fixture` still is — the tests reach for
+`_rng`, `_seed` and `_to_fixed` by name to prove the JavaScript arithmetic, and
+the tools reach for `_money`.
+"""
+
+from __future__ import annotations
+
+from .numbers import (  # noqa: F401 — re-exported: this package is one module to its callers
+    _MASK,
+    _clock,
+    _duration_minutes,
+    _js_round,
+    _money,
+    _pick,
+    _rng,
+    _seed,
+    _to_fixed,
+    code_for_seed,
+)
+from .places import (  # noqa: F401 — re-exported: this package is one module to its callers
+    _INVENTED_AREAS,
+    _INVENTED_HIGHLIGHTS,
+    _INVENTED_MONTHS,
+    _INVENTED_SUMMARY,
+    _elsewhere,
+    _invent_destination,
+    _resolve,
+    _unknown_destination,
+)
+from .provider import (  # noqa: F401 — re-exported: this package is one module to its callers
+    FixtureProvider,
+    _relax_until_non_empty,
+)
+from .routes import (  # noqa: F401 — re-exported: this package is one module to its callers
+    _carriers_for,
+    _connection,
+    _distance_km,
+    _hubs_on_the_way,
+)
+from .tables import (  # noqa: F401 — re-exported: this package is one module to its callers
+    _AIRLINES,
+    _AMENITIES,
+    _BY_ALIAS,
+    _BY_CODE,
+    _CONNECTIONS,
+    _CURRENCY_SYMBOL,
+    _DATA,
+    _DESTINATION_LIST,
+    _DESTINATIONS,
+    _HOTEL_NAMES,
+    _HOTEL_WORDS,
+    _HOTELS,
+    _HUBS,
+    _LODGING,
+    _ORIGIN_CODES,
+    _ORIGINS,
+    _PLACE,
+    _ROOT,
+    FIXTURE_PROVENANCE,
+    _fold,
+    _rows,
+)

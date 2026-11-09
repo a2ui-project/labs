@@ -1,0 +1,471 @@
+{
+  "$comment": [
+    "The agent's tools: names, descriptions and JSON Schema.",
+    "",
+    "Data rather than code because two implementations read it, and because the",
+    "descriptions are prompt engineering. 'Needs a date: with none given and none",
+    "saved on the trip, it returns a request to ask the traveller rather than",
+    "pricing a week nobody chose' is a behaviour, written down. Retyping that into",
+    "a second language is how two agents end up with different manners."
+  ],
+  "tools": [
+    {
+      "name": "search_flights",
+      "description": "Finds flights to a destination. Returns fare, timing and stop data — not UI. Call it before showing flight options so the numbers on screen are real. Needs a date: with none given and none saved on the trip, it returns a request to ask the traveler rather than pricing a week nobody chose. Set flexible only when they explicitly asked for a rough or seasonal figure.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string",
+            "description": "Where the traveler is going: a city name or airport code, e.g. 'Madrid' or 'MAD'."
+          },
+          "origin": {
+            "type": "string",
+            "description": "Departure airport code. Required — the trip is not priced without one."
+          },
+          "date": {
+            "type": "string",
+            "description": "Outbound date as YYYY-MM-DD."
+          },
+          "travelers": {
+            "type": "integer",
+            "description": "Number of travelers."
+          },
+          "cabin": {
+            "type": "string",
+            "enum": ["economy", "premium", "business", "first"]
+          },
+          "maxPrice": {
+            "type": "number",
+            "description": "Highest acceptable per-traveler fare."
+          },
+          "nonstopOnly": {
+            "type": "boolean",
+            "description": "Exclude itineraries with a stop."
+          },
+          "flexible": {
+            "type": "boolean",
+            "description": "Only when the traveler asked for a rough or seasonal figure rather than their trip. Prices an indicative date, which you must then label as indicative on screen."
+          },
+          "hop": {
+            "type": "integer",
+            "description": "Which hop of the route this search is for, counted from one: the first flight is hop 1, legs[0] is hop 2. Pass it on a trip with more than one hop, and the same hop to the list you draw, so each hop's list keeps its own results."
+          }
+        },
+        "required": ["destination"],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "name": "search_hotels",
+      "description": "Finds places to stay. Returns nightly rates, neighbourhoods, ratings and amenities — not UI.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string",
+            "description": "City name or airport code."
+          },
+          "nights": {
+            "type": "integer",
+            "description": "Length of stay in nights."
+          },
+          "travelers": {
+            "type": "integer"
+          },
+          "maxNightly": {
+            "type": "number",
+            "description": "Highest acceptable nightly rate."
+          },
+          "neighborhood": {
+            "type": "string",
+            "description": "Preferred area, if the traveler named one."
+          },
+          "flexible": {
+            "type": "boolean",
+            "description": "Only for an explicitly rough figure. See search_flights."
+          },
+          "hop": {
+            "type": "integer",
+            "description": "Which hop of the route this search is for, counted from one: the first flight is hop 1, legs[0] is hop 2. Pass it on a trip with more than one hop, and the same hop to the list you draw, so each hop's list keeps its own results."
+          }
+        },
+        "required": ["destination"],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "name": "get_destination",
+      "description": "Returns what is worth doing in a destination, when to go, and the local currency. Call it before writing an itinerary so the day plan names real places. With no argument, lists every destination this agent knows.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string",
+            "description": "City name or airport code. Omit to list all."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_weather",
+      "description": "Returns a short forecast for a destination — highs, lows and conditions by day.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "description": "First day of the forecast, YYYY-MM-DD."
+          },
+          "days": {
+            "type": "integer",
+            "description": "How many days, up to 7."
+          }
+        },
+        "required": ["destination"],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "name": "estimate_cost",
+      "description": "Breaks a trip into itemised costs and a total. Pass the chosen fare and nightly rate when the traveler has picked them, so the estimate reflects their actual trip rather than an average. Needs dates and party size, from the arguments or the saved trip; without them it returns a request to ask instead of a total that means nothing.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "travelers": {
+            "type": "integer"
+          },
+          "nights": {
+            "type": "integer"
+          },
+          "flightPrice": {
+            "type": "number",
+            "description": "Chosen per-traveler fare, if any."
+          },
+          "nightlyPrice": {
+            "type": "number",
+            "description": "Chosen nightly rate, if any."
+          },
+          "flexible": {
+            "type": "boolean",
+            "description": "Only for an explicitly rough figure. See search_flights."
+          }
+        },
+        "required": ["destination"],
+        "additionalProperties": false
+      },
+      "strict": true
+    },
+    {
+      "name": "save_trip",
+      "description": "Records what the traveler has decided. Anything not saved here is forgotten when the turn ends. Returns what is still needed.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string",
+            "description": "Departure airport code for the first hop — 'SFO'. Later hops carry their own on the leg."
+          },
+          "startDate": {
+            "type": "string",
+            "description": "YYYY-MM-DD."
+          },
+          "endDate": {
+            "type": "string",
+            "description": "YYYY-MM-DD."
+          },
+          "travelers": {
+            "type": "integer"
+          },
+          "budget": {
+            "type": "number"
+          },
+          "selectedFlight": {
+            "type": "string",
+            "description": "Flight id the traveler chose."
+          },
+          "flightPrice": {
+            "type": "number",
+            "description": "Per-traveler fare of that flight."
+          },
+          "selectedHotel": {
+            "type": "string",
+            "description": "Hotel id the traveler chose."
+          },
+          "nightlyPrice": {
+            "type": "number",
+            "description": "Nightly rate of that stay."
+          },
+          "cabin": {
+            "type": "string",
+            "enum": ["economy", "premium", "business", "first"]
+          },
+          "nonstopOnly": {
+            "type": "boolean"
+          },
+          "neighborhood": {
+            "type": "string"
+          },
+          "spent": {
+            "type": "number",
+            "description": "What is actually committed, not estimated."
+          },
+          "days": {
+            "type": "array",
+            "description": "The day-by-day plan itself, one entry per day, in order — not just the fact that you drew one. Save it in the same call that draws it: the itinerary on the card cannot be shared, edited or read back next turn, and a hop whose days are not recorded goes on asking for things to do after you have planned them.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "What this day is, e.g. 'Old Madrid on foot'."
+                },
+                "date": {
+                  "type": "string",
+                  "description": "YYYY-MM-DD."
+                },
+                "summary": {
+                  "type": "string",
+                  "description": "One line about the shape of the day."
+                },
+                "activities": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string",
+                        "description": "What it is, e.g. 'Prado Museum'."
+                      },
+                      "time": {
+                        "type": "string",
+                        "description": "Start time as shown, e.g. '10:00'."
+                      },
+                      "category": {
+                        "type": "string",
+                        "description": "food, sight, outdoors, transit, free."
+                      },
+                      "location": {
+                        "type": "string"
+                      },
+                      "duration": {
+                        "type": "string",
+                        "description": "e.g. '2h'."
+                      },
+                      "note": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["title"]
+                  }
+                }
+              },
+              "required": []
+            }
+          },
+          "planned": {
+            "type": "boolean",
+            "description": "True once the day-by-day plan is drawn and the traveler is happy with it."
+          },
+          "skip": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["route", "dates", "party", "flight", "stay", "budget", "plan"]
+            },
+            "description": "Stages this trip does not need. A skipped stage counts as settled."
+          },
+          "assumed": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Fields in this call the traveler did not actually state — your best guess rather than their answer. They pre-fill the control and the question stays open, so you still ask."
+          },
+          "oneWay": {
+            "type": "boolean",
+            "description": "True when the journey does not come back — one way, staying on, sorting the way home later. Record it and stop looking for the missing hop home."
+          },
+          "legs": {
+            "type": "array",
+            "description": "Stops after the first, in order. The top-level fields are the first leg.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "destination": {
+                  "type": "string"
+                },
+                "startDate": {
+                  "type": "string",
+                  "description": "YYYY-MM-DD."
+                },
+                "endDate": {
+                  "type": "string",
+                  "description": "YYYY-MM-DD."
+                },
+                "origin": {
+                  "type": "string",
+                  "description": "Departure airport. Omit and it departs from the previous stop."
+                },
+                "travelers": {
+                  "type": "integer",
+                  "description": "Only when this leg differs. Omit and it inherits the trip's."
+                },
+                "purpose": {
+                  "type": "string",
+                  "description": "Why this stop exists — 'the wedding'."
+                },
+                "needsStay": {
+                  "type": "boolean",
+                  "description": "Whether this stop needs somewhere to stay."
+                },
+                "selectedFlight": {
+                  "type": "string",
+                  "description": "The flight chosen for this hop. Every hop after the first keeps its own ticket here — the trip's `selectedFlight` is the first hop's and nothing else."
+                },
+                "flightPrice": {
+                  "type": "number",
+                  "description": "Per-traveler fare of that hop's flight."
+                },
+                "selectedHotel": {
+                  "type": "string",
+                  "description": "The stay chosen for this stop."
+                },
+                "nightlyPrice": {
+                  "type": "number"
+                },
+                "notes": {
+                  "type": "string"
+                },
+                "airline": {
+                  "type": "string",
+                  "description": "This hop's airline. Belongs here, beside this leg's `selectedFlight`, not on the trip."
+                },
+                "flightNumber": {
+                  "type": "string",
+                  "description": "This hop's flight number, e.g. 'IB6251'. Belongs here, beside this leg's `selectedFlight`, not on the trip."
+                },
+                "departTime": {
+                  "type": "string",
+                  "description": "This hop's departure, as the card showed it. Belongs here, not on the trip."
+                },
+                "arriveTime": {
+                  "type": "string",
+                  "description": "This hop's arrival, as the card showed it. Belongs here, not on the trip."
+                },
+                "hotelName": {
+                  "type": "string",
+                  "description": "This stop's stay, by name. Belongs here, beside this leg's `selectedHotel`."
+                }
+              },
+              "required": ["destination"]
+            }
+          },
+          "notes": {
+            "type": "string",
+            "description": "Anything else worth remembering, in one line."
+          },
+          "needsStay": {
+            "type": "boolean",
+            "description": "Whether the first stop needs somewhere to stay. False when they already have somewhere. Later stops carry this on their leg."
+          },
+          "airline": {
+            "type": "string",
+            "description": "Who flies it, off the card they tapped — 'Norwegian'. Save it with the id: the panel says what the flight *is*, and it can only read what you recorded. Goes wherever this hop's `selectedFlight` goes, always the same object: the trip's for hop one, `legs[0]`'s for hop two. Putting a return's on the trip, while the trip's `selectedFlight` is still the outbound, puts one flight's number beside another's name on the panel."
+          },
+          "flightNumber": {
+            "type": "string",
+            "description": "The flight number off the card they tapped, e.g. 'IB6250' — the card's `flightNumber`, not its `id`. Goes wherever this hop's `selectedFlight` goes."
+          },
+          "departTime": {
+            "type": "string",
+            "description": "When it leaves, as the card showed it — '07:15'. Goes wherever this hop's `selectedFlight` goes, always the same object: the trip's for hop one, `legs[0]`'s for hop two. Putting a return's on the trip, while the trip's `selectedFlight` is still the outbound, puts one flight's number beside another's name on the panel."
+          },
+          "arriveTime": {
+            "type": "string",
+            "description": "When it lands, as the card showed it — '11:40'. Goes wherever this hop's `selectedFlight` goes, always the same object: the trip's for hop one, `legs[0]`'s for hop two. Putting a return's on the trip, while the trip's `selectedFlight` is still the outbound, puts one flight's number beside another's name on the panel."
+          },
+          "hotelName": {
+            "type": "string",
+            "description": "What the stay is called, off the card they tapped. `selectedHotel` is an id; this is the name a person reads. Goes wherever this hop's `selectedHotel` goes."
+          },
+          "maxFare": {
+            "type": "number",
+            "description": "Highest acceptable per-traveler fare, when they named a ceiling."
+          },
+          "maxNightly": {
+            "type": "number",
+            "description": "Highest acceptable nightly rate, when they named one."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "release_decision",
+      "description": "Lets go of something already decided. Clears the named fields *and* what depended on them, and returns what it cleared.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Trip fields to release, e.g. ['startDate'] or ['selectedFlight']."
+          },
+          "stages": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["route", "dates", "party", "flight", "stay", "budget", "plan"]
+            },
+            "description": "Stages to un-rule-out."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "get_trip",
+      "description": "Reads back everything recorded about this trip so far.",
+      "input_schema": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
+      }
+    },
+    {
+      "name": "share_plan",
+      "description": "Turns the trip into a page somebody who is not in this conversation can read: the route hop by hop, where you are staying, the days, and what it comes to. Call it when the trip is settled and they want to send it to whoever else is coming. Returns the page as Markdown plus a one-line summary — not a surface; draw a Button beside it if they should be able to open it again.",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "description": "One line at the top, in the traveller's own framing — 'Lisbon, the weekend of the 12th'. Optional."
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      }
+    }
+  ]
+}

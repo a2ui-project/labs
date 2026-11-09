@@ -1,0 +1,47 @@
+{
+  "name": "travel-a2ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A travel planner whose agent answers in A2UI: the model composes every surface, rendered by React and Flutter from the same messages.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "workspaces": [
+    "renderers/react",
+    "apps/*"
+  ],
+  "scripts": {
+    "setup": "./scripts/setup.sh",
+    "dev:web": "npm run dev -w @travel-a2ui/web",
+    "build": "npm run build -w @travel-a2ui/renderer && npm run build -w @travel-a2ui/web",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "e2e": "node tools/e2e/chat.mjs && node tools/e2e/interaction.mjs && node tools/e2e/frameworks.mjs && node tools/e2e/keys.mjs && node tools/e2e/sample.mjs",
+    "typecheck": "tsc -b renderers/react && tsc -p apps/web --noEmit",
+    "generate": "python3 scripts/build_catalog.py && python3 scripts/build_skills.py && python3 scripts/build_catalog_reference.py && python3 scripts/build_fixtures.py && python3 renderers/flutter/tool/build_example_fixtures.py",
+    "check:catalog": "python3 scripts/build_catalog.py --check",
+    "check:skills": "python3 scripts/build_skills.py --check",
+    "check": "npm run check:catalog && npm run check:skills && npm run check:reference && npm run check:fixtures && npm run check:examples",
+    "screenshots": "node tools/e2e/chat.mjs --screenshot docs/screenshots/01-chat-light.png && node tools/screenshots/capture.mjs docs/screenshots",
+    "check:catalog-page": "node tools/screenshots/catalog.mjs --check",
+    "docs:catalog": "node tools/screenshots/catalog.mjs",
+    "check:reference": "python3 scripts/build_catalog_reference.py --check",
+    "check:fixtures": "python3 scripts/build_fixtures.py --check",
+    "check:examples": "python3 renderers/flutter/tool/build_example_fixtures.py --check",
+    "lint": "npm run typecheck && ruff check apps/server scripts tools renderers/flutter/tool",
+    "format": "../../scripts/fix_format.sh",
+    "format:check": "../../scripts/fix_format.sh --check"
+  },
+  "devDependencies": {
+    "happy-dom": "^15.11.7",
+    "playwright": "^1.62.1",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "@a2ui/web_core": "0.15.0"
+  }
+}

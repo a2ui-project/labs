@@ -1,0 +1,16 @@
+node_modules
+dist
+**/build
+**/.astro
+apps/web/src/generated
+.venv
+docs
+renderers/flutter
+apps/flutter
+catalogs
+skills
+*.json
+*.md
+*.mdx
+*.css
+*.html
