@@ -84,9 +84,13 @@ def origin_allowed(origin: str | None, host: str | None) -> bool:
 
 
 def client_address(headers: Any, peer: str | None) -> str:
-    """The caller's address: the first `X-Forwarded-For` hop behind Cloud Run."""
-    forwarded = str(headers.get("x-forwarded-for") or "").split(",")[0].strip()
-    return forwarded or (peer or "unknown")
+    """The caller's address: the last `X-Forwarded-For` hop behind Cloud Run."""
+    forwarded = [
+        hop.strip()
+        for hop in str(headers.get("x-forwarded-for") or "").split(",")
+        if hop.strip()
+    ]
+    return forwarded[-1] if forwarded else (peer or "unknown")
 
 
 class RateLimit:

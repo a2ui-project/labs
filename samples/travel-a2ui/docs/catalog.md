@@ -1,12 +1,12 @@
 # The travel catalog
 
-24 components, every one drawn here by the renderer that ships — not a
-mockup. Each picture is a screenshot of the real component, beside the single line
-of A2UI Express that produced it.
+24 components, each with the single line of A2UI Express that
+produces it and its declared props. Open the app's **Catalog** tab (`/catalog`)
+to see every one drawn live by the renderer.
 
-This page is generated from `catalogs/a2ui-travel/catalog.json` and the web
-app's `/catalog/<Name>` pages (`node tools/screenshots/catalog.mjs`), so it cannot
-describe a component that no longer exists or miss a prop that was added.
+This page is generated from `catalogs/a2ui-travel/catalog.json` and
+`apps/web/src/generated/catalog-reference.json` (`node tools/screenshots/catalog.mjs`),
+so it cannot describe a component that no longer exists or miss a prop that was added.
 
 **Lifting one of these.** A component is three things: an entry in the catalog
 schema, a React view in `renderers/react/src/components/travel.tsx` (bound by the
@@ -17,11 +17,6 @@ project — nothing here is coupled to travel except the names.
 ---
 
 ## ActivityItem
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/ActivityItem-dark.png">
-  <img src="catalog/ActivityItem-light.png" alt="ActivityItem as the renderer draws it" width="560">
-</picture>
 
 ```
 root = ActivityItem("Prado Museum", "10:00", category="sight", location="Paseo del Prado 23", duration="2h", note="Book the timed entry")
@@ -41,11 +36,6 @@ root = ActivityItem("Prado Museum", "10:00", category="sight", location="Paseo d
 
 ## AirportPicker
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/AirportPicker-dark.png">
-  <img src="catalog/AirportPicker-light.png" alt="AirportPicker as the renderer draws it" width="560">
-</picture>
-
 ```
 $/trip/origin = "JFK"
 root = AirportPicker("Where from?", $/trip/origin, [{value: "JFK", label: "New York", code: "JFK", detail: "North America"}, {value: "CPH", label: "Copenhagen", code: "CPH", detail: "Europe"}, {value: "SFO", label: "San Francisco", code: "SFO", detail: "North America"}], kind="origin", placeholder="City or airport")
@@ -61,11 +51,6 @@ root = AirportPicker("Where from?", $/trip/origin, [{value: "JFK", label: "New Y
 
 ## Button
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/Button-dark.png">
-  <img src="catalog/Button-light.png" alt="Button as the renderer draws it" width="560">
-</picture>
-
 ```
 face = Text("Search flights")
 root = Button(face, action=Event("search_flights"), variant="primary")
@@ -80,11 +65,6 @@ root = Button(face, action=Event("search_flights"), variant="primary")
 
 ## CheckBox
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/CheckBox-dark.png">
-  <img src="catalog/CheckBox-light.png" alt="CheckBox as the renderer draws it" width="560">
-</picture>
-
 ```
 root = CheckBox("I need somewhere to stay in Chicago", $/stops/1/needsStay)
 ```
@@ -98,11 +78,6 @@ root = CheckBox("I need somewhere to stay in Chicago", $/stops/1/needsStay)
 ## ChoicePicker
 
 A component that allows selecting one or more options from a list.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/ChoicePicker-dark.png">
-  <img src="catalog/ChoicePicker-light.png" alt="ChoicePicker as the renderer draws it" width="560">
-</picture>
 
 ```
 root = ChoicePicker("Cabin", "mutuallyExclusive", [{label: "Economy", value: "economy"}, {label: "Premium", value: "premium"}], $/cabin)
@@ -122,11 +97,6 @@ root = ChoicePicker("Cabin", "mutuallyExclusive", [{label: "Economy", value: "ec
 
 A layout component that arranges its children vertically. To create a grid layout, nest Rows within this Column.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/Column-dark.png">
-  <img src="catalog/Column-light.png" alt="Column as the renderer draws it" width="560">
-</picture>
-
 ```
 a = Text("#### Outbound")
 b = Text("JFK → MAD · Sun 12 Apr")
@@ -141,11 +111,6 @@ root = Column([a, b], align="stretch")
 | `weight`   | weight      |              |                                                                                                                                                                                                           |
 
 ## DateRangePicker
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/DateRangePicker-dark.png">
-  <img src="catalog/DateRangePicker-light.png" alt="DateRangePicker as the renderer draws it" width="560">
-</picture>
 
 ```
 $/trip/startDate = "2027-04-12"
@@ -162,11 +127,6 @@ root = DateRangePicker("Trip dates", $/trip/startDate, $/trip/endDate, nightsLab
 | `nightsLabel` | bindable string |              | Derived caption, e.g. '6 nights'.                  |
 
 ## DateTimeInput
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/DateTimeInput-dark.png">
-  <img src="catalog/DateTimeInput-light.png" alt="DateTimeInput as the renderer draws it" width="560">
-</picture>
 
 ```
 $/trip/startDate = "2027-04-12"
@@ -185,11 +145,6 @@ root = DateTimeInput($/trip/startDate, label="Departure", enableDate=true)
 
 ## ExpenseSplit
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/ExpenseSplit-dark.png">
-  <img src="catalog/ExpenseSplit-light.png" alt="ExpenseSplit as the renderer draws it" width="560">
-</picture>
-
 ```
 root = ExpenseSplit("Dinner at Sobrino", "€96", [{name: "You"}, {name: "Sam"}])
 ```
@@ -203,11 +158,6 @@ root = ExpenseSplit("Dinner at Sobrino", "€96", [{name: "You"}, {name: "Sam"}]
 | `actionLabel`  | bindable string |              | Label for that action, e.g. 'Settle up'.            |
 
 ## FlightOption
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/FlightOption-dark.png">
-  <img src="catalog/FlightOption-light.png" alt="FlightOption as the renderer draws it" width="560">
-</picture>
 
 ```
 root = FlightOption("Iberia", "18:40", "08:15 +1", "JFK", "MAD", "$412", Event("select_flight", {id: "IB6252"}), duration="7h 35m", stops="Nonstop", flightNumber="IB6252", cabin="economy", badge="Cheapest")
@@ -232,11 +182,6 @@ root = FlightOption("Iberia", "18:40", "08:15 +1", "JFK", "MAD", "$412", Event("
 
 ## HotelCard
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/HotelCard-dark.png">
-  <img src="catalog/HotelCard-light.png" alt="HotelCard as the renderer draws it" width="560">
-</picture>
-
 ```
 root = HotelCard("Hotel Único Madrid", "$291 / night", Event("select_hotel", {id: "unico"}), neighborhood="Salamanca", rating="9.1 · Superb", amenities=["Breakfast", "Rooftop", "Free cancellation"], badge="Best located")
 ```
@@ -255,11 +200,6 @@ root = HotelCard("Hotel Único Madrid", "$291 / night", Event("select_hotel", {i
 
 ## ItineraryDay
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/ItineraryDay-dark.png">
-  <img src="catalog/ItineraryDay-light.png" alt="ItineraryDay as the renderer draws it" width="560">
-</picture>
-
 ```
 a1 = ActivityItem("Prado Museum", "10:00", category="sight", duration="2h")
 a2 = ActivityItem("Lunch at Sobrino", "13:30", category="food", duration="1h 30m")
@@ -277,11 +217,6 @@ root = ItineraryDay("Day 2 — Old Madrid", [a1, a2], date="Mon 13 Apr", summary
 
 ## List
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/List-dark.png">
-  <img src="catalog/List-light.png" alt="List as the renderer draws it" width="560">
-</picture>
-
 ```
 $/items/0/label = "Passport"
 $/items/1/label = "Adapter"
@@ -298,11 +233,6 @@ root = List(_template($/items, row))
 
 ## MapPreview
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/MapPreview-dark.png">
-  <img src="catalog/MapPreview-light.png" alt="MapPreview as the renderer draws it" width="560">
-</picture>
-
 ```
 root = MapPreview([{label: "Madrid"}, {label: "Toledo"}], caption="Day trip, 70km south")
 ```
@@ -314,11 +244,6 @@ root = MapPreview([{label: "Madrid"}, {label: "Toledo"}], caption="Day trip, 70k
 | `action`  | action          |              | Fired when the traveler taps the map.                                              |
 
 ## PriceSummary
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/PriceSummary-dark.png">
-  <img src="catalog/PriceSummary-light.png" alt="PriceSummary as the renderer draws it" width="560">
-</picture>
 
 ```
 root = PriceSummary([{label: "Flights", amount: "$824"}, {label: "Hotel · 6 nights", amount: "$1,746"}, {label: "Estimated meals", amount: "$540"}], total="$3,110", caption="2 travellers")
@@ -334,11 +259,6 @@ root = PriceSummary([{label: "Flights", amount: "$824"}, {label: "Hotel · 6 nig
 | `caption`     | bindable string |              | Fine print, e.g. 'Estimated, taxes included'.             |
 
 ## ProgressMeter
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/ProgressMeter-dark.png">
-  <img src="catalog/ProgressMeter-light.png" alt="ProgressMeter as the renderer draws it" width="560">
-</picture>
 
 ```
 root = ProgressMeter("Spent of budget", 1840, 3000, caption="$1,160 left")
@@ -356,11 +276,6 @@ root = ProgressMeter("Spent of budget", 1840, 3000, caption="$1,160 left")
 
 A layout component that arranges its children horizontally. To create a grid layout, nest Columns within this Row.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/Row-dark.png">
-  <img src="catalog/Row-light.png" alt="Row as the renderer draws it" width="560">
-</picture>
-
 ```
 a = Text("Total")
 b = Text("$1,236")
@@ -375,11 +290,6 @@ root = Row([a, b], justify="spaceBetween")
 | `weight`   | weight      |              |                                                                                                                                                                                                           |
 
 ## Slider
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/Slider-dark.png">
-  <img src="catalog/Slider-light.png" alt="Slider as the renderer draws it" width="560">
-</picture>
 
 ```
 $/trip/budget = 2400
@@ -397,11 +307,6 @@ root = Slider("Budget, all in", 500, 6000, $/trip/budget)
 
 ## StatTile
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/StatTile-dark.png">
-  <img src="catalog/StatTile-light.png" alt="StatTile as the renderer draws it" width="560">
-</picture>
-
 ```
 root = StatTile("Nights in Madrid", "7", caption="12–19 April", tone="accent")
 ```
@@ -416,11 +321,6 @@ root = StatTile("Nights in Madrid", "7", caption="12–19 April", tone="accent")
 
 ## Text
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/Text-dark.png">
-  <img src="catalog/Text-light.png" alt="Text as the renderer draws it" width="560">
-</picture>
-
 ```
 root = Text("### Madrid · 2 travellers · 12–19 April")
 ```
@@ -432,11 +332,6 @@ root = Text("### Madrid · 2 travellers · 12–19 April")
 | `weight`  | weight          |              |                                                                                                                                                                                                                           |
 
 ## TextField
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/TextField-dark.png">
-  <img src="catalog/TextField-light.png" alt="TextField as the renderer draws it" width="560">
-</picture>
 
 ```
 root = TextField("Flying from", $/trip/origin, placeholder="City or airport")
@@ -451,11 +346,6 @@ root = TextField("Flying from", $/trip/origin, placeholder="City or airport")
 | `weight`      | weight          |              |                                           |
 
 ## TravelerCounter
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/TravelerCounter-dark.png">
-  <img src="catalog/TravelerCounter-light.png" alt="TravelerCounter as the renderer draws it" width="560">
-</picture>
 
 ```
 $/trip/travelers = 2
@@ -472,11 +362,6 @@ root = TravelerCounter("Travelers", $/trip/travelers, min=1, max=9, caption="Adu
 
 ## TripCalendar
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/TripCalendar-dark.png">
-  <img src="catalog/TripCalendar-light.png" alt="TripCalendar as the renderer draws it" width="560">
-</picture>
-
 ```
 root = TripCalendar("2027-04-12", "2027-04-18", marks=[{date: "2027-04-12", icon: "plane", label: "Fly out"}, {date: "2027-04-14", icon: "🎨", label: "Prado"}, {date: "2027-04-18", icon: "plane", label: "Fly home"}], title="Madrid", caption="6 nights")
 ```
@@ -491,11 +376,6 @@ root = TripCalendar("2027-04-12", "2027-04-18", marks=[{date: "2027-04-12", icon
 | `action`  | action          |              | Fired when the traveler taps the calendar, e.g. to change the dates.                                                               |
 
 ## WeatherStrip
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="catalog/WeatherStrip-dark.png">
-  <img src="catalog/WeatherStrip-light.png" alt="WeatherStrip as the renderer draws it" width="560">
-</picture>
 
 ```
 root = WeatherStrip([{day: "Mon", high: "21°", low: "11°", condition: "sun"}, {day: "Tue", high: "19°", low: "10°", condition: "cloud"}, {day: "Wed", high: "17°", low: "9°", condition: "rain"}], place="Madrid", caption="Pack a light jacket for Wednesday")

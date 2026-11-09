@@ -33,14 +33,6 @@ import 'url_fragment.dart';
 
 void main() => runApp(const TravelApp());
 
-/// The bundled font.
-///
-/// Named explicitly so the engine resolves it from `assets/` rather than
-/// downloading Flutter's default Roboto from `fonts.gstatic.com`. See the note
-/// in `pubspec.yaml`: the download blocks the first frame, and a family the
-/// engine cannot resolve renders every glyph invisible.
-const String _bundledFont = 'Roboto';
-
 class TravelApp extends StatelessWidget {
   const TravelApp({super.key});
 
@@ -60,8 +52,6 @@ class TravelApp extends StatelessWidget {
     return ThemeData(
       colorScheme: scheme,
       useMaterial3: true,
-      // The font is bundled, not fetched — see `_bundledFont`.
-      fontFamily: _bundledFont,
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         elevation: 0,
@@ -156,7 +146,6 @@ class _PhoneFrame extends StatelessWidget {
             Text(
               'Flutter web · rendered with a2ui_flutter',
               style: TextStyle(
-                fontFamily: _bundledFont,
                 fontSize: 12,
                 color: dark ? const Color(0xFF8C97AB) : const Color(0xFF5B6678),
                 decoration: TextDecoration.none,

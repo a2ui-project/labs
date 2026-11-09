@@ -7,10 +7,6 @@ dates you can drag and a day plan you can tap through — **built for that answe
 in that moment**, not chosen from screens somebody designed in advance.
 
 <p align="center">
-  <img src="docs/screenshots/01-chat-light.png" alt="A conversation where the agent's reply is a set of flight cards, with a live record of the trip beside it" width="900">
-</p>
-
-<p align="center">
   <b><a href="#run-it-on-your-machine">Run it locally</a></b> ·
   <a href="#deploy-it">deploy it</a> ·
   <a href="#build-one-of-your-own">build one</a> ·
@@ -66,7 +62,7 @@ is a memory test, with nothing to sort and no way to say "that one".
 
 ## What you are looking at
 
-In the picture above, the agent did not _pick_ that screen. It **built** it, out
+When the agent replies, it does not _pick_ a screen. It **builds** it, out
 of pieces the app already knows how to draw — a flight card, a date picker, a
 traveller counter — the way you would build a model out of LEGO. The app ships
 the bricks; the agent clicks them together for this answer, this turn.
@@ -142,14 +138,6 @@ by the Flutter client at http://127.0.0.1:8080/flutter/ (start it with
 `./scripts/quickstart.sh flutter`) —
 a second renderer of the same messages, which is the clearest demonstration that
 the agent is describing an interface rather than emitting one.
-
-<p align="center">
-  <img src="docs/screenshots/02-panel-light.png" alt="The trip record, each decision with a Change button" width="420">
-</p>
-
-<p align="center">
-  <sub>The record of what you have decided, each row re-openable.</sub>
-</p>
 
 ---
 
@@ -662,26 +650,14 @@ the data behaves like a panel wherever it lands, and one keyed to the message it
 like a card — which is why the Flutter client gets the same three without being
 told what any of them mean.
 
-<p align="center">
-  <img src="docs/screenshots/03-home-light.png" alt="A trip dashboard generated for today" width="820">
-</p>
-
 Two more tabs earn their place. **Catalog** shows every component the agent can
 draw, with the exact signatures the model is given — so "what is it allowed to
 use" is one click away rather than a JSON schema away.
-
-<p align="center">
-  <img src="docs/screenshots/04-catalog-dark.png" alt="The component catalog, with signatures" width="820">
-</p>
 
 **Wire** shows any live surface in both representations — the A2UI JSON the
 renderer holds, and the same messages as Express, decompiled by the SDK on the
 server (`POST /api/express`) — because "what did the model actually emit"
 is the first question anyone asks about generative UI.
-
-<p align="center">
-  <img src="docs/screenshots/05-wire-light.png" alt="The same surface as Express and as A2UI JSON" width="820">
-</p>
 
 ---
 

@@ -40,11 +40,9 @@
  */
 
 import {createServer} from 'node:http';
-import {readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync} from 'node:fs';
+import {readFileSync, writeFileSync, mkdirSync, existsSync, rmSync} from 'node:fs';
 import {dirname, extname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-
-import {launchBrowser} from '../browser.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 // The web app's own build: each component is drawn at `/catalog/<Name>` by
@@ -54,6 +52,7 @@ const OUT = join(ROOT, 'docs', 'catalog');
 const PAGE = join(ROOT, 'docs', 'catalog.md');
 
 const CHECK = process.argv.includes('--check');
+const SHOTS = process.argv.includes('--shots');
 
 const catalog = JSON.parse(
   readFileSync(join(ROOT, 'catalogs', 'a2ui-travel', 'catalog.json'), 'utf8'),
@@ -142,13 +141,13 @@ function markdown(captured) {
   const lines = [
     '# The travel catalog',
     '',
-    `${captured.length} components, every one drawn here by the renderer that ships — not a`,
-    'mockup. Each picture is a screenshot of the real component, beside the single line',
-    'of A2UI Express that produced it.',
+    `${captured.length} components, each with the single line of A2UI Express that`,
+    "produces it and its declared props. Open the app's **Catalog** tab (`/catalog`)",
+    'to see every one drawn live by the renderer.',
     '',
-    'This page is generated from `catalogs/a2ui-travel/catalog.json` and the web',
-    "app's `/catalog/<Name>` pages (`node tools/screenshots/catalog.mjs`), so it cannot",
-    'describe a component that no longer exists or miss a prop that was added.',
+    'This page is generated from `catalogs/a2ui-travel/catalog.json` and',
+    '`apps/web/src/generated/catalog-reference.json` (`node tools/screenshots/catalog.mjs`),',
+    'so it cannot describe a component that no longer exists or miss a prop that was added.',
     '',
     '**Lifting one of these.** A component is three things: an entry in the catalog',
     'schema, a React view in `renderers/react/src/components/travel.tsx` (bound by the',
@@ -163,17 +162,16 @@ function markdown(captured) {
   for (const entry of captured) {
     lines.push(`## ${entry.name}`, '');
     if (entry.description) lines.push(entry.description, '');
-    lines.push(
-      '<picture>',
-      `  <source media="(prefers-color-scheme: dark)" srcset="catalog/${entry.name}-dark.png">`,
-      `  <img src="catalog/${entry.name}-light.png" alt="${entry.name} as the renderer draws it" width="560">`,
-      '</picture>',
-      '',
-      '```',
-      entry.express,
-      '```',
-      '',
-    );
+    if (SHOTS) {
+      lines.push(
+        '<picture>',
+        `  <source media="(prefers-color-scheme: dark)" srcset="catalog/${entry.name}-dark.png">`,
+        `  <img src="catalog/${entry.name}-light.png" alt="${entry.name} as the renderer draws it" width="560">`,
+        '</picture>',
+        '',
+      );
+    }
+    lines.push('```', entry.express, '```', '');
 
     const props = propsOf(entry.name);
     if (props.length > 0) {
@@ -211,105 +209,90 @@ function markdown(captured) {
 }
 
 async function main() {
-  if (!existsSync(DIST)) {
-    console.error('Build first: npm run build');
-    process.exit(2);
-  }
-
-  const server = await serve(4183);
-  const browser = await launchBrowser();
-
   const wanted = previews.filter(preview => allow.allowedComponents.includes(preview.name));
-  const captured = [];
+  const captured = wanted.map(preview => ({
+    name: preview.name,
+    express: preview.express,
+    description: (catalog.components?.[preview.name]?.description ?? '')
+      .replace(/\s+/g, ' ')
+      .trim(),
+  }));
 
-  if (!CHECK) {
-    // Removed rather than overwritten: a renamed component would otherwise
-    // leave its old picture behind, and a stale screenshot is worse than none.
-    rmSync(OUT, {recursive: true, force: true});
-    mkdirSync(OUT, {recursive: true});
-  }
-
-  for (const scheme of ['light', 'dark']) {
-    const page = await browser.newPage({
-      viewport: {width: 900, height: 700},
-      colorScheme: scheme,
-      deviceScaleFactor: 2,
-    });
-    // `GoogleMap` loads the Maps library from the key the deployment serves.
-    // There is no server here, so it comes from the environment: set
-    // GOOGLE_MAPS_API_KEY and the reference shows a real map; leave it unset
-    // and the component draws its own fallback, which is what a deployment
-    // without a key shows too. Either way the page is honest.
-    await page.addInitScript(key => {
-      window.__A2UI_MAPS_KEY = key;
-    }, process.env['GOOGLE_MAPS_API_KEY'] || '');
-    for (const preview of wanted) {
-      await page.goto(`http://127.0.0.1:4183/catalog/${preview.name}`, {waitUntil: 'networkidle'});
-      const article = page.locator('.specimen__surface');
-      await article.waitFor({state: 'attached'});
-      // Attached rather than visible: a component that renders nothing has zero
-      // height and never becomes "visible", and the right response to that is a
-      // named failure rather than a 30-second timeout on the first one.
-      const box = await article.boundingBox();
-      if (!box || box.height < 4) {
-        console.error(`  ${preview.name} rendered nothing — its example draws an empty component.`);
-        process.exitCode = 1;
-        continue;
-      }
-      // Let webfonts and any image settle, so two runs of this produce the same
-      // bytes and `--check` means something.
-      await page.waitForTimeout(180);
-
-      // A map is the one component that fetches a library, then tiles, then
-      // paints — seconds after the surface is attached. Screenshot it on the
-      // same 180ms as a `Text` and the reference gets an empty grey rectangle
-      // captioned with the places it was supposed to be showing. So wait for
-      // the element to exist and for its canvas to have something in it,
-      // then give the tiles a moment to finish arriving.
-      if (await article.locator('.tv-map__canvas').count()) {
-        await article
-          .locator('gmp-map-3d')
-          .waitFor({state: 'attached', timeout: 20_000})
-          .catch(() => {});
-        await page
-          .waitForFunction(
-            () => {
-              const map = document.querySelector('.tv-map__canvas gmp-map-3d');
-              return Boolean(map && map.shadowRoot?.querySelector('canvas'));
-            },
-            {timeout: 20_000},
-          )
-          .catch(() => {});
-        // Tiles stream in after the canvas exists. Without a key there is no
-        // canvas and this is the whole wait, which is the fallback settling.
-        await page.waitForTimeout(6000);
-      }
-
-      const file = join(OUT, `${preview.name}-${scheme}.png`);
-      if (CHECK) {
-        if (!existsSync(file)) {
-          console.error(`Missing screenshot: ${preview.name}-${scheme}.png`);
-          process.exitCode = 1;
-        }
-      } else {
-        await article.screenshot({path: file});
-      }
-
-      if (scheme === 'light') {
-        captured.push({
-          name: preview.name,
-          express: preview.express,
-          description: (catalog.components?.[preview.name]?.description ?? '')
-            .replace(/\s+/g, ' ')
-            .trim(),
-        });
-      }
+  if (SHOTS) {
+    if (!existsSync(DIST)) {
+      console.error('Build first: npm run build');
+      process.exit(2);
     }
-    await page.close();
-  }
 
-  await browser.close();
-  server.close();
+    const {launchBrowser} = await import('../browser.mjs');
+    const server = await serve(4183);
+    const browser = await launchBrowser();
+
+    if (!CHECK) {
+      // Removed rather than overwritten: a renamed component would otherwise
+      // leave its old picture behind, and a stale screenshot is worse than none.
+      rmSync(OUT, {recursive: true, force: true});
+      mkdirSync(OUT, {recursive: true});
+    }
+
+    for (const scheme of ['light', 'dark']) {
+      const page = await browser.newPage({
+        viewport: {width: 900, height: 700},
+        colorScheme: scheme,
+        deviceScaleFactor: 2,
+      });
+      await page.addInitScript(key => {
+        window.__A2UI_MAPS_KEY = key;
+      }, process.env['GOOGLE_MAPS_API_KEY'] || '');
+      for (const preview of wanted) {
+        await page.goto(`http://127.0.0.1:4183/catalog/${preview.name}`, {
+          waitUntil: 'networkidle',
+        });
+        const article = page.locator('.specimen__surface');
+        await article.waitFor({state: 'attached'});
+        const box = await article.boundingBox();
+        if (!box || box.height < 4) {
+          console.error(
+            `  ${preview.name} rendered nothing — its example draws an empty component.`,
+          );
+          process.exitCode = 1;
+          continue;
+        }
+        await page.waitForTimeout(180);
+
+        if (await article.locator('.tv-map__canvas').count()) {
+          await article
+            .locator('gmp-map-3d')
+            .waitFor({state: 'attached', timeout: 20_000})
+            .catch(() => {});
+          await page
+            .waitForFunction(
+              () => {
+                const map = document.querySelector('.tv-map__canvas gmp-map-3d');
+                return Boolean(map && map.shadowRoot?.querySelector('canvas'));
+              },
+              {timeout: 20_000},
+            )
+            .catch(() => {});
+          await page.waitForTimeout(6000);
+        }
+
+        const file = join(OUT, `${preview.name}-${scheme}.png`);
+        if (CHECK) {
+          if (!existsSync(file)) {
+            console.error(`Missing screenshot: ${preview.name}-${scheme}.png`);
+            process.exitCode = 1;
+          }
+        } else {
+          await article.screenshot({path: file});
+        }
+      }
+      await page.close();
+    }
+
+    await browser.close();
+    server.close();
+  }
 
   const body = markdown(captured);
   if (CHECK) {
@@ -324,9 +307,7 @@ async function main() {
   }
 
   writeFileSync(PAGE, body);
-  console.log(
-    `wrote docs/catalog.md and ${readdirSync(OUT).length} screenshots for ${wanted.length} components`,
-  );
+  console.log(`wrote docs/catalog.md for ${wanted.length} components`);
 }
 
 await main();

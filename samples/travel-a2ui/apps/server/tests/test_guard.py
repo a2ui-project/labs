@@ -58,6 +58,16 @@ class TestOrigins:
 
 class TestTheSharedKey:
 
+    def test_client_address_uses_the_proxy_appended_hop(self) -> None:
+        assert (
+            guard.client_address(
+                {"x-forwarded-for": "1.2.3.4, 203.0.113.9"}, "10.0.0.1"
+            )
+            == "203.0.113.9"
+        )
+        assert guard.client_address({}, "10.0.0.1") == "10.0.0.1"
+        assert guard.client_address({}, None) == "unknown"
+
     def test_the_limit_is_per_address_per_hour(self) -> None:
         limit = guard.RateLimit(2)
         assert limit.allow("a", 0) and limit.allow("a", 1)
