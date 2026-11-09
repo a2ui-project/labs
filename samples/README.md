@@ -14,3 +14,8 @@ Each sample is organized in its own sub-folder with a dedicated `README.md` cont
 
 - Keep samples focused on demonstrating specific integrations or developer patterns.
 - Follow the repository code quality, license header, and formatting conventions.
+
+## Available Samples
+
+- [`flutter-starter`](./flutter-starter/): Starter project for building A2UI client applications with Flutter.
+- [`typescript-starter`](./typescript-starter/): Starter project for building A2UI client applications with TypeScript and Node.js.
