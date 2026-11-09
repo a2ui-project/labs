@@ -9825,7 +9825,7 @@ __metadata:
     glob-hasher-linux-arm64-gnu:
       optional: true
     sharp:
-      built: true
+      built: false
   languageName: unknown
   linkType: soft
 
