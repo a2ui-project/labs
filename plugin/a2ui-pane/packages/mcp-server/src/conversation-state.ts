@@ -184,8 +184,8 @@ export class ConversationState {
     for (const [existingId, existingSurface] of this.processor.getSurfaces().entries()) {
       if (!batchSurfaceIds.has(existingId)) {
         const ver =
-          ((existingSurface as any)?.protocolVersion ??
-            existingSurface?.defaultCatalog?.protocolVersion) === '1.0'
+          ((existingSurface as any).protocolVersion ??
+            existingSurface.defaultCatalog?.protocolVersion) === '1.0'
             ? '1.0'
             : 'v0.9';
         deletes.push({

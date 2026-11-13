@@ -214,7 +214,7 @@ function setupVisibilityTracking(
       syncVisibility();
     });
     window.addEventListener('message', (event: MessageEvent) => {
-      const msgType = event?.data && typeof event.data === 'object' ? event.data.type : undefined;
+      const msgType = event.data && typeof event.data === 'object' ? event.data.type : undefined;
       if (msgType === 'theme-change' || msgType === 'workspace-change') {
         // IframeView mounts <IframeActiveSync> and posts theme-change/workspace-change
         // whenever the hoisted slot's `visible` prop flips from false to true.

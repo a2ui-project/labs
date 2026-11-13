@@ -332,6 +332,8 @@ describe('render_a2ui Express paths', () => {
       root('live', 2, '/b~1c'),
     ]);
     const untouched = [
+      null,
+      undefined,
       root('live', {a: 1}, '/nested'),
       root('other', {a: 1}),
       root('live', [1, 2]),

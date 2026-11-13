@@ -375,8 +375,8 @@ export function initEmbed(options: InitEmbedOptions = {}): EmbedInstance | null 
     user-select: none;
   `;
   const hasDirectEndpoint = Boolean(
-    (actionConfig?.sidecarUrl && actionConfig?.conversationId) ||
-    (actionConfig?.port && actionConfig?.key),
+    (actionConfig?.sidecarUrl && actionConfig.conversationId) ||
+    (actionConfig?.port && actionConfig.key),
   );
   if (hasDirectEndpoint) {
     footerNote.textContent = 'Submitting triggers the agent directly.';

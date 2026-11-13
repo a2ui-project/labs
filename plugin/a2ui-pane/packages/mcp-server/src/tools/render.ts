@@ -444,8 +444,11 @@ export function mergeRootDataUpdates(
 ): unknown[] {
   const created = new Set(createdSurfaceIds(messages));
   return messages.flatMap(msg => {
+    if (!msg || typeof msg !== 'object') {
+      return [msg];
+    }
     const m = msg as Record<string, any>;
-    const upd = m?.updateDataModel;
+    const upd = m.updateDataModel;
     const value = upd?.value;
     const path = upd?.path ?? '/';
     if (
