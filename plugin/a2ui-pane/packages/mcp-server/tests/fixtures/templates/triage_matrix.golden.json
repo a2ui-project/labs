@@ -1,0 +1,269 @@
+[
+  {
+    "version": "1.0",
+    "createSurface": {
+      "surfaceId": "triage_matrix",
+      "sendDataModel": true,
+      "components": [
+        {
+          "id": "root",
+          "component": "Card",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "child": "triage_col"
+        },
+        {
+          "id": "triage_col",
+          "component": "Column",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "triage_title",
+            "triage_intro",
+            "triage_list",
+            "triage_divider",
+            "triage_footer"
+          ]
+        },
+        {
+          "id": "triage_title",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "/title"
+          }
+        },
+        {
+          "id": "triage_intro",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "/intro"
+          },
+          "variant": "caption"
+        },
+        {
+          "id": "triage_list",
+          "component": "List",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": {
+            "path": "/items",
+            "componentId": "triage_item_card"
+          }
+        },
+        {
+          "id": "triage_item_card",
+          "component": "Card",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "child": "triage_item_col"
+        },
+        {
+          "id": "triage_item_col",
+          "component": "Column",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "triage_item_head",
+            "triage_item_summary",
+            "bucket_picker",
+            "triage_item_note"
+          ]
+        },
+        {
+          "id": "triage_item_head",
+          "component": "Row",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "triage_item_title_group",
+            "triage_item_modal"
+          ],
+          "justify": "spaceBetween",
+          "align": "center"
+        },
+        {
+          "id": "triage_item_title_group",
+          "component": "Row",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "triage_item_icon",
+            "triage_item_title"
+          ],
+          "align": "center",
+          "weight": 1
+        },
+        {
+          "id": "triage_item_icon",
+          "component": "Icon",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "name": {
+            "@path": "icon"
+          }
+        },
+        {
+          "id": "triage_item_title",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@call": "formatString",
+            "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+            "args": {
+              "value": "#### ${title}"
+            }
+          },
+          "variant": "body",
+          "weight": 1
+        },
+        {
+          "id": "triage_item_modal",
+          "component": "Modal",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "trigger": "trace_trigger",
+          "content": "trace_body"
+        },
+        {
+          "id": "trace_trigger",
+          "component": "Button",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "child": "trace_trigger_label",
+          "variant": "borderless",
+          "action": {
+            "event": {
+              "name": "open_trace"
+            }
+          }
+        },
+        {
+          "id": "trace_trigger_label",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": "🔍 Trace ↗",
+          "variant": "caption"
+        },
+        {
+          "id": "trace_body",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "trace"
+          }
+        },
+        {
+          "id": "triage_item_summary",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "summary"
+          },
+          "variant": "caption"
+        },
+        {
+          "id": "bucket_picker",
+          "component": "ChoicePicker",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "variant": "mutuallyExclusive",
+          "options": [
+            {
+              "label": "🎯 Must-Have (PR 1)",
+              "value": "p0"
+            },
+            {
+              "label": "⏭️ Fast-Follow (PR 2)",
+              "value": "p1"
+            },
+            {
+              "label": "🚫 Out of Scope",
+              "value": "out"
+            }
+          ],
+          "value": {
+            "@path": "bucket"
+          },
+          "displayStyle": "chips"
+        },
+        {
+          "id": "triage_item_note",
+          "component": "TextField",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "label": "Caveat or follow-up target",
+          "value": {
+            "@path": "note"
+          }
+        },
+        {
+          "id": "triage_divider",
+          "component": "Divider",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json"
+        },
+        {
+          "id": "triage_footer",
+          "component": "Row",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "submit_btn"
+          ],
+          "justify": "end",
+          "align": "center"
+        },
+        {
+          "id": "submit_btn",
+          "component": "Button",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "child": "submit_btn_child",
+          "variant": "primary",
+          "action": {
+            "event": {
+              "name": "submit_triage_matrix",
+              "context": {
+                "items": {
+                  "@path": "/items"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "submit_btn_child",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "/submitLabel"
+          }
+        }
+      ],
+      "dataModel": {
+        "title": "### Template 3: Scope & Edge-Case Triage Matrix",
+        "intro": "Classify discovered edge cases into delivery buckets and inspect the source trace for each finding.",
+        "items": [
+          {
+            "icon": "warning",
+            "title": "Concurrent render_a2ui calls on same surfaceId",
+            "summary": "Two background subagents emit updateComponents for the same surfaceId simultaneously.",
+            "trace": "### Concurrent Write Trace\n`packages/mcp-server/src/store-writer.ts:84`\n\nIf two tools write simultaneously, `createSurface` reset boundaries can interleave.",
+            "bucket": [
+              "p0"
+            ],
+            "note": "Block via 409 Conflict with surfaceId in details"
+          },
+          {
+            "icon": "info",
+            "title": "Unsaved draft persistence across AuxPane reload",
+            "summary": "User closes and reopens the sidecar panel while a surface has unsaved local edits.",
+            "trace": "### AuxPane Reload Trace\nReplaying the JSONL log restores the initial server snapshot.",
+            "bucket": [
+              "p1"
+            ],
+            "note": "Track in follow-up issue"
+          },
+          {
+            "icon": "error",
+            "title": "Recursive nested Modals inside inline cards",
+            "summary": "Rendering a Modal trigger inside another Modal content tree.",
+            "trace": "### Nested Modal Constraint\nStacked modal backdrops clip against the iframe container.",
+            "bucket": [
+              "out"
+            ],
+            "note": "Explicitly unsupported; document in SKILL.md"
+          }
+        ],
+        "submitLabel": "Lock In Scope Triage"
+      }
+    }
+  }
+]

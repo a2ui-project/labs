@@ -1,0 +1,116 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {z} from 'zod';
+import {CatalogRegistry} from '../catalog-registry.js';
+import {buildPrompt} from '../prompt/build-prompt.js';
+import {HOST_RULES} from '../prompt/host-rules.js';
+import type {ExpressWorker} from '../express-worker.js';
+import type {TemplateRegistry} from '../template-registry.js';
+
+/** Zod parameter schema for the `a2ui_instructions` MCP tool. */
+export const a2uiInstructionsSchema = {
+  catalogIds: z
+    .array(z.string())
+    .optional()
+    .describe(
+      'Optional list of catalog IDs or aliases to describe. Only honored by the raw-JSON fallback prompt; the Express prompt always describes the loaded catalogs (basic, charts, and status).',
+    ),
+  format: z
+    .enum(['express', 'json'])
+    .optional()
+    .describe(
+      'Prompt flavor: "express" (default; A2UI Express authoring contract plus host rules and the template index) or "json" (raw protocol rules for `messages`).',
+    ),
+};
+
+/** Collaborators used by `handleA2uiInstructions` to build Express and template documentation. */
+export interface InstructionsDeps {
+  worker?: ExpressWorker;
+  templates?: TemplateRegistry;
+}
+
+function templateSection(templates?: TemplateRegistry): string {
+  const index = templates?.renderIndex() ?? '';
+  if (!index) return '';
+  return [
+    '## 7. Templates',
+    '',
+    'Render a template with `render_a2ui({ conversationId, template: "<id>", surfaceId, mode, dsl: "<data assignments>" })`.',
+    'Provide every data key listed for the template as `$/key = value` statements in `dsl`; later assignments override template defaults. Do not put `surface(...)` in `dsl`; the server emits it from `surfaceId`.',
+    'List items are arrays of objects; keys inside `[]` entries are relative bindings used by the template rows.',
+    '',
+    index,
+  ].join('\n');
+}
+
+function jsonFallbackPrompt(
+  args: {catalogIds?: string[]},
+  catalogs: CatalogRegistry,
+  reason: string | undefined,
+): string {
+  let targetCatalogs = catalogs.listPrimary();
+  if (args.catalogIds && args.catalogIds.length > 0) {
+    const selected = args.catalogIds
+      .map(id => catalogs.get(id))
+      .filter((cat): cat is NonNullable<typeof cat> => !!cat);
+    if (selected.length > 0) {
+      targetCatalogs = selected;
+    }
+  }
+  const header = reason
+    ? `> Note: A2UI Express authoring is unavailable on this host (${reason}). Pass raw \`messages\` to render_a2ui.\n\n`
+    : '';
+  return header + buildPrompt(targetCatalogs);
+}
+
+/**
+ * Returns the authoring instructions. With a working Express worker this is the
+ * catalog-derived Express contract plus host rules and the template index; otherwise
+ * the raw JSON protocol rules with a note explaining why.
+ */
+export async function handleA2uiInstructions(
+  args: {catalogIds?: string[]; format?: 'express' | 'json'},
+  catalogs: CatalogRegistry,
+  deps: InstructionsDeps = {},
+) {
+  let promptText: string;
+  if (args.format === 'json' || !deps.worker) {
+    promptText = jsonFallbackPrompt(
+      args,
+      catalogs,
+      args.format === 'json' ? undefined : 'no Python worker configured',
+    );
+  } else {
+    try {
+      const expressPrompt = await deps.worker.instructions();
+      promptText = [expressPrompt.trim(), HOST_RULES.trim(), templateSection(deps.templates)]
+        .filter(Boolean)
+        .join('\n\n');
+    } catch (err: any) {
+      promptText = jsonFallbackPrompt(args, catalogs, err?.message || String(err));
+    }
+  }
+
+  return {
+    content: [
+      {
+        type: 'text' as const,
+        text: promptText,
+      },
+    ],
+  };
+}

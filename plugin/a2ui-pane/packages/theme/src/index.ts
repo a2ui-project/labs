@@ -1,0 +1,165 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Embedded host theme stylesheet bridging host tokens to Lit A2UI variables.
+ */
+export const HOST_THEME_CSS = `:root {
+  --a2ui-color-surface: var(--card, var(--background, #ffffff));
+  --a2ui-color-input: var(--card, var(--background, #ffffff));
+  --a2ui-color-secondary: var(--secondary, #f1f3f4);
+
+  --a2ui-text-color-text: var(--foreground, #1f1f1f);
+  --a2ui-text-caption-color: var(--muted-foreground, #70757a);
+  --a2ui-color-on-background: var(--foreground, #1f1f1f);
+  --a2ui-color-on-input: var(--foreground, #1f1f1f);
+  --a2ui-color-on-primary: #ffffff;
+
+  --a2ui-color-primary: var(--primary, #0b57d0);
+  --a2ui-color-primary-hover: var(--primary-hover, #0842a0);
+  --a2ui-color-primary-light: var(--primary-light, #d3e3fd);
+  --a2ui-color-primary-dark: var(--primary-dark, #041e49);
+
+  --a2ui-color-border: var(--border, #dadce0);
+  --a2ui-border-width: 1px;
+  --a2ui-border-radius: 8px;
+  --a2ui-spacing-xs: 4px;
+  --a2ui-spacing-s: 8px;
+  --a2ui-spacing-m: 16px;
+  --a2ui-spacing-l: 24px;
+  --a2ui-icon-size: 18px;
+  --a2ui-card-margin: 0px;
+  --a2ui-card-padding: 12px 14px;
+  --a2ui-column-gap: 8px;
+  --a2ui-row-gap: 8px;
+  --a2ui-list-padding: 0px;
+  --a2ui-list-gap: 8px;
+  --a2ui-tabs-content-padding: 8px 0 0 0;
+  --a2ui-checkbox-margin: 4px 0;
+  --a2ui-slider-margin: 4px 0;
+  --a2ui-choicepicker-gap: 6px;
+  --a2ui-textfield-padding: 6px 10px;
+  --a2ui-textfield-border-radius: 6px;
+  --a2ui-divider-spacing: 6px;
+  --a2ui-button-margin: 0px;
+  --a2ui-button-padding: 6px 14px;
+  --a2ui-font-size-xs: 12px;
+  --a2ui-font-size-s: 12px;
+  --a2ui-font-size-m: 14px;
+  --a2ui-font-size-l: 16px;
+  --a2ui-choicepicker-chip-font-size: 13px;
+  --a2ui-choicepicker-chip-font-weight: 500;
+  --a2ui-choicepicker-chip-padding: 5px 12px;
+
+  --a2ui-chart-color-1: var(--primary, #0b57d0);
+  --a2ui-chart-color-2: #00897b;
+  --a2ui-chart-color-3: #e65100;
+  --a2ui-chart-color-4: #8e24aa;
+  --a2ui-chart-color-5: #c62828;
+  --a2ui-chart-color-6: #2e7d32;
+  --a2ui-chart-color-7: #f9a825;
+  --a2ui-chart-color-8: #0277bd;
+  --a2ui-chart-grid-color: rgba(128, 134, 139, 0.22);
+  --a2ui-chart-axis-color: rgba(128, 134, 139, 0.55);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --a2ui-color-surface: var(--card, var(--background, #1e1e1e));
+    --a2ui-color-input: var(--card, var(--background, #1e1e1e));
+    --a2ui-color-secondary: var(--secondary, #2d2d2d);
+    --a2ui-text-color-text: var(--foreground, #e3e3e3);
+    --a2ui-text-caption-color: var(--muted-foreground, #9aa0a6);
+    --a2ui-color-on-background: var(--foreground, #e3e3e3);
+    --a2ui-color-on-input: var(--foreground, #e3e3e3);
+    --a2ui-color-primary: var(--primary, #a8c7fa);
+    --a2ui-color-primary-hover: var(--primary-hover, #c2e7ff);
+    --a2ui-color-on-primary: #041e49;
+    --a2ui-color-border: var(--border, #3c4043);
+
+    --a2ui-chart-color-1: var(--primary, #8ab4f8);
+    --a2ui-chart-color-2: #4db6ac;
+    --a2ui-chart-color-3: #ffb74d;
+    --a2ui-chart-color-4: #ce93d8;
+    --a2ui-chart-color-5: #ef9a9a;
+    --a2ui-chart-color-6: #81c784;
+    --a2ui-chart-color-7: #fff176;
+    --a2ui-chart-color-8: #4fc3f7;
+    --a2ui-chart-grid-color: rgba(154, 160, 166, 0.2);
+    --a2ui-chart-axis-color: rgba(154, 160, 166, 0.5);
+  }
+}
+
+#a2ui-embed-root {
+  --a2ui-spacing-xs: 2px;
+  --a2ui-spacing-s: 4px;
+  --a2ui-spacing-m: 8px;
+  --a2ui-icon-size: 16px;
+  --a2ui-card-margin: 0px;
+  --a2ui-card-padding: 6px 10px;
+  --a2ui-column-gap: 4px;
+  --a2ui-row-gap: 8px;
+  --a2ui-list-padding: 0px;
+  --a2ui-list-gap: 6px;
+  --a2ui-tabs-content-padding: 4px 0 0 0;
+  --a2ui-checkbox-margin: 0px;
+  --a2ui-slider-margin: 2px 0;
+  --a2ui-choicepicker-gap: 6px;
+  --a2ui-choicepicker-chip-font-size: 13px;
+  --a2ui-choicepicker-chip-font-weight: 500;
+  --a2ui-choicepicker-chip-padding: 4px 12px;
+  --a2ui-textfield-padding: 3px 8px;
+  --a2ui-textfield-border-radius: 6px;
+  --a2ui-divider-spacing: 2px;
+  --a2ui-button-margin: 0px;
+  --a2ui-button-padding: 4px 12px;
+  --a2ui-font-size: 0.8125rem;
+  --a2ui-font-size-xs: 12px;
+  --a2ui-font-size-s: 12px;
+  --a2ui-font-size-m: 13px;
+  --a2ui-font-size-l: 15px;
+  --a2ui-line-height-body: 1.35;
+  --a2ui-surfaces-padding: 2px 4px;
+  --a2ui-surfaces-gap: 6px;
+}`;
+
+/**
+ * Injects the host theme stylesheet into a DOM Document or ShadowRoot.
+ */
+export function injectHostTheme(target?: Document | ShadowRoot | null): HTMLStyleElement | null {
+  if (typeof document === 'undefined' && !target) {
+    return null;
+  }
+  const resolvedTarget = target ?? document;
+  const container = (resolvedTarget as Document).head || resolvedTarget;
+  if (typeof (container as ParentNode).querySelector === 'function') {
+    const existing = (container as ParentNode).querySelector(
+      'style[data-a2ui-theme="host"]',
+    ) as HTMLStyleElement | null;
+    if (existing) {
+      return existing;
+    }
+  }
+
+  const doc = (resolvedTarget as Document).head
+    ? (resolvedTarget as Document)
+    : (resolvedTarget as ShadowRoot).ownerDocument || document;
+  const style = doc.createElement('style');
+  style.setAttribute('data-a2ui-theme', 'host');
+  style.textContent = HOST_THEME_CSS;
+  container.appendChild(style);
+  return style;
+}

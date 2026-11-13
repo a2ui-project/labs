@@ -1,0 +1,181 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/**
+ * Bridges host theme design tokens to Lit A2UI theme variables.
+ */
+:root {
+  /* Surfaces */
+  --a2ui-color-surface: var(--card, var(--background, #ffffff));
+  --a2ui-color-input: var(--card, var(--background, #ffffff));
+  --a2ui-color-secondary: var(--secondary, #f1f3f4);
+
+  /* Typography */
+  --a2ui-text-color-text: var(--foreground, #1f1f1f);
+  --a2ui-text-caption-color: var(--muted-foreground, #70757a);
+  --a2ui-color-on-background: var(--foreground, #1f1f1f);
+  --a2ui-color-on-input: var(--foreground, #1f1f1f);
+  --a2ui-color-on-primary: #ffffff;
+
+  /* Accents & States */
+  --a2ui-color-primary: var(--primary, #0b57d0);
+  --a2ui-color-primary-hover: var(--primary-hover, #0842a0);
+  --a2ui-color-primary-light: var(--primary-light, #d3e3fd);
+  --a2ui-color-primary-dark: var(--primary-dark, #041e49);
+
+  /* Semantic Status Tones (Badge & ProgressBar) */
+  --a2ui-tone-neutral-bg: color-mix(in srgb, var(--foreground, #1f1f1f) 8%, transparent);
+  --a2ui-tone-neutral-fg: var(--muted-foreground, #5f6368);
+  --a2ui-tone-neutral-border: color-mix(in srgb, var(--foreground, #1f1f1f) 16%, transparent);
+  --a2ui-tone-neutral-bar: color-mix(in srgb, var(--foreground, #1f1f1f) 32%, transparent);
+
+  --a2ui-tone-info-bg: color-mix(in srgb, #0b57d0 12%, transparent);
+  --a2ui-tone-info-fg: #0b57d0;
+  --a2ui-tone-info-border: color-mix(in srgb, #0b57d0 28%, transparent);
+  --a2ui-tone-info-bar: #0b57d0;
+
+  --a2ui-tone-active-bg: color-mix(in srgb, #1a73e8 14%, transparent);
+  --a2ui-tone-active-fg: #185abc;
+  --a2ui-tone-active-border: color-mix(in srgb, #1a73e8 32%, transparent);
+  --a2ui-tone-active-bar: #1a73e8;
+
+  --a2ui-tone-success-bg: color-mix(in srgb, #188038 14%, transparent);
+  --a2ui-tone-success-fg: #137333;
+  --a2ui-tone-success-border: color-mix(in srgb, #188038 30%, transparent);
+  --a2ui-tone-success-bar: #1e8e3e;
+
+  --a2ui-tone-warning-bg: color-mix(in srgb, #e37400 15%, transparent);
+  --a2ui-tone-warning-fg: #b06000;
+  --a2ui-tone-warning-border: color-mix(in srgb, #e37400 32%, transparent);
+  --a2ui-tone-warning-bar: #f29900;
+
+  --a2ui-tone-danger-bg: color-mix(in srgb, #d93025 14%, transparent);
+  --a2ui-tone-danger-fg: #c5221f;
+  --a2ui-tone-danger-border: color-mix(in srgb, #d93025 30%, transparent);
+  --a2ui-tone-danger-bar: #d93025;
+
+  /* Borders & Spacing */
+  --a2ui-color-border: var(--border, #dadce0);
+  --a2ui-border-width: 1px;
+  --a2ui-border-radius: 8px;
+  --a2ui-spacing-xs: 4px;
+  --a2ui-spacing-s: 8px;
+  --a2ui-spacing-m: 16px;
+  --a2ui-spacing-l: 24px;
+  --a2ui-icon-size: 18px;
+  --a2ui-card-margin: 0px;
+  --a2ui-card-padding: 12px 14px;
+  --a2ui-column-gap: 8px;
+  --a2ui-row-gap: 8px;
+  --a2ui-list-padding: 0px;
+  --a2ui-list-gap: 8px;
+  --a2ui-tabs-content-padding: 8px 0 0 0;
+  --a2ui-checkbox-margin: 4px 0;
+  --a2ui-slider-margin: 4px 0;
+  --a2ui-choicepicker-gap: 6px;
+  --a2ui-textfield-padding: 6px 10px;
+  --a2ui-textfield-border-radius: 6px;
+  --a2ui-divider-spacing: 6px;
+  --a2ui-button-margin: 0px;
+  --a2ui-button-padding: 6px 14px;
+  --a2ui-font-size-xs: 12px;
+  --a2ui-font-size-s: 12px;
+  --a2ui-font-size-m: 14px;
+  --a2ui-font-size-l: 16px;
+  --a2ui-choicepicker-chip-font-size: 13px;
+  --a2ui-choicepicker-chip-font-weight: 500;
+  --a2ui-choicepicker-chip-padding: 5px 12px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --a2ui-color-surface: var(--card, var(--background, #1e1e1e));
+    --a2ui-color-input: var(--card, var(--background, #1e1e1e));
+    --a2ui-color-secondary: var(--secondary, #2d2d2d);
+    --a2ui-text-color-text: var(--foreground, #e3e3e3);
+    --a2ui-text-caption-color: var(--muted-foreground, #9aa0a6);
+    --a2ui-color-on-background: var(--foreground, #e3e3e3);
+    --a2ui-color-on-input: var(--foreground, #e3e3e3);
+    --a2ui-color-primary: var(--primary, #a8c7fa);
+    --a2ui-color-primary-hover: var(--primary-hover, #c2e7ff);
+    --a2ui-color-on-primary: #041e49;
+    --a2ui-color-border: var(--border, #3c4043);
+
+    --a2ui-tone-neutral-bg: color-mix(in srgb, var(--foreground, #e3e3e3) 10%, transparent);
+    --a2ui-tone-neutral-fg: var(--muted-foreground, #9aa0a6);
+    --a2ui-tone-neutral-border: color-mix(in srgb, var(--foreground, #e3e3e3) 20%, transparent);
+    --a2ui-tone-neutral-bar: color-mix(in srgb, var(--foreground, #e3e3e3) 38%, transparent);
+
+    --a2ui-tone-info-bg: color-mix(in srgb, #8ab4f8 16%, transparent);
+    --a2ui-tone-info-fg: #8ab4f8;
+    --a2ui-tone-info-border: color-mix(in srgb, #8ab4f8 34%, transparent);
+    --a2ui-tone-info-bar: #8ab4f8;
+
+    --a2ui-tone-active-bg: color-mix(in srgb, #669df6 18%, transparent);
+    --a2ui-tone-active-fg: #aecbfa;
+    --a2ui-tone-active-border: color-mix(in srgb, #669df6 38%, transparent);
+    --a2ui-tone-active-bar: #669df6;
+
+    --a2ui-tone-success-bg: color-mix(in srgb, #81c995 16%, transparent);
+    --a2ui-tone-success-fg: #81c995;
+    --a2ui-tone-success-border: color-mix(in srgb, #81c995 34%, transparent);
+    --a2ui-tone-success-bar: #5bb974;
+
+    --a2ui-tone-warning-bg: color-mix(in srgb, #fdd663 16%, transparent);
+    --a2ui-tone-warning-fg: #fdd663;
+    --a2ui-tone-warning-border: color-mix(in srgb, #fdd663 34%, transparent);
+    --a2ui-tone-warning-bar: #fcc934;
+
+    --a2ui-tone-danger-bg: color-mix(in srgb, #f28b82 16%, transparent);
+    --a2ui-tone-danger-fg: #f28b82;
+    --a2ui-tone-danger-border: color-mix(in srgb, #f28b82 34%, transparent);
+    --a2ui-tone-danger-bar: #ee675c;
+  }
+}
+
+/* Compact overrides for inline <agent-embed> cards (scoped below :root so they win over @a2ui/lit adoptedStyleSheets) */
+#a2ui-embed-root {
+  --a2ui-spacing-xs: 2px;
+  --a2ui-spacing-s: 4px;
+  --a2ui-spacing-m: 8px;
+  --a2ui-icon-size: 16px;
+  --a2ui-card-margin: 0px;
+  --a2ui-card-padding: 6px 10px;
+  --a2ui-column-gap: 4px;
+  --a2ui-row-gap: 8px;
+  --a2ui-list-padding: 0px;
+  --a2ui-list-gap: 6px;
+  --a2ui-tabs-content-padding: 4px 0 0 0;
+  --a2ui-checkbox-margin: 0px;
+  --a2ui-slider-margin: 2px 0;
+  --a2ui-choicepicker-gap: 6px;
+  --a2ui-choicepicker-chip-font-size: 13px;
+  --a2ui-choicepicker-chip-font-weight: 500;
+  --a2ui-choicepicker-chip-padding: 4px 12px;
+  --a2ui-textfield-padding: 3px 8px;
+  --a2ui-textfield-border-radius: 6px;
+  --a2ui-divider-spacing: 2px;
+  --a2ui-button-margin: 0px;
+  --a2ui-button-padding: 4px 12px;
+  --a2ui-font-size: 0.8125rem;
+  --a2ui-font-size-xs: 12px;
+  --a2ui-font-size-s: 12px;
+  --a2ui-font-size-m: 13px;
+  --a2ui-font-size-l: 15px;
+  --a2ui-line-height-body: 1.35;
+  --a2ui-surfaces-padding: 2px 4px;
+  --a2ui-surfaces-gap: 6px;
+}
