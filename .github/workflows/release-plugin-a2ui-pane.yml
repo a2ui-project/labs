@@ -1,0 +1,89 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Release Plugin (a2ui-pane)
+
+on:
+  push:
+    tags:
+      - "a2ui-pane-v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing a2ui-pane-v* tag to release"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: plugin/a2ui-pane
+    steps:
+      - name: Validate release tag
+        working-directory: .
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          if [[ "${RELEASE_TAG}" != a2ui-pane-v* ]]; then
+            echo "::error::Release tag must start with 'a2ui-pane-v' (got '${RELEASE_TAG}')."
+            exit 1
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
+          persist-credentials: false
+
+      - name: Check out the latest A2UI main
+        working-directory: .
+        run: git submodule update --init --remote --depth 1 third_party/a2ui
+
+      - uses: ./third_party/a2ui/.github/actions/setup-node
+        with:
+          node-version: "22"
+          install: false
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Run test suite
+        run: yarn test
+
+      - name: Run linter
+        run: yarn lint
+
+      - name: Build and package release archives
+        run: ./scripts/package.sh --skip-tests
+
+      - name: Create GitHub Release
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+        run: |
+          gh release create "${RELEASE_TAG}" \
+            --verify-tag \
+            --generate-notes \
+            plugin/a2ui-pane/dist/a2ui-pane.tar.gz \
+            plugin/a2ui-pane/dist/a2ui-pane.tar.gz.sha256 \
+            plugin/a2ui-pane/dist/a2ui-pane.zip \
+            plugin/a2ui-pane/dist/a2ui-pane.zip.sha256

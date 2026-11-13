@@ -1,0 +1,168 @@
+[
+  {
+    "version": "1.0",
+    "createSurface": {
+      "surfaceId": "progress_board",
+      "sendDataModel": true,
+      "components": [
+        {
+          "id": "root",
+          "component": "Card",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "child": "board_col"
+        },
+        {
+          "id": "board_col",
+          "component": "Column",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "board_title",
+            "board_progress",
+            "board_divider",
+            "board_rows",
+            "board_footer"
+          ]
+        },
+        {
+          "id": "board_title",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "/title"
+          }
+        },
+        {
+          "id": "board_progress",
+          "component": "ProgressBar",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/status/catalog.json",
+          "items": {
+            "@path": "/items"
+          },
+          "summary": {
+            "@path": "/subtitle"
+          }
+        },
+        {
+          "id": "board_divider",
+          "component": "Divider",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json"
+        },
+        {
+          "id": "board_rows",
+          "component": "List",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": {
+            "path": "/items",
+            "componentId": "board_row"
+          }
+        },
+        {
+          "id": "board_row",
+          "component": "Row",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "board_row_body",
+            "board_row_badge"
+          ],
+          "justify": "spaceBetween",
+          "align": "center"
+        },
+        {
+          "id": "board_row_body",
+          "component": "Column",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "board_row_label",
+            "board_row_detail"
+          ],
+          "weight": 1
+        },
+        {
+          "id": "board_row_label",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "label"
+          }
+        },
+        {
+          "id": "board_row_detail",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "detail"
+          },
+          "variant": "caption"
+        },
+        {
+          "id": "board_row_badge",
+          "component": "Badge",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/status/catalog.json",
+          "text": {
+            "@path": "status"
+          },
+          "tone": {
+            "@path": "tone"
+          }
+        },
+        {
+          "id": "board_footer",
+          "component": "Row",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "ack_btn"
+          ],
+          "justify": "end",
+          "align": "center"
+        },
+        {
+          "id": "ack_btn",
+          "component": "Button",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "child": "ack_btn_child",
+          "action": {
+            "event": {
+              "name": "acknowledge_progress",
+              "context": {
+                "_oneShot": true
+              }
+            }
+          }
+        },
+        {
+          "id": "ack_btn_child",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "/ackLabel"
+          }
+        }
+      ],
+      "dataModel": {
+        "ackLabel": "Acknowledge",
+        "title": "### Ship-it: PR #42 checks",
+        "subtitle": "Live status; rows update as each step finishes.",
+        "items": [
+          {
+            "status": "✅ Passed",
+            "tone": "success",
+            "label": "Unit tests",
+            "detail": "221 passed in 48s"
+          },
+          {
+            "status": "🔄 Running",
+            "tone": "active",
+            "label": "Integration harness",
+            "detail": "running (3/7 suites)"
+          },
+          {
+            "status": "⏳ Waiting",
+            "tone": "warning",
+            "label": "Manual UI check",
+            "detail": "waiting for reviewer"
+          }
+        ]
+      }
+    }
+  }
+]

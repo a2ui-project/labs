@@ -1,0 +1,257 @@
+/**
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {fileURLToPath} from 'node:url';
+import {isValidId} from '@a2ui-pane/protocol';
+import {HOST_THEME_CSS} from '@a2ui-pane/theme';
+
+/** Options for generating a self-contained inline embed HTML document. */
+export interface EmbedWriterOptions {
+  embedBundleJs?: string;
+  embedBundlePath?: string;
+  actionConfig?: {
+    port?: number;
+    key?: string;
+    surfaceId: string;
+    conversationId?: string;
+    sidecarUrl?: string;
+    targetOrigin?: string;
+    embedFile?: string;
+    submittedComponents?: string[];
+    submittedGroups?: string[];
+  };
+}
+
+/** Valid filename pattern for generated inline embed HTML documents. */
+export const EMBED_FILE_REGEX = /^embed_[A-Za-z0-9_-]+_\d+_[a-f0-9]+\.html$/;
+
+let cachedBundleContent: string | null = null;
+let cachedBundleMtimeMs = 0;
+
+/**
+ * Loads and caches the compiled `embed.iife.js` runtime bundle from disk.
+ */
+export function loadEmbedBundle(customPath?: string): string {
+  if (customPath && fs.existsSync(customPath)) {
+    return fs.readFileSync(customPath, 'utf-8');
+  }
+
+  const here = path.dirname(fileURLToPath(import.meta.url));
+  const candidatePaths = [
+    path.resolve(here, 'embed.iife.js'),
+    path.resolve(here, '../../embed/dist/embed.iife.js'),
+    path.resolve(here, '../../../packages/embed/dist/embed.iife.js'),
+  ];
+
+  for (const cand of candidatePaths) {
+    if (fs.existsSync(cand)) {
+      const mtimeMs = fs.statSync(cand).mtimeMs;
+      if (cachedBundleContent && mtimeMs === cachedBundleMtimeMs) {
+        return cachedBundleContent;
+      }
+      cachedBundleContent = fs.readFileSync(cand, 'utf-8');
+      cachedBundleMtimeMs = mtimeMs;
+      return cachedBundleContent;
+    }
+  }
+
+  return 'console.warn("[a2ui-embed] Embed IIFE bundle not found.");';
+}
+
+function escapeJsonForScript(value: unknown): string {
+  return JSON.stringify(value).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Generates an isolated, self-contained HTML page embedding the A2UI IIFE runtime,
+ * host theme CSS, and sanitized initial layout messages.
+ * Escapes '<' to '\u003c' and '>' to '\u003e' to defend against script breakout vulnerabilities.
+ */
+export function writeEmbed(
+  dataDir: string,
+  conversationId: string,
+  surfaceIds: string[],
+  messages: unknown[],
+  options: EmbedWriterOptions = {},
+): string {
+  if (!isValidId(conversationId)) {
+    throw new Error(`Invalid conversationId: ${conversationId}`);
+  }
+
+  for (const sid of surfaceIds) {
+    if (!isValidId(sid)) {
+      throw new Error(`Invalid surfaceId: ${sid}`);
+    }
+  }
+
+  const embedDir = path.join(dataDir, 'embeds', conversationId);
+  fs.mkdirSync(embedDir, {recursive: true, mode: 0o700});
+
+  const randomSuffix = crypto.randomBytes(8).toString('hex');
+  const primarySurface = surfaceIds[0] || 'surface';
+  const fileName = `embed_${primarySurface}_${Date.now()}_${randomSuffix}.html`;
+  const filePath = path.resolve(embedDir, fileName);
+
+  const bundleJs =
+    options.embedBundleJs ??
+    (options.embedBundlePath ? loadEmbedBundle(options.embedBundlePath) : loadEmbedBundle());
+
+  // Escape < and > to prevent script tag injection breakout
+  const sanitizedMessagesJson = escapeJsonForScript(messages);
+  const sanitizedActionConfigJson = options.actionConfig
+    ? escapeJsonForScript({...options.actionConfig, embedFile: fileName})
+    : null;
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2UI Embed - ${escapeHtml(primarySurface)}</title>
+  <style>
+${HOST_THEME_CSS}
+  </style>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      background: transparent;
+      color: var(--a2ui-text-color-text, var(--foreground, #24292f));
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    #a2ui-embed-root {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    #a2ui-embed-root a2ui-pane-view {
+      height: auto;
+      overflow: visible;
+    }
+  </style>
+</head>
+<body>
+  <div id="a2ui-embed-root"></div>
+  <script id="a2ui-messages" type="application/json">
+${sanitizedMessagesJson}
+  </script>
+${
+  sanitizedActionConfigJson
+    ? `  <script id="a2ui-action-config" type="application/json">
+${sanitizedActionConfigJson}
+  </script>\n`
+    : ''
+}  <script>
+${bundleJs}
+  </script>
+</body>
+</html>
+`;
+
+  fs.writeFileSync(filePath, html, {mode: 0o600});
+  return filePath;
+}
+
+/** Options for recording submitted button state inside an existing embed HTML file on disk. */
+export interface StampEmbedSubmittedOptions {
+  dataDir: string;
+  conversationId: string;
+  embedFile: string;
+  componentId?: string;
+  group?: string;
+}
+
+const ACTION_CONFIG_SCRIPT_RE =
+  /(<script id="a2ui-action-config" type="application\/json">\r?\n)([\s\S]*?)(\r?\n\s*<\/script>)/;
+
+function appendUniqueString(existing: unknown, candidate?: string): string[] | undefined {
+  const trimmed = typeof candidate === 'string' ? candidate.trim() : '';
+  if (!trimmed) return undefined;
+  const list = Array.isArray(existing) ? existing : [];
+  return list.includes(trimmed) ? list : [...list, trimmed];
+}
+
+function updateActionConfigJson(
+  rawJson: string,
+  componentId?: string,
+  group?: string,
+): string | null {
+  let parsed: Record<string, any>;
+  try {
+    parsed = JSON.parse(rawJson);
+  } catch {
+    return null;
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return null;
+  }
+
+  const nextComponents = appendUniqueString(parsed.submittedComponents, componentId);
+  if (nextComponents) parsed.submittedComponents = nextComponents;
+
+  const nextGroups = appendUniqueString(parsed.submittedGroups, group);
+  if (nextGroups) parsed.submittedGroups = nextGroups;
+
+  return escapeJsonForScript(parsed);
+}
+
+/**
+ * Updates the `<script id="a2ui-action-config">` JSON block inside an existing `embed_*.html` file
+ * on disk to record `submittedComponents` and `submittedGroups` so remounted iframes stay disabled.
+ */
+export function stampEmbedSubmitted(opts: StampEmbedSubmittedOptions): boolean {
+  if (!opts.dataDir || !isValidId(opts.conversationId)) {
+    return false;
+  }
+  if (!opts.embedFile || !EMBED_FILE_REGEX.test(opts.embedFile)) {
+    return false;
+  }
+
+  const filePath = path.resolve(opts.dataDir, 'embeds', opts.conversationId, opts.embedFile);
+  if (!fs.existsSync(filePath)) {
+    return false;
+  }
+
+  try {
+    const html = fs.readFileSync(filePath, 'utf-8');
+    const match = ACTION_CONFIG_SCRIPT_RE.exec(html);
+    if (!match) return false;
+
+    const updatedJson = updateActionConfigJson(match[2], opts.componentId, opts.group);
+    if (!updatedJson) return false;
+
+    const updatedHtml = html.replace(ACTION_CONFIG_SCRIPT_RE, `$1${updatedJson}$3`);
+    fs.writeFileSync(filePath, updatedHtml, {mode: 0o600});
+    return true;
+  } catch {
+    return false;
+  }
+}

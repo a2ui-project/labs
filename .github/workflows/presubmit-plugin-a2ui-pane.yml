@@ -1,0 +1,63 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Presubmit Plugin (a2ui-pane)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plugin/a2ui-pane/**"
+      - ".github/workflows/presubmit-plugin-a2ui-pane.yml"
+  pull_request:
+    paths:
+      - "plugin/a2ui-pane/**"
+      - ".github/workflows/presubmit-plugin-a2ui-pane.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: plugin/a2ui-pane
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check out the latest A2UI main
+        working-directory: .
+        run: git submodule update --init --remote --depth 1 third_party/a2ui
+
+      - uses: ./third_party/a2ui/.github/actions/setup-node
+        with:
+          node-version: "22"
+          install: false
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build packages
+        run: yarn build
+
+      - name: Run linter
+        run: yarn lint

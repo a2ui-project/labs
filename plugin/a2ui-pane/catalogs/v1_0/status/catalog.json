@@ -1,0 +1,422 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://a2ui.org/specification/v1_0/catalogs/status/catalog.json",
+  "protocolVersion": "1.0",
+  "title": "A2UI Status Component Catalog",
+  "description": "Semantic status badges, segmented progress bars, collapsible sections, typed-cell tables, lifecycle steppers, and selectable choice cards for A2UI v1.0 surfaces.",
+  "catalogId": "https://a2ui.org/specification/v1_0/catalogs/status/catalog.json",
+  "components": {
+    "Badge": {
+      "type": "object",
+      "description": "Renders a compact, semantic status pill with an optional icon or activity pulse dot.",
+      "properties": {
+        "component": {
+          "const": "Badge"
+        },
+        "text": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Label text displayed inside the badge pill."
+        },
+        "tone": {
+          "$ref": "#/$defs/DynamicStatusTone",
+          "description": "Semantic tone controlling pill background, border, and text color (defaults to 'neutral')."
+        },
+        "icon": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Optional icon name from the A2UI icon set rendered before the badge text."
+        },
+        "pulse": {
+          "$ref": "common_types.json#/$defs/DynamicBoolean",
+          "description": "When true, renders a subtle pulsing indicator dot inside the badge."
+        },
+        "weight": {
+          "type": "number",
+          "description": "The relative weight of this component within a Row or Column."
+        },
+        "accessibility": {
+          "$ref": "common_types.json#/$defs/AccessibilityAttributes"
+        }
+      },
+      "required": ["component", "text"],
+      "additionalProperties": false
+    },
+    "ProgressBar": {
+      "type": "object",
+      "description": "Renders a single-value or multi-segment horizontal progress track with optional header labels or auto-tallied status items. Mode precedence when multiple inputs are supplied: segments > items > value.",
+      "properties": {
+        "component": {
+          "const": "ProgressBar"
+        },
+        "value": {
+          "$ref": "common_types.json#/$defs/DynamicNumber",
+          "description": "Completed numeric value in single-bar mode."
+        },
+        "max": {
+          "$ref": "common_types.json#/$defs/DynamicNumber",
+          "description": "Maximum numeric value in single-bar mode (defaults to 100) or optional total track denominator in segments mode when greater than the segment sum."
+        },
+        "segments": {
+          "$ref": "#/$defs/DynamicProgressSegmentList",
+          "description": "Explicit array of {value, tone, label} segments rendered proportionally across the track."
+        },
+        "items": {
+          "$ref": "#/$defs/DynamicStatusItemList",
+          "description": "Array of status items (such as progress_board $/items) automatically tallied by each item's tone (items without tone default to neutral)."
+        },
+        "label": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Optional heading label rendered above the left end of the progress track."
+        },
+        "summary": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Optional summary text rendered above the right end of the progress track."
+        },
+        "indeterminate": {
+          "$ref": "common_types.json#/$defs/DynamicBoolean",
+          "description": "When true, renders an animated indeterminate shimmer across the progress track."
+        },
+        "weight": {
+          "type": "number",
+          "description": "The relative weight of this component within a Row or Column."
+        },
+        "accessibility": {
+          "$ref": "common_types.json#/$defs/AccessibilityAttributes"
+        }
+      },
+      "required": ["component"],
+      "additionalProperties": false
+    },
+    "Collapsible": {
+      "type": "object",
+      "description": "Renders an expandable disclosure section with a clickable header, optional summary and badge, and a child component body.",
+      "properties": {
+        "component": {
+          "const": "Collapsible"
+        },
+        "title": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Header title text for the collapsible section."
+        },
+        "child": {
+          "$ref": "common_types.json#/$defs/ComponentId",
+          "description": "The ID of the child component rendered inside the collapsible body when expanded."
+        },
+        "summary": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Optional muted summary text displayed in the header row."
+        },
+        "badge": {
+          "$ref": "common_types.json#/$defs/ComponentId",
+          "description": "Optional ID of a Badge or Text component rendered on the right side of the header row."
+        },
+        "open": {
+          "$ref": "common_types.json#/$defs/DynamicBoolean",
+          "description": "Whether the section is expanded (defaults to false; supports two-way DataBinding)."
+        },
+        "weight": {
+          "type": "number",
+          "description": "The relative weight of this component within a Row or Column."
+        },
+        "accessibility": {
+          "$ref": "common_types.json#/$defs/AccessibilityAttributes"
+        }
+      },
+      "required": ["component", "title", "child"],
+      "additionalProperties": false
+    },
+    "Table": {
+      "type": "object",
+      "description": "Renders a typed-cell grid: static column definitions and data-bound rows. Use it for grids with three or more columns or typed cells (badge, link, progress, check, icon, number) instead of nested Row/Column layouts or Markdown pipe tables.",
+      "properties": {
+        "component": {
+          "const": "Table"
+        },
+        "columns": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/TableColumn"},
+          "description": "Static column definitions in display order. Each column reads the row property named by its key."
+        },
+        "rows": {
+          "$ref": "#/$defs/DynamicTableRowList",
+          "description": "Array of row objects keyed by column key, usually a data binding such as $/rows. Cell value shapes by column kind: text and number take a string or number; badge takes {text, tone} or a string; link takes {text, url}; progress takes {value, max}; check takes a boolean; icon takes an icon name. Missing keys render an empty cell."
+        },
+        "caption": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Optional caption rendered above the grid."
+        },
+        "sortable": {
+          "$ref": "common_types.json#/$defs/DynamicBoolean",
+          "description": "When true, clicking a column header sorts the rows client-side and toggles between ascending and descending order (defaults to false)."
+        },
+        "dense": {
+          "$ref": "common_types.json#/$defs/DynamicBoolean",
+          "description": "When true, uses compact 4px cell padding (defaults to false)."
+        },
+        "selected": {
+          "$ref": "common_types.json#/$defs/DynamicNumber",
+          "description": "Zero-based index of the highlighted row in the original row order. Supports two-way DataBinding: a row click writes its index back to the bound path."
+        },
+        "action": {
+          "$ref": "common_types.json#/$defs/Action",
+          "description": "Optional action dispatched when the user clicks or activates a row, after `selected` is updated."
+        },
+        "weight": {
+          "type": "number",
+          "description": "The relative weight of this component within a Row or Column."
+        },
+        "accessibility": {
+          "$ref": "common_types.json#/$defs/AccessibilityAttributes"
+        }
+      },
+      "required": ["component", "columns", "rows"],
+      "additionalProperties": false
+    },
+    "Stepper": {
+      "type": "object",
+      "description": "Renders an ordered lifecycle as a row (or column) of labeled step dots. Steps before `current` render success, the current step renders active with a pulse unless `tone` overrides it, and later steps render neutral. Use it for ordered states such as a PR, CL, or rollout lifecycle instead of Tabs or a list of badges.",
+      "properties": {
+        "component": {
+          "const": "Stepper"
+        },
+        "steps": {
+          "$ref": "#/$defs/DynamicStepperStepList",
+          "description": "Ordered array of {label, detail} steps, or a data binding such as $/steps. `detail` renders as a hover tooltip."
+        },
+        "current": {
+          "$ref": "common_types.json#/$defs/DynamicNumber",
+          "description": "Zero-based index of the current step. Values past the last step clamp to the last step."
+        },
+        "tone": {
+          "$ref": "#/$defs/DynamicStatusTone",
+          "description": "Semantic tone for the current step only (defaults to 'active'). Use 'danger' or 'warning' when the lifecycle is stuck at that step."
+        },
+        "orientation": {
+          "type": "string",
+          "enum": ["horizontal", "vertical"],
+          "description": "Layout direction of the steps (defaults to 'horizontal')."
+        },
+        "weight": {
+          "type": "number",
+          "description": "The relative weight of this component within a Row or Column."
+        },
+        "accessibility": {
+          "$ref": "common_types.json#/$defs/AccessibilityAttributes"
+        }
+      },
+      "required": ["component", "steps", "current"],
+      "additionalProperties": false
+    },
+    "ChoiceCards": {
+      "type": "object",
+      "description": "Renders a single- or multi-select choice as one card per option. Each card shows a bold label, an optional Markdown description, and an optional tone badge, and the whole card is the click target. Options with `quiet: true` render as small text toggles after the cards (for example Defer). Use it instead of ChoicePicker chips when each option needs a description or consequence.",
+      "properties": {
+        "component": {
+          "const": "ChoiceCards"
+        },
+        "options": {
+          "$ref": "#/$defs/DynamicChoiceCardList",
+          "description": "Options to choose from, as an array of {value, label, description?, badge?, tone?, quiet?} or a data binding such as $/q1/options."
+        },
+        "value": {
+          "$ref": "common_types.json#/$defs/DynamicStringList",
+          "description": "Selected option values. Bind it to a string array in the data model; clicking a card writes the new selection back."
+        },
+        "variant": {
+          "type": "string",
+          "enum": ["mutuallyExclusive", "multipleSelection"],
+          "description": "Selection behavior (defaults to 'mutuallyExclusive')."
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["vertical", "horizontal"],
+          "description": "Layout direction of the cards (defaults to 'vertical'). Use 'horizontal' for short options such as Yes and No."
+        },
+        "weight": {
+          "type": "number",
+          "description": "The relative weight of this component within a Row or Column."
+        },
+        "accessibility": {
+          "$ref": "common_types.json#/$defs/AccessibilityAttributes"
+        }
+      },
+      "required": ["component", "options", "value"],
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "StatusTone": {
+      "type": "string",
+      "enum": ["neutral", "info", "active", "success", "warning", "danger"]
+    },
+    "DynamicStatusTone": {
+      "oneOf": [
+        {"$ref": "#/$defs/StatusTone"},
+        {"$ref": "common_types.json#/$defs/DataBinding"},
+        {"$ref": "common_types.json#/$defs/FunctionCall"}
+      ]
+    },
+    "ProgressSegment": {
+      "type": "object",
+      "properties": {
+        "value": {"$ref": "common_types.json#/$defs/DynamicNumber"},
+        "tone": {"$ref": "#/$defs/DynamicStatusTone"},
+        "label": {"$ref": "common_types.json#/$defs/DynamicString"}
+      },
+      "required": ["value"],
+      "additionalProperties": false
+    },
+    "DynamicProgressSegmentList": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ProgressSegment"}
+        },
+        {"$ref": "common_types.json#/$defs/DataBinding"},
+        {"$ref": "common_types.json#/$defs/FunctionCall"}
+      ]
+    },
+    "StatusItem": {
+      "type": "object",
+      "properties": {
+        "tone": {"$ref": "#/$defs/DynamicStatusTone"},
+        "status": {"$ref": "common_types.json#/$defs/DynamicString"},
+        "label": {"$ref": "common_types.json#/$defs/DynamicString"},
+        "detail": {"$ref": "common_types.json#/$defs/DynamicString"}
+      },
+      "additionalProperties": true
+    },
+    "DynamicStatusItemList": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {"$ref": "#/$defs/StatusItem"}
+        },
+        {"$ref": "common_types.json#/$defs/DataBinding"},
+        {"$ref": "common_types.json#/$defs/FunctionCall"}
+      ]
+    },
+    "TableColumn": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "Row property read for this column."
+        },
+        "label": {
+          "type": "string",
+          "description": "Header text."
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["text", "badge", "link", "progress", "check", "icon", "number"],
+          "default": "text",
+          "description": "How cell values render (defaults to 'text')."
+        },
+        "align": {
+          "type": "string",
+          "enum": ["start", "center", "end"],
+          "description": "Horizontal cell alignment (number columns default to 'end')."
+        },
+        "width": {
+          "type": "string",
+          "description": "Optional CSS width for the column, such as '12ch' or '30%'."
+        }
+      },
+      "required": ["key", "label"],
+      "additionalProperties": false
+    },
+    "TableRow": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "DynamicTableRowList": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {"$ref": "#/$defs/TableRow"}
+        },
+        {"$ref": "common_types.json#/$defs/DataBinding"},
+        {"$ref": "common_types.json#/$defs/FunctionCall"}
+      ]
+    },
+    "StepperStep": {
+      "type": "object",
+      "properties": {
+        "label": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Step label rendered next to the dot."
+        },
+        "detail": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Optional detail text rendered as a hover tooltip on the step."
+        }
+      },
+      "required": ["label"],
+      "additionalProperties": false
+    },
+    "DynamicStepperStepList": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {"$ref": "#/$defs/StepperStep"}
+        },
+        {"$ref": "common_types.json#/$defs/DataBinding"},
+        {"$ref": "common_types.json#/$defs/FunctionCall"}
+      ]
+    },
+    "ChoiceCardOption": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "string",
+          "description": "Stable value written to the selection when this option is chosen."
+        },
+        "label": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Bold option name shown at the top of the card."
+        },
+        "description": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Optional Markdown text under the label, such as the consequence of choosing this option."
+        },
+        "badge": {
+          "$ref": "common_types.json#/$defs/DynamicString",
+          "description": "Optional badge text shown on the card, such as 'Recommended'."
+        },
+        "tone": {
+          "$ref": "#/$defs/DynamicStatusTone",
+          "description": "Badge tone (defaults to 'neutral')."
+        },
+        "quiet": {
+          "type": "boolean",
+          "description": "When true, renders the option as a small text toggle after the cards instead of a card."
+        }
+      },
+      "required": ["value", "label"],
+      "additionalProperties": false
+    },
+    "DynamicChoiceCardList": {
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {"$ref": "#/$defs/ChoiceCardOption"}
+        },
+        {"$ref": "common_types.json#/$defs/DataBinding"},
+        {"$ref": "common_types.json#/$defs/FunctionCall"}
+      ]
+    },
+    "anyComponent": {
+      "oneOf": [
+        {"$ref": "#/components/Badge"},
+        {"$ref": "#/components/ProgressBar"},
+        {"$ref": "#/components/Collapsible"},
+        {"$ref": "#/components/Table"},
+        {"$ref": "#/components/Stepper"},
+        {"$ref": "#/components/ChoiceCards"}
+      ],
+      "discriminator": {
+        "propertyName": "component"
+      }
+    }
+  }
+}
