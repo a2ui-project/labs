@@ -315,6 +315,7 @@ export class ActionEndpoint {
         embedFile,
         componentId: sourceComponentId,
         group,
+        submittedDataModel: payload?.submittedDataModel,
       });
     }
 

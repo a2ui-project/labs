@@ -15,6 +15,7 @@
  */
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {z} from 'zod';
 import {isValidId} from '@a2ui-pane/protocol';
@@ -596,7 +597,7 @@ export async function handleRenderA2ui(
     }
 
     const effectiveDataDir =
-      dataDir || process.env.A2UI_PANE_DATA || process.env.PLUGIN_DATA || '/tmp';
+      dataDir || process.env.A2UI_PANE_DATA || process.env.PLUGIN_DATA || os.tmpdir();
     const surfaceIdList = Array.from(surfaceIds);
 
     let actionConfig:
@@ -704,7 +705,7 @@ export async function handleRenderA2ui(
   const surfacesText =
     result.surfaceIds.length > 0 ? `surface(s) [${result.surfaceIds.join(', ')}]` : 'surfaces';
   const effectiveDataDir =
-    dataDir || process.env.A2UI_PANE_DATA || process.env.PLUGIN_DATA || '/tmp';
+    dataDir || process.env.A2UI_PANE_DATA || process.env.PLUGIN_DATA || os.tmpdir();
   const isVisible = isPaneVisibleForConversation(effectiveDataDir, conversationId);
   const visibilityNote = isVisible
     ? 'The live surface is visible in the open A2UI side panel. Always include [A2UI Pane](sidecar://a2ui-pane/a2ui-pane/) in your response so the user sees an inline button indicating that the pane was updated and can focus it in one click.'
