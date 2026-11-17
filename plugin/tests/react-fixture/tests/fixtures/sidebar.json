@@ -1,0 +1,67 @@
+{
+  "request": "Show one surface for the side panel, in a block that starts with surface(\"sidebar-1\"). Write no text outside the block. Screen: list. Selection: some. Bind $/context/selected_count and show its value. Offer only a button \"Pin selection\" with the action Event(\"pin\", {count: $/context/selected_count}).",
+  "responses": [
+    [
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [
+                {
+                  "text": "<a2ui>\nsurface(\"sidebar-1\")\nroot = Card(col)\ncol = Column([t, n, b])\nt = Text(\"Selected items\")\n"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [
+                {
+                  "text": "n = Text($/context/selected_count)\nb = Button(Text(\"Pin selection\"), action=Event(\"pin\", {count: $/context/selected_count}))\n</a2ui>"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [
+                {
+                  "text": "<a2ui>\nsurface(\"sidebar-2\")\nroot = Card(Text(\"Select items to see actions\"))\n</a2ui>"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [
+                {
+                  "text": "<a2ui>\nsurface(\"sidebar-1\", update=true)\nt = Text(\"Pinned\")\n</a2ui>"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}

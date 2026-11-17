@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "a2ui.blueprint.json",
+  "description": "The plan and the state of one A2UI conversion. The agent that does the conversion writes it. The eval harness reads the flows and their test commands from it.",
+  "type": "object",
+  "required": ["stack", "sdk_versions", "flows"],
+  "properties": {
+    "stack": {
+      "description": "The stack id from the detection table of SKILL.md.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$"
+    },
+    "sdk_versions": {
+      "description": "Each installed SDK package and its version, as the lock file has it.",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "flows": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": {
+        "$ref": "#/$defs/flow"
+      }
+    }
+  },
+  "$defs": {
+    "flow": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "placement",
+        "trigger",
+        "expected_surface",
+        "test_command",
+        "status",
+        "rounds_used"
+      ],
+      "properties": {
+        "id": {
+          "description": "Use _ between words, not -: the test file names use the id, and some test runners refuse - in a file name.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "kind": {
+          "enum": ["explore", "input", "act"]
+        },
+        "placement": {
+          "description": "Where the surface shows in the app: in the flow of a screen, in a side panel, or on the first screen.",
+          "enum": ["inline", "sidebar", "home"]
+        },
+        "trigger": {
+          "description": "What starts the flow: a prompt that the user types, or a state of the app that the user reaches.",
+          "type": "object",
+          "required": ["type", "text"],
+          "properties": {
+            "type": {
+              "enum": ["prompt", "context"]
+            },
+            "text": {
+              "description": "The prompt that the user types, or the steps that bring the app to the state.",
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "expected_surface": {
+          "description": "The catalog components that must appear on the surface.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Za-z0-9]*$"
+          }
+        },
+        "test_command": {
+          "description": "Runs this flow's test only, from the app root. The stack file's Flow test heading gives it.",
+          "type": "string",
+          "minLength": 1
+        },
+        "rounds_used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "status": {
+          "enum": ["pending", "success", "failed"]
+        },
+        "cause": {
+          "description": "Why the flow failed, in one sentence. Only with the status failed.",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

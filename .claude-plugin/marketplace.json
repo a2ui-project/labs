@@ -1,0 +1,15 @@
+{
+  "name": "a2ui-labs",
+  "description": "Plugins and skills from A2UI Labs.",
+  "owner": {
+    "name": "A2UI Project",
+    "url": "https://github.com/a2ui-project"
+  },
+  "plugins": [
+    {
+      "name": "a2ui-genui",
+      "source": "./plugin",
+      "description": "Adds A2UI generative UI to an existing React or Flutter app, and proves it with flow tests."
+    }
+  ]
+}

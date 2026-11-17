@@ -1,0 +1,13 @@
+{
+  "name": "a2ui-genui",
+  "version": "0.1.0",
+  "description": "Adds A2UI generative UI to an existing React or Flutter app with the official A2UI SDKs, and leaves flow tests that replay recorded model replies.",
+  "author": {
+    "name": "A2UI Project",
+    "url": "https://github.com/a2ui-project"
+  },
+  "license": "Apache-2.0",
+  "repository": "https://github.com/a2ui-project/labs",
+  "homepage": "https://github.com/a2ui-project/labs/tree/main/plugin",
+  "keywords": ["a2ui", "generative-ui", "react", "flutter"]
+}

@@ -1,0 +1,72 @@
+{
+  "id": "compass",
+  "stack": "flutter",
+  "app": {
+    "repository": "https://github.com/flutter/samples",
+    "commit": "c6e58ab16342017bafed959d45a03e5180b21ed6",
+    "root": "compass_app/app"
+  },
+  "prompt": "Add A2UI generative UI to this app.",
+  "standing_answers": [
+    {
+      "asks": "Which app to convert, when the repository holds more than one",
+      "answer": "The app in compass_app/app."
+    },
+    {
+      "asks": "Approval of the detected stack and the plan",
+      "answer": "Yes. Go on."
+    },
+    {
+      "asks": "The versions of the SDKs to install",
+      "answer": "Install exactly these versions: a2ui_flutter 0.2.0, a2ui_core 0.6.0, a2ui_agent 0.2.0, json_schema_builder 0.1.7 and dartantic_ai 3.4.2."
+    },
+    {
+      "asks": "Network access for the install or for a guide URL",
+      "answer": "Yes."
+    },
+    {
+      "asks": "Approval of the blueprint of 3 flows",
+      "answer": "Yes, with one flow for each placement: inline, sidebar and home."
+    },
+    {
+      "asks": "The live check: start the app, enter the key, start the first flow, and say what shows",
+      "answer": "I cannot use the app in this trial. My Gemini key is in GEMINI_API_KEY in my shell. Record the fixtures with it, and say in your last message that the live check did not run."
+    },
+    {
+      "asks": "Permission to commit",
+      "answer": "No. Do not commit."
+    },
+    {
+      "asks": "Any other question",
+      "answer": "Do what the skill recommends."
+    }
+  ],
+  "shell": "bash",
+  "pass_conditions": [
+    {
+      "id": "blueprint_valid",
+      "command": "node \"$EVALS_DIR/check-blueprint.mjs\" validate"
+    },
+    {
+      "id": "placements_match",
+      "command": "node \"$EVALS_DIR/check-blueprint.mjs\" placements inline sidebar home"
+    },
+    {
+      "id": "flows_pass_three_runs",
+      "command": "node \"$EVALS_DIR/check-blueprint.mjs\" run"
+    },
+    {
+      "id": "key_check",
+      "command": "test -n \"$GEMINI_API_KEY\" && ! git grep --untracked --no-exclude-standard -l -F -f <(printenv GEMINI_API_KEY) -- .",
+      "needs": ["GEMINI_API_KEY"]
+    },
+    {
+      "id": "sdk_versions_locked",
+      "command": "node \"$EVALS_DIR/lock-versions.mjs\" ../../pubspec.lock a2ui_flutter=0.2.0 a2ui_core=0.6.0 a2ui_agent=0.2.0"
+    },
+    {
+      "id": "no_hand_built_messages",
+      "command": "! git grep --untracked -l -E 'createSurface|updateComponents|updateDataModel' -- ."
+    }
+  ]
+}
