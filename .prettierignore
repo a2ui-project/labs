@@ -31,3 +31,6 @@ samples/travel-a2ui/renderers/flutter/test/fixtures/
 # {{flutter_build_config}} tags, which Prettier would rewrite as JavaScript.
 samples/travel-a2ui/apps/flutter/web/flutter_bootstrap.js
 samples/travel-a2ui/skills/express-modular/
+
+# Compiled A2UI template golden fixtures checked byte-for-byte by templates.test.ts.
+plugin/a2ui-pane/packages/mcp-server/tests/fixtures/templates/*.golden.json

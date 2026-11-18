@@ -1,0 +1,144 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {existsSync, readFileSync, renameSync} from 'node:fs';
+import {parseStoreLine, type StoreLine} from '../store.js';
+import {FoldError, foldSurfaceMessage, messageSurfaceId} from '../surface-fold.js';
+import {conversationDir, isStorableSurfaceId, legacyFile, migratedFile, seqFile} from './layout.js';
+import {type LockOptions, withConversationLock} from './lock.js';
+import {type SnapshotLine, writeSeq, writeSurfaceLine} from './store-io.js';
+
+interface LegacyFoldResult {
+  surfaces: SnapshotLine[];
+  lastSeq: number;
+  skipped: number;
+}
+
+function needsMigration(dataDir: string, conversationId: string): boolean {
+  return (
+    existsSync(legacyFile(dataDir, conversationId)) && !existsSync(seqFile(dataDir, conversationId))
+  );
+}
+
+/**
+ * Folds one legacy line into `snapshots`.
+ *
+ * @returns false when the line was skipped (no storable surface or a fold error).
+ */
+function foldLegacyLine(snapshots: Map<string, SnapshotLine | null>, line: StoreLine): boolean {
+  const surfaceId = messageSurfaceId(line.message);
+  if (!isStorableSurfaceId(surfaceId)) return false;
+  try {
+    const next = foldSurfaceMessage(snapshots.get(surfaceId)?.message ?? null, line.message);
+    snapshots.set(
+      surfaceId,
+      next && {seq: line.seq, callId: line.callId, ts: line.ts, message: next},
+    );
+    return true;
+  } catch (err) {
+    if (err instanceof FoldError) return false;
+    throw err;
+  }
+}
+
+function parseLegacyLine(text: string): StoreLine | undefined {
+  try {
+    return parseStoreLine(text);
+  } catch {
+    return undefined;
+  }
+}
+
+/** Folds the full text of a legacy flat log into one snapshot line per live surface. */
+export function foldLegacyLog(content: string): LegacyFoldResult {
+  const snapshots = new Map<string, SnapshotLine | null>();
+  let lastSeq = 0;
+  let skipped = 0;
+  for (const raw of content.split('\n')) {
+    const text = raw.trim();
+    if (!text) continue;
+    const line = parseLegacyLine(text);
+    if (line) lastSeq = Math.max(lastSeq, line.seq);
+    if (!line || !foldLegacyLine(snapshots, line)) skipped++;
+  }
+  const surfaces = [...snapshots.values()].filter((s): s is SnapshotLine => s !== null);
+  return {surfaces, lastSeq, skipped};
+}
+
+function migrateUnderLock(dataDir: string, conversationId: string): boolean {
+  if (!needsMigration(dataDir, conversationId)) return false;
+  const legacy = legacyFile(dataDir, conversationId);
+  const dir = conversationDir(dataDir, conversationId);
+  const {surfaces, lastSeq, skipped} = foldLegacyLog(readFileSync(legacy, 'utf-8'));
+  if (skipped > 0) {
+    console.warn(`[SurfaceStore] Migration of ${conversationId} skipped ${skipped} legacy line(s)`);
+  }
+  for (const line of surfaces) {
+    writeSurfaceLine(dir, line);
+  }
+  writeSeq(dir, lastSeq);
+  renameLegacy(dataDir, conversationId);
+  return true;
+}
+
+/**
+ * Renames a legacy file left behind when a migration stopped after writing
+ * `_seq` but before renaming it. The per-surface files already hold its state.
+ */
+function finishInterruptedMigration(dataDir: string, conversationId: string): void {
+  const legacy = legacyFile(dataDir, conversationId);
+  if (!existsSync(legacy) || !existsSync(seqFile(dataDir, conversationId))) return;
+  renameLegacy(dataDir, conversationId);
+}
+
+/**
+ * Renames the legacy file to `.migrated`. The recovery above runs without the
+ * lock, so it can win the rename against a migrator that has already written
+ * `_seq`; a missing file therefore means the rename is done.
+ */
+function renameLegacy(dataDir: string, conversationId: string): void {
+  try {
+    renameSync(legacyFile(dataDir, conversationId), migratedFile(dataDir, conversationId));
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException)?.code !== 'ENOENT') throw err;
+  }
+}
+
+/**
+ * Converts a legacy flat log, `conversations/<convId>.jsonl`, to the
+ * per-surface layout: one file per live surface, `_seq` set to the last
+ * legacy seq, and the legacy file renamed to `<convId>.jsonl.migrated`.
+ * Runs under the conversation lock and does nothing when the conversation
+ * has no legacy file. When the conversation already has `_seq`, a leftover
+ * legacy file (from a migration interrupted before its rename) is only
+ * renamed to `.migrated`.
+ *
+ * @returns Whether a migration ran.
+ * @throws {StoreLockError} If the lock cannot be taken.
+ */
+export function migrateLegacyStore(
+  dataDir: string,
+  conversationId: string,
+  opts?: LockOptions,
+): boolean {
+  finishInterruptedMigration(dataDir, conversationId);
+  if (!needsMigration(dataDir, conversationId)) return false;
+  return withConversationLock(
+    conversationDir(dataDir, conversationId),
+    () => migrateUnderLock(dataDir, conversationId),
+    opts,
+  );
+}

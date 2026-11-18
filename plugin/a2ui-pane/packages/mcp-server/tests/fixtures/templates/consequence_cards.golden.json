@@ -1,0 +1,233 @@
+[
+  {
+    "version": "1.0",
+    "createSurface": {
+      "surfaceId": "consequence_cards",
+      "sendDataModel": true,
+      "components": [
+        {
+          "id": "root",
+          "component": "Card",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "child": "fork_col"
+        },
+        {
+          "id": "fork_col",
+          "component": "Column",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "fork_question",
+            "option_cards",
+            "fork_trace",
+            "choice_picker",
+            "fork_notes",
+            "fork_footer"
+          ]
+        },
+        {
+          "id": "fork_question",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "/question"
+          }
+        },
+        {
+          "id": "option_cards",
+          "component": "Column",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": {
+            "path": "/options",
+            "componentId": "option_card"
+          },
+          "align": "stretch"
+        },
+        {
+          "id": "option_card",
+          "component": "Card",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "child": "option_col"
+        },
+        {
+          "id": "option_col",
+          "component": "Column",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "option_head",
+            "option_impact",
+            "option_tradeoff"
+          ]
+        },
+        {
+          "id": "option_head",
+          "component": "Row",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "option_title",
+            "option_badge"
+          ],
+          "justify": "spaceBetween",
+          "align": "center"
+        },
+        {
+          "id": "option_title",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "title"
+          },
+          "variant": "body",
+          "weight": 1
+        },
+        {
+          "id": "option_badge",
+          "component": "Badge",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/status/catalog.json",
+          "text": {
+            "@path": "badge"
+          },
+          "tone": {
+            "@path": "tone"
+          }
+        },
+        {
+          "id": "option_impact",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "impact"
+          }
+        },
+        {
+          "id": "option_tradeoff",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "tradeoff"
+          },
+          "variant": "caption"
+        },
+        {
+          "id": "fork_trace",
+          "component": "Collapsible",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/status/catalog.json",
+          "title": {
+            "@path": "/traceTitle"
+          },
+          "child": "fork_trace_body",
+          "summary": {
+            "@path": "/traceSummary"
+          }
+        },
+        {
+          "id": "fork_trace_body",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "/trace"
+          },
+          "variant": "caption"
+        },
+        {
+          "id": "choice_picker",
+          "component": "ChoicePicker",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "label": "Select one or more cutover strategies (combine freely)",
+          "variant": "multipleSelection",
+          "options": [
+            {
+              "label": "(Recommended) A: Dual-Write",
+              "value": "dual_write"
+            },
+            {
+              "label": "B: In-Place Cutover",
+              "value": "cutover"
+            },
+            {
+              "label": "Defer",
+              "value": "defer"
+            }
+          ],
+          "value": {
+            "@path": "/choice"
+          },
+          "displayStyle": "chips"
+        },
+        {
+          "id": "fork_notes",
+          "component": "TextField",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "label": "Caveats, follow-up questions, or how your selected options combine",
+          "value": {
+            "@path": "/notes"
+          }
+        },
+        {
+          "id": "fork_footer",
+          "component": "Row",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "children": [
+            "submit_btn"
+          ],
+          "justify": "end",
+          "align": "center"
+        },
+        {
+          "id": "submit_btn",
+          "component": "Button",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "child": "submit_btn_child",
+          "variant": "primary",
+          "action": {
+            "event": {
+              "name": "submit_alignment",
+              "context": {
+                "choice": {
+                  "@path": "/choice"
+                },
+                "notes": {
+                  "@path": "/notes"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": "submit_btn_child",
+          "component": "Text",
+          "catalogId": "https://a2ui.org/specification/v1_0/catalogs/basic/catalog.json",
+          "text": {
+            "@path": "/submitLabel"
+          }
+        }
+      ],
+      "dataModel": {
+        "notes": "",
+        "submitLabel": "Submit Alignment",
+        "question": "**Context**: `OrderRepository` writes only to `legacy_orders`. Which cutover strategy should we use for `orders_v2`?",
+        "options": [
+          {
+            "title": "**A: Dual-Write + Shadow Reads (Recommended)**",
+            "badge": "Zero downtime",
+            "tone": "success",
+            "impact": "**Consequences of this decision:**\n- Touches 3 adapter files.\n- Keeps writes live during cutover.",
+            "tradeoff": "Tradeoff: temporary shadow-diff logging ($< 2\\text{ms}$ p99)."
+          },
+          {
+            "title": "**B: In-Place Maintenance Cutover**",
+            "badge": "15m write freeze",
+            "tone": "warning",
+            "impact": "**Consequences of this decision:**\n- Single migration script.\n- Blocks writes during table swap.",
+            "tradeoff": "Tradeoff: 15-minute write freeze during deploy."
+          }
+        ],
+        "traceTitle": "Affected files & blast radius",
+        "traceSummary": "3 files",
+        "trace": "- `src/orders/repository.ts`\n- `src/orders/shadow-reader.ts`\n- `migrations/042_orders_v2.sql`",
+        "choice": [
+          "dual_write"
+        ]
+      }
+    }
+  }
+]
