@@ -1,0 +1,87 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Checks Craft (craft/): validates its blueprints and conformance suites,
+# analyzes its Dart packages, compiles the engine for the web (dart2js and
+# dart2wasm), and checks that the Dart conformance harness runs every case,
+# with A2UI's conformance scripts. The tests themselves run in
+# presubmit-test.yml.
+name: Presubmit Craft
+
+on:
+  push:
+    branches: [main]
+    paths: ["craft/**", ".github/workflows/presubmit-craft.yml"]
+  pull_request:
+    paths: ["craft/**", ".github/workflows/presubmit-craft.yml"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  craft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check out the latest A2UI main
+        run: git submodule update --init --remote --depth 1 third_party/a2ui
+      - name: Validate the blueprints
+        run: python3 craft/blueprints/validate.py
+      - uses: ./third_party/a2ui/.github/actions/setup-dart
+      - name: Analyze the packages
+        run: |
+          for package in craft/packages/*/; do
+            echo "::group::$package"
+            (cd "$package" && flutter pub get && dart analyze --fatal-infos)
+            echo "::endgroup::"
+          done
+      - name: Compile the engine for the web
+        run: |
+          app="$RUNNER_TEMP/web-compile"
+          mkdir -p "$app/bin"
+          printf '%s\n' 'name: web_compile' 'publish_to: none' 'environment:' \
+            '  sdk: ^3.8.0' 'dependencies:' '  a2ui_craft:' \
+            "    path: $GITHUB_WORKSPACE/craft/packages/a2ui_craft" > "$app/pubspec.yaml"
+          printf '%s\n' "import 'package:a2ui_craft/a2ui_craft.dart';" \
+            "void main() => print(parseLibraryFile('widget root = A();'));" > "$app/bin/main.dart"
+          cd "$app"
+          dart pub get
+          dart compile js -o out/main.js bin/main.dart
+          dart compile wasm -o out/main.wasm bin/main.dart
+      - uses: ./third_party/a2ui/.github/actions/setup-python
+      - name: Validate the conformance suites
+        run: uv run --project third_party/a2ui/conformance python -m pytest craft/conformance/tests
+      - name: Check the feature registry
+        run: |
+          uv run --project third_party/a2ui/conformance python third_party/a2ui/conformance/scripts/check_feature_coverage.py \
+            --static --registry craft/conformance/features.yaml --corpus-dir craft/conformance --repo-root craft
+      - name: Run the conformance suites
+        working-directory: craft/packages/a2ui_craft
+        env:
+          A2UI_CONFORMANCE_MANIFEST_DIR: ${{ runner.temp }}/craft-manifest
+        run: dart test test/conformance
+      - name: Check the executed conformance cases
+        run: |
+          uv run --project third_party/a2ui/conformance python third_party/a2ui/conformance/scripts/check_executed_cases.py \
+            --manifest-dir "${{ runner.temp }}/craft-manifest" --harness dart-craft \
+            --corpus craft --conformance-root craft/conformance
+          uv run --project third_party/a2ui/conformance python third_party/a2ui/conformance/scripts/check_feature_coverage.py \
+            --manifest-dir "${{ runner.temp }}/craft-manifest" --harness dart-craft \
+            --registry craft/conformance/features.yaml --corpus-dir craft/conformance --repo-root craft
