@@ -1,0 +1,634 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Conformance cases for the text_format feature
+# (craft/blueprints/features/text_format.blueprint.md).
+#
+# Each case parses `source` as a library file (kind: library) or a data file
+# (kind: data). `expect` is one of:
+#   library: the canonical JSON form of the parsed library;
+#   data: the canonical JSON form of the parsed data;
+#   error: the source is rejected; `line`, when given, is the 1-based line
+#     the engine reports.
+
+- name: minimal_library
+  requirement: base_format
+  description: A library with one import and one declaration.
+  kind: library
+  source: |
+    import core;
+    widget root = Text(text: "Hello");
+  expect:
+    library:
+      imports:
+        - core
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text: Hello
+- name: every_rfw_node_kind
+  requirement: base_format
+  description:
+    "Every RFW node kind: literals, lists, maps, calls, args/data/state references, a loop,
+    a switch with a default, a state setter, an event handler, a widget builder and initial state. As
+    in RFW, a map entry whose value is null is dropped."
+  kind: library
+  source: |
+    import core;
+    import core.extras;
+    widget Item { open: false } = Column(
+      children: [
+        Text(text: args.title, size: 12, scale: 1.5, flag: true, none: null),
+        ...for item in data.items:
+          Text(text: item.name),
+        switch state.open {
+          true: Text(text: "open"),
+          default: Text(text: "closed"),
+        },
+        Button(
+          onPressed: set state.open = true,
+          onLongPress: event "long" { id: args.id },
+        ),
+        List(itemBuilder: (row) => Text(text: row.label)),
+        Box(margin: [1.0, 2], extra: { a: "b" }),
+      ],
+    );
+  expect:
+    library:
+      imports:
+        - core
+        - core.extras
+      widgets:
+        - name: Item
+          state:
+            open: false
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: call
+                  name: Text
+                  args:
+                    text:
+                      $: argsRef
+                      parts:
+                        - title
+                    size:
+                      $: int
+                      value: 12
+                    scale:
+                      $: double
+                      value: 1.5
+                    flag: true
+                - $: loop
+                  input:
+                    $: dataRef
+                    parts:
+                      - items
+                  output:
+                    $: call
+                    name: Text
+                    args:
+                      text:
+                        $: loopRef
+                        loop: 0
+                        parts:
+                          - name
+                - $: switch
+                  input:
+                    $: stateRef
+                    parts:
+                      - open
+                  cases:
+                    - key: true
+                      value:
+                        $: call
+                        name: Text
+                        args:
+                          text: open
+                    - default: true
+                      value:
+                        $: call
+                        name: Text
+                        args:
+                          text: closed
+                - $: call
+                  name: Button
+                  args:
+                    onPressed:
+                      $: setState
+                      target:
+                        $: stateRef
+                        parts:
+                          - open
+                      value: true
+                    onLongPress:
+                      $: event
+                      name: long
+                      args:
+                        id:
+                          $: argsRef
+                          parts:
+                            - id
+                - $: call
+                  name: List
+                  args:
+                    itemBuilder:
+                      $: builder
+                      arg: row
+                      widget:
+                        $: call
+                        name: Text
+                        args:
+                          text:
+                            $: builderArgRef
+                            arg: row
+                            parts:
+                              - label
+                - $: call
+                  name: Box
+                  args:
+                    margin:
+                      - $: double
+                        value: 1.0
+                      - $: int
+                        value: 2
+                    extra:
+                      a: b
+- name: data_file
+  requirement: base_format
+  description: A data file parses to a map; its canonical form is the canonical value of that map.
+  kind: data
+  source: |
+    { name: "Ada", count: 3, ratio: 0.5, tags: ["a", "b"], ok: true }
+  expect:
+    data:
+      name: Ada
+      count:
+        $: int
+        value: 3
+      ratio:
+        $: double
+        value: 0.5
+      tags:
+        - a
+        - b
+      ok: true
+- name: unterminated_string_is_rejected
+  requirement: base_format
+  description: A string that runs to the end of the line is rejected.
+  kind: library
+  source: |
+    import core;
+    widget root = Text(text: "Hello);
+  expect:
+    error: {}
+- name: missing_semicolon_is_rejected
+  requirement: base_format
+  description: A missing semicolon after an import is rejected at the next token.
+  kind: library
+  source: |
+    import core
+    widget root = Text(text: "Hello");
+  expect:
+    error:
+      line: 2
+- name: theme_reference
+  requirement: theme_references
+  description: theme.<parts> parses to a theme reference; parts can be identifiers or integers.
+  kind: library
+  source: |
+    widget root = Box(color: theme.color.primary, radius: theme.shape.corner.0);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Box
+            args:
+              color:
+                $: themeRef
+                parts:
+                  - color
+                  - primary
+              radius:
+                $: themeRef
+                parts:
+                  - shape
+                  - corner
+                  - 0
+- name: theme_is_reserved_for_loop_variables
+  requirement: theme_references
+  description:
+    A loop variable named theme is rejected (the loop body does not use it, so only the name
+    can cause the error).
+  kind: library
+  source: |
+    widget root = Column(children: [...for theme in data.items: Text(text: "x")]);
+  expect:
+    error:
+      line: 1
+- name: theme_is_reserved_for_builder_arguments
+  requirement: theme_references
+  description: A widget builder argument named theme is rejected.
+  kind: library
+  source: |
+    widget root = List(itemBuilder: (theme) => Text(text: "x"));
+  expect:
+    error:
+      line: 1
+- name: a_name_that_only_starts_with_theme_is_not_reserved
+  requirement: theme_references
+  description: "Control for the reserved-word cases: the same loop with the variable named themes parses."
+  kind: library
+  source: |
+    widget root = Column(children: [...for themes in data.items: Text(text: "x")]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input:
+                    $: dataRef
+                    parts:
+                      - items
+                  output:
+                    $: call
+                    name: Text
+                    args:
+                      text: x
+- name: a_widget_named_theme_cannot_be_called_in_a_value_position
+  requirement: theme_references
+  description: In a value position, theme always starts a theme reference, so theme(...) is rejected.
+  kind: library
+  source: |
+    widget root = Column(children: [theme(color: "red")]);
+  expect:
+    error:
+      line: 1
+- name: reference_parts_can_be_strings
+  requirement: theme_references
+  description: A reference part can also be a string.
+  kind: library
+  source: |
+    widget root = Box(color: theme.color."on-primary");
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Box
+            args:
+              color:
+                $: themeRef
+                parts:
+                  - color
+                  - on-primary
+- name: media_reference_in_switch
+  requirement: media_references
+  description: media.<parts> parses to a media reference, here as the input of a switch.
+  kind: library
+  source: |
+    widget root = Box(padding: switch media.width { "compact": 4.0, default: 8.0 });
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Box
+            args:
+              padding:
+                $: switch
+                input:
+                  $: mediaRef
+                  parts:
+                    - width
+                cases:
+                  - key: compact
+                    value:
+                      $: double
+                      value: 4.0
+                  - default: true
+                    value:
+                      $: double
+                      value: 8.0
+- name: media_is_reserved_for_builder_arguments
+  requirement: media_references
+  description: A widget builder argument named media is rejected.
+  kind: library
+  source: |
+    widget root = List(itemBuilder: (media) => Text(text: "x"));
+  expect:
+    error:
+      line: 1
+- name: media_is_reserved_for_loop_variables
+  requirement: media_references
+  description: A loop variable named media is rejected.
+  kind: library
+  source: |
+    widget root = Column(children: [...for media in data.items: Text(text: "x")]);
+  expect:
+    error:
+      line: 1
+- name: a_name_that_only_starts_with_media_is_not_reserved
+  requirement: media_references
+  description: "Control for the reserved-word cases: a builder argument named medium parses."
+  kind: library
+  source: |
+    widget root = List(itemBuilder: (medium) => Text(text: "x"));
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: List
+            args:
+              itemBuilder:
+                $: builder
+                arg: medium
+                widget:
+                  $: call
+                  name: Text
+                  args:
+                    text: x
+- name: symbol_reference
+  requirement: symbol_references
+  description: An identifier followed by a dot parses to a symbol reference.
+  kind: library
+  source: |
+    widget root = Map(position: Location.args.latLong);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Map
+            args:
+              position:
+                $: symbolRef
+                symbol: Location
+                parts:
+                  - args
+                  - latLong
+- name: call_is_still_a_call
+  requirement: symbol_references
+  description: An identifier followed by an opening parenthesis is still a widget call.
+  kind: library
+  source: |
+    widget root = Location(latLong: "1,2");
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Location
+            args:
+              latLong: 1,2
+- name: loop_variable_with_dot_is_a_loop_reference
+  requirement: symbol_references
+  description:
+    A loop variable followed by a dot is a loop reference, even when it is capitalized like
+    a symbol.
+  kind: library
+  source: |
+    widget root = Column(children: [...for Location in data.items: Text(text: Location.name)]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input:
+                    $: dataRef
+                    parts:
+                      - items
+                  output:
+                    $: call
+                    name: Text
+                    args:
+                      text:
+                        $: loopRef
+                        loop: 0
+                        parts:
+                          - name
+- name: keywords_cannot_name_symbols
+  requirement: symbol_references
+  description: default followed by a dot is rejected rather than read as a symbol.
+  kind: library
+  source: |
+    widget root = Box(a: [default.x]);
+  expect:
+    error:
+      line: 1
+- name: import_cannot_name_a_symbol
+  requirement: symbol_references
+  description: import followed by a dot is rejected rather than read as a symbol.
+  kind: library
+  source: |
+    widget root = Box(a: import.x);
+  expect:
+    error:
+      line: 1
+- name: builder_argument_with_dot_is_a_builder_argument_reference
+  requirement: symbol_references
+  description: A builder argument followed by a dot is a builder argument reference, not a symbol reference.
+  kind: library
+  source: |
+    widget root = List(itemBuilder: (Location) => Text(text: Location.name));
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: List
+            args:
+              itemBuilder:
+                $: builder
+                arg: Location
+                widget:
+                  $: call
+                  name: Text
+                  args:
+                    text:
+                      $: builderArgRef
+                      arg: Location
+                      parts:
+                        - name
+- name: for_cannot_name_a_symbol
+  requirement: symbol_references
+  description: for followed by a dot is rejected rather than read as a symbol.
+  kind: library
+  source: |
+    widget root = Box(a: for.x);
+  expect:
+    error:
+      line: 1
+- name: in_cannot_name_a_symbol
+  requirement: symbol_references
+  description: in followed by a dot is rejected rather than read as a symbol.
+  kind: library
+  source: |
+    widget root = Box(a: in.x);
+  expect:
+    error:
+      line: 1
+- name: null_cannot_name_a_symbol
+  requirement: symbol_references
+  description: null followed by a dot is rejected rather than read as a symbol.
+  kind: library
+  source: |
+    widget root = Box(a: [null.x]);
+  expect:
+    error:
+      line: 1
+- name: widget_cannot_name_a_symbol
+  requirement: symbol_references
+  description: widget followed by a dot is rejected rather than read as a symbol.
+  kind: library
+  source: |
+    widget root = Box(a: widget.x);
+  expect:
+    error:
+      line: 1
+- name: declaration_with_initial_state
+  requirement: canonical_form
+  description: Initial state appears under "state".
+  kind: library
+  source: |
+    widget Counter { count: 0, label: "n" } = Text(text: state.label);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: Counter
+          state:
+            count:
+              $: int
+              value: 0
+            label: n
+          root:
+            $: call
+            name: Text
+            args:
+              text:
+                $: stateRef
+                parts:
+                  - label
+- name: integers_and_doubles_stay_distinct
+  requirement: canonical_form
+  description:
+    Integers (including hexadecimal and negative ones) and doubles have distinct canonical
+    forms, so 1 and 1.0 differ.
+  kind: library
+  source: |
+    widget root = Box(a: 1, b: 1.0, c: -2, d: 0x10);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Box
+            args:
+              a:
+                $: int
+                value: 1
+              b:
+                $: double
+                value: 1.0
+              c:
+                $: int
+                value: -2
+              d:
+                $: int
+                value: 16
+- name: nested_loops_count_from_the_innermost
+  requirement: canonical_form
+  description: In nested loops, the inner loop variable is loop 0 and the outer one is loop 1.
+  kind: library
+  source: |
+    widget root = Column(children: [
+      ...for row in data.rows:
+        Row(children: [...for cell in row.cells: Text(text: row.title, value: cell.value)]),
+    ]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input:
+                    $: dataRef
+                    parts:
+                      - rows
+                  output:
+                    $: call
+                    name: Row
+                    args:
+                      children:
+                        - $: loop
+                          input:
+                            $: loopRef
+                            loop: 0
+                            parts:
+                              - cells
+                          output:
+                            $: call
+                            name: Text
+                            args:
+                              text:
+                                $: loopRef
+                                loop: 1
+                                parts:
+                                  - title
+                              value:
+                                $: loopRef
+                                loop: 0
+                                parts:
+                                  - value
