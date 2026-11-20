@@ -1,0 +1,51 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Checks Craft (craft/): validates its blueprints and analyzes its Dart
+# packages. The tests themselves run in presubmit-test.yml.
+name: Presubmit Craft
+
+on:
+  push:
+    branches: [main]
+    paths: ["craft/**", ".github/workflows/presubmit-craft.yml"]
+  pull_request:
+    paths: ["craft/**", ".github/workflows/presubmit-craft.yml"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  craft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check out the latest A2UI main
+        run: git submodule update --init --remote --depth 1 third_party/a2ui
+      - name: Validate the blueprints
+        run: python3 craft/blueprints/validate.py
+      - uses: ./third_party/a2ui/.github/actions/setup-dart
+      - name: Analyze the packages
+        run: |
+          for package in craft/packages/*/; do
+            echo "::group::$package"
+            (cd "$package" && flutter pub get && dart analyze --fatal-infos)
+            echo "::endgroup::"
+          done

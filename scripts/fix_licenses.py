@@ -68,6 +68,9 @@ fix_licenses.IGNORE_PATTERNS += [
     "**/.yarn/**",
     # Test fixtures keep their exact content.
     "**/mocks/**",
+    # Craft's fork of Remote Flutter Widgets keeps RFW's BSD license.
+    "craft/packages/*/lib/src/rfw/**",
+    "craft/packages/*/test/rfw/**",
     *ignored_paths(),
 ]
 
