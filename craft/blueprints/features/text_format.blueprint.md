@@ -19,7 +19,7 @@ The format is the RFW 2.0.0 text format plus three kinds of reference: theme ref
 ### **1. Base format**
 
 - Library files and data files MUST parse as in the RFW 2.0.0 text format, except where this blueprint says otherwise. This covers imports, widget declarations, initial state, literals, lists, maps, widget calls, `args`, `data` and `state` references, loops, switches, event handlers, state setters and widget builders.
-- A source that RFW 2.0.0 rejects MUST be rejected, unless it is valid under requirements 2–4. A source that is valid in RFW 2.0.0 MUST parse to the same library, unless requirements 2–4 change its meaning (they only affect names spelled `theme` or `media`, and an identifier followed by `.` in a value position).
+- A source that RFW 2.0.0 rejects MUST be rejected, unless it is valid under requirements 2–4 or under a feature that extends the format (`libraries_and_names` adds qualified names and the `export` keyword, which RFW 2.0.0 rejects). A source that is valid in RFW 2.0.0 MUST parse to the same library, unless requirements 2–4 change its meaning (they only affect names spelled `theme` or `media`, and an identifier followed by `.` in a value position).
 - A rejection MUST report the source position (line and column) where it was detected.
 
 ### **2. Theme references**
@@ -46,7 +46,7 @@ The canonical JSON form of a library is how conformance cases state an expected 
 
 - A library is `{"imports": [<library name>, ...], "widgets": [<declaration>, ...]}`. A library name is its parts joined with `.`.
 - A data file's canonical form is the canonical value of its map.
-- A declaration is `{"name": ..., "state": <value>, "root": <value>}`, with `state` omitted when there is no initial state.
+- A declaration is `{"name": ..., "exported": true, "state": <value>, "root": <value>}`, with `exported` omitted when the declaration is not exported (see `libraries_and_names`) and `state` omitted when there is no initial state.
 - `null`, booleans and strings are themselves. A list is a list of canonical values. A map is a map of canonical values.
 - Every other node is a map whose `"$"` key names its kind:
 

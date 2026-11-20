@@ -934,8 +934,17 @@ class WidgetDeclaration extends BlobNode {
   /// Binds the given [name] to the definition given by [root].
   ///
   /// The [initialState] may be null. If it is not, this represents a stateful widget.
-  const WidgetDeclaration(this.name, this.initialState, this.root)
-    : assert(root is ConstructorCall || root is Switch);
+  const WidgetDeclaration(
+    this.name,
+    this.initialState,
+    this.root, {
+    this.exported = false,
+  }) : assert(root is ConstructorCall || root is Switch);
+
+  /// Whether the declaration is exported (`export widget ...`), so that other
+  /// libraries can use it and a catalog can offer it as a component.
+  /// Declarations are private by default.
+  final bool exported;
 
   /// The name of the widget that this declaration represents.
   ///
@@ -955,7 +964,7 @@ class WidgetDeclaration extends BlobNode {
   final BlobNode root; // ConstructorCall or Switch
 
   @override
-  String toString() => 'widget $name = $root;';
+  String toString() => '${exported ? 'export ' : ''}widget $name = $root;';
 }
 
 /// Base class for widget libraries.

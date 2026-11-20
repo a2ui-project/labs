@@ -29,6 +29,7 @@ Map<String, Object?> canonicalLibrary(RemoteWidgetLibrary library) =>
         for (final WidgetDeclaration widget in library.widgets)
           <String, Object?>{
             'name': widget.name,
+            if (widget.exported) 'exported': true,
             if (widget.initialState != null)
               'state': canonicalValue(widget.initialState),
             'root': canonicalValue(widget.root),
