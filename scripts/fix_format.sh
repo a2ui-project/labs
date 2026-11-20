@@ -51,7 +51,7 @@ missing_formatter() {
 # Prints the files that git lists and that exist on disk, matching the given
 # pathspecs, separated by NUL characters.
 list_files() {
-  git ls-files -z --cached --others --exclude-standard -- "$@" |
+  git ls-files -z --cached --others --exclude-standard -- "$@" ':(exclude,glob)**/third_party/**' |
     while IFS= read -r -d '' file; do
       if [[ -f "$file" ]]; then
         printf '%s\0' "$file"
