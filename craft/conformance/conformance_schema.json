@@ -14,7 +14,7 @@
       "required": ["action"],
       "properties": {
         "action": {
-          "enum": ["parse_library", "parse_data"],
+          "enum": ["parse_library", "parse_data", "resolve_names"],
           "description": "The conformance test action to perform."
         }
       },
@@ -43,6 +43,19 @@
           },
           "then": {
             "$ref": "#/$defs/CraftParseDataTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "resolve_names"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftResolveNamesTest"
           }
         }
       ]
@@ -192,6 +205,257 @@
           "required": ["sources"]
         }
       ]
+    },
+    "CraftPrimitiveNames": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "description": "Primitive libraries: library name -> primitive names."
+    },
+    "CraftResolution": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "library": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string"
+            },
+            "kind": {
+              "enum": ["template", "primitive"]
+            }
+          },
+          "required": ["library", "name", "kind"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "error": {
+              "enum": ["notFound", "notQualified", "notImported", "notExported"]
+            }
+          },
+          "required": ["error"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CraftNameQuery": {
+      "type": "object",
+      "required": ["query"],
+      "properties": {
+        "query": {
+          "enum": [
+            "resolve",
+            "resolveImported",
+            "catalogComponent",
+            "functionKey",
+            "visibleFunctions",
+            "visibleNames"
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "query": {
+                "const": "resolve"
+              }
+            },
+            "required": ["query"]
+          },
+          "then": {
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "excluding": {
+                "type": "string"
+              },
+              "expect": {
+                "$ref": "#/$defs/CraftResolution"
+              }
+            },
+            "required": ["from", "name", "expect"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "query": {
+                "const": "resolveImported"
+              }
+            },
+            "required": ["query"]
+          },
+          "then": {
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "expect": {
+                "$ref": "#/$defs/CraftResolution"
+              }
+            },
+            "required": ["from", "name", "expect"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "query": {
+                "const": "catalogComponent"
+              }
+            },
+            "required": ["query"]
+          },
+          "then": {
+            "properties": {
+              "catalog": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "expect": {
+                "$ref": "#/$defs/CraftResolution"
+              }
+            },
+            "required": ["catalog", "name", "expect"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "query": {
+                "const": "functionKey"
+              }
+            },
+            "required": ["query"]
+          },
+          "then": {
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "functions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expect": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": ["string", "null"]
+                  }
+                },
+                "required": ["key"],
+                "additionalProperties": false
+              }
+            },
+            "required": ["from", "name", "functions", "expect"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "query": {
+                "const": "visibleFunctions"
+              }
+            },
+            "required": ["query"]
+          },
+          "then": {
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "functions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expect": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": ["from", "functions", "expect"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "query": {
+                "const": "visibleNames"
+              }
+            },
+            "required": ["query"]
+          },
+          "then": {
+            "properties": {
+              "from": {
+                "type": "string"
+              },
+              "expect": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/CraftResolution"
+                }
+              }
+            },
+            "required": ["from", "expect"]
+          }
+        }
+      ],
+      "unevaluatedProperties": false,
+      "description": "A question about names; see craft_libraries_and_names.yaml."
+    },
+    "CraftResolveNamesTest": {
+      "type": "object",
+      "description": "Registers libraries and checks the answers to questions about names.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "resolve_names"
+        },
+        "libraries": {
+          "$ref": "#/$defs/CraftLibrarySources"
+        },
+        "primitives": {
+          "$ref": "#/$defs/CraftPrimitiveNames"
+        },
+        "queries": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/CraftNameQuery"
+          }
+        }
+      },
+      "required": ["queries"],
+      "unevaluatedProperties": false
     }
   }
 }

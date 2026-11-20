@@ -47,3 +47,75 @@
   blueprintAnchor: blueprints/features/craft_text_format.blueprint.md#5-canonical-json-form
   claimedBy:
     - dart-craft
+- id: F-CRAFT-NAMES-01
+  title: "Libraries and Names: qualified names"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#1-qualified-names
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#1-qualified-names
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-02
+  title: "Libraries and Names: export keyword"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#2-export-keyword
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#2-export-keyword
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-03
+  title: "Libraries and Names: own declarations"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#3-own-declarations
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#3-own-declarations
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-04
+  title: "Libraries and Names: core library"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#4-core-library
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#4-core-library
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-05
+  title: "Libraries and Names: qualified imports"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#5-qualified-imports
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#5-qualified-imports
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-06
+  title: "Libraries and Names: non-transitive imports"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#6-non-transitive-imports
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#6-non-transitive-imports
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-07
+  title: "Libraries and Names: private declarations"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#7-private-declarations
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#7-private-declarations
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-08
+  title: "Libraries and Names: imported-only resolution"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#8-imported-only-resolution
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#8-imported-only-resolution
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-09
+  title: "Libraries and Names: primitive libraries"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#9-primitive-libraries
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#9-primitive-libraries
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-10
+  title: "Libraries and Names: catalog components"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#10-catalog-components
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#10-catalog-components
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-11
+  title: "Libraries and Names: function keys"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#11-function-keys
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#11-function-keys
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-NAMES-12
+  title: "Libraries and Names: visible names"
+  specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#12-visible-names
+  blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#12-visible-names
+  claimedBy:
+    - dart-craft
