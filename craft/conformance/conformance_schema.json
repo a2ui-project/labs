@@ -30,7 +30,9 @@
             "map_props",
             "media_map",
             "media_sizes",
-            "evaluate_media"
+            "evaluate_media",
+            "parse_limits",
+            "check_limits"
           ],
           "description": "The conformance test action to perform."
         }
@@ -242,6 +244,32 @@
           },
           "then": {
             "$ref": "#/$defs/CraftEvaluateMediaTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "parse_limits"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftParseLimitsTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "check_limits"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftCheckLimitsTest"
           }
         }
       ]
@@ -1623,6 +1651,9 @@
         },
         "size": {
           "$ref": "#/$defs/CraftSize"
+        },
+        "limits": {
+          "$ref": "#/$defs/CraftLimits"
         }
       },
       "required": ["libraries", "expect"],
@@ -1990,6 +2021,323 @@
       "not": {
         "required": ["media", "size"]
       }
+    },
+    "CraftLimits": {
+      "type": "object",
+      "properties": {
+        "maxSourceBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxStringBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxDeclarations": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxDepth": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxNodes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "maxSteps": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false,
+      "description": "Limits in their JSON form; a limit left out has its default."
+    },
+    "CraftParseLimitsTest": {
+      "type": "object",
+      "description": "Makes limits from their JSON form and rejects invalid ones.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "parse_limits"
+        },
+        "limits_json": {
+          "type": "object"
+        },
+        "invalid": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "expect": {
+          "type": "object",
+          "properties": {
+            "json": {
+              "$ref": "#/$defs/CraftLimits"
+            }
+          },
+          "required": ["json"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["limits_json", "expect"],
+      "unevaluatedProperties": false
+    },
+    "CraftCheckLimitsTest": {
+      "type": "object",
+      "description": "Checks inputs within and beyond limits.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "check_limits"
+        },
+        "limits": {
+          "$ref": "#/$defs/CraftLimits"
+        },
+        "input": {
+          "enum": [
+            "parse_library",
+            "parse_data",
+            "decode_library",
+            "decode_data",
+            "register",
+            "evaluate"
+          ]
+        },
+        "within": {
+          "type": "array"
+        },
+        "beyond": {
+          "type": "array"
+        },
+        "data": {
+          "$ref": "#/$defs/CraftSource"
+        },
+        "expect": {
+          "type": "object"
+        }
+      },
+      "required": ["limits", "input", "expect"],
+      "unevaluatedProperties": false,
+      "anyOf": [
+        {
+          "required": ["within"]
+        },
+        {
+          "required": ["beyond"]
+        }
+      ],
+      "dependentSchemas": {
+        "data": {
+          "properties": {
+            "input": {
+              "const": "evaluate"
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "input": {
+                "enum": ["parse_library", "parse_data"]
+              }
+            },
+            "required": ["input"]
+          },
+          "then": {
+            "properties": {
+              "within": {
+                "items": {
+                  "type": "string"
+                }
+              },
+              "beyond": {
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "source": {
+                          "type": "string"
+                        },
+                        "line": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": ["source", "line"],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "expect": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "enum": [
+                      "maxSourceBytes",
+                      "maxStringBytes",
+                      "maxDeclarations",
+                      "maxDepth",
+                      "maxNodes",
+                      "maxSteps"
+                    ]
+                  }
+                },
+                "required": ["limit"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "input": {
+                "enum": ["decode_library", "decode_data"]
+              }
+            },
+            "required": ["input"]
+          },
+          "then": {
+            "properties": {
+              "within": {
+                "items": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "hex": {
+                          "$ref": "#/$defs/CraftHex"
+                        }
+                      },
+                      "required": ["hex"],
+                      "additionalProperties": false
+                    }
+                  ]
+                }
+              },
+              "beyond": {
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "hex": {
+                      "$ref": "#/$defs/CraftHex"
+                    },
+                    "offset": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": ["hex", "offset"],
+                  "additionalProperties": false
+                }
+              },
+              "expect": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "enum": [
+                      "maxSourceBytes",
+                      "maxStringBytes",
+                      "maxDeclarations",
+                      "maxDepth",
+                      "maxNodes",
+                      "maxSteps"
+                    ]
+                  }
+                },
+                "required": ["limit"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "input": {
+                "enum": ["register"]
+              }
+            },
+            "required": ["input"]
+          },
+          "then": {
+            "properties": {
+              "within": {
+                "items": {
+                  "type": "string"
+                }
+              },
+              "beyond": {
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expect": {
+                "type": "object",
+                "properties": {
+                  "limit": {
+                    "enum": [
+                      "maxSourceBytes",
+                      "maxStringBytes",
+                      "maxDeclarations",
+                      "maxDepth",
+                      "maxNodes",
+                      "maxSteps"
+                    ]
+                  }
+                },
+                "required": ["limit"],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "input": {
+                "enum": ["evaluate"]
+              }
+            },
+            "required": ["input"]
+          },
+          "then": {
+            "properties": {
+              "within": {
+                "items": {
+                  "type": "string"
+                }
+              },
+              "beyond": {
+                "items": {
+                  "type": "string"
+                }
+              },
+              "expect": {
+                "type": "object",
+                "properties": {
+                  "error": {
+                    "type": "string",
+                    "pattern": "^[a-z][A-Za-z0-9]*$"
+                  }
+                },
+                "required": ["error"],
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

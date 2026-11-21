@@ -96,14 +96,15 @@ class _Template {
   final TemplateErrorCallback? onError;
 
   /// The arguments that [props] give (requirement 5).
-  TemplateArgs args(ComponentProps props) => TemplateArgs.from(interface, {
-    for (final String name in interface.properties.keys)
-      if (_prop(props[name]) case final A2uiProp prop) name: prop,
-    if (interface.checkable) ...<String, Object?>{
-      'isValid': props['isValid'],
-      'validationErrors': props['validationErrors'],
-    },
-  });
+  TemplateArgs args(ComponentProps props) =>
+      TemplateArgs.from(interface, limits: registry.limits, {
+        for (final String name in interface.properties.keys)
+          if (_prop(props[name]) case final A2uiProp prop) name: prop,
+        if (interface.checkable) ...<String, Object?>{
+          'isValid': props['isValid'],
+          'validationErrors': props['validationErrors'],
+        },
+      });
 
   static A2uiProp? _prop(Object? value) => switch (value) {
     final WritableBinding<Object?> b => BoundValue(
@@ -165,8 +166,11 @@ class _TemplateComponentState extends State<_TemplateComponent> {
     if (changed) _runtime.args = next.args;
   }
 
-  static String _key(TemplateArgs args) =>
-      jsonEncode(canonicalExpansionValue(args.args));
+  static String _key(TemplateArgs args) => switch (args.beyondLimits) {
+    // The arguments may be too deep to encode; the runtime stops on them.
+    final CraftLimitException failure => 'beyond ${failure.limit.name}',
+    null => jsonEncode(canonicalExpansionValue(args.args)),
+  };
 
   void _onEvent(HostEvent event) {
     for (final A2uiEffect effect in _args.effects(event)) {

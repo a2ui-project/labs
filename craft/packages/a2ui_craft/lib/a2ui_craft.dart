@@ -24,6 +24,7 @@ export 'src/dependencies.dart';
 export 'src/evaluator.dart';
 export 'src/expansion.dart';
 export 'src/functions.dart';
+export 'src/limits.dart';
 export 'src/media_context.dart';
 export 'src/name_resolution.dart';
 export 'src/rfw/binary.dart';

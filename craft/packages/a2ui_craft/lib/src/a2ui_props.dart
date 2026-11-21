@@ -14,7 +14,7 @@
 
 import 'a2ui_catalog.dart';
 import 'expansion.dart';
-import 'functions.dart';
+import 'limits.dart';
 import 'rfw/model.dart';
 import 'runtime.dart';
 
@@ -159,15 +159,22 @@ final class WriteData extends A2uiEffect {
 /// The arguments a template receives from the resolved props of its
 /// component node, and what its host handlers and host widgets stand for.
 class TemplateArgs {
-  TemplateArgs._(this.args, this.widgets, this._handlers);
+  TemplateArgs._(this.args, this.widgets, this._handlers, this.beyondLimits);
 
   /// Maps [props] (property name → [A2uiProp], and the check results
   /// `isValid` and `validationErrors` as the renderer gives them) to the
   /// arguments of a template with [interface].
+  ///
+  /// A value beyond [limits] (by default [CraftLimits.defaults]; give the
+  /// registry's) becomes a [BeyondLimits], so that the runtime stops (see
+  /// the `craft_limits` blueprint).
   factory TemplateArgs.from(
     TemplateInterface interface,
-    Map<String, Object?> props,
-  ) {
+    Map<String, Object?> props, {
+    CraftLimits? limits,
+  }) {
+    final CraftLimits checked = limits ?? CraftLimits.defaults;
+    CraftLimitException? beyond;
     final Map<String, Object> args = <String, Object>{};
     final Map<String, Object> widgets = <String, Object>{};
     final Map<String, _HandlerTarget> handlers = <String, _HandlerTarget>{};
@@ -175,7 +182,14 @@ class TemplateArgs {
       final String name = p.key;
       switch ((p.value, props[name])) {
         case (final ArgKind kind, final BoundValue bound) when kind.isValue:
-          if (_value(bound.value) case final Object value) args[name] = value;
+          try {
+            if (_value(name, bound.value, checked) case final Object value) {
+              args[name] = value;
+            }
+          } on CraftLimitException catch (failure) {
+            beyond ??= failure;
+            args[name] = BeyondLimits(failure);
+          }
           final String setter = setterName(name);
           if (bound.path case final String path
               when !interface.properties.containsKey(setter)) {
@@ -205,8 +219,11 @@ class TemplateArgs {
         args['validationErrors'] = <Object>[...errors.whereType<String>()];
       }
     }
-    return TemplateArgs._(args, widgets, handlers);
+    return TemplateArgs._(args, widgets, handlers, beyond);
   }
+
+  /// The first value beyond the limits, or null when there is none.
+  final CraftLimitException? beyondLimits;
 
   /// The arguments: values, [HostHandler]s and [HostWidget]s.
   final Map<String, Object> args;
@@ -237,11 +254,16 @@ class TemplateArgs {
     },
   };
 
-  /// [value] as a template argument, or null when it is null or not JSON.
-  static Object? _value(Object? value) {
+  /// [value] as the template argument [name], or null when it is null or
+  /// not JSON. Checked as an entry of the arguments' map, as the runtime
+  /// checks it.
+  ///
+  /// Throws a [CraftLimitException] when it is beyond [limits].
+  static Object? _value(String name, Object? value, CraftLimits limits) {
     if (value == null) return null;
     try {
-      return toValue(value);
+      return (limitedValue(<String, Object?>{name: value}, limits)
+          as Map<String, Object>)[name];
     } on FormatException {
       return null;
     }
