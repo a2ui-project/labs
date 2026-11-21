@@ -21,18 +21,18 @@ The engine is the part that every host embeds. It is written for someone impleme
 
 ## 2. Layers
 
-| Layer               | Input                              | Output                                                                 | Feature blueprint           |
-| ------------------- | ---------------------------------- | ---------------------------------------------------------------------- | --------------------------- |
-| Text format         | `.craft` source                    | a library (the AST)                                                    | `craft_text_format`         |
-| Binary format       | binary blob                        | the same library                                                       | `craft_binary_format`       |
-| Libraries and names | libraries and their imports        | every name resolved to one declaration                                 | `craft_libraries_and_names` |
-| Language extensions | the AST                            | conditional elements, local values, handler calls and other constructs | `craft_language_extensions` |
-| Functions           | calls in templates                 | values from host-registered pure functions                             | `craft_functions`           |
-| Template registry   | resolved libraries                 | catalog components with JSON schemas, gated on their dependencies      | `craft_template_registry`   |
-| Runtime             | a template, its arguments and data | a tree of building blocks, local state, events                         | `craft_runtime`             |
-| A2UI integration    | A2UI messages                      | templates rendered as catalog components of an A2UI renderer           | `craft_a2ui_integration`    |
-| Media context       | the host's surface                 | values that templates can branch on (size class, surface kind)         | `craft_media_context`       |
-| Limits              | a template and its expansion       | rejection at load time, or a bounded placeholder                       | `craft_limits`              |
+| Layer               | Input                              | Output                                                                                      | Feature blueprint           |
+| ------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------- | --------------------------- |
+| Text format         | `.craft` source                    | a library (the AST)                                                                         | `craft_text_format`         |
+| Binary format       | binary blob                        | the same library                                                                            | `craft_binary_format`       |
+| Libraries and names | libraries and their imports        | every name resolved to one declaration                                                      | `craft_libraries_and_names` |
+| Language extensions | `.craft` source                    | conditional elements, local values, absent values and handler calls, as existing node kinds | `craft_language_extensions` |
+| Functions           | calls in templates                 | values from host-registered pure functions                                                  | `craft_functions`           |
+| Template registry   | resolved libraries                 | catalog components with JSON schemas, gated on their dependencies                           | `craft_template_registry`   |
+| Runtime             | a template, its arguments and data | a tree of building blocks, local state, events                                              | `craft_runtime`             |
+| A2UI integration    | A2UI messages                      | templates rendered as catalog components of an A2UI renderer                                | `craft_a2ui_integration`    |
+| Media context       | the host's surface                 | values that templates can branch on (size class, surface kind)                              | `craft_media_context`       |
+| Limits              | a template and its expansion       | rejection at load time, or a bounded placeholder                                            | `craft_limits`              |
 
 A host can use the text format during development and ship the binary format.
 

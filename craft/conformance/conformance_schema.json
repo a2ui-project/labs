@@ -210,6 +210,10 @@
           "additionalProperties": false,
           "minProperties": 1,
           "maxProperties": 1
+        },
+        "binary_round_trip": {
+          "const": true,
+          "description": "The parsed library also survives the binary round trip."
         }
       },
       "required": ["expect"],
@@ -221,7 +225,16 @@
         {
           "required": ["sources"]
         }
-      ]
+      ],
+      "dependentSchemas": {
+        "binary_round_trip": {
+          "properties": {
+            "expect": {
+              "required": ["library"]
+            }
+          }
+        }
+      }
     },
     "CraftParseDataTest": {
       "type": "object",

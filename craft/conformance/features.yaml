@@ -185,3 +185,39 @@
   blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#11-round-trip
   claimedBy:
     - dart-craft
+- id: F-CRAFT-LANG-01
+  title: "Language Extensions: absent value"
+  specAnchor: blueprints/features/craft_language_extensions.blueprint.md#1-absent-value
+  blueprintAnchor: blueprints/features/craft_language_extensions.blueprint.md#1-absent-value
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LANG-02
+  title: "Language Extensions: handler application"
+  specAnchor: blueprints/features/craft_language_extensions.blueprint.md#2-handler-application
+  blueprintAnchor: blueprints/features/craft_language_extensions.blueprint.md#2-handler-application
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LANG-03
+  title: "Language Extensions: conditional list elements"
+  specAnchor: blueprints/features/craft_language_extensions.blueprint.md#3-conditional-list-elements
+  blueprintAnchor: blueprints/features/craft_language_extensions.blueprint.md#3-conditional-list-elements
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LANG-04
+  title: "Language Extensions: local values"
+  specAnchor: blueprints/features/craft_language_extensions.blueprint.md#4-local-values
+  blueprintAnchor: blueprints/features/craft_language_extensions.blueprint.md#4-local-values
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LANG-05
+  title: "Language Extensions: construct names"
+  specAnchor: blueprints/features/craft_language_extensions.blueprint.md#5-construct-names
+  blueprintAnchor: blueprints/features/craft_language_extensions.blueprint.md#5-construct-names
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LANG-06
+  title: "Language Extensions: binary round trip"
+  specAnchor: blueprints/features/craft_language_extensions.blueprint.md#6-binary-round-trip
+  blueprintAnchor: blueprints/features/craft_language_extensions.blueprint.md#6-binary-round-trip
+  claimedBy:
+    - dart-craft
