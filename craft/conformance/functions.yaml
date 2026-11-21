@@ -1,0 +1,991 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Conformance cases for the functions feature
+# (craft/blueprints/features/functions.blueprint.md).
+#
+# Each case evaluates one value of a template library, parsed with the text
+# format:
+#   expression: the value. The library is
+#       import core;          (left out when `core: false`)
+#       import <i>;           (for each name in `imports`)
+#       widget test = Result(value: <expression>);
+#     and the evaluated value is the `value` argument of the root of `test`.
+#     A case may give `expressions`, a list, instead: each one must meet the
+#     same expectation.
+#   source: instead of `expression`, the whole library. The evaluated value is
+#     the `value` argument of the root of the declaration named `declaration`
+#     (default `test`), or that root itself when `evaluate: root`.
+#   library_name: the name the library is registered under (default `test`).
+#     Its declaration being evaluated is the one being bound, for name
+#     resolution (libraries_and_names, requirement 3).
+#   args, data, state: the values of args, data and state, written as text
+#     format data files (a map). A value that is not given is absent.
+#
+# Registered libraries besides the case's own: primitive libraries given by
+# `primitives` (library name to its primitive names); by default
+#   core: [Text, Column]
+#   fmt: [Badge]
+# A case library registered as `fmt` replaces the primitive library `fmt`.
+#
+# Registered functions: the standard functions, and these test host functions
+# (parameter: kind):
+#   fmt::echo(value: any)          returns value.
+#   fmt::kinds(n: number, s: string, b: boolean, l: list, x: any)
+#                                  returns a map from each of its five
+#                                  parameters to the value it received
+#                                  (absent included).
+#   fmt::fail(n: number)           throws (fails) whenever it runs.
+#   fmt::bad(nested: boolean)      returns something that is not a value; when
+#                                  nested is true, a list whose second element
+#                                  is not a value.
+#   fmt::nothing()                 returns no value (in Dart, null).
+#   fmt::nulls()                   returns a list of no value and a map from
+#                                  "a" to no value (in Dart, [null, {a: null}]).
+#   fmt::Badge(value: any)         returns the string "function".
+#
+# `expect` is one of:
+#   value: the canonical JSON form (see text_format) of the result; the absent
+#     value is {$: missing};
+#   error: the kind of evaluation error: unknownFunction, invalidArgument or
+#     functionFailed;
+#   classify: the value is a call, and this is what it denotes (requirements 2
+#     and 3), without evaluating it: "absent", "handler" (a handler
+#     application), {widget: <library>::<name>} (the widget its name resolves
+#     to), {function: <key>} (the registered function key) or "unknown".
+#
+# Scalars that YAML 1.1 reads as booleans (on, off, y, n, yes, no) are quoted
+# wherever they mean strings.
+
+# values
+
+- name: literals_evaluate_to_themselves
+  requirement: values
+  description: "Booleans, integers, doubles and strings are values as written."
+  expression: '[true, false, 1, -2, 2.5, "s"]'
+  expect:
+    value:
+      [true, false, {$: "int", value: 1}, {$: "int", value: -2}, {$: "double", value: 2.5}, "s"]
+- name: lists_and_maps_evaluate_their_elements
+  requirement: values
+  description: "A list or map evaluates each element; a function call inside is replaced by its result."
+  expression: '{ a: [add(a: 1, b: 2), "x"], b: { c: true } }'
+  expect:
+    value: {a: [{$: "int", value: 3}, "x"], b: {c: true}}
+- name: absent_elements_are_kept
+  requirement: values
+  description: "An absent map value is kept under its key, and an absent list element stays in the list."
+  expression: "{ a: absent, b: [absent, 1], c: args.nope }"
+  expect:
+    value: {a: {$: "missing"}, b: [{$: "missing"}, {$: "int", value: 1}], c: {$: "missing"}}
+- name: args_data_and_state_references
+  requirement: values
+  description: "A reference to args, data or state reads the supplied value along its parts: a string part is a map key, an integer part a list index."
+  expression: "[args.a, data.b.1, state.c.d]"
+  args: "{ a: 1 }"
+  data: '{ b: ["x", "y"] }'
+  state: "{ c: { d: true } }"
+  expect:
+    value: [{$: "int", value: 1}, "y", true]
+- name: whole_list_and_map_references
+  requirement: values
+  description: "A reference may read a whole list or map."
+  expression: "[data.l, data.m]"
+  data: '{ l: [1, 2.0], m: { k: "v" } }'
+  expect:
+    value: [[{$: "int", value: 1}, {$: "double", value: 2.0}], {k: "v"}]
+- name: missing_key_is_absent
+  requirement: values
+  description: "A key that the map does not have reads as absent."
+  expression: "args.nope"
+  args: "{ a: 1 }"
+  expect:
+    value: {$: "missing"}
+- name: index_out_of_range_is_absent
+  requirement: values
+  description: "An index past the end of the list reads as absent."
+  expression: "data.l.2"
+  data: "{ l: [1, 2] }"
+  expect:
+    value: {$: "missing"}
+- name: part_of_the_wrong_kind_is_absent
+  requirement: values
+  description: "A part into a scalar, an integer part into a map and a string part into a list read as absent."
+  expressions:
+    - "data.s.x"
+    - "data.m.0"
+    - "data.l.x"
+  data: '{ s: "abc", m: { x: 1 }, l: [1] }'
+  expect:
+    value: {$: "missing"}
+- name: values_not_supplied_are_absent
+  requirement: values
+  description: "When the caller gives no args, data or state, every reference into them is absent."
+  expression: "[args.a, data.a, state.a]"
+  expect:
+    value: [{$: "missing"}, {$: "missing"}, {$: "missing"}]
+- name: references_read_infinite_doubles
+  requirement: values
+  description: "Supplied doubles are values whatever their magnitude, here an infinite one read from a data file (1e400)."
+  expression: "data.big"
+  data: "{ big: 1e400 }"
+  expect:
+    value: {$: "double", value: .inf}
+
+# absent_and_call
+
+- name: absent_is_the_absent_value
+  requirement: absent_and_call
+  description: "absent and absent() evaluate to the absent value."
+  expressions:
+    - "absent"
+    - "absent()"
+  expect:
+    value: {$: "missing"}
+- name: absent_classification
+  requirement: absent_and_call
+  description: "A call named absent is the absent value, never a widget or function."
+  source: |
+    import core;
+    widget absent = Text(text: "x");
+    widget test = Result(value: absent);
+  expect:
+    classify: "absent"
+- name: absent_is_not_a_widget
+  requirement: absent_and_call
+  description: "absent is never looked up as a name, even when the library declares a widget named absent."
+  source: |
+    import core;
+    widget absent = Text(text: "x");
+    widget test = Result(value: isSet(value: absent));
+  expect:
+    value: false
+- name: absent_root_without_arguments
+  requirement: absent_and_call
+  description: "Control case: a root call absent() is the absent value."
+  evaluate: "root"
+  source: |
+    widget test = absent();
+  expect:
+    value: {$: "missing"}
+- name: absent_with_arguments_is_rejected
+  requirement: absent_and_call
+  description: "A call named absent with arguments, which the text format allows only as a root, is invalidArgument."
+  evaluate: "root"
+  source: |
+    widget test = absent(x: 1);
+  expect:
+    error: invalidArgument
+- name: handler_application_root_is_classified_as_a_handler
+  requirement: absent_and_call
+  description: "A root call named call is a handler application even without arguments, not an unknown function."
+  evaluate: "root"
+  source: |
+    widget test = call();
+  expect:
+    classify: "handler"
+
+# function_or_widget
+
+- name: standard_function_bare_and_core_qualified
+  requirement: function_or_widget
+  description: "A standard function is called by its bare name or as core::name."
+  expressions:
+    - "add(a: 1, b: 2)"
+    - "core::add(a: 1, b: 2)"
+  expect:
+    value: {$: "int", value: 3}
+- name: standard_function_classification
+  requirement: function_or_widget
+  description: "Both forms are calls of the function registered as add."
+  expressions:
+    - "add(a: 1, b: 2)"
+    - "core::add(a: 1, b: 2)"
+  expect:
+    classify: {function: "add"}
+- name: unknown_classification
+  requirement: function_or_widget
+  description: "A name that is neither a widget nor a callable function is classified as unknown (fmt is not imported here)."
+  expressions:
+    - "nope(a: 1)"
+    - "fmt::echo(value: 1)"
+  expect:
+    classify: "unknown"
+- name: host_function_classification
+  requirement: function_or_widget
+  description: "A host function called from an importing library is a call of its key."
+  imports: ["fmt"]
+  expression: "fmt::echo(value: 1)"
+  expect:
+    classify: {function: "fmt::echo"}
+- name: standard_function_without_core_import
+  requirement: function_or_widget
+  description: "Standard functions are callable from a library that does not import core."
+  core: false
+  expressions:
+    - "add(a: 1, b: 2)"
+    - "core::add(a: 1, b: 2)"
+  expect:
+    value: {$: "int", value: 3}
+- name: host_function_from_an_importing_library
+  requirement: function_or_widget
+  description: "A host function is called by its qualified key from a library that imports its library."
+  imports: ["fmt"]
+  expression: "fmt::echo(value: 1)"
+  expect:
+    value: {$: "int", value: 1}
+- name: host_function_from_its_own_library
+  requirement: function_or_widget
+  description: "A host function is callable by its qualified key from its own library, without an import."
+  library_name: "fmt"
+  expression: "fmt::echo(value: 1)"
+  expect:
+    value: {$: "int", value: 1}
+- name: host_function_from_a_library_that_does_not_import_it
+  requirement: function_or_widget
+  description: "Without importing fmt, fmt::echo is unknownFunction."
+  expression: "fmt::echo(value: 1)"
+  expect:
+    error: unknownFunction
+- name: host_function_bare_or_core_qualified
+  requirement: function_or_widget
+  description: "A host function is not callable by its bare name or as core::name, even from an importing library."
+  imports: ["fmt"]
+  expressions:
+    - "echo(value: 1)"
+    - "core::echo(value: 1)"
+  expect:
+    error: unknownFunction
+- name: unknown_names
+  requirement: function_or_widget
+  description: "A call that names neither a widget nor a callable function is unknownFunction."
+  imports: ["fmt"]
+  expressions:
+    - "nope(a: 1)"
+    - "core::nope()"
+    - "fmt::nope()"
+  expect:
+    error: unknownFunction
+- name: own_declaration_wins_over_a_function
+  requirement: function_or_widget
+  description: "A call that resolves to a widget is a widget call, even if a function has the name: here the library's own declaration length."
+  source: |
+    import core;
+    widget length = Text(text: "x");
+    widget test = Result(value: length(value: "abc"));
+  expect:
+    classify: {widget: "test::length"}
+- name: declaration_does_not_shadow_itself
+  requirement: function_or_widget
+  description: "Control case: inside the declaration length, length resolves past it (a declaration never resolves to itself) to the function."
+  declaration: "length"
+  source: |
+    import core;
+    widget length = Result(value: length(value: "abc"));
+  expect:
+    classify: {function: "length"}
+- name: declaration_does_not_shadow_itself_evaluates
+  requirement: function_or_widget
+  description: "The same call evaluates by running the function."
+  declaration: "length"
+  source: |
+    import core;
+    widget length = Result(value: length(value: "abc"));
+  expect:
+    value: {$: "int", value: 3}
+- name: core_primitive_wins_over_a_function
+  requirement: function_or_widget
+  description: "A core primitive named trim makes trim(...) and core::trim(...) widget calls."
+  primitives: {core: ["Text", "trim"]}
+  expressions:
+    - 'trim(value: " a ")'
+    - 'core::trim(value: " a ")'
+  expect:
+    classify: {widget: "core::trim"}
+- name: host_primitive_wins_over_a_host_function
+  requirement: function_or_widget
+  description: "fmt::Badge is both a primitive and a host function of fmt; the widget wins."
+  imports: ["fmt"]
+  expression: "fmt::Badge(value: 1)"
+  expect:
+    classify: {widget: "fmt::Badge"}
+- name: host_function_when_no_widget_has_the_name
+  requirement: function_or_widget
+  description: "Control case: when fmt defines no primitive Badge, fmt::Badge is the host function."
+  imports: ["fmt"]
+  primitives: {core: ["Text"], fmt: []}
+  expression: "fmt::Badge(value: 1)"
+  expect:
+    classify: {function: "fmt::Badge"}
+- name: host_function_when_no_widget_has_the_name_evaluates
+  requirement: function_or_widget
+  description: "The same call evaluates by running the host function."
+  imports: ["fmt"]
+  primitives: {core: ["Text"], fmt: []}
+  expression: "fmt::Badge(value: 1)"
+  expect:
+    value: "function"
+- name: unresolved_widget_name_falls_back_to_a_function
+  requirement: function_or_widget
+  description: "A name that does not resolve to a widget is looked up as a function, whatever the resolution failure: a bare add that only the non-core import fmt defines as a primitive (notQualified) is the standard function."
+  imports: ["fmt"]
+  primitives: {core: ["Text"], fmt: ["add"]}
+  expression: "add(a: 1, b: 2)"
+  expect:
+    classify: {function: "add"}
+
+# arguments
+
+- name: arguments_by_kind
+  requirement: arguments
+  description: "Values of each parameter's kind are passed as they are; a number may be an integer or a double, and any accepts every value."
+  imports: ["fmt"]
+  expressions:
+    - 'fmt::kinds(n: 1, s: "s", b: true, l: [1], x: { a: 1 })'
+  expect:
+    value:
+      {
+        "n": {$: "int", value: 1},
+        s: "s",
+        b: true,
+        l: [{$: "int", value: 1}],
+        x: {a: {$: "int", value: 1}},
+      }
+- name: double_is_a_number
+  requirement: arguments
+  description: "A double is of the kind number."
+  imports: ["fmt"]
+  expression: "fmt::kinds(n: 2.5)"
+  expect:
+    value:
+      {
+        "n": {$: "double", value: 2.5},
+        s: {$: "missing"},
+        b: {$: "missing"},
+        l: {$: "missing"},
+        x: {$: "missing"},
+      }
+- name: missing_and_absent_arguments_are_absent
+  requirement: arguments
+  description: "A parameter that the call does not pass, or passes as absent, reaches the function as absent."
+  imports: ["fmt"]
+  expressions:
+    - "fmt::kinds()"
+    - "fmt::kinds(n: absent, s: absent, b: absent, l: absent, x: data.nope)"
+  expect:
+    value:
+      {
+        "n": {$: "missing"},
+        s: {$: "missing"},
+        b: {$: "missing"},
+        l: {$: "missing"},
+        x: {$: "missing"},
+      }
+- name: wrong_kind_makes_the_call_absent
+  requirement: arguments
+  description: "A present argument of another kind than its parameter's makes the call absent without running the function."
+  imports: ["fmt"]
+  expressions:
+    - 'fmt::kinds(n: "1")'
+    - "fmt::kinds(s: 1)"
+    - 'fmt::kinds(b: "true")'
+    - "fmt::kinds(l: { a: 1 })"
+    - 'fmt::kinds(l: "ab")'
+  expect:
+    value: {$: "missing"}
+- name: wrong_kind_does_not_run_the_function
+  requirement: arguments
+  description: "fmt::fail is not run when its argument has the wrong kind, so the call is absent rather than failed."
+  imports: ["fmt"]
+  expression: 'fmt::fail(n: "x")'
+  expect:
+    value: {$: "missing"}
+- name: unknown_argument_name
+  requirement: arguments
+  description: "An argument that is not a parameter of the function is invalidArgument."
+  imports: ["fmt"]
+  expressions:
+    - "add(a: 1, c: 2)"
+    - "isSet(val: 1)"
+    - "fmt::echo(value: 1, other: 2)"
+  expect:
+    error: invalidArgument
+- name: argument_names_are_checked_before_arguments_are_evaluated
+  requirement: arguments
+  description: "The argument names are checked before any argument is evaluated."
+  expression: "add(c: nope())"
+  expect:
+    error: invalidArgument
+- name: all_arguments_are_evaluated
+  requirement: arguments
+  description: "Every argument is evaluated, even one the result does not depend on."
+  expressions:
+    - "orElse(value: 1, otherwise: nope())"
+    - "and(a: false, b: nope())"
+  expect:
+    error: unknownFunction
+- name: nested_calls
+  requirement: arguments
+  description: "A call's arguments may be calls."
+  expression: "add(a: multiply(a: 2, b: 3), b: divide(a: 1, b: 2))"
+  expect:
+    value: {$: "double", value: 6.5}
+
+# host_functions
+
+- name: no_value_is_absent
+  requirement: host_functions
+  description: "A host function that returns no value gives the absent value."
+  imports: ["fmt"]
+  expression: "fmt::nothing()"
+  expect:
+    value: {$: "missing"}
+- name: no_value_inside_a_result_is_absent
+  requirement: host_functions
+  description: "No value inside a returned list or map is the absent value."
+  imports: ["fmt"]
+  expression: "fmt::nulls()"
+  expect:
+    value: [{$: "missing"}, {a: {$: "missing"}}]
+- name: result_that_is_not_a_value
+  requirement: host_functions
+  description: "A host function that returns something that is not a value, at the top or nested, is functionFailed."
+  imports: ["fmt"]
+  expressions:
+    - "fmt::bad(nested: false)"
+    - "fmt::bad(nested: true)"
+  expect:
+    error: functionFailed
+- name: throwing_host_function
+  requirement: host_functions
+  description: "A host function that throws is functionFailed."
+  imports: ["fmt"]
+  expressions:
+    - "fmt::fail(n: 1)"
+    - "fmt::fail()"
+  expect:
+    error: functionFailed
+
+# errors
+
+- name: error_fails_the_whole_value
+  requirement: errors
+  description: "An error anywhere in the value is the result of the whole evaluation."
+  expressions:
+    - "[1, nope()]"
+    - "{ a: 1, b: { c: nope() } }"
+  expect:
+    error: unknownFunction
+- name: error_is_not_absent
+  requirement: errors
+  description: "An error is not the absent value: isSet and orElse do not turn it into a result."
+  expressions:
+    - "isSet(value: nope())"
+    - "orElse(value: nope(), otherwise: 1)"
+  expect:
+    error: unknownFunction
+- name: first_error_in_list_order
+  requirement: errors
+  description: "The first error in written order is reported: list elements in order."
+  imports: ["fmt"]
+  expressions:
+    - "[nope(), add(c: 1)]"
+    - "[add(a: 1, b: 2), nope(), add(c: 1), fmt::fail(n: 1)]"
+  expect:
+    error: unknownFunction
+- name: first_error_in_list_order_reversed
+  requirement: errors
+  description: "Control case for first_error_in_list_order: with the elements swapped the other error is reported."
+  imports: ["fmt"]
+  expressions:
+    - "[add(c: 1), nope()]"
+    - "[add(c: 1), fmt::fail(n: 1)]"
+  expect:
+    error: invalidArgument
+- name: first_error_in_map_order
+  requirement: errors
+  description: "Map values are evaluated in written order."
+  imports: ["fmt"]
+  expression: "{ b: fmt::fail(n: 1), a: nope() }"
+  expect:
+    error: functionFailed
+- name: first_error_in_argument_order
+  requirement: errors
+  description: "Arguments are evaluated in written order, whatever the parameter order."
+  expression: "add(b: add(c: 1), a: nope())"
+  expect:
+    error: invalidArgument
+- name: first_error_in_argument_order_reversed
+  requirement: errors
+  description: "Control case for first_error_in_argument_order."
+  expression: "add(a: nope(), b: add(c: 1))"
+  expect:
+    error: unknownFunction
+- name: function_is_resolved_before_its_arguments
+  requirement: errors
+  description: "An unknown function is reported before the errors of its arguments."
+  expression: "nope(a: add(c: 1))"
+  expect:
+    error: unknownFunction
+
+# numbers
+
+- name: integer_operations_stay_integers
+  requirement: numbers
+  description: "add, subtract and multiply on two integers give an integer."
+  expression: "[add(a: 2, b: 3), subtract(a: 2, b: 5), multiply(a: 100000, b: 100000)]"
+  expect:
+    value: [{$: "int", value: 5}, {$: "int", value: -3}, {$: "int", value: 10000000000}]
+- name: a_double_operand_gives_a_double
+  requirement: numbers
+  description: "With a double operand, the integer is converted to a double and the result is a double."
+  expression: "[add(a: 2, b: 0.5), add(a: 2, b: 2.0), multiply(a: 1.5, b: 4), add(a: 9007199254740993, b: 0.0)]"
+  expect:
+    value:
+      [
+        {$: "double", value: 2.5},
+        {$: "double", value: 4.0},
+        {$: "double", value: 6.0},
+        {$: "double", value: 9007199254740992.0},
+      ]
+- name: doubles_follow_ieee_754
+  requirement: numbers
+  description: "Double arithmetic is IEEE 754 double precision with rounding to nearest."
+  expression: "add(a: 0.1, b: 0.2)"
+  expect:
+    value: {$: "double", value: 0.30000000000000004}
+- name: integer_overflow_is_absent
+  requirement: numbers
+  description: "An integer result outside the 64-bit signed range is absent."
+  expressions:
+    - "add(a: 9223372036854775807, b: 1)"
+    - "subtract(a: -9223372036854775807, b: 2)"
+    - "multiply(a: 4294967296, b: 4294967296)"
+    - "abs(value: -9223372036854775808)"
+  expect:
+    value: {$: "missing"}
+- name: integer_results_at_the_range_limits
+  requirement: numbers
+  description: "Control case for integer_overflow_is_absent: results at the limits of the range."
+  expression: "[add(a: 9223372036854775806, b: 1), subtract(a: -9223372036854775807, b: 1), multiply(a: 4294967296, b: 2147483647), abs(value: -9223372036854775807)]"
+  expect:
+    value:
+      [
+        {$: "int", value: 9223372036854775807},
+        {$: "int", value: -9223372036854775808},
+        {$: "int", value: 9223372032559808512},
+        {$: "int", value: 9223372036854775807},
+      ]
+- name: non_finite_results_are_absent
+  requirement: numbers
+  description: "A numeric result that is an infinite double is absent, including when an argument is infinite (1e400)."
+  expressions:
+    - "multiply(a: 1e308, b: 10.0)"
+    - "add(a: 1e400, b: 1)"
+    - "abs(value: -1e400)"
+    - "min(a: 1e400, b: 1e400)"
+    - "subtract(a: 1e400, b: 1e400)"
+  expect:
+    value: {$: "missing"}
+- name: infinite_arguments_are_numbers
+  requirement: numbers
+  description: "An infinite double is a number: comparisons use it, and min and max can return the other argument."
+  expression: "[greaterThan(a: 1e400, b: 1), min(a: 1e400, b: 5), max(a: -1e400, b: 5.5)]"
+  expect:
+    value: [true, {$: "int", value: 5}, {$: "double", value: 5.5}]
+- name: integers_and_doubles_compare_exactly
+  requirement: numbers
+  description: "An integer and a double compare by their exact values: 2^53+1 is not the double 2^53."
+  expression: "[equals(a: 9007199254740993, b: 9007199254740992.0), greaterThan(a: 9007199254740993, b: 9007199254740992.0), equals(a: 4, b: 4.0), lessThan(a: 2, b: 2.5)]"
+  expect:
+    value: [false, true, true, true]
+
+# arithmetic
+
+- name: add_subtract_multiply
+  requirement: arithmetic
+  description: "Sum, difference and product."
+  expression: "[add(a: -1.5, b: 1), subtract(a: 1, b: 0.25), multiply(a: -3, b: 4)]"
+  expect:
+    value: [{$: "double", value: -0.5}, {$: "double", value: 0.75}, {$: "int", value: -12}]
+- name: divide_always_gives_a_double
+  requirement: arithmetic
+  description: "divide converts both operands to doubles; the result is a double even when exact."
+  expression: "[divide(a: 20, b: 5), divide(a: 1, b: 4), divide(a: 1, b: 3), divide(a: -1.5, b: 0.5)]"
+  expect:
+    value:
+      [
+        {$: "double", value: 4.0},
+        {$: "double", value: 0.25},
+        {$: "double", value: 0.3333333333333333},
+        {$: "double", value: -3.0},
+      ]
+- name: divide_by_zero_is_absent
+  requirement: arithmetic
+  description: "Division by an integer or double zero is absent."
+  expressions:
+    - "divide(a: 1, b: 0)"
+    - "divide(a: 1, b: 0.0)"
+    - "divide(a: 0, b: -0.0)"
+  expect:
+    value: {$: "missing"}
+- name: mod_is_never_negative
+  requirement: arithmetic
+  description: "mod is the remainder of truncating division plus |b| when negative: integers give an integer, otherwise a double."
+  expression: "[mod(a: 7, b: 3), mod(a: -7, b: 3), mod(a: 7, b: -3), mod(a: -7, b: -3), mod(a: -7.5, b: 2), mod(a: 7, b: 2.5)]"
+  expect:
+    value:
+      [
+        {$: "int", value: 1},
+        {$: "int", value: 2},
+        {$: "int", value: 1},
+        {$: "int", value: 2},
+        {$: "double", value: 0.5},
+        {$: "double", value: 2.0},
+      ]
+- name: mod_addition_is_rounded
+  requirement: arithmetic
+  description: "Adding |b| to a negative remainder is rounded to nearest, so the result can equal |b|."
+  expression: "mod(a: -1e-30, b: 1)"
+  expect:
+    value: {$: "double", value: 1.0}
+- name: mod_by_zero_is_absent
+  requirement: arithmetic
+  description: "mod by zero is absent."
+  expressions:
+    - "mod(a: 7, b: 0)"
+    - "mod(a: 7.5, b: 0.0)"
+  expect:
+    value: {$: "missing"}
+- name: mod_by_an_infinite_double
+  requirement: arithmetic
+  description: "mod by an infinite double keeps a non-negative a (as a double); a negative a would give an infinite result, so it is absent."
+  expression: "mod(a: 5, b: 1e400)"
+  expect:
+    value: {$: "double", value: 5.0}
+- name: mod_infinite_results_are_absent
+  requirement: arithmetic
+  description: "Control case for mod_by_an_infinite_double, and an infinite a."
+  expressions:
+    - "mod(a: -5, b: 1e400)"
+    - "mod(a: 1e400, b: 3)"
+  expect:
+    value: {$: "missing"}
+- name: min_and_max
+  requirement: arithmetic
+  description: "min and max return one of their arguments unchanged, a when the two are equal."
+  expression: "[min(a: 3, b: -1), max(a: 3, b: 9.5), min(a: 1, b: 1.0), max(a: 1.0, b: 1), min(a: 2.5, b: 3)]"
+  expect:
+    value:
+      [
+        {$: "int", value: -1},
+        {$: "double", value: 9.5},
+        {$: "int", value: 1},
+        {$: "double", value: 1.0},
+        {$: "double", value: 2.5},
+      ]
+- name: abs
+  requirement: arithmetic
+  description: "abs keeps the kind of its argument."
+  expression: "[abs(value: -2.5), abs(value: -3), abs(value: 4)]"
+  expect:
+    value: [{$: "double", value: 2.5}, {$: "int", value: 3}, {$: "int", value: 4}]
+- name: round_floor_ceil
+  requirement: arithmetic
+  description: "round goes half away from zero; floor and ceil toward negative and positive infinity; all three give integers and leave integers unchanged."
+  expression: "[round(value: 2.5), round(value: -2.5), round(value: 2.4), round(value: 0.49999999999999994), round(value: -0.5), floor(value: 2.7), floor(value: -2.1), ceil(value: 2.1), ceil(value: -2.7), round(value: 7), floor(value: -9223372036854775808.0)]"
+  expect:
+    value:
+      [
+        {$: "int", value: 3},
+        {$: "int", value: -3},
+        {$: "int", value: 2},
+        {$: "int", value: 0},
+        {$: "int", value: -1},
+        {$: "int", value: 2},
+        {$: "int", value: -3},
+        {$: "int", value: 3},
+        {$: "int", value: -2},
+        {$: "int", value: 7},
+        {$: "int", value: -9223372036854775808},
+      ]
+- name: rounding_out_of_range_is_absent
+  requirement: arithmetic
+  description: "A rounded value outside the 64-bit range, or of an infinite double, is absent."
+  expressions:
+    - "round(value: 1e300)"
+    - "floor(value: 9223372036854775807.0)"
+    - "ceil(value: 1e400)"
+    - "round(value: -1e400)"
+  expect:
+    value: {$: "missing"}
+- name: arithmetic_with_absent_or_wrong_kinds_is_absent
+  requirement: arithmetic
+  description: "A missing, absent or non-number operand makes every arithmetic function absent."
+  expressions:
+    - "add(a: 1)"
+    - "subtract(a: absent, b: 1)"
+    - 'multiply(a: "2", b: 3)'
+    - "divide(a: true, b: 1)"
+    - "mod(b: 2)"
+    - "min(a: 1, b: [1])"
+    - "max(a: data.nope, b: 1)"
+    - 'abs(value: "1")'
+    - "round()"
+    - "floor(value: absent)"
+    - "ceil(value: false)"
+  expect:
+    value: {$: "missing"}
+
+# comparison_and_equality
+
+- name: numeric_comparisons
+  requirement: comparison_and_equality
+  description: "greaterThan, lessThan, greaterThanOrEqual and lessThanOrEqual compare numbers."
+  expression: "[greaterThan(a: 3, b: 2), lessThan(a: 3, b: 2), greaterThanOrEqual(a: 2, b: 2), lessThanOrEqual(a: 2.0, b: 2), greaterThan(a: 2, b: 2), lessThan(a: -1, b: 0.5)]"
+  expect:
+    value: [true, false, true, true, false, true]
+- name: comparisons_with_absent_or_wrong_kinds_are_absent
+  requirement: comparison_and_equality
+  description: "A comparison with a missing, absent or non-number operand is absent."
+  expressions:
+    - "greaterThan(a: 1)"
+    - "lessThan(a: absent, b: 1)"
+    - 'greaterThanOrEqual(a: "2", b: 1)'
+    - "lessThanOrEqual(a: 1, b: true)"
+  expect:
+    value: {$: "missing"}
+- name: equals_scalars
+  requirement: comparison_and_equality
+  description: "equals compares without coercion: numbers by value, strings by code units, booleans."
+  expression: "[equals(a: 5, b: \"5\"), equals(a: 4, b: 4.0), equals(a: \"a\", b: \"a\"), equals(a: true, b: true), equals(a: true, b: 1), equals(a: \"\\u00e9\", b: \"e\\u0301\"), equals(a: -0.0, b: 0)]"
+  expect:
+    value: [false, true, true, true, false, false, true]
+- name: equals_lists_and_maps
+  requirement: comparison_and_equality
+  description: "Lists are equal element by element in order; maps by keys and values in any order."
+  expression: '[equals(a: [1, { a: "x" }], b: [1.0, { a: "x" }]), equals(a: { a: 1, b: 2 }, b: { b: 2, a: 1 }), equals(a: [1, 2], b: [2, 1]), equals(a: { a: 1 }, b: { a: 1, b: 2 }), equals(a: [1], b: { a: 1 })]'
+  expect:
+    value: [true, true, false, false, false]
+- name: equals_absent
+  requirement: comparison_and_equality
+  description: "absent equals only absent, also inside lists and maps; a missing argument is absent."
+  expression: '[equals(a: absent, b: data.nope), equals(), equals(a: absent, b: ""), equals(a: false), equals(a: [absent], b: [absent]), equals(a: { k: absent }, b: {})]'
+  expect:
+    value: [true, true, false, false, true, false]
+- name: not_equals
+  requirement: comparison_and_equality
+  description: "notEquals is the negation of equals."
+  expression: '[notEquals(a: 5, b: "5"), notEquals(a: 4, b: 4.0), notEquals(a: absent, b: absent)]'
+  expect:
+    value: [true, false, false]
+
+# logic
+
+- name: and_or_not
+  requirement: logic
+  description: "and, or and not on booleans."
+  expression: "[and(a: true, b: true), and(a: true, b: false), or(a: false, b: false), or(a: false, b: true), not(value: false), not(value: true)]"
+  expect:
+    value: [true, false, false, true, true, false]
+- name: logic_with_absent_or_wrong_kinds_is_absent
+  requirement: logic
+  description: "A missing, absent or non-boolean operand is absent, even where the other operand would decide."
+  expressions:
+    - "and(a: false)"
+    - "or(a: true, b: absent)"
+    - "and(a: 1, b: true)"
+    - 'or(a: "true", b: true)'
+    - "not()"
+    - "not(value: 0)"
+  expect:
+    value: {$: "missing"}
+
+# strings
+
+- name: concat_strings_numbers_and_booleans
+  requirement: strings
+  description: "concat joins the display strings of its operands."
+  expression: '[concat(a: "a", b: "b"), concat(a: "n=", b: 3), concat(a: "n=", b: divide(a: 9, b: 3)), concat(a: "v:", b: true), concat(a: false, b: 2.5)]'
+  expect:
+    value: ["ab", "n=3", "n=3", "v:true", "false2.5"]
+- name: concat_number_formatting
+  requirement: strings
+  description: "Doubles display as ECMAScript's Number.prototype.toString, negative zero as 0; integers in decimal."
+  expression: "[concat(a: 1e21), concat(a: 1e-7), concat(a: 0.000001), concat(a: 100000000000000000000.0), concat(a: -0.0), concat(a: 1e400), concat(a: -1e400), concat(a: 9007199254740993), concat(a: 0.1, b: 1.5e300), concat(a: 5e-324), concat(a: 1.7976931348623157e308), concat(a: 123e-20)]"
+  expect:
+    value:
+      [
+        "1e+21",
+        "1e-7",
+        "0.000001",
+        "100000000000000000000",
+        "0",
+        "Infinity",
+        "-Infinity",
+        "9007199254740993",
+        "0.11.5e+300",
+        "5e-324",
+        "1.7976931348623157e+308",
+        "1.23e-18",
+      ]
+- name: concat_shows_other_values_as_nothing
+  requirement: strings
+  description: "Absent, missing, list and map operands display as the empty string."
+  expression: '[concat(a: "x", b: absent), concat(), concat(a: [1], b: { a: 1 })]'
+  expect:
+    value: ["x", "", ""]
+- name: trim
+  requirement: strings
+  description: "trim removes whitespace from both ends only."
+  expression: '[trim(value: "  a b  "), trim(value: "")]'
+  expect:
+    value: ["a b", ""]
+- name: trim_removes_every_whitespace_character
+  requirement: strings
+  description: "Each listed whitespace character is removed from both ends: all of them together, and each one alone."
+  expressions:
+    - "trim(value: \"\\u0009\\u000a\\u000b\\u000c\\u000d\\u0020\\u0085\\u00a0\\u1680\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeffa b\\u0009\\u000a\\u000b\\u000c\\u000d\\u0020\\u0085\\u00a0\\u1680\\u2000\\u2001\\u2002\\u2003\\u2004\\u2005\\u2006\\u2007\\u2008\\u2009\\u200a\\u2028\\u2029\\u202f\\u205f\\u3000\\ufeff\")"
+    - "trim(value: \"\\u0009a b\\u0009\")"
+    - "trim(value: \"\\u000aa b\\u000a\")"
+    - "trim(value: \"\\u000ba b\\u000b\")"
+    - "trim(value: \"\\u000ca b\\u000c\")"
+    - "trim(value: \"\\u000da b\\u000d\")"
+    - "trim(value: \"\\u0020a b\\u0020\")"
+    - "trim(value: \"\\u0085a b\\u0085\")"
+    - "trim(value: \"\\u00a0a b\\u00a0\")"
+    - "trim(value: \"\\u1680a b\\u1680\")"
+    - "trim(value: \"\\u2000a b\\u2000\")"
+    - "trim(value: \"\\u2001a b\\u2001\")"
+    - "trim(value: \"\\u2002a b\\u2002\")"
+    - "trim(value: \"\\u2003a b\\u2003\")"
+    - "trim(value: \"\\u2004a b\\u2004\")"
+    - "trim(value: \"\\u2005a b\\u2005\")"
+    - "trim(value: \"\\u2006a b\\u2006\")"
+    - "trim(value: \"\\u2007a b\\u2007\")"
+    - "trim(value: \"\\u2008a b\\u2008\")"
+    - "trim(value: \"\\u2009a b\\u2009\")"
+    - "trim(value: \"\\u200aa b\\u200a\")"
+    - "trim(value: \"\\u2028a b\\u2028\")"
+    - "trim(value: \"\\u2029a b\\u2029\")"
+    - "trim(value: \"\\u202fa b\\u202f\")"
+    - "trim(value: \"\\u205fa b\\u205f\")"
+    - "trim(value: \"\\u3000a b\\u3000\")"
+    - "trim(value: \"\\ufeffa b\\ufeff\")"
+  expect:
+    value: "a b"
+- name: trim_keeps_other_characters
+  requirement: strings
+  description: "Control case: U+001C, U+180E and U+200B are not whitespace for trim."
+  expression: "[trim(value: \"\\u001cx\\u001c\"), trim(value: \"\\u180ex\\u180e\"), trim(value: \"\\u200bx\\u200b\")]"
+  expect:
+    value: ["\u001cx\u001c", "\u180ex\u180e", "\u200bx\u200b"]
+- name: length_counts_utf16_code_units
+  requirement: strings
+  description: "length is the number of UTF-16 code units."
+  expression: "[length(value: \"h\\u00e9llo\"), length(value: \"\\uD83D\\uDE00\"), length(value: \"\")]"
+  expect:
+    value: [{$: "int", value: 5}, {$: "int", value: 2}, {$: "int", value: 0}]
+- name: strings_with_absent_or_wrong_kinds_are_absent
+  requirement: strings
+  description: "trim and length of a missing, absent or non-string value are absent."
+  expressions:
+    - "trim(value: 1)"
+    - "trim()"
+    - "length(value: data.n)"
+    - "length(value: absent)"
+    - 'length(value: ["a"])'
+  data: "{ n: 5 }"
+  expect:
+    value: {$: "missing"}
+
+# lists
+
+- name: contains
+  requirement: lists
+  description: "contains tests membership with the equality of equals."
+  expression: '[contains(list: ["a", "b"], value: "b"), contains(list: ["a", "b"], value: "z"), contains(list: [1, 2], value: "1"), contains(list: [4], value: 4.0), contains(list: [[1], { a: 1 }], value: { a: 1.0 })]'
+  expect:
+    value: [true, false, false, true, true]
+- name: contains_absent
+  requirement: lists
+  description: "An absent list is empty, and an absent value is never in a list, even one with absent elements."
+  expression: '[contains(list: data.nope, value: "a"), contains(list: [absent], value: absent), contains(list: [1])]'
+  expect:
+    value: [false, false, false]
+- name: list_with
+  requirement: lists
+  description: "listWith adds the value at the end unless it is already in the list."
+  expression: '[listWith(list: ["a", "b"], value: "c"), listWith(list: ["a", "b"], value: "a"), listWith(list: [1], value: 1.0)]'
+  expect:
+    value: [["a", "b", "c"], ["a", "b"], [{$: "int", value: 1}]]
+- name: list_with_absent
+  requirement: lists
+  description: "listWith on an absent list starts from the empty list; an absent value adds nothing."
+  expression: '[listWith(list: data.nope, value: "x"), listWith(list: [1], value: absent), listWith()]'
+  expect:
+    value: [["x"], [{$: "int", value: 1}], []]
+- name: list_without
+  requirement: lists
+  description: "listWithout removes every element equal to the value."
+  expression: '[listWithout(list: ["a", "b", "a"], value: "a"), listWithout(list: [1, 1.0, 2], value: 1), listWithout(list: ["a"], value: "z")]'
+  expect:
+    value: [["b"], [{$: "int", value: 2}], ["a"]]
+- name: list_without_absent
+  requirement: lists
+  description: "listWithout of an absent value removes nothing (absent elements stay); an absent list is empty."
+  expression: "[listWithout(list: [absent, 1], value: absent), listWithout(list: data.nope, value: 1)]"
+  expect:
+    value: [[{$: "missing"}, {$: "int", value: 1}], []]
+- name: lists_are_not_changed
+  requirement: lists
+  description: "The functions return new lists and leave their input as it was."
+  expression: '[listWith(list: data.l, value: "c"), listWithout(list: data.l, value: "a"), data.l]'
+  data: '{ l: ["a", "b"] }'
+  expect:
+    value: [["a", "b", "c"], ["b"], ["a", "b"]]
+- name: non_list_is_absent
+  requirement: lists
+  description: "A present list argument that is not a list makes the call absent."
+  expressions:
+    - 'contains(list: "ab", value: "a")'
+    - "listWith(list: { a: 1 }, value: 1)"
+    - "listWithout(list: 1, value: 1)"
+  expect:
+    value: {$: "missing"}
+
+# optional_values
+
+- name: is_set
+  requirement: optional_values
+  description: "isSet is false only for the absent value: an empty string, false, 0 and an empty list are set."
+  expression: "[isSet(value: data.s), isSet(value: data.e), isSet(value: data.f), isSet(value: 0), isSet(value: []), isSet(value: data.nope), isSet(value: absent), isSet()]"
+  data: '{ s: "x", e: "", f: false }'
+  expect:
+    value: [true, true, true, true, true, false, false, false]
+- name: or_else
+  requirement: optional_values
+  description: "orElse gives value when it is set, otherwise otherwise."
+  expression: '[orElse(value: data.s, otherwise: "d"), orElse(value: data.e, otherwise: "d"), orElse(value: false, otherwise: true), orElse(value: data.nope, otherwise: "d"), orElse(value: absent, otherwise: 4.0), orElse(otherwise: [1])]'
+  data: '{ s: "x", e: "" }'
+  expect:
+    value: ["x", "", false, "d", {$: "double", value: 4.0}, [{$: "int", value: 1}]]
+- name: or_else_of_absent_values_is_absent
+  requirement: optional_values
+  description: "When both are absent, orElse is absent."
+  expressions:
+    - "orElse(value: data.a, otherwise: data.b)"
+    - "orElse()"
+  expect:
+    value: {$: "missing"}

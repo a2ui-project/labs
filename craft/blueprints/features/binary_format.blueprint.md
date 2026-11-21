@@ -139,6 +139,8 @@ An encoder MUST reject a library or value that holds a string with an unpaired s
 
 A decoder reads a blob from front to back and MUST stop at the first error, reporting its **kind** and the **offset** below. Once it has read the whole version header, or an RFW signature (version 0), it MUST also report the blob's version, and for `unknownTag` and `unexpectedTag` the tag. For `invalidHeader` and `unsupportedVersion` the reported version is the header's version field as read, even when it is invalid (0 for a header whose version is 0).
 
+This requirement, like the others, holds for blobs nested within the engine's limits; how a decoder treats deeper nesting is defined by the `limits` feature (see the module blueprint).
+
 | Kind                 | When                                                                                       | Offset                                   |
 | -------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------- |
 | `signature`          | the first four bytes are not a signature for the expected kind of blob                     | 0                                        |
@@ -209,7 +211,7 @@ Compared with RFW 2.0.0:
 - **Declaration flags.** The flags field carries `export`; new flags can be added without a new minimum reader version, because decoders ignore unknown bits.
 - **Craft tags.** `14`–`16` encode the references that `text_format` adds.
 - **Extensions.** A later version can add a node kind in the extension range. Old decoders skip it as missing, so a template that uses it still loads and degrades where it is used, instead of failing as a whole.
-- **Errors.** Each error has a kind and an offset, which conformance cases pin. Every length is checked before anything is allocated, and repeated keys are rejected instead of silently replacing earlier ones.
+- **Errors.** Each error has a kind and an offset, which conformance cases pin (for blobs nested within the engine's limits, see `limits`). Every length is checked before anything is allocated, and repeated keys are rejected instead of silently replacing earlier ones.
 
 ---
 
