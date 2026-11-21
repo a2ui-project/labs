@@ -1,0 +1,3206 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Conformance cases for the binary_format feature
+# (craft/blueprints/features/binary_format.blueprint.md).
+#
+# A blob is written in `hex`: bytes as pairs of hex digits separated by
+# whitespace. A `#` starts a comment that runs to the end of the line; the
+# comments give each field's decimal offset and meaning.
+#
+# A decoder case (decode: library or decode: data) decodes `hex` as a library
+# blob or a data blob. `expect` is one of:
+#   library: the canonical JSON form of the decoded library (see text_format);
+#   data: the canonical JSON form of the decoded data value;
+#   source: the decoded library has the canonical form of this library source;
+#   error: the blob is rejected with this `kind` at this byte `offset`; the
+#     error also reports the blob's `version` (null when it was not read yet)
+#     and, for unknownTag and unexpectedTag, the `tag`.
+#
+# An encoder case (encode: library or encode: data) parses `source` as a
+# library file or a data file and encodes it. `expect` is one of:
+#   hex: the exact blob. Decoding it gives the canonical form of the parsed
+#     source, or `decoded` when given, and encoding the decoded result gives
+#     the same blob again;
+#   error: the encoder rejects the source.
+
+- name: integers
+  requirement: primitive_encodings
+  description: "Integers, including negative ones and one that needs more than 32 bits, are int64."
+  encode: data
+  source: |
+    { small: 1, negative: -1, large: 9007199254730661, hex: 0x10 }
+  expect:
+    hex: |
+      fe 43 52 44                                      # 0: data signature
+      01 00                                            # 4: version 1
+      01 00                                            # 6: minimum reader version 1
+      07                                               # 8: map
+      04 00 00 00 00 00 00 00                          # 9: 4 entries
+      05 00 00 00 00 00 00 00 73 6d 61 6c 6c           # 17:   key "small"
+      02                                               # 30:   integer
+      01 00 00 00 00 00 00 00                          # 31:   1
+      08 00 00 00 00 00 00 00 6e 65 67 61 74 69 76 65  # 39:   key "negative"
+      02                                               # 55:   integer
+      ff ff ff ff ff ff ff ff                          # 56:   -1
+      05 00 00 00 00 00 00 00 6c 61 72 67 65           # 64:   key "large"
+      02                                               # 77:   integer
+      a5 d7 ff ff ff ff 1f 00                          # 78:   9007199254730661
+      03 00 00 00 00 00 00 00 68 65 78                 # 86:   key "hex"
+      02                                               # 97:   integer
+      10 00 00 00 00 00 00 00                          # 98:   16
+- name: integer_extremes
+  requirement: primitive_encodings
+  description: "The smallest and largest int64."
+  decode: data
+  hex: |
+    fe 43 52 44              # 0: data signature
+    01 00                    # 4: version 1
+    01 00                    # 6: minimum reader version 1
+    05                       # 8: list
+    02 00 00 00 00 00 00 00  # 9: 2 elements
+    02                       # 17:   integer
+    00 00 00 00 00 00 00 80  # 18:   -2^63
+    02                       # 26:   integer
+    ff ff ff ff ff ff ff 7f  # 27:   2^63 - 1
+  expect:
+    data:
+      - {$: int, value: -9223372036854775808}
+      - {$: int, value: 9223372036854775807}
+- name: doubles
+  requirement: primitive_encodings
+  description: "Doubles are binary64; a whole number written as a double stays a double."
+  encode: data
+  source: |
+    { quarter: 0.25, whole: 1.0, negative: -2.5 }
+  expect:
+    hex: |
+      fe 43 52 44                                      # 0: data signature
+      01 00                                            # 4: version 1
+      01 00                                            # 6: minimum reader version 1
+      07                                               # 8: map
+      03 00 00 00 00 00 00 00                          # 9: 3 entries
+      07 00 00 00 00 00 00 00 71 75 61 72 74 65 72     # 17:   key "quarter"
+      03                                               # 32:   double
+      00 00 00 00 00 00 d0 3f                          # 33:   0.25
+      05 00 00 00 00 00 00 00 77 68 6f 6c 65           # 41:   key "whole"
+      03                                               # 54:   double
+      00 00 00 00 00 00 f0 3f                          # 55:   1.0
+      08 00 00 00 00 00 00 00 6e 65 67 61 74 69 76 65  # 63:   key "negative"
+      03                                               # 79:   double
+      00 00 00 00 00 00 04 c0                          # 80:   -2.5
+- name: multibyte_strings
+  requirement: primitive_encodings
+  description: "Strings are UTF-8: two-, three- and four-byte sequences."
+  encode: data
+  source: |
+    { text: "\u00E9\u20AC\uD83D\uDE00" }
+  expect:
+    hex: |
+      fe 43 52 44                                      # 0: data signature
+      01 00                                            # 4: version 1
+      01 00                                            # 6: minimum reader version 1
+      07                                               # 8: map
+      01 00 00 00 00 00 00 00                          # 9: 1 entry
+      04 00 00 00 00 00 00 00 74 65 78 74              # 17:   key "text"
+      04                                               # 29:   string
+      09 00 00 00 00 00 00 00 c3 a9 e2 82 ac f0 9f 98 80  # 30:   string "\u00e9\u20ac\ud83d\ude00"
+- name: byte_order_mark_is_kept
+  requirement: primitive_encodings
+  description: "A leading byte order mark decodes to U+FEFF and is not dropped."
+  decode: data
+  hex: |
+    fe 43 52 44              # 0: data signature
+    01 00                    # 4: version 1
+    01 00                    # 6: minimum reader version 1
+    04                       # 8: string
+    04 00 00 00 00 00 00 00  # 9: length 4
+    ef bb bf 61              # 17: byte order mark, then "a"
+  expect: {data: "\uFEFFa"}
+- name: encoded_surrogate_is_rejected
+  requirement: primitive_encodings
+  description: "An encoded surrogate is not well-formed UTF-8."
+  decode: data
+  hex: |
+    fe 43 52 44              # 0: data signature
+    01 00                    # 4: version 1
+    01 00                    # 6: minimum reader version 1
+    04                       # 8: string
+    03 00 00 00 00 00 00 00  # 9: length 3
+    ed a0 80                 # 17: U+D800 encoded as three bytes
+  expect:
+    error:
+      kind: invalidUtf8
+      offset: 17
+      version: 1
+- name: overlong_form_is_rejected
+  requirement: primitive_encodings
+  description: "An overlong form is not well-formed UTF-8."
+  decode: data
+  hex: |
+    fe 43 52 44              # 0: data signature
+    01 00                    # 4: version 1
+    01 00                    # 6: minimum reader version 1
+    04                       # 8: string
+    02 00 00 00 00 00 00 00  # 9: length 2
+    c0 80                    # 17: U+0000 in an overlong two-byte form
+  expect:
+    error:
+      kind: invalidUtf8
+      offset: 17
+      version: 1
+- name: code_point_above_the_range_is_rejected
+  requirement: primitive_encodings
+  description: "A code point above U+10FFFF is not well-formed UTF-8."
+  decode: data
+  hex: |
+    fe 43 52 44              # 0: data signature
+    01 00                    # 4: version 1
+    01 00                    # 6: minimum reader version 1
+    04                       # 8: string
+    04 00 00 00 00 00 00 00  # 9: length 4
+    f4 90 80 80              # 17: U+110000, above U+10FFFF
+  expect:
+    error:
+      kind: invalidUtf8
+      offset: 17
+      version: 1
+- name: double_part_is_rejected
+  requirement: primitive_encodings
+  description: "A part is an integer or a string; a double is rejected."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0a                                   # 105:       argsRef
+    01 00 00 00 00 00 00 00              # 106:       1 part
+    03                                   # 114:       double: not a part
+    00 00 00 00 00 00 f0 3f              # 115:       1.0
+  expect:
+    error:
+      kind: unexpectedTag
+      offset: 114
+      tag: 0x03
+      version: 1
+- name: library_v1_minimal
+  requirement: blob_layout_and_versions
+  description: "A library blob at version 1."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    01 00                                   # 4: version 1
+    01 00                                   # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    00 00 00 00 00 00 00 00                 # 56:   flags 0x0
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    04                                      # 105:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 106:       string "Hello"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args: {text: Hello}
+- name: library_higher_version_is_readable
+  requirement: blob_layout_and_versions
+  description: "Version 2 with minimum reader version 1 decodes by the rules for version 1."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    02 00                                   # 4: version 2
+    01 00                                   # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    00 00 00 00 00 00 00 00                 # 56:   flags 0x0
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    04                                      # 105:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 106:       string "Hello"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args: {text: Hello}
+- name: library_minimum_reader_version_too_high
+  requirement: blob_layout_and_versions
+  description: "Minimum reader version 2 is rejected before the library is read."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    02 00                                   # 4: version 2
+    02 00                                   # 6: minimum reader version 2
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    00 00 00 00 00 00 00 00                 # 56:   flags 0x0
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    04                                      # 105:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 106:       string "Hello"
+  expect:
+    error:
+      kind: unsupportedVersion
+      offset: 6
+      version: 2
+- name: header_version_zero
+  requirement: blob_layout_and_versions
+  description: "A Craft signature needs version 1 or higher."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    00 00                                   # 4: version 0
+    00 00                                   # 6: minimum reader version 0
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    00 00 00 00 00 00 00 00                 # 56:   flags 0x0
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    04                                      # 105:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 106:       string "Hello"
+  expect:
+    error:
+      kind: invalidHeader
+      offset: 4
+      version: 0
+- name: header_minimum_reader_version_zero
+  requirement: blob_layout_and_versions
+  description: "The minimum reader version must be 1 or higher."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    01 00                                   # 4: version 1
+    00 00                                   # 6: minimum reader version 0
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    00 00 00 00 00 00 00 00                 # 56:   flags 0x0
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    04                                      # 105:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 106:       string "Hello"
+  expect:
+    error:
+      kind: invalidHeader
+      offset: 4
+      version: 1
+- name: header_minimum_reader_version_above_version
+  requirement: blob_layout_and_versions
+  description: "The minimum reader version must not exceed the version (here 2 > 1, which is also more than this decoder reads: invalidHeader comes first)."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    01 00                                   # 4: version 1
+    02 00                                   # 6: minimum reader version 2
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    00 00 00 00 00 00 00 00                 # 56:   flags 0x0
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    04                                      # 105:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 106:       string "Hello"
+  expect:
+    error:
+      kind: invalidHeader
+      offset: 4
+      version: 1
+- name: unknown_signature
+  requirement: blob_layout_and_versions
+  description: "Four bytes that are no signature."
+  decode: library
+  hex: |
+    fe 52 46 58  # 0: not a signature
+    00 00 00 00  # 4: four more bytes
+  expect:
+    error:
+      kind: signature
+      offset: 0
+      version: null
+- name: data_signature_in_a_library_decoder
+  requirement: blob_layout_and_versions
+  description: "A data blob is not a library blob."
+  decode: library
+  hex: |
+    fe 43 52 44  # 0: data signature
+    01 00        # 4: version 1
+    01 00        # 6: minimum reader version 1
+    01           # 8: true
+  expect:
+    error:
+      kind: signature
+      offset: 0
+      version: null
+- name: rfw_data_signature_in_a_library_decoder
+  requirement: blob_layout_and_versions
+  description: "An RFW data blob is not a library blob either."
+  decode: library
+  hex: |
+    fe 52 57 44  # 0: RFW data signature
+    01           # 4: true
+  expect:
+    error:
+      kind: signature
+      offset: 0
+      version: null
+- name: data_v1
+  requirement: blob_layout_and_versions
+  description: "A data blob at version 1."
+  decode: data
+  hex: |
+    fe 43 52 44                 # 0: data signature
+    01 00                       # 4: version 1
+    01 00                       # 6: minimum reader version 1
+    07                          # 8: map
+    02 00 00 00 00 00 00 00     # 9: 2 entries
+    01 00 00 00 00 00 00 00 61  # 17:   key "a"
+    02                          # 26:   integer
+    01 00 00 00 00 00 00 00     # 27:   1
+    01 00 00 00 00 00 00 00 62  # 35:   key "b"
+    05                          # 44:   list
+    03 00 00 00 00 00 00 00     # 45:   3 elements
+    01                          # 53:     true
+    03                          # 54:     double
+    00 00 00 00 00 00 04 40     # 55:     2.5
+    04                          # 63:     string
+    01 00 00 00 00 00 00 00 78  # 64:     string "x"
+  expect:
+    data:
+      a: {$: int, value: 1}
+      b:
+        - true
+        - {$: double, value: 2.5}
+        - x
+- name: data_higher_version_is_readable
+  requirement: blob_layout_and_versions
+  description: "A data blob of version 3 with minimum reader version 1."
+  decode: data
+  hex: |
+    fe 43 52 44                 # 0: data signature
+    03 00                       # 4: version 3
+    01 00                       # 6: minimum reader version 1
+    07                          # 8: map
+    02 00 00 00 00 00 00 00     # 9: 2 entries
+    01 00 00 00 00 00 00 00 61  # 17:   key "a"
+    02                          # 26:   integer
+    01 00 00 00 00 00 00 00     # 27:   1
+    01 00 00 00 00 00 00 00 62  # 35:   key "b"
+    05                          # 44:   list
+    03 00 00 00 00 00 00 00     # 45:   3 elements
+    01                          # 53:     true
+    03                          # 54:     double
+    00 00 00 00 00 00 04 40     # 55:     2.5
+    04                          # 63:     string
+    01 00 00 00 00 00 00 00 78  # 64:     string "x"
+  expect:
+    data:
+      a: {$: int, value: 1}
+      b:
+        - true
+        - {$: double, value: 2.5}
+        - x
+- name: data_minimum_reader_version_too_high
+  requirement: blob_layout_and_versions
+  description: "Minimum reader version 3 is rejected."
+  decode: data
+  hex: |
+    fe 43 52 44  # 0: data signature
+    03 00        # 4: version 3
+    03 00        # 6: minimum reader version 3
+    01           # 8: true
+  expect:
+    error:
+      kind: unsupportedVersion
+      offset: 6
+      version: 3
+- name: library_signature_in_a_data_decoder
+  requirement: blob_layout_and_versions
+  description: "A library blob is not a data blob."
+  decode: data
+  hex: |
+    fe 43 52 46  # 0: library signature
+    01 00        # 4: version 1
+    01 00        # 6: minimum reader version 1
+    01           # 8: true
+  expect:
+    error:
+      kind: signature
+      offset: 0
+      version: null
+- name: rfw_library_signature_in_a_data_decoder
+  requirement: blob_layout_and_versions
+  description: "An RFW library blob is not a data blob either."
+  decode: data
+  hex: |
+    fe 52 46 57              # 0: RFW library signature
+    00 00 00 00 00 00 00 00  # 4: 0 imports
+    00 00 00 00 00 00 00 00  # 12: 0 declarations
+  expect:
+    error:
+      kind: signature
+      offset: 0
+      version: null
+- name: dotted_imports
+  requirement: libraries
+  description: "Each import is a list of name parts."
+  encode: library
+  source: |
+    import core;
+    import acme.ui;
+    widget root = Text(text: "x");
+  expect:
+    hex: |
+      fe 43 52 46                          # 0: library signature
+      01 00                                # 4: version 1
+      01 00                                # 6: minimum reader version 1
+      02 00 00 00 00 00 00 00              # 8: 2 imports
+      01 00 00 00 00 00 00 00              # 16:   1 name part
+      04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+      02 00 00 00 00 00 00 00              # 36:   2 name parts
+      04 00 00 00 00 00 00 00 61 63 6d 65  # 44:   string "acme"
+      02 00 00 00 00 00 00 00 75 69        # 56:   string "ui"
+      01 00 00 00 00 00 00 00              # 66: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74  # 74:   name "root"
+      00 00 00 00 00 00 00 00              # 86:   flags
+      00 00 00 00 00 00 00 00              # 94:   no initial state
+      09                                   # 102:   widget call
+      04 00 00 00 00 00 00 00 54 65 78 74  # 103:     name "Text"
+      01 00 00 00 00 00 00 00              # 115:     1 argument
+      04 00 00 00 00 00 00 00 74 65 78 74  # 123:       key "text"
+      04                                   # 135:       string
+      01 00 00 00 00 00 00 00 78           # 136:       string "x"
+- name: exported_declaration
+  requirement: libraries
+  description: "Flag bit 0 marks the declaration exported."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    01 00                                   # 4: version 1
+    01 00                                   # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    01 00 00 00 00 00 00 00                 # 56:   flags 0x1
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    04                                      # 105:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 106:       string "Hello"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          exported: true
+          root:
+            $: call
+            name: Text
+            args: {text: Hello}
+- name: unknown_flag_bits_are_ignored
+  requirement: libraries
+  description: "Flag bits 1 and 63 (the sign bit) are ignored."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    01 00                                   # 4: version 1
+    01 00                                   # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    02 00 00 00 00 00 00 80                 # 56:   flags -9223372036854775806 (bits 1 and 63)
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    04                                      # 105:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 106:       string "Hello"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args: {text: Hello}
+- name: exported_and_private_declarations
+  requirement: libraries
+  description: "Flags are 1 for an exported declaration and 0 otherwise."
+  encode: library
+  source: |
+    import core;
+    export widget A = Text(text: "a");
+    widget B = A();
+  expect:
+    hex: |
+      fe 43 52 46                          # 0: library signature
+      01 00                                # 4: version 1
+      01 00                                # 6: minimum reader version 1
+      01 00 00 00 00 00 00 00              # 8: 1 import
+      01 00 00 00 00 00 00 00              # 16:   1 name part
+      04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+      02 00 00 00 00 00 00 00              # 36: 2 declarations
+      01 00 00 00 00 00 00 00 41           # 44:   name "A"
+      01 00 00 00 00 00 00 00              # 53:   flags: exported
+      00 00 00 00 00 00 00 00              # 61:   no initial state
+      09                                   # 69:   widget call
+      04 00 00 00 00 00 00 00 54 65 78 74  # 70:     name "Text"
+      01 00 00 00 00 00 00 00              # 82:     1 argument
+      04 00 00 00 00 00 00 00 74 65 78 74  # 90:       key "text"
+      04                                   # 102:       string
+      01 00 00 00 00 00 00 00 61           # 103:       string "a"
+      01 00 00 00 00 00 00 00 42           # 112:   name "B"
+      00 00 00 00 00 00 00 00              # 121:   flags
+      00 00 00 00 00 00 00 00              # 129:   no initial state
+      09                                   # 137:   widget call
+      01 00 00 00 00 00 00 00 41           # 138:     name "A"
+      00 00 00 00 00 00 00 00              # 147:     0 arguments
+- name: initial_state
+  requirement: libraries
+  description: "Initial state is an untagged map of data values."
+  encode: library
+  source: |
+    widget Counter { count: 0, label: "n" } = Text(text: state.label);
+  expect:
+    hex: |
+      fe 43 52 46                                   # 0: library signature
+      01 00                                         # 4: version 1
+      01 00                                         # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00                       # 8: 0 imports
+      01 00 00 00 00 00 00 00                       # 16: 1 declaration
+      07 00 00 00 00 00 00 00 43 6f 75 6e 74 65 72  # 24:   name "Counter"
+      00 00 00 00 00 00 00 00                       # 39:   flags
+      02 00 00 00 00 00 00 00                       # 47:   initial state: 2 entries
+      05 00 00 00 00 00 00 00 63 6f 75 6e 74        # 55:     key "count"
+      02                                            # 68:     integer
+      00 00 00 00 00 00 00 00                       # 69:     0
+      05 00 00 00 00 00 00 00 6c 61 62 65 6c        # 77:     key "label"
+      04                                            # 90:     string
+      01 00 00 00 00 00 00 00 6e                    # 91:     string "n"
+      09                                            # 100:   widget call
+      04 00 00 00 00 00 00 00 54 65 78 74           # 101:     name "Text"
+      01 00 00 00 00 00 00 00                       # 113:     1 argument
+      04 00 00 00 00 00 00 00 74 65 78 74           # 121:       key "text"
+      0d                                            # 133:       stateRef
+      01 00 00 00 00 00 00 00                       # 134:         1 part
+      04                                            # 142:           string part
+      05 00 00 00 00 00 00 00 6c 61 62 65 6c        # 143:           string "label"
+- name: switch_as_declaration_root
+  requirement: libraries
+  description: "A declaration root can be a switch."
+  encode: library
+  source: |
+    widget root = switch args.on { true: A(), default: B() };
+  expect:
+    hex: |
+      fe 43 52 46                          # 0: library signature
+      01 00                                # 4: version 1
+      01 00                                # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00              # 8: 0 imports
+      01 00 00 00 00 00 00 00              # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+      00 00 00 00 00 00 00 00              # 36:   flags
+      00 00 00 00 00 00 00 00              # 44:   no initial state
+      0f                                   # 52:   switch
+      0a                                   # 53:     argsRef
+      01 00 00 00 00 00 00 00              # 54:       1 part
+      04                                   # 62:         string part
+      02 00 00 00 00 00 00 00 6f 6e        # 63:         string "on"
+      02 00 00 00 00 00 00 00              # 73:     2 cases
+      01                                   # 81:       true
+      09                                   # 82:       widget call
+      01 00 00 00 00 00 00 00 41           # 83:         name "A"
+      00 00 00 00 00 00 00 00              # 92:         0 arguments
+      10                                   # 100:       default
+      09                                   # 101:       widget call
+      01 00 00 00 00 00 00 00 42           # 102:         name "B"
+      00 00 00 00 00 00 00 00              # 111:         0 arguments
+- name: extension_as_declaration_root
+  requirement: libraries
+  description: "A declaration root is a widget call or a switch; an extension value is not skipped there."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    00 00 00 00 00 00 00 00              # 8: 0 imports
+    01 00 00 00 00 00 00 00              # 16: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+    00 00 00 00 00 00 00 00              # 36:   flags 0x0
+    00 00 00 00 00 00 00 00              # 44:   no initial state
+    80                                   # 52:   extension tag 0x80
+    00 00 00 00 00 00 00 00              # 53:   payload length 0
+  expect:
+    error:
+      kind: unexpectedTag
+      offset: 52
+      tag: 0x80
+      version: 1
+- name: reference_as_declaration_root
+  requirement: libraries
+  description: "A core tag other than 09 and 0F is rejected as a root."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    00 00 00 00 00 00 00 00              # 8: 0 imports
+    01 00 00 00 00 00 00 00              # 16: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+    00 00 00 00 00 00 00 00              # 36:   flags 0x0
+    00 00 00 00 00 00 00 00              # 44:   no initial state
+    0a                                   # 52:   argsRef: not a root
+    00 00 00 00 00 00 00 00              # 53:   0 parts
+  expect:
+    error:
+      kind: unexpectedTag
+      offset: 52
+      tag: 0x0A
+      version: 1
+- name: library_tag_in_initial_state
+  requirement: libraries
+  description: "Initial state values are data values: a reference is rejected."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    00 00 00 00 00 00 00 00              # 8: 0 imports
+    01 00 00 00 00 00 00 00              # 16: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+    00 00 00 00 00 00 00 00              # 36:   flags 0x0
+    01 00 00 00 00 00 00 00              # 44:   initial state: 1 entry
+    01 00 00 00 00 00 00 00 61           # 52:     key "a"
+    0a                                   # 61:     argsRef: not a data value
+    00 00 00 00 00 00 00 00              # 62:     0 parts
+    09                                   # 70:   root: widget call
+    01 00 00 00 00 00 00 00 41           # 71:     name "A"
+    00 00 00 00 00 00 00 00              # 80:     0 arguments
+  expect:
+    error:
+      kind: unexpectedTag
+      offset: 61
+      tag: 0x0A
+      version: 1
+- name: repeated_argument_key_is_rejected
+  requirement: maps
+  description: "Two arguments named a."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    00 00 00 00 00 00 00 00              # 8: 0 imports
+    01 00 00 00 00 00 00 00              # 16: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+    00 00 00 00 00 00 00 00              # 36:   flags 0x0
+    00 00 00 00 00 00 00 00              # 44:   no initial state
+    09                                   # 52:   root: widget call
+    01 00 00 00 00 00 00 00 41           # 53:     name "A"
+    02 00 00 00 00 00 00 00              # 62:     2 arguments
+    01 00 00 00 00 00 00 00 61           # 70:       key "a"
+    01                                   # 79:       true
+    01 00 00 00 00 00 00 00 61           # 80:       key "a"
+    01                                   # 89:       true
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 80
+      version: 1
+- name: distinct_argument_keys
+  requirement: maps
+  description: "Control case: arguments a and b decode."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    00 00 00 00 00 00 00 00              # 8: 0 imports
+    01 00 00 00 00 00 00 00              # 16: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+    00 00 00 00 00 00 00 00              # 36:   flags 0x0
+    00 00 00 00 00 00 00 00              # 44:   no initial state
+    09                                   # 52:   root: widget call
+    01 00 00 00 00 00 00 00 41           # 53:     name "A"
+    02 00 00 00 00 00 00 00              # 62:     2 arguments
+    01 00 00 00 00 00 00 00 61           # 70:       key "a"
+    01                                   # 79:       true
+    01 00 00 00 00 00 00 00 62           # 80:       key "b"
+    01                                   # 89:       true
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: A
+            args: {a: true, b: true}
+- name: repeated_data_key_is_rejected
+  requirement: maps
+  description: "A repeated key is rejected even when the first value is a skipped extension value."
+  decode: data
+  hex: |
+    fe 43 52 44                 # 0: data signature
+    01 00                       # 4: version 1
+    01 00                       # 6: minimum reader version 1
+    07                          # 8: map
+    02 00 00 00 00 00 00 00     # 9: 2 entries
+    01 00 00 00 00 00 00 00 61  # 17:   key "a"
+    80                          # 26:   extension tag 0x80
+    00 00 00 00 00 00 00 00     # 27:   payload length 0
+    01 00 00 00 00 00 00 00 61  # 35:   key "a" again
+    01                          # 44:   true
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 35
+      version: 1
+- name: repeated_key_is_reported_before_its_value
+  requirement: maps
+  description: "The repeated key is the first error, although its value (tag 06) is invalid too."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    00 00 00 00 00 00 00 00              # 8: 0 imports
+    01 00 00 00 00 00 00 00              # 16: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+    00 00 00 00 00 00 00 00              # 36:   flags 0x0
+    00 00 00 00 00 00 00 00              # 44:   no initial state
+    09                                   # 52:   root: widget call
+    01 00 00 00 00 00 00 00 41           # 53:     name "A"
+    02 00 00 00 00 00 00 00              # 62:     2 arguments
+    01 00 00 00 00 00 00 00 61           # 70:       key "a"
+    01                                   # 79:       true
+    01 00 00 00 00 00 00 00 61           # 80:       key "a" again
+    06                                   # 89:       tag 06, never read
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 80
+      version: 1
+- name: literals
+  requirement: values
+  description: "false, true, an integer, a double and a string."
+  encode: library
+  source: |
+    widget root = A(f: false, t: true, i: 7, d: 0.5, s: "x");
+  expect:
+    hex: |
+      fe 43 52 46                          # 0: library signature
+      01 00                                # 4: version 1
+      01 00                                # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00              # 8: 0 imports
+      01 00 00 00 00 00 00 00              # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+      00 00 00 00 00 00 00 00              # 36:   flags
+      00 00 00 00 00 00 00 00              # 44:   no initial state
+      09                                   # 52:   widget call
+      01 00 00 00 00 00 00 00 41           # 53:     name "A"
+      05 00 00 00 00 00 00 00              # 62:     5 arguments
+      01 00 00 00 00 00 00 00 66           # 70:       key "f"
+      00                                   # 79:       false
+      01 00 00 00 00 00 00 00 74           # 80:       key "t"
+      01                                   # 89:       true
+      01 00 00 00 00 00 00 00 69           # 90:       key "i"
+      02                                   # 99:       integer
+      07 00 00 00 00 00 00 00              # 100:       7
+      01 00 00 00 00 00 00 00 64           # 108:       key "d"
+      03                                   # 117:       double
+      00 00 00 00 00 00 e0 3f              # 118:       0.5
+      01 00 00 00 00 00 00 00 73           # 126:       key "s"
+      04                                   # 135:       string
+      01 00 00 00 00 00 00 00 78           # 136:       string "x"
+- name: list_and_map
+  requirement: values
+  description: "A list (05) and a map (07) as values."
+  encode: library
+  source: |
+    widget root = A(l: [1, "b"], m: { k: "v" });
+  expect:
+    hex: |
+      fe 43 52 46                          # 0: library signature
+      01 00                                # 4: version 1
+      01 00                                # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00              # 8: 0 imports
+      01 00 00 00 00 00 00 00              # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+      00 00 00 00 00 00 00 00              # 36:   flags
+      00 00 00 00 00 00 00 00              # 44:   no initial state
+      09                                   # 52:   widget call
+      01 00 00 00 00 00 00 00 41           # 53:     name "A"
+      02 00 00 00 00 00 00 00              # 62:     2 arguments
+      01 00 00 00 00 00 00 00 6c           # 70:       key "l"
+      05                                   # 79:       list
+      02 00 00 00 00 00 00 00              # 80:       2 elements
+      02                                   # 88:         integer
+      01 00 00 00 00 00 00 00              # 89:         1
+      04                                   # 97:         string
+      01 00 00 00 00 00 00 00 62           # 98:         string "b"
+      01 00 00 00 00 00 00 00 6d           # 107:       key "m"
+      07                                   # 116:       map
+      01 00 00 00 00 00 00 00              # 117:       1 entry
+      01 00 00 00 00 00 00 00 6b           # 125:         key "k"
+      04                                   # 134:         string
+      01 00 00 00 00 00 00 00 76           # 135:         string "v"
+- name: loop_and_loop_reference
+  requirement: values
+  description: "A loop (08) and a reference to its variable (0C)."
+  encode: library
+  source: |
+    widget root = Column(children: [...for item in args.items: Text(text: item.name)]);
+  expect:
+    hex: |
+      fe 43 52 46                                      # 0: library signature
+      01 00                                            # 4: version 1
+      01 00                                            # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00                          # 8: 0 imports
+      01 00 00 00 00 00 00 00                          # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74              # 24:   name "root"
+      00 00 00 00 00 00 00 00                          # 36:   flags
+      00 00 00 00 00 00 00 00                          # 44:   no initial state
+      09                                               # 52:   widget call
+      06 00 00 00 00 00 00 00 43 6f 6c 75 6d 6e        # 53:     name "Column"
+      01 00 00 00 00 00 00 00                          # 67:     1 argument
+      08 00 00 00 00 00 00 00 63 68 69 6c 64 72 65 6e  # 75:       key "children"
+      05                                               # 91:       list
+      01 00 00 00 00 00 00 00                          # 92:       1 element
+      08                                               # 100:         loop
+      0a                                               # 101:           argsRef
+      01 00 00 00 00 00 00 00                          # 102:             1 part
+      04                                               # 110:               string part
+      05 00 00 00 00 00 00 00 69 74 65 6d 73           # 111:               string "items"
+      09                                               # 124:           widget call
+      04 00 00 00 00 00 00 00 54 65 78 74              # 125:             name "Text"
+      01 00 00 00 00 00 00 00                          # 137:             1 argument
+      04 00 00 00 00 00 00 00 74 65 78 74              # 145:               key "text"
+      0c                                               # 157:               loopRef
+      00 00 00 00 00 00 00 00                          # 158:                 loop 0
+      01 00 00 00 00 00 00 00                          # 166:                 1 part
+      04                                               # 174:                   string part
+      04 00 00 00 00 00 00 00 6e 61 6d 65              # 175:                   string "name"
+- name: args_data_and_state_references
+  requirement: values
+  description: "References with string and integer parts (0A, 0B, 0D)."
+  encode: library
+  source: |
+    widget root { s: 0 } = A(a: args.list.0, d: data.user.name, s: state.s);
+  expect:
+    hex: |
+      fe 43 52 46                          # 0: library signature
+      01 00                                # 4: version 1
+      01 00                                # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00              # 8: 0 imports
+      01 00 00 00 00 00 00 00              # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+      00 00 00 00 00 00 00 00              # 36:   flags
+      01 00 00 00 00 00 00 00              # 44:   initial state: 1 entry
+      01 00 00 00 00 00 00 00 73           # 52:     key "s"
+      02                                   # 61:     integer
+      00 00 00 00 00 00 00 00              # 62:     0
+      09                                   # 70:   widget call
+      01 00 00 00 00 00 00 00 41           # 71:     name "A"
+      03 00 00 00 00 00 00 00              # 80:     3 arguments
+      01 00 00 00 00 00 00 00 61           # 88:       key "a"
+      0a                                   # 97:       argsRef
+      02 00 00 00 00 00 00 00              # 98:         2 parts
+      04                                   # 106:           string part
+      04 00 00 00 00 00 00 00 6c 69 73 74  # 107:           string "list"
+      02                                   # 119:           integer part
+      00 00 00 00 00 00 00 00              # 120:           0
+      01 00 00 00 00 00 00 00 64           # 128:       key "d"
+      0b                                   # 137:       dataRef
+      02 00 00 00 00 00 00 00              # 138:         2 parts
+      04                                   # 146:           string part
+      04 00 00 00 00 00 00 00 75 73 65 72  # 147:           string "user"
+      04                                   # 159:           string part
+      04 00 00 00 00 00 00 00 6e 61 6d 65  # 160:           string "name"
+      01 00 00 00 00 00 00 00 73           # 172:       key "s"
+      0d                                   # 181:       stateRef
+      01 00 00 00 00 00 00 00              # 182:         1 part
+      04                                   # 190:           string part
+      01 00 00 00 00 00 00 00 73           # 191:           string "s"
+- name: event_handler
+  requirement: values
+  description: "An event handler (0E) with arguments."
+  encode: library
+  source: |
+    widget root = Button(onPressed: event "tap" { id: args.id });
+  expect:
+    hex: |
+      fe 43 52 46                                      # 0: library signature
+      01 00                                            # 4: version 1
+      01 00                                            # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00                          # 8: 0 imports
+      01 00 00 00 00 00 00 00                          # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74              # 24:   name "root"
+      00 00 00 00 00 00 00 00                          # 36:   flags
+      00 00 00 00 00 00 00 00                          # 44:   no initial state
+      09                                               # 52:   widget call
+      06 00 00 00 00 00 00 00 42 75 74 74 6f 6e        # 53:     name "Button"
+      01 00 00 00 00 00 00 00                          # 67:     1 argument
+      09 00 00 00 00 00 00 00 6f 6e 50 72 65 73 73 65 64  # 75:       key "onPressed"
+      0e                                               # 92:       event handler
+      03 00 00 00 00 00 00 00 74 61 70                 # 93:         event "tap"
+      01 00 00 00 00 00 00 00                          # 104:         1 argument
+      02 00 00 00 00 00 00 00 69 64                    # 112:           key "id"
+      0a                                               # 122:           argsRef
+      01 00 00 00 00 00 00 00                          # 123:             1 part
+      04                                               # 131:               string part
+      02 00 00 00 00 00 00 00 69 64                    # 132:               string "id"
+- name: switch_value
+  requirement: values
+  description: "A switch (0F) with a default case (10) as a value."
+  encode: library
+  source: |
+    widget root = A(c: switch args.mode { "a": 1, 2: "two", default: 0.5 });
+  expect:
+    hex: |
+      fe 43 52 46                          # 0: library signature
+      01 00                                # 4: version 1
+      01 00                                # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00              # 8: 0 imports
+      01 00 00 00 00 00 00 00              # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+      00 00 00 00 00 00 00 00              # 36:   flags
+      00 00 00 00 00 00 00 00              # 44:   no initial state
+      09                                   # 52:   widget call
+      01 00 00 00 00 00 00 00 41           # 53:     name "A"
+      01 00 00 00 00 00 00 00              # 62:     1 argument
+      01 00 00 00 00 00 00 00 63           # 70:       key "c"
+      0f                                   # 79:       switch
+      0a                                   # 80:         argsRef
+      01 00 00 00 00 00 00 00              # 81:           1 part
+      04                                   # 89:             string part
+      04 00 00 00 00 00 00 00 6d 6f 64 65  # 90:             string "mode"
+      03 00 00 00 00 00 00 00              # 102:         3 cases
+      04                                   # 110:           string
+      01 00 00 00 00 00 00 00 61           # 111:           string "a"
+      02                                   # 120:           integer
+      01 00 00 00 00 00 00 00              # 121:           1
+      02                                   # 129:           integer
+      02 00 00 00 00 00 00 00              # 130:           2
+      04                                   # 138:           string
+      03 00 00 00 00 00 00 00 74 77 6f     # 139:           string "two"
+      10                                   # 150:           default
+      03                                   # 151:           double
+      00 00 00 00 00 00 e0 3f              # 152:           0.5
+- name: state_setter
+  requirement: values
+  description: "A state setter (11) writes the target's parts and the value."
+  encode: library
+  source: |
+    widget root { on: false } = Switch(onChanged: set state.on = true);
+  expect:
+    hex: |
+      fe 43 52 46                                      # 0: library signature
+      01 00                                            # 4: version 1
+      01 00                                            # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00                          # 8: 0 imports
+      01 00 00 00 00 00 00 00                          # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74              # 24:   name "root"
+      00 00 00 00 00 00 00 00                          # 36:   flags
+      01 00 00 00 00 00 00 00                          # 44:   initial state: 1 entry
+      02 00 00 00 00 00 00 00 6f 6e                    # 52:     key "on"
+      00                                               # 62:     false
+      09                                               # 63:   widget call
+      06 00 00 00 00 00 00 00 53 77 69 74 63 68        # 64:     name "Switch"
+      01 00 00 00 00 00 00 00                          # 78:     1 argument
+      09 00 00 00 00 00 00 00 6f 6e 43 68 61 6e 67 65 64  # 86:       key "onChanged"
+      11                                               # 103:       state setter
+      01 00 00 00 00 00 00 00                          # 104:         1 part
+      04                                               # 112:           string part
+      02 00 00 00 00 00 00 00 6f 6e                    # 113:           string "on"
+      01                                               # 123:         true
+- name: widget_builder
+  requirement: values
+  description: "A widget builder (12) and a reference to its argument (13)."
+  encode: library
+  source: |
+    widget root = Builder(builder: (scope) => Text(text: scope.label));
+  expect:
+    hex: |
+      fe 43 52 46                                   # 0: library signature
+      01 00                                         # 4: version 1
+      01 00                                         # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00                       # 8: 0 imports
+      01 00 00 00 00 00 00 00                       # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74           # 24:   name "root"
+      00 00 00 00 00 00 00 00                       # 36:   flags
+      00 00 00 00 00 00 00 00                       # 44:   no initial state
+      09                                            # 52:   widget call
+      07 00 00 00 00 00 00 00 42 75 69 6c 64 65 72  # 53:     name "Builder"
+      01 00 00 00 00 00 00 00                       # 68:     1 argument
+      07 00 00 00 00 00 00 00 62 75 69 6c 64 65 72  # 76:       key "builder"
+      12                                            # 91:       widget builder
+      05 00 00 00 00 00 00 00 73 63 6f 70 65        # 92:         argument "scope"
+      09                                            # 105:         widget call
+      04 00 00 00 00 00 00 00 54 65 78 74           # 106:           name "Text"
+      01 00 00 00 00 00 00 00                       # 118:           1 argument
+      04 00 00 00 00 00 00 00 74 65 78 74           # 126:             key "text"
+      13                                            # 138:             builderArgRef
+      05 00 00 00 00 00 00 00 73 63 6f 70 65        # 139:               argument "scope"
+      01 00 00 00 00 00 00 00                       # 152:               1 part
+      04                                            # 160:                 string part
+      05 00 00 00 00 00 00 00 6c 61 62 65 6c        # 161:                 string "label"
+- name: theme_media_and_symbol_references
+  requirement: values
+  description: "Craft's tags: theme (14), media (15) and symbol (16) references, with a qualified symbol."
+  encode: library
+  source: |
+    widget root = A(t: theme.color.primary, m: media.width, s: scan::Scanner.version);
+  expect:
+    hex: |
+      fe 43 52 46                                      # 0: library signature
+      01 00                                            # 4: version 1
+      01 00                                            # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00                          # 8: 0 imports
+      01 00 00 00 00 00 00 00                          # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74              # 24:   name "root"
+      00 00 00 00 00 00 00 00                          # 36:   flags
+      00 00 00 00 00 00 00 00                          # 44:   no initial state
+      09                                               # 52:   widget call
+      01 00 00 00 00 00 00 00 41                       # 53:     name "A"
+      03 00 00 00 00 00 00 00                          # 62:     3 arguments
+      01 00 00 00 00 00 00 00 74                       # 70:       key "t"
+      14                                               # 79:       themeRef
+      02 00 00 00 00 00 00 00                          # 80:         2 parts
+      04                                               # 88:           string part
+      05 00 00 00 00 00 00 00 63 6f 6c 6f 72           # 89:           string "color"
+      04                                               # 102:           string part
+      07 00 00 00 00 00 00 00 70 72 69 6d 61 72 79     # 103:           string "primary"
+      01 00 00 00 00 00 00 00 6d                       # 118:       key "m"
+      15                                               # 127:       mediaRef
+      01 00 00 00 00 00 00 00                          # 128:         1 part
+      04                                               # 136:           string part
+      05 00 00 00 00 00 00 00 77 69 64 74 68           # 137:           string "width"
+      01 00 00 00 00 00 00 00 73                       # 150:       key "s"
+      16                                               # 159:       symbolRef
+      0d 00 00 00 00 00 00 00 73 63 61 6e 3a 3a 53 63 61 6e 6e 65 72  # 160:         symbol "scan::Scanner"
+      01 00 00 00 00 00 00 00                          # 181:         1 part
+      04                                               # 189:           string part
+      07 00 00 00 00 00 00 00 76 65 72 73 69 6f 6e     # 190:           string "version"
+- name: craft_tags_decode
+  requirement: values
+  description: "Tags 14, 15 and 16 decode to theme, media and symbol references."
+  decode: library
+  hex: |
+    fe 43 52 46                                   # 0: library signature
+    01 00                                         # 4: version 1
+    01 00                                         # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00                       # 8: 1 import
+    01 00 00 00 00 00 00 00                       # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65           # 24:   string "core"
+    01 00 00 00 00 00 00 00                       # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74           # 44:   name "root"
+    00 00 00 00 00 00 00 00                       # 56:   flags 0x0
+    00 00 00 00 00 00 00 00                       # 64:   no initial state
+    09                                            # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74           # 73:     name "Text"
+    01 00 00 00 00 00 00 00                       # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74           # 93:       key "text"
+    05                                            # 105:       list
+    03 00 00 00 00 00 00 00                       # 106:       3 elements
+    14                                            # 114:         themeRef
+    01 00 00 00 00 00 00 00                       # 115:           1 part
+    04                                            # 123:             string part
+    07 00 00 00 00 00 00 00 70 72 69 6d 61 72 79  # 124:             string "primary"
+    15                                            # 139:         mediaRef
+    01 00 00 00 00 00 00 00                       # 140:           1 part
+    02                                            # 148:             integer part
+    07 00 00 00 00 00 00 00                       # 149:             7
+    16                                            # 157:         symbolRef
+    04 00 00 00 00 00 00 00 43 61 72 64           # 158:           symbol "Card"
+    00 00 00 00 00 00 00 00                       # 170:           0 parts
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text:
+                - $: themeRef
+                  parts: [primary]
+                - $: mediaRef
+                  parts: [7]
+                - $: symbolRef
+                  symbol: Card
+                  parts: []
+- name: tag_06_is_rejected
+  requirement: values
+  description: "06 was never assigned; it is not a core tag."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    06                                   # 105:       tag 06
+  expect:
+    error:
+      kind: unknownTag
+      offset: 105
+      tag: 0x06
+      version: 1
+- name: default_tag_outside_a_switch
+  requirement: values
+  description: "10 is accepted only as a switch case key."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    10                                   # 105:       tag 10 outside a switch
+  expect:
+    error:
+      kind: unexpectedTag
+      offset: 105
+      tag: 0x10
+      version: 1
+- name: builder_body_must_be_a_call_or_switch
+  requirement: values
+  description: "A widget builder whose body is a reference is rejected."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    01 00                                   # 4: version 1
+    01 00                                   # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    00 00 00 00 00 00 00 00                 # 56:   flags 0x0
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    12                                      # 105:       widget builder
+    05 00 00 00 00 00 00 00 73 63 6f 70 65  # 106:       argument "scope"
+    0a                                      # 119:       argsRef: not a widget call or switch
+    00 00 00 00 00 00 00 00                 # 120:       0 parts
+  expect:
+    error:
+      kind: unexpectedTag
+      offset: 119
+      tag: 0x0A
+      version: 1
+- name: two_default_cases
+  requirement: values
+  description: "A switch with two default cases is rejected at the second."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    10                                   # 133:       default
+    04                                   # 134:       string
+    01 00 00 00 00 00 00 00 76           # 135:       string "v"
+    10                                   # 144:       default
+    04                                   # 145:       string
+    01 00 00 00 00 00 00 00 76           # 146:       string "v"
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 144
+      version: 1
+- name: integer_and_equal_double_are_repeated_cases
+  requirement: values
+  description: "The keys 1 and 1.0 are equal."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    02                                   # 133:       integer
+    01 00 00 00 00 00 00 00              # 134:       1
+    04                                   # 142:       string
+    01 00 00 00 00 00 00 00 76           # 143:       string "v"
+    03                                   # 152:       double
+    00 00 00 00 00 00 f0 3f              # 153:       1.0
+    04                                   # 161:       string
+    01 00 00 00 00 00 00 00 76           # 162:       string "v"
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 152
+      version: 1
+- name: distinct_case_keys
+  requirement: values
+  description: "Control case: the keys 1 and 2 decode."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    02                                   # 133:       integer
+    01 00 00 00 00 00 00 00              # 134:       1
+    04                                   # 142:       string
+    01 00 00 00 00 00 00 00 76           # 143:       string "v"
+    02                                   # 152:       integer
+    02 00 00 00 00 00 00 00              # 153:       2
+    04                                   # 161:       string
+    01 00 00 00 00 00 00 00 76           # 162:       string "v"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text:
+                $: switch
+                input:
+                  $: argsRef
+                  parts: [k]
+                cases:
+                  - key: {$: int, value: 1}
+                    value: v
+                  - key: {$: int, value: 2}
+                    value: v
+- name: equal_symbol_references_are_repeated_cases
+  requirement: values
+  description: "Two symbol references A.x are equal keys."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    16                                   # 133:       symbolRef
+    01 00 00 00 00 00 00 00 41           # 134:         symbol "A"
+    01 00 00 00 00 00 00 00              # 143:         1 part
+    04                                   # 151:           string part
+    01 00 00 00 00 00 00 00 78           # 152:           string "x"
+    04                                   # 161:       string
+    01 00 00 00 00 00 00 00 76           # 162:       string "v"
+    16                                   # 171:       symbolRef
+    01 00 00 00 00 00 00 00 41           # 172:         symbol "A"
+    01 00 00 00 00 00 00 00              # 181:         1 part
+    04                                   # 189:           string part
+    01 00 00 00 00 00 00 00 78           # 190:           string "x"
+    04                                   # 199:       string
+    01 00 00 00 00 00 00 00 76           # 200:       string "v"
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 171
+      version: 1
+- name: symbol_references_with_integer_and_string_parts_are_distinct
+  requirement: values
+  description: 'Control case: an integer part never equals a string part, so A.1 and A."1" are two cases.'
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    16                                   # 133:       symbolRef
+    01 00 00 00 00 00 00 00 41           # 134:         symbol "A"
+    01 00 00 00 00 00 00 00              # 143:         1 part
+    02                                   # 151:           integer part
+    01 00 00 00 00 00 00 00              # 152:           1
+    04                                   # 160:       string
+    01 00 00 00 00 00 00 00 76           # 161:       string "v"
+    16                                   # 170:       symbolRef
+    01 00 00 00 00 00 00 00 41           # 171:         symbol "A"
+    01 00 00 00 00 00 00 00              # 180:         1 part
+    04                                   # 188:           string part
+    01 00 00 00 00 00 00 00 31           # 189:           string "1"
+    04                                   # 198:       string
+    01 00 00 00 00 00 00 00 76           # 199:       string "v"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text:
+                $: switch
+                input:
+                  $: argsRef
+                  parts: [k]
+                cases:
+                  - key:
+                      $: symbolRef
+                      symbol: A
+                      parts: [1]
+                    value: v
+                  - key:
+                      $: symbolRef
+                      symbol: A
+                      parts: ["1"]
+                    value: v
+- name: equal_args_references_are_distinct_cases
+  requirement: values
+  description: "Control case: two args.x keys are never equal, so both cases stay."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    0a                                   # 133:       argsRef
+    01 00 00 00 00 00 00 00              # 134:         1 part
+    04                                   # 142:           string part
+    01 00 00 00 00 00 00 00 78           # 143:           string "x"
+    04                                   # 152:       string
+    01 00 00 00 00 00 00 00 76           # 153:       string "v"
+    0a                                   # 162:       argsRef
+    01 00 00 00 00 00 00 00              # 163:         1 part
+    04                                   # 171:           string part
+    01 00 00 00 00 00 00 00 78           # 172:           string "x"
+    04                                   # 181:       string
+    01 00 00 00 00 00 00 00 76           # 182:       string "v"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text:
+                $: switch
+                input:
+                  $: argsRef
+                  parts: [k]
+                cases:
+                  - key: &id001
+                      $: argsRef
+                      parts: [x]
+                    value: v
+                  - key: *id001
+                    value: v
+- name: equal_strings_are_repeated_cases
+  requirement: values
+  description: 'Two string keys "a" are equal.'
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    04                                   # 133:       string
+    01 00 00 00 00 00 00 00 61           # 134:       string "a"
+    04                                   # 143:       string
+    01 00 00 00 00 00 00 00 76           # 144:       string "v"
+    04                                   # 153:       string
+    01 00 00 00 00 00 00 00 61           # 154:       string "a"
+    04                                   # 163:       string
+    01 00 00 00 00 00 00 00 76           # 164:       string "v"
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 153
+      version: 1
+- name: equal_booleans_are_repeated_cases
+  requirement: values
+  description: "Two keys true are equal."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    01                                   # 133:       true
+    04                                   # 134:       string
+    01 00 00 00 00 00 00 00 76           # 135:       string "v"
+    01                                   # 144:       true
+    04                                   # 145:       string
+    01 00 00 00 00 00 00 00 76           # 146:       string "v"
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 144
+      version: 1
+- name: zero_and_negative_zero_are_repeated_cases
+  requirement: values
+  description: "The double keys 0.0 and -0.0 compare equal."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    03                                   # 133:       double
+    00 00 00 00 00 00 00 00              # 134:       0.0
+    04                                   # 142:       string
+    01 00 00 00 00 00 00 00 76           # 143:       string "v"
+    03                                   # 152:       double
+    00 00 00 00 00 00 00 80              # 153:       -0.0
+    04                                   # 161:       string
+    01 00 00 00 00 00 00 00 76           # 162:       string "v"
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 152
+      version: 1
+- name: integer_and_inexact_double_are_distinct_cases
+  requirement: values
+  description: "Control case: the double 2^53 is not exactly the integer 2^53+1 (although 2^53+1 rounds to it), so both cases stay."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    02                                   # 133:       integer
+    01 00 00 00 00 00 20 00              # 134:       9007199254740993
+    04                                   # 142:       string
+    01 00 00 00 00 00 00 00 76           # 143:       string "v"
+    03                                   # 152:       double
+    00 00 00 00 00 00 40 43              # 153:       9007199254740992.0
+    04                                   # 161:       string
+    01 00 00 00 00 00 00 00 76           # 162:       string "v"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text:
+                $: switch
+                input:
+                  $: argsRef
+                  parts: [k]
+                cases:
+                  - key: {$: int, value: 9007199254740993}
+                    value: v
+                  - key: {$: double, value: 9007199254740992.0}
+                    value: v
+- name: large_integer_and_exact_double_are_repeated_cases
+  requirement: values
+  description: "The double 2^53 is exactly the integer 2^53."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    02                                   # 133:       integer
+    00 00 00 00 00 00 20 00              # 134:       9007199254740992
+    04                                   # 142:       string
+    01 00 00 00 00 00 00 00 76           # 143:       string "v"
+    03                                   # 152:       double
+    00 00 00 00 00 00 40 43              # 153:       9007199254740992.0
+    04                                   # 161:       string
+    01 00 00 00 00 00 00 00 76           # 162:       string "v"
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 152
+      version: 1
+- name: distinct_large_integers
+  requirement: values
+  description: "Control case: the integers 2^53+1 and 2^53 are distinct."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    02                                   # 133:       integer
+    01 00 00 00 00 00 20 00              # 134:       9007199254740993
+    04                                   # 142:       string
+    01 00 00 00 00 00 00 00 76           # 143:       string "v"
+    02                                   # 152:       integer
+    00 00 00 00 00 00 20 00              # 153:       9007199254740992
+    04                                   # 161:       string
+    01 00 00 00 00 00 00 00 76           # 162:       string "v"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text:
+                $: switch
+                input:
+                  $: argsRef
+                  parts: [k]
+                cases:
+                  - key: {$: int, value: 9007199254740993}
+                    value: v
+                  - key: {$: int, value: 9007199254740992}
+                    value: v
+- name: nan_keys_are_distinct
+  requirement: values
+  description: "NaN equals nothing, so two NaN keys are distinct; the repeated key 1 after them is reported."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    04 00 00 00 00 00 00 00              # 125:       4 cases
+    03                                   # 133:       double
+    00 00 00 00 00 00 f8 7f              # 134:       NaN
+    04                                   # 142:       string
+    01 00 00 00 00 00 00 00 76           # 143:       string "v"
+    03                                   # 152:       double
+    00 00 00 00 00 00 f8 7f              # 153:       NaN
+    04                                   # 161:       string
+    01 00 00 00 00 00 00 00 76           # 162:       string "v"
+    02                                   # 171:       integer
+    01 00 00 00 00 00 00 00              # 172:       1
+    04                                   # 180:       string
+    01 00 00 00 00 00 00 00 76           # 181:       string "v"
+    02                                   # 190:       integer
+    01 00 00 00 00 00 00 00              # 191:       1
+    04                                   # 199:       string
+    01 00 00 00 00 00 00 00 76           # 200:       string "v"
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 190
+      version: 1
+- name: equal_lists_are_distinct_cases
+  requirement: values
+  description: "Lists are never equal keys, so two [1] keys are distinct; the repeated key 1 after them is reported."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    04 00 00 00 00 00 00 00              # 125:       4 cases
+    05                                   # 133:       list
+    01 00 00 00 00 00 00 00              # 134:       1 element
+    02                                   # 142:         integer
+    01 00 00 00 00 00 00 00              # 143:         1
+    04                                   # 151:       string
+    01 00 00 00 00 00 00 00 76           # 152:       string "v"
+    05                                   # 161:       list
+    01 00 00 00 00 00 00 00              # 162:       1 element
+    02                                   # 170:         integer
+    01 00 00 00 00 00 00 00              # 171:         1
+    04                                   # 179:       string
+    01 00 00 00 00 00 00 00 76           # 180:       string "v"
+    02                                   # 189:       integer
+    01 00 00 00 00 00 00 00              # 190:       1
+    04                                   # 198:       string
+    01 00 00 00 00 00 00 00 76           # 199:       string "v"
+    02                                   # 208:       integer
+    01 00 00 00 00 00 00 00              # 209:       1
+    04                                   # 217:       string
+    01 00 00 00 00 00 00 00 76           # 218:       string "v"
+  expect:
+    error:
+      kind: duplicateKey
+      offset: 208
+      version: 1
+- name: loop_index_is_not_validated
+  requirement: values
+  description: "A loop reference decodes whatever its index, here -5 outside any loop."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0c                                   # 105:       loopRef
+    fb ff ff ff ff ff ff ff              # 106:       loop -5, outside any loop
+    00 00 00 00 00 00 00 00              # 114:       0 parts
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text:
+                $: loopRef
+                loop: -5
+                parts: []
+- name: data_file
+  requirement: data_values_and_data_blobs
+  description: "A data file's map, encoded as a data blob."
+  encode: data
+  source: |
+    { name: "Ada", tags: ["a", 1, 2.5, true], nested: { ok: false } }
+  expect:
+    hex: |
+      fe 43 52 44                                # 0: data signature
+      01 00                                      # 4: version 1
+      01 00                                      # 6: minimum reader version 1
+      07                                         # 8: map
+      03 00 00 00 00 00 00 00                    # 9: 3 entries
+      04 00 00 00 00 00 00 00 6e 61 6d 65        # 17:   key "name"
+      04                                         # 29:   string
+      03 00 00 00 00 00 00 00 41 64 61           # 30:   string "Ada"
+      04 00 00 00 00 00 00 00 74 61 67 73        # 41:   key "tags"
+      05                                         # 53:   list
+      04 00 00 00 00 00 00 00                    # 54:   4 elements
+      04                                         # 62:     string
+      01 00 00 00 00 00 00 00 61                 # 63:     string "a"
+      02                                         # 72:     integer
+      01 00 00 00 00 00 00 00                    # 73:     1
+      03                                         # 81:     double
+      00 00 00 00 00 00 04 40                    # 82:     2.5
+      01                                         # 90:     true
+      06 00 00 00 00 00 00 00 6e 65 73 74 65 64  # 91:   key "nested"
+      07                                         # 105:   map
+      01 00 00 00 00 00 00 00                    # 106:   1 entry
+      02 00 00 00 00 00 00 00 6f 6b              # 114:     key "ok"
+      00                                         # 124:     false
+- name: library_tag_in_a_data_blob
+  requirement: data_values_and_data_blobs
+  description: "A widget call is not a data value."
+  decode: data
+  hex: |
+    fe 43 52 44                          # 0: data signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    09                                   # 8: widget call: not a data value
+    04 00 00 00 00 00 00 00 54 65 78 74  # 9: name "Text"
+    00 00 00 00 00 00 00 00              # 21: 0 arguments
+  expect:
+    error:
+      kind: unexpectedTag
+      offset: 8
+      tag: 0x09
+      version: 1
+- name: extension_values_are_left_out_of_data
+  requirement: data_values_and_data_blobs
+  description: "Skipped extension values are removed from data maps and lists."
+  decode: data
+  hex: |
+    fe 43 52 44                 # 0: data signature
+    01 00                       # 4: version 1
+    01 00                       # 6: minimum reader version 1
+    07                          # 8: map
+    02 00 00 00 00 00 00 00     # 9: 2 entries
+    01 00 00 00 00 00 00 00 61  # 17:   key "a"
+    80                          # 26:   extension tag 0x80
+    01 00 00 00 00 00 00 00     # 27:   payload length 1
+    09                          # 35:   payload
+    01 00 00 00 00 00 00 00 62  # 36:   key "b"
+    05                          # 45:   list
+    02 00 00 00 00 00 00 00     # 46:   2 elements
+    81                          # 54:     extension tag 0x81
+    00 00 00 00 00 00 00 00     # 55:     payload length 0
+    02                          # 63:     integer
+    01 00 00 00 00 00 00 00     # 64:     1
+  expect:
+    data:
+      b:
+        - {$: int, value: 1}
+- name: extension_as_data_root
+  requirement: data_values_and_data_blobs
+  description: "Nothing is left of a root that is skipped."
+  decode: data
+  hex: |
+    fe 43 52 44              # 0: data signature
+    01 00                    # 4: version 1
+    01 00                    # 6: minimum reader version 1
+    80                       # 8: extension tag 0x80
+    00 00 00 00 00 00 00 00  # 9: payload length 0
+  expect:
+    error:
+      kind: unexpectedTag
+      offset: 8
+      tag: 0x80
+      version: 1
+- name: initial_state_drops_extension_values
+  requirement: data_values_and_data_blobs
+  description: "An initial state entry whose value is a skipped extension value is left out."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    00 00 00 00 00 00 00 00              # 8: 0 imports
+    01 00 00 00 00 00 00 00              # 16: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+    00 00 00 00 00 00 00 00              # 36:   flags 0x0
+    02 00 00 00 00 00 00 00              # 44:   initial state: 2 entries
+    01 00 00 00 00 00 00 00 61           # 52:     key "a"
+    80                                   # 61:     extension tag 0x80
+    00 00 00 00 00 00 00 00              # 62:     payload length 0
+    01 00 00 00 00 00 00 00 62           # 70:     key "b"
+    01                                   # 79:     true
+    09                                   # 80:   root: widget call
+    01 00 00 00 00 00 00 00 41           # 81:     name "A"
+    00 00 00 00 00 00 00 00              # 90:     0 arguments
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          state: {b: true}
+          root:
+            $: call
+            name: A
+            args: {}
+- name: initial_state_of_only_extension_values_is_empty
+  requirement: data_values_and_data_blobs
+  description: "An initial state whose entries are all skipped is empty, not absent."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    00 00 00 00 00 00 00 00              # 8: 0 imports
+    01 00 00 00 00 00 00 00              # 16: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+    00 00 00 00 00 00 00 00              # 36:   flags 0x0
+    01 00 00 00 00 00 00 00              # 44:   initial state: 1 entry
+    01 00 00 00 00 00 00 00 61           # 52:     key "a"
+    80                                   # 61:     extension tag 0x80
+    00 00 00 00 00 00 00 00              # 62:     payload length 0
+    09                                   # 70:   root: widget call
+    01 00 00 00 00 00 00 00 41           # 71:     name "A"
+    00 00 00 00 00 00 00 00              # 80:     0 arguments
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          state: {}
+          root:
+            $: call
+            name: A
+            args: {}
+- name: extension_as_builder_body
+  requirement: tag_ranges_and_extensions
+  description: "A widget builder body is a widget call or a switch; an extension value is not skipped there."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    01 00                                   # 4: version 1
+    01 00                                   # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    00 00 00 00 00 00 00 00                 # 56:   flags 0x0
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    12                                      # 105:       widget builder
+    05 00 00 00 00 00 00 00 73 63 6f 70 65  # 106:       argument "scope"
+    80                                      # 119:       extension tag 0x80
+    00 00 00 00 00 00 00 00                 # 120:       payload length 0
+  expect:
+    error:
+      kind: unexpectedTag
+      offset: 119
+      tag: 0x80
+      version: 1
+- name: extension_skipped_as_an_argument
+  requirement: tag_ranges_and_extensions
+  description: "Extension tag 80 with a 3-byte payload as an argument decodes as missing."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    80                                   # 105:       extension tag 0x80
+    03 00 00 00 00 00 00 00              # 106:       payload length 3
+    01 02 03                             # 114:       payload
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text: {$: missing}
+- name: extension_skipped_in_a_list
+  requirement: tag_ranges_and_extensions
+  description: "Extension tag EF (the last) as a list element stays in place as missing."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    05                                   # 105:       list
+    02 00 00 00 00 00 00 00              # 106:       2 elements
+    ef                                   # 114:       extension tag 0xef
+    00 00 00 00 00 00 00 00              # 115:       payload length 0
+    04                                   # 123:       string
+    01 00 00 00 00 00 00 00 61           # 124:       string "a"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text:
+                - {$: missing}
+                - a
+- name: extension_switch_key_removes_the_case
+  requirement: tag_ranges_and_extensions
+  description: "A case keyed by an extension value can never match and is removed."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0f                                   # 105:       switch
+    0a                                   # 106:       input: argsRef
+    01 00 00 00 00 00 00 00              # 107:       1 part
+    04                                   # 115:       string part
+    01 00 00 00 00 00 00 00 6b           # 116:       string "k"
+    02 00 00 00 00 00 00 00              # 125:       2 cases
+    90                                   # 133:       extension tag 0x90
+    01 00 00 00 00 00 00 00              # 134:       payload length 1
+    aa                                   # 142:       payload
+    04                                   # 143:       string
+    01 00 00 00 00 00 00 00 78           # 144:       string "x"
+    10                                   # 153:       default
+    04                                   # 154:       string
+    01 00 00 00 00 00 00 00 64           # 155:       string "d"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text:
+                $: switch
+                input:
+                  $: argsRef
+                  parts: [k]
+                cases:
+                  - {default: true, value: d}
+- name: first_future_core_tag_is_rejected
+  requirement: tag_ranges_and_extensions
+  description: "17, the first future core tag."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    17                                   # 105:       tag 17
+  expect:
+    error:
+      kind: unknownTag
+      offset: 105
+      tag: 0x17
+      version: 1
+- name: last_future_core_tag_is_rejected
+  requirement: tag_ranges_and_extensions
+  description: "7F, the last future core tag."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    7f                                   # 105:       tag 7f
+  expect:
+    error:
+      kind: unknownTag
+      offset: 105
+      tag: 0x7F
+      version: 1
+- name: first_reserved_tag_is_rejected
+  requirement: tag_ranges_and_extensions
+  description: "F0, the first reserved tag."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    f0                                   # 105:       tag f0
+  expect:
+    error:
+      kind: unknownTag
+      offset: 105
+      tag: 0xF0
+      version: 1
+- name: last_reserved_tag_is_rejected
+  requirement: tag_ranges_and_extensions
+  description: "FF, the last reserved tag."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    ff                                   # 105:       tag ff
+  expect:
+    error:
+      kind: unknownTag
+      offset: 105
+      tag: 0xFF
+      version: 1
+- name: extension_as_a_reference_part
+  requirement: tag_ranges_and_extensions
+  description: "Parts are integers or strings; an extension value is not skipped there."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    0a                                   # 105:       argsRef
+    01 00 00 00 00 00 00 00              # 106:       1 part
+    80                                   # 114:       extension tag 0x80
+    00 00 00 00 00 00 00 00              # 115:       payload length 0
+  expect:
+    error:
+      kind: unexpectedTag
+      offset: 114
+      tag: 0x80
+      version: 1
+- name: rfw_library
+  requirement: rfw_blobs
+  description: "The RFW library signature: no header and no flags."
+  decode: library
+  hex: |
+    fe 52 46 57                             # 0: RFW library signature (version 0, no header)
+    01 00 00 00 00 00 00 00                 # 4: 1 import
+    01 00 00 00 00 00 00 00                 # 12:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 20:   string "core"
+    01 00 00 00 00 00 00 00                 # 32: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 40:   name "root"
+    00 00 00 00 00 00 00 00                 # 52:   no initial state
+    09                                      # 60:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 61:     name "Text"
+    01 00 00 00 00 00 00 00                 # 73:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 81:       key "text"
+    04                                      # 93:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 94:       string "Hello"
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args: {text: Hello}
+- name: rfw_data
+  requirement: rfw_blobs
+  description: "The RFW data signature: no header."
+  decode: data
+  hex: |
+    fe 52 57 44                 # 0: RFW data signature (version 0, no header)
+    07                          # 4: map
+    02 00 00 00 00 00 00 00     # 5: 2 entries
+    01 00 00 00 00 00 00 00 61  # 13:   key "a"
+    02                          # 22:   integer
+    01 00 00 00 00 00 00 00     # 23:   1
+    01 00 00 00 00 00 00 00 62  # 31:   key "b"
+    05                          # 40:   list
+    03 00 00 00 00 00 00 00     # 41:   3 elements
+    01                          # 49:     true
+    03                          # 50:     double
+    00 00 00 00 00 00 04 40     # 51:     2.5
+    04                          # 59:     string
+    01 00 00 00 00 00 00 00 78  # 60:     string "x"
+  expect:
+    data:
+      a: {$: int, value: 1}
+      b:
+        - true
+        - {$: double, value: 2.5}
+        - x
+- name: extension_tag_in_version_0
+  requirement: rfw_blobs
+  description: "Version 0 has no extension tags."
+  decode: library
+  hex: |
+    fe 52 46 57                          # 0: RFW library signature (version 0, no header)
+    01 00 00 00 00 00 00 00              # 4: 1 import
+    01 00 00 00 00 00 00 00              # 12:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 20:   string "core"
+    01 00 00 00 00 00 00 00              # 32: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 40:   name "root"
+    00 00 00 00 00 00 00 00              # 52:   no initial state
+    09                                   # 60:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 61:     name "Text"
+    01 00 00 00 00 00 00 00              # 73:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 81:       key "text"
+    80                                   # 93:       extension tag 0x80
+    01 00 00 00 00 00 00 00              # 94:       payload length 1
+    01                                   # 102:       payload
+  expect:
+    error:
+      kind: unknownTag
+      offset: 93
+      tag: 0x80
+      version: 0
+- name: minimal_rfw_golden
+  requirement: rfw_blobs
+  description: "The minimal library as Craft wrote it under the RFW signature before the version header (so not exported), including Craft tags; it decodes to the source."
+  decode: library
+  hex: |
+    fe 52 46 57 01 00 00 00 00 00 00 00 01 00 00 00
+    00 00 00 00 04 00 00 00 00 00 00 00 63 6f 72 65
+    01 00 00 00 00 00 00 00 04 00 00 00 00 00 00 00
+    72 6f 6f 74 00 00 00 00 00 00 00 00 09 04 00 00
+    00 00 00 00 00 54 65 78 74 01 00 00 00 00 00 00
+    00 04 00 00 00 00 00 00 00 74 65 78 74 04 05 00
+    00 00 00 00 00 00 48 65 6c 6c 6f
+  expect:
+    source: |
+      import core;
+
+      widget root = Text(text: "Hello");
+- name: all_nodes_rfw_golden
+  requirement: rfw_blobs
+  description: "The all-nodes library as Craft wrote it under the RFW signature before the version header (so not exported), including Craft tags; it decodes to the source."
+  decode: library
+  hex: |
+    fe 52 46 57 02 00 00 00 00 00 00 00 01 00 00 00
+    00 00 00 00 04 00 00 00 00 00 00 00 63 6f 72 65
+    02 00 00 00 00 00 00 00 05 00 00 00 00 00 00 00
+    6c 6f 63 61 6c 07 00 00 00 00 00 00 00 77 69 64
+    67 65 74 73 02 00 00 00 00 00 00 00 07 00 00 00
+    00 00 00 00 43 6f 75 6e 74 65 72 03 00 00 00 00
+    00 00 00 01 00 00 00 00 00 00 00 6e 02 01 00 00
+    00 00 00 00 00 05 00 00 00 00 00 00 00 6c 61 62
+    65 6c 04 01 00 00 00 00 00 00 00 78 05 00 00 00
+    00 00 00 00 69 74 65 6d 73 05 04 00 00 00 00 00
+    00 00 02 01 00 00 00 00 00 00 00 03 00 00 00 00
+    00 00 04 40 01 04 01 00 00 00 00 00 00 00 73 09
+    06 00 00 00 00 00 00 00 43 6f 6c 75 6d 6e 02 00
+    00 00 00 00 00 00 03 00 00 00 00 00 00 00 6b 65
+    79 04 04 00 00 00 00 00 00 00 72 6f 6f 74 08 00
+    00 00 00 00 00 00 63 68 69 6c 64 72 65 6e 05 0d
+    00 00 00 00 00 00 00 09 04 00 00 00 00 00 00 00
+    54 65 78 74 01 00 00 00 00 00 00 00 04 00 00 00
+    00 00 00 00 74 65 78 74 0d 01 00 00 00 00 00 00
+    00 04 01 00 00 00 00 00 00 00 6e 09 04 00 00 00
+    00 00 00 00 54 65 78 74 01 00 00 00 00 00 00 00
+    04 00 00 00 00 00 00 00 74 65 78 74 0a 02 00 00
+    00 00 00 00 00 04 05 00 00 00 00 00 00 00 74 69
+    74 6c 65 04 04 00 00 00 00 00 00 00 74 65 78 74
+    09 04 00 00 00 00 00 00 00 54 65 78 74 01 00 00
+    00 00 00 00 00 04 00 00 00 00 00 00 00 74 65 78
+    74 0b 03 00 00 00 00 00 00 00 04 04 00 00 00 00
+    00 00 00 75 73 65 72 02 00 00 00 00 00 00 00 00
+    04 04 00 00 00 00 00 00 00 6e 61 6d 65 09 04 00
+    00 00 00 00 00 00 54 65 78 74 01 00 00 00 00 00
+    00 00 04 00 00 00 00 00 00 00 74 65 78 74 14 02
+    00 00 00 00 00 00 00 04 05 00 00 00 00 00 00 00
+    63 6f 6c 6f 72 04 07 00 00 00 00 00 00 00 70 72
+    69 6d 61 72 79 09 04 00 00 00 00 00 00 00 54 65
+    78 74 01 00 00 00 00 00 00 00 04 00 00 00 00 00
+    00 00 74 65 78 74 15 01 00 00 00 00 00 00 00 04
+    05 00 00 00 00 00 00 00 77 69 64 74 68 09 04 00
+    00 00 00 00 00 00 54 65 78 74 01 00 00 00 00 00
+    00 00 04 00 00 00 00 00 00 00 74 65 78 74 16 07
+    00 00 00 00 00 00 00 53 63 61 6e 6e 65 72 02 00
+    00 00 00 00 00 00 04 0c 00 00 00 00 00 00 00 63
+    61 70 61 62 69 6c 69 74 69 65 73 04 07 00 00 00
+    00 00 00 00 66 6f 72 6d 61 74 73 09 04 00 00 00
+    00 00 00 00 54 65 78 74 01 00 00 00 00 00 00 00
+    04 00 00 00 00 00 00 00 74 65 78 74 09 03 00 00
+    00 00 00 00 00 61 64 64 02 00 00 00 00 00 00 00
+    01 00 00 00 00 00 00 00 61 0d 01 00 00 00 00 00
+    00 00 04 01 00 00 00 00 00 00 00 6e 01 00 00 00
+    00 00 00 00 62 02 01 00 00 00 00 00 00 00 08 0a
+    01 00 00 00 00 00 00 00 04 05 00 00 00 00 00 00
+    00 69 74 65 6d 73 09 04 00 00 00 00 00 00 00 54
+    65 78 74 01 00 00 00 00 00 00 00 04 00 00 00 00
+    00 00 00 74 65 78 74 0c 00 00 00 00 00 00 00 00
+    01 00 00 00 00 00 00 00 04 04 00 00 00 00 00 00
+    00 6e 61 6d 65 09 06 00 00 00 00 00 00 00 42 75
+    74 74 6f 6e 02 00 00 00 00 00 00 00 09 00 00 00
+    00 00 00 00 6f 6e 50 72 65 73 73 65 64 11 01 00
+    00 00 00 00 00 00 04 01 00 00 00 00 00 00 00 6e
+    09 03 00 00 00 00 00 00 00 61 64 64 02 00 00 00
+    00 00 00 00 01 00 00 00 00 00 00 00 61 0d 01 00
+    00 00 00 00 00 00 04 01 00 00 00 00 00 00 00 6e
+    01 00 00 00 00 00 00 00 62 02 01 00 00 00 00 00
+    00 00 05 00 00 00 00 00 00 00 63 68 69 6c 64 09
+    04 00 00 00 00 00 00 00 54 65 78 74 01 00 00 00
+    00 00 00 00 04 00 00 00 00 00 00 00 74 65 78 74
+    04 01 00 00 00 00 00 00 00 2b 09 06 00 00 00 00
+    00 00 00 42 75 74 74 6f 6e 02 00 00 00 00 00 00
+    00 09 00 00 00 00 00 00 00 6f 6e 50 72 65 73 73
+    65 64 0e 03 00 00 00 00 00 00 00 74 61 70 02 00
+    00 00 00 00 00 00 02 00 00 00 00 00 00 00 69 64
+    0a 01 00 00 00 00 00 00 00 04 02 00 00 00 00 00
+    00 00 69 64 01 00 00 00 00 00 00 00 6e 02 03 00
+    00 00 00 00 00 00 05 00 00 00 00 00 00 00 63 68
+    69 6c 64 09 04 00 00 00 00 00 00 00 54 65 78 74
+    01 00 00 00 00 00 00 00 04 00 00 00 00 00 00 00
+    74 65 78 74 04 01 00 00 00 00 00 00 00 65 09 06
+    00 00 00 00 00 00 00 42 75 74 74 6f 6e 02 00 00
+    00 00 00 00 00 09 00 00 00 00 00 00 00 6f 6e 50
+    72 65 73 73 65 64 05 02 00 00 00 00 00 00 00 11
+    01 00 00 00 00 00 00 00 04 01 00 00 00 00 00 00
+    00 6e 02 00 00 00 00 00 00 00 00 0a 01 00 00 00
+    00 00 00 00 04 07 00 00 00 00 00 00 00 6f 6e 52
+    65 73 65 74 05 00 00 00 00 00 00 00 63 68 69 6c
+    64 09 04 00 00 00 00 00 00 00 54 65 78 74 01 00
+    00 00 00 00 00 00 04 00 00 00 00 00 00 00 74 65
+    78 74 04 01 00 00 00 00 00 00 00 72 0f 0a 01 00
+    00 00 00 00 00 00 04 04 00 00 00 00 00 00 00 6d
+    6f 64 65 03 00 00 00 00 00 00 00 04 01 00 00 00
+    00 00 00 00 61 09 04 00 00 00 00 00 00 00 54 65
+    78 74 01 00 00 00 00 00 00 00 04 00 00 00 00 00
+    00 00 74 65 78 74 04 01 00 00 00 00 00 00 00 41
+    02 01 00 00 00 00 00 00 00 09 04 00 00 00 00 00
+    00 00 54 65 78 74 01 00 00 00 00 00 00 00 04 00
+    00 00 00 00 00 00 74 65 78 74 04 03 00 00 00 00
+    00 00 00 6f 6e 65 10 09 04 00 00 00 00 00 00 00
+    54 65 78 74 01 00 00 00 00 00 00 00 04 00 00 00
+    00 00 00 00 74 65 78 74 04 05 00 00 00 00 00 00
+    00 6f 74 68 65 72 09 07 00 00 00 00 00 00 00 42
+    75 69 6c 64 65 72 01 00 00 00 00 00 00 00 07 00
+    00 00 00 00 00 00 62 75 69 6c 64 65 72 12 05 00
+    00 00 00 00 00 00 73 63 6f 70 65 09 04 00 00 00
+    00 00 00 00 54 65 78 74 01 00 00 00 00 00 00 00
+    04 00 00 00 00 00 00 00 74 65 78 74 13 05 00 00
+    00 00 00 00 00 73 63 6f 70 65 01 00 00 00 00 00
+    00 00 04 05 00 00 00 00 00 00 00 76 61 6c 75 65
+    05 00 00 00 00 00 00 00 50 6c 61 69 6e 00 00 00
+    00 00 00 00 00 0f 0b 01 00 00 00 00 00 00 00 04
+    04 00 00 00 00 00 00 00 66 6c 61 67 02 00 00 00
+    00 00 00 00 01 09 04 00 00 00 00 00 00 00 54 65
+    78 74 01 00 00 00 00 00 00 00 04 00 00 00 00 00
+    00 00 74 65 78 74 04 01 00 00 00 00 00 00 00 74
+    10 09 04 00 00 00 00 00 00 00 54 65 78 74 01 00
+    00 00 00 00 00 00 04 00 00 00 00 00 00 00 74 65
+    78 74 04 01 00 00 00 00 00 00 00 66
+  expect:
+    source: |
+      import core;
+      import local.widgets;
+
+      widget Counter { n: 1, label: "x", items: [1, 2.5, true, "s"] } = Column(
+        key: "root",
+        children: [
+          Text(text: state.n),
+          Text(text: args.title.text),
+          Text(text: data.user.0.name),
+          Text(text: theme.color.primary),
+          Text(text: media.width),
+          Text(text: Scanner.capabilities.formats),
+          Text(text: add(a: state.n, b: 1)),
+          ...for item in args.items: Text(text: item.name),
+          Button(onPressed: set state.n = add(a: state.n, b: 1), child: Text(text: "+")),
+          Button(onPressed: event "tap" { id: args.id, n: 3 }, child: Text(text: "e")),
+          Button(onPressed: [set state.n = 0, args.onReset], child: Text(text: "r")),
+          switch args.mode {
+            "a": Text(text: "A"),
+            1: Text(text: "one"),
+            default: Text(text: "other"),
+          },
+          Builder(builder: (scope) => Text(text: scope.value)),
+        ],
+      );
+
+      widget Plain = switch data.flag { true: Text(text: "t"), default: Text(text: "f") };
+- name: unpaired_surrogate_is_rejected
+  requirement: encoders
+  description: "A string with an unpaired surrogate (here from a \\u escape) has no UTF-8 encoding."
+  encode: library
+  source: |
+    widget root = Text(text: "\uD800");
+  expect:
+    error: {}
+- name: minimal_library_golden
+  requirement: encoders
+  description: "The minimal library golden."
+  encode: library
+  source: |
+    import core;
+
+    widget root = Text(text: "Hello");
+  expect:
+    hex: |
+      fe 43 52 46                             # 0: library signature
+      01 00                                   # 4: version 1
+      01 00                                   # 6: minimum reader version 1
+      01 00 00 00 00 00 00 00                 # 8: 1 import
+      01 00 00 00 00 00 00 00                 # 16:   1 name part
+      04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+      01 00 00 00 00 00 00 00                 # 36: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+      00 00 00 00 00 00 00 00                 # 56:   flags
+      00 00 00 00 00 00 00 00                 # 64:   no initial state
+      09                                      # 72:   widget call
+      04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+      01 00 00 00 00 00 00 00                 # 85:     1 argument
+      04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+      04                                      # 105:       string
+      05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 106:       string "Hello"
+- name: all_nodes_golden
+  requirement: encoders
+  description: "A library that uses every node kind the text format produces, Craft's references and export."
+  encode: library
+  source: |
+    import core;
+    import local.widgets;
+
+    export widget Counter { n: 1, label: "x", items: [1, 2.5, true, "s"] } = Column(
+      key: "root",
+      children: [
+        Text(text: state.n),
+        Text(text: args.title.text),
+        Text(text: data.user.0.name),
+        Text(text: theme.color.primary),
+        Text(text: media.width),
+        Text(text: Scanner.capabilities.formats),
+        Text(text: add(a: state.n, b: 1)),
+        ...for item in args.items: Text(text: item.name),
+        Button(onPressed: set state.n = add(a: state.n, b: 1), child: Text(text: "+")),
+        Button(onPressed: event "tap" { id: args.id, n: 3 }, child: Text(text: "e")),
+        Button(onPressed: [set state.n = 0, args.onReset], child: Text(text: "r")),
+        switch args.mode {
+          "a": Text(text: "A"),
+          1: Text(text: "one"),
+          default: Text(text: "other"),
+        },
+        Builder(builder: (scope) => Text(text: scope.value)),
+      ],
+    );
+
+    widget Plain = switch data.flag { true: Text(text: "t"), default: Text(text: "f") };
+  expect:
+    hex: |
+      fe 43 52 46
+      01 00
+      01 00
+      02 00 00 00 00 00 00 00
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 63 6f 72 65
+      02 00 00 00 00 00 00 00
+      05 00 00 00 00 00 00 00 6c 6f 63 61 6c
+      07 00 00 00 00 00 00 00 77 69 64 67 65 74 73
+      02 00 00 00 00 00 00 00
+      07 00 00 00 00 00 00 00 43 6f 75 6e 74 65 72
+      01 00 00 00 00 00 00 00
+      03 00 00 00 00 00 00 00
+      01 00 00 00 00 00 00 00 6e
+      02
+      01 00 00 00 00 00 00 00
+      05 00 00 00 00 00 00 00 6c 61 62 65 6c
+      04
+      01 00 00 00 00 00 00 00 78
+      05 00 00 00 00 00 00 00 69 74 65 6d 73
+      05
+      04 00 00 00 00 00 00 00
+      02
+      01 00 00 00 00 00 00 00
+      03
+      00 00 00 00 00 00 04 40
+      01
+      04
+      01 00 00 00 00 00 00 00 73
+      09
+      06 00 00 00 00 00 00 00 43 6f 6c 75 6d 6e
+      02 00 00 00 00 00 00 00
+      03 00 00 00 00 00 00 00 6b 65 79
+      04
+      04 00 00 00 00 00 00 00 72 6f 6f 74
+      08 00 00 00 00 00 00 00 63 68 69 6c 64 72 65 6e
+      05
+      0d 00 00 00 00 00 00 00
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      0d
+      01 00 00 00 00 00 00 00
+      04
+      01 00 00 00 00 00 00 00 6e
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      0a
+      02 00 00 00 00 00 00 00
+      04
+      05 00 00 00 00 00 00 00 74 69 74 6c 65
+      04
+      04 00 00 00 00 00 00 00 74 65 78 74
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      0b
+      03 00 00 00 00 00 00 00
+      04
+      04 00 00 00 00 00 00 00 75 73 65 72
+      02
+      00 00 00 00 00 00 00 00
+      04
+      04 00 00 00 00 00 00 00 6e 61 6d 65
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      14
+      02 00 00 00 00 00 00 00
+      04
+      05 00 00 00 00 00 00 00 63 6f 6c 6f 72
+      04
+      07 00 00 00 00 00 00 00 70 72 69 6d 61 72 79
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      15
+      01 00 00 00 00 00 00 00
+      04
+      05 00 00 00 00 00 00 00 77 69 64 74 68
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      16
+      07 00 00 00 00 00 00 00 53 63 61 6e 6e 65 72
+      02 00 00 00 00 00 00 00
+      04
+      0c 00 00 00 00 00 00 00 63 61 70 61 62 69 6c 69 74 69 65 73
+      04
+      07 00 00 00 00 00 00 00 66 6f 72 6d 61 74 73
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      09
+      03 00 00 00 00 00 00 00 61 64 64
+      02 00 00 00 00 00 00 00
+      01 00 00 00 00 00 00 00 61
+      0d
+      01 00 00 00 00 00 00 00
+      04
+      01 00 00 00 00 00 00 00 6e
+      01 00 00 00 00 00 00 00 62
+      02
+      01 00 00 00 00 00 00 00
+      08
+      0a
+      01 00 00 00 00 00 00 00
+      04
+      05 00 00 00 00 00 00 00 69 74 65 6d 73
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      0c
+      00 00 00 00 00 00 00 00
+      01 00 00 00 00 00 00 00
+      04
+      04 00 00 00 00 00 00 00 6e 61 6d 65
+      09
+      06 00 00 00 00 00 00 00 42 75 74 74 6f 6e
+      02 00 00 00 00 00 00 00
+      09 00 00 00 00 00 00 00 6f 6e 50 72 65 73 73 65 64
+      11
+      01 00 00 00 00 00 00 00
+      04
+      01 00 00 00 00 00 00 00 6e
+      09
+      03 00 00 00 00 00 00 00 61 64 64
+      02 00 00 00 00 00 00 00
+      01 00 00 00 00 00 00 00 61
+      0d
+      01 00 00 00 00 00 00 00
+      04
+      01 00 00 00 00 00 00 00 6e
+      01 00 00 00 00 00 00 00 62
+      02
+      01 00 00 00 00 00 00 00
+      05 00 00 00 00 00 00 00 63 68 69 6c 64
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      04
+      01 00 00 00 00 00 00 00 2b
+      09
+      06 00 00 00 00 00 00 00 42 75 74 74 6f 6e
+      02 00 00 00 00 00 00 00
+      09 00 00 00 00 00 00 00 6f 6e 50 72 65 73 73 65 64
+      0e
+      03 00 00 00 00 00 00 00 74 61 70
+      02 00 00 00 00 00 00 00
+      02 00 00 00 00 00 00 00 69 64
+      0a
+      01 00 00 00 00 00 00 00
+      04
+      02 00 00 00 00 00 00 00 69 64
+      01 00 00 00 00 00 00 00 6e
+      02
+      03 00 00 00 00 00 00 00
+      05 00 00 00 00 00 00 00 63 68 69 6c 64
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      04
+      01 00 00 00 00 00 00 00 65
+      09
+      06 00 00 00 00 00 00 00 42 75 74 74 6f 6e
+      02 00 00 00 00 00 00 00
+      09 00 00 00 00 00 00 00 6f 6e 50 72 65 73 73 65 64
+      05
+      02 00 00 00 00 00 00 00
+      11
+      01 00 00 00 00 00 00 00
+      04
+      01 00 00 00 00 00 00 00 6e
+      02
+      00 00 00 00 00 00 00 00
+      0a
+      01 00 00 00 00 00 00 00
+      04
+      07 00 00 00 00 00 00 00 6f 6e 52 65 73 65 74
+      05 00 00 00 00 00 00 00 63 68 69 6c 64
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      04
+      01 00 00 00 00 00 00 00 72
+      0f
+      0a
+      01 00 00 00 00 00 00 00
+      04
+      04 00 00 00 00 00 00 00 6d 6f 64 65
+      03 00 00 00 00 00 00 00
+      04
+      01 00 00 00 00 00 00 00 61
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      04
+      01 00 00 00 00 00 00 00 41
+      02
+      01 00 00 00 00 00 00 00
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      04
+      03 00 00 00 00 00 00 00 6f 6e 65
+      10
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      04
+      05 00 00 00 00 00 00 00 6f 74 68 65 72
+      09
+      07 00 00 00 00 00 00 00 42 75 69 6c 64 65 72
+      01 00 00 00 00 00 00 00
+      07 00 00 00 00 00 00 00 62 75 69 6c 64 65 72
+      12
+      05 00 00 00 00 00 00 00 73 63 6f 70 65
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      13
+      05 00 00 00 00 00 00 00 73 63 6f 70 65
+      01 00 00 00 00 00 00 00
+      04
+      05 00 00 00 00 00 00 00 76 61 6c 75 65
+      05 00 00 00 00 00 00 00 50 6c 61 69 6e
+      00 00 00 00 00 00 00 00
+      00 00 00 00 00 00 00 00
+      0f
+      0b
+      01 00 00 00 00 00 00 00
+      04
+      04 00 00 00 00 00 00 00 66 6c 61 67
+      02 00 00 00 00 00 00 00
+      01
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      04
+      01 00 00 00 00 00 00 00 74
+      10
+      09
+      04 00 00 00 00 00 00 00 54 65 78 74
+      01 00 00 00 00 00 00 00
+      04 00 00 00 00 00 00 00 74 65 78 74
+      04
+      01 00 00 00 00 00 00 00 66
+- name: shorter_than_a_signature
+  requirement: errors
+  description: "A blob shorter than four bytes."
+  decode: library
+  hex: |
+    fe 43  # 0: half a signature
+  expect:
+    error:
+      kind: truncated
+      offset: 2
+      version: null
+- name: truncated_header
+  requirement: errors
+  description: "The minimum reader version is missing."
+  decode: library
+  hex: |
+    fe 43 52 46  # 0: library signature
+    01 00        # 4: version 1
+  expect:
+    error:
+      kind: truncated
+      offset: 6
+      version: null
+- name: string_past_the_end
+  requirement: errors
+  description: "The last byte of a string is missing: its length is larger than the bytes after it."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    04                                   # 105:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c  # 106:       string "Hello", without its last byte
+  expect:
+    error:
+      kind: truncated
+      offset: 106
+      version: 1
+- name: double_past_the_end
+  requirement: errors
+  description: "A binary64 that runs past the end is truncated at its start."
+  decode: data
+  hex: |
+    fe 43 52 44  # 0: data signature
+    01 00        # 4: version 1
+    01 00        # 6: minimum reader version 1
+    03           # 8: double
+    00 00 00 00  # 9: half a binary64
+  expect:
+    error:
+      kind: truncated
+      offset: 9
+      version: 1
+- name: trailing_bytes_after_a_library
+  requirement: errors
+  description: "One byte after the library."
+  decode: library
+  hex: |
+    fe 43 52 46                             # 0: library signature
+    01 00                                   # 4: version 1
+    01 00                                   # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00                 # 8: 1 import
+    01 00 00 00 00 00 00 00                 # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65     # 24:   string "core"
+    01 00 00 00 00 00 00 00                 # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74     # 44:   name "root"
+    00 00 00 00 00 00 00 00                 # 56:   flags 0x0
+    00 00 00 00 00 00 00 00                 # 64:   no initial state
+    09                                      # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74     # 73:     name "Text"
+    01 00 00 00 00 00 00 00                 # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74     # 93:       key "text"
+    04                                      # 105:       string
+    05 00 00 00 00 00 00 00 48 65 6c 6c 6f  # 106:       string "Hello"
+    00                                      # 119: trailing byte
+  expect:
+    error:
+      kind: trailingBytes
+      offset: 119
+      version: 1
+- name: trailing_bytes_after_a_data_value
+  requirement: errors
+  description: "One byte after the value."
+  decode: data
+  hex: |
+    fe 43 52 44  # 0: data signature
+    01 00        # 4: version 1
+    01 00        # 6: minimum reader version 1
+    01           # 8: true
+    01           # 9: trailing byte
+  expect:
+    error:
+      kind: trailingBytes
+      offset: 9
+      version: 1
+- name: negative_length
+  requirement: errors
+  description: "A string of length -1."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    04                                   # 105:       string
+    ff ff ff ff ff ff ff ff              # 106:       length -1
+  expect:
+    error:
+      kind: invalidLength
+      offset: 106
+      version: 1
+- name: count_beyond_the_end
+  requirement: errors
+  description: "A list count larger than the bytes after it is rejected before any element is read."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    05                                   # 105:       list
+    ff ff ff ff ff ff ff 7f              # 106:       2^63 - 1 elements
+  expect:
+    error:
+      kind: truncated
+      offset: 106
+      version: 1
+- name: invalid_utf8
+  requirement: errors
+  description: "A string that ends inside a UTF-8 sequence."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    04                                   # 105:       string
+    01 00 00 00 00 00 00 00              # 106:       length 1
+    c3                                   # 114:       a lead byte without its continuation
+  expect:
+    error:
+      kind: invalidUtf8
+      offset: 114
+      version: 1
+- name: extension_payload_beyond_the_end
+  requirement: errors
+  description: "An extension payload longer than the bytes after its length."
+  decode: library
+  hex: |
+    fe 43 52 46                          # 0: library signature
+    01 00                                # 4: version 1
+    01 00                                # 6: minimum reader version 1
+    01 00 00 00 00 00 00 00              # 8: 1 import
+    01 00 00 00 00 00 00 00              # 16:   1 name part
+    04 00 00 00 00 00 00 00 63 6f 72 65  # 24:   string "core"
+    01 00 00 00 00 00 00 00              # 36: 1 declaration
+    04 00 00 00 00 00 00 00 72 6f 6f 74  # 44:   name "root"
+    00 00 00 00 00 00 00 00              # 56:   flags 0x0
+    00 00 00 00 00 00 00 00              # 64:   no initial state
+    09                                   # 72:   root: widget call
+    04 00 00 00 00 00 00 00 54 65 78 74  # 73:     name "Text"
+    01 00 00 00 00 00 00 00              # 85:     1 argument
+    04 00 00 00 00 00 00 00 74 65 78 74  # 93:       key "text"
+    80                                   # 105:       extension tag 0x80
+    64 00 00 00 00 00 00 00              # 106:       payload length 100
+    00                                   # 114:       1 byte
+  expect:
+    error:
+      kind: truncated
+      offset: 106
+      version: 1
+- name: empty_initial_state_decodes_as_none
+  requirement: round_trip
+  description: "An empty initial state encodes as a count of 0, so it decodes as no initial state."
+  encode: library
+  source: |
+    widget root {} = A();
+  expect:
+    hex: |
+      fe 43 52 46                          # 0: library signature
+      01 00                                # 4: version 1
+      01 00                                # 6: minimum reader version 1
+      00 00 00 00 00 00 00 00              # 8: 0 imports
+      01 00 00 00 00 00 00 00              # 16: 1 declaration
+      04 00 00 00 00 00 00 00 72 6f 6f 74  # 24:   name "root"
+      00 00 00 00 00 00 00 00              # 36:   flags
+      00 00 00 00 00 00 00 00              # 44:   no initial state
+      09                                   # 52:   widget call
+      01 00 00 00 00 00 00 00 41           # 53:     name "A"
+      00 00 00 00 00 00 00 00              # 62:     0 arguments
+    decoded:
+      library:
+        imports: []
+        widgets:
+          - name: root
+            root:
+              $: call
+              name: A
+              args: {}
