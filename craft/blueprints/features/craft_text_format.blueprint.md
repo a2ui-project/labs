@@ -21,6 +21,7 @@ The format is the RFW 2.0.0 text format plus three kinds of reference: theme ref
 - Library files and data files MUST parse as in the RFW 2.0.0 text format, except where this blueprint says otherwise. This covers imports, widget declarations, initial state, literals, lists, maps, widget calls, `args`, `data` and `state` references, loops, switches, event handlers, state setters and widget builders.
 - A source that RFW 2.0.0 rejects MUST be rejected, unless it is valid under requirements 2–4 or under a feature that extends the format (`craft_libraries_and_names` adds qualified names and the `export` keyword, and `craft_language_extensions` adds `absent`, `call`, `...if` and `let`, which RFW 2.0.0 rejects). A source that is valid in RFW 2.0.0 MUST parse to the same library, unless requirements 2–4 or `craft_language_extensions` change its meaning (requirements 2–4 only affect names spelled `theme` or `media`, and an identifier followed by `.` in a value position; `craft_language_extensions` lists the sources it changes).
 - A rejection MUST report the source position (line and column) where it was detected.
+- These requirements hold for sources nested within the engine's limits; how an engine treats deeper nesting is defined by the `craft_limits` feature (see the module blueprint).
 
 ### **2. Theme references**
 

@@ -13,7 +13,7 @@ date_added: 2026-11-20
 
 This document specifies four constructs that Craft adds to the text format: the `absent` value, handler application with `call`, conditional list elements with `...if`, and local values with `let`. Each one is written with new syntax but parses to node kinds that `craft_text_format` already defines, so neither the canonical JSON form nor the binary format changes.
 
-This blueprint specifies only what each construct parses to. How the resulting nodes evaluate (what the call `absent()` yields, what applying a handler does, how loops and switches expand) is specified by the features that evaluate libraries: the standard functions and the runtime.
+This blueprint specifies only what each construct parses to. How the resulting nodes evaluate (what the call `absent()` yields, what applying a handler does, how loops and switches expand) is specified by the features that evaluate libraries: `craft_functions` (the absent value) and the runtime.
 
 In this blueprint, a **value position** is a place where `craft_text_format` allows references: the arguments of a widget call and everything nested in them, and the input and cases of a declaration's root switch. Initial state and data files are not value positions.
 
@@ -82,7 +82,7 @@ widget Pick = let label = Text(text: args.label) in Column(children: [
 ]);
 ```
 
-- `absent` is the call `absent()`. It is meant to stand for no value (a button whose `onPressed` is absent has no handler); its evaluation belongs to the runtime.
+- `absent` is the call `absent()`. It is meant to stand for no value (a button whose `onPressed` is absent has no handler); `craft_functions` specifies that it evaluates to the absent value.
 - `call args.onMore { value: 1 }` is the call `call(handler: args.onMore, arguments: {value: 1})`: it applies a handler that the template received as a value, with arguments.
 - `...if args.more: Button(...)` is a loop over `switch args.more { true: [true], default: [] }`, so the button is in the list only when `args.more` is `true`. Because it is a loop, it shifts the indices of outer loop references inside the element, exactly like a written `...for`.
 - `let label = ...` is replaced by its value at both uses, so the library holds two copies of `Text(text: args.label)` and no binding.

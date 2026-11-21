@@ -19,4 +19,5 @@ const Map<String, String> craftSuites = <String, String>{
   'craft/craft_libraries_and_names.yaml': 'libraries_and_names_test.dart',
   'craft/craft_binary_format.yaml': 'binary_format_test.dart',
   'craft/craft_language_extensions.yaml': 'language_extensions_test.dart',
+  'craft/craft_functions.yaml': 'functions_test.dart',
 };

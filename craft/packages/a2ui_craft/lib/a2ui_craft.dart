@@ -18,7 +18,10 @@
 library;
 
 export 'src/canonical_json.dart';
+export 'src/evaluator.dart';
+export 'src/functions.dart';
 export 'src/name_resolution.dart';
 export 'src/rfw/binary.dart';
 export 'src/rfw/model.dart';
 export 'src/rfw/text.dart';
+export 'src/standard_functions.dart';
