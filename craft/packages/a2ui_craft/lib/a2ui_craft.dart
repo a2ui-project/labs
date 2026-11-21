@@ -19,5 +19,6 @@ library;
 
 export 'src/canonical_json.dart';
 export 'src/name_resolution.dart';
+export 'src/rfw/binary.dart';
 export 'src/rfw/model.dart';
 export 'src/rfw/text.dart';
