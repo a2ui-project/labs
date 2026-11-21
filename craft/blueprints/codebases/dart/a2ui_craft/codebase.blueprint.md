@@ -8,6 +8,7 @@ implemented_features:
   binary_format: null
   language_extensions: null
   functions: null
+  template_registry: null
 local_development:
   test_command: 'dart test'
   lint_command: 'dart analyze --fatal-infos'
@@ -25,6 +26,7 @@ The Dart implementation of the framework-independent part of the Craft engine (`
 - **Binary format**: `lib/src/rfw/binary.dart`, forked from RFW 2.0.0 like the text format. It writes the Craft signatures, version header and declaration flags, decodes RFW blobs as version 0, skips extension values, and reports every decoding error as a `BlobFormatException` with a `BlobErrorKind` and a byte offset.
 - **Name resolution**: `lib/src/name_resolution.dart`. `NameResolver` applies the `libraries_and_names` rules over a live map of registered libraries (template libraries and `PrimitiveLibrary` implementations provided by framework adapters) and caches results until `invalidate`.
 - **Functions**: `lib/src/functions.dart` defines a function (`LocalFunction`: parameters with a `FunctionArgType` and an implementation), the `FunctionRegistry` of standard and host functions, which checks host keys, and the value helpers the functions share (equality, exact number comparison, number display). `lib/src/standard_functions.dart` holds the standard functions. `lib/src/evaluator.dart` evaluates the values that need no runtime (literals, lists, maps, `absent`, args/data/state references, function calls), tells function calls from widget calls with `NameResolver`, and reports every failure as an `EvaluationException` with an `EvaluationErrorKind`.
+- **Template registry**: `lib/src/template_registry.dart`. `TemplateRegistry` holds the registered template and primitive libraries (primitive libraries as a copy of their names and metadata) and the host functions, owns the `NameResolver` over them, builds each library's function table (standard functions, the introspection functions answering for that library, host functions), reads symbol references through the evaluator's `SymbolReader`, and computes the availability of libraries and components as a fixed point. Every registration drops the derived results. `lib/src/dependencies.dart` holds the declared dependencies (`LibraryDependencies`, `Requirement`) and the availability reports.
 - **Canonical JSON form**: `lib/src/canonical_json.dart`, used by the conformance runner in `test/conformance/`.
 
 ## **Local Technical Decisions & Overrides**

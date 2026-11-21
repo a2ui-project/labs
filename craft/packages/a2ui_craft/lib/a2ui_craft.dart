@@ -18,6 +18,7 @@
 library;
 
 export 'src/canonical_json.dart';
+export 'src/dependencies.dart';
 export 'src/evaluator.dart';
 export 'src/functions.dart';
 export 'src/name_resolution.dart';
@@ -25,3 +26,4 @@ export 'src/rfw/binary.dart';
 export 'src/rfw/model.dart';
 export 'src/rfw/text.dart';
 export 'src/standard_functions.dart';
+export 'src/template_registry.dart';

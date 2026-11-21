@@ -11,7 +11,7 @@ date_added: 2026-11-20
 
 # **Functions Feature Blueprint**
 
-This document specifies functions: pure computations that a template calls in a value position with the call syntax of widgets (`add(a: 1, b: 2)`). The host registers them; the engine offers a fixed set of standard functions under bare names, and hosts add their own under qualified names. It also specifies the evaluator for the values that do not need a runtime: literals, lists, maps, the absent value, references to the args, data and state values the caller supplies, and function calls.
+This document specifies functions: pure computations that a template calls in a value position with the call syntax of widgets (`add(a: 1, b: 2)`). The host registers them; the engine offers a fixed set of standard functions under bare names, and hosts add their own under qualified names. The `template_registry` feature adds its eight introspection functions to these 28 standard functions. It also specifies the evaluator for the values that do not need a runtime: literals, lists, maps, the absent value, references to the args, data and state values the caller supplies, and function calls.
 
 Templates are untrusted. Within the nesting limits of the engine, which the `limits` feature defines (see the module blueprint), no template can make evaluation crash or behave differently on different engines: every value this feature defines evaluates to either a value or an evaluation error.
 
@@ -28,7 +28,7 @@ A **value** is a boolean, an integer (64-bit signed), a double (IEEE 754 double 
 - `args.p1.p2...`, `data....` and `state....` MUST read the args, data or state value that the caller supplies, part by part: a string part reads that key of a map, an integer part that index of a list. The result MUST be absent when a part reads a key the map does not have, an index outside the list, or a value that is not a map (for a string part) or a list (for an integer part). A value the caller does not supply is absent.
 - In supplied values, and in what a host function returns, null (no value) MUST be the absent value, also inside lists and maps.
 - Supplied values are the host's input: if a reference reads, or reads through, something that is not a value (or a map with keys that are not strings), the engine MUST report it to the host as a host error, distinct from the evaluation errors. Parts of supplied values that no reference reads are not checked.
-- This feature does not define the value of any other node of a library: widget calls, loops (so also `...if`), switches, widget builders, event handlers, state setters, handler applications (`call`), and loop, builder argument, theme, media and symbol references. The `runtime` feature defines them, and `media_context` the media references. An evaluator that does not evaluate such a node (as one that implements only this feature) MUST fail with `notEvaluated` rather than return a value.
+- This feature does not define the value of any other node of a library: widget calls, loops (so also `...if`), switches, widget builders, event handlers, state setters, handler applications (`call`), and loop, builder argument, theme, media and symbol references. The `runtime` feature defines them, `media_context` the media references and `template_registry` the symbol references. An evaluator that does not evaluate such a node (as one that implements only this feature) MUST fail with `notEvaluated` rather than return a value.
 
 ### **2. Absent and call**
 
@@ -151,7 +151,7 @@ widget Price { count: 1 } = Text(
 - With `data.unitPrice` missing, `multiply` is absent, so `fmt::price` runs with `amount` absent and decides what to return; `isSet` is false and so is `and`. Nothing throws.
 - A typo such as `orElse(value: args.label, default: "x")` fails with `invalidArgument` instead of silently dropping the default.
 
-The prototype checked argument kinds only for literal arguments, and only in debug builds; this feature checks every argument's kind at every call, so that a function never sees a value of the wrong kind, and makes argument names part of the contract. Functions on media values (`atLeast`), introspection functions (`hasWidget`, `hasFunction`, `meta` and others) and `uppercase`/`lowercase` are not part of this feature.
+The prototype checked argument kinds only for literal arguments, and only in debug builds; this feature checks every argument's kind at every call, so that a function never sees a value of the wrong kind, and makes argument names part of the contract. Functions on media values (`atLeast`), introspection functions (`hasWidget`, `hasFunction`, `meta` and others, see `template_registry`) and `uppercase`/`lowercase` are not part of this feature.
 
 ---
 
