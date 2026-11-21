@@ -7,6 +7,7 @@ implemented_features:
   libraries_and_names: null
   binary_format: null
   language_extensions: null
+  functions: null
 local_development:
   test_command: 'dart test'
   lint_command: 'dart analyze --fatal-infos'
@@ -23,10 +24,12 @@ The Dart implementation of the framework-independent part of the Craft engine (`
 - **Language extensions**: also in `lib/src/rfw/text.dart`. The parser reads `absent`, `call`, `...if` and `let` straight into existing nodes (calls, loops and switches, and the bound values), so the model and the binary format are unchanged. `NameResolver` never resolves the names `absent` and `call` to a widget, and lists standard functions with those names only bare.
 - **Binary format**: `lib/src/rfw/binary.dart`, forked from RFW 2.0.0 like the text format. It writes the Craft signatures, version header and declaration flags, decodes RFW blobs as version 0, skips extension values, and reports every decoding error as a `BlobFormatException` with a `BlobErrorKind` and a byte offset.
 - **Name resolution**: `lib/src/name_resolution.dart`. `NameResolver` applies the `libraries_and_names` rules over a live map of registered libraries (template libraries and `PrimitiveLibrary` implementations provided by framework adapters) and caches results until `invalidate`.
+- **Functions**: `lib/src/functions.dart` defines a function (`LocalFunction`: parameters with a `FunctionArgType` and an implementation), the `FunctionRegistry` of standard and host functions, which checks host keys, and the value helpers the functions share (equality, exact number comparison, number display). `lib/src/standard_functions.dart` holds the standard functions. `lib/src/evaluator.dart` evaluates the values that need no runtime (literals, lists, maps, `absent`, args/data/state references, function calls), tells function calls from widget calls with `NameResolver`, and reports every failure as an `EvaluationException` with an `EvaluationErrorKind`.
 - **Canonical JSON form**: `lib/src/canonical_json.dart`, used by the conformance runner in `test/conformance/`.
 
 ## **Local Technical Decisions & Overrides**
 
+- **Deep nesting**: until the `limits` feature lands, deeply nested input (for example a data blob of about 90 KB holding 10,000 nested lists, or an equally deep source or expression) overflows the stack in the text parser, the binary decoder and the evaluator.
 - **Pinned commits**: `module_blueprint_commit` and the commits in `implemented_features` are filled in after the PR that adds them merges, because the repository squashes PRs and the final commit isn't known before.
 
 ## **Validation & Execution Recipes**
