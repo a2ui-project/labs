@@ -225,6 +225,14 @@ class TemplateRegistry {
 
   // --- Host metadata ---------------------------------------------------------
 
+  /// The metadata of the registered primitive [name], or null when no
+  /// primitive [name] is registered.
+  Map<String, Object>? primitiveMeta(FullyQualifiedWidgetName name) =>
+      switch (_libraries[name.library]) {
+        final _PrimitiveSnapshot library => library.meta[name.widget],
+        _ => null,
+      };
+
   /// The metadata of the primitive that [name] denotes among [from]'s
   /// imports, or null when it denotes no primitive.
   Map<String, Object>? _primitiveMeta(LibraryName from, String name) {

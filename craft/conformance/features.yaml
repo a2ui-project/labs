@@ -431,3 +431,46 @@
   blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#13-updates
   claimedBy:
     - dart-craft
+- id: F-CRAFT-A2UI-01
+  title: "A2UI Integration: catalog components"
+  specAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#1-catalog-components
+  blueprintAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#1-catalog-components
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-A2UI-02
+  title: "A2UI Integration: argument kinds"
+  specAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#2-argument-kinds
+  blueprintAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#2-argument-kinds
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-A2UI-03
+  title: "A2UI Integration: joining uses"
+  specAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#3-joining-uses
+  blueprintAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#3-joining-uses
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-A2UI-04
+  title: "A2UI Integration: component schema"
+  specAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#4-component-schema
+  blueprintAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#4-component-schema
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-A2UI-05
+  title: "A2UI Integration: props to arguments"
+  specAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#5-props-to-arguments
+  blueprintAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#5-props-to-arguments
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-A2UI-06
+  title: "A2UI Integration: firing to A2UI"
+  specAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#6-firing-to-a2ui
+  blueprintAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#6-firing-to-a2ui
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-A2UI-07
+  title: "A2UI Integration: rendering"
+  specAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#7-rendering
+  blueprintAnchor: blueprints/features/craft_a2ui_integration.blueprint.md#7-rendering
+  claimedBy:
+    - dart-craft-flutter
+  uncovered: Rendering needs a UI framework; covered by the widget tests of packages/a2ui_craft_renderer_flutter/test/template_catalog_test.dart.

@@ -40,6 +40,7 @@ final ConformanceAction expandTemplateAction = ConformanceAction(const <String>{
   'root',
   'args',
   'host_handlers',
+  'host_widgets',
   'data',
   'data_json',
   'expect',
@@ -76,7 +77,7 @@ class RuntimeEngine {
       registry,
       library: _library(root['library'] as String? ?? 'main'),
       widget: root['widget'] as String? ?? 'root',
-      args: _args(c['args'], c['host_handlers']),
+      args: _args(c['args'], c['host_handlers'], c['host_widgets']),
       data: c['data_json'] ?? _data(c['data']),
     );
   }
@@ -157,7 +158,11 @@ class RuntimeEngine {
     } else if (step.containsKey('data')) {
       runtime.data = _data(step['data']);
     } else if (step.containsKey('args')) {
-      runtime.args = _args(step['args'], step['host_handlers']);
+      runtime.args = _args(
+        step['args'],
+        step['host_handlers'],
+        step['host_widgets'],
+      );
     } else if (step.containsKey('register')) {
       _register(step['register']);
       runtime.refresh();
@@ -222,6 +227,7 @@ const Set<String> _stepKeys = <String>{
   'data',
   'args',
   'host_handlers',
+  'host_widgets',
   'register',
   'build',
   'key',
@@ -248,11 +254,18 @@ Object? _event(HostEvent event) => switch (event) {
   },
 };
 
-Map<String, Object?> _args(Object? source, Object? handlers) =>
+Map<String, Object?> _args(Object? source, Object? handlers, Object? widgets) =>
     <String, Object?>{
       ...?_data(source) as Map<String, Object?>?,
       for (final MapEntry<String, Object?> h in _entries(handlers))
         h.key: HostHandler(h.value! as String),
+      for (final MapEntry<String, Object?> w in _entries(widgets))
+        w.key: switch (w.value) {
+          final List<Object?> ids => <Object?>[
+            for (final Object? id in ids) HostWidget(id! as String),
+          ],
+          final Object? id => HostWidget(id! as String),
+        },
     };
 
 Object? _data(Object? source) =>
