@@ -631,7 +631,9 @@ RemoteWidgetLibrary parseLibraryFile(String file, {Object? sourceIdentifier}) {
 }
 
 const Set<String> _reservedWords = <String>{
+  'absent',
   'args',
+  'call',
   'data',
   'event',
   'false',
@@ -659,6 +661,15 @@ const Set<String> _qualifierExcludedWords = <String>{
   ..._symbolKeywords,
   'switch',
 };
+
+/// The names of the calls that `absent` and `call` parse to. They always
+/// mean those constructs and never name a widget.
+const Set<String> constructCallNames = <String>{'absent', 'call'};
+
+/// Whether [name] is a word that cannot be written after `::` in a qualified
+/// name, because in a value position it starts some other construct.
+bool isExcludedFromQualifiedNames(String name) =>
+    _qualifierExcludedWords.contains(name);
 
 void _checkIsNotReservedWord(String identifier, _Token identifierToken) {
   if (_reservedWords.contains(identifier)) {
@@ -2658,6 +2669,9 @@ class _Parser {
 
   final List<String> _loopIdentifiers = <String>[];
 
+  /// The `let` bindings of the declaration being read, by name.
+  final Map<String, Object> _letValues = <String, Object>{};
+
   DynamicList _readList({
     required bool extended,
     List<String> widgetBuilderScope = const <String>[],
@@ -2668,6 +2682,21 @@ class _Parser {
       if (extended && _foundSymbol(_SymbolToken.tripleDot)) {
         final SourceLocation? start = _getSourceLocation();
         _advance();
+        if (_foundIdentifier('if')) {
+          _advance();
+          results.add(
+            _withSourceRange(
+              _readConditionalElement(widgetBuilderScope),
+              start,
+            ),
+          );
+          if (_foundSymbol(_SymbolToken.comma)) {
+            _advance();
+          } else if (!_foundSymbol(_SymbolToken.closeBracket)) {
+            throw ParserException._expected('comma', _source.current);
+          }
+          continue;
+        }
         _expectIdentifier('for');
         final _Token loopIdentifierToken = _source.current;
         final String loopIdentifier = _readIdentifier();
@@ -2701,6 +2730,34 @@ class _Parser {
     }
     _expectSymbol(_SymbolToken.closeBracket);
     return results;
+  }
+
+  /// Reads `cond: element` after `...if` as the loop
+  /// `...for _ in switch cond { true: [true], default: [] }: element`, whose
+  /// unnamed loop variable counts like any other in loop references.
+  Loop _readConditionalElement(List<String> widgetBuilderScope) {
+    final SourceLocation? conditionStart = _getSourceLocation();
+    final Object condition = _readValue(
+      widgetBuilderScope: widgetBuilderScope,
+      extended: true,
+    );
+    _expectSymbol(_SymbolToken.colon);
+    // Not an identifier, so no reference can name it.
+    const String hiddenLoopVariable = ' if';
+    _loopIdentifiers.add(hiddenLoopVariable);
+    final Object element = _readValue(
+      widgetBuilderScope: widgetBuilderScope,
+      extended: true,
+    );
+    _loopIdentifiers.removeLast();
+    final Switch input = _withSourceRange(
+      Switch(condition, <Object?, Object>{
+        true: <Object?>[true],
+        null: <Object?>[],
+      }),
+      conditionStart,
+    );
+    return Loop(input, element);
   }
 
   Switch _readSwitch(
@@ -2825,6 +2882,36 @@ class _Parser {
       if (!extended) {
         throw ParserException._unexpected(_source.current);
       }
+      if (identifier == 'absent') {
+        final SourceLocation? start = _getSourceLocation();
+        _advance();
+        if (_maybeReadSymbol(_SymbolToken.openParen)) {
+          _expectSymbol(_SymbolToken.closeParen);
+        }
+        return _withSourceRange(
+          ConstructorCall('absent', const <String, Object?>{}),
+          start,
+        );
+      }
+      if (identifier == 'call') {
+        final SourceLocation? start = _getSourceLocation();
+        _advance();
+        final Object handler = _readValue(
+          widgetBuilderScope: widgetBuilderScope,
+          extended: true,
+        );
+        final DynamicMap arguments = _readMap(
+          widgetBuilderScope: widgetBuilderScope,
+          extended: true,
+        );
+        return _withSourceRange(
+          ConstructorCall('call', <String, Object?>{
+            'handler': handler,
+            'arguments': arguments,
+          }),
+          start,
+        );
+      }
       if (identifier == 'event') {
         final SourceLocation? start = _getSourceLocation();
         _advance();
@@ -2902,6 +2989,9 @@ class _Parser {
           start,
         );
       }
+      if (_letValues.containsKey(identifier)) {
+        return _readLetUse();
+      }
       final SourceLocation? start = _getSourceLocation();
       final _Token identifierToken = _source.current;
       _advance();
@@ -2967,9 +3057,11 @@ class _Parser {
   /// Reads a widget name, optionally library-qualified (`core::Button`,
   /// `a.b::Widget`). A dotted name without `::` fails where RFW fails: at the
   /// first dot, which RFW expects to be "(".
-  String _readQualifiedName() {
-    final List<_Token> parts = <_Token>[_source.current];
-    final String first = _readIdentifier();
+  ///
+  /// [first] is the name's first token when the caller has already read it.
+  String _readQualifiedName({_IdentifierToken? first}) {
+    final List<_Token> parts = <_Token>[first ?? _source.current];
+    final String firstName = first?.value ?? _readIdentifier();
     final _Token firstDot = _source.current;
     while (_foundSymbol(_SymbolToken.dot)) {
       _advance();
@@ -2985,7 +3077,7 @@ class _Parser {
     if (parts.length > 1) {
       throw ParserException._expected('symbol "("', firstDot);
     }
-    return first;
+    return firstName;
   }
 
   WidgetBuilderDeclaration _readWidgetBuilderDeclaration({
@@ -3014,9 +3106,13 @@ class _Parser {
 
   ConstructorCall _readConstructorCall({
     List<String> widgetBuilderScope = const <String>[],
+    _IdentifierToken? first,
+    SourceLocation? firstLocation,
   }) {
-    final SourceLocation? start = _getSourceLocation();
-    final String name = _readQualifiedName();
+    final SourceLocation? start = first == null
+        ? _getSourceLocation()
+        : firstLocation;
+    final String name = _readQualifiedName(first: first);
     _expectSymbol(_SymbolToken.openParen);
     final DynamicMap arguments = _readMapBody(
       extended: true,
@@ -3040,18 +3136,88 @@ class _Parser {
     }
     _expectSymbol(_SymbolToken.equals);
     final BlobNode root;
-    if (_foundIdentifier('switch')) {
+    if (_readLetBindingsOrCall() case final ConstructorCall call) {
+      root = call;
+    } else if (_foundIdentifier('switch')) {
       final SourceLocation? switchStart = _getSourceLocation();
       _advance();
       root = _readSwitch(switchStart);
+    } else if (_source.current case _IdentifierToken(
+      :final String value,
+    ) when _letValues.containsKey(value)) {
+      final _Token useToken = _source.current;
+      final Object bound = _readLetUse();
+      if (bound is! ConstructorCall && bound is! Switch) {
+        throw ParserException._fromToken(
+          'The root of a widget declaration must be a widget call or a switch',
+          useToken,
+        );
+      }
+      root = bound as BlobNode;
     } else {
       root = _readConstructorCall();
     }
     _expectSymbol(_SymbolToken.semicolon);
+    _letValues.clear();
     return _withSourceRange(
       WidgetDeclaration(name, initialState, root, exported: exported),
       start,
     );
+  }
+
+  /// At the start of a declaration's body, `let` followed by a name starts
+  /// bindings, which this reads; otherwise `let` starts the name of the root
+  /// call (`let(...)`, `let::Card()`), which this reads and returns.
+  ConstructorCall? _readLetBindingsOrCall() {
+    if (_source.current case final _IdentifierToken let
+        when let.value == 'let') {
+      final SourceLocation? letLocation = _getSourceLocation();
+      _advance();
+      if (_source.current is! _IdentifierToken) {
+        return _readConstructorCall(first: let, firstLocation: letLocation);
+      }
+      _readLetBindings();
+    }
+    return null;
+  }
+
+  /// Reads `a = <value>, b = <value> in` after `let` at the start of a
+  /// declaration's body. Each value is parsed where its binding is written, so
+  /// it sees the bindings before it but no loop variable or builder argument.
+  void _readLetBindings() {
+    do {
+      final _Token nameToken = _source.current;
+      final String name = _readIdentifier();
+      if (_qualifierExcludedWords.contains(name)) {
+        throw ParserException._fromToken(
+          '$name cannot name a let binding',
+          nameToken,
+        );
+      }
+      if (_letValues.containsKey(name)) {
+        throw ParserException._fromToken(
+          'Duplicate let binding "$name"',
+          nameToken,
+        );
+      }
+      _expectSymbol(_SymbolToken.equals);
+      _letValues[name] = _readValue(extended: true);
+    } while (_maybeReadSymbol(_SymbolToken.comma));
+    _expectIdentifier('in');
+  }
+
+  /// Reads a use of a `let` binding, which stands for the bound value itself.
+  Object _readLetUse() {
+    final Object value = _letValues[_readIdentifier()]!;
+    if (_foundSymbol(_SymbolToken.dot) ||
+        _foundSymbol(_SymbolToken.openParen) ||
+        _foundSymbol(_SymbolToken.doubleColon)) {
+      throw ParserException._fromToken(
+        'A let binding is used whole, without ".", "(" or "::"',
+        _source.current,
+      );
+    }
+    return value;
   }
 
   Iterable<WidgetDeclaration> _readWidgetDeclarations() sync* {
