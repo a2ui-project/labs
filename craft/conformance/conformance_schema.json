@@ -23,7 +23,8 @@
             "decode_data",
             "encode_data",
             "evaluate",
-            "classify"
+            "classify",
+            "update_registry"
           ],
           "description": "The conformance test action to perform."
         }
@@ -144,6 +145,19 @@
           },
           "then": {
             "$ref": "#/$defs/CraftClassifyTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "update_registry"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftUpdateRegistryTest"
           }
         }
       ]
@@ -909,6 +923,236 @@
           "required": ["source"]
         }
       ]
+    },
+    "CraftHostRequirement": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "widget": {
+              "type": "string"
+            },
+            "arg": {
+              "type": "string"
+            }
+          },
+          "required": ["widget"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "function": {
+              "type": "string"
+            },
+            "arg": {
+              "type": "string"
+            }
+          },
+          "required": ["function"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CraftRegistryQuery": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "evaluate": {
+              "type": "string"
+            },
+            "declaration": {
+              "type": "string"
+            },
+            "expect": {
+              "type": "object",
+              "properties": {
+                "value": {},
+                "error": {
+                  "type": "string",
+                  "pattern": "^[a-z][A-Za-z0-9]*$"
+                },
+                "classify": {}
+              },
+              "additionalProperties": false,
+              "minProperties": 1,
+              "maxProperties": 1
+            }
+          },
+          "required": ["evaluate", "expect"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "availability": {
+              "type": "string"
+            },
+            "expect": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "available": {
+                      "type": "boolean"
+                    },
+                    "unmet": {
+                      "type": "array"
+                    },
+                    "components": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "available": {
+                            "type": "boolean"
+                          },
+                          "unmet": {
+                            "type": "array"
+                          }
+                        },
+                        "required": ["available", "unmet"],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": ["available", "unmet", "components"],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "required": ["availability", "expect"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "offered": {
+              "type": "string"
+            },
+            "expect": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": ["offered", "expect"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CraftRegistryStep": {
+      "type": "object",
+      "properties": {
+        "primitives": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          }
+        },
+        "functions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": {
+                "enum": ["number", "string", "boolean", "list", "any"]
+              }
+            }
+          }
+        },
+        "libraries": {
+          "$ref": "#/$defs/CraftLibrarySources"
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "optional": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "requires": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/CraftHostRequirement"
+                }
+              },
+              "components": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/$defs/CraftHostRequirement"
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "remove_libraries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "remove_functions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "app_version": {
+          "type": "string"
+        },
+        "rejected": {
+          "const": true
+        },
+        "queries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CraftRegistryQuery"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Registrations applied to one registry, then queries."
+    },
+    "CraftUpdateRegistryTest": {
+      "type": "object",
+      "description": "Applies registration steps to one registry and checks queries after each.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "update_registry"
+        },
+        "register": {
+          "$ref": "#/$defs/CraftRegistryStep"
+        },
+        "changes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/CraftRegistryStep"
+          }
+        }
+      },
+      "required": ["register"],
+      "unevaluatedProperties": false
     }
   }
 }
