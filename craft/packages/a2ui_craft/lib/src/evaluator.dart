@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'functions.dart';
+import 'limits.dart';
 import 'media_context.dart';
 import 'name_resolution.dart';
 import 'rfw/model.dart';
@@ -37,7 +38,21 @@ enum EvaluationErrorKind {
   /// widget call, a loop, a switch, a handler, a theme, loop or builder
   /// argument reference, or a symbol reference without a [SymbolReader].
   notEvaluated,
+
+  /// A node is evaluated deeper than `maxDepth`, or a value read or computed
+  /// is nested deeper (see the `limits` blueprint).
+  depthExceeded,
+
+  /// A value read or computed holds a string longer than `maxStringBytes`.
+  stringTooLong,
 }
+
+/// The evaluation error for the failure of a value limit.
+EvaluationException limitEvaluationError(CraftLimitException failure) =>
+    EvaluationException(switch (failure.limit) {
+      CraftLimit.maxStringBytes => EvaluationErrorKind.stringTooLong,
+      _ => EvaluationErrorKind.depthExceeded,
+    }, failure.message);
 
 /// An evaluation failed. Templates are untrusted, so every failure of a
 /// template's value is reported this way rather than by any other exception.
@@ -101,8 +116,13 @@ final class UnknownCall extends CallKind {
 class Evaluator {
   /// Creates an evaluator that tells widget calls from function calls with
   /// [resolver], calls the functions in [functions] and reads symbol
-  /// references with [symbols].
-  Evaluator(this.resolver, this.functions, {this.symbols});
+  /// references with [symbols], under [limits] (by default
+  /// [CraftLimits.defaults]).
+  Evaluator(this.resolver, this.functions, {this.symbols, CraftLimits? limits})
+    : limits = limits ?? CraftLimits.defaults;
+
+  /// The depth and string limits of evaluation (see the `limits` blueprint).
+  final CraftLimits limits;
 
   /// Resolves call names (see the `libraries_and_names` blueprint).
   final NameResolver resolver;
@@ -179,7 +199,23 @@ class _Evaluation {
   final Object? state;
   final MediaContext? media;
 
-  Object eval(Object? node) => switch (node) {
+  /// The depth of the node being evaluated.
+  int _depth = 0;
+
+  Object eval(Object? node) {
+    _depth += 1;
+    if (_depth > evaluator.limits.maxDepth) {
+      throw EvaluationException(
+        EvaluationErrorKind.depthExceeded,
+        'A node is nested deeper than ${evaluator.limits.maxDepth}.',
+      );
+    }
+    final Object value = _eval(node);
+    _depth -= 1;
+    return value;
+  }
+
+  Object _eval(Object? node) => switch (node) {
     null || Missing() => missing,
     bool() || int() || double() || String() => node,
     List<Object?>() => <Object>[for (final Object? e in node) eval(e)],
@@ -216,7 +252,11 @@ class _Evaluation {
         _ => null,
       };
     }
-    return toValue(current);
+    try {
+      return limitedValue(current, evaluator.limits);
+    } on CraftLimitException catch (failure) {
+      throw limitEvaluationError(failure);
+    }
   }
 
   static void _checkPlain(Object? value) {
@@ -263,7 +303,7 @@ class _Evaluation {
     return invokeFunction(key, function, <String, Object>{
       for (final MapEntry<String, Object?> e in call.arguments.entries)
         e.key: eval(e.value),
-    });
+    }, evaluator.limits);
   }
 }
 
@@ -289,11 +329,14 @@ void checkCallArguments(ConstructorCall call, Set<String> parameters) {
 ///
 /// Throws an [EvaluationException] of kind
 /// [EvaluationErrorKind.functionFailed] when the function throws or returns
-/// something that is not a value.
+/// something that is not a value, and of kind
+/// [EvaluationErrorKind.depthExceeded] or [EvaluationErrorKind.stringTooLong]
+/// when its result exceeds [limits].
 Object invokeFunction(
   String key,
   LocalFunction function,
   Map<String, Object> values,
+  CraftLimits limits,
 ) {
   final DynamicMap arguments = <String, Object?>{};
   for (final MapEntry<String, FunctionArgType> parameter
@@ -303,7 +346,9 @@ Object invokeFunction(
     arguments[parameter.key] = value;
   }
   try {
-    return toValue(function.implementation(arguments));
+    return limitedValue(function.implementation(arguments), limits);
+  } on CraftLimitException catch (failure) {
+    throw limitEvaluationError(failure);
   } catch (error) {
     throw EvaluationException(
       EvaluationErrorKind.functionFailed,

@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import '../limits.dart';
 import 'model.dart';
 
 // The format is specified by the binary_format feature blueprint.
@@ -74,6 +75,10 @@ enum BlobErrorKind {
 
   /// Bytes remain after the root value or library.
   trailingBytes,
+
+  /// The blob exceeds a limit (see the `limits` blueprint), named by
+  /// [BlobFormatException.limit].
+  limitExceeded,
 }
 
 /// A [FormatException] raised while decoding a binary blob.
@@ -87,6 +92,7 @@ class BlobFormatException extends FormatException {
     required int offset,
     this.tag,
     this.blobVersion,
+    this.limit,
   }) : super(message, null, offset);
 
   /// The error category.
@@ -99,6 +105,9 @@ class BlobFormatException extends FormatException {
   /// The blob's format version (0 for RFW blobs), or null if the error was
   /// found before the version was known.
   final int? blobVersion;
+
+  /// The limit exceeded, for [BlobErrorKind.limitExceeded].
+  final CraftLimit? limit;
 }
 
 /// Encode data as a Craft binary data blob (format version
@@ -127,16 +136,19 @@ Uint8List encodeDataBlob(Object value) {
 /// ints, doubles, booleans, and strings. Skipped extension values are left out
 /// of their enclosing map or list.
 ///
-/// Throws a [BlobFormatException] on malformed input.
+/// Throws a [BlobFormatException] on malformed input, and on input that
+/// exceeds [limits] (by default [CraftLimits.defaults]; see the `limits`
+/// blueprint).
 ///
 /// See also:
 ///
 ///  * [encodeDataBlob], which encodes this format.
 ///  * [decodeLibraryBlob], which decodes library blobs.
 ///  * [parseDataFile], which parses the text variant of this format.
-Object decodeDataBlob(Uint8List bytes) {
+Object decodeDataBlob(Uint8List bytes, {CraftLimits? limits}) {
   final decoder = _BlobDecoder(
     bytes.buffer.asByteData(bytes.offsetInBytes, bytes.lengthInBytes),
+    limits ?? CraftLimits.defaults,
   );
   decoder.readHeader(dataBlobSignature, legacyDataBlobSignature);
   final Object result = decoder.readRootValue();
@@ -171,7 +183,9 @@ Uint8List encodeLibraryBlob(RemoteWidgetLibrary value) {
 /// tags and little-endian 64-bit lengths, specified in the `binary_format`
 /// blueprint. Skipped extension values decode as [missing].
 ///
-/// Throws a [BlobFormatException] on malformed input.
+/// Throws a [BlobFormatException] on malformed input, and on input that
+/// exceeds [limits] (by default [CraftLimits.defaults]; see the `limits`
+/// blueprint).
 ///
 /// ## Limitations
 ///
@@ -185,9 +199,10 @@ Uint8List encodeLibraryBlob(RemoteWidgetLibrary value) {
 ///  * [decodeDataBlob], which uses a subset of this format to decode
 ///    binary data blobs.
 ///  * [parseLibraryFile], which parses the text variant of this format.
-RemoteWidgetLibrary decodeLibraryBlob(Uint8List bytes) {
+RemoteWidgetLibrary decodeLibraryBlob(Uint8List bytes, {CraftLimits? limits}) {
   final decoder = _BlobDecoder(
     bytes.buffer.asByteData(bytes.offsetInBytes, bytes.lengthInBytes),
+    limits ?? CraftLimits.defaults,
   );
   decoder.readHeader(libraryBlobSignature, legacyLibraryBlobSignature);
   final RemoteWidgetLibrary result = decoder.readLibrary();
@@ -259,9 +274,44 @@ String _hexBytes(List<int> bytes) => bytes.map(_hexByte).join(' ');
 /// API for decoding binary blobs: [readHeader] first, then [readRootValue]
 /// (data) or [readLibrary] (library), then [expectFinished].
 class _BlobDecoder {
-  _BlobDecoder(this.bytes);
+  _BlobDecoder(this.bytes, this._limits);
 
   final ByteData bytes;
+  final CraftLimits _limits;
+
+  /// The nesting depth of the tagged value being read.
+  int _depth = 0;
+
+  /// The tagged values read in the data value or declaration being read.
+  int _nodes = 0;
+
+  Never _limitError(CraftLimit limit, String message, int offset) =>
+      _fail(BlobErrorKind.limitExceeded, message, offset: offset, limit: limit);
+
+  /// Reads, with [read], a value whose tag is at [offset], one level deeper.
+  T _node<T>(int offset, T Function() read) {
+    _depth += 1;
+    if (_depth > _limits.maxDepth) {
+      _limitError(
+        CraftLimit.maxDepth,
+        'The value at offset $offset is nested deeper than '
+        '${_limits.maxDepth}.',
+        offset,
+      );
+    }
+    _nodes += 1;
+    if (_nodes > _limits.maxNodes) {
+      _limitError(
+        CraftLimit.maxNodes,
+        'The value at offset $offset is beyond the limit of '
+        '${_limits.maxNodes} nodes.',
+        offset,
+      );
+    }
+    final T result = read();
+    _depth -= 1;
+    return result;
+  }
 
   int _cursor = 0;
 
@@ -275,6 +325,7 @@ class _BlobDecoder {
     String message, {
     required int offset,
     int? tag,
+    CraftLimit? limit,
   }) {
     final String version = _version == null
         ? ''
@@ -286,6 +337,7 @@ class _BlobDecoder {
       offset: offset,
       tag: tag,
       blobVersion: _version,
+      limit: limit,
     );
   }
 
@@ -361,8 +413,18 @@ class _BlobDecoder {
     return bytes.getFloat64(byteOffset, _blobEndian);
   }
 
-  String _readString() {
+  /// Reads a string; a string value, whose tag is at [valueOffset], is
+  /// checked against `maxStringBytes`.
+  String _readString({int? valueOffset}) {
     final int length = _readLength('string');
+    if (valueOffset != null && length > _limits.maxStringBytes) {
+      _limitError(
+        CraftLimit.maxStringBytes,
+        'The string at offset $valueOffset is longer than '
+        '${_limits.maxStringBytes} bytes.',
+        valueOffset,
+      );
+    }
     final int byteOffset = _cursor;
     _advance('string', length);
     final Uint8List raw = bytes.buffer.asUint8List(
@@ -487,7 +549,7 @@ class _BlobDecoder {
       final int type = _readByte();
       final Object? key = type == _msDefault
           ? null
-          : _parseArgument(type, offset);
+          : _node(offset, () => _parseArgument(type, offset));
       if (key != missing && cases.containsKey(key)) {
         _fail(
           BlobErrorKind.duplicateKey,
@@ -522,7 +584,7 @@ class _BlobDecoder {
       case _msBinary64:
         return _readBinary64();
       case _msString:
-        return _readString();
+        return _readString(valueOffset: offset);
       case _msList:
         final int count = _readLength('list');
         final list = DynamicList.empty(growable: true);
@@ -542,7 +604,8 @@ class _BlobDecoder {
 
   Object _readValue() {
     final int offset = _cursor;
-    return _parseValue(_readByte(), offset, _readValue, true);
+    final int type = _readByte();
+    return _node(offset, () => _parseValue(type, offset, _readValue, true));
   }
 
   Object readRootValue() {
@@ -601,7 +664,8 @@ class _BlobDecoder {
 
   Object _readArgument() {
     final int offset = _cursor;
-    return _parseArgument(_readByte(), offset);
+    final int type = _readByte();
+    return _node(offset, () => _parseArgument(type, offset));
   }
 
   ConstructorCall _readWidget() {
@@ -614,11 +678,14 @@ class _BlobDecoder {
   BlobNode _readWidgetOrSwitch(String context) {
     final int offset = _cursor;
     final int type = _readByte();
-    return switch (type) {
-      _msWidget => _readWidget(),
-      _msSwitch => _readSwitch(),
-      _ => _rejectTag(type, offset, 'Unrecognized data type', context),
-    };
+    return _node(
+      offset,
+      () => switch (type) {
+        _msWidget => _readWidget(),
+        _msSwitch => _readSwitch(),
+        _ => _rejectTag(type, offset, 'Unrecognized data type', context),
+      },
+    );
   }
 
   WidgetBuilderDeclaration _readWidgetBuilder() {
@@ -633,11 +700,15 @@ class _BlobDecoder {
     final String name = _readString();
     // Version 0 has no flags; unknown flag bits are ignored.
     final int flags = _version! >= 1 ? _readInt64() : 0;
-    final DynamicMap? initialState = _readMap(
-      _readValue,
-      nullIfEmpty: true,
-      dropMissing: true,
+    _nodes = 0;
+    // A declaration's initial state is a map node, at the offset of its count.
+    final DynamicMap? initialState = _node(
+      _cursor,
+      () => _readMap(_readValue, nullIfEmpty: true, dropMissing: true),
     );
+    if (initialState == null) {
+      _nodes -= 1;
+    }
     return WidgetDeclaration(
       name,
       initialState,
@@ -647,8 +718,18 @@ class _BlobDecoder {
   }
 
   List<WidgetDeclaration> _readDeclarationList() {
+    final int offset = _cursor;
+    final int count = _readLength('declarations');
+    if (count > _limits.maxDeclarations) {
+      _limitError(
+        CraftLimit.maxDeclarations,
+        'The library has $count declarations; the limit is '
+        '${_limits.maxDeclarations}.',
+        offset,
+      );
+    }
     return List<WidgetDeclaration>.generate(
-      _readLength('declarations'),
+      count,
       (int index) => _readDeclaration(),
     );
   }
@@ -675,8 +756,16 @@ class _BlobDecoder {
     return RemoteWidgetLibrary(_readImportList(), _readDeclarationList());
   }
 
-  /// Reads the signature and, for Craft blobs, the version header.
+  /// Reads the signature and, for Craft blobs, the version header, after
+  /// checking the blob's size.
   void readHeader(List<int> signature, List<int> legacySignature) {
+    if (bytes.lengthInBytes > _limits.maxSourceBytes) {
+      _limitError(
+        CraftLimit.maxSourceBytes,
+        'The blob is longer than ${_limits.maxSourceBytes} bytes.',
+        _limits.maxSourceBytes,
+      );
+    }
     final List<int> found = <int>[
       for (var index = 0; index < 4; index += 1) _readByte(),
     ];

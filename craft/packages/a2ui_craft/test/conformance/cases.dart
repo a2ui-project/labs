@@ -14,6 +14,7 @@
 
 import 'dart:io';
 
+import 'package:a2ui_craft/a2ui_craft.dart';
 import 'package:yaml/yaml.dart';
 
 /// One case from a conformance file in `craft/conformance/`.
@@ -49,4 +50,11 @@ Object? _plain(Object? node) => switch (node) {
   },
   YamlList() => <Object?>[for (final Object? e in node) _plain(e)],
   _ => node,
+};
+
+/// The limits that [c] sets in `limits` (see `limits.yaml`), or null for the
+/// engine's defaults.
+CraftLimits? caseLimits(ConformanceCase c) => switch (c['limits']) {
+  final Map<String, Object?> json => CraftLimits.fromJson(json),
+  _ => null,
 };

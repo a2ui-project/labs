@@ -282,6 +282,52 @@ void main() {
     expect(h.templateErrors, isEmpty);
   });
 
+  testWidgets('a value beyond the limits shows the placeholder and reports '
+      'the error, until a valid value comes back', (WidgetTester tester) async {
+    final _Harness h = _Harness();
+    await h.pump(
+      tester,
+      <Map<String, Object?>>[
+        <String, Object?>{
+          'id': 'root',
+          'component': 'Counter',
+          'title': _bind('/title'),
+        },
+      ],
+      data: <String, Object?>{'title': 'Clicks'},
+    );
+    await tester.tap(find.byKey(const ValueKey<String?>('inc')));
+    await tester.pump();
+    expect(find.text('Clicks: 1'), findsOneWidget);
+
+    // About 70 KB, beyond the default maxStringBytes (64 KiB).
+    h.send('updateDataModel', <String, Object?>{
+      'path': '/title',
+      'value': 'x' * 70000,
+    });
+    await tester.pump();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.textContaining('Clicks'), findsNothing);
+    expect(find.byType(ErrorWidget), findsOneWidget, reason: 'the placeholder');
+    expect(h.templateErrors, hasLength(1));
+    final (String id, Object error) = h.templateErrors.single;
+    expect(id, 'root');
+    expect(
+      (error as ExpansionError).node.kind,
+      ExpansionErrorKind.stringTooLong,
+    );
+
+    h.send('updateDataModel', <String, Object?>{
+      'path': '/title',
+      'value': 'Taps',
+    });
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Taps: 1'), findsOneWidget, reason: 'state is kept');
+    expect(h.errors, isEmpty);
+  });
+
   testWidgets('a two-way binding writes to the data model', (
     WidgetTester tester,
   ) async {
