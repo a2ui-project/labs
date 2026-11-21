@@ -16,6 +16,11 @@ import 'functions.dart';
 import 'name_resolution.dart';
 import 'rfw/model.dart';
 
+/// Reads the symbol reference [reference] written in [library]; the result
+/// is a value of the language.
+typedef SymbolReader =
+    Object Function(LibraryName library, SymbolReference reference);
+
 /// Why an evaluation failed (see the `functions` blueprint).
 enum EvaluationErrorKind {
   /// A call names neither a widget nor a function callable from its library.
@@ -93,14 +98,20 @@ final class UnknownCall extends CallKind {
 /// maps, and [missing] for the absent value.
 class Evaluator {
   /// Creates an evaluator that tells widget calls from function calls with
-  /// [resolver] and calls the functions in [functions].
-  Evaluator(this.resolver, this.functions);
+  /// [resolver], calls the functions in [functions] and reads symbol
+  /// references with [symbols].
+  Evaluator(this.resolver, this.functions, {this.symbols});
 
   /// Resolves call names (see the `libraries_and_names` blueprint).
   final NameResolver resolver;
 
   /// The functions templates can call.
   final FunctionRegistry functions;
+
+  /// Reads a symbol reference written in a library (see the
+  /// `template_registry` blueprint). Without it, symbol references are not
+  /// evaluated.
+  final SymbolReader? symbols;
 
   /// Classifies a call named [name], written in [library] inside
   /// [declaration].
@@ -173,6 +184,10 @@ class _Evaluation {
     DataReference() => _read(data, node.parts),
     StateReference() => _read(state, node.parts),
     ConstructorCall() => _call(node),
+    SymbolReference() when evaluator.symbols != null => evaluator.symbols!(
+      library,
+      node,
+    ),
     _ => throw EvaluationException(
       EvaluationErrorKind.notEvaluated,
       'A ${node.runtimeType} is evaluated by the runtime.',
