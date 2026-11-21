@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'evaluator.dart';
 import 'expansion.dart';
 import 'functions.dart';
+import 'limits.dart';
 import 'media_context.dart';
 import 'name_resolution.dart';
 import 'rfw/model.dart';
@@ -63,6 +64,13 @@ enum FireErrorKind {
 
   /// The value to set is absent.
   absentValue,
+
+  /// The event arguments, or the state that a setter would give, are nested
+  /// deeper than `maxDepth` (see the `limits` blueprint).
+  depthExceeded,
+
+  /// The event arguments hold a string longer than `maxStringBytes`.
+  stringTooLong,
 }
 
 /// A `set state` that did nothing when fired.
@@ -112,7 +120,9 @@ class CraftRuntime {
   /// Creates a runtime for the widget [widget] as written in [library].
   ///
   /// Throws an [ArgumentError] when [args] or [data] is not valid host input
-  /// (see [args] and [data]); so do their setters.
+  /// (see [args] and [data]); so do their setters. Input beyond the limits of
+  /// the registry is no host error: it makes every expansion an error node
+  /// (see the `limits` blueprint).
   CraftRuntime(
     this.registry, {
     required this.library,
@@ -120,9 +130,10 @@ class CraftRuntime {
     Map<String, Object?> args = const <String, Object?>{},
     Object? data,
     MediaContext? media,
-  }) : _args = _hostArguments(args),
-       _data = _hostData(data),
-       _media = media;
+  }) : _media = media {
+    _setArgs(args);
+    _setData(data);
+  }
 
   /// The libraries and functions templates use.
   final TemplateRegistry registry;
@@ -133,25 +144,51 @@ class CraftRuntime {
   /// The root widget's name, as a call in [library] would write it.
   final String widget;
 
-  Map<String, Object> _args;
-  Object _data;
+  late Map<String, Object> _args;
+  late Object _data;
+  CraftLimitException? _argsLimit;
+  CraftLimitException? _dataLimit;
   MediaContext? _media;
   final Map<String, StateInstance> _instances = <String, StateInstance>{};
   final List<void Function()> _listeners = <void Function()>[];
 
+  /// The limits of expansions and of host input: those of [registry].
+  CraftLimits get limits => registry.limits;
+
   /// The root's arguments: values, possibly holding [HostHandler]s and
-  /// [HostWidget]s.
+  /// [HostWidget]s; empty when they exceed [limits].
   Map<String, Object> get args => _args;
   set args(Map<String, Object?> value) {
-    _args = _hostArguments(value);
+    _setArgs(value);
     _notify();
   }
 
-  /// The data that `data.` references read: a value.
+  void _setArgs(Map<String, Object?> value) {
+    try {
+      _args = _hostValue(value, limits, host: true) as Map<String, Object>;
+      _argsLimit = null;
+    } on CraftLimitException catch (failure) {
+      _args = const <String, Object>{};
+      _argsLimit = failure;
+    }
+  }
+
+  /// The data that `data.` references read: a value; absent when it exceeds
+  /// [limits].
   Object get data => _data;
   set data(Object? value) {
-    _data = _hostData(value);
+    _setData(value);
     _notify();
+  }
+
+  void _setData(Object? value) {
+    try {
+      _data = _hostValue(value, limits, host: false);
+      _dataLimit = null;
+    } on CraftLimitException catch (failure) {
+      _data = missing;
+      _dataLimit = failure;
+    }
   }
 
   /// The media context that `media.` references read (see the
@@ -192,25 +229,37 @@ class CraftRuntime {
   /// Expands the root. Keeps the state of the stateful instances in the
   /// result, and of those inside the output of its builders, and drops all
   /// other state.
+  ///
+  /// An expansion that exceeds [limits] as a whole (host input beyond them,
+  /// too many steps or nodes) is one error node and keeps all state.
   Expansion expand() {
     final _Pass pass = _Pass(this);
-    final ResolvedName? resolved = switch (registry.classify(
-      widget,
-      library: library,
-    )) {
-      WidgetCall(widget: final ResolvedName name) => name,
-      _ => null,
-    };
-    final Object root = resolved == null
-        ? pass.fail(
-            const <Object>[],
-            ExpansionErrorKind.notAWidget,
-            '$widget is not a widget visible from $library.',
-          )
-        : pass.expandWidget(
-            pass.thunk(resolved, <String, Object>{..._args}),
-            const <Object>[],
-          );
+    final Object root;
+    try {
+      if (_argsLimit ?? _dataLimit case final CraftLimitException input) {
+        throw _Stop.of(input);
+      }
+      final ResolvedName? resolved = switch (registry.classify(
+        widget,
+        library: library,
+      )) {
+        WidgetCall(widget: final ResolvedName name) => name,
+        _ => null,
+      };
+      pass.depth = 1;
+      root = resolved == null
+          ? pass.fail(
+              const <Object>[],
+              ExpansionErrorKind.notAWidget,
+              '$widget is not a widget visible from $library.',
+            )
+          : pass.expandWidget(
+              pass.thunk(resolved, <String, Object>{..._args}),
+              const <Object>[],
+            );
+    } on _Stop catch (stop) {
+      return pass.stopped(stop, const <Object>[]);
+    }
     _instances.removeWhere(
       (String key, StateInstance instance) =>
           !pass.seen.contains(key) &&
@@ -234,25 +283,37 @@ class CraftRuntime {
       throw ArgumentError.value(key, 'key', 'Must be a string or an integer');
     }
     final _Pass pass = _Pass(this);
-    final _Builder closure = builder.closure as _Builder;
+    final _PlacedBuilder placed = builder.closure as _PlacedBuilder;
+    final _Builder closure = placed.builder;
     final ExpansionPath path = <Object>[...builder.path, key];
-    final Object root = pass.guard(path, () {
-      final Object output = pass.eval(
-        closure.node.widget,
-        closure.env.withBuilderArgument(
-          closure.node.argumentName,
-          _hostValue(argument, host: false),
-        ),
-      );
-      return switch (output) {
-        _Thunk() => pass.expandWidget(output, path),
-        HostWidget() => pass.place(output, path),
-        _ => throw _Failure(
-          ExpansionErrorKind.notAWidget,
-          'The builder did not give a widget.',
-        ),
-      };
-    });
+    final Object root;
+    try {
+      final Object value;
+      try {
+        value = _hostValue(argument, limits, host: false);
+      } on CraftLimitException catch (failure) {
+        throw _Stop.of(failure);
+      }
+      pass.depth = placed.depth;
+      root = pass.guard(path, () {
+        final Object output = pass.eval(
+          closure.node.widget,
+          closure.env.withBuilderArgument(closure.node.argumentName, value),
+        );
+        return pass.deeper(
+          () => switch (output) {
+            _Thunk() => pass.expandWidget(output, path),
+            HostWidget() => pass.place(output, path),
+            _ => throw _Failure(
+              ExpansionErrorKind.notAWidget,
+              'The builder did not give a widget.',
+            ),
+          },
+        );
+      });
+    } on _Stop catch (stop) {
+      return pass.stopped(stop, path);
+    }
     return Expansion(root, pass.states, pass.errors);
   }
 
@@ -299,10 +360,20 @@ class CraftRuntime {
       }
     }
 
-    run(
-      handler,
-      _hostValue(eventArguments, host: false) as Map<String, Object>,
-    );
+    final Map<String, Object> arguments;
+    try {
+      arguments =
+          _hostValue(eventArguments, limits, host: false)
+              as Map<String, Object>;
+    } on CraftLimitException catch (failure) {
+      return FireResult(const <HostEvent>[], <FireError>[
+        FireError(switch (failure.limit) {
+          CraftLimit.maxStringBytes => FireErrorKind.stringTooLong,
+          _ => FireErrorKind.depthExceeded,
+        }, failure.message),
+      ], stateChanged: false);
+    }
+    run(handler, arguments);
     if (changed) _notify();
     return FireResult(events, errors, stateChanged: changed);
   }
@@ -345,6 +416,11 @@ class CraftRuntime {
       }
     }
     if (parts.isNotEmpty) {
+      try {
+        limitedValue(state, limits);
+      } on CraftLimitException catch (failure) {
+        return FireError(FireErrorKind.depthExceeded, failure.message);
+      }
       owner.value = state;
       return null;
     }
@@ -388,31 +464,49 @@ class CraftRuntime {
     return true;
   }
 
-  static Map<String, Object> _hostArguments(Map<String, Object?> args) =>
-      _hostValue(args, host: true) as Map<String, Object>;
-
-  static Object _hostData(Object? data) => _hostValue(data, host: false);
-
-  /// Converts host input into a value, as `toValue` does, also keeping
+  /// Converts host input into a value, as `limitedValue` does, also keeping
   /// [HostHandler]s and [HostWidget]s when [host] is true.
-  static Object _hostValue(Object? value, {required bool host}) {
+  ///
+  /// Throws an [ArgumentError] when [value] is not a value, and a
+  /// [CraftLimitException] when it exceeds [limits].
+  static Object _hostValue(
+    Object? value,
+    CraftLimits limits, {
+    required bool host,
+  }) {
     try {
-      return switch (value) {
-        HostHandler() when host => value,
-        HostWidget() when host => value,
-        List<Object?>() => <Object>[
-          for (final Object? e in value) _hostValue(e, host: host),
-        ],
-        Map<Object?, Object?>() when isStringKeyed(value) => <String, Object>{
-          for (final MapEntry<Object?, Object?> e in value.entries)
-            e.key! as String: _hostValue(e.value, host: host),
-        },
-        _ => toValue(value),
-      };
+      return limitedValue(
+        value,
+        limits,
+        keep: host ? (Object v) => v is HostHandler || v is HostWidget : null,
+      );
     } on FormatException catch (error) {
       throw ArgumentError.value(value, 'value', error.message);
     }
   }
+}
+
+/// An expansion stopped as a whole by a limit.
+class _Stop implements Exception {
+  _Stop(this.kind, this.message);
+
+  _Stop.of(CraftLimitException failure)
+    : kind = switch (failure.limit) {
+        CraftLimit.maxStringBytes => ExpansionErrorKind.stringTooLong,
+        _ => ExpansionErrorKind.depthExceeded,
+      },
+      message = 'The host input: ${failure.message}';
+
+  final ExpansionErrorKind kind;
+  final String message;
+}
+
+/// A builder placed at a position of depth [depth].
+class _PlacedBuilder {
+  _PlacedBuilder(this.builder, this.depth);
+
+  final _Builder builder;
+  final int depth;
 }
 
 /// An expansion failure, turned into an [ErrorNode] at the innermost widget.
@@ -438,6 +532,8 @@ class _Argument {
     if (_value case final Object value) return value;
     try {
       return _value = pass.eval(_node, _env!);
+    } on _Stop {
+      rethrow;
     } on Object catch (failure) {
       _failure = failure;
       rethrow;
@@ -528,9 +624,72 @@ class _Pass {
   final Set<String> seen = <String>{};
   final List<ExpansionPath> builders = <ExpansionPath>[];
 
+  /// The depth of the node being evaluated or of the position being placed
+  /// (see the `limits` blueprint).
+  int depth = 0;
+  int _steps = 0;
+  int _nodes = 0;
+
   TemplateRegistry get registry => runtime.registry;
+  CraftLimits get limits => runtime.limits;
+
+  /// Runs [body] one level deeper.
+  T deeper<T>(T Function() body) {
+    depth += 1;
+    try {
+      return body();
+    } finally {
+      depth -= 1;
+    }
+  }
+
+  void _step() {
+    _steps += 1;
+    if (_steps > limits.maxSteps) {
+      throw _Stop(
+        ExpansionErrorKind.stepsExceeded,
+        'The expansion took more than ${limits.maxSteps} steps.',
+      );
+    }
+  }
+
+  void _node() {
+    _nodes += 1;
+    if (_nodes > limits.maxNodes) {
+      throw _Stop(
+        ExpansionErrorKind.nodesExceeded,
+        'The expansion has more than ${limits.maxNodes} nodes.',
+      );
+    }
+  }
+
+  /// Evaluates one node with [body], one level deeper, as one step.
+  T _evaluating<T>(T Function() body) => deeper(() {
+    _step();
+    if (depth > limits.maxDepth) {
+      throw _Failure(
+        ExpansionErrorKind.depthExceeded,
+        'A node is nested deeper than ${limits.maxDepth}.',
+      );
+    }
+    return body();
+  });
+
+  /// The expansion of a pass that [stop] ended: one error node at [path].
+  /// The runtime drops no instance because of it.
+  Expansion stopped(_Stop stop, ExpansionPath path) {
+    final ErrorNode node = ErrorNode(
+      stop.kind,
+      stop.message,
+      List<Object>.unmodifiable(path),
+    );
+    return Expansion(node, const <ExpandedState>[], <ExpansionError>[
+      ExpansionError(node),
+    ]);
+  }
 
   ErrorNode fail(ExpansionPath path, ExpansionErrorKind kind, String message) {
+    _node();
     final ErrorNode node = ErrorNode(
       kind,
       message,
@@ -573,10 +732,18 @@ class _Pass {
           for (final MapEntry<String, Object?> a in thunk.arguments.entries)
             a.key: eval(a.value, thunk.site),
         };
-        return WidgetNode(thunk.name, <String, Object>{
-          for (final MapEntry<String, Object> a in arguments.entries)
-            a.key: place(a.value, <Object>[...path, a.key]),
-        }, List<Object>.unmodifiable(path));
+        final WidgetNode node = WidgetNode(
+          thunk.name,
+          deeper(
+            () => <String, Object>{
+              for (final MapEntry<String, Object> a in arguments.entries)
+                a.key: place(a.value, <Object>[...path, a.key]),
+            },
+          ),
+          List<Object>.unmodifiable(path),
+        );
+        _node();
+        return node;
       case _TemplateThunk():
         final WidgetDeclaration declaration = thunk.resolved.declaration!;
         if (thunk.site.chain.any(
@@ -607,45 +774,57 @@ class _Pass {
             chain: <WidgetDeclaration>[...thunk.site.chain, declaration],
           ),
         );
-        return switch (root) {
-          _Thunk() => expandWidget(root, path),
-          HostWidget() => place(root, path),
-          _ => throw _Failure(
-            ExpansionErrorKind.notAWidget,
-            'The root of ${widgetNameString(thunk.resolved.fullName)} did not '
-            'give a widget.',
-          ),
-        };
+        return deeper(
+          () => switch (root) {
+            _Thunk() => expandWidget(root, path),
+            HostWidget() => place(root, path),
+            _ => throw _Failure(
+              ExpansionErrorKind.notAWidget,
+              'The root of ${widgetNameString(thunk.resolved.fullName)} did '
+              'not give a widget.',
+            ),
+          },
+        );
     }
   });
 
   /// Places an evaluated value at [path]: expands its widgets and gives its
   /// builders their position.
   Object place(Object value, ExpansionPath path) {
+    if (value is _Thunk) return expandWidget(value, path);
+    _node();
     switch (value) {
-      case _Thunk():
-        return expandWidget(value, path);
       case HostWidget():
         return HostWidgetNode(value.id, List<Object>.unmodifiable(path));
       case _Builder():
         builders.add(List<Object>.unmodifiable(path));
-        return BuilderNode(List<Object>.unmodifiable(path), value);
+        return BuilderNode(
+          List<Object>.unmodifiable(path),
+          _PlacedBuilder(value, depth),
+        );
       case List<Object>():
-        return <Object>[
-          for (int i = 0; i < value.length; i += 1)
-            place(value[i], <Object>[...path, i]),
-        ];
+        return deeper(
+          () => <Object>[
+            for (int i = 0; i < value.length; i += 1)
+              place(value[i], <Object>[...path, i]),
+          ],
+        );
       case Map<String, Object>():
-        return <String, Object>{
-          for (final MapEntry<String, Object> e in value.entries)
-            e.key: place(e.value, <Object>[...path, e.key]),
-        };
+        return deeper(
+          () => <String, Object>{
+            for (final MapEntry<String, Object> e in value.entries)
+              e.key: place(e.value, <Object>[...path, e.key]),
+          },
+        );
       default:
         return value;
     }
   }
 
-  Object eval(Object? node, _Env env) => switch (node) {
+  /// Evaluates [node] in [env], one level deeper, as one step.
+  Object eval(Object? node, _Env env) => _evaluating(() => _eval(node, env));
+
+  Object _eval(Object? node, _Env env) => switch (node) {
     null || Missing() => missing,
     bool() ||
     int() ||
@@ -682,7 +861,12 @@ class _Pass {
     WidgetBuilderDeclaration() => _Builder(node, env),
     EventHandler() => EventValue(
       node.eventName,
-      _values(eval(node.eventArguments, env)) as Map<String, Object>,
+      _values(<String, Object>{
+            for (final MapEntry<String, Object?> e
+                in node.eventArguments.entries)
+              e.key: eval(e.value, env),
+          })
+          as Map<String, Object>,
     ),
     SetStateHandler() => SetStateValue(
       env.instance ??
@@ -708,11 +892,13 @@ class _Pass {
     final List<Object> result = <Object>[];
     for (final Object? element in list) {
       if (element is Loop) {
-        if (eval(element.input, env) case final List<Object> items) {
-          for (final Object item in items) {
-            result.add(eval(element.output, env.withLoop(item)));
+        _evaluating(() {
+          if (eval(element.input, env) case final List<Object> items) {
+            for (final Object item in items) {
+              result.add(eval(element.output, env.withLoop(item)));
+            }
           }
-        }
+        });
       } else {
         result.add(eval(element, env));
       }
@@ -748,7 +934,9 @@ class _Pass {
   }
 
   /// [value] when it holds only values, otherwise an `invalidValue` failure.
-  static Object _values(Object value, {bool handlers = false}) {
+  /// Each node checked is one step.
+  Object _values(Object value, {bool handlers = false}) {
+    _step();
     switch (value) {
       case List<Object>():
         for (final Object e in value) {
@@ -781,13 +969,14 @@ class _Pass {
         return missing;
       case HandlerApplication():
         checkCallArguments(call, const <String>{'handler', 'arguments'});
-        final Object handler = _values(
-          eval(call.arguments['handler'], env),
-          handlers: true,
-        );
-        final Object arguments = _values(
-          eval(call.arguments['arguments'] ?? const <String, Object?>{}, env),
-        );
+        final Object handler = _values(switch (call.arguments['handler']) {
+          final Object node => eval(node, env),
+          null => missing,
+        }, handlers: true);
+        final Object arguments = _values(switch (call.arguments['arguments']) {
+          final Object node => eval(node, env),
+          null => const <String, Object>{},
+        });
         if (arguments is! Map<String, Object>) {
           throw _Failure(
             ExpansionErrorKind.invalidValue,
@@ -809,7 +998,7 @@ class _Pass {
         return invokeFunction(key, function, <String, Object>{
           for (final MapEntry<String, Object?> a in call.arguments.entries)
             a.key: _values(eval(a.value, env)),
-        });
+        }, limits);
       case UnknownCall():
         throw EvaluationException(
           EvaluationErrorKind.unknownFunction,

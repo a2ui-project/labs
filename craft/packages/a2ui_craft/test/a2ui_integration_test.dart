@@ -109,4 +109,63 @@ void main() {
       'event': <String, Object?>{'name': 'e', 'context': <String, Object?>{}},
     });
   });
+  group('a resolved value beyond the limits', () {
+    final TemplateRegistry registry = TemplateRegistry()
+      ..setPrimitiveLibrary(const LibraryName(<String>['core']), _Text())
+      ..setTemplateLibrary(
+        const LibraryName(<String>['main']),
+        parseLibraryFile('import core; widget A = Text(text: args.title);'),
+      );
+
+    Object nested(int depth) {
+      Object value = 1;
+      for (int i = 1; i < depth; i += 1) {
+        value = <Object>[value];
+      }
+      return value;
+    }
+
+    Expansion expand(Object value) {
+      final TemplateArgs args = TemplateArgs.from(interface, <String, Object?>{
+        'title': BoundValue(value, path: '/t'),
+      }, limits: registry.limits);
+      return CraftRuntime(
+        registry,
+        library: const LibraryName(<String>['main']),
+        widget: 'A',
+        args: args.args,
+      ).expand();
+    }
+
+    test('stops the expansion, however deep, without converting it whole', () {
+      final TemplateArgs args = TemplateArgs.from(interface, <String, Object?>{
+        'title': BoundValue(nested(100000), path: '/t'),
+      });
+      expect(args.beyondLimits!.limit, CraftLimit.maxDepth);
+      expect(args.args['setTitle'], const HostHandler('setTitle'));
+      for (final int depth in <int>[100000, 100]) {
+        expect(expand(nested(depth)).toJson()['errors'], <Object?>[
+          <String, Object?>{'at': <Object?>[], 'kind': 'depthExceeded'},
+        ], reason: '$depth');
+      }
+    });
+
+    test('control: a value just within the limit, as an entry of the '
+        'arguments, expands', () {
+      final TemplateArgs args = TemplateArgs.from(interface, <String, Object?>{
+        'title': BoundValue(nested(99), path: '/t'),
+      });
+      expect(args.beyondLimits, isNull);
+      expect(expand(nested(99)).errors, isEmpty);
+    });
+  });
+}
+
+class _Text extends PrimitiveLibrary {
+  @override
+  Map<String, Map<String, Object?>> get widgetMeta =>
+      const <String, Map<String, Object?>>{'Text': <String, Object?>{}};
+
+  @override
+  Iterable<String> get widgetNames => widgetMeta.keys;
 }

@@ -5,6 +5,7 @@
 // This file must not import `dart:ui`, directly or indirectly, as it is
 // intended to function even in pure Dart server or CLI environments.
 
+import '../limits.dart';
 import 'model.dart';
 
 /// Parse a Remote Flutter Widgets text data file.
@@ -166,8 +167,13 @@ import 'model.dart';
 ///  * [parseLibraryFile], which uses a superset of this format to decode
 ///    Remote Flutter Widgets text library files.
 ///  * [decodeDataBlob], which decodes the binary variant of this format.
-DynamicMap parseDataFile(String file) {
-  final parser = _Parser(_tokenize(file), null);
+///
+/// Throws a [ParserException] when the file is malformed or exceeds [limits]
+/// (by default [CraftLimits.defaults]; see the `limits` blueprint).
+DynamicMap parseDataFile(String file, {CraftLimits? limits}) {
+  final CraftLimits checked = limits ?? CraftLimits.defaults;
+  _checkSourceSize(file, checked);
+  final parser = _Parser(_tokenize(file), null, checked);
   return parser.readDataFile();
 }
 
@@ -625,9 +631,52 @@ DynamicMap parseDataFile(String file) {
 ///  * [parseDataFile], which uses a subset of this format to decode
 ///    Remote Flutter Widgets text data files.
 ///  * [decodeLibraryBlob], which decodes the binary variant of this format.
-RemoteWidgetLibrary parseLibraryFile(String file, {Object? sourceIdentifier}) {
-  final parser = _Parser(_tokenize(file), sourceIdentifier);
+///
+/// Throws a [ParserException] when the file is malformed or exceeds [limits]
+/// (by default [CraftLimits.defaults]; see the `limits` blueprint).
+RemoteWidgetLibrary parseLibraryFile(
+  String file, {
+  Object? sourceIdentifier,
+  CraftLimits? limits,
+}) {
+  final CraftLimits checked = limits ?? CraftLimits.defaults;
+  _checkSourceSize(file, checked);
+  final parser = _Parser(_tokenize(file), sourceIdentifier, checked);
   return parser.readLibraryFile();
+}
+
+/// Rejects [file] when its UTF-8 form is longer than `maxSourceBytes`, at the
+/// line and column of the first character that does not fit.
+void _checkSourceSize(String file, CraftLimits limits) {
+  // A UTF-16 code unit never takes less than one byte in UTF-8.
+  if (file.length <= limits.maxSourceBytes &&
+      utf8Length(file) <= limits.maxSourceBytes) {
+    return;
+  }
+  var bytes = 0;
+  var line = 1;
+  var column = 0;
+  for (final int rune in file.runes) {
+    column += 1;
+    bytes += rune < 0x80
+        ? 1
+        : rune < 0x800
+        ? 2
+        : rune < 0x10000
+        ? 3
+        : 4;
+    if (bytes > limits.maxSourceBytes) break;
+    if (rune == 0x0A) {
+      line += 1;
+      column = 0;
+    }
+  }
+  throw ParserException(
+    'The source is longer than ${limits.maxSourceBytes} bytes',
+    line,
+    column,
+    limit: CraftLimit.maxSourceBytes,
+  );
 }
 
 const Set<String> _reservedWords = <String>{
@@ -776,7 +825,7 @@ class ParserException implements Exception {
   ///
   /// The arguments must not be null. See [message] for details on
   /// the expected syntax of the error description.
-  const ParserException(this.message, this.line, this.column);
+  const ParserException(this.message, this.line, this.column, {this.limit});
 
   factory ParserException._fromToken(String message, _Token token) {
     return ParserException(message, token.line, token.column);
@@ -810,6 +859,10 @@ class ParserException implements Exception {
   ///
   /// This is measured in UTF-16 code units, even if the source file was UTF-8.
   final int column;
+
+  /// The limit that the source exceeds (see the `limits` blueprint), or null
+  /// when it is malformed.
+  final CraftLimit? limit;
 
   @override
   String toString() => '$message at line $line column $column.';
@@ -2489,8 +2542,57 @@ Iterable<_Token> _tokenize(String file) sync* {
 ///
 /// Test library files can be parsed by using [readLibraryFile].
 class _Parser {
-  _Parser(Iterable<_Token> source, this.sourceIdentifier)
+  _Parser(Iterable<_Token> source, this.sourceIdentifier, this._limits)
     : _source = _mergeQualifiers(source).iterator..moveNext();
+
+  final CraftLimits _limits;
+
+  /// The depth of the node being read, which the `limits` blueprint defines
+  /// on the library that parsing produces.
+  int _depth = 0;
+
+  /// The deepest node read since the start of the current `let` binding.
+  int _deepest = 0;
+
+  /// The nodes of the declaration or data file being read.
+  int _nodes = 0;
+
+  /// The depth and node count of each `let` binding's value.
+  final Map<String, (int, int)> _letShapes = <String, (int, int)>{};
+
+  Never _limitError(CraftLimit limit, String message, _Token token) =>
+      throw ParserException(message, token.line, token.column, limit: limit);
+
+  /// Counts [nodes] new nodes, the deepest at [depth], starting at [token].
+  void _account(_Token token, {required int depth, int nodes = 1}) {
+    if (depth > _limits.maxDepth) {
+      _limitError(
+        CraftLimit.maxDepth,
+        'Nested deeper than ${_limits.maxDepth}',
+        token,
+      );
+    }
+    _nodes += nodes;
+    if (_nodes > _limits.maxNodes) {
+      _limitError(
+        CraftLimit.maxNodes,
+        'More than ${_limits.maxNodes} nodes',
+        token,
+      );
+    }
+    if (depth > _deepest) {
+      _deepest = depth;
+    }
+  }
+
+  /// Reads one node with [read], one level deeper than the current one.
+  T _nested<T>(T Function() read, {_Token? token}) {
+    _depth += 1;
+    _account(token ?? _source.current, depth: _depth);
+    final T result = read();
+    _depth -= 1;
+    return result;
+  }
 
   /// Merges two adjacent `:` tokens into one `::` token, so the parser can
   /// tell `core::Button` from a `key: value` separator without lookahead.
@@ -2681,9 +2783,12 @@ class _Parser {
     while (!_foundSymbol(_SymbolToken.closeBracket)) {
       if (extended && _foundSymbol(_SymbolToken.tripleDot)) {
         final SourceLocation? start = _getSourceLocation();
+        final _Token dots = _source.current;
         _advance();
         if (_foundIdentifier('if')) {
           _advance();
+          // The loop, its switch, the key `true`, `[true]`, `true` and `[]`.
+          _account(dots, depth: _depth + 4, nodes: 6);
           results.add(
             _withSourceRange(
               _readConditionalElement(widgetBuilderScope),
@@ -2698,6 +2803,8 @@ class _Parser {
           continue;
         }
         _expectIdentifier('for');
+        _depth += 1;
+        _account(dots, depth: _depth);
         final _Token loopIdentifierToken = _source.current;
         final String loopIdentifier = _readIdentifier();
         _checkIsNotReservedWord(loopIdentifier, loopIdentifierToken);
@@ -2714,6 +2821,7 @@ class _Parser {
         );
         assert(_loopIdentifiers.last == loopIdentifier);
         _loopIdentifiers.removeLast();
+        _depth -= 1;
         results.add(_withSourceRange(Loop(collection, template), start));
       } else {
         final Object value = _readValue(
@@ -2737,10 +2845,13 @@ class _Parser {
   /// unnamed loop variable counts like any other in loop references.
   Loop _readConditionalElement(List<String> widgetBuilderScope) {
     final SourceLocation? conditionStart = _getSourceLocation();
+    // The condition is the input of the switch, the input of the loop.
+    _depth += 2;
     final Object condition = _readValue(
       widgetBuilderScope: widgetBuilderScope,
       extended: true,
     );
+    _depth -= 1;
     _expectSymbol(_SymbolToken.colon);
     // Not an identifier, so no reference can name it.
     const String hiddenLoopVariable = ' if';
@@ -2749,6 +2860,7 @@ class _Parser {
       widgetBuilderScope: widgetBuilderScope,
       extended: true,
     );
+    _depth -= 1;
     _loopIdentifiers.removeLast();
     final Switch input = _withSourceRange(
       Switch(condition, <Object?, Object>{
@@ -2836,6 +2948,22 @@ class _Parser {
     bool nullOk = false,
     List<String> widgetBuilderScope = const <String>[],
   }) {
+    if (nullOk && _foundIdentifier('null')) {
+      // A null map value is dropped, so it is no node.
+      _advance();
+      return missing;
+    }
+    return _nested(
+      () =>
+          _readNode(extended: extended, widgetBuilderScope: widgetBuilderScope),
+    );
+  }
+
+  /// Reads the value that starts at the current token, counted as a node.
+  Object _readNode({
+    required bool extended,
+    List<String> widgetBuilderScope = const <String>[],
+  }) {
     if (_source.current is _SymbolToken) {
       switch ((_source.current as _SymbolToken).symbol) {
         case _SymbolToken.openBracket:
@@ -2862,7 +2990,14 @@ class _Parser {
       _advance();
       return result;
     } else if (_source.current is _StringToken) {
-      final Object result = (_source.current as _StringToken).value;
+      final String result = (_source.current as _StringToken).value;
+      if (utf8Length(result) > _limits.maxStringBytes) {
+        _limitError(
+          CraftLimit.maxStringBytes,
+          'A string longer than ${_limits.maxStringBytes} bytes',
+          _source.current,
+        );
+      }
       _advance();
       return result;
     } else if (_source.current is _IdentifierToken) {
@@ -2874,10 +3009,6 @@ class _Parser {
       if (identifier == 'false') {
         _advance();
         return false;
-      }
-      if (identifier == 'null' && nullOk) {
-        _advance();
-        return missing;
       }
       if (!extended) {
         throw ParserException._unexpected(_source.current);
@@ -2900,9 +3031,9 @@ class _Parser {
           widgetBuilderScope: widgetBuilderScope,
           extended: true,
         );
-        final DynamicMap arguments = _readMap(
-          widgetBuilderScope: widgetBuilderScope,
-          extended: true,
+        final DynamicMap arguments = _nested(
+          () =>
+              _readMap(widgetBuilderScope: widgetBuilderScope, extended: true),
         );
         return _withSourceRange(
           ConstructorCall('call', <String, Object?>{
@@ -3130,9 +3261,10 @@ class _Parser {
     }
     _expectIdentifier('widget');
     final String name = _readIdentifier();
+    _nodes = 0;
     DynamicMap? initialState;
     if (_foundSymbol(_SymbolToken.openBrace)) {
-      initialState = _readMap(extended: false);
+      initialState = _nested(() => _readMap(extended: false));
     }
     _expectSymbol(_SymbolToken.equals);
     final BlobNode root;
@@ -3140,13 +3272,15 @@ class _Parser {
       root = call;
     } else if (_foundIdentifier('switch')) {
       final SourceLocation? switchStart = _getSourceLocation();
-      _advance();
-      root = _readSwitch(switchStart);
+      root = _nested(() {
+        _advance();
+        return _readSwitch(switchStart);
+      });
     } else if (_source.current case _IdentifierToken(
       :final String value,
     ) when _letValues.containsKey(value)) {
       final _Token useToken = _source.current;
-      final Object bound = _readLetUse();
+      final Object bound = _nested(_readLetUse);
       if (bound is! ConstructorCall && bound is! Switch) {
         throw ParserException._fromToken(
           'The root of a widget declaration must be a widget call or a switch',
@@ -3155,10 +3289,11 @@ class _Parser {
       }
       root = bound as BlobNode;
     } else {
-      root = _readConstructorCall();
+      root = _nested(_readConstructorCall);
     }
     _expectSymbol(_SymbolToken.semicolon);
     _letValues.clear();
+    _letShapes.clear();
     return _withSourceRange(
       WidgetDeclaration(name, initialState, root, exported: exported),
       start,
@@ -3174,7 +3309,10 @@ class _Parser {
       final SourceLocation? letLocation = _getSourceLocation();
       _advance();
       if (_source.current is! _IdentifierToken) {
-        return _readConstructorCall(first: let, firstLocation: letLocation);
+        return _nested(
+          () => _readConstructorCall(first: let, firstLocation: letLocation),
+          token: let,
+        );
       }
       _readLetBindings();
     }
@@ -3201,14 +3339,26 @@ class _Parser {
         );
       }
       _expectSymbol(_SymbolToken.equals);
+      // A binding is checked as a value of its own where it is written; its
+      // nodes count in the declaration where it is used, once per use.
+      final int nodesBefore = _nodes;
+      _nodes = 0;
+      _deepest = 0;
       _letValues[name] = _readValue(extended: true);
+      _letShapes[name] = (_deepest, _nodes);
+      _nodes = nodesBefore;
     } while (_maybeReadSymbol(_SymbolToken.comma));
     _expectIdentifier('in');
   }
 
-  /// Reads a use of a `let` binding, which stands for the bound value itself.
+  /// Reads a use of a `let` binding, which stands for the bound value itself,
+  /// in place of the node that the caller has counted for the use.
   Object _readLetUse() {
-    final Object value = _letValues[_readIdentifier()]!;
+    final _Token token = _source.current;
+    final String name = _readIdentifier();
+    final (int depth, int nodes) = _letShapes[name]!;
+    _account(token, depth: _depth + depth - 1, nodes: nodes - 1);
+    final Object value = _letValues[name]!;
     if (_foundSymbol(_SymbolToken.dot) ||
         _foundSymbol(_SymbolToken.openParen) ||
         _foundSymbol(_SymbolToken.doubleColon)) {
@@ -3221,7 +3371,16 @@ class _Parser {
   }
 
   Iterable<WidgetDeclaration> _readWidgetDeclarations() sync* {
+    var count = 0;
     while (_foundIdentifier('widget') || _foundIdentifier('export')) {
+      count += 1;
+      if (count > _limits.maxDeclarations) {
+        _limitError(
+          CraftLimit.maxDeclarations,
+          'More than ${_limits.maxDeclarations} declarations',
+          _source.current,
+        );
+      }
       yield _readWidgetDeclaration();
     }
   }
@@ -3244,7 +3403,7 @@ class _Parser {
   }
 
   DynamicMap readDataFile() {
-    final DynamicMap result = _readMap(extended: false);
+    final DynamicMap result = _nested(() => _readMap(extended: false));
     _expectEof('end of file');
     return result;
   }

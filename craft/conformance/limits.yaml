@@ -1,0 +1,1255 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Conformance cases for the limits feature
+# (craft/blueprints/features/limits.blueprint.md).
+#
+# Every case except the `limits_json` ones sets `limits`: a map from limit
+# names to values, in the JSON form of requirement 1. A limit it leaves out
+# has its default; cases set small limits so that they do not depend on the
+# defaults.
+#
+# Cases come in four kinds:
+#
+# 1. Limits: `limits_json` is the JSON form a host gives; `expect: {json}` is
+#    the complete JSON form of the limits it makes. Each map in `invalid`
+#    MUST be rejected.
+#
+# 2. Inputs within and beyond the limits: each input in `within` MUST be
+#    accepted, and each one in `beyond` MUST be rejected as `expect` says.
+#    The kind of input is one of
+#      parse: library or data   a text source (a library file or a data
+#                               file); a rejection names `expect.limit` and
+#                               reports the `line` given with the input;
+#      decode: library or data  a blob in `hex`: bytes as pairs of hex digits,
+#                               with `#` comments giving each field's decimal
+#                               offset; a rejection is a decoding error of
+#                               kind limitExceeded that names `expect.limit`
+#                               at the `offset` given with the input;
+#      register: true           a library source, parsed at the engine's
+#                               defaults and registered in a registry with the
+#                               case's limits; a rejection names
+#                               `expect.limit` and leaves the registry
+#                               unchanged;
+#      evaluate: true           a value, evaluated as `functions` evaluates
+#                               the `value` argument of
+#                               `widget test = Result(value: <value>);` in a
+#                               library `test` that imports nothing, with the
+#                               data `data` (a text format data file; absent
+#                               when not given); a rejection is an evaluation
+#                               error of kind `expect.error`.
+#
+# 3. Expansions (`expand: true`): a case of the format of runtime.yaml (see
+#    its header for libraries, root, args, data, steps and expectations),
+#    whose registry, and so whose runtime, has the case's limits. The library
+#    sources are parsed at the engine's defaults. Text format data files in
+#    args, data, event_args and arg are parsed at the engine's defaults too,
+#    so they can exceed the case's limits.
+#
+# Integers are written in canonical JSON form ({$: int, value: 1}) where they
+# are values of an expansion. Scalars that YAML 1.1 reads as booleans are
+# quoted wherever they mean strings.
+
+# --- 1. Limits ---------------------------------------------------------------
+
+- name: default_limits
+  requirement: limits
+  description: "An engine's default limits, in their JSON form."
+  limits_json: {}
+  expect:
+    json:
+      maxSourceBytes: 1048576
+      maxStringBytes: 65536
+      maxDeclarations: 1000
+      maxDepth: 100
+      maxNodes: 100000
+      maxSteps: 100000
+- name: hosts_set_each_limit
+  requirement: limits
+  description:
+    "A host raises or lowers any limit; the others keep their defaults. Unknown names, values that
+    are not positive integers, and the JSON null are rejected."
+  limits_json: {maxDepth: 7, maxSteps: 2000000}
+  invalid:
+    - {maxDepth: 0}
+    - {maxNodes: -1}
+    - {maxSteps: 1.5}
+    - {maxSteps: "10"}
+    - {maxSteps: null}
+    - {maxWidgets: 10}
+  expect:
+    json:
+      maxSourceBytes: 1048576
+      maxStringBytes: 65536
+      maxDeclarations: 1000
+      maxDepth: 7
+      maxNodes: 100000
+      maxSteps: 2000000
+
+# --- 2. Library measures (checked by registration) --------------------------
+
+- name: depth_of_each_node_kind
+  requirement: library_measures
+  description:
+    "With maxDepth 3, every kind of node nests its children one level deeper: list elements, map
+    values, call arguments, a switch's input, keys and values, event arguments, a setter's value, a
+    builder's widget and an initial state's values. A call's and an event's arguments are no level
+    of their own. Each source within is exactly 3 deep; each beyond is 4 deep."
+  limits: {maxDepth: 3}
+  register: true
+  within:
+    - "widget A = T(a: [1]);"
+    - "widget A = T(a: {k: 1});"
+    - "widget A = T(a: U(b: 1));"
+    - "widget A = T(a: switch 1 {2: 3});"
+    - 'widget A = T(a: event "e" {k: 1});'
+    - "widget A = T(a: set state.x = 1);"
+    - "widget A = T(a: (x) => U());"
+    - "widget A {s: [1]} = T();"
+    - "widget A = switch args.x {1: T(a: 1)};"
+  beyond:
+    - "widget A = T(a: [[1]]);"
+    - "widget A = T(a: {k: {k: 1}});"
+    - "widget A = T(a: U(b: [1]));"
+    - "widget A = T(a: switch [1] {2: 3});"
+    - "widget A = T(a: switch 1 {U(b: 2): 3});"
+    - "widget A = T(a: switch 1 {2: [3]});"
+    - 'widget A = T(a: event "e" {k: [1]});'
+    - "widget A = T(a: set state.x = [1]);"
+    - "widget A = T(a: (x) => U(b: 1));"
+    - "widget A {s: [[1]]} = T();"
+    - "widget A = switch args.x {1: T(a: [1])};"
+  expect: {limit: maxDepth}
+- name: depth_of_loops
+  requirement: library_measures
+  description:
+    "With maxDepth 4, a loop element is one level deeper than its list, and its input and output one
+    more."
+  limits: {maxDepth: 4}
+  register: true
+  within:
+    - "widget A = T(a: [...for i in data.l: i]);"
+  beyond:
+    - "widget A = T(a: [...for i in data.l: [i]]);"
+    - "widget A = T(a: [...for i in [data.l]: i]);"
+  expect: {limit: maxDepth}
+- name: nodes_of_a_declaration
+  requirement: library_measures
+  description:
+    "With maxNodes 4, a declaration's nodes (its initial state, as a map, and its root) are counted
+    for each declaration on its own. The default of a switch and a null map value are no nodes."
+  limits: {maxNodes: 4}
+  register: true
+  within:
+    - "widget A = T(a: [1, 2]);"
+    - "widget A {s: 1} = T(a: 1);"
+    - "widget A = T(a: switch 1 {default: 3});"
+    - "widget A = T(a: 1, b: null, c: 2);"
+    - "widget A = T(a: [1, 2]); widget B = T(a: [1, 2]);"
+  beyond:
+    - "widget A = T(a: [1, 2, 3]);"
+    - "widget A {s: 1} = T(a: 1, b: 2);"
+    - "widget A = T(a: switch 1 {2: 3});"
+    - 'widget A = T(a: event "e" {k: 1, l: 2, m: 3});'
+    - "widget A = T(); widget B = T(a: [1, 2, 3]);"
+  expect: {limit: maxNodes}
+- name: string_values
+  requirement: library_measures
+  description:
+    "With maxStringBytes 3, string values are measured in UTF-8 bytes; names, keys, event names and
+    reference parts are not string values."
+  limits: {maxStringBytes: 3}
+  register: true
+  within:
+    - "widget A = T(a: \"abc\", b: \"\\u00E9a\");"
+    - 'widget Abcdef = Uvwxyz(abcdef: event "abcdef" {abcdef: data.abcdef."abcdef"});'
+  beyond:
+    - 'widget A = T(a: "abcd");'
+    - "widget A = T(a: \"\\u00E9\\u00E9\");"
+    - "widget A = T(a: \"\\uD83D\\uDE00\");"
+    - 'widget A {s: "abcd"} = T();'
+    - 'widget A = T(a: switch 1 {"abcd": 2});'
+  expect: {limit: maxStringBytes}
+- name: declarations_of_a_library
+  requirement: library_measures
+  description: "With maxDeclarations 2, a library has at most two declarations."
+  limits: {maxDeclarations: 2}
+  register: true
+  within:
+    - "widget A = T(); widget B = T();"
+  beyond:
+    - "widget A = T(); widget B = T(); widget C = T();"
+  expect: {limit: maxDeclarations}
+
+# --- 3. Text sources -----------------------------------------------------------
+
+- name: source_size
+  requirement: text_sources
+  description:
+    "With maxSourceBytes 20, a source of 20 bytes parses; a longer one is rejected at the line of
+    its first character beyond the limit. Characters count in UTF-8 bytes."
+  limits: {maxSourceBytes: 20}
+  parse: library
+  within:
+    - "import a;\nimport b;"
+    - "widget A=T(b:\"\u00E9\");"
+  beyond:
+    - {source: "import a;\nimport bcd;", line: 2}
+    - {source: "widget A=T(b:\"\u00E9\u00E9\");", line: 1}
+    - {source: "import core;\n\n\nwidget A = T();", line: 4}
+  expect: {limit: maxSourceBytes}
+- name: source_declarations
+  requirement: text_sources
+  description: "With maxDeclarations 2, the third declaration is rejected where it starts."
+  limits: {maxDeclarations: 2}
+  parse: library
+  within:
+    - "widget A = T();\nwidget B = T();\n"
+  beyond:
+    - {source: "widget A = T();\nwidget B = T();\nwidget C = T();\n", line: 3}
+  expect: {limit: maxDeclarations}
+- name: source_depth
+  requirement: text_sources
+  description:
+    "With maxDepth 3, a data file or a declaration nested deeper is rejected at the line of the
+    first node too deep."
+  limits: {maxDepth: 3}
+  parse: data
+  within:
+    - "{\n  a: [\n    1\n  ]\n}"
+  beyond:
+    - {source: "{\n  a: [\n    [1]\n  ]\n}", line: 3}
+  expect: {limit: maxDepth}
+- name: source_depth_of_conditional_elements
+  requirement: text_sources
+  description:
+    "`...if C: E` is the loop `...for _ in switch C { true: [true], default: [] }: E`, whose nodes
+    nest as any other: with maxDepth 6, `[true]`'s element is 6 deep and `C` is 5 deep, so a list
+    in `C` is too deep at its element. With maxDepth 5, `[true]` itself is too deep, at `...`."
+  limits: {maxDepth: 6}
+  parse: library
+  within:
+    - "widget A = T(a: [\n  ...if [data.x]: 1\n]);"
+  beyond:
+    - {source: "widget A = T(a: [\n  ...if [\n    [data.x]\n  ]: 1\n]);", line: 3}
+  expect: {limit: maxDepth}
+- name: source_depth_of_a_conditional_element_itself
+  requirement: text_sources
+  description: "Control case: with maxDepth 5, the nodes that `...if` adds are themselves too deep."
+  limits: {maxDepth: 5}
+  parse: library
+  within:
+    - "widget A = T(a: [\n  ...for i in data.l: [i]\n]);"
+  beyond:
+    - {source: "widget A = T(a: [\n  ...if true: 1\n]);", line: 2}
+  expect: {limit: maxDepth}
+- name: source_depth_of_call_arguments
+  requirement: text_sources
+  description:
+    "The arguments of `call H {M}` are a map node (the canonical form's `arguments`), one level
+    deeper than the call, unlike an event's arguments."
+  limits: {maxDepth: 3}
+  parse: library
+  within:
+    - 'widget A = T(a: call args.h {}, b: event "e" {k: 1});'
+  beyond:
+    - {source: "widget A = T(a: call args.h {\n  k: 1});", line: 2}
+  expect: {limit: maxDepth}
+- name: source_let_bindings
+  requirement: text_sources
+  description:
+    "A `let` binding's value takes the place of each use: with maxDepth 4, `[[1]]` used as an
+    argument is 4 deep, but too deep inside a list, which is rejected at the use. A binding's value
+    is checked where it is written too, even when it is not used."
+  limits: {maxDepth: 4}
+  parse: library
+  within:
+    - "widget A = let x = [[1]] in T(a: x);"
+  beyond:
+    - {source: "widget A = let x = [[1]] in T(\n  a: [x]\n);", line: 2}
+    - {source: "widget A = let x = [[[\n  [1]\n]]] in T();", line: 2}
+  expect: {limit: maxDepth}
+- name: source_let_nodes
+  requirement: text_sources
+  description:
+    "With maxNodes 16, a binding's nodes count once for each use, so bindings that use each other
+    cannot multiply a small source into a large library; an unused binding counts nothing, but is
+    itself within the limit where it is written, apart from the declaration's initial state. The first beyond has 17 nodes (T, then `c`: 15);
+    the second has 1 + 8 + 8; the third binding has 17 nodes of its own."
+  limits: {maxNodes: 16}
+  parse: library
+  within:
+    - "widget A = let a = [1, 1], b = [a, a], c = [b, b] in T(x: c);"
+    - "widget A = let a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] in T(x: 1, y: 2);"
+    - "widget A { s: 1 } = let a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14] in T(x: 1);"
+  beyond:
+    - {
+        source: "widget A = let a = [1, 1], b = [a, a], c = [b, b] in T(\n  x: c,\n  y: 1);",
+        line: 3,
+      }
+    - {source: "widget A = let a = [1, 2, 3, 4, 5, 6, 7] in T(x: a,\n  y: a);", line: 2}
+    - {
+        source: "widget A = let a = [1, 2, 3, 4, 5, 6, 7, 8,\n  9, 10, 11, 12, 13, 14, 15, 16] in T();",
+        line: 2,
+      }
+  expect: {limit: maxNodes}
+- name: source_nodes_of_a_data_file
+  requirement: text_sources
+  description: "With maxNodes 3, a data file's map and its values count; a null value does not."
+  limits: {maxNodes: 3}
+  parse: data
+  within:
+    - "{a: 1, b: 2, c: null}"
+  beyond:
+    - {source: "{a: 1,\n b: [2]}", line: 2}
+  expect: {limit: maxNodes}
+- name: source_strings
+  requirement: text_sources
+  description:
+    "With maxStringBytes 3, a string literal that is a value is checked at the literal; keys and
+    names are not."
+  limits: {maxStringBytes: 3}
+  parse: library
+  within:
+    - "widget A = T(abcdef: \"abc\", b: event \"abcdef\" {\"abcdef\": \"\\u00E9a\"});"
+  beyond:
+    - {source: "widget A = T(a: \"abc\",\n  b: \"abcd\");", line: 2}
+    - {source: "widget A = T(a: \"\\uD83D\\uDE00\");", line: 1}
+  expect: {limit: maxStringBytes}
+
+# --- 4. Binary blobs -------------------------------------------------------------
+
+- name: blob_size
+  requirement: binary_blobs
+  description: "With maxSourceBytes 17, a blob of 17 bytes decodes; a longer one fails at offset 17."
+  limits: {maxSourceBytes: 17}
+  decode: data
+  within:
+    - hex: |
+        fe 43 52 44              # 0: data signature
+        01 00                    # 4: version 1
+        01 00                    # 6: minimum reader version 1
+        05                       # 8: list
+        00 00 00 00 00 00 00 00  # 9: 0 elements
+  beyond:
+    - offset: 17
+      hex: |
+        fe 43 52 44              # 0: data signature
+        01 00                    # 4: version 1
+        01 00                    # 6: minimum reader version 1
+        05                       # 8: list
+        00 00 00 00 00 00 00 00  # 9: 0 elements
+        00                       # 17: one byte too many
+  expect: {limit: maxSourceBytes}
+- name: blob_depth
+  requirement: binary_blobs
+  description: "With maxDepth 2, a value nested 3 deep fails at the tag of the value too deep."
+  limits: {maxDepth: 2}
+  decode: data
+  within:
+    - hex: |
+        fe 43 52 44              # 0: data signature
+        01 00                    # 4: version 1
+        01 00                    # 6: minimum reader version 1
+        05                       # 8: list
+        01 00 00 00 00 00 00 00  # 9: 1 element
+        05                       # 17:   list
+        00 00 00 00 00 00 00 00  # 18:   0 elements
+  beyond:
+    - offset: 26
+      hex: |
+        fe 43 52 44              # 0: data signature
+        01 00                    # 4: version 1
+        01 00                    # 6: minimum reader version 1
+        05                       # 8: list
+        01 00 00 00 00 00 00 00  # 9: 1 element
+        05                       # 17:   list
+        01 00 00 00 00 00 00 00  # 18:   1 element
+        05                       # 26:     list
+        00 00 00 00 00 00 00 00  # 27:     0 elements
+  expect: {limit: maxDepth}
+- name: blob_nodes
+  requirement: binary_blobs
+  description: "With maxNodes 2, the third value read fails at its tag."
+  limits: {maxNodes: 2}
+  decode: data
+  within:
+    - hex: |
+        fe 43 52 44              # 0: data signature
+        01 00                    # 4: version 1
+        01 00                    # 6: minimum reader version 1
+        05                       # 8: list
+        01 00 00 00 00 00 00 00  # 9: 1 element
+        02                       # 17:   integer
+        01 00 00 00 00 00 00 00  # 18:   1
+  beyond:
+    - offset: 26
+      hex: |
+        fe 43 52 44              # 0: data signature
+        01 00                    # 4: version 1
+        01 00                    # 6: minimum reader version 1
+        05                       # 8: list
+        02 00 00 00 00 00 00 00  # 9: 2 elements
+        02                       # 17:   integer
+        01 00 00 00 00 00 00 00  # 18:   1
+        02                       # 26:   integer
+        02 00 00 00 00 00 00 00  # 27:   2
+  expect: {limit: maxNodes}
+- name: blob_strings
+  requirement: binary_blobs
+  description:
+    "With maxStringBytes 3, a string value longer than 3 bytes fails at its tag; a map key is not a
+    string value."
+  limits: {maxStringBytes: 3}
+  decode: data
+  within:
+    - hex: |
+        fe 43 52 44                          # 0: data signature
+        01 00                                # 4: version 1
+        01 00                                # 6: minimum reader version 1
+        07                                   # 8: map
+        01 00 00 00 00 00 00 00              # 9: 1 entry
+        04 00 00 00 00 00 00 00 61 62 63 64  # 17:   key "abcd"
+        04                                   # 29:   string
+        03 00 00 00 00 00 00 00 61 62 63     # 30:   "abc"
+    - hex: |
+        fe 43 52 44                       # 0: data signature
+        01 00                             # 4: version 1
+        01 00                             # 6: minimum reader version 1
+        04                                # 8: string
+        03 00 00 00 00 00 00 00 c3 a9 61  # 9: "éa", 3 bytes
+  beyond:
+    - offset: 8
+      hex: |
+        fe 43 52 44                          # 0: data signature
+        01 00                                # 4: version 1
+        01 00                                # 6: minimum reader version 1
+        04                                   # 8: string
+        04 00 00 00 00 00 00 00 61 62 63 64  # 9: "abcd"
+  expect: {limit: maxStringBytes}
+- name: blob_declarations
+  requirement: binary_blobs
+  description: "With maxDeclarations 1, a count of 2 declarations fails at the count."
+  limits: {maxDeclarations: 1}
+  decode: library
+  within:
+    - hex: |
+        fe 43 52 46                    # 0: library signature
+        01 00                          # 4: version 1
+        01 00                          # 6: minimum reader version 1
+        00 00 00 00 00 00 00 00        # 8: 0 imports
+        01 00 00 00 00 00 00 00        # 16: 1 declaration
+        02 00 00 00 00 00 00 00 41 30  # 24:   name "A0"
+        00 00 00 00 00 00 00 00        # 34:   flags
+        00 00 00 00 00 00 00 00        # 42:   no initial state
+        09                             # 50:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 51:   name "T"
+        00 00 00 00 00 00 00 00        # 60:   0 arguments
+  beyond:
+    - offset: 16
+      hex: |
+        fe 43 52 46                    # 0: library signature
+        01 00                          # 4: version 1
+        01 00                          # 6: minimum reader version 1
+        00 00 00 00 00 00 00 00        # 8: 0 imports
+        02 00 00 00 00 00 00 00        # 16: 2 declarations
+        02 00 00 00 00 00 00 00 41 30  # 24:   name "A0"
+        00 00 00 00 00 00 00 00        # 34:   flags
+        00 00 00 00 00 00 00 00        # 42:   no initial state
+        09                             # 50:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 51:   name "T"
+        00 00 00 00 00 00 00 00        # 60:   0 arguments
+        02 00 00 00 00 00 00 00 41 31  # 68:   name "A1"
+        00 00 00 00 00 00 00 00        # 78:   flags
+        00 00 00 00 00 00 00 00        # 86:   no initial state
+        09                             # 94:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 95:   name "T"
+        00 00 00 00 00 00 00 00        # 104:   0 arguments
+  expect: {limit: maxDeclarations}
+- name: blob_initial_state
+  requirement: binary_blobs
+  description:
+    "A declaration's initial state is a map node 1 deep, at the offset of its count: with maxDepth
+    2, a list in it is 2 deep and a list in that list too deep."
+  limits: {maxDepth: 2}
+  decode: library
+  within:
+    - hex: |
+        fe 43 52 46                    # 0: library signature
+        01 00                          # 4: version 1
+        01 00                          # 6: minimum reader version 1
+        00 00 00 00 00 00 00 00        # 8: 0 imports
+        01 00 00 00 00 00 00 00        # 16: 1 declaration
+        02 00 00 00 00 00 00 00 41 30  # 24:   name "A0"
+        00 00 00 00 00 00 00 00        # 34:   flags
+        01 00 00 00 00 00 00 00        # 42:   initial state: 1 entry
+        01 00 00 00 00 00 00 00 73     # 50:     key "s"
+        05                             # 59:     list
+        00 00 00 00 00 00 00 00        # 60:     0 elements
+        09                             # 68:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 69:   name "T"
+        00 00 00 00 00 00 00 00        # 78:   0 arguments
+  beyond:
+    - offset: 68
+      hex: |
+        fe 43 52 46                    # 0: library signature
+        01 00                          # 4: version 1
+        01 00                          # 6: minimum reader version 1
+        00 00 00 00 00 00 00 00        # 8: 0 imports
+        01 00 00 00 00 00 00 00        # 16: 1 declaration
+        02 00 00 00 00 00 00 00 41 30  # 24:   name "A0"
+        00 00 00 00 00 00 00 00        # 34:   flags
+        01 00 00 00 00 00 00 00        # 42:   initial state: 1 entry
+        01 00 00 00 00 00 00 00 73     # 50:     key "s"
+        05                             # 59:     list
+        01 00 00 00 00 00 00 00        # 60:     1 element
+        05                             # 68:       list
+        00 00 00 00 00 00 00 00        # 69:       0 elements
+        09                             # 77:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 78:   name "T"
+        00 00 00 00 00 00 00 00        # 87:   0 arguments
+  expect: {limit: maxDepth}
+- name: blob_nodes_per_declaration
+  requirement: binary_blobs
+  description:
+    "With maxNodes 3, nodes count per declaration, including the initial state map; a switch's
+    default marker is no node."
+  limits: {maxNodes: 3}
+  decode: library
+  within:
+    - hex: |
+        fe 43 52 46                 # 0: library signature
+        01 00                       # 4: version 1
+        01 00                       # 6: minimum reader version 1
+        00 00 00 00 00 00 00 00     # 8: 0 imports
+        01 00 00 00 00 00 00 00     # 16: 1 declaration
+        01 00 00 00 00 00 00 00 41  # 24:   name "A"
+        00 00 00 00 00 00 00 00     # 33:   flags
+        00 00 00 00 00 00 00 00     # 41:   no initial state
+        0f                          # 49:   root: switch
+        0a                          # 50:     input: args reference
+        01 00 00 00 00 00 00 00     # 51:     1 part
+        04                          # 59:     string
+        01 00 00 00 00 00 00 00 78  # 60:     "x"
+        01 00 00 00 00 00 00 00     # 69:     1 case
+        10                          # 77:       default
+        09                          # 78:       value: widget call
+        01 00 00 00 00 00 00 00 54  # 79:       name "T"
+        00 00 00 00 00 00 00 00     # 88:       0 arguments
+    - hex: |
+        fe 43 52 46                    # 0: library signature
+        01 00                          # 4: version 1
+        01 00                          # 6: minimum reader version 1
+        00 00 00 00 00 00 00 00        # 8: 0 imports
+        01 00 00 00 00 00 00 00        # 16: 1 declaration
+        02 00 00 00 00 00 00 00 41 30  # 24:   name "A0"
+        00 00 00 00 00 00 00 00        # 34:   flags
+        01 00 00 00 00 00 00 00        # 42:   initial state: 1 entry
+        01 00 00 00 00 00 00 00 73     # 50:     key "s"
+        02                             # 59:     integer
+        01 00 00 00 00 00 00 00        # 60:     1
+        09                             # 68:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 69:   name "T"
+        00 00 00 00 00 00 00 00        # 78:   0 arguments
+    - hex: |
+        fe 43 52 46                    # 0: library signature
+        01 00                          # 4: version 1
+        01 00                          # 6: minimum reader version 1
+        00 00 00 00 00 00 00 00        # 8: 0 imports
+        02 00 00 00 00 00 00 00        # 16: 2 declarations
+        02 00 00 00 00 00 00 00 41 30  # 24:   name "A0"
+        00 00 00 00 00 00 00 00        # 34:   flags
+        00 00 00 00 00 00 00 00        # 42:   no initial state
+        09                             # 50:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 51:   name "T"
+        00 00 00 00 00 00 00 00        # 60:   0 arguments
+        02 00 00 00 00 00 00 00 41 31  # 68:   name "A1"
+        00 00 00 00 00 00 00 00        # 78:   flags
+        00 00 00 00 00 00 00 00        # 86:   no initial state
+        09                             # 94:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 95:   name "T"
+        00 00 00 00 00 00 00 00        # 104:   0 arguments
+  expect: {limit: maxNodes}
+- name: blob_nodes_beyond
+  requirement: binary_blobs
+  description: "Control case for blob_nodes_per_declaration: the same blobs with maxNodes 2."
+  limits: {maxNodes: 2}
+  decode: library
+  within:
+    - hex: |
+        fe 43 52 46                    # 0: library signature
+        01 00                          # 4: version 1
+        01 00                          # 6: minimum reader version 1
+        00 00 00 00 00 00 00 00        # 8: 0 imports
+        02 00 00 00 00 00 00 00        # 16: 2 declarations
+        02 00 00 00 00 00 00 00 41 30  # 24:   name "A0"
+        00 00 00 00 00 00 00 00        # 34:   flags
+        00 00 00 00 00 00 00 00        # 42:   no initial state
+        09                             # 50:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 51:   name "T"
+        00 00 00 00 00 00 00 00        # 60:   0 arguments
+        02 00 00 00 00 00 00 00 41 31  # 68:   name "A1"
+        00 00 00 00 00 00 00 00        # 78:   flags
+        00 00 00 00 00 00 00 00        # 86:   no initial state
+        09                             # 94:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 95:   name "T"
+        00 00 00 00 00 00 00 00        # 104:   0 arguments
+  beyond:
+    - offset: 78
+      hex: |
+        fe 43 52 46                 # 0: library signature
+        01 00                       # 4: version 1
+        01 00                       # 6: minimum reader version 1
+        00 00 00 00 00 00 00 00     # 8: 0 imports
+        01 00 00 00 00 00 00 00     # 16: 1 declaration
+        01 00 00 00 00 00 00 00 41  # 24:   name "A"
+        00 00 00 00 00 00 00 00     # 33:   flags
+        00 00 00 00 00 00 00 00     # 41:   no initial state
+        0f                          # 49:   root: switch
+        0a                          # 50:     input: args reference
+        01 00 00 00 00 00 00 00     # 51:     1 part
+        04                          # 59:     string
+        01 00 00 00 00 00 00 00 78  # 60:     "x"
+        01 00 00 00 00 00 00 00     # 69:     1 case
+        10                          # 77:       default
+        09                          # 78:       value: widget call
+        01 00 00 00 00 00 00 00 54  # 79:       name "T"
+        00 00 00 00 00 00 00 00     # 88:       0 arguments
+    - offset: 68
+      hex: |
+        fe 43 52 46                    # 0: library signature
+        01 00                          # 4: version 1
+        01 00                          # 6: minimum reader version 1
+        00 00 00 00 00 00 00 00        # 8: 0 imports
+        01 00 00 00 00 00 00 00        # 16: 1 declaration
+        02 00 00 00 00 00 00 00 41 30  # 24:   name "A0"
+        00 00 00 00 00 00 00 00        # 34:   flags
+        01 00 00 00 00 00 00 00        # 42:   initial state: 1 entry
+        01 00 00 00 00 00 00 00 73     # 50:     key "s"
+        02                             # 59:     integer
+        01 00 00 00 00 00 00 00        # 60:     1
+        09                             # 68:   root: widget call
+        01 00 00 00 00 00 00 00 54     # 69:   name "T"
+        00 00 00 00 00 00 00 00        # 78:   0 arguments
+  expect: {limit: maxNodes}
+
+# --- 5. Registration -------------------------------------------------------------
+
+- name: parsed_libraries_register
+  requirement: registration
+  description:
+    "Sources at the limits of the depth, node, string and declaration cases above register under
+    the same limits."
+  limits: {maxDepth: 5, maxNodes: 16, maxStringBytes: 3, maxDeclarations: 2}
+  register: true
+  within:
+    - "widget A = let x = [[1]] in T(a: x); widget B = T(a: [...for i in data.l: i]);"
+    - "widget A = let a = [1, 1], b = [a, a], c = [b, b] in T(x: c); widget B = T(y: \"\\u00E9a\");"
+  beyond:
+    - "widget A = T(); widget B = T(); widget C = T();"
+  expect: {limit: maxDeclarations}
+
+# --- 6. Values -------------------------------------------------------------------
+
+- name: evaluation_depth
+  requirement: evaluation_depth
+  description: "With maxDepth 3, the evaluator fails on a node evaluated 4 deep."
+  limits: {maxDepth: 3}
+  evaluate: true
+  within:
+    - "[[1]]"
+    - "equals(a: [1], b: {k: 2})"
+  beyond:
+    - "[[[1]]]"
+    - "equals(a: [[1]], b: 1)"
+  expect: {error: depthExceeded}
+- name: values_read_are_checked
+  requirement: values
+  description:
+    "With maxDepth 2, a value read from the data that is nested 3 deep fails; only the value read is
+    checked."
+  limits: {maxDepth: 2}
+  evaluate: true
+  data: "{l: [[1]]}"
+  within:
+    - "data.l.0"
+  beyond:
+    - "data.l"
+  expect: {error: depthExceeded}
+- name: strings_read_are_checked
+  requirement: values
+  description: "With maxStringBytes 3, a string read from the data that is longer fails."
+  limits: {maxStringBytes: 3}
+  evaluate: true
+  data: '{s: "abcd", t: "abc"}'
+  within:
+    - "data.t"
+  beyond:
+    - "data.s"
+  expect: {error: stringTooLong}
+- name: function_results_strings
+  requirement: values
+  description: "With maxStringBytes 4, a function result longer than 4 bytes fails."
+  limits: {maxStringBytes: 4}
+  evaluate: true
+  within:
+    - 'concat(a: "ab", b: "cd")'
+  beyond:
+    - 'concat(a: "abc", b: "de")'
+  expect: {error: stringTooLong}
+- name: function_results_depth
+  requirement: values
+  description:
+    "With maxDepth 3, a function result nested 4 deep fails, though every node evaluated and every
+    value read is within the limit."
+  limits: {maxDepth: 3}
+  evaluate: true
+  data: "{v: [[1]], w: [1]}"
+  within:
+    - "listWith(list: [], value: data.w)"
+  beyond:
+    - "listWith(list: [], value: data.v)"
+  expect: {error: depthExceeded}
+
+# --- 7. Expansions -------------------------------------------------------------
+
+- name: depth_of_primitive_arguments
+  requirement: evaluation_depth
+  description:
+    "With maxDepth 4: the root's position is 1 deep; `root`'s root, the Column call, is evaluated
+    and placed 2 deep; Column's arguments 3 deep; the list's elements 4 deep, where Text is placed;
+    so Text's argument, evaluated 5 deep, fails Text."
+  limits: {maxDepth: 4}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [Text(text: "a")]);
+  expect:
+    tree:
+      $: widget
+      name: core::Column
+      args:
+        children:
+          - {$: error, kind: depthExceeded}
+    errors:
+      - {at: [children, 0], kind: depthExceeded}
+- name: depth_of_primitive_arguments_control
+  requirement: evaluation_depth
+  description: "Control case for depth_of_primitive_arguments: with maxDepth 5 the tree expands."
+  limits: {maxDepth: 5}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [Text(text: "a")]);
+  expect:
+    tree:
+      $: widget
+      name: core::Column
+      args:
+        children:
+          - {$: widget, name: core::Text, args: {text: a}}
+- name: depth_of_template_calls
+  requirement: evaluation_depth
+  description:
+    "Each template call is one level: with maxDepth 4, `root`, A and B place their roots 2, 3 and 4
+    deep, and Text's argument is evaluated 5 deep."
+  limits: {maxDepth: 4}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = A();
+      widget A = B();
+      widget B = Text(text: "x");
+  expect:
+    tree: {$: error, kind: depthExceeded}
+    errors:
+      - {at: [], kind: depthExceeded}
+  steps:
+    - register:
+        main: |
+          import core;
+          widget root = A();
+          widget A = B();
+          widget B = Text();
+      expect:
+        tree: {$: widget, name: core::Text, args: {}}
+- name: arguments_are_evaluated_where_read
+  requirement: evaluation_depth
+  description:
+    "A template argument is evaluated as a child of the reference that first reads it: `args.x` is
+    evaluated 4 deep (Text is placed 3 deep), so `[[1]]` is 5 to 7 deep, though it is written 2
+    to 4 deep in `root`. With maxDepth 6 Text fails."
+  limits: {maxDepth: 6}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = A(x: [[1]]);
+      widget A = Text(text: args.x);
+  expect:
+    tree: {$: error, kind: depthExceeded}
+    errors:
+      - {at: [], kind: depthExceeded}
+- name: arguments_are_evaluated_where_read_control
+  requirement: evaluation_depth
+  description: "Control case for arguments_are_evaluated_where_read, with maxDepth 7."
+  limits: {maxDepth: 7}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = A(x: [[1]]);
+      widget A = Text(text: args.x);
+  expect:
+    tree:
+      $: widget
+      name: core::Text
+      args:
+        text: [[{$: int, value: 1}]]
+- name: placed_values_are_not_evaluated
+  requirement: evaluation_depth
+  description:
+    "Placing a value evaluates nothing: with maxDepth 4, `data.v` is evaluated 3 deep and its value
+    placed deeper than 4."
+  limits: {maxDepth: 4}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Text(text: data.v);
+  data: "{v: [[1]]}"
+  expect:
+    tree:
+      $: widget
+      name: core::Text
+      args:
+        text: [[{$: int, value: 1}]]
+- name: depth_of_builder_outputs
+  requirement: evaluation_depth
+  description:
+    "A builder node placed 3 deep has its output evaluated 4 deep: with maxDepth 4, Text's argument
+    (5 deep) fails the output; the root is not affected."
+  limits: {maxDepth: 4}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = List(item: (i) => Text(text: i.a));
+  expect:
+    tree: {$: widget, name: core::List, args: {item: {$: builder}}}
+  steps:
+    - build: [item]
+      key: 0
+      arg: "{a: 1}"
+      expect:
+        tree: {$: error, kind: depthExceeded}
+        errors:
+          - {at: [item, 0], kind: depthExceeded}
+- name: depth_of_builder_outputs_control
+  requirement: evaluation_depth
+  description: "Control case for depth_of_builder_outputs, with maxDepth 5."
+  limits: {maxDepth: 5}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = List(item: (i) => Text(text: i.a));
+  expect:
+    tree: {$: widget, name: core::List, args: {item: {$: builder}}}
+  steps:
+    - build: [item]
+      key: 0
+      arg: "{a: 1}"
+      expect:
+        tree: {$: widget, name: core::Text, args: {text: {$: int, value: 1}}}
+- name: depth_of_loops_in_an_expansion
+  requirement: evaluation_depth
+  description:
+    "A loop element is evaluated one level deeper than its list, its input and outputs one more:
+    with maxDepth 4 the loop is 4 deep and its input fails Column; with maxDepth 5 it expands."
+  limits: {maxDepth: 4}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for i in data.l: Text()]);
+  data: "{l: [1]}"
+  expect:
+    tree: {$: error, kind: depthExceeded}
+    errors:
+      - {at: [], kind: depthExceeded}
+- name: depth_of_loops_in_an_expansion_control
+  requirement: evaluation_depth
+  description: "Control case for depth_of_loops_in_an_expansion, with maxDepth 5."
+  limits: {maxDepth: 5}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for i in data.l: Text()]);
+  data: "{l: [1]}"
+  expect:
+    tree:
+      $: widget
+      name: core::Column
+      args:
+        children:
+          - {$: widget, name: core::Text, args: {}}
+- name: a_failing_template_keeps_its_instance
+  requirement: evaluation_depth
+  description:
+    "A depth failure is an error like any other (runtime, requirement 12): with maxDepth 3, S's
+    root Text is placed 2 deep and `state.n` is evaluated 4 deep, so Text fails, and S, expanded,
+    has its instance."
+  limits: {maxDepth: 3}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = S();
+      widget S { "n": 0 } = Text(text: [state.n]);
+  expect:
+    tree: {$: error, kind: depthExceeded}
+    states:
+      - {at: [], widget: main::S, value: {"n": {$: int, value: 0}}}
+    errors:
+      - {at: [], kind: depthExceeded}
+
+- name: steps_of_an_expansion
+  requirement: expansion_budget
+  description:
+    "Each evaluation of a node is one step: the Column call, the list, the loop, `data.l`, three
+    Text calls and three `i` are 10 steps. With maxSteps 10 the tree expands; a fourth item makes
+    12 steps and the expansion stops; with three items again it expands."
+  limits: {maxSteps: 10}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for i in data.l: Text(text: i)]);
+  data: "{l: [1, 2, 3]}"
+  expect:
+    tree:
+      $: widget
+      name: core::Column
+      args:
+        children:
+          - {$: widget, name: core::Text, args: {text: {$: int, value: 1}}}
+          - {$: widget, name: core::Text, args: {text: {$: int, value: 2}}}
+          - {$: widget, name: core::Text, args: {text: {$: int, value: 3}}}
+  steps:
+    - data: "{l: [1, 2, 3, 4]}"
+      expect:
+        tree: {$: error, kind: stepsExceeded}
+        errors:
+          - {at: [], kind: stepsExceeded}
+    - data: "{l: [1, 2, 3]}"
+      expect:
+        errors: []
+- name: steps_of_an_expansion_beyond
+  requirement: expansion_budget
+  description: "Control case for steps_of_an_expansion: the same 10 steps with maxSteps 9."
+  limits: {maxSteps: 9}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for i in data.l: Text(text: i)]);
+  data: "{l: [1, 2, 3]}"
+  expect:
+    tree: {$: error, kind: stepsExceeded}
+    errors:
+      - {at: [], kind: stepsExceeded}
+- name: checked_values_are_steps
+  requirement: expansion_budget
+  description:
+    "Each node of a value that must be a value is one more step: the Text call, `equals`, two
+    `data.l` and two checked arguments of 4 nodes each are 12 steps. With maxSteps 12 the tree
+    expands; one more element in the data adds 2 checked nodes, 14 steps, and the expansion stops."
+  limits: {maxSteps: 12}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Text(text: equals(a: data.l, b: data.l));
+  data: "{l: [1, 2, 3]}"
+  expect:
+    tree: {$: widget, name: core::Text, args: {text: true}}
+  steps:
+    - data: "{l: [1, 2, 3, 4]}"
+      expect:
+        tree: {$: error, kind: stepsExceeded}
+        errors:
+          - {at: [], kind: stepsExceeded}
+- name: an_argument_is_evaluated_once
+  requirement: expansion_budget
+  description:
+    "An argument is evaluated on its first read only: A's Column call, the list, two Text calls,
+    two `args.x` and `[1, 2]` once, with the root's call, are 10 steps (13 if `[1, 2]` were
+    evaluated twice)."
+  limits: {maxSteps: 10}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = A(x: [1, 2]);
+      widget A = Column(children: [Text(text: args.x), Text(text: args.x)]);
+  expect:
+    tree:
+      $: widget
+      name: core::Column
+      args:
+        children:
+          - {$: widget, name: core::Text, args: {text: [{$: int, value: 1}, {$: int, value: 2}]}}
+          - {$: widget, name: core::Text, args: {text: [{$: int, value: 1}, {$: int, value: 2}]}}
+- name: an_argument_is_evaluated_once_beyond
+  requirement: expansion_budget
+  description: "Control case for an_argument_is_evaluated_once: the same 10 steps with maxSteps 9."
+  limits: {maxSteps: 9}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = A(x: [1, 2]);
+      widget A = Column(children: [Text(text: args.x), Text(text: args.x)]);
+  expect:
+    tree: {$: error, kind: stepsExceeded}
+    errors:
+      - {at: [], kind: stepsExceeded}
+- name: nodes_of_an_expansion
+  requirement: expansion_budget
+  description:
+    "Column, the list, two Texts, `a` and `[1, 2]` (3 nodes) are 8 nodes. With maxNodes 8 the
+    tree expands; a third element in the data makes 9 and the expansion stops."
+  limits: {maxNodes: 8}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [Text(text: "a"), Text(text: data.l)]);
+  data: "{l: [1, 2]}"
+  expect:
+    tree:
+      $: widget
+      name: core::Column
+      args:
+        children:
+          - {$: widget, name: core::Text, args: {text: a}}
+          - {$: widget, name: core::Text, args: {text: [{$: int, value: 1}, {$: int, value: 2}]}}
+  steps:
+    - data: "{l: [1, 2, 3]}"
+      expect:
+        tree: {$: error, kind: nodesExceeded}
+        errors:
+          - {at: [], kind: nodesExceeded}
+- name: shared_values_count_at_each_place
+  requirement: expansion_budget
+  description:
+    "A value placed several times counts each time: Column, the list and three copies of `data.l`
+    (4 nodes each) are 14 nodes."
+  limits: {maxNodes: 14}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for i in data.l: data.l]);
+  data: "{l: [1, 2, 3]}"
+  expect:
+    tree:
+      $: widget
+      name: core::Column
+      args:
+        children:
+          - [{$: int, value: 1}, {$: int, value: 2}, {$: int, value: 3}]
+          - [{$: int, value: 1}, {$: int, value: 2}, {$: int, value: 3}]
+          - [{$: int, value: 1}, {$: int, value: 2}, {$: int, value: 3}]
+- name: shared_values_count_at_each_place_beyond
+  requirement: expansion_budget
+  description: "Control case for shared_values_count_at_each_place: the same 14 nodes with maxNodes 13."
+  limits: {maxNodes: 13}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for i in data.l: data.l]);
+  data: "{l: [1, 2, 3]}"
+  expect:
+    tree: {$: error, kind: nodesExceeded}
+    errors:
+      - {at: [], kind: nodesExceeded}
+- name: each_builder_output_has_its_own_budget
+  requirement: expansion_budget
+  description:
+    "The root's expansion takes 2 steps; the output for a = 1 takes 6 (the switch, `i.a` and its
+    check, the key 1 and its check, the Text call); the output for a = 2 would take more than 6
+    and stops at its own position, without affecting the root or the first output."
+  limits: {maxSteps: 6}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = List(item: (i) => switch i.a { 1: Text(), default: Column(children: [Text(), Text()]) });
+  expect:
+    tree: {$: widget, name: core::List, args: {item: {$: builder}}}
+  steps:
+    - build: [item]
+      key: 0
+      arg: "{a: 1}"
+      expect:
+        tree: {$: widget, name: core::Text, args: {}}
+    - build: [item]
+      key: 1
+      arg: "{a: 2}"
+      expect:
+        tree: {$: error, kind: stepsExceeded}
+        errors:
+          - {at: [item, 1], kind: stepsExceeded}
+- name: a_stopped_expansion_keeps_the_state
+  requirement: expansion_budget
+  description: "An expansion that stops lists no instance and changes no state: after `n` is set, an
+    expansion over the budget (12 steps of 10) stops, and the next one within it still has `n` set."
+  limits: {maxSteps: 10}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root { "n": 0 } = Column(children: [Button(onPressed: set state."n" = 1), ...for i in data.l: Text(text: i)]);
+  data: "{l: [1]}"
+  expect:
+    states:
+      - {at: [], widget: main::root, value: {"n": {$: int, value: 0}}}
+  steps:
+    - fire: [children, 0, onPressed]
+      expect:
+        states:
+          - {at: [], widget: main::root, value: {"n": {$: int, value: 1}}}
+    - data: "{l: [1, 2]}"
+      expect:
+        tree: {$: error, kind: stepsExceeded}
+        errors:
+          - {at: [], kind: stepsExceeded}
+    - data: "{l: [3]}"
+      expect:
+        states:
+          - {at: [], widget: main::root, value: {"n": {$: int, value: 1}}}
+- name: host_input_beyond_the_limits
+  requirement: expansion_budget
+  description:
+    "Data nested deeper than maxDepth (3) or arguments with a string longer than maxStringBytes (3)
+    stop every expansion until the host replaces them."
+  limits: {maxDepth: 3, maxStringBytes: 3}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Text(text: data.v, label: args.t);
+  data: "{v: [[1]]}"
+  args: '{t: "abc"}'
+  expect:
+    tree: {$: error, kind: depthExceeded}
+    errors:
+      - {at: [], kind: depthExceeded}
+  steps:
+    - data: "{v: [1]}"
+      expect:
+        tree: {$: widget, name: core::Text, args: {text: [{$: int, value: 1}], label: abc}}
+    - args: '{t: "abcd"}'
+      expect:
+        tree: {$: error, kind: stringTooLong}
+        errors:
+          - {at: [], kind: stringTooLong}
+- name: a_builder_argument_beyond_the_limits
+  requirement: expansion_budget
+  description: "A builder argument nested deeper than maxDepth (5) stops that output; a smaller one expands."
+  limits: {maxDepth: 5}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = List(item: (i) => Text(text: i.a));
+  expect:
+    tree: {$: widget, name: core::List, args: {item: {$: builder}}}
+  steps:
+    - build: [item]
+      key: 0
+      arg: "{a: [[[[1]]]]}"
+      expect:
+        tree: {$: error, kind: depthExceeded}
+        errors:
+          - {at: [item, 0], kind: depthExceeded}
+    - build: [item]
+      key: 1
+      arg: "{a: 1}"
+      expect:
+        tree: {$: widget, name: core::Text, args: {text: {$: int, value: 1}}}
+
+- name: event_arguments_beyond_the_limits
+  requirement: firing
+  description:
+    "Event arguments nested deeper than maxDepth (4) or with a string longer than maxStringBytes (3)
+    fire nothing and give one firing error. The event's own argument `k` is evaluated 4 deep (the
+    Button 2 deep, the event 3): an event's arguments are no level of their own."
+  limits: {maxDepth: 4, maxStringBytes: 3}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root = Button(onPressed: event "e" {k: 1});
+  expect:
+    tree:
+      $: widget
+      name: core::Button
+      args:
+        onPressed: {$: event, name: e, args: {k: {$: int, value: 1}}}
+  steps:
+    - fire: [onPressed]
+      event_args: "{v: [[[1]]]}"
+      expect:
+        fire_errors: [depthExceeded]
+    - fire: [onPressed]
+      event_args: '{v: "abcd"}'
+      expect:
+        fire_errors: [stringTooLong]
+    - fire: [onPressed]
+      event_args: '{v: [[1]], w: "abc"}'
+      expect:
+        events:
+          - {event: e, args: {k: {$: int, value: 1}, v: [[{$: int, value: 1}]], w: abc}}
+- name: setters_beyond_the_limits
+  requirement: firing
+  description:
+    "A setter whose state would be nested deeper than maxDepth (5) fails with depthExceeded and
+    changes nothing; the first firing makes the state 5 deep, the second would make it 6."
+  limits: {maxDepth: 5}
+  expand: true
+  libraries:
+    main: |
+      import core;
+      widget root { v: [[1]] } = Button(onPressed: set state.v = [state.v]);
+  expect:
+    states:
+      - {at: [], widget: main::root, value: {v: [[{$: int, value: 1}]]}}
+  steps:
+    - fire: [onPressed]
+      expect:
+        states:
+          - {at: [], widget: main::root, value: {v: [[[{$: int, value: 1}]]]}}
+    - fire: [onPressed]
+      expect:
+        fire_errors: [depthExceeded]
+        states:
+          - {at: [], widget: main::root, value: {v: [[[{$: int, value: 1}]]]}}

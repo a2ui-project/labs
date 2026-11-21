@@ -38,8 +38,10 @@ const Map<String, Object?> _defaultPrimitives = <String, Object?>{
 /// `runtime.yaml`, extended with the media inputs and steps of
 /// `media_context.yaml` (both headers document them).
 class RuntimeEngine {
-  /// Sets up the registry and runtime of [c].
-  RuntimeEngine(ConformanceCase c) {
+  /// Sets up the registry and runtime of [c], under the case's `limits`
+  /// (see `limits.yaml`).
+  RuntimeEngine(ConformanceCase c)
+    : registry = TemplateRegistry(limits: caseLimits(c)) {
     for (final MapEntry<String, Object?> p in _entries(
       c['primitives'] ?? _defaultPrimitives,
     )) {
@@ -81,7 +83,7 @@ class RuntimeEngine {
     }
   }
 
-  final TemplateRegistry registry = TemplateRegistry();
+  final TemplateRegistry registry;
   late final CraftRuntime runtime;
   Expansion? _current;
   Expansion? _previous;

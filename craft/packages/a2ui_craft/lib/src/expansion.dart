@@ -47,6 +47,19 @@ enum ExpansionErrorKind {
 
   /// A `set state` with no stateful template around it.
   noState,
+
+  /// Evaluation or expansion went deeper than `maxDepth`, a value is nested
+  /// deeper, or the host's input is (see the `limits` blueprint).
+  depthExceeded,
+
+  /// A value holds a string longer than `maxStringBytes`.
+  stringTooLong,
+
+  /// The expansion took more than `maxSteps` evaluation steps.
+  stepsExceeded,
+
+  /// The expansion has more than `maxNodes` nodes.
+  nodesExceeded,
 }
 
 /// A primitive in an expansion: its fully qualified [name] and its arguments,
