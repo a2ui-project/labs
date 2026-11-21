@@ -13,17 +13,19 @@
 // limitations under the License.
 
 /// The framework-independent core of Craft: the template language, its data
-/// model and its formats. It has no UI-framework dependency, so any framework
-/// adapter can build on it.
+/// model, its formats and the runtime that expands templates. It has no
+/// UI-framework dependency, so any framework adapter can build on it.
 library;
 
 export 'src/canonical_json.dart';
 export 'src/dependencies.dart';
 export 'src/evaluator.dart';
+export 'src/expansion.dart';
 export 'src/functions.dart';
 export 'src/name_resolution.dart';
 export 'src/rfw/binary.dart';
 export 'src/rfw/model.dart';
 export 'src/rfw/text.dart';
+export 'src/runtime.dart';
 export 'src/standard_functions.dart';
 export 'src/template_registry.dart';

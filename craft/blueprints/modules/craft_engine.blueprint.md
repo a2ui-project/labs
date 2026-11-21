@@ -29,7 +29,7 @@ The engine is the part that every host embeds. It is written for someone impleme
 | Language extensions | `.craft` source                         | conditional elements, local values, absent values and handler calls, as existing node kinds                | `language_extensions` |
 | Functions           | calls in templates                      | values from host-registered pure functions                                                                 | `functions`           |
 | Template registry   | registered libraries and host functions | introspection answers, and the components offered to the agent, gated on their dependencies                | `template_registry`   |
-| Runtime             | a template, its arguments and data      | a tree of building blocks, local state, events                                                             | `runtime`             |
+| Runtime             | a template, its arguments and data      | a framework-independent tree of primitive calls, local state, events                                       | `runtime`             |
 | A2UI integration    | A2UI messages                           | templates rendered as catalog components of an A2UI renderer, with JSON schemas derived from the templates | `a2ui_integration`    |
 | Media context       | the host's surface                      | values that templates can branch on (size class, surface kind)                                             | `media_context`       |
 | Limits              | a template and its expansion            | rejection at load time, or a bounded placeholder                                                           | `limits`              |
