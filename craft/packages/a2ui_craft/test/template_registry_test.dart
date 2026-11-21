@@ -159,6 +159,7 @@ void main() {
     expect(registry.functionsFor(_main).keys.toSet(), <String>{
       ...standardFunctions.keys,
       ...introspectionFunctionNames,
+      ...mediaFunctions.keys,
     });
   });
 

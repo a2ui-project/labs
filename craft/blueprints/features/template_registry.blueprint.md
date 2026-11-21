@@ -28,7 +28,7 @@ Introspection always answers from the calling library's point of view, and only 
 
 ### **2. Evaluation**
 
-- The registry MUST classify calls and evaluate values written in a registered template library as `functions` specifies, with name resolution over the registered libraries, and with a function table holding the standard functions, the introspection functions of requirements 3, 4 and 6 and the registered host functions.
+- The registry MUST classify calls and evaluate values written in a registered template library as `functions` specifies, with name resolution over the registered libraries, and with a function table holding the standard functions (also those that other features add, such as `atLeast` of `media_context`), the introspection functions of requirements 3, 4 and 6 and the registered host functions.
 - The introspection functions are standard functions: they are registered under their bare names, so they are called as `hasWidget` or `core::hasWidget` from any library, listed by `hasFunction`, and classified like any other call (a visible widget of the same name wins, `functions`, requirement 3). A host function such as `fmt::hasWidget` is a different function.
 - Their parameters all have the kind `string`, so the argument rules of `functions` apply: an unknown argument name fails with `invalidArgument`, and a present argument of another kind makes the call absent. Below, "absent" for an argument means not passed or passed as absent.
 - A symbol reference MUST evaluate as requirement 5 specifies.

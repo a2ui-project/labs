@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'package:a2ui_craft/a2ui_craft.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
@@ -33,8 +34,32 @@ class MissingPrimitiveWidget {
       '${node.path.join('.')})';
 }
 
+/// Where a [CraftView] takes the media context of its runtime from.
+enum MediaSource {
+  /// The space the view is given: the maximum width and height of its
+  /// layout constraints, an unbounded one replaced by that of the size of
+  /// the nearest [MediaQuery]. Like every [LayoutBuilder], the view then
+  /// cannot answer intrinsic size queries; use [window] or [host] where a
+  /// parent asks them.
+  layout,
+
+  /// The size of the nearest [MediaQuery]: the window in an app.
+  window,
+
+  /// The host: the view leaves the runtime's media context alone.
+  host,
+}
+
 /// Renders the expansion of [runtime] with the widgets of [libraries], and
 /// expands it again whenever the runtime notifies a change.
+///
+/// Unless [media] is [MediaSource.host], the view sets the runtime's media
+/// context before it renders (see [MediaContext.fromSize]): a size from
+/// [media], the platform from [defaultTargetPlatform] (`web` on the web),
+/// and the reduced-motion preference from [MediaQueryData.disableAnimations].
+/// It renders the expansion for that media context, so a change of size
+/// class shows up in the same frame, and notifies the runtime's other
+/// listeners after that frame, so that they may rebuild.
 ///
 /// Firing a handler goes to the runtime; the events it gives go to
 /// [onEvent]. Every error of an expansion, of a builder's output or of a
@@ -53,6 +78,7 @@ class CraftView extends StatefulWidget {
     this.onError,
     this.errorBuilder,
     this.hostWidgetBuilder,
+    this.media = MediaSource.layout,
   });
 
   /// The runtime whose expansion is rendered.
@@ -76,14 +102,26 @@ class CraftView extends StatefulWidget {
   final Widget Function(BuildContext context, HostWidgetNode node)?
   hostWidgetBuilder;
 
+  /// Where the runtime's media context comes from. A runtime should be
+  /// shown by at most one view that sets it.
+  final MediaSource media;
+
   @override
   State<CraftView> createState() => _CraftViewState();
 }
 
 class _CraftViewState extends State<CraftView> {
-  late Expansion _expansion;
+  /// The expansion rendered; null when the runtime changed since.
+  Expansion? _expansion;
   final List<Object> _pendingErrors = <Object>[];
   bool _expansionScheduled = false;
+
+  /// Whether the view is notifying of its own media change, so that it
+  /// does not take the notification for a change from elsewhere.
+  bool _notifyingMedia = false;
+
+  /// Whether a notification of a media change is scheduled.
+  bool _mediaNotificationScheduled = false;
 
   /// The errors of rendering ([ExpansionError]s of builder outputs and
   /// [MissingPrimitiveWidget]s) already reported for [_expansion], by kind
@@ -94,7 +132,6 @@ class _CraftViewState extends State<CraftView> {
   void initState() {
     super.initState();
     widget.runtime.addListener(_changed);
-    _expand();
   }
 
   @override
@@ -103,7 +140,7 @@ class _CraftViewState extends State<CraftView> {
     if (!identical(oldWidget.runtime, widget.runtime)) {
       oldWidget.runtime.removeListener(_changed);
       widget.runtime.addListener(_changed);
-      _expand();
+      _expansion = null;
     }
   }
 
@@ -113,28 +150,66 @@ class _CraftViewState extends State<CraftView> {
     super.dispose();
   }
 
-  void _expand() {
-    _expansion = widget.runtime.expand();
+  Expansion _expand() {
+    final Expansion expansion = widget.runtime.expand();
     _reported.clear();
-    _report(_expansion.errors);
+    _report(expansion.errors);
+    return expansion;
   }
+
+  void _invalidate() => _expansion = null;
 
   /// Expands again; while a frame is being built (a host changed the
   /// runtime from a build method), once after that frame however many
   /// changes come, so that no rebuild is requested during a build.
   void _changed() {
+    if (_notifyingMedia) return;
     if (SchedulerBinding.instance.schedulerPhase !=
         SchedulerPhase.persistentCallbacks) {
-      setState(_expand);
+      setState(_invalidate);
       return;
     }
     if (_expansionScheduled) return;
     _expansionScheduled = true;
     SchedulerBinding.instance.addPostFrameCallback((Duration _) {
       _expansionScheduled = false;
-      if (mounted) setState(_expand);
+      if (mounted) setState(_invalidate);
     });
   }
+
+  /// Sets the runtime's media context for a space of [size].
+  void _setMedia(BuildContext context, Size size) {
+    final MediaContext media = MediaContext.fromSize(
+      size.width,
+      size.height,
+      platform: kIsWeb ? HostPlatform.web : _platforms[defaultTargetPlatform],
+      reducedMotion: MediaQuery.maybeDisableAnimationsOf(context) ?? false,
+    );
+    final CraftRuntime runtime = widget.runtime;
+    if (!runtime.setMedia(media, notify: false)) return;
+    _expansion = null;
+    if (_mediaNotificationScheduled) return;
+    _mediaNotificationScheduled = true;
+    SchedulerBinding.instance.addPostFrameCallback((Duration _) {
+      _mediaNotificationScheduled = false;
+      _notifyingMedia = true;
+      try {
+        runtime.refresh();
+      } finally {
+        _notifyingMedia = false;
+      }
+    });
+  }
+
+  static const Map<TargetPlatform, HostPlatform> _platforms =
+      <TargetPlatform, HostPlatform>{
+        TargetPlatform.android: HostPlatform.android,
+        TargetPlatform.fuchsia: HostPlatform.fuchsia,
+        TargetPlatform.iOS: HostPlatform.ios,
+        TargetPlatform.linux: HostPlatform.linux,
+        TargetPlatform.macOS: HostPlatform.macos,
+        TargetPlatform.windows: HostPlatform.windows,
+      };
 
   /// Reports [error] unless it was already reported for this expansion.
   void _reportOnce(String key, Object error) {
@@ -187,8 +262,36 @@ class _CraftViewState extends State<CraftView> {
     _ => throw ArgumentError.value(node, 'node', 'Not a node of an expansion'),
   };
 
+  Widget _renderRoot() => _render((_expansion ??= _expand()).root);
+
   @override
-  Widget build(BuildContext context) => _render(_expansion.root);
+  Widget build(BuildContext context) {
+    switch (widget.media) {
+      case MediaSource.host:
+        return _renderRoot();
+      case MediaSource.window:
+        _setMedia(context, MediaQuery.sizeOf(context));
+        return _renderRoot();
+      case MediaSource.layout:
+        return LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final Size window = MediaQuery.sizeOf(context);
+            _setMedia(
+              context,
+              Size(
+                constraints.hasBoundedWidth
+                    ? constraints.maxWidth
+                    : window.width,
+                constraints.hasBoundedHeight
+                    ? constraints.maxHeight
+                    : window.height,
+              ),
+            );
+            return _renderRoot();
+          },
+        );
+    }
+  }
 }
 
 /// The default placeholder: an [ErrorWidget] of a fixed small size, so that
