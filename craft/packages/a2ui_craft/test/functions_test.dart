@@ -213,7 +213,6 @@ void main() {
       'set state.a = 1',
       'call args.h {}',
       'theme.color',
-      'media.width',
       'Text.version',
       'isSet(value: Text(text: "x"))',
     ]) {

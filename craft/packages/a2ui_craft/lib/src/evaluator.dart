@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'functions.dart';
+import 'media_context.dart';
 import 'name_resolution.dart';
 import 'rfw/model.dart';
 
@@ -32,9 +33,9 @@ enum EvaluationErrorKind {
   /// A host function threw, or returned something that is not a value.
   functionFailed,
 
-  /// The value contains a node that this evaluator does not evaluate (a widget
-  /// call, a loop, a switch, a handler, or a reference other than to args,
-  /// data or state); the runtime evaluates those.
+  /// The value contains a node that this evaluator does not evaluate: a
+  /// widget call, a loop, a switch, a handler, a theme, loop or builder
+  /// argument reference, or a symbol reference without a [SymbolReader].
   notEvaluated,
 }
 
@@ -91,8 +92,9 @@ final class UnknownCall extends CallKind {
 }
 
 /// Evaluates the values of a library that consist of literals, lists, maps,
-/// `absent`, references to args, data and state, and function calls, given
-/// the values of args, data and state.
+/// `absent`, references to args, data, state and the media context, and
+/// function calls, given the values of args, data and state and the media
+/// context.
 ///
 /// The result is a value of the language: booleans, numbers, strings, lists,
 /// maps, and [missing] for the absent value.
@@ -131,7 +133,8 @@ class Evaluator {
   }
 
   /// Evaluates [value], written in [library] inside [declaration], with the
-  /// given values for args, data and state (absent when not given).
+  /// given values for args, data and state (absent when not given) and the
+  /// given [media] context (see [readMedia]).
   ///
   /// Throws an [EvaluationException] when the evaluation fails, and a
   /// [FormatException] when a reference reads a part of [args], [data] or
@@ -143,6 +146,7 @@ class Evaluator {
     Object? args,
     Object? data,
     Object? state,
+    MediaContext? media,
   }) {
     return _Evaluation(
       this,
@@ -151,6 +155,7 @@ class Evaluator {
       args,
       data,
       state,
+      media,
     ).eval(value);
   }
 }
@@ -163,6 +168,7 @@ class _Evaluation {
     this.args,
     this.data,
     this.state,
+    this.media,
   );
 
   final Evaluator evaluator;
@@ -171,6 +177,7 @@ class _Evaluation {
   final Object? args;
   final Object? data;
   final Object? state;
+  final MediaContext? media;
 
   Object eval(Object? node) => switch (node) {
     null || Missing() => missing,
@@ -183,6 +190,7 @@ class _Evaluation {
     ArgsReference() => _read(args, node.parts),
     DataReference() => _read(data, node.parts),
     StateReference() => _read(state, node.parts),
+    MediaReference() => readMedia(media, node.parts),
     ConstructorCall() => _call(node),
     SymbolReference() when evaluator.symbols != null => evaluator.symbols!(
       library,
