@@ -20,7 +20,7 @@ Two kinds of library take part. A **template library** is a parsed library (see 
 ### **1. Qualified names**
 
 - A widget call MAY name its widget with a qualifier: `lib::Name`, or `a.b::Name` for a dotted library name. The two colons of `::` MUST be adjacent; whitespace around `::` is allowed, as around other symbols.
-- Each part of a qualifier, and the name after `::`, MUST be an identifier that is not one of the reserved words `args`, `data`, `event`, `false`, `media`, `set`, `state`, `theme`, `true`, the keywords `default`, `for`, `import`, `in`, `null`, `widget` (see `text_format`, requirement 4), or `switch`. An integer, a string or one of these words before or after `::` MUST be rejected. (A library may still declare a widget with such a name, as RFW does not check declaration names, but it cannot be called by a qualified name.) In a value position, a loop variable or builder argument in scope reads as a reference (as in `text_format`), so a qualifier starting with one MUST be rejected too.
+- Each part of a qualifier, and the name after `::`, MUST be an identifier that is not one of the reserved words `absent`, `args`, `call`, `data`, `event`, `false`, `media`, `set`, `state`, `theme`, `true` (`absent` and `call` are reserved by `language_extensions`), the keywords `default`, `for`, `import`, `in`, `null`, `widget` (see `text_format`, requirement 4), or `switch`. An integer, a string or one of these words before or after `::` MUST be rejected. (A library may still declare a widget with such a name, as RFW does not check declaration names, but it cannot be called by a qualified name.) In a value position, a loop variable or builder argument in scope reads as a reference (as in `text_format`), and a `let` binding as its value (see `language_extensions`), so a qualifier starting with one MUST be rejected too.
 - A qualified call MUST parse to a widget call whose name is the qualified string with the parts joined by `.` and no whitespace (`acme.ui::Card`), both as a declaration's root and inside values. The canonical JSON form is unchanged.
 - A qualified name followed by `.` in a value position MUST parse to a symbol reference whose symbol is the qualified string (`scan::Scanner.version` has the symbol `scan::Scanner` and the parts `version`).
 - A single `:` MUST still separate a key from its value, and an unqualified `Name.part` MUST still parse to a symbol reference as in `text_format`.
@@ -35,7 +35,7 @@ Two kinds of library take part. A **template library** is a parsed library (see 
 
 ### **3. Own declarations**
 
-Resolution takes a name as written, the library `L` it is written in, and optionally the declaration of `L` being bound (the one whose body contains the name).
+Resolution takes a name as written, the library `L` it is written in, and optionally the declaration of `L` being bound (the one whose body contains the name). The names `absent` and `call` are an exception to every rule below, including catalog components: they never resolve to a widget (see `language_extensions`).
 
 - An unqualified name MUST first resolve to `L`'s own declaration of that name, exported or not, ahead of any import.
 - A declaration MUST never resolve to itself: the declaration being bound is skipped, so `widget Button = Button(...)` wraps core's `Button`, while other declarations of `L` that use `Button` get the wrapper. The same holds for the qualified form `L::Button`. The name then resolves as if `L` did not declare it (so a bare name that nothing else defines is not found).
@@ -87,10 +87,10 @@ A catalog is the library whose widgets an agent may name as components.
 
 Functions share the call syntax with widgets and follow the same naming rule. The host registers each function under a key: a standard function under its bare name (`add`), a function of a host library `fmt` under its qualified name (`fmt::price`).
 
-- A standard function MUST be callable from any library as `add` or `core::add`, and both MUST map to the key `add`.
+- A standard function MUST be callable from any library as `add`, and also as `core::add` unless its name is one of the words that requirement 1 excludes after `::`; both forms MUST map to the key `add`. A standard function named by such a word (`absent`, `call`) is callable only bare: `core::absent` MUST NOT map to it.
 - A host function MUST be callable only by its qualified key (`fmt::price`), and only from a library that is `fmt` or imports `fmt`. The bare name `price` and the form `core::price` MUST NOT map to it.
 - A key qualified with `core` (`core::x`) MUST NOT be callable by any name, since `core::x` always means the standard function `x`.
-- An engine MUST be able to list every function name callable from `L`, each mapped to its registered key.
+- An engine MUST be able to list every function name callable from `L`, each mapped to its registered key. The list MUST NOT contain `core::` followed by a word that requirement 1 excludes after `::`.
 
 ### **12. Visible names**
 
@@ -149,7 +149,7 @@ The shared cases are in `craft/conformance/libraries_and_names.yaml`, including 
 - **Imported-only resolution**: own declarations skipped, bare and qualified.
 - **Primitive libraries**: resolving from a primitive library.
 - **Catalog components**: a template catalog's exported, private and imported names and an unregistered catalog; a primitive catalog.
-- **Function keys**: standard and host functions, callable or not, from importing, non-importing and the function's own library, and `core::add` from a library that does not import core; a key qualified with core; the list of visible functions.
+- **Function keys**: standard and host functions, callable or not, from importing, non-importing and the function's own library, and `core::add` from a library that does not import core; a key qualified with core; `absent` and `call` callable bare but not as `core::absent` or `core::call`; the list of visible functions, which lists `absent` and `call` only bare.
 - **Visible names**: bare and qualified names of a library and its imports.
 
 Unit tests in the Dart engine additionally cover the candidates and messages of failures, the position RFW reports for a dotted root name, and the resolver's cache.

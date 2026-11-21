@@ -1,0 +1,1314 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Conformance cases for the language_extensions feature
+# (craft/blueprints/features/language_extensions.blueprint.md).
+#
+# Each case parses `source` as a library file (kind: library) or a data file
+# (kind: data). A case may give `sources`, a list, instead of `source`: every
+# source in it must meet the same expectation. `expect` is one of:
+#   library: the canonical JSON form (see text_format) of the parsed library.
+#     The library must also survive the binary round trip: encoding it with
+#     binary_format and decoding the result gives the same canonical form;
+#   error: the source is rejected; `line`, when given, is the 1-based line
+#     the engine reports.
+#
+# Cases with `queries` instead of a source are resolution cases, in the format
+# described in libraries_and_names.yaml.
+#
+# Scalars that YAML 1.1 reads as booleans (on, off, y, n, yes, no) are quoted
+# wherever they mean strings.
+
+# absent_value
+
+- name: absent_bare_and_called
+  requirement: absent_value
+  description: "absent, absent() and absent ( ) are the same call named absent with no arguments, in an argument, a list and a map. Unlike null, it is not dropped from a map."
+  kind: library
+  source: |
+    widget root = Box(
+      a: absent,
+      b: [absent()],
+      c: { d: absent ( ) },
+    );
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Box
+            args:
+              a:
+                $: call
+                name: absent
+                args: {}
+              b:
+                - $: call
+                  name: absent
+                  args: {}
+              c:
+                d:
+                  $: call
+                  name: absent
+                  args: {}
+- name: absent_in_a_switch_and_a_handler_argument
+  requirement: absent_value
+  description: "absent can be a switch case value, for example to disable a button."
+  kind: library
+  source: |
+    import core;
+    widget Tap = Button(
+      onPressed: switch args.off { true: absent, default: event "tap" {} },
+      child: Text(text: absent()),
+    );
+  expect:
+    library:
+      imports:
+        - core
+      widgets:
+        - name: Tap
+          root:
+            $: call
+            name: Button
+            args:
+              onPressed:
+                $: switch
+                input:
+                  $: argsRef
+                  parts:
+                    - "off"
+                cases:
+                  - key: true
+                    value:
+                      $: call
+                      name: absent
+                      args: {}
+                  - default: true
+                    value:
+                      $: event
+                      name: tap
+                      args: {}
+              child:
+                $: call
+                name: Text
+                args:
+                  text:
+                    $: call
+                    name: absent
+                    args: {}
+- name: absent_with_arguments_is_rejected
+  requirement: absent_value
+  description: "absent( must be followed by ), so absent(x: 1) is rejected."
+  kind: library
+  source: |
+    widget root = Box(
+      a: absent(x: 1),
+    );
+  expect:
+    error:
+      line: 2
+- name: absent_followed_by_a_dot_or_qualifier_is_rejected
+  requirement: absent_value
+  description: "absent is a complete value; absent.x (a symbol reference in text_format) and absent::Card() are rejected."
+  kind: library
+  sources:
+    - |
+      widget root = Box(
+        a: absent.x,
+      );
+    - |
+      widget root = Box(
+        a: absent::Card(),
+      );
+  expect:
+    error:
+      line: 2
+- name: absent_in_initial_state_is_rejected
+  requirement: absent_value
+  description: "Initial state does not allow references, so it does not allow absent either."
+  kind: library
+  source: |
+    widget root {
+      a: absent,
+    } = Box();
+  expect:
+    error:
+      line: 2
+- name: absent_in_a_data_file_is_rejected
+  requirement: absent_value
+  description: "A data file does not allow absent."
+  kind: data
+  source: |
+    {
+      a: absent,
+    }
+  expect:
+    error:
+      line: 2
+- name: absent_as_the_root_is_a_widget_call
+  requirement: absent_value
+  description: "A declaration's root is read as a widget call, so absent() there is the same call, and absent(x: 1) and call() are ordinary calls with those names."
+  kind: library
+  source: |
+    widget root = absent();
+    widget b = absent(x: 1);
+    widget c = call();
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: absent
+            args: {}
+        - name: b
+          root:
+            $: call
+            name: absent
+            args:
+              x:
+                $: int
+                value: 1
+        - name: c
+          root:
+            $: call
+            name: call
+            args: {}
+- name: bare_absent_as_the_root_is_rejected
+  requirement: absent_value
+  description: 'As the root, a bare absent is a widget name without "(".'
+  kind: library
+  source: |
+    widget root =
+      absent;
+  expect:
+    error:
+      line: 2
+- name: absent_is_reserved
+  requirement: absent_value
+  description: 'A loop variable, a widget builder argument, a qualifier part and the name after "::" cannot be absent.'
+  kind: library
+  sources:
+    - |
+      widget root = Column(children: [
+        ...for absent in data.items: Text(text: "x"),
+      ]);
+    - |
+      widget root = List(
+        itemBuilder: (absent) => Text(text: "x"),
+      );
+    - |
+      import core;
+      widget root = Box(child: core::absent());
+    - |
+      widget root =
+        absent.ui::Card();
+  expect:
+    error:
+      line: 2
+- name: names_that_only_start_with_absent_or_call_are_not_reserved
+  requirement: absent_value
+  description: "Control for the reserved-word cases of absent and call: the same positions with the names absents and caller parse."
+  kind: library
+  source: |
+    import core;
+    widget root = Column(children: [
+      ...for absents in data.items: List(itemBuilder: (caller) => Text(text: caller.x)),
+      core::absents(),
+    ]);
+    widget other = caller.ui::Card();
+  expect:
+    library:
+      imports:
+        - core
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input:
+                    $: dataRef
+                    parts:
+                      - items
+                  output:
+                    $: call
+                    name: List
+                    args:
+                      itemBuilder:
+                        $: builder
+                        arg: caller
+                        widget:
+                          $: call
+                          name: Text
+                          args:
+                            text:
+                              $: builderArgRef
+                              arg: caller
+                              parts:
+                                - x
+                - $: call
+                  name: core::absents
+                  args: {}
+        - name: other
+          root:
+            $: call
+            name: caller.ui::Card
+            args: {}
+
+# handler_application
+
+- name: call_with_arguments
+  requirement: handler_application
+  description: "call <handler> { arguments } is a call named call with the arguments handler and arguments. As in any map, an entry whose value is null is dropped."
+  kind: library
+  source: |
+    import core;
+    widget Pick = Button(
+      onPressed: call args.onPick { value: args.value, source: "chip", none: null },
+      child: Text(text: args.value),
+    );
+  expect:
+    library:
+      imports:
+        - core
+      widgets:
+        - name: Pick
+          root:
+            $: call
+            name: Button
+            args:
+              onPressed:
+                $: call
+                name: call
+                args:
+                  handler:
+                    $: argsRef
+                    parts:
+                      - onPick
+                  arguments:
+                    value:
+                      $: argsRef
+                      parts:
+                        - value
+                    source: chip
+              child:
+                $: call
+                name: Text
+                args:
+                  text:
+                    $: argsRef
+                    parts:
+                      - value
+- name: call_with_any_handler_value
+  requirement: handler_application
+  description: "The handler can be any value (here a loop reference, a list and an event handler) and the arguments map can be empty."
+  kind: library
+  source: |
+    widget root = Column(children: [
+      Checkbox(onChanged: [call args.setChecked {}, event "changed" {}]),
+      ...for o in data.options: Button(onPressed: call o.action {}),
+      Button(onPressed: call [args.a, args.b] { n: 1 }),
+      Button(onPressed: call event "e" { x: 1 } {}),
+    ]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: call
+                  name: Checkbox
+                  args:
+                    onChanged:
+                      - $: call
+                        name: call
+                        args:
+                          handler:
+                            $: argsRef
+                            parts:
+                              - setChecked
+                          arguments: {}
+                      - $: event
+                        name: changed
+                        args: {}
+                - $: loop
+                  input:
+                    $: dataRef
+                    parts:
+                      - options
+                  output:
+                    $: call
+                    name: Button
+                    args:
+                      onPressed:
+                        $: call
+                        name: call
+                        args:
+                          handler:
+                            $: loopRef
+                            loop: 0
+                            parts:
+                              - action
+                          arguments: {}
+                - $: call
+                  name: Button
+                  args:
+                    onPressed:
+                      $: call
+                      name: call
+                      args:
+                        handler:
+                          - $: argsRef
+                            parts:
+                              - a
+                          - $: argsRef
+                            parts:
+                              - b
+                        arguments:
+                          "n":
+                            $: int
+                            value: 1
+                - $: call
+                  name: Button
+                  args:
+                    onPressed:
+                      $: call
+                      name: call
+                      args:
+                        handler:
+                          $: event
+                          name: e
+                          args:
+                            x:
+                              $: int
+                              value: 1
+                        arguments: {}
+- name: call_without_an_arguments_map_is_rejected
+  requirement: handler_application
+  description: "The arguments map is required, even when empty."
+  kind: library
+  source: |
+    widget root = Button(
+      onPressed: call args.onPick
+    );
+  expect:
+    error:
+      line: 3
+- name: a_widget_named_call_cannot_be_called_in_a_value_position
+  requirement: handler_application
+  description: 'In a value position, call always starts a handler application, so call(x: 1), a widget call in RFW, is rejected ("(" starts a widget builder as the handler).'
+  kind: library
+  source: |
+    widget root = Box(child:
+      call(x: 1));
+  expect:
+    error:
+      line: 2
+- name: call_as_the_root_is_a_widget_call
+  requirement: handler_application
+  description: "Control: a declaration's root is read as a widget call, so call(...) there is a call named call; with the arguments handler and arguments it is the same node as the handler form."
+  kind: library
+  source: |
+    widget root = call(handler: args.h, arguments: {});
+    widget other = Box(child: call args.h {});
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: call
+            args:
+              handler:
+                $: argsRef
+                parts:
+                  - h
+              arguments: {}
+        - name: other
+          root:
+            $: call
+            name: Box
+            args:
+              child:
+                $: call
+                name: call
+                args:
+                  handler:
+                    $: argsRef
+                    parts:
+                      - h
+                  arguments: {}
+- name: call_followed_by_a_dot_is_rejected
+  requirement: handler_application
+  description: "call.x (a symbol reference in text_format) is rejected."
+  kind: library
+  source: |
+    widget root = Box(
+      child: call.x,
+    );
+  expect:
+    error:
+      line: 2
+- name: call_in_initial_state_is_rejected
+  requirement: handler_application
+  description: "Initial state does not allow references, so it does not allow call either."
+  kind: library
+  source: |
+    widget root {
+      a: call args.x {},
+    } = Box();
+  expect:
+    error:
+      line: 2
+- name: call_in_a_data_file_is_rejected
+  requirement: handler_application
+  description: "A data file does not allow call."
+  kind: data
+  source: |
+    {
+      a: call args.x {},
+    }
+  expect:
+    error:
+      line: 2
+- name: call_is_reserved
+  requirement: handler_application
+  description: 'A loop variable, a widget builder argument, a qualifier part and the name after "::" cannot be call. The control case is names_that_only_start_with_absent_or_call_are_not_reserved.'
+  kind: library
+  sources:
+    - |
+      widget root = Column(children: [
+        ...for call in data.items: Text(text: "x"),
+      ]);
+    - |
+      widget root = List(
+        itemBuilder: (call) => Text(text: "x"),
+      );
+    - |
+      import core;
+      widget root = Box(child: core::call());
+    - |
+      widget root =
+        call::Card();
+  expect:
+    error:
+      line: 2
+
+# conditional_list_elements
+
+- name: if_element
+  requirement: conditional_list_elements
+  description: "...if cond: element is the loop over switch cond { true: [true], default: [] } with the element as its body; the list goes on after it."
+  kind: library
+  source: |
+    widget Lines = Column(children: [
+      Text(text: "always"),
+      ...if args.more: Text(text: "more"),
+      Text(text: "last"),
+    ]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: Lines
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: call
+                  name: Text
+                  args:
+                    text: always
+                - $: loop
+                  input:
+                    $: switch
+                    input:
+                      $: argsRef
+                      parts:
+                        - more
+                    cases:
+                      - key: true
+                        value:
+                          - true
+                      - default: true
+                        value: []
+                  output:
+                    $: call
+                    name: Text
+                    args:
+                      text: more
+                - $: call
+                  name: Text
+                  args:
+                    text: last
+- name: if_counts_as_a_loop_in_its_element_only
+  requirement: conditional_list_elements
+  description: "Inside a ...for, the condition refers to the loop variable with index 0 and the element with index 1; a nested ...if adds one more."
+  kind: library
+  source: |
+    widget root = Column(children: [
+      ...for item in args.items: Column(children: [
+        ...if item.on: Text(text: item.label),
+        ...if item.a: Column(children: [...if item.b: Text(text: item.c)]),
+      ]),
+    ]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input:
+                    $: argsRef
+                    parts:
+                      - items
+                  output:
+                    $: call
+                    name: Column
+                    args:
+                      children:
+                        - $: loop
+                          input:
+                            $: switch
+                            input:
+                              $: loopRef
+                              loop: 0
+                              parts:
+                                - "on"
+                            cases:
+                              - key: true
+                                value:
+                                  - true
+                              - default: true
+                                value: []
+                          output:
+                            $: call
+                            name: Text
+                            args:
+                              text:
+                                $: loopRef
+                                loop: 1
+                                parts:
+                                  - label
+                        - $: loop
+                          input:
+                            $: switch
+                            input:
+                              $: loopRef
+                              loop: 0
+                              parts:
+                                - a
+                            cases:
+                              - key: true
+                                value:
+                                  - true
+                              - default: true
+                                value: []
+                          output:
+                            $: call
+                            name: Column
+                            args:
+                              children:
+                                - $: loop
+                                  input:
+                                    $: switch
+                                    input:
+                                      $: loopRef
+                                      loop: 1
+                                      parts:
+                                        - b
+                                    cases:
+                                      - key: true
+                                        value:
+                                          - true
+                                      - default: true
+                                        value: []
+                                  output:
+                                    $: call
+                                    name: Text
+                                    args:
+                                      text:
+                                        $: loopRef
+                                        loop: 2
+                                        parts:
+                                          - c
+- name: if_is_not_a_reserved_word
+  requirement: conditional_list_elements
+  description: 'Outside "...if", if is an ordinary name; here a loop variable.'
+  kind: library
+  source: |
+    widget root = Column(children: [...for if in args.items: Text(text: if)]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input:
+                    $: argsRef
+                    parts:
+                      - items
+                  output:
+                    $: call
+                    name: Text
+                    args:
+                      text:
+                        $: loopRef
+                        loop: 0
+                        parts: []
+- name: if_without_a_colon_or_with_else_is_rejected
+  requirement: conditional_list_elements
+  description: 'The condition must be followed by ":", and there is no else.'
+  kind: library
+  sources:
+    - |
+      widget root = Column(children: [
+        ...if args.on Text(text: "x"),
+      ]);
+    - |
+      widget root = Column(children: [
+        ...if args.on: Text(text: "x") else Text(text: "y"),
+      ]);
+  expect:
+    error:
+      line: 2
+- name: if_in_initial_state_is_rejected
+  requirement: conditional_list_elements
+  description: 'Where "..." is rejected (initial state, data files), "...if" is rejected too.'
+  kind: library
+  source: |
+    widget root {
+      a: [...if true: 1],
+    } = Box();
+  expect:
+    error:
+      line: 2
+- name: if_in_a_data_file_is_rejected
+  requirement: conditional_list_elements
+  description: 'A data file does not allow "...if".'
+  kind: data
+  source: |
+    {
+      a: [...if true: 1],
+    }
+  expect:
+    error:
+      line: 2
+
+# local_values
+
+- name: let_bindings_replace_their_uses
+  requirement: local_values
+  description: "Each use of a binding is its value; a binding can use earlier ones. A key spelled like a binding stays a key."
+  kind: library
+  source: |
+    widget root = let
+      label = args.label,
+      line = Text(label: label)
+    in Column(children: [line, line, label]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: call
+                  name: Text
+                  args:
+                    label:
+                      $: argsRef
+                      parts:
+                        - label
+                - $: call
+                  name: Text
+                  args:
+                    label:
+                      $: argsRef
+                      parts:
+                        - label
+                - $: argsRef
+                  parts:
+                    - label
+- name: let_binding_as_the_root_and_in_a_switch
+  requirement: local_values
+  description: "A binding can be the root when it is a widget call or a switch, and can be used in a root switch. The third declaration wraps a part only in one case, binding the part once."
+  kind: library
+  source: |
+    widget a = let b = Text(text: "a") in b;
+    widget c = let s = switch args.x { default: Box() } in s;
+    widget Pressable = let body = Box(child: Text(text: args.label)) in
+      switch args.pressable {
+        true: Button(onPressed: args.action, child: body),
+        default: body,
+      };
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: a
+          root:
+            $: call
+            name: Text
+            args:
+              text: a
+        - name: c
+          root:
+            $: switch
+            input:
+              $: argsRef
+              parts:
+                - x
+            cases:
+              - default: true
+                value:
+                  $: call
+                  name: Box
+                  args: {}
+        - name: Pressable
+          root:
+            $: switch
+            input:
+              $: argsRef
+              parts:
+                - pressable
+            cases:
+              - key: true
+                value:
+                  $: call
+                  name: Button
+                  args:
+                    onPressed:
+                      $: argsRef
+                      parts:
+                        - action
+                    child:
+                      $: call
+                      name: Box
+                      args:
+                        child:
+                          $: call
+                          name: Text
+                          args:
+                            text:
+                              $: argsRef
+                              parts:
+                                - label
+              - default: true
+                value:
+                  $: call
+                  name: Box
+                  args:
+                    child:
+                      $: call
+                      name: Text
+                      args:
+                        text:
+                          $: argsRef
+                          parts:
+                            - label
+- name: let_root_that_is_not_a_widget_is_rejected
+  requirement: local_values
+  description: "As the root, a binding must be a widget call or a switch."
+  kind: library
+  source: |
+    widget root = let a = 1 in
+      a;
+  expect:
+    error:
+      line: 2
+- name: loop_variables_and_builder_arguments_shadow_bindings
+  requirement: local_values
+  description: "A loop variable or builder argument of the same name hides the binding; outside them the binding applies."
+  kind: library
+  source: |
+    widget root = let item = Text(text: "bound") in Column(children: [
+      item,
+      ...for item in args.items: Text(text: item),
+      List(itemBuilder: (item) => Text(text: item.x)),
+    ]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: call
+                  name: Text
+                  args:
+                    text: bound
+                - $: loop
+                  input:
+                    $: argsRef
+                    parts:
+                      - items
+                  output:
+                    $: call
+                    name: Text
+                    args:
+                      text:
+                        $: loopRef
+                        loop: 0
+                        parts: []
+                - $: call
+                  name: List
+                  args:
+                    itemBuilder:
+                      $: builder
+                      arg: item
+                      widget:
+                        $: call
+                        name: Text
+                        args:
+                          text:
+                            $: builderArgRef
+                            arg: item
+                            parts:
+                              - x
+- name: a_binding_is_parsed_where_it_is_written
+  requirement: local_values
+  description: "A binding's value sees no loop variable, builder argument, later binding or itself, so item.name stays a symbol reference even when used inside a loop over item, and both b.x are symbol references."
+  kind: library
+  source: |
+    widget root = let
+      n = item.name,
+      a = b.x,
+      b = b.x
+    in Column(children: [...for item in args.items: Text(text: n), a, b]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input:
+                    $: argsRef
+                    parts:
+                      - items
+                  output:
+                    $: call
+                    name: Text
+                    args:
+                      text:
+                        $: symbolRef
+                        symbol: item
+                        parts:
+                          - name
+                - $: symbolRef
+                  symbol: b
+                  parts:
+                    - x
+                - $: symbolRef
+                  symbol: b
+                  parts:
+                    - x
+- name: bindings_are_scoped_to_their_declaration
+  requirement: local_values
+  description: "An unused binding leaves nothing in the library, and the next declaration reads the same name as if there were no binding (here x.y is a symbol reference)."
+  kind: library
+  source: |
+    widget a = let x = Text(text: "a"), unused = 1 in Box(child: x);
+    widget b = Box(child: x.y);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: a
+          root:
+            $: call
+            name: Box
+            args:
+              child:
+                $: call
+                name: Text
+                args:
+                  text: a
+        - name: b
+          root:
+            $: call
+            name: Box
+            args:
+              child:
+                $: symbolRef
+                symbol: x
+                parts:
+                  - "y"
+- name: a_binding_can_be_a_switch_key
+  requirement: local_values
+  description: "A use is a value anywhere a value can be, including a switch case key."
+  kind: library
+  source: |
+    widget root = let k = "a" in Box(child: switch args.x { k: 1, default: 2 });
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Box
+            args:
+              child:
+                $: switch
+                input:
+                  $: argsRef
+                  parts:
+                    - x
+                cases:
+                  - key: a
+                    value:
+                      $: int
+                      value: 1
+                  - default: true
+                    value:
+                      $: int
+                      value: 2
+- name: a_binding_is_used_whole
+  requirement: local_values
+  description: 'A use followed by ".", "(" or "::" is rejected, in a value and as the root.'
+  kind: library
+  sources:
+    - |
+      widget root = let a = Box() in Box(
+        child: a.x);
+    - |
+      widget root = let a = Box() in Box(
+        child: a(x: 1));
+    - |
+      widget root = let a = Box() in Box(
+        child: a::Card());
+    - |
+      widget root = let a = Box() in
+        a(x: 1);
+  expect:
+    error:
+      line: 2
+- name: duplicate_bindings_are_rejected
+  requirement: local_values
+  description: "Two bindings of one declaration cannot share a name."
+  kind: library
+  source: |
+    widget root = let a = 1,
+      a = 2 in Box();
+  expect:
+    error:
+      line: 2
+- name: reserved_words_and_keywords_cannot_name_a_binding
+  requirement: local_values
+  description: "A binding name follows the rule of qualifier parts (libraries_and_names): every reserved word, keyword and switch is rejected."
+  kind: library
+  sources:
+    - "widget root = let\n  absent = 1 in Box();\n"
+    - "widget root = let\n  args = 1 in Box();\n"
+    - "widget root = let\n  call = 1 in Box();\n"
+    - "widget root = let\n  data = 1 in Box();\n"
+    - "widget root = let\n  event = 1 in Box();\n"
+    - "widget root = let\n  false = 1 in Box();\n"
+    - "widget root = let\n  media = 1 in Box();\n"
+    - "widget root = let\n  set = 1 in Box();\n"
+    - "widget root = let\n  state = 1 in Box();\n"
+    - "widget root = let\n  theme = 1 in Box();\n"
+    - "widget root = let\n  true = 1 in Box();\n"
+    - "widget root = let\n  default = 1 in Box();\n"
+    - "widget root = let\n  for = 1 in Box();\n"
+    - "widget root = let\n  import = 1 in Box();\n"
+    - "widget root = let\n  in = 1 in Box();\n"
+    - "widget root = let\n  null = 1 in Box();\n"
+    - "widget root = let\n  widget = 1 in Box();\n"
+    - "widget root = let\n  switch = 1 in Box();\n"
+  expect:
+    error:
+      line: 2
+- name: other_names_can_name_a_binding
+  requirement: local_values
+  description: "Control for the binding-name cases: export, let and if are not reserved, so they can name bindings."
+  kind: library
+  source: |
+    widget root = let export = 1, let = 2, if = 3 in Box(a: export, b: let, c: if);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Box
+            args:
+              a:
+                $: int
+                value: 1
+              b:
+                $: int
+                value: 2
+              c:
+                $: int
+                value: 3
+- name: let_needs_a_binding_and_in
+  requirement: local_values
+  description: "let must be followed by at least one binding, and the bindings by in."
+  kind: library
+  sources:
+    - |
+      widget root = let
+        in Box();
+    - |
+      widget root = let a = 1
+        Box();
+  expect:
+    error:
+      line: 2
+- name: a_binding_cannot_be_null
+  requirement: local_values
+  description: "A binding's value is read like a list element, where null is not a value."
+  kind: library
+  source: |
+    widget root = let a =
+      null in Box();
+  expect:
+    error:
+      line: 2
+- name: let_without_a_name_starts_the_root_call
+  requirement: local_values
+  description: "At the start of a declaration's body, let starts bindings only when a name follows; otherwise it starts the root call's name, as before (a call named let, and calls qualified with the libraries let and let.ui)."
+  kind: library
+  source: |
+    widget a = let(x: 1);
+    widget b = let::Card();
+    widget c = let.ui::Card();
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: a
+          root:
+            $: call
+            name: let
+            args:
+              x:
+                $: int
+                value: 1
+        - name: b
+          root:
+            $: call
+            name: let::Card
+            args: {}
+        - name: c
+          root:
+            $: call
+            name: let.ui::Card
+            args: {}
+- name: let_elsewhere_is_an_ordinary_name
+  requirement: local_values
+  description: "Control: in a value position, let(x: 1) is still a widget call named let."
+  kind: library
+  source: |
+    widget root = Box(child: let(x: 1));
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Box
+            args:
+              child:
+                $: call
+                name: let
+                args:
+                  x:
+                    $: int
+                    value: 1
+- name: let_inside_a_value_is_rejected
+  requirement: local_values
+  description: "Bindings are only allowed at the start of a declaration's body."
+  kind: library
+  source: |
+    widget root = Box(
+      child: let a = 1 in a);
+  expect:
+    error:
+      line: 2
+
+# construct_names
+
+- name: construct_names_never_resolve_to_widgets
+  requirement: construct_names
+  description: "Widgets named absent or call may be declared, by the library itself, an import or core, but the names absent and call never resolve to them, bare or qualified, nor as catalog components. Box is the control."
+  libraries:
+    main: |
+      import core;
+      import acme;
+      widget absent = Box();
+      widget call = Box();
+      widget root = Box(child: absent);
+    acme: |
+      export widget call = Box();
+      export widget Box = Box();
+  primitives:
+    core: [absent, call, Box]
+  queries:
+    - query: resolve
+      from: main
+      name: absent
+      expect: {error: notFound}
+    - query: resolve
+      from: main
+      name: call
+      expect: {error: notFound}
+    - query: resolveImported
+      from: main
+      name: absent
+      expect: {error: notFound}
+    - query: resolve
+      from: main
+      name: Box
+      expect: {library: core, name: Box, kind: primitive}
+    - query: catalogComponent
+      catalog: acme
+      name: call
+      expect: {error: notFound}
+    - query: catalogComponent
+      catalog: acme
+      name: Box
+      expect: {library: acme, name: Box, kind: template}
+    - query: catalogComponent
+      catalog: core
+      name: absent
+      expect: {error: notFound}
+    - query: visibleNames
+      from: main
+      expect:
+        core::absent: {error: notFound}
+        core::call: {error: notFound}
+        core::Box: {library: core, name: Box, kind: primitive}
+        absent: {error: notFound}
+        call: {error: notFound}
+        Box: {library: core, name: Box, kind: primitive}
+        acme::call: {error: notFound}
+        acme::Box: {library: acme, name: Box, kind: template}
+        main::absent: {error: notFound}
+        main::call: {error: notFound}
+        main::root: {library: main, name: root, kind: template}
+        root: {library: main, name: root, kind: template}
+
+# binary_round_trip
+
+- name: every_construct_round_trips
+  requirement: binary_round_trip
+  description: "All four constructs in one library; like every accepted case, it must survive the binary round trip."
+  kind: library
+  source: |
+    import core;
+    widget root = let label = Text(text: args.label) in Column(children: [
+      label,
+      ...if args.more: Button(onPressed: call args.onMore { value: 1 }, child: label),
+      Button(onPressed: absent),
+    ]);
+  expect:
+    library:
+      imports:
+        - core
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: call
+                  name: Text
+                  args:
+                    text:
+                      $: argsRef
+                      parts:
+                        - label
+                - $: loop
+                  input:
+                    $: switch
+                    input:
+                      $: argsRef
+                      parts:
+                        - more
+                    cases:
+                      - key: true
+                        value:
+                          - true
+                      - default: true
+                        value: []
+                  output:
+                    $: call
+                    name: Button
+                    args:
+                      onPressed:
+                        $: call
+                        name: call
+                        args:
+                          handler:
+                            $: argsRef
+                            parts:
+                              - onMore
+                          arguments:
+                            value:
+                              $: int
+                              value: 1
+                      child:
+                        $: call
+                        name: Text
+                        args:
+                          text:
+                            $: argsRef
+                            parts:
+                              - label
+                - $: call
+                  name: Button
+                  args:
+                    onPressed:
+                      $: call
+                      name: absent
+                      args: {}

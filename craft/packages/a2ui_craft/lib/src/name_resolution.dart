@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import 'rfw/model.dart';
+import 'rfw/text.dart' show constructCallNames, isExcludedFromQualifiedNames;
 
 /// Separates a library qualifier from a name: `core::Button`.
 const String qualifierSeparator = '::';
@@ -161,6 +162,13 @@ class NameResolver {
     required bool ownDeclarations,
   }) {
     final (LibraryName? qualifier, String bare) = splitQualifiedName(name);
+    if (constructCallNames.contains(bare)) {
+      return UnresolvedName(
+        UnresolvedReason.notFound,
+        '$name is a language construct, not a widget; a widget named $bare '
+        'cannot be called.',
+      );
+    }
     final WidgetLibrary? library = _libraries[from];
     final List<LibraryName> imports = _importsOf(from);
     if (qualifier != null) {
@@ -226,8 +234,15 @@ class NameResolver {
   /// Resolves [name] as a component of [catalog]: an exported declaration of
   /// [catalog] itself, never one of its private declarations or anything it
   /// imports. A primitive library used as a catalog exposes all its
-  /// primitives.
+  /// primitives. The construct names `absent` and `call` are never
+  /// components.
   NameResolution resolveCatalogComponent(LibraryName catalog, String name) {
+    if (constructCallNames.contains(name)) {
+      return UnresolvedName(
+        UnresolvedReason.notFound,
+        '$name is a language construct, not a component.',
+      );
+    }
     final WidgetLibrary? library = _libraries[catalog];
     if (library is PrimitiveLibrary && library.widgetNames.contains(name)) {
       return ResolvedName(catalog, name, null);
@@ -255,7 +270,8 @@ class NameResolver {
   /// whether a key exists.
   ///
   /// Standard functions are registered unqualified and called as `add` or
-  /// `core::add`. A host function of library `fmt` is registered as
+  /// `core::add`, except that a name which cannot follow `::` (such as
+  /// `absent`) is callable only bare. A host function of library `fmt` is registered as
   /// `fmt::price` and callable only as `fmt::price`, from a library that
   /// is or imports `fmt`. A key qualified with `core` is never callable:
   /// `core::x` always means the standard function `x`.
@@ -265,8 +281,13 @@ class NameResolver {
     bool Function(String key) isRegistered,
   ) {
     final (LibraryName? qualifier, String bare) = splitQualifiedName(name);
-    if (qualifier == null || qualifier == coreLibrary) {
+    if (qualifier == null) {
       return isRegistered(bare) ? bare : null;
+    }
+    if (qualifier == coreLibrary) {
+      return !isExcludedFromQualifiedNames(bare) && isRegistered(bare)
+          ? bare
+          : null;
     }
     if (qualifier != from && !_importsOf(from).contains(qualifier)) return null;
     return isRegistered(name) ? name : null;
@@ -284,7 +305,8 @@ class NameResolver {
         ...switch (splitQualifiedName(key)) {
           (null, _) => <String, String>{
             key: key,
-            '$coreLibrary$qualifierSeparator$key': key,
+            if (!isExcludedFromQualifiedNames(key))
+              '$coreLibrary$qualifierSeparator$key': key,
           },
           (final LibraryName library, _)
               when library != coreLibrary &&

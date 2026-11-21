@@ -834,12 +834,27 @@
       expect: {key: null}
     - query: functionKey
       from: main
+      name: absent
+      functions: [absent, call]
+      expect: {key: absent}
+    - query: functionKey
+      from: main
+      name: core::absent
+      functions: [absent, call]
+      expect: {key: null}
+    - query: functionKey
+      from: main
+      name: core::call
+      functions: [absent, call]
+      expect: {key: null}
+    - query: functionKey
+      from: main
       name: x
       functions: [core::x]
       expect: {key: null}
 - name: visible_functions
   requirement: function_keys
-  description: The callable function names of a library, each mapped to its registered key. A key qualified with core is never callable.
+  description: The callable function names of a library, each mapped to its registered key. A key qualified with core is never callable, and absent and call are callable only bare.
   libraries:
     main: |
       import core;
@@ -848,10 +863,12 @@
   queries:
     - query: visibleFunctions
       from: main
-      functions: [add, fmt::price, geo::dist, core::x]
+      functions: [add, fmt::price, geo::dist, core::x, absent, call]
       expect:
         add: add
         core::add: add
+        absent: absent
+        call: call
         fmt::price: fmt::price
 - name: visible_names
   requirement: visible_names
