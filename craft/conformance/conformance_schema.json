@@ -24,7 +24,8 @@
             "encode_data",
             "evaluate",
             "classify",
-            "update_registry"
+            "update_registry",
+            "expand_template"
           ],
           "description": "The conformance test action to perform."
         }
@@ -158,6 +159,19 @@
           },
           "then": {
             "$ref": "#/$defs/CraftUpdateRegistryTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "expand_template"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftExpandTemplateTest"
           }
         }
       ]
@@ -1153,6 +1167,290 @@
       },
       "required": ["register"],
       "unevaluatedProperties": false
+    },
+    "CraftPrimitiveMetadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": {
+          "type": ["object", "null"]
+        }
+      },
+      "description": "Primitive libraries: library name -> primitive name -> metadata."
+    },
+    "CraftExpansionExpect": {
+      "type": "object",
+      "properties": {
+        "tree": {},
+        "states": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "at": {
+                "$ref": "#/$defs/CraftPath"
+              },
+              "widget": {
+                "type": "string"
+              },
+              "value": {}
+            },
+            "required": ["at", "widget", "value"],
+            "additionalProperties": false
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "at": {
+                "$ref": "#/$defs/CraftPath"
+              },
+              "kind": {
+                "type": "string",
+                "pattern": "^[a-z][A-Za-z0-9]*$"
+              }
+            },
+            "required": ["at", "kind"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "description": "An expansion: its tree (optional), states and errors (default none)."
+    },
+    "CraftRuntimeStep": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "fire": {
+              "$ref": "#/$defs/CraftPath"
+            },
+            "in": {
+              "const": "previous"
+            },
+            "event_args": {
+              "$ref": "#/$defs/CraftSource"
+            },
+            "expect": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/CraftExpansionExpect"
+                }
+              ],
+              "properties": {
+                "tree": true,
+                "states": true,
+                "errors": true,
+                "events": {
+                  "type": "array"
+                },
+                "fire_errors": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][A-Za-z0-9]*$"
+                  }
+                }
+              },
+              "unevaluatedProperties": false
+            }
+          },
+          "required": ["fire", "expect"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": ["string", "null"]
+            },
+            "expect": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/CraftExpansionExpect"
+                }
+              ],
+              "properties": {
+                "tree": true,
+                "states": true,
+                "errors": true
+              },
+              "unevaluatedProperties": false
+            }
+          },
+          "required": ["data", "expect"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "args": {
+              "type": ["string", "null"]
+            },
+            "host_handlers": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "expect": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/CraftExpansionExpect"
+                }
+              ],
+              "properties": {
+                "tree": true,
+                "states": true,
+                "errors": true
+              },
+              "unevaluatedProperties": false
+            }
+          },
+          "required": ["args", "expect"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "register": {
+              "$ref": "#/$defs/CraftLibrarySources"
+            },
+            "expect": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/CraftExpansionExpect"
+                }
+              ],
+              "properties": {
+                "tree": true,
+                "states": true,
+                "errors": true
+              },
+              "unevaluatedProperties": false
+            }
+          },
+          "required": ["register", "expect"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "build": {
+              "$ref": "#/$defs/CraftPath"
+            },
+            "key": {
+              "type": ["string", "integer"]
+            },
+            "arg": {
+              "$ref": "#/$defs/CraftSource"
+            },
+            "expect": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/CraftExpansionExpect"
+                }
+              ],
+              "properties": {
+                "tree": true,
+                "states": true,
+                "errors": true
+              },
+              "unevaluatedProperties": false
+            }
+          },
+          "required": ["build", "key", "expect"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "runnable": {
+              "$ref": "#/$defs/CraftPath"
+            },
+            "expect": {
+              "type": "object",
+              "properties": {
+                "runnable": {
+                  "type": "boolean"
+                }
+              },
+              "required": ["runnable"],
+              "additionalProperties": false
+            }
+          },
+          "required": ["runnable", "expect"],
+          "additionalProperties": false
+        }
+      ],
+      "description": "One step on the runtime; see craft_runtime.yaml."
+    },
+    "CraftExpandTemplateTest": {
+      "type": "object",
+      "description": "Sets up a registry and a runtime, expands the root and runs steps on the same runtime.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "expand_template"
+        },
+        "primitives": {
+          "$ref": "#/$defs/CraftPrimitiveMetadata"
+        },
+        "libraries": {
+          "$ref": "#/$defs/CraftLibrarySources"
+        },
+        "root": {
+          "type": "object",
+          "properties": {
+            "library": {
+              "type": "string"
+            },
+            "widget": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "args": {
+          "$ref": "#/$defs/CraftSource"
+        },
+        "host_handlers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "data": {
+          "$ref": "#/$defs/CraftSource"
+        },
+        "data_json": {},
+        "expect": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/CraftExpansionExpect"
+            }
+          ],
+          "properties": {
+            "tree": true,
+            "states": true,
+            "errors": true
+          },
+          "unevaluatedProperties": false
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CraftRuntimeStep"
+          }
+        }
+      },
+      "required": ["libraries", "expect"],
+      "unevaluatedProperties": false,
+      "not": {
+        "required": ["data", "data_json"]
+      }
     }
   }
 }

@@ -84,6 +84,7 @@ class TemplateRegistry {
     final LibraryDependencies copy = dependencies.checkedCopy(name, library);
     _libraries[name] = library;
     _dependencies[name] = copy;
+    _bumpGeneration(name);
     _invalidate();
   }
 
@@ -97,6 +98,7 @@ class TemplateRegistry {
     final _PrimitiveSnapshot snapshot = _PrimitiveSnapshot.of(library);
     _libraries[name] = snapshot;
     _dependencies.remove(name);
+    _bumpGeneration(name);
     _invalidate();
   }
 
@@ -104,9 +106,20 @@ class TemplateRegistry {
   bool removeLibrary(LibraryName name) {
     _dependencies.remove(name);
     if (_libraries.remove(name) == null) return false;
+    _bumpGeneration(name);
     _invalidate();
     return true;
   }
+
+  final Map<LibraryName, int> _generations = <LibraryName, int>{};
+
+  /// How many times a library was registered or removed under [name]: a
+  /// runtime compares it to tell that a library was registered again, even
+  /// as the same object.
+  int generation(LibraryName name) => _generations[name] ?? 0;
+
+  void _bumpGeneration(LibraryName name) =>
+      _generations[name] = generation(name) + 1;
 
   /// Registers [functions], by bare name, as the host functions of [library]
   /// (`library::name`), replacing any previous functions of [library].

@@ -21,4 +21,5 @@ const Map<String, String> craftSuites = <String, String>{
   'craft/craft_language_extensions.yaml': 'language_extensions_test.dart',
   'craft/craft_functions.yaml': 'functions_test.dart',
   'craft/craft_template_registry.yaml': 'template_registry_test.dart',
+  'craft/craft_runtime.yaml': 'runtime_test.dart',
 };

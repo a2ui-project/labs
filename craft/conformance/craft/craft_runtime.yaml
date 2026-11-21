@@ -1,0 +1,2054 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Conformance cases for the craft_runtime feature
+# (blueprints/features/craft_runtime.blueprint.md).
+#
+# Every case has a `name`, a `description`, the `features` it exercises (IDs
+# from conformance/features.yaml) and an `action`; conformance_schema.json
+# lists the fields of each action.
+#
+# action: expand_template   sets up one registry and expands one root:
+#   primitives: primitive libraries, library name -> map from each primitive
+#     name to its metadata (null for none). By default
+#       core: {Column, Row, Text, Button, Box, List}, without metadata.
+#     The runtime does not know what a primitive does: these are only names.
+#   libraries: template libraries, library name -> source in the text format.
+#   root: {library, widget}: the root widget name, as a call written in that
+#     library would give it (default library main, widget root).
+#   args: the root's arguments, a text format data file (default none).
+#   host_handlers: argument name -> host handler id; each is added to args
+#     as a host handler with that id.
+#   data: the data, a text format data file (default none, so absent).
+#   data_json: instead of data, the data as a JSON value, for host data that
+#     the text format cannot write (null).
+# The registry also holds the host function fmt::fail(), which always fails.
+#
+# `expect` checks the expansion of the root:
+#   tree: the canonical JSON form of the root node (craft_runtime,
+#     requirement 2);
+#   states: the list of stateful instances, each {at, widget, value};
+#   errors: the list of errors, each {at, kind}.
+# `states` and `errors` are checked even when not given: then they must be
+# empty.
+#
+# `steps` then run in order on the same runtime. Each step does one thing and
+# has an `expect`:
+#   fire: path      fires the value at path (see below; with `in: previous`,
+#                   at path of the expansion before the last) with the event
+#                   arguments `event_args` (a data file, default none); expect
+#                   events: the host events in order, each {event: name, args}
+#                   or {hostHandler: id, args}, and fire_errors: the kinds of
+#                   the firing errors in order (both default to none).
+#   data: file      replaces the data.
+#   args: file      replaces the root's arguments (with `host_handlers`).
+#   register: {library name: source}   registers template libraries again,
+#                   replacing those of the same name.
+#   build: path     expands the output of the builder at path for the key
+#                   `key` and the argument `arg` (a data file); expect checks
+#                   that output like an expansion.
+#   runnable: path  expect {runnable: whether the value at path does
+#                   anything when fired}.
+# After a fire, data, args or register step the root is expanded again and
+# checked against the step's expect (tree, states and errors).
+#
+# A path is a list of argument names, map keys and list indexes from the root
+# node of the last expansion of the root; at a builder node, the next element
+# is a key, and the path continues in the last output built for it.
+#
+# Integers and doubles are written in canonical JSON form ({$: int, value: 1}),
+# the absent value as {$: missing}. Scalars that YAML 1.1 reads as booleans
+# are quoted wherever they mean strings.
+
+# expansion
+
+- name: a_template_root_expands_to_primitives
+  action: expand_template
+  features: [F-CRAFT-RT-01]
+  description: "The root names a template; the expansion is the tree of primitives it gives, with the host's arguments and data."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [Text(text: args.title), Text(text: data.subtitle)]);
+  args: '{ title: "Hello" }'
+  data: '{ subtitle: "World" }'
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: "Hello"}},
+                {$: widget, name: "core::Text", args: {text: "World"}},
+              ],
+          },
+      }
+- name: a_primitive_root_takes_the_host_arguments
+  action: expand_template
+  features: [F-CRAFT-RT-01]
+  description: "The root may name a primitive, bare from core or qualified; its arguments are the host's arguments."
+  libraries:
+    main: |
+      import core;
+      widget unused = Text();
+  root: {widget: "core::Box"}
+  args: '{ size: 2, label: "x" }'
+  expect:
+    tree: {$: widget, name: "core::Box", args: {size: {$: int, value: 2}, label: "x"}}
+- name: the_root_resolves_as_a_call_in_its_library
+  action: expand_template
+  features: [F-CRAFT-RT-01]
+  description: "The root name resolves like a call written in the root library: its own declaration shadows core's primitive."
+  libraries:
+    main: |
+      import core;
+      widget Text = Text(text: "own");
+  root: {widget: Text}
+  expect:
+    tree: {$: widget, name: "core::Text", args: {text: "own"}}
+- name: a_root_that_is_not_a_widget_is_an_error
+  action: expand_template
+  features: [F-CRAFT-RT-01]
+  description: "A root name that is unknown or names a function gives an error node notAWidget at the root."
+  libraries:
+    main: |
+      import core;
+      widget root = Text();
+  root: {widget: add}
+  expect:
+    tree: {$: error, kind: notAWidget}
+    errors: [{at: [], kind: notAWidget}]
+- name: an_unknown_root_is_an_error
+  action: expand_template
+  features: [F-CRAFT-RT-01]
+  description: "A root name that resolves to nothing gives notAWidget; so does a private declaration of another library."
+  libraries:
+    main: |
+      import core;
+      import other;
+      widget root = Text();
+    other: |
+      import core;
+      widget Hidden = Text();
+  root: {widget: "other::Hidden"}
+  expect:
+    tree: {$: error, kind: notAWidget}
+    errors: [{at: [], kind: notAWidget}]
+
+# expansion tree
+
+- name: arguments_hold_values_in_canonical_form
+  action: expand_template
+  features: [F-CRAFT-RT-02]
+  description: "Evaluated arguments keep their values in canonical form, absent values included."
+  libraries:
+    main: |
+      import core;
+      widget root = Box(i: 1, d: 2.5, s: "s", b: true, l: [1, "a", absent], m: { z: absent, a: false }, child: absent);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Box",
+        args:
+          {
+            i: {$: int, value: 1},
+            d: {$: double, value: 2.5},
+            s: "s",
+            b: true,
+            l: [{$: int, value: 1}, "a", {$: missing}],
+            m: {z: {$: missing}, a: false},
+            child: {$: missing},
+          },
+      }
+- name: paths_follow_arguments_keys_and_indexes
+  action: expand_template
+  features: [F-CRAFT-RT-02]
+  description: "The path of a node is the argument names, map keys and list indexes from the root, as the errors and states show."
+  libraries:
+    main: |
+      import core;
+      widget Counter { n: 0 } = Text(text: state.n);
+      widget root = Box(slots: { main: [Text(), Counter(), Text(text: add(c: 1))] });
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Box",
+        args:
+          {
+            slots:
+              {
+                main:
+                  [
+                    {$: widget, name: "core::Text", args: {}},
+                    {$: widget, name: "core::Text", args: {text: {$: int, value: 0}}},
+                    {$: error, kind: invalidArgument},
+                  ],
+              },
+          },
+      }
+    states: [{at: [slots, main, 1], widget: "main::Counter", value: {"n": {$: int, value: 0}}}]
+    errors: [{at: [slots, main, 2], kind: invalidArgument}]
+
+# primitive calls
+
+- name: primitive_arguments_expand_recursively
+  action: expand_template
+  features: [F-CRAFT-RT-03]
+  description: "Every argument of a primitive is evaluated, and every widget call in it, at any depth of lists and maps, is expanded in place."
+  libraries:
+    main: |
+      import core;
+      widget Label = Text(text: args.t);
+      widget root = Column(children: [Row(children: [Label(t: "a"), Box(child: Label(t: "b"))])], footer: { left: Label(t: "c") });
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {
+                  $: widget,
+                  name: "core::Row",
+                  args:
+                    {
+                      children:
+                        [
+                          {$: widget, name: "core::Text", args: {text: "a"}},
+                          {
+                            $: widget,
+                            name: "core::Box",
+                            args: {child: {$: widget, name: "core::Text", args: {text: "b"}}},
+                          },
+                        ],
+                    },
+                },
+              ],
+            footer: {left: {$: widget, name: "core::Text", args: {text: "c"}}},
+          },
+      }
+- name: primitives_of_other_libraries_are_qualified
+  action: expand_template
+  features: [F-CRAFT-RT-03]
+  description: "A primitive of an imported library other than core is called qualified, and its node names its library."
+  primitives:
+    core: {Column: null}
+    maps: {Map: null}
+  libraries:
+    main: |
+      import core;
+      import maps;
+      widget root = Column(children: [maps::Map(zoom: 3)]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args: {children: [{$: widget, name: "maps::Map", args: {zoom: {$: int, value: 3}}}]},
+      }
+
+# template calls
+
+- name: a_template_leaves_no_node_of_its_own
+  action: expand_template
+  features: [F-CRAFT-RT-04]
+  description: "A template call expands to the expansion of its root at the same position; templates calling templates leave only primitives."
+  libraries:
+    main: |
+      import core;
+      widget Inner = Text(text: args.t);
+      widget Outer = Inner(t: args.t);
+      widget root = Box(child: Outer(t: "deep"));
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Box",
+        args: {child: {$: widget, name: "core::Text", args: {text: "deep"}}},
+      }
+- name: a_missing_argument_is_absent
+  action: expand_template
+  features: [F-CRAFT-RT-04]
+  description: "An argument the call does not pass reads as absent."
+  libraries:
+    main: |
+      import core;
+      widget Card = Text(text: args.title, extra: args.extra.deep);
+      widget root = Card(title: "t");
+  expect:
+    tree: {$: widget, name: "core::Text", args: {text: "t", extra: {$: missing}}}
+- name: an_unread_argument_is_never_evaluated
+  action: expand_template
+  features: [F-CRAFT-RT-04]
+  description: "An argument is evaluated only where the template reads it: an error in an argument that is never read is no error; the control reads it."
+  libraries:
+    main: |
+      import core;
+      widget Card = Column(children: [Text(text: args.title)]);
+      widget Shown = Column(children: [Text(text: args.title), Text(text: args.broken)]);
+      widget root = Row(children: [Card(title: "a", broken: nope()), Shown(title: "b", broken: nope())]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Row",
+        args:
+          {
+            children:
+              [
+                {
+                  $: widget,
+                  name: "core::Column",
+                  args: {children: [{$: widget, name: "core::Text", args: {text: "a"}}]},
+                },
+                {
+                  $: widget,
+                  name: "core::Column",
+                  args:
+                    {
+                      children:
+                        [
+                          {$: widget, name: "core::Text", args: {text: "b"}},
+                          {$: error, kind: unknownFunction},
+                        ],
+                    },
+                },
+              ],
+          },
+      }
+    errors: [{at: [children, 1, children, 1], kind: unknownFunction}]
+- name: an_argument_is_evaluated_in_the_scope_of_the_call
+  action: expand_template
+  features: [F-CRAFT-RT-04]
+  description: "An argument reads the loop variables, args, data and state of the declaration that wrote the call, not those of the template."
+  libraries:
+    main: |
+      import core;
+      widget Item { n: 5 } = Text(text: args.label, n: args.n, inner: state.n);
+      widget root { n: 1 } = Column(children: [
+        ...for x in data.items: Item(label: x, n: state.n),
+      ]);
+  data: '{ items: ["p", "q"] }'
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {
+                  $: widget,
+                  name: "core::Text",
+                  args: {text: "p", "n": {$: int, value: 1}, inner: {$: int, value: 5}},
+                },
+                {
+                  $: widget,
+                  name: "core::Text",
+                  args: {text: "q", "n": {$: int, value: 1}, inner: {$: int, value: 5}},
+                },
+              ],
+          },
+      }
+    states:
+      - {at: [], widget: "main::root", value: {"n": {$: int, value: 1}}}
+      - {at: [children, 0], widget: "main::Item", value: {"n": {$: int, value: 5}}}
+      - {at: [children, 1], widget: "main::Item", value: {"n": {$: int, value: 5}}}
+- name: a_widget_argument_expands_where_it_is_placed
+  action: expand_template
+  features: [F-CRAFT-RT-04]
+  description: "A widget passed as an argument expands at each position where the template places it, once per placement, with its own state at each."
+  libraries:
+    main: |
+      import core;
+      widget Counter { n: 0 } = Text(text: state.n);
+      widget Twice = Row(children: [args.child, Box(child: args.child)]);
+      widget root = Twice(child: Counter());
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Row",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: {$: int, value: 0}}},
+                {
+                  $: widget,
+                  name: "core::Box",
+                  args: {child: {$: widget, name: "core::Text", args: {text: {$: int, value: 0}}}},
+                },
+              ],
+          },
+      }
+    states:
+      - {at: [children, 0], widget: "main::Counter", value: {"n": {$: int, value: 0}}}
+      - {at: [children, 1, child], widget: "main::Counter", value: {"n": {$: int, value: 0}}}
+- name: arguments_are_read_by_parts
+  action: expand_template
+  features: [F-CRAFT-RT-04]
+  description: "args.a.b reads the argument a, then the parts after it, as functions reads parts; parts of a widget or a handler are absent."
+  libraries:
+    main: |
+      import core;
+      widget Card = Box(first: args.items.0, name: args.person.name, out: args.items.5, x: args.x, w: args.w.text, h: args.h.name);
+      widget root = Card(items: ["i0", "i1"], person: { name: "Ann" }, x: 1, w: Text(text: "t"), h: event "e" {});
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Box",
+        args:
+          {
+            first: "i0",
+            name: "Ann",
+            out: {$: missing},
+            x: {$: int, value: 1},
+            w: {$: missing},
+            h: {$: missing},
+          },
+      }
+- name: a_template_root_that_gives_no_widget
+  action: expand_template
+  features: [F-CRAFT-RT-04]
+  description: "A template whose root call is absent or a handler application gives no widget: an error node notAWidget at its position."
+  libraries:
+    main: |
+      import core;
+      widget Nothing = absent();
+      widget Handler = call(handler: event "e" {}, arguments: {});
+      widget root = Column(children: [Nothing(), Handler()]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args: {children: [{$: error, kind: notAWidget}, {$: error, kind: notAWidget}]},
+      }
+    errors: [{at: [children, 0], kind: notAWidget}, {at: [children, 1], kind: notAWidget}]
+- name: templates_of_imported_libraries
+  action: expand_template
+  features: [F-CRAFT-RT-04]
+  description: "A template of an imported library is called qualified; its body resolves names in its own library."
+  libraries:
+    main: |
+      import core;
+      import ui;
+      widget root = ui::Card(title: "t");
+    ui: |
+      import core;
+      widget Title = Text(text: args.t);
+      export widget Card = Box(child: Title(t: args.title));
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Box",
+        args: {child: {$: widget, name: "core::Text", args: {text: "t"}}},
+      }
+
+# references
+
+- name: data_references_read_by_parts
+  action: expand_template
+  features: [F-CRAFT-RT-05]
+  description: "data.p reads the data by parts: a missing key, an index out of range and a part of the wrong kind are absent."
+  libraries:
+    main: |
+      import core;
+      widget root = Box(a: data.user.name, b: data.list.1, c: data.list.9, d: data.user.0, e: data.nope.x);
+  data: '{ user: { name: "Ann" }, list: ["x", "y"] }'
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Box",
+        args: {a: "Ann", b: "y", c: {$: missing}, d: {$: missing}, e: {$: missing}},
+      }
+- name: absent_data_reads_as_absent
+  action: expand_template
+  features: [F-CRAFT-RT-05]
+  description: "Without data, every data reference is absent."
+  libraries:
+    main: |
+      import core;
+      widget root = Text(text: data.title);
+  expect:
+    tree: {$: widget, name: "core::Text", args: {text: {$: missing}}}
+- name: symbol_references_read_host_metadata
+  action: expand_template
+  features: [F-CRAFT-RT-05]
+  description: "A symbol reference evaluates as craft_template_registry specifies."
+  primitives:
+    core: {Text: {args: {text: true}}, Box: null}
+  libraries:
+    main: |
+      import core;
+      widget root = Box(hasText: Text.args.text, other: Text.args.size, fn: add.args.a);
+  expect:
+    tree: {$: widget, name: "core::Box", args: {hasText: true, other: {$: missing}, fn: true}}
+- name: functions_compute_values
+  action: expand_template
+  features: [F-CRAFT-RT-05]
+  description: "Function calls evaluate as functions specifies, with arguments read from data and state."
+  libraries:
+    main: |
+      import core;
+      widget root { n: 2 } = Text(text: concat(a: data.prefix, b: add(a: state.n, b: 1)));
+  data: '{ prefix: "n=" }'
+  expect:
+    tree: {$: widget, name: "core::Text", args: {text: "n=3"}}
+    states: [{at: [], widget: "main::root", value: {"n": {$: int, value: 2}}}]
+
+- name: function_arguments_must_be_values
+  action: expand_template
+  features: [F-CRAFT-RT-05]
+  description: "A widget, builder or handler in a function argument fails with invalidValue; the control passes a value."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [
+        Text(text: concat(a: Box(), b: "")),
+        Text(text: isSet(value: event "e" {})),
+        Text(text: isSet(value: (x) => Box())),
+        Text(text: isSet(value: "v")),
+      ]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: error, kind: invalidValue},
+                {$: error, kind: invalidValue},
+                {$: error, kind: invalidValue},
+                {$: widget, name: "core::Text", args: {text: true}},
+              ],
+          },
+      }
+    errors:
+      - {at: [children, 0], kind: invalidValue}
+      - {at: [children, 1], kind: invalidValue}
+      - {at: [children, 2], kind: invalidValue}
+
+# lists and loops
+
+- name: a_loop_gives_one_element_per_item
+  action: expand_template
+  features: [F-CRAFT-RT-06]
+  description: "...for gives one element per item of its input list, between the other elements; a loop output that is a list stays one element."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [
+        Text(text: "head"),
+        ...for x in data.items: Text(text: x),
+        Text(text: "tail"),
+      ], pairs: [...for x in data.items: [x, x]]);
+  data: '{ items: ["a", "b"] }'
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: "head"}},
+                {$: widget, name: "core::Text", args: {text: "a"}},
+                {$: widget, name: "core::Text", args: {text: "b"}},
+                {$: widget, name: "core::Text", args: {text: "tail"}},
+              ],
+            pairs: [["a", "a"], ["b", "b"]],
+          },
+      }
+- name: nested_loops_read_their_own_variables
+  action: expand_template
+  features: [F-CRAFT-RT-06]
+  description: "In nested loops each loop variable reads its own item."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [
+        ...for row in data.rows: Row(children: [...for cell in row.cells: Text(text: cell, row: row.name)]),
+      ]);
+  data: '{ rows: [{ name: "r1", cells: ["a", "b"] }, { name: "r2", cells: ["c"] }] }'
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {
+                  $: widget,
+                  name: "core::Row",
+                  args:
+                    {
+                      children:
+                        [
+                          {$: widget, name: "core::Text", args: {text: "a", row: "r1"}},
+                          {$: widget, name: "core::Text", args: {text: "b", row: "r1"}},
+                        ],
+                    },
+                },
+                {
+                  $: widget,
+                  name: "core::Row",
+                  args: {children: [{$: widget, name: "core::Text", args: {text: "c", row: "r2"}}]},
+                },
+              ],
+          },
+      }
+- name: a_loop_over_something_else_gives_nothing
+  action: expand_template
+  features: [F-CRAFT-RT-06]
+  description: "A loop whose input is absent, a map, a string or a number gives no element."
+  libraries:
+    main: |
+      import core;
+      widget root = Box(a: [...for x in data.none: x], b: [...for x in data.map: x], c: [...for x in data.s: x], d: [...for x in data.n: x], e: [...for x in data.list: x]);
+  data: '{ map: { k: 1 }, s: "ab", "n": 3, list: [1] }'
+  expect:
+    tree:
+      {$: widget, name: "core::Box", args: {a: [], b: [], c: [], d: [], e: [{$: int, value: 1}]}}
+- name: a_null_item_is_absent
+  action: expand_template
+  features: [F-CRAFT-RT-06]
+  description: "A null item in host data is the absent value: the loop gives an element for it, reading as absent, and nothing fails."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for x in data.tags: Text(text: x)]);
+  data_json: {tags: ["a", null, "b"]}
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: "a"}},
+                {$: widget, name: "core::Text", args: {text: {$: missing}}},
+                {$: widget, name: "core::Text", args: {text: "b"}},
+              ],
+          },
+      }
+- name: a_conditional_element_appears_only_when_true
+  action: expand_template
+  features: [F-CRAFT-RT-06]
+  description: "...if C: E gives E when C is true, and nothing when it is false, absent or anything else."
+  libraries:
+    main: |
+      import core;
+      widget root = Box(a: [...if data.yes: "E"], b: [...if data.no: "E"], c: [...if data.none: "E"], d: [...if data.one: "E"]);
+  data: "{ yes: true, no: false, one: 1 }"
+  expect:
+    tree: {$: widget, name: "core::Box", args: {a: ["E"], b: [], c: [], d: []}}
+- name: a_conditional_element_inside_a_loop
+  action: expand_template
+  features: [F-CRAFT-RT-06]
+  description: "Inside ...for, the condition and the element of ...if read the loop variable."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for x in data.items: Row(children: [...if x.on: Text(text: x.label)])]);
+  data: '{ items: [{ on: true, label: "a" }, { on: false, label: "b" }] }'
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {
+                  $: widget,
+                  name: "core::Row",
+                  args: {children: [{$: widget, name: "core::Text", args: {text: "a"}}]},
+                },
+                {$: widget, name: "core::Row", args: {children: []}},
+              ],
+          },
+      }
+
+# switches
+
+- name: a_switch_gives_its_first_matching_case
+  action: expand_template
+  features: [F-CRAFT-RT-07]
+  description: "A switch gives the value of the first case whose key equals its input, else its default, else absent; keys compare with the equality of craft_functions, so 1 matches 1.0 and lists compare by their elements (a key may be any value, here a reference); a default written first is still tried last."
+  libraries:
+    main: |
+      import core;
+      widget root = Box(
+        a: switch data.k { "x": "X", "y": "Y", default: "D" },
+        b: switch data.other { "x": "X", default: "D" },
+        c: switch data.other { "x": "X" },
+        d: switch data.one { 1.0: "one", default: "D" },
+        e: switch data.k { default: "D", "y": "Y" },
+        f: switch data.pair { data.same: "pair", default: "D" },
+      );
+  data: '{ k: "y", other: "z", one: 1, pair: [1.0, "b"], same: [1, "b"] }'
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Box",
+        args: {a: "Y", b: "D", c: {$: missing}, d: "one", e: "Y", f: "pair"},
+      }
+- name: only_the_selected_case_is_evaluated
+  action: expand_template
+  features: [F-CRAFT-RT-07]
+  description: "The values of cases that are not selected, and the keys after the matching one, are not evaluated, so an error or an unknown widget in them is no error."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [
+        switch data.flag { true: Text(text: "ok"), default: maps::Map() },
+        Text(text: switch data.flag { true: "fine", default: nope() }),
+        Text(text: switch data.flag { true: "first", nope(): "never" }),
+      ]);
+  data: "{ flag: true }"
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: "ok"}},
+                {$: widget, name: "core::Text", args: {text: "fine"}},
+                {$: widget, name: "core::Text", args: {text: "first"}},
+              ],
+          },
+      }
+- name: a_root_switch_selects_the_widget
+  action: expand_template
+  features: [F-CRAFT-RT-07]
+  description: "A declaration whose root is a switch expands to the widget of the selected case; a case that gives no widget is an error node notAWidget."
+  libraries:
+    main: |
+      import core;
+      widget Pick = switch args.mode { "text": Text(text: "t"), "box": Box(), default: "not a widget" };
+      widget root = Column(children: [Pick(mode: "box"), Pick(mode: "text"), Pick(mode: "other"), Pick()]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Box", args: {}},
+                {$: widget, name: "core::Text", args: {text: "t"}},
+                {$: error, kind: notAWidget},
+                {$: error, kind: notAWidget},
+              ],
+          },
+      }
+    errors: [{at: [children, 2], kind: notAWidget}, {at: [children, 3], kind: notAWidget}]
+- name: a_switch_input_must_be_a_value
+  action: expand_template
+  features: [F-CRAFT-RT-07]
+  description: "A widget as a switch input or as a key that is compared fails with invalidValue."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [
+        Text(text: switch Box() { default: "d" }),
+        Text(text: switch "a" { Box(): "w", default: "d" }),
+        Text(text: "ok"),
+      ]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: error, kind: invalidValue},
+                {$: error, kind: invalidValue},
+                {$: widget, name: "core::Text", args: {text: "ok"}},
+              ],
+          },
+      }
+    errors: [{at: [children, 0], kind: invalidValue}, {at: [children, 1], kind: invalidValue}]
+
+# handlers
+
+- name: an_event_handler_is_resolved_when_expanded
+  action: expand_template
+  features: [F-CRAFT-RT-08]
+  description: "An event handler's arguments are evaluated when it is expanded; the node holds the event name and their values."
+  libraries:
+    main: |
+      import core;
+      widget root = Button(onPressed: event "open" { id: data.id, tag: concat(a: "t", b: 1) });
+  data: "{ id: 7 }"
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Button",
+        args: {onPressed: {$: event, name: "open", args: {id: {$: int, value: 7}, tag: "t1"}}},
+      }
+- name: a_state_setter_names_its_instance_and_value
+  action: expand_template
+  features: [F-CRAFT-RT-08]
+  description: "A state setter's value is computed when it is expanded; the node names the stateful instance (its position and template), the parts and the value."
+  libraries:
+    main: |
+      import core;
+      widget Counter { count: 4 } = Button(onPressed: set state.count = add(a: state.count, b: 1));
+      widget root = Box(child: Counter());
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Box",
+        args:
+          {
+            child:
+              {
+                $: widget,
+                name: "core::Button",
+                args:
+                  {
+                    onPressed:
+                      {
+                        $: setState,
+                        state: {at: [child], widget: "main::Counter"},
+                        parts: [count],
+                        value: {$: int, value: 5},
+                      },
+                  },
+              },
+          },
+      }
+    states: [{at: [child], widget: "main::Counter", value: {count: {$: int, value: 4}}}]
+- name: a_handler_application_holds_its_handler_and_arguments
+  action: expand_template
+  features: [F-CRAFT-RT-08]
+  description: "call H {M} gives a node with the evaluated handler and arguments; an absent handler stays absent."
+  libraries:
+    main: |
+      import core;
+      widget Toggle = Button(onPressed: call args.onToggle { from: "child", label: args.label });
+      widget root = Column(children: [Toggle(label: "a", onToggle: event "toggled" {}), Toggle(label: "b")]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {
+                  $: widget,
+                  name: "core::Button",
+                  args:
+                    {
+                      onPressed:
+                        {
+                          $: call,
+                          handler: {$: event, name: "toggled", args: {}},
+                          args: {from: "child", label: "a"},
+                        },
+                    },
+                },
+                {
+                  $: widget,
+                  name: "core::Button",
+                  args:
+                    {
+                      onPressed:
+                        {$: call, handler: {$: missing}, args: {from: "child", label: "b"}},
+                    },
+                },
+              ],
+          },
+      }
+- name: a_handler_list_keeps_host_handlers
+  action: expand_template
+  features: [F-CRAFT-RT-08]
+  description: "A list of handlers keeps every entry, host handlers from the arguments included."
+  libraries:
+    main: |
+      import core;
+      widget root { busy: false } = Button(onPressed: [set state.busy = true, args.action, event "pressed" {}]);
+  host_handlers: {action: approve}
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Button",
+        args:
+          {
+            onPressed:
+              [
+                {$: setState, state: {at: [], widget: "main::root"}, parts: [busy], value: true},
+                {$: hostHandler, id: approve},
+                {$: event, name: "pressed", args: {}},
+              ],
+          },
+      }
+    states: [{at: [], widget: "main::root", value: {busy: false}}]
+- name: handler_arguments_must_be_values
+  action: expand_template
+  features: [F-CRAFT-RT-08]
+  description: "A widget or a handler in an event's arguments, a state setter's value or a call's arguments, and a widget or builder as the handler of a call, fail with invalidValue; handlers as the handler of a call are allowed (the controls)."
+  libraries:
+    main: |
+      import core;
+      widget root { s: 0 } = Column(children: [
+        Button(onPressed: event "e" { w: Box() }),
+        Button(onPressed: event "e" { h: event "inner" {} }),
+        Button(onPressed: set state.s = Box()),
+        Button(onPressed: call event "x" {} { w: Box() }),
+        Button(onPressed: call Box() {}),
+        Button(onPressed: call (x) => Box() {}),
+        Button(onPressed: call event "x" {} { v: 1 }),
+        Button(onPressed: call [event "x" {}, set state.s = 1] {}),
+      ]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: error, kind: invalidValue},
+                {$: error, kind: invalidValue},
+                {$: error, kind: invalidValue},
+                {$: error, kind: invalidValue},
+                {$: error, kind: invalidValue},
+                {$: error, kind: invalidValue},
+                {
+                  $: widget,
+                  name: "core::Button",
+                  args:
+                    {
+                      onPressed:
+                        {
+                          $: call,
+                          handler: {$: event, name: "x", args: {}},
+                          args: {v: {$: int, value: 1}},
+                        },
+                    },
+                },
+                {
+                  $: widget,
+                  name: "core::Button",
+                  args:
+                    {
+                      onPressed:
+                        {
+                          $: call,
+                          handler:
+                            [
+                              {$: event, name: "x", args: {}},
+                              {
+                                $: setState,
+                                state: {at: [], widget: "main::root"},
+                                parts: [s],
+                                value: {$: int, value: 1},
+                              },
+                            ],
+                          args: {},
+                        },
+                    },
+                },
+              ],
+          },
+      }
+    states: [{at: [], widget: "main::root", value: {s: {$: int, value: 0}}}]
+    errors:
+      - {at: [children, 0], kind: invalidValue}
+      - {at: [children, 1], kind: invalidValue}
+      - {at: [children, 2], kind: invalidValue}
+      - {at: [children, 3], kind: invalidValue}
+      - {at: [children, 4], kind: invalidValue}
+      - {at: [children, 5], kind: invalidValue}
+- name: a_handler_application_takes_a_handler_and_arguments
+  action: expand_template
+  features: [F-CRAFT-RT-08]
+  description: "A call named call (as a root, the only place the text format allows arguments) fails with invalidArgument for an argument other than handler and arguments, and with invalidValue when its arguments are not a map."
+  libraries:
+    main: |
+      import core;
+      widget Extra = call(handler: event "e" {}, arguments: {}, x: 1);
+      widget NotAMap = call(handler: event "e" {}, arguments: 1);
+      widget root = Column(children: [Extra(), NotAMap()]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args: {children: [{$: error, kind: invalidArgument}, {$: error, kind: invalidValue}]},
+      }
+    errors: [{at: [children, 0], kind: invalidArgument}, {at: [children, 1], kind: invalidValue}]
+- name: a_state_setter_needs_a_stateful_template
+  action: expand_template
+  features: [F-CRAFT-RT-08]
+  description: "set state with no stateful template around it fails with noState."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [Button(onPressed: set state.x = 1), Text(text: state.x)]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: error, kind: noState},
+                {$: widget, name: "core::Text", args: {text: {$: missing}}},
+              ],
+          },
+      }
+    errors: [{at: [children, 0], kind: noState}]
+- name: whether_a_value_does_anything_when_fired
+  action: expand_template
+  features: [F-CRAFT-RT-08]
+  description: "Events, state setters and host handlers are runnable; a call is runnable when its handler is; a list when one of its entries is; anything else is not."
+  libraries:
+    main: |
+      import core;
+      widget root { s: 0 } = Box(
+        e: event "e" {}, s: set state.s = 1, h: args.h, c: call args.h {}, ca: call args.none {},
+        l: [absent, event "e" {}], le: [], la: [absent, call absent {}], v: "text", a: absent,
+      );
+  host_handlers: {h: approve}
+  expect:
+    states: [{at: [], widget: "main::root", value: {s: {$: int, value: 0}}}]
+  steps:
+    - {runnable: [e], expect: {runnable: true}}
+    - {runnable: [s], expect: {runnable: true}}
+    - {runnable: [h], expect: {runnable: true}}
+    - {runnable: [c], expect: {runnable: true}}
+    - {runnable: [ca], expect: {runnable: false}}
+    - {runnable: [l], expect: {runnable: true}}
+    - {runnable: [le], expect: {runnable: false}}
+    - {runnable: [la], expect: {runnable: false}}
+    - {runnable: [v], expect: {runnable: false}}
+    - {runnable: [a], expect: {runnable: false}}
+
+# firing
+
+- name: firing_an_event_merges_the_event_arguments
+  action: expand_template
+  features: [F-CRAFT-RT-09]
+  description: "Firing an event handler emits its event with its own arguments merged with the event arguments, which win."
+  libraries:
+    main: |
+      import core;
+      widget root = Button(onPressed: event "changed" { id: 1, value: "old" });
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Button",
+        args:
+          {onPressed: {$: event, name: "changed", args: {id: {$: int, value: 1}, value: "old"}}},
+      }
+  steps:
+    - fire: [onPressed]
+      event_args: '{ value: "new", extra: true }'
+      expect:
+        events: [{event: "changed", args: {id: {$: int, value: 1}, value: "new", extra: true}}]
+- name: a_call_passes_its_arguments_over_the_event_arguments
+  action: expand_template
+  features: [F-CRAFT-RT-09]
+  description: "Firing call H {M} fires H with the event arguments merged with M, which wins; the call's arguments then merge into an event's own arguments as event arguments do."
+  libraries:
+    main: |
+      import core;
+      widget Toggle = Button(onPressed: call args.onToggle { from: "child", label: args.label });
+      widget root = Toggle(label: "a", onToggle: event "toggled" { by: "root", label: "x" });
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Button",
+        args:
+          {
+            onPressed:
+              {
+                $: call,
+                handler: {$: event, name: "toggled", args: {by: "root", label: "x"}},
+                args: {from: "child", label: "a"},
+              },
+          },
+      }
+  steps:
+    - fire: [onPressed]
+      event_args: '{ value: true, from: "event" }'
+      expect:
+        events: [{event: "toggled", args: {by: "root", label: "a", value: true, from: "child"}}]
+- name: a_handler_list_runs_in_order
+  action: expand_template
+  features: [F-CRAFT-RT-09]
+  description: "Firing a list fires each entry in order with the same event arguments: the events come out in list order, host handlers included, and every setter applies."
+  libraries:
+    main: |
+      import core;
+      widget root { busy: false } = Column(children: [
+        Text(text: state.busy),
+        Button(onPressed: [event "first" {}, set state.busy = true, args.action, call args.action { k: 1 }, event "last" {}]),
+      ]);
+  host_handlers: {action: approve}
+  expect:
+    states: [{at: [], widget: "main::root", value: {busy: false}}]
+  steps:
+    - fire: [children, 1, onPressed]
+      event_args: "{ v: 2 }"
+      expect:
+        events:
+          - {event: "first", args: {v: {$: int, value: 2}}}
+          - {hostHandler: approve, args: {v: {$: int, value: 2}}}
+          - {hostHandler: approve, args: {v: {$: int, value: 2}, k: {$: int, value: 1}}}
+          - {event: "last", args: {v: {$: int, value: 2}}}
+        states: [{at: [], widget: "main::root", value: {busy: true}}]
+- name: setters_in_one_firing_use_the_values_of_the_expansion
+  action: expand_template
+  features: [F-CRAFT-RT-09]
+  description: "Each setter sets the value computed when the handler was expanded, so setters fired together do not see each other; the root is expanded again afterwards."
+  libraries:
+    main: |
+      import core;
+      widget root { a: 0, b: 0 } = Button(onPressed: [
+        set state.a = add(a: state.b, b: 1),
+        set state.b = add(a: state.a, b: 10),
+      ]);
+  expect:
+    states: [{at: [], widget: "main::root", value: {a: {$: int, value: 0}, b: {$: int, value: 0}}}]
+  steps:
+    - fire: [onPressed]
+      expect:
+        states:
+          [{at: [], widget: "main::root", value: {a: {$: int, value: 1}, b: {$: int, value: 10}}}]
+    - fire: [onPressed]
+      expect:
+        states:
+          [{at: [], widget: "main::root", value: {a: {$: int, value: 11}, b: {$: int, value: 11}}}]
+- name: a_setter_sets_existing_state_only
+  action: expand_template
+  features: [F-CRAFT-RT-09]
+  description: "A setter sets state at its parts when they name existing state (a key of a map, an index of a list); otherwise it fails with unknownState, and an absent value fails with absentValue; the other entries still run."
+  libraries:
+    main: |
+      import core;
+      widget root { list: [1, 2], map: { k: "v" } } = Box(
+        good: [set state.list.1 = 20, set state.map.k = "w"],
+        bad: [set state.missing = 1, set state.list.2 = 3, set state.map.k.deeper = 1, set state.map.k = absent, event "after" {}],
+      );
+  expect:
+    states:
+      [
+        {
+          at: [],
+          widget: "main::root",
+          value: {list: [{$: int, value: 1}, {$: int, value: 2}], map: {k: "v"}},
+        },
+      ]
+  steps:
+    - fire: [good]
+      expect:
+        states:
+          [
+            {
+              at: [],
+              widget: "main::root",
+              value: {list: [{$: int, value: 1}, {$: int, value: 20}], map: {k: "w"}},
+            },
+          ]
+    - fire: [bad]
+      expect:
+        events: [{event: "after", args: {}}]
+        fire_errors: [unknownState, unknownState, unknownState, absentValue]
+        states:
+          [
+            {
+              at: [],
+              widget: "main::root",
+              value: {list: [{$: int, value: 1}, {$: int, value: 20}], map: {k: "w"}},
+            },
+          ]
+- name: a_setter_of_an_instance_no_longer_expanded_does_nothing
+  action: expand_template
+  features: [F-CRAFT-RT-09]
+  description: "Firing a setter whose instance is no longer in the expansion fails with unknownState and changes nothing."
+  libraries:
+    main: |
+      import core;
+      widget Counter { n: 0 } = Button(onPressed: set state.n = 1);
+      widget root = Column(children: [...if data.show: Counter()]);
+  data: "{ show: true }"
+  expect:
+    states: [{at: [children, 0], widget: "main::Counter", value: {"n": {$: int, value: 0}}}]
+  steps:
+    - data: "{ show: false }"
+      expect:
+        tree: {$: widget, name: "core::Column", args: {children: []}}
+    - fire: [children, 0, onPressed]
+      in: previous
+      expect:
+        fire_errors: [unknownState]
+        tree: {$: widget, name: "core::Column", args: {children: []}}
+- name: firing_a_value_that_is_not_a_handler_does_nothing
+  action: expand_template
+  features: [F-CRAFT-RT-09]
+  description: "Firing a value, absent or a call of an absent handler does nothing."
+  libraries:
+    main: |
+      import core;
+      widget root = Box(v: "text", a: absent, c: call absent { x: 1 });
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Box",
+        args:
+          {
+            v: "text",
+            a: {$: missing},
+            c: {$: call, handler: {$: missing}, args: {x: {$: int, value: 1}}},
+          },
+      }
+  steps:
+    - {fire: [v], expect: {}}
+    - {fire: [a], expect: {}}
+    - {fire: [c], expect: {}}
+
+# local state
+
+- name: a_stateful_template_counts_on_its_own
+  action: expand_template
+  features: [F-CRAFT-RT-10]
+  description: "A template with initial state starts from it and reads and sets it with no host code."
+  libraries:
+    main: |
+      import core;
+      widget root { count: 0 } = Column(children: [
+        Text(text: state.count),
+        Button(onPressed: set state.count = add(a: state.count, b: 1)),
+      ]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: {$: int, value: 0}}},
+                {
+                  $: widget,
+                  name: "core::Button",
+                  args:
+                    {
+                      onPressed:
+                        {
+                          $: setState,
+                          state: {at: [], widget: "main::root"},
+                          parts: [count],
+                          value: {$: int, value: 1},
+                        },
+                    },
+                },
+              ],
+          },
+      }
+    states: [{at: [], widget: "main::root", value: {count: {$: int, value: 0}}}]
+  steps:
+    - fire: [children, 1, onPressed]
+      expect:
+        tree:
+          {
+            $: widget,
+            name: "core::Column",
+            args:
+              {
+                children:
+                  [
+                    {$: widget, name: "core::Text", args: {text: {$: int, value: 1}}},
+                    {
+                      $: widget,
+                      name: "core::Button",
+                      args:
+                        {
+                          onPressed:
+                            {
+                              $: setState,
+                              state: {at: [], widget: "main::root"},
+                              parts: [count],
+                              value: {$: int, value: 2},
+                            },
+                        },
+                    },
+                  ],
+              },
+          }
+        states: [{at: [], widget: "main::root", value: {count: {$: int, value: 1}}}]
+- name: each_instance_has_its_own_state
+  action: expand_template
+  features: [F-CRAFT-RT-10]
+  description: "Two calls of a stateful template at different positions have separate state."
+  libraries:
+    main: |
+      import core;
+      widget Counter { n: 0 } = Button(onPressed: set state.n = add(a: state.n, b: 1), label: state.n);
+      widget root = Row(children: [Counter(), Counter()]);
+  expect:
+    states:
+      - {at: [children, 0], widget: "main::Counter", value: {"n": {$: int, value: 0}}}
+      - {at: [children, 1], widget: "main::Counter", value: {"n": {$: int, value: 0}}}
+  steps:
+    - fire: [children, 1, onPressed]
+      expect:
+        states:
+          - {at: [children, 0], widget: "main::Counter", value: {"n": {$: int, value: 0}}}
+          - {at: [children, 1], widget: "main::Counter", value: {"n": {$: int, value: 1}}}
+- name: a_stateless_template_uses_the_nearest_stateful_one
+  action: expand_template
+  features: [F-CRAFT-RT-10]
+  description: "State references in a template without initial state read and set the state of the nearest stateful template it is expanded in; with none, they read absent."
+  libraries:
+    main: |
+      import core;
+      widget OpenButton = Button(onPressed: set state.open = true, open: state.open);
+      widget Panel { open: false } = Column(children: [OpenButton(), Text(text: state.open)]);
+      widget root = Row(children: [Panel(), OpenLabel()]);
+      widget OpenLabel = Text(text: state.open);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Row",
+        args:
+          {
+            children:
+              [
+                {
+                  $: widget,
+                  name: "core::Column",
+                  args:
+                    {
+                      children:
+                        [
+                          {
+                            $: widget,
+                            name: "core::Button",
+                            args:
+                              {
+                                onPressed:
+                                  {
+                                    $: setState,
+                                    state: {at: [children, 0], widget: "main::Panel"},
+                                    parts: [open],
+                                    value: true,
+                                  },
+                                open: false,
+                              },
+                          },
+                          {$: widget, name: "core::Text", args: {text: false}},
+                        ],
+                    },
+                },
+                {$: widget, name: "core::Text", args: {text: {$: missing}}},
+              ],
+          },
+      }
+    states: [{at: [children, 0], widget: "main::Panel", value: {open: false}}]
+  steps:
+    - fire: [children, 0, children, 0, onPressed]
+      expect:
+        states: [{at: [children, 0], widget: "main::Panel", value: {open: true}}]
+- name: templates_at_the_same_position_have_separate_state
+  action: expand_template
+  features: [F-CRAFT-RT-10]
+  description: "A stateful template whose root calls another stateful template: both expand at the same position, and each has its own state."
+  libraries:
+    main: |
+      import core;
+      widget Inner { v: "inner" } = Text(text: state.v);
+      widget root { v: "outer" } = Inner();
+  expect:
+    tree: {$: widget, name: "core::Text", args: {text: "inner"}}
+    states:
+      - {at: [], widget: "main::root", value: {v: "outer"}}
+      - {at: [], widget: "main::Inner", value: {v: "inner"}}
+- name: a_template_passing_itself_through_shares_its_instance
+  action: expand_template
+  features: [F-CRAFT-RT-10]
+  description: "A stateful template whose root passes through another call of itself places it at its own path, so both calls share one instance; the control places the inner call one level down."
+  libraries:
+    main: |
+      import core;
+      widget W { n: 0 } = switch true { true: args.child };
+      widget V { n: 0 } = Box(child: args.child);
+      widget root = Row(children: [W(child: W(child: Text())), V(child: V(child: Text()))]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Row",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {}},
+                {
+                  $: widget,
+                  name: "core::Box",
+                  args:
+                    {
+                      child:
+                        {
+                          $: widget,
+                          name: "core::Box",
+                          args: {child: {$: widget, name: "core::Text", args: {}}},
+                        },
+                    },
+                },
+              ],
+          },
+      }
+    states:
+      - {at: [children, 0], widget: "main::W", value: {"n": {$: int, value: 0}}}
+      - {at: [children, 1], widget: "main::V", value: {"n": {$: int, value: 0}}}
+      - {at: [children, 1, child], widget: "main::V", value: {"n": {$: int, value: 0}}}
+- name: a_failed_template_still_has_its_state
+  action: expand_template
+  features: [F-CRAFT-RT-10]
+  description: "A stateful template has its instance at its position even when its root fails."
+  libraries:
+    main: |
+      import core;
+      widget Broken { n: 1 } = switch nope() { default: Text() };
+      widget root = Box(child: Broken());
+  expect:
+    tree: {$: widget, name: "core::Box", args: {child: {$: error, kind: unknownFunction}}}
+    states: [{at: [child], widget: "main::Broken", value: {"n": {$: int, value: 1}}}]
+    errors: [{at: [child], kind: unknownFunction}]
+- name: state_survives_a_data_update_and_resets_on_reload
+  action: expand_template
+  features: [F-CRAFT-RT-10]
+  description: "State is kept across data and argument updates and when another library is registered; registering the template's library again, even with the same source, resets it."
+  libraries:
+    main: |
+      import core;
+      widget root { open: false } = Column(children: [
+        Text(text: concat(a: data.name, b: switch state.open { true: " (open)", default: "" })),
+        Button(onPressed: set state.open = true),
+      ]);
+  data: '{ name: "Ann" }'
+  expect:
+    states: [{at: [], widget: "main::root", value: {open: false}}]
+  steps:
+    - fire: [children, 1, onPressed]
+      expect:
+        states: [{at: [], widget: "main::root", value: {open: true}}]
+    - data: '{ name: "Grace" }'
+      expect:
+        tree:
+          {
+            $: widget,
+            name: "core::Column",
+            args:
+              {
+                children:
+                  [
+                    {$: widget, name: "core::Text", args: {text: "Grace (open)"}},
+                    {
+                      $: widget,
+                      name: "core::Button",
+                      args:
+                        {
+                          onPressed:
+                            {
+                              $: setState,
+                              state: {at: [], widget: "main::root"},
+                              parts: [open],
+                              value: true,
+                            },
+                        },
+                    },
+                  ],
+              },
+          }
+        states: [{at: [], widget: "main::root", value: {open: true}}]
+    - args: "{ unused: 1 }"
+      expect:
+        states: [{at: [], widget: "main::root", value: {open: true}}]
+    - register:
+        other: |
+          import core;
+          widget Unrelated = Text();
+      expect:
+        states: [{at: [], widget: "main::root", value: {open: true}}]
+    - register:
+        main: |
+          import core;
+          widget root { open: false } = Column(children: [
+            Text(text: concat(a: data.name, b: switch state.open { true: " (open)", default: "" })),
+            Button(onPressed: set state.open = true),
+          ]);
+      expect:
+        tree:
+          {
+            $: widget,
+            name: "core::Column",
+            args:
+              {
+                children:
+                  [
+                    {$: widget, name: "core::Text", args: {text: "Grace"}},
+                    {
+                      $: widget,
+                      name: "core::Button",
+                      args:
+                        {
+                          onPressed:
+                            {
+                              $: setState,
+                              state: {at: [], widget: "main::root"},
+                              parts: [open],
+                              value: true,
+                            },
+                        },
+                    },
+                  ],
+              },
+          }
+        states: [{at: [], widget: "main::root", value: {open: false}}]
+- name: state_is_dropped_when_its_instance_leaves
+  action: expand_template
+  features: [F-CRAFT-RT-10]
+  description: "An instance that is not in an expansion loses its state; expanded again later, it starts from its initial state."
+  libraries:
+    main: |
+      import core;
+      widget Counter { n: 0 } = Button(onPressed: set state.n = 1, label: state.n);
+      widget root = Column(children: [...if data.show: Counter()]);
+  data: "{ show: true }"
+  expect:
+    states: [{at: [children, 0], widget: "main::Counter", value: {"n": {$: int, value: 0}}}]
+  steps:
+    - fire: [children, 0, onPressed]
+      expect:
+        states: [{at: [children, 0], widget: "main::Counter", value: {"n": {$: int, value: 1}}}]
+    - data: "{ show: false }"
+      expect:
+        tree: {$: widget, name: "core::Column", args: {children: []}}
+    - data: "{ show: true }"
+      expect:
+        states: [{at: [children, 0], widget: "main::Counter", value: {"n": {$: int, value: 0}}}]
+- name: state_belongs_to_a_position
+  action: expand_template
+  features: [F-CRAFT-RT-10]
+  description: "State is identified by position and template: when an element is inserted before a stateful one, the state stays at its position, and a different template there starts afresh."
+  libraries:
+    main: |
+      import core;
+      widget Counter { n: 0 } = Button(onPressed: set state.n = 1, label: state.n);
+      widget Other { n: 5 } = Text(text: state.n);
+      widget root = Column(children: [...for k in data.kinds: switch k { "c": Counter(), default: Other() }]);
+  data: '{ kinds: ["c"] }'
+  expect:
+    states: [{at: [children, 0], widget: "main::Counter", value: {"n": {$: int, value: 0}}}]
+  steps:
+    - fire: [children, 0, onPressed]
+      expect:
+        states: [{at: [children, 0], widget: "main::Counter", value: {"n": {$: int, value: 1}}}]
+    - data: '{ kinds: ["c", "c"] }'
+      expect:
+        states:
+          - {at: [children, 0], widget: "main::Counter", value: {"n": {$: int, value: 1}}}
+          - {at: [children, 1], widget: "main::Counter", value: {"n": {$: int, value: 0}}}
+    - data: '{ kinds: ["o", "c"] }'
+      expect:
+        states:
+          - {at: [children, 0], widget: "main::Other", value: {"n": {$: int, value: 5}}}
+          - {at: [children, 1], widget: "main::Counter", value: {"n": {$: int, value: 0}}}
+
+# widget builders
+
+- name: a_builder_expands_when_the_host_asks
+  action: expand_template
+  features: [F-CRAFT-RT-11]
+  description: "A builder is a builder node; expanding it for a key and an argument gives its output at the builder's path followed by the key, reading the argument and the scope where the builder was written."
+  libraries:
+    main: |
+      import core;
+      widget root = List(items: data.items, builder: (item) => Text(text: item.name, prefix: data.prefix));
+  data: '{ items: ["a"], prefix: "p" }'
+  expect:
+    tree: {$: widget, name: "core::List", args: {items: ["a"], builder: {$: builder}}}
+  steps:
+    - build: [builder]
+      key: 0
+      arg: '{ name: "first" }'
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: "first", prefix: "p"}}
+    - build: [builder]
+      key: 1
+      arg: "{ }"
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: {$: missing}, prefix: "p"}}
+- name: a_builder_output_must_be_a_widget
+  action: expand_template
+  features: [F-CRAFT-RT-11]
+  description: "A builder whose output is not a widget gives an error node notAWidget at the output's position."
+  libraries:
+    main: |
+      import core;
+      widget root = List(builder: (item) => switch item.kind { "t": Text(), default: "no" });
+  expect:
+    tree: {$: widget, name: "core::List", args: {builder: {$: builder}}}
+  steps:
+    - build: [builder]
+      key: "x"
+      arg: '{ kind: "other" }'
+      expect:
+        tree: {$: error, kind: notAWidget}
+        errors: [{at: [builder, "x"], kind: notAWidget}]
+    - build: [builder]
+      key: "y"
+      arg: '{ kind: "t" }'
+      expect:
+        tree: {$: widget, name: "core::Text", args: {}}
+- name: state_inside_a_builder_output
+  action: expand_template
+  features: [F-CRAFT-RT-11]
+  description: "Stateful instances in a builder's output are identified by their position under the builder and the key; their setters fire like any other; their state is kept while the builder is in the expansion and dropped when it leaves."
+  libraries:
+    main: |
+      import core;
+      widget Counter { n: 0 } = Button(onPressed: set state.n = add(a: state.n, b: 1), label: state.n);
+      widget root = Column(children: [...if data.show: List(builder: (item) => Counter())]);
+  data: "{ show: true }"
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args: {children: [{$: widget, name: "core::List", args: {builder: {$: builder}}}]},
+      }
+  steps:
+    - build: [children, 0, builder]
+      key: 3
+      arg: "{ }"
+      expect:
+        tree:
+          {
+            $: widget,
+            name: "core::Button",
+            args:
+              {
+                onPressed:
+                  {
+                    $: setState,
+                    state: {at: [children, 0, builder, 3], widget: "main::Counter"},
+                    parts: ["n"],
+                    value: {$: int, value: 1},
+                  },
+                label: {$: int, value: 0},
+              },
+          }
+        states:
+          [
+            {
+              at: [children, 0, builder, 3],
+              widget: "main::Counter",
+              value: {"n": {$: int, value: 0}},
+            },
+          ]
+    - fire: [children, 0, builder, 3, onPressed]
+      expect: {}
+    - build: [children, 0, builder]
+      key: 3
+      arg: "{ }"
+      expect:
+        tree:
+          {
+            $: widget,
+            name: "core::Button",
+            args:
+              {
+                onPressed:
+                  {
+                    $: setState,
+                    state: {at: [children, 0, builder, 3], widget: "main::Counter"},
+                    parts: ["n"],
+                    value: {$: int, value: 2},
+                  },
+                label: {$: int, value: 1},
+              },
+          }
+        states:
+          [
+            {
+              at: [children, 0, builder, 3],
+              widget: "main::Counter",
+              value: {"n": {$: int, value: 1}},
+            },
+          ]
+    - data: "{ show: false }"
+      expect: {}
+    - data: "{ show: true }"
+      expect: {}
+    - build: [children, 0, builder]
+      key: 3
+      arg: "{ }"
+      expect:
+        tree:
+          {
+            $: widget,
+            name: "core::Button",
+            args:
+              {
+                onPressed:
+                  {
+                    $: setState,
+                    state: {at: [children, 0, builder, 3], widget: "main::Counter"},
+                    parts: ["n"],
+                    value: {$: int, value: 1},
+                  },
+                label: {$: int, value: 0},
+              },
+          }
+        states:
+          [
+            {
+              at: [children, 0, builder, 3],
+              widget: "main::Counter",
+              value: {"n": {$: int, value: 0}},
+            },
+          ]
+
+# updates
+
+- name: data_and_argument_updates_expand_again
+  action: expand_template
+  features: [F-CRAFT-RT-13]
+  description: "Replacing the data or the root's arguments gives the next expansion the new values."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [Text(text: args.title), ...for x in data.items: Text(text: x)]);
+  args: '{ title: "T1" }'
+  data: '{ items: ["a"] }'
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: "T1"}},
+                {$: widget, name: "core::Text", args: {text: "a"}},
+              ],
+          },
+      }
+  steps:
+    - data: '{ items: ["a", "b"] }'
+      expect:
+        tree:
+          {
+            $: widget,
+            name: "core::Column",
+            args:
+              {
+                children:
+                  [
+                    {$: widget, name: "core::Text", args: {text: "T1"}},
+                    {$: widget, name: "core::Text", args: {text: "a"}},
+                    {$: widget, name: "core::Text", args: {text: "b"}},
+                  ],
+              },
+          }
+    - args: '{ title: "T2" }'
+      expect:
+        tree:
+          {
+            $: widget,
+            name: "core::Column",
+            args:
+              {
+                children:
+                  [
+                    {$: widget, name: "core::Text", args: {text: "T2"}},
+                    {$: widget, name: "core::Text", args: {text: "a"}},
+                    {$: widget, name: "core::Text", args: {text: "b"}},
+                  ],
+              },
+          }
+- name: a_registry_change_is_seen_by_the_next_expansion
+  action: expand_template
+  features: [F-CRAFT-RT-13]
+  description: "The next expansion after a library is registered uses the new library."
+  libraries:
+    main: |
+      import core;
+      import ui;
+      widget root = ui::Card();
+    ui: |
+      import core;
+      export widget Card = Text(text: "v1");
+  expect:
+    tree: {$: widget, name: "core::Text", args: {text: "v1"}}
+  steps:
+    - register:
+        ui: |
+          import core;
+          export widget Card = Box(child: Text(text: "v2"));
+      expect:
+        tree:
+          {
+            $: widget,
+            name: "core::Box",
+            args: {child: {$: widget, name: "core::Text", args: {text: "v2"}}},
+          }
+
+# errors
+
+- name: an_error_replaces_the_innermost_widget
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "An evaluation error in a primitive's arguments makes that primitive an error node with the error's kind; its parent and siblings expand normally."
+  libraries:
+    main: |
+      import core;
+      import fmt;
+      widget root = Column(children: [
+        Text(text: "before"),
+        Row(children: [Text(text: nope()), Text(text: "sibling")]),
+        Box(value: [1, add(c: 1)]),
+        Text(text: fmt::fail()),
+        Text(text: "after"),
+      ]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: "before"}},
+                {
+                  $: widget,
+                  name: "core::Row",
+                  args:
+                    {
+                      children:
+                        [
+                          {$: error, kind: unknownFunction},
+                          {$: widget, name: "core::Text", args: {text: "sibling"}},
+                        ],
+                    },
+                },
+                {$: error, kind: invalidArgument},
+                {$: error, kind: functionFailed},
+                {$: widget, name: "core::Text", args: {text: "after"}},
+              ],
+          },
+      }
+    errors:
+      - {at: [children, 1, children, 0], kind: unknownFunction}
+      - {at: [children, 2], kind: invalidArgument}
+      - {at: [children, 3], kind: functionFailed}
+- name: an_unknown_widget_fails_its_parent
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "An unknown call is an evaluation error of the arguments it is written in (craft_functions), so the primitive whose arguments hold it is the error node."
+  libraries:
+    main: |
+      import core;
+      widget root = Box(child: Column(children: [Text(), Missing()]));
+  expect:
+    tree: {$: widget, name: "core::Box", args: {child: {$: error, kind: unknownFunction}}}
+    errors: [{at: [child], kind: unknownFunction}]
+- name: the_first_error_in_argument_order
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "When a primitive's arguments hold several errors, its error node has the kind of the first, in the order the call writes its arguments."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [Box(a: add(c: 1), b: nope()), Box(b: nope(), a: add(c: 1))]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args: {children: [{$: error, kind: invalidArgument}, {$: error, kind: unknownFunction}]},
+      }
+    errors: [{at: [children, 0], kind: invalidArgument}, {at: [children, 1], kind: unknownFunction}]
+- name: an_error_in_a_template_root
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "An error in a template's root switch makes the template's position an error node; an error in an argument it reads fails the primitive that reads it."
+  libraries:
+    main: |
+      import core;
+      widget Broken = switch nope() { default: Text() };
+      widget Reader = Box(child: Text(text: args.value));
+      widget root = Column(children: [Broken(), Reader(value: add(c: 1))]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: error, kind: unknownFunction},
+                {$: widget, name: "core::Box", args: {child: {$: error, kind: invalidArgument}}},
+              ],
+          },
+      }
+    errors:
+      [
+        {at: [children, 0], kind: unknownFunction},
+        {at: [children, 1, child], kind: invalidArgument},
+      ]
+- name: a_template_called_inside_its_own_expansion
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "A call of a template inside its own expansion through other templates is an error node recursiveWidget; a declaration cannot name itself (the name resolves past it, craft_functions), and passing a template call as an argument to the same template is not recursion."
+  libraries:
+    main: |
+      import core;
+      widget Self = Box(child: Self());
+      widget Ping = Box(child: Pong());
+      widget Pong = Row(children: [Ping()]);
+      widget Wrap = Box(child: args.child);
+      widget root = Column(children: [Self(), Ping(), Wrap(child: Wrap(child: Text()))]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: error, kind: unknownFunction},
+                {
+                  $: widget,
+                  name: "core::Box",
+                  args:
+                    {
+                      child:
+                        {
+                          $: widget,
+                          name: "core::Row",
+                          args: {children: [{$: error, kind: recursiveWidget}]},
+                        },
+                    },
+                },
+                {
+                  $: widget,
+                  name: "core::Box",
+                  args:
+                    {
+                      child:
+                        {
+                          $: widget,
+                          name: "core::Box",
+                          args: {child: {$: widget, name: "core::Text", args: {}}},
+                        },
+                    },
+                },
+              ],
+          },
+      }
+    errors:
+      - {at: [children, 0], kind: unknownFunction}
+      - {at: [children, 1, child, children, 0], kind: recursiveWidget}
+- name: recursion_in_a_builder_output
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "A builder output continues the chain of the scope where the builder is written: a template naming itself in a builder is unknownFunction (a declaration never resolves to itself), and recursion through another template is recursiveWidget, both when the output is expanded."
+  libraries:
+    main: |
+      import core;
+      widget Tree = List(item: (i) => Tree());
+      widget A = List(item: (i) => B());
+      widget B = Box(child: A());
+      widget root = Column(children: [Tree(), A()]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::List", args: {item: {$: builder}}},
+                {$: widget, name: "core::List", args: {item: {$: builder}}},
+              ],
+          },
+      }
+  steps:
+    - build: [children, 0, item]
+      key: 0
+      arg: "{ }"
+      expect:
+        tree: {$: error, kind: unknownFunction}
+        errors: [{at: [children, 0, item, 0], kind: unknownFunction}]
+    - build: [children, 1, item]
+      key: 0
+      arg: "{ }"
+      expect:
+        tree: {$: widget, name: "core::Box", args: {child: {$: error, kind: recursiveWidget}}}
+        errors: [{at: [children, 1, item, 0, child], kind: recursiveWidget}]
