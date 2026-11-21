@@ -33,7 +33,7 @@ enum ExpansionErrorKind {
   functionFailed,
 
   /// A node that no feature implemented by this engine evaluates, such as a
-  /// theme or media reference.
+  /// theme reference.
   notEvaluated,
 
   /// The root, a template's root or a builder's output is not a widget.

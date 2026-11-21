@@ -11,7 +11,7 @@ date_added: 2026-11-20
 
 # **Functions Feature Blueprint**
 
-This document specifies functions: pure computations that a template calls in a value position with the call syntax of widgets (`add(a: 1, b: 2)`). The host registers them; the engine offers a fixed set of standard functions under bare names, and hosts add their own under qualified names. The `craft_template_registry` feature adds its eight introspection functions to these 28 standard functions. It also specifies the evaluator for the values that do not need a runtime: literals, lists, maps, the absent value, references to the args, data and state values the caller supplies, and function calls.
+This document specifies functions: pure computations that a template calls in a value position with the call syntax of widgets (`add(a: 1, b: 2)`). The host registers them; the engine offers a fixed set of standard functions under bare names, and hosts add their own under qualified names. The `craft_template_registry` feature adds its eight introspection functions to these 28 standard functions, and `craft_media_context` adds `atLeast`. It also specifies the evaluator for the values that do not need a runtime: literals, lists, maps, the absent value, references to the args, data and state values the caller supplies, and function calls.
 
 Templates are untrusted. Within the nesting limits of the engine, which the `craft_limits` feature defines (see the module blueprint), no template can make evaluation crash or behave differently on different engines: every value this feature defines evaluates to either a value or an evaluation error.
 
@@ -151,7 +151,7 @@ widget Price { count: 1 } = Text(
 - With `data.unitPrice` missing, `multiply` is absent, so `fmt::price` runs with `amount` absent and decides what to return; `isSet` is false and so is `and`. Nothing throws.
 - A typo such as `orElse(value: args.label, default: "x")` fails with `invalidArgument` instead of silently dropping the default.
 
-The prototype checked argument kinds only for literal arguments, and only in debug builds; this feature checks every argument's kind at every call, so that a function never sees a value of the wrong kind, and makes argument names part of the contract. Functions on media values (`atLeast`), introspection functions (`hasWidget`, `hasFunction`, `meta` and others, see `craft_template_registry`) and `uppercase`/`lowercase` are not part of this feature.
+The prototype checked argument kinds only for literal arguments, and only in debug builds; this feature checks every argument's kind at every call, so that a function never sees a value of the wrong kind, and makes argument names part of the contract. Functions on media values (`atLeast`, see `craft_media_context`), introspection functions (`hasWidget`, `hasFunction`, `meta` and others, see `craft_template_registry`) and `uppercase`/`lowercase` are not part of this feature.
 
 ---
 

@@ -75,7 +75,7 @@ The canonical JSON form of an expansion has these nodes:
 - `args.a.p...` MUST read the argument `a` (requirement 4), then the parts after it; `data.p...` the data; `state.p...` the state of requirement 10; a loop reference the item of its loop; a builder argument reference the argument its builder was expanded with. Parts read as in `craft_functions` (requirement 1): absent for a missing key, an index outside the list, or a part of the wrong kind, also when the value read is a widget, a builder or a handler.
 - Literals, lists, maps, `absent`, symbol references and function calls MUST evaluate as `craft_functions` and `craft_template_registry` specify.
 - A function argument MUST be a value: an argument that holds a widget, a builder or a handler MUST fail with `invalidValue`.
-- This feature does not define theme and media references; `craft_media_context` defines the media references. An engine that does not evaluate them MUST fail with `notEvaluated`.
+- This feature does not define theme and media references: `craft_media_context` defines the media references (with the runtime's media context, its requirement 5), and no feature defines theme references yet. An engine that does not evaluate a reference of either kind MUST fail with `notEvaluated`.
 
 ### **6. Lists and loops**
 
@@ -150,7 +150,7 @@ Because an instance is identified by its path and template:
 ### **13. Updates**
 
 - A host MUST be able to replace the root's arguments and the data. The next expansion MUST use the new values and the current registrations of the registry.
-- A runtime MUST notify the host when an expansion may have changed: after a change of the arguments or the data, after a firing that set state, and when the host says that the registrations changed.
+- A runtime MUST notify the host when an expansion may have changed: after a change of the arguments or the data, after a firing that set state, and when the host says that the registrations changed (`craft_media_context` adds a change of the media context).
 
 ---
 
@@ -209,7 +209,7 @@ The shared cases are in `conformance/craft/craft_runtime.yaml`. Each case is tag
 - **Errors**: errors of each `craft_functions` kind at the innermost primitive, with the parent and siblings intact; an unknown widget failing its parent; the first error in argument order; errors in a template's root and in an argument read; recursion through templates, a self-call and a template passed to itself; a self-call and recursion through templates in a builder's output.
 - **Updates**: data and argument updates; a registry change.
 
-The engine's unit tests additionally cover what the YAML cannot express: theme and media references; loops outside lists, loop and builder argument references without their loop or builder, and a setter without parts (built with the library model); host input that is not a value, host handlers and host widgets in data, builder keys; the same library object registered again, and the registry's generation of a library name; notifications; and expansions that keep what they read after a firing.
+The engine's unit tests additionally cover what the YAML cannot express: theme references; loops outside lists, loop and builder argument references without their loop or builder, and a setter without parts (built with the library model); host input that is not a value, host handlers and host widgets in data, builder keys; the same library object registered again, and the registry's generation of a library name; notifications; and expansions that keep what they read after a firing.
 
 ---
 

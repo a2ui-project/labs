@@ -17,6 +17,7 @@ import 'evaluator.dart';
 import 'functions.dart';
 import 'name_resolution.dart';
 import 'rfw/model.dart';
+import 'media_context.dart';
 import 'standard_functions.dart';
 
 /// The runtime version that `runtimeVersion()` gives (see the
@@ -172,13 +173,14 @@ class TemplateRegistry {
   // --- Functions and evaluation ---------------------------------------------
 
   /// The functions a template in [library] can call: the standard functions,
-  /// the introspection functions answering for [library], and the host
-  /// functions.
+  /// the introspection functions answering for [library], the media
+  /// functions, and the host functions.
   FunctionRegistry functionsFor(LibraryName library) =>
       _functionTables[library] ??= FunctionRegistry(
         standard: <String, LocalFunction>{
           ...standardFunctions,
           ..._introspection(library),
+          ...mediaFunctions,
         },
         host: _hostFunctions,
       );
@@ -186,6 +188,7 @@ class TemplateRegistry {
   bool _isRegistered(String key) =>
       standardFunctions.containsKey(key) ||
       introspectionFunctionNames.contains(key) ||
+      mediaFunctions.containsKey(key) ||
       _hostFunctions.containsKey(key);
 
   LocalFunction? _function(LibraryName from, String name) {
@@ -213,6 +216,7 @@ class TemplateRegistry {
     Object? args,
     Object? data,
     Object? state,
+    MediaContext? media,
   }) =>
       Evaluator(resolver, functionsFor(library), symbols: readSymbol).evaluate(
         value,
@@ -221,6 +225,7 @@ class TemplateRegistry {
         args: args,
         data: data,
         state: state,
+        media: media,
       );
 
   // --- Host metadata ---------------------------------------------------------

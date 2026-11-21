@@ -31,7 +31,7 @@ The engine is the part that every host embeds. It is written for someone impleme
 | Template registry   | registered libraries and host functions | introspection answers, and the components offered to the agent, gated on their dependencies                | `craft_template_registry`   |
 | Runtime             | a template, its arguments and data      | a framework-independent tree of primitive calls, local state, events                                       | `craft_runtime`             |
 | A2UI integration    | A2UI messages                           | templates rendered as catalog components of an A2UI renderer, with JSON schemas derived from the templates | `craft_a2ui_integration`    |
-| Media context       | the host's surface                      | values that templates can branch on (size class, surface kind)                                             | `craft_media_context`       |
+| Media context       | the host's surface                      | values that templates can branch on (size classes, orientation, platform, motion preference)               | `craft_media_context`       |
 | Limits              | a template and its expansion            | rejection at load time, or a bounded placeholder                                                           | `craft_limits`              |
 
 A host can use the text format during development and ship the binary format.

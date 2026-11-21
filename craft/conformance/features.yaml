@@ -474,3 +474,33 @@
   claimedBy:
     - dart-craft-flutter
   uncovered: Rendering needs a UI framework; covered by the widget tests of packages/a2ui_craft_renderer_flutter/test/template_catalog_test.dart.
+- id: F-CRAFT-MEDIA-01
+  title: "Media Context: media properties"
+  specAnchor: blueprints/features/craft_media_context.blueprint.md#1-media-properties
+  blueprintAnchor: blueprints/features/craft_media_context.blueprint.md#1-media-properties
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-MEDIA-02
+  title: "Media Context: size classes"
+  specAnchor: blueprints/features/craft_media_context.blueprint.md#2-size-classes
+  blueprintAnchor: blueprints/features/craft_media_context.blueprint.md#2-size-classes
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-MEDIA-03
+  title: "Media Context: media references"
+  specAnchor: blueprints/features/craft_media_context.blueprint.md#3-media-references
+  blueprintAnchor: blueprints/features/craft_media_context.blueprint.md#3-media-references
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-MEDIA-04
+  title: "Media Context: comparing size classes"
+  specAnchor: blueprints/features/craft_media_context.blueprint.md#4-comparing-size-classes
+  blueprintAnchor: blueprints/features/craft_media_context.blueprint.md#4-comparing-size-classes
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-MEDIA-05
+  title: "Media Context: media changes"
+  specAnchor: blueprints/features/craft_media_context.blueprint.md#5-media-changes
+  blueprintAnchor: blueprints/features/craft_media_context.blueprint.md#5-media-changes
+  claimedBy:
+    - dart-craft
