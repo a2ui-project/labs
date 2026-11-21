@@ -29,12 +29,12 @@ A **runtime** expands one root, given:
 
 - a template registry (`template_registry`), with its libraries and functions;
 - the **root**: a library `L` and a widget name `N`;
-- the root's **arguments**: a map of values (`functions`, requirement 1), which may also hold host handlers (requirement 8);
+- the root's **arguments**: a map of values (`functions`, requirement 1), which may also hold host handlers (requirement 8) and host widgets (requirement 3);
 - the **data**: a value; absent when the host gives none.
 
 Requirements:
 
-- In arguments and data, null (no value) MUST be the absent value, also inside lists and maps. Arguments or data that are not values (host handlers apart, which only arguments may hold) MUST be rejected as a host error.
+- In arguments and data, null (no value) MUST be the absent value, also inside lists and maps. Arguments or data that are not values (host handlers and host widgets apart, which only arguments may hold) MUST be rejected as a host error.
 - The root MUST be classified as `functions` (requirement 3) classifies a call named `N` written in `L` outside any declaration. When it is a widget call, the expansion MUST be the expansion of that widget at the root position, with the host's arguments as its arguments (requirements 3 and 4). Otherwise the root MUST be an error node `notAWidget`.
 - An expansion MUST give the root node, the stateful instances it expanded (requirement 10), and its errors (requirement 12).
 
@@ -51,6 +51,7 @@ The canonical JSON form of an expansion has these nodes:
 | State setter        | `{"$": "setState", "state": {"at": P, "widget": "lib::Name"}, "parts": [...], "value": V}` |
 | Handler application | `{"$": "call", "handler": H, "args": {...}}`                                               |
 | Host handler        | `{"$": "hostHandler", "id": I}`                                                            |
+| Host widget         | `{"$": "hostWidget", "id": I}`                                                             |
 
 - Every other value MUST be in the canonical form of `text_format` (an integer `{"$": "int", "value": 1}`, the absent value `{"$": "missing"}`), lists and maps holding any of these nodes.
 - The **path** of a node or value is the list of argument names, map keys and list indexes that leads to it from the root node: the root has the path `[]`, the argument `a` of a primitive at path `P` has the path `P` followed by `"a"`, and so on. In the canonical form, parts and paths are written as plain strings and integers.
@@ -61,11 +62,12 @@ The canonical JSON form of an expansion has these nodes:
 
 - A call that `functions` classifies as a widget call of a primitive `lib::Name` MUST expand to a widget node with that name. Its arguments MUST be the call's arguments evaluated in the scope of the call, in the order the call writes them, and then placed at their paths: every widget call in them, at any depth of lists and maps, is expanded at its own path, and every widget builder becomes a builder node at its path.
 - The runtime MUST NOT check a primitive's arguments: what a primitive accepts is up to its host.
+- A **host widget** is a widget that the host passes in the root's arguments, with an identifier; what it shows is up to the host. Wherever a widget call would be expanded at a path (in a primitive's arguments, as a template's root, as a builder's output), a host widget MUST give a host widget node with its identifier at that path, once per placement. Everywhere else this document says "widget", a host widget counts as one: it is no value (so it fails with `invalidValue` where a value is required), and reading a part of it gives absent.
 
 ### **4. Template calls**
 
 - A widget call of a template declaration `D` MUST expand to the expansion of `D`'s root at the same path; the template leaves no node of its own.
-- `D`'s root MUST be evaluated in `D`'s library, with `D` as the declaration being bound (so a call named `D` inside `D` does not resolve to `D`, `libraries_and_names` requirement 3), with the call's arguments as args, and with the state of requirement 10. When the root does not give a widget call (a switch with no matching case, `absent()`, a handler application), the template's position MUST be an error node `notAWidget`.
+- `D`'s root MUST be evaluated in `D`'s library, with `D` as the declaration being bound (so a call named `D` inside `D` does not resolve to `D`, `libraries_and_names` requirement 3), with the call's arguments as args, and with the state of requirement 10. When the root gives neither a widget call nor a host widget (a switch with no matching case, `absent()`, a handler application), the template's position MUST be an error node `notAWidget`.
 - An argument of the call MUST be evaluated in the scope of the call (its library, its declaration being bound, its args, loop variables, builder arguments and state) and only when the template reads it: an argument the template never reads is never evaluated. A widget call in an argument is expanded at each path where the template places it, once per placement. An argument the call does not pass is absent.
 
 ### **5. References and values**
@@ -128,7 +130,7 @@ Because an instance is identified by its path and template:
 ### **11. Widget builders**
 
 - A widget builder `(x) => W` MUST evaluate to a builder node, which captures the scope where it is written.
-- The host MUST be able to expand the output of a builder node at path `P` for a key `K` (a string or an integer that the host chooses, such as an item's index) and an argument value: `W` is evaluated in the captured scope with `x` set to the argument, and expanded at the path `P` followed by `K`. That expansion gives its root node, the stateful instances and the errors in it, like the expansion of the root; when `W` gives no widget, its root MUST be an error node `notAWidget`.
+- The host MUST be able to expand the output of a builder node at path `P` for a key `K` (a string or an integer that the host chooses, such as an item's index) and an argument value: `W` is evaluated in the captured scope with `x` set to the argument, and expanded at the path `P` followed by `K`. That expansion gives its root node, the stateful instances and the errors in it, like the expansion of the root; when `W` gives neither a widget call nor a host widget, its root MUST be an error node `notAWidget`.
 
 ### **12. Errors**
 
@@ -170,6 +172,7 @@ Expanded as `Panel` with data `{title: "Help", body: "..."}` and the host handle
 Compared with RFW 2.0.0's runtime:
 
 - The runtime produces a framework-independent tree; the adapter builds widgets from it. RFW resolves arguments lazily as each widget builds, with subscriptions to the data; this runtime expands the whole tree again after each change.
+- RFW lets a host pass widgets in arguments as local widget builders; here a host widget is an identifier that the expansion carries to the adapter.
 - Handler values are resolved when expanded, as in RFW. Handler lists keep host handlers, and a setter with an absent value is skipped and reported rather than stored.
 - Switch keys compare with the equality of `functions` rather than Dart's equality, and state is identified by path and template rather than by the host framework's element tree. Keys that keep the state of reordered items are not part of this feature.
 - Template state is kept across data updates and reset when the template's library is registered again.
@@ -194,7 +197,7 @@ The shared cases are in `craft/conformance/runtime.yaml`. Each case registers te
 
 - **Expansion**: a template root with arguments and data; a primitive root, qualified; the root resolved as a call (an own declaration shadowing core's); a function name, an unknown name and a private declaration of another library as the root.
 - **Expansion tree**: values of every kind in arguments, absent kept; paths through argument names, map keys and list indexes, seen in errors and states.
-- **Primitive calls**: widget calls at any depth of lists and maps; a primitive of another library.
+- **Primitive calls**: widget calls at any depth of lists and maps; a primitive of another library; host widgets placed in arguments, in lists, twice, through a template, as a template's root and as a builder's output; host widgets where values are required and read with parts.
 - **Template calls**: no node of its own; a missing argument; an unread argument is not evaluated, with a control; arguments in the scope of the call (loop variable, state); a widget argument placed twice; parts of an argument, of a widget and of a handler; a root call that is `absent()` or a handler application; templates of an imported library.
 - **References and values**: data parts; absent data; symbol references; function calls; widgets, handlers and builders as function arguments, with a control.
 - **Lists and loops**: elements around a loop and a list output; nested loops; inputs that are not lists; a null item; `...if` on true, false, absent and a number; `...if` inside a loop.
@@ -206,7 +209,7 @@ The shared cases are in `craft/conformance/runtime.yaml`. Each case registers te
 - **Errors**: errors of each `functions` kind at the innermost primitive, with the parent and siblings intact; an unknown widget failing its parent; the first error in argument order; errors in a template's root and in an argument read; recursion through templates, a self-call and a template passed to itself; a self-call and recursion through templates in a builder's output.
 - **Updates**: data and argument updates; a registry change.
 
-The engine's unit tests additionally cover what the YAML cannot express: theme and media references; loops outside lists, loop and builder argument references without their loop or builder, and a setter without parts (built with the library model); host input that is not a value, host handlers in data, builder keys; the same library object registered again, and the registry's generation of a library name; notifications; and expansions that keep what they read after a firing.
+The engine's unit tests additionally cover what the YAML cannot express: theme and media references; loops outside lists, loop and builder argument references without their loop or builder, and a setter without parts (built with the library model); host input that is not a value, host handlers and host widgets in data, builder keys; the same library object registered again, and the registry's generation of a library name; notifications; and expansions that keep what they read after a firing.
 
 ---
 

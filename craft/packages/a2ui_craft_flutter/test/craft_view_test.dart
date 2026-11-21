@@ -96,18 +96,22 @@ class _Harness {
   final List<HostEvent> events = <HostEvent>[];
   final List<Object> errors = <Object>[];
 
-  Widget view({Map<LibraryName, PrimitiveWidgetLibrary>? libraries}) =>
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: CraftView(
-          runtime: runtime,
-          libraries:
-              libraries ??
-              <LibraryName, PrimitiveWidgetLibrary>{coreLibrary: _testWidgets},
-          onEvent: events.add,
-          onError: errors.add,
-        ),
-      );
+  Widget view({
+    Map<LibraryName, PrimitiveWidgetLibrary>? libraries,
+    Widget Function(BuildContext context, HostWidgetNode node)?
+    hostWidgetBuilder,
+  }) => Directionality(
+    textDirection: TextDirection.ltr,
+    child: CraftView(
+      runtime: runtime,
+      libraries:
+          libraries ??
+          <LibraryName, PrimitiveWidgetLibrary>{coreLibrary: _testWidgets},
+      onEvent: events.add,
+      onError: errors.add,
+      hostWidgetBuilder: hostWidgetBuilder,
+    ),
+  );
 }
 
 void main() {
@@ -127,6 +131,35 @@ void main() {
       findsOneWidget,
       reason: 'an absent element is no child',
     );
+    expect(h.errors, isEmpty);
+  });
+
+  testWidgets('host widget nodes render through the host', (
+    WidgetTester tester,
+  ) async {
+    final _Harness h = _Harness(
+      '''
+      import core;
+      widget root = Column(children: [args.first, Button(child: args.second), ...for w in args.rest: w]);
+    ''',
+      args: <String, Object?>{
+        'first': const HostWidget('a'),
+        'second': const HostWidget('b'),
+        'rest': <Object?>[const HostWidget('c')],
+      },
+    );
+    await tester.pumpWidget(
+      h.view(
+        hostWidgetBuilder: (BuildContext context, HostWidgetNode node) =>
+            Text('host ${node.id} at ${node.path.join('.')}'),
+      ),
+    );
+    expect(find.text('host a at children.0'), findsOneWidget);
+    expect(find.text('host b at children.1.child'), findsOneWidget);
+    expect(find.text('host c at children.2'), findsOneWidget);
+
+    await tester.pumpWidget(h.view());
+    expect(find.byType(Text), findsNothing);
     expect(h.errors, isEmpty);
   });
 

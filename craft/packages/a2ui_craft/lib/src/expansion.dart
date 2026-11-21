@@ -20,7 +20,7 @@ import 'rfw/model.dart';
 typedef ExpansionPath = List<Object>;
 
 /// Why a node of an expansion is an [ErrorNode] (see the `runtime`
-/// blueprint, requirement 11).
+/// blueprint, requirement 12).
 enum ExpansionErrorKind {
   /// A call names neither a widget nor a function (`functions`).
   unknownFunction,
@@ -75,6 +75,19 @@ final class ErrorNode {
 
   /// A description for authors.
   final String message;
+
+  /// Where the node is.
+  final ExpansionPath path;
+}
+
+/// A [HostWidget] placed in an expansion; the adapter renders the host's
+/// widget [id] there.
+final class HostWidgetNode {
+  /// Creates the node of the host widget [id] at [path].
+  HostWidgetNode(this.id, this.path);
+
+  /// The host's identifier.
+  final String id;
 
   /// Where the node is.
   final ExpansionPath path;
@@ -185,6 +198,26 @@ final class HostHandler extends HandlerValue {
   int get hashCode => id.hashCode;
 }
 
+/// A widget that the host passes in a template's arguments, identified by
+/// [id]; wherever the template places it, the expansion has a
+/// [HostWidgetNode] for the adapter to render.
+final class HostWidget {
+  /// Creates a host widget.
+  const HostWidget(this.id);
+
+  /// The host's identifier.
+  final String id;
+
+  @override
+  bool operator ==(Object other) => other is HostWidget && other.id == id;
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  String toString() => 'HostWidget($id)';
+}
+
 /// A stateful instance as an expansion saw it.
 final class ExpandedState {
   /// Records [instance] with its current state.
@@ -221,7 +254,7 @@ final class Expansion {
   /// Creates an expansion.
   const Expansion(this.root, this.states, this.errors);
 
-  /// The root node: a [WidgetNode] or an [ErrorNode].
+  /// The root node: a [WidgetNode], a [HostWidgetNode] or an [ErrorNode].
   final Object root;
 
   /// The stateful instances expanded, in document order.
@@ -260,6 +293,8 @@ Object? canonicalExpansionValue(Object value) => switch (value) {
     'name': widgetNameString(value.name),
     'args': canonicalExpansionValue(value.arguments),
   },
+  HostWidgetNode() => <String, Object?>{r'$': 'hostWidget', 'id': value.id},
+  HostWidget() => <String, Object?>{r'$': 'hostWidget', 'id': value.id},
   ErrorNode() => <String, Object?>{r'$': 'error', 'kind': value.kind.name},
   BuilderNode() => <String, Object?>{r'$': 'builder'},
   EventValue() => <String, Object?>{
