@@ -26,6 +26,8 @@
 #   args: the root's arguments, a text format data file (default none).
 #   host_handlers: argument name -> host handler id; each is added to args
 #     as a host handler with that id.
+#   host_widgets: argument name -> host widget id, or a list of ids; each is
+#     added to args as a host widget (or a list of host widgets) with that id.
 #   data: the data, a text format data file (default none, so absent).
 #   data_json: instead of data, the data as a JSON value, for host data that
 #     the text format cannot write (null).
@@ -47,7 +49,8 @@
 #                   or {hostHandler: id, args}, and fire_errors: the kinds of
 #                   the firing errors in order (both default to none).
 #   data: file      replaces the data.
-#   args: file      replaces the root's arguments (with `host_handlers`).
+#   args: file      replaces the root's arguments (with `host_handlers` and
+#                   `host_widgets`).
 #   register: {library name: source}   registers template libraries again,
 #                   replacing those of the same name.
 #   build: path     expands the output of the builder at path for the key
@@ -250,6 +253,117 @@
         name: "core::Column",
         args: {children: [{$: widget, name: "maps::Map", args: {zoom: {$: int, value: 3}}}]},
       }
+- name: host_widgets_are_placed_where_the_template_puts_them
+  requirement: primitive_calls
+  description: "A host widget passed in the arguments gives a host widget node at each path where it is placed: in an argument, in a list, in a map, inside a template's expansion, once per placement; firing it does nothing."
+  libraries:
+    main: |
+      import core;
+      widget Frame = Box(child: args.body);
+      widget root = Column(children: [args.content, ...for i in args.items: i, Frame(body: args.content)], all: args.items, footer: { slot: args.content });
+  host_widgets: {content: c, items: [a, b]}
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: hostWidget, id: c},
+                {$: hostWidget, id: a},
+                {$: hostWidget, id: b},
+                {$: widget, name: "core::Box", args: {child: {$: hostWidget, id: c}}},
+              ],
+            all: [{$: hostWidget, id: a}, {$: hostWidget, id: b}],
+            footer: {slot: {$: hostWidget, id: c}},
+          },
+      }
+  steps:
+    - runnable: [children, 0]
+      expect: {runnable: false}
+    - fire: [children, 0]
+      expect:
+        tree:
+          {
+            $: widget,
+            name: "core::Column",
+            args:
+              {
+                children:
+                  [
+                    {$: hostWidget, id: c},
+                    {$: hostWidget, id: a},
+                    {$: hostWidget, id: b},
+                    {$: widget, name: "core::Box", args: {child: {$: hostWidget, id: c}}},
+                  ],
+                all: [{$: hostWidget, id: a}, {$: hostWidget, id: b}],
+                footer: {slot: {$: hostWidget, id: c}},
+              },
+          }
+- name: a_host_widget_as_a_template_root_or_builder_output
+  requirement: primitive_calls
+  description: "A template's root or a builder's output that gives a host widget gives its node at the template's or the output's position."
+  libraries:
+    main: |
+      import core;
+      widget Slot = switch args.on { true: args.w, default: Text(text: "off") };
+      widget root = Column(children: [Slot(on: true, w: args.content), Slot(on: false, w: args.content)], builder: (x) => switch x.on { true: args.content, default: Text() });
+  host_widgets: {content: c}
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [{$: hostWidget, id: c}, {$: widget, name: "core::Text", args: {text: "off"}}],
+            builder: {$: builder},
+          },
+      }
+  steps:
+    - build: [builder]
+      key: 0
+      arg: "{ on: true }"
+      expect:
+        tree: {$: hostWidget, id: c}
+- name: host_widgets_are_not_values
+  requirement: primitive_calls
+  description: "A host widget is no value: as a function argument, a switch input or an event argument it fails with invalidValue at the innermost primitive, and a part of it reads absent; the control passes an absent argument."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [
+        Text(text: isSet(value: args.content)),
+        Text(text: switch args.content { default: "x" }),
+        Button(onPressed: event "e" { w: args.content }),
+        Text(text: args.content.x, index: args.content.0),
+        Text(text: isSet(value: args.other)),
+      ]);
+  host_widgets: {content: c}
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: error, kind: invalidValue},
+                {$: error, kind: invalidValue},
+                {$: error, kind: invalidValue},
+                {$: widget, name: "core::Text", args: {text: {$: missing}, index: {$: missing}}},
+                {$: widget, name: "core::Text", args: {text: false}},
+              ],
+          },
+      }
+    errors:
+      - {at: [children, 0], kind: invalidValue}
+      - {at: [children, 1], kind: invalidValue}
+      - {at: [children, 2], kind: invalidValue}
 
 # template calls
 

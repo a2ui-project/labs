@@ -135,7 +135,8 @@ class CraftRuntime {
   final Map<String, StateInstance> _instances = <String, StateInstance>{};
   final List<void Function()> _listeners = <void Function()>[];
 
-  /// The root's arguments: values, possibly holding [HostHandler]s.
+  /// The root's arguments: values, possibly holding [HostHandler]s and
+  /// [HostWidget]s.
   Map<String, Object> get args => _args;
   set args(Map<String, Object?> value) {
     _args = _hostArguments(value);
@@ -219,16 +220,17 @@ class CraftRuntime {
         closure.node.widget,
         closure.env.withBuilderArgument(
           closure.node.argumentName,
-          _hostValue(argument, handlers: false),
+          _hostValue(argument, host: false),
         ),
       );
-      if (output is! _Thunk) {
-        throw _Failure(
+      return switch (output) {
+        _Thunk() => pass.expandWidget(output, path),
+        HostWidget() => pass.place(output, path),
+        _ => throw _Failure(
           ExpansionErrorKind.notAWidget,
           'The builder did not give a widget.',
-        );
-      }
-      return pass.expandWidget(output, path);
+        ),
+      };
     });
     return Expansion(root, pass.states, pass.errors);
   }
@@ -278,7 +280,7 @@ class CraftRuntime {
 
     run(
       handler,
-      _hostValue(eventArguments, handlers: false) as Map<String, Object>,
+      _hostValue(eventArguments, host: false) as Map<String, Object>,
     );
     if (changed) _notify();
     return FireResult(events, errors, stateChanged: changed);
@@ -366,22 +368,23 @@ class CraftRuntime {
   }
 
   static Map<String, Object> _hostArguments(Map<String, Object?> args) =>
-      _hostValue(args, handlers: true) as Map<String, Object>;
+      _hostValue(args, host: true) as Map<String, Object>;
 
-  static Object _hostData(Object? data) => _hostValue(data, handlers: false);
+  static Object _hostData(Object? data) => _hostValue(data, host: false);
 
   /// Converts host input into a value, as `toValue` does, also keeping
-  /// [HostHandler]s when [handlers] is true.
-  static Object _hostValue(Object? value, {required bool handlers}) {
+  /// [HostHandler]s and [HostWidget]s when [host] is true.
+  static Object _hostValue(Object? value, {required bool host}) {
     try {
       return switch (value) {
-        HostHandler() when handlers => value,
+        HostHandler() when host => value,
+        HostWidget() when host => value,
         List<Object?>() => <Object>[
-          for (final Object? e in value) _hostValue(e, handlers: handlers),
+          for (final Object? e in value) _hostValue(e, host: host),
         ],
         Map<Object?, Object?>() when isStringKeyed(value) => <String, Object>{
           for (final MapEntry<Object?, Object?> e in value.entries)
-            e.key! as String: _hostValue(e.value, handlers: handlers),
+            e.key! as String: _hostValue(e.value, host: host),
         },
         _ => toValue(value),
       };
@@ -583,14 +586,15 @@ class _Pass {
             chain: <WidgetDeclaration>[...thunk.site.chain, declaration],
           ),
         );
-        if (root is! _Thunk) {
-          throw _Failure(
+        return switch (root) {
+          _Thunk() => expandWidget(root, path),
+          HostWidget() => place(root, path),
+          _ => throw _Failure(
             ExpansionErrorKind.notAWidget,
             'The root of ${widgetNameString(thunk.resolved.fullName)} did not '
             'give a widget.',
-          );
-        }
-        return expandWidget(root, path);
+          ),
+        };
     }
   });
 
@@ -600,6 +604,8 @@ class _Pass {
     switch (value) {
       case _Thunk():
         return expandWidget(value, path);
+      case HostWidget():
+        return HostWidgetNode(value.id, List<Object>.unmodifiable(path));
       case _Builder():
         builders.add(List<Object>.unmodifiable(path));
         return BuilderNode(List<Object>.unmodifiable(path), value);
@@ -620,7 +626,12 @@ class _Pass {
 
   Object eval(Object? node, _Env env) => switch (node) {
     null || Missing() => missing,
-    bool() || int() || double() || String() || HostHandler() => node,
+    bool() ||
+    int() ||
+    double() ||
+    String() ||
+    HostHandler() ||
+    HostWidget() => node,
     List<Object?>() => _list(node, env),
     Map<String, Object?>() => <String, Object>{
       for (final MapEntry<String, Object?> e in node.entries)
@@ -727,7 +738,7 @@ class _Pass {
         }
       case HandlerValue() when handlers:
         break;
-      case _Thunk() || _Builder() || HandlerValue():
+      case _Thunk() || HostWidget() || _Builder() || HandlerValue():
         throw _Failure(
           ExpansionErrorKind.invalidValue,
           'A ${handlers ? 'widget or builder' : 'widget, builder or handler'} '

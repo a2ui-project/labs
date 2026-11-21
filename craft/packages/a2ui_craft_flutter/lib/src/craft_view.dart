@@ -52,6 +52,7 @@ class CraftView extends StatefulWidget {
     this.onEvent,
     this.onError,
     this.errorBuilder,
+    this.hostWidgetBuilder,
   });
 
   /// The runtime whose expansion is rendered.
@@ -69,6 +70,11 @@ class CraftView extends StatefulWidget {
   /// Builds the placeholder of an error node; by default a small
   /// [ErrorWidget].
   final Widget Function(BuildContext context, ErrorNode node)? errorBuilder;
+
+  /// Builds the widget a host widget node stands for (see `HostWidget`);
+  /// without it, a host widget node renders nothing.
+  final Widget Function(BuildContext context, HostWidgetNode node)?
+  hostWidgetBuilder;
 
   @override
   State<CraftView> createState() => _CraftViewState();
@@ -168,6 +174,11 @@ class _CraftViewState extends State<CraftView> {
 
   Widget _render(Object node) => switch (node) {
     WidgetNode() => _NodeWidget(node: node, view: this),
+    HostWidgetNode() => Builder(
+      builder: (BuildContext context) =>
+          widget.hostWidgetBuilder?.call(context, node) ??
+          const SizedBox.shrink(),
+    ),
     ErrorNode() => Builder(
       builder: (BuildContext context) =>
           widget.errorBuilder?.call(context, node) ??
