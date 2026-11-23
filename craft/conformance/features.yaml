@@ -119,3 +119,69 @@
   blueprintAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#12-visible-names
   claimedBy:
     - dart-craft
+- id: F-CRAFT-BIN-01
+  title: "Binary Format: primitive encodings"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#1-primitive-encodings
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#1-primitive-encodings
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-BIN-02
+  title: "Binary Format: blob layout and versions"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#2-blob-layout-and-versions
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#2-blob-layout-and-versions
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-BIN-03
+  title: "Binary Format: libraries"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#3-libraries
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#3-libraries
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-BIN-04
+  title: "Binary Format: maps"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#4-maps
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#4-maps
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-BIN-05
+  title: "Binary Format: values"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#5-values
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#5-values
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-BIN-06
+  title: "Binary Format: data values and data blobs"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#6-data-values-and-data-blobs
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#6-data-values-and-data-blobs
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-BIN-07
+  title: "Binary Format: tag ranges and extensions"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#7-tag-ranges-and-extensions
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#7-tag-ranges-and-extensions
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-BIN-08
+  title: "Binary Format: rFW blobs"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#8-rfw-blobs
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#8-rfw-blobs
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-BIN-09
+  title: "Binary Format: encoders"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#9-encoders
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#9-encoders
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-BIN-10
+  title: "Binary Format: errors"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#10-errors
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#10-errors
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-BIN-11
+  title: "Binary Format: round trip"
+  specAnchor: blueprints/features/craft_binary_format.blueprint.md#11-round-trip
+  blueprintAnchor: blueprints/features/craft_binary_format.blueprint.md#11-round-trip
+  claimedBy:
+    - dart-craft

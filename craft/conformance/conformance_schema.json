@@ -14,7 +14,15 @@
       "required": ["action"],
       "properties": {
         "action": {
-          "enum": ["parse_library", "parse_data", "resolve_names"],
+          "enum": [
+            "parse_library",
+            "parse_data",
+            "resolve_names",
+            "decode_library",
+            "encode_library",
+            "decode_data",
+            "encode_data"
+          ],
           "description": "The conformance test action to perform."
         }
       },
@@ -56,6 +64,58 @@
           },
           "then": {
             "$ref": "#/$defs/CraftResolveNamesTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "decode_library"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftDecodeLibraryTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "encode_library"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftEncodeLibraryTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "decode_data"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftDecodeDataTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "encode_data"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftEncodeDataTest"
           }
         }
       ]
@@ -455,6 +515,188 @@
         }
       },
       "required": ["queries"],
+      "unevaluatedProperties": false
+    },
+    "CraftHex": {
+      "type": "string",
+      "description": "Bytes as pairs of hex digits separated by whitespace, with # comments to the end of the line."
+    },
+    "CraftBlobError": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9]*$"
+        },
+        "offset": {
+          "type": ["integer", "null"]
+        },
+        "version": {
+          "type": ["integer", "null"]
+        },
+        "tag": {
+          "type": ["integer", "null"]
+        }
+      },
+      "required": ["kind"],
+      "additionalProperties": false,
+      "description": "A decoding error; an omitted field is null."
+    },
+    "CraftDecodeLibraryTest": {
+      "type": "object",
+      "description": "Decodes hex as a library blob.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "decode_library"
+        },
+        "hex": {
+          "$ref": "#/$defs/CraftHex"
+        },
+        "expect": {
+          "type": "object",
+          "properties": {
+            "library": {},
+            "source": {
+              "$ref": "#/$defs/CraftSource"
+            },
+            "error": {
+              "$ref": "#/$defs/CraftBlobError"
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1,
+          "maxProperties": 1
+        }
+      },
+      "required": ["hex", "expect"],
+      "unevaluatedProperties": false
+    },
+    "CraftEncodeLibraryTest": {
+      "type": "object",
+      "description": "Parses source as a library file and encodes it.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "encode_library"
+        },
+        "source": {
+          "$ref": "#/$defs/CraftSource"
+        },
+        "expect": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "hex": {
+                  "$ref": "#/$defs/CraftHex"
+                },
+                "decoded": {
+                  "type": "object",
+                  "properties": {
+                    "library": {}
+                  },
+                  "required": ["library"],
+                  "additionalProperties": false
+                }
+              },
+              "required": ["hex"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false,
+                  "maxProperties": 0
+                }
+              },
+              "required": ["error"],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": ["source", "expect"],
+      "unevaluatedProperties": false
+    },
+    "CraftDecodeDataTest": {
+      "type": "object",
+      "description": "Decodes hex as a data blob.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "decode_data"
+        },
+        "hex": {
+          "$ref": "#/$defs/CraftHex"
+        },
+        "expect": {
+          "type": "object",
+          "properties": {
+            "data": {},
+            "error": {
+              "$ref": "#/$defs/CraftBlobError"
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1,
+          "maxProperties": 1
+        }
+      },
+      "required": ["hex", "expect"],
+      "unevaluatedProperties": false
+    },
+    "CraftEncodeDataTest": {
+      "type": "object",
+      "description": "Parses source as a data file and encodes it.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "encode_data"
+        },
+        "source": {
+          "$ref": "#/$defs/CraftSource"
+        },
+        "expect": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "hex": {
+                  "$ref": "#/$defs/CraftHex"
+                },
+                "decoded": {
+                  "type": "object",
+                  "properties": {
+                    "data": {}
+                  },
+                  "required": ["data"],
+                  "additionalProperties": false
+                }
+              },
+              "required": ["hex"],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "object",
+                  "properties": {},
+                  "additionalProperties": false,
+                  "maxProperties": 0
+                }
+              },
+              "required": ["error"],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "required": ["source", "expect"],
       "unevaluatedProperties": false
     }
   }
