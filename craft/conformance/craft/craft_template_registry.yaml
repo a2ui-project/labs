@@ -1,0 +1,1204 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Conformance cases for the craft_template_registry feature
+# (blueprints/features/craft_template_registry.blueprint.md).
+#
+# Every case has a `name`, a `description`, the `features` it exercises (IDs
+# from conformance/features.yaml) and an `action`; conformance_schema.json
+# lists the fields of each action.
+#
+# action: update_registry   starts from an empty registry, applies the step
+# `register`, then each step of `changes` in order, to the same registry. A
+# step may hold:
+#   primitives: primitive libraries to register, library name -> map from
+#     each primitive name to its metadata (a map; `{}` for none).
+#   functions: host function libraries to register, library name -> map from
+#     each function name to its parameters (parameter name -> kind: number,
+#     string, boolean, list or any). Every test host function returns no
+#     value; only its name and parameters matter here.
+#   libraries: template libraries to register, library name -> source in the
+#     text format.
+#   dependencies: library name -> the declared dependencies of that template
+#     library in this step (none when not given):
+#       optional: [library names]
+#       requires: [requirement]           of the whole library
+#       components: {Name: [requirement]} of single components
+#     where a requirement is {widget: N}, {widget: N, arg: A}, {function: N}
+#     or {function: N, arg: A}.
+#   remove_libraries, remove_functions: library names to remove.
+#   app_version: the application version string (initially "").
+#   rejected: true when the step's single registration must be rejected,
+#     leaving the registry unchanged.
+#   queries: checked after the step's registrations, each with an `expect`:
+#     evaluate: L         evaluates the `value` argument of the root of the
+#                         declaration `declaration` (default `probe`) of
+#                         template library L, that declaration being the one
+#                         bound; expect {value: canonical JSON form (see
+#                         craft_text_format)}, {error: evaluation error
+#                         kind (see craft_functions)}, or {classify: what
+#                         the call denotes, in the form of
+#                         craft_functions.yaml} for a value that is a call,
+#                         without evaluating it.
+#     availability: L     expect null when nothing is registered as L, else
+#                         {available, unmet, components: {Name: {available,
+#                         unmet}}}, unmet entries being requirements or
+#                         {import: library}.
+#     offered: L          expect the list of offered component names.
+
+# registration
+
+- name: registered_libraries_and_functions_are_used
+  action: update_registry
+  features: [F-CRAFT-REG-01]
+  description: "Primitive libraries, template libraries and host functions take part in resolution and evaluation as soon as they are registered."
+  register:
+    primitives:
+      core: {Text: {}}
+    functions:
+      fmt: {price: {amount: number}}
+    libraries:
+      main: |
+        import core;
+        import fmt;
+        widget probe = Result(value: [hasWidget(name: "Text"), fmt::price(amount: 1), add(a: 1, b: 2), hasFunction(name: "fmt::price")]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, {$: missing}, {$: int, value: 3}, true]
+- name: replacing_a_library
+  action: update_registry
+  features: [F-CRAFT-REG-01]
+  description: "Registering a library under a taken name replaces it, whatever the kinds of the old and new library; results derived from the old one are not kept."
+  register:
+    primitives:
+      core: {Text: {}}
+      cards: {Card: {}}
+    libraries:
+      main: |
+        import core;
+        import cards;
+        widget probe = Result(value: [hasWidget(name: "Text"), hasWidget(name: "cards::Card")]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, true]
+  changes:
+    - primitives:
+        core: {Column: {}}
+      libraries:
+        cards: |
+          widget Card = Box();
+      queries:
+        - evaluate: main
+          expect:
+            value: [false, false]
+    - primitives:
+        cards: {Card: {}}
+      libraries:
+        main: |
+          import core;
+          import cards;
+          widget probe = Result(value: [hasWidget(name: "Column"), hasWidget(name: "cards::Card")]);
+      queries:
+        - evaluate: main
+          expect:
+            value: [true, true]
+- name: removing_libraries_and_functions
+  action: update_registry
+  features: [F-CRAFT-REG-01]
+  description: "A removed library or function library no longer takes part in anything."
+  register:
+    primitives:
+      core: {Text: {}}
+    functions:
+      fmt: {price: {amount: number}}
+    libraries:
+      main: |
+        import core;
+        import fmt;
+        widget probe = Result(value: [hasWidget(name: "Text"), hasFunction(name: "fmt::price")]);
+        widget call_price = Result(value: fmt::price(amount: 1));
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, true]
+  changes:
+    - remove_libraries: [core]
+      remove_functions: [fmt]
+      queries:
+        - evaluate: main
+          expect:
+            value: [false, false]
+        - evaluate: main
+          declaration: call_price
+          expect:
+            error: unknownFunction
+        - availability: core
+          expect: null
+    - remove_libraries: [main]
+      queries:
+        - availability: main
+          expect: null
+- name: setting_host_functions_replaces_their_library
+  action: update_registry
+  features: [F-CRAFT-REG-01]
+  description: "Setting the host functions of a library replaces all its previous functions; other function libraries are kept."
+  register:
+    functions:
+      fmt: {price: {amount: number}}
+      geo: {distance: {}}
+    libraries:
+      main: |
+        import fmt;
+        import geo;
+        widget probe = Result(value: [hasFunction(name: "fmt::price"), hasFunction(name: "fmt::tax"), hasFunction(name: "geo::distance")]);
+  changes:
+    - functions:
+        fmt: {tax: {}}
+      queries:
+        - evaluate: main
+          expect:
+            value: [false, true, true]
+- name: invalid_host_function_names_are_rejected
+  action: update_registry
+  features: [F-CRAFT-REG-01]
+  description: "A function library holding a name that would not make a valid host function key is rejected as a whole and changes nothing, even its valid names; the control step registers only a valid name."
+  register:
+    functions:
+      fmt: {price: {}}
+    libraries:
+      main: |
+        import fmt;
+        widget probe = Result(value: [hasFunction(name: "fmt::price"), hasFunction(name: "fmt::tax")]);
+  changes:
+    - functions:
+        fmt: {tax: {}, "bad name": {}}
+      rejected: true
+      queries:
+        - evaluate: main
+          expect:
+            value: [true, false]
+    - functions:
+        fmt: {tax: {}, args: {}}
+      rejected: true
+      queries:
+        - evaluate: main
+          expect:
+            value: [true, false]
+    - functions:
+        core: {tax: {}}
+      rejected: true
+      queries:
+        - evaluate: main
+          expect:
+            value: [true, false]
+    - functions:
+        "fmt.args": {tax: {}}
+      rejected: true
+      queries:
+        - evaluate: main
+          expect:
+            value: [true, false]
+    - functions:
+        fmt: {tax: {}}
+      queries:
+        - evaluate: main
+          expect:
+            value: [false, true]
+
+# evaluation
+
+- name: introspection_functions_are_standard_functions
+  action: update_registry
+  features: [F-CRAFT-REG-02]
+  description: "The introspection functions are callable bare and as core::, from a library that does not import core, and are listed by hasFunction; a host function of the same bare name is a different function."
+  register:
+    functions:
+      fmt: {hasWidget: {x: any}}
+    libraries:
+      main: |
+        import fmt;
+        widget probe = Result(value: [core::runtimeVersion(), hasFunction(name: "meta"), hasFunction(name: "core::appVersion"), hasFunctionArg(function: "fmt::hasWidget", arg: "x"), hasFunctionArg(function: "hasWidget", arg: "x")]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [{$: int, value: 1}, true, true, true, false]
+- name: a_widget_named_like_an_introspection_function_wins
+  action: update_registry
+  features: [F-CRAFT-REG-02]
+  description: "Call classification is that of craft_functions: a visible widget named meta makes meta(...) a widget call; core::meta in a library that does not import core is still a call of the function (control)."
+  register:
+    primitives:
+      core: {meta: {}}
+    libraries:
+      main: |
+        import core;
+        widget probe = Result(value: meta(w: "meta"));
+      other: |
+        widget probe = Result(value: core::meta(w: "x"));
+    queries:
+      - evaluate: main
+        expect:
+          classify: {widget: "core::meta"}
+      - evaluate: other
+        expect:
+          classify: {function: "meta"}
+      - evaluate: other
+        expect:
+          value: {$: missing}
+- name: introspection_arguments_are_checked
+  action: update_registry
+  features: [F-CRAFT-REG-02]
+  description: "Introspection functions follow the argument rules of craft_functions: an unknown argument name fails, a present argument of the wrong kind makes the call absent, and a missing one is absent."
+  register:
+    libraries:
+      main: |
+        widget probe = Result(value: [hasWidget(name: 1), hasWidget(), meta(path: "x")]);
+        widget unknown = Result(value: hasWidget(widget: "Text"));
+    queries:
+      - evaluate: main
+        expect:
+          value: [{$: missing}, false, {$: missing}]
+      - evaluate: main
+        declaration: unknown
+        expect:
+          error: invalidArgument
+
+# widget_introspection
+
+- name: has_widget_sees_imports_like_resolution
+  action: update_registry
+  features: [F-CRAFT-REG-03]
+  description: "hasWidget is true exactly when the name resolves among the calling library's imports: core names bare and qualified, other imports only qualified, never a library that is not imported, an unregistered import, or the construct names."
+  register:
+    primitives:
+      core: {Text: {}}
+      maps: {Map: {}}
+      pay: {Pay: {}}
+    libraries:
+      main: |
+        import core;
+        import maps;
+        import gone;
+        widget probe = Result(value: [hasWidget(name: "Text"), hasWidget(name: "core::Text"), hasWidget(name: "maps::Map"), hasWidget(name: "Map"), hasWidget(name: "pay::Pay"), hasWidget(name: "gone::Thing"), hasWidget(name: "absent"), hasWidget(name: "Nope")]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, true, true, false, false, false, false, false]
+- name: has_widget_ignores_own_declarations
+  action: update_registry
+  features: [F-CRAFT-REG-03]
+  description: "The calling library's own declarations are not what the host provides: a declaration does not make hasWidget true, bare or self-qualified, and one that shadows core does not hide core's primitive."
+  register:
+    primitives:
+      core: {Text: {}}
+    libraries:
+      main: |
+        import core;
+        widget Text = Text(text: "wrapped");
+        widget Fancy = Text();
+        widget probe = Result(value: [hasWidget(name: "Text"), hasWidget(name: "Fancy"), hasWidget(name: "main::Fancy"), hasWidget(name: "main::Text")]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, false, false, false]
+- name: has_widget_sees_exported_templates
+  action: update_registry
+  features: [F-CRAFT-REG-03]
+  description: "An exported declaration of an imported template library counts (when it is available); a private one does not."
+  register:
+    libraries:
+      cards: |
+        export widget Card = Box();
+        widget Secret = Box();
+      main: |
+        import cards;
+        widget probe = Result(value: [hasWidget(name: "cards::Card"), hasWidget(name: "cards::Secret")]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, false]
+- name: has_widget_arg_reads_primitive_metadata
+  action: update_registry
+  features: [F-CRAFT-REG-03]
+  description: "hasWidgetArg is true when the primitive's metadata has an args map whose entry for the argument is neither false nor no value."
+  register:
+    primitives:
+      core:
+        Text: {args: {text: true, style: {kind: "map"}, size: 0, gone: false, empty: null}}
+        Box: {args: [text]}
+        Plain: {}
+    libraries:
+      main: |
+        import core;
+        widget probe = Result(value: [
+          hasWidgetArg(widget: "Text", arg: "text"),
+          hasWidgetArg(widget: "Text", arg: "style"),
+          hasWidgetArg(widget: "Text", arg: "size"),
+          hasWidgetArg(widget: "Text", arg: "gone"),
+          hasWidgetArg(widget: "Text", arg: "empty"),
+          hasWidgetArg(widget: "Text", arg: "other"),
+          hasWidgetArg(widget: "Box", arg: "text"),
+          hasWidgetArg(widget: "Plain", arg: "text"),
+          hasWidgetArg(widget: "core::Text", arg: "text"),
+        ]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, true, true, false, false, false, false, false, true]
+- name: has_widget_arg_needs_a_visible_primitive
+  action: update_registry
+  features: [F-CRAFT-REG-03]
+  description: "hasWidgetArg is false for a name that does not resolve among the imports (here a bare non-core name and a library not imported) and for a template widget; the qualified name is the control."
+  register:
+    primitives:
+      maps: {Map: {args: {zoom: true}}}
+      pay: {Pay: {args: {total: true}}}
+    libraries:
+      cards: |
+        export widget Card = Box(text: args.text);
+      main: |
+        import maps;
+        import cards;
+        widget probe = Result(value: [
+          hasWidgetArg(widget: "Map", arg: "zoom"),
+          hasWidgetArg(widget: "pay::Pay", arg: "total"),
+          hasWidgetArg(widget: "cards::Card", arg: "text"),
+          hasWidgetArg(widget: "maps::Map", arg: "zoom"),
+        ]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [false, false, false, true]
+- name: meta_reads_primitive_metadata
+  action: update_registry
+  features: [F-CRAFT-REG-03]
+  description: "meta(w:) gives the whole metadata without a path or with an empty one, and reads a path segment by segment: a map key, a list index written in decimal without leading zeros, a map key made of digits; anything else is absent."
+  register:
+    primitives:
+      core:
+        Text: {version: 2, tags: [a, b], codes: {"0": zero}, nested: {deep: {x: 1.5}}}
+        Plain: {}
+    libraries:
+      main: |
+        import core;
+        widget probe = Result(value: [
+          meta(w: "Text", path: "version"),
+          meta(w: "Text", path: "tags.1"),
+          meta(w: "Text", path: "tags.01"),
+          meta(w: "Text", path: "tags.2"),
+          meta(w: "Text", path: "tags.-1"),
+          meta(w: "Text", path: "tags.99999999999999999999"),
+          meta(w: "Text", path: "codes.0"),
+          meta(w: "Text", path: "nested.deep.x"),
+          meta(w: "Text", path: "version.x"),
+          meta(w: "Text", path: "nope"),
+          meta(w: "Plain"),
+          meta(w: "Plain", path: ""),
+          meta(w: "Text", path: "tags"),
+        ]);
+    queries:
+      - evaluate: main
+        expect:
+          value:
+            - {$: int, value: 2}
+            - b
+            - {$: missing}
+            - {$: missing}
+            - {$: missing}
+            - {$: missing}
+            - zero
+            - {$: double, value: 1.5}
+            - {$: missing}
+            - {$: missing}
+            - {}
+            - {}
+            - [a, b]
+- name: meta_without_a_visible_primitive_is_absent
+  action: update_registry
+  features: [F-CRAFT-REG-03]
+  description: "meta(w:) is absent for a template widget, a name that does not resolve and a library that is not imported; with neither w nor f it is absent; w wins over f."
+  register:
+    primitives:
+      core: {Text: {version: 2}}
+      pay: {Pay: {version: 3}}
+    libraries:
+      cards: |
+        export widget Card = Box();
+      main: |
+        import core;
+        import cards;
+        widget probe = Result(value: [
+          meta(w: "cards::Card"),
+          meta(w: "Nope"),
+          meta(w: "pay::Pay", path: "version"),
+          meta(path: "version"),
+          meta(w: "Text", f: "add", path: "version"),
+          meta(w: "Nope", f: "add"),
+        ]);
+    queries:
+      - evaluate: main
+        expect:
+          value:
+            [
+              {$: missing},
+              {$: missing},
+              {$: missing},
+              {$: missing},
+              {$: int, value: 2},
+              {$: missing},
+            ]
+
+# function_introspection
+
+- name: has_function_follows_function_keys
+  action: update_registry
+  features: [F-CRAFT-REG-04]
+  description: "hasFunction is true exactly when the name maps to a registered function from the calling library: standard functions bare and as core::, a host function qualified from a library that imports it, and never absent or call."
+  register:
+    functions:
+      fmt: {price: {amount: number}}
+    libraries:
+      main: |
+        import fmt;
+        widget probe = Result(value: [
+          hasFunction(name: "add"),
+          hasFunction(name: "core::add"),
+          hasFunction(name: "fmt::price"),
+          hasFunction(name: "price"),
+          hasFunction(name: "core::price"),
+          hasFunction(name: "absent"),
+          hasFunction(name: "call"),
+          hasFunction(name: "nope"),
+        ]);
+      other: |
+        widget probe = Result(value: hasFunction(name: "fmt::price"));
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, true, true, false, false, false, false, false]
+      - evaluate: other
+        expect:
+          value: false
+- name: has_function_ignores_widgets
+  action: update_registry
+  features: [F-CRAFT-REG-04]
+  description: "hasFunction answers whether a function is registered under the name, even when a widget of that name would make a call a widget call."
+  register:
+    primitives:
+      fmt: {Badge: {}}
+    functions:
+      fmt: {Badge: {value: any}}
+    libraries:
+      main: |
+        import fmt;
+        widget probe = Result(value: [hasFunction(name: "fmt::Badge"), hasWidget(name: "fmt::Badge")]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, true]
+- name: has_function_arg_reads_parameters
+  action: update_registry
+  features: [F-CRAFT-REG-04]
+  description: "hasFunctionArg is true when the function is callable from the library and has a parameter of that name."
+  register:
+    functions:
+      fmt: {price: {amount: number, currency: string}}
+    libraries:
+      main: |
+        import fmt;
+        widget probe = Result(value: [
+          hasFunctionArg(function: "add", arg: "a"),
+          hasFunctionArg(function: "add", arg: "c"),
+          hasFunctionArg(function: "fmt::price", arg: "currency"),
+          hasFunctionArg(function: "price", arg: "currency"),
+          hasFunctionArg(function: "nope", arg: "a"),
+          hasFunctionArg(function: "hasArg", arg: "arg"),
+        ]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, false, true, false, false, true]
+- name: has_arg_dispatches
+  action: update_registry
+  features: [F-CRAFT-REG-04]
+  description: "hasArg asks hasWidgetArg when widget is given, else hasFunctionArg when function is given, else either for name; without arg, or with nothing to ask about, it is false."
+  register:
+    primitives:
+      core: {Text: {args: {text: true}}}
+    libraries:
+      main: |
+        import core;
+        widget probe = Result(value: [
+          hasArg(widget: "Text", arg: "text"),
+          hasArg(function: "add", arg: "a"),
+          hasArg(name: "Text", arg: "text"),
+          hasArg(name: "add", arg: "b"),
+          hasArg(name: "add", arg: "text"),
+          hasArg(widget: "Nope", function: "add", arg: "a"),
+          hasArg(widget: "Text"),
+          hasArg(arg: "a"),
+        ]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, true, true, true, false, false, false, false]
+- name: meta_of_a_function_lists_its_parameters
+  action: update_registry
+  features: [F-CRAFT-REG-04]
+  description: "The metadata of a function is a map with the key args, a map from each parameter name to true."
+  register:
+    functions:
+      fmt: {price: {amount: number}}
+    libraries:
+      main: |
+        import fmt;
+        widget probe = Result(value: [
+          meta(f: "add"),
+          meta(f: "fmt::price", path: "args.amount"),
+          meta(f: "fmt::price", path: "args.other"),
+          meta(f: "price"),
+          meta(f: "runtimeVersion"),
+        ]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [{args: {a: true, b: true}}, true, {$: missing}, {$: missing}, {args: {}}]
+
+# symbol_references
+
+- name: symbol_references_read_primitive_metadata
+  action: update_registry
+  features: [F-CRAFT-REG-05]
+  description: "A symbol that resolves among the imports to a primitive reads its metadata at the reference's parts; a template's own declaration does not shadow it."
+  register:
+    primitives:
+      core: {Text: {args: {text: true}, version: 2}}
+      maps: {Map: {args: {zoom: true}}}
+    libraries:
+      main: |
+        import core;
+        import maps;
+        widget Text = Text(text: "mine");
+        widget probe = Result(value: [Text.args.text, core::Text.version, maps::Map.args.zoom, Text.args.other, maps::Map.args]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, {$: int, value: 2}, true, {$: missing}, {zoom: true}]
+- name: symbol_reference_parts
+  action: update_registry
+  features: [F-CRAFT-REG-05]
+  description: "A string part reads a map key and an integer part a list index; the other combinations and indexes out of range are absent."
+  register:
+    primitives:
+      core: {Text: {tags: [a, b], codes: {"0": zero}}}
+    libraries:
+      main: |
+        import core;
+        widget probe = Result(value: [Text.tags.1, Text.tags.2, Text.tags."0", Text.codes."0", Text.codes.0]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [b, {$: missing}, {$: missing}, zero, {$: missing}]
+- name: symbol_references_read_function_metadata
+  action: update_registry
+  features: [F-CRAFT-REG-05]
+  description: "A symbol that resolves to no widget but maps to a function reads the function's metadata."
+  register:
+    functions:
+      fmt: {price: {amount: number}}
+    libraries:
+      main: |
+        import fmt;
+        widget probe = Result(value: [add.args.a, core::add.args.b, fmt::price.args.amount, fmt::price.args.other, hasWidget.args.name]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [true, true, true, {$: missing}, true]
+- name: a_widget_symbol_wins_over_a_function
+  action: update_registry
+  features: [F-CRAFT-REG-05]
+  description: "When the symbol resolves to a widget, the widget decides: a primitive's metadata, or absent for a template, even if a function has the same name."
+  register:
+    primitives:
+      fmt: {Badge: {kind: widget}}
+    functions:
+      fmt: {Badge: {value: any}}
+      cards: {Card: {value: any}}
+    libraries:
+      cards: |
+        export widget Card = Box();
+      main: |
+        import fmt;
+        import cards;
+        widget probe = Result(value: [fmt::Badge.kind, fmt::Badge.args.value, cards::Card.args.value]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [widget, {$: missing}, {$: missing}]
+- name: unknown_symbols_are_absent
+  action: update_registry
+  features: [F-CRAFT-REG-05]
+  description: "A symbol that is neither a visible widget nor a callable function is absent: unknown, from a library that is not imported, a bare non-core name, or a host function called bare."
+  register:
+    primitives:
+      maps: {Map: {args: {zoom: true}}}
+      pay: {Pay: {version: 1}}
+    functions:
+      fmt: {price: {amount: number}}
+    libraries:
+      main: |
+        import maps;
+        import fmt;
+        widget probe = Result(value: [Nope.x, pay::Pay.version, Map.args.zoom, price.args.amount]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [{$: missing}, {$: missing}, {$: missing}, {$: missing}]
+
+# versions
+
+- name: runtime_and_app_version
+  action: update_registry
+  features: [F-CRAFT-REG-06]
+  description: "runtimeVersion() is 1; appVersion() is the application version the host set, initially the empty string, and follows changes."
+  register:
+    libraries:
+      main: |
+        widget probe = Result(value: [runtimeVersion(), appVersion()]);
+    queries:
+      - evaluate: main
+        expect:
+          value: [{$: int, value: 1}, ""]
+  changes:
+    - app_version: "2.1.0"
+      queries:
+        - evaluate: main
+          expect:
+            value: [{$: int, value: 1}, "2.1.0"]
+
+# dependency_declarations
+
+- name: optional_libraries_must_be_imports
+  action: update_registry
+  features: [F-CRAFT-REG-07]
+  description: "An optional library that the library does not import is rejected and changes nothing; the control step declares an import optional."
+  register:
+    libraries:
+      main: |
+        import maps;
+        export widget Card = Box();
+    queries:
+      - availability: main
+        expect:
+          available: false
+          unmet: [{import: maps}]
+          components: {Card: {available: false, unmet: []}}
+  changes:
+    - libraries:
+        main: |
+          export widget Card = Box();
+          export widget Extra = Box();
+      dependencies:
+        main: {optional: [geo]}
+      rejected: true
+      queries:
+        - availability: main
+          expect:
+            available: false
+            unmet: [{import: maps}]
+            components: {Card: {available: false, unmet: []}}
+    - libraries:
+        main: |
+          import maps;
+          export widget Card = Box();
+      dependencies:
+        main: {optional: [maps]}
+      queries:
+        - availability: main
+          expect:
+            available: true
+            unmet: []
+            components: {Card: {available: true, unmet: []}}
+- name: component_requirements_need_an_exported_declaration
+  action: update_registry
+  features: [F-CRAFT-REG-07]
+  description: "Requirements for a private declaration or a name the library does not declare are rejected and change nothing; the control step declares them for an exported one."
+  register:
+    libraries:
+      main: |
+        export widget Card = Box();
+        widget Helper = Box();
+  changes:
+    - libraries:
+        main: |
+          export widget Card = Box();
+          export widget Extra = Box();
+          widget Helper = Box();
+      dependencies:
+        main: {components: {Helper: [{function: add}]}}
+      rejected: true
+      queries:
+        - availability: main
+          expect:
+            available: true
+            unmet: []
+            components: {Card: {available: true, unmet: []}}
+    - libraries:
+        main: |
+          export widget Card = Box();
+          export widget Extra = Box();
+          widget Helper = Box();
+      dependencies:
+        main: {components: {Nope: [{function: add}]}}
+      rejected: true
+      queries:
+        - availability: main
+          expect:
+            available: true
+            unmet: []
+            components: {Card: {available: true, unmet: []}}
+    - libraries:
+        main: |
+          export widget Card = Box();
+          export widget Extra = Box();
+          widget Helper = Box();
+      dependencies:
+        main: {components: {Card: [{function: nope}]}}
+      queries:
+        - availability: main
+          expect:
+            available: true
+            unmet: []
+            components:
+              Card: {available: false, unmet: [{function: nope}]}
+              Extra: {available: true, unmet: []}
+- name: widget_requirements_cannot_name_the_library_itself
+  action: update_registry
+  features: [F-CRAFT-REG-07]
+  description: "A widget requirement qualified with the library's own name, for the whole library or a component, is rejected and changes nothing, since the library's own declarations never meet a requirement; the control step requires the bare name, which here core provides."
+  register:
+    primitives:
+      core: {Card: {}}
+    libraries:
+      main: |
+        import core;
+        export widget Card = Card();
+  changes:
+    - libraries:
+        main: |
+          import core;
+          export widget Card = Card();
+          export widget Extra = Card();
+      dependencies:
+        main: {requires: [{widget: "main::Card"}]}
+      rejected: true
+      queries:
+        - offered: main
+          expect: [Card]
+    - libraries:
+        main: |
+          import core;
+          export widget Card = Card();
+          export widget Extra = Card();
+      dependencies:
+        main: {components: {Extra: [{widget: "main::Card", arg: x}]}}
+      rejected: true
+      queries:
+        - offered: main
+          expect: [Card]
+    - libraries:
+        main: |
+          import core;
+          export widget Card = Card();
+          export widget Extra = Card();
+      dependencies:
+        main: {components: {Extra: [{widget: Card}]}}
+      queries:
+        - offered: main
+          expect: [Card, Extra]
+
+# availability
+
+- name: a_library_with_its_imports_is_available
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "A library whose imports are all provided is available, and so is each component without unmet requirements; private declarations are not components."
+  register:
+    primitives:
+      core: {Text: {}}
+    libraries:
+      main: |
+        import core;
+        export widget Card = Text();
+        export widget Badge = Text();
+        widget Helper = Text();
+    queries:
+      - availability: main
+        expect:
+          available: true
+          unmet: []
+          components:
+            Card: {available: true, unmet: []}
+            Badge: {available: true, unmet: []}
+- name: a_missing_import_makes_the_library_unavailable
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "A required import that nothing provides is unmet, listed once in import order, and makes every component unavailable; registering it later makes them available."
+  register:
+    primitives:
+      core: {Text: {}}
+    libraries:
+      main: |
+        import pay;
+        import core;
+        import maps;
+        import pay;
+        export widget Card = Text();
+    queries:
+      - availability: main
+        expect:
+          available: false
+          unmet: [{import: pay}, {import: maps}]
+          components: {Card: {available: false, unmet: []}}
+  changes:
+    - primitives:
+        pay: {Pay: {}}
+        maps: {Map: {}}
+      queries:
+        - availability: main
+          expect:
+            available: true
+            unmet: []
+            components: {Card: {available: true, unmet: []}}
+- name: an_optional_import_may_be_missing
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "An import declared optional is not required; the template can feature-detect it."
+  register:
+    libraries:
+      main: |
+        import maps;
+        export widget Card = Box();
+        widget probe = Result(value: hasWidget(name: "maps::Map"));
+    dependencies:
+      main: {optional: [maps]}
+    queries:
+      - availability: main
+        expect:
+          available: true
+          unmet: []
+          components: {Card: {available: true, unmet: []}}
+      - evaluate: main
+        expect:
+          value: false
+- name: a_function_library_provides_an_import
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "A library name under which host functions are registered is provided, even with no functions and no widget library of that name."
+  register:
+    functions:
+      fmt: {price: {}}
+      empty: {}
+    libraries:
+      main: |
+        import fmt;
+        import empty;
+        export widget Card = Box();
+    queries:
+      - availability: main
+        expect:
+          available: true
+          unmet: []
+          components: {Card: {available: true, unmet: []}}
+- name: an_unavailable_template_library_is_not_provided
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "An imported template library counts as provided only while it is available itself, so unavailability carries over to importing libraries."
+  register:
+    libraries:
+      cards: |
+        import maps;
+        export widget Card = Box();
+      main: |
+        import cards;
+        export widget Page = cards::Card();
+    queries:
+      - availability: main
+        expect:
+          available: false
+          unmet: [{import: cards}]
+          components: {Page: {available: false, unmet: []}}
+  changes:
+    - primitives:
+        maps: {Map: {}}
+      queries:
+        - availability: main
+          expect:
+            available: true
+            unmet: []
+            components: {Page: {available: true, unmet: []}}
+- name: host_functions_provide_a_name_whose_template_library_is_unavailable
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "Host functions registered under a name provide it for imports even while the template library of that name is unavailable; that library's components still do not count for hasWidget. Removing the functions makes the importer unavailable."
+  register:
+    functions:
+      cards: {format: {}}
+    libraries:
+      cards: |
+        import gone;
+        export widget Card = Box();
+      main: |
+        import cards;
+        export widget Page = Box();
+        widget probe = Result(value: [hasWidget(name: "cards::Card"), hasFunction(name: "cards::format")]);
+    queries:
+      - availability: main
+        expect:
+          available: true
+          unmet: []
+          components: {Page: {available: true, unmet: []}}
+      - evaluate: main
+        expect:
+          value: [false, true]
+  changes:
+    - remove_functions: [cards]
+      queries:
+        - offered: main
+          expect: []
+- name: libraries_that_import_each_other
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "Libraries importing each other are available together unless something else is unmet; then the unavailability carries around the cycle."
+  register:
+    libraries:
+      a: |
+        import b;
+        export widget A = Box();
+      b: |
+        import a;
+        export widget B = Box();
+    queries:
+      - offered: a
+        expect: [A]
+      - offered: b
+        expect: [B]
+  changes:
+    - libraries:
+        b: |
+          import a;
+          import gone;
+          export widget B = Box();
+      queries:
+        - availability: a
+          expect:
+            available: false
+            unmet: [{import: b}]
+            components: {A: {available: false, unmet: []}}
+        - availability: b
+          expect:
+            available: false
+            unmet: [{import: a}, {import: gone}]
+            components: {B: {available: false, unmet: []}}
+- name: library_requirements
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "Each declared requirement of the library is met when its introspection function is true from the library; unmet ones follow the unmet imports, in declared order, and make the library unavailable."
+  register:
+    primitives:
+      core: {Text: {args: {text: true}}}
+      maps: {Map: {args: {zoom: true}}}
+    functions:
+      fmt: {price: {amount: number}}
+    libraries:
+      main: |
+        import core;
+        import maps;
+        import fmt;
+        import gone;
+        export widget Card = Text();
+    dependencies:
+      main:
+        optional: [maps]
+        requires:
+          - {widget: Text}
+          - {widget: Text, arg: style}
+          - {widget: "maps::Map", arg: zoom}
+          - {widget: Map}
+          - {function: "fmt::price", arg: amount}
+          - {function: "fmt::price", arg: currency}
+          - {function: "fmt::tax"}
+          - {function: concat}
+    queries:
+      - availability: main
+        expect:
+          available: false
+          unmet:
+            - {import: gone}
+            - {widget: Text, arg: style}
+            - {widget: Map}
+            - {function: "fmt::price", arg: currency}
+            - {function: "fmt::tax"}
+          components: {Card: {available: false, unmet: []}}
+- name: requirements_are_seen_from_the_library
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "Requirements are introspection from the declaring library: its own declaration does not meet a bare-name requirement, and names follow its imports."
+  register:
+    primitives:
+      pay: {Pay: {}}
+    libraries:
+      main: |
+        export widget Card = Box();
+        widget Pin = Box();
+    dependencies:
+      main:
+        requires: [{widget: Pin}, {widget: "pay::Pay"}]
+    queries:
+      - availability: main
+        expect:
+          available: false
+          unmet: [{widget: Pin}, {widget: "pay::Pay"}]
+          components: {Card: {available: false, unmet: []}}
+- name: component_requirements_gate_single_components
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "A component's own requirements make only that component unavailable, while the library and its other components stay available."
+  register:
+    primitives:
+      core: {Text: {}}
+    libraries:
+      main: |
+        import core;
+        import maps;
+        export widget StoreCard = Text();
+        export widget MapCard = switch hasWidget(name: "maps::Map") { true: maps::Map(), default: Text() };
+    dependencies:
+      main:
+        optional: [maps]
+        components:
+          MapCard: [{widget: "maps::Map"}]
+    queries:
+      - availability: main
+        expect:
+          available: true
+          unmet: []
+          components:
+            StoreCard: {available: true, unmet: []}
+            MapCard: {available: false, unmet: [{widget: "maps::Map"}]}
+      - offered: main
+        expect: [StoreCard]
+  changes:
+    - primitives:
+        maps: {Map: {}}
+      queries:
+        - offered: main
+          expect: [StoreCard, MapCard]
+- name: has_widget_sees_only_available_components
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "hasWidget on another library's component is false while that component or its library is unavailable, so a requirement on it is unmet too; its available sibling is the control."
+  register:
+    libraries:
+      cards: |
+        import fx;
+        export widget Fancy = Box();
+        export widget Plain = Box();
+      broken: |
+        import gone;
+        export widget Thing = Box();
+      main: |
+        import cards;
+        import broken;
+        export widget Page = Box();
+        widget probe = Result(value: [hasWidget(name: "cards::Fancy"), hasWidget(name: "cards::Plain"), hasWidget(name: "broken::Thing")]);
+    dependencies:
+      cards:
+        optional: [fx]
+        components:
+          Fancy: [{function: "fx::glow"}]
+      main:
+        optional: [broken]
+        components:
+          Page: [{widget: "cards::Fancy"}]
+    queries:
+      - evaluate: main
+        expect:
+          value: [false, true, false]
+      - availability: main
+        expect:
+          available: true
+          unmet: []
+          components: {Page: {available: false, unmet: [{widget: "cards::Fancy"}]}}
+  changes:
+    - functions:
+        fx: {glow: {}}
+      queries:
+        - evaluate: main
+          expect:
+            value: [true, true, false]
+        - offered: main
+          expect: [Page]
+- name: primitive_and_unregistered_libraries
+  action: update_registry
+  features: [F-CRAFT-REG-08]
+  description: "A primitive library is available with every primitive as an available component; nothing is reported for a name with no library."
+  register:
+    primitives:
+      core: {Text: {}, Box: {}}
+    queries:
+      - availability: core
+        expect:
+          available: true
+          unmet: []
+          components:
+            Text: {available: true, unmet: []}
+            Box: {available: true, unmet: []}
+      - availability: nope
+        expect: null
+
+# offered_components
+
+- name: offered_components
+  action: update_registry
+  features: [F-CRAFT-REG-09]
+  description: "The components offered to the agent are the available components, in declaration order: none for an unavailable library or an unregistered name, every primitive of a primitive library."
+  register:
+    primitives:
+      core: {Text: {}, Box: {}}
+    libraries:
+      main: |
+        import core;
+        export widget B = Text();
+        widget Hidden = Text();
+        export widget A = Text();
+        export widget C = Text();
+      broken: |
+        import gone;
+        export widget X = Box();
+    dependencies:
+      main:
+        components:
+          C: [{widget: Nope}]
+    queries:
+      - offered: main
+        expect: [B, A]
+      - offered: broken
+        expect: []
+      - offered: core
+        expect: [Text, Box]
+      - offered: nope
+        expect: []

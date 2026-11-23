@@ -15,7 +15,8 @@
 // Unit tests for what the conformance cases in
 // craft/conformance/craft/craft_functions.yaml cannot express: host function
 // registration, values that the text format cannot write (NaN, null, objects
-// that are not values) and the standard function set.
+// that are not values), the standard function set, and symbol references
+// without a symbol reader.
 
 import 'package:a2ui_craft/a2ui_craft.dart';
 import 'package:test/test.dart';
@@ -371,6 +372,29 @@ void main() {
         );
       }
     });
+  });
+
+  test('symbol references need a symbol reader', () {
+    const SymbolReference symbol = SymbolReference('Text', <Object>['version']);
+    expect(
+      () => _evaluate(symbol),
+      throwsA(
+        isA<EvaluationException>().having(
+          (EvaluationException e) => e.kind,
+          'kind',
+          EvaluationErrorKind.notEvaluated,
+        ),
+      ),
+    );
+    final Evaluator reading = Evaluator(
+      NameResolver(<LibraryName, WidgetLibrary>{}),
+      FunctionRegistry(standard: standardFunctions),
+      symbols: (LibraryName library, SymbolReference reference) =>
+          '$library:${reference.symbol}.${reference.parts.join('.')}',
+    );
+    expect(reading.evaluate(<Object?>[symbol], library: _test), <Object>[
+      'test:Text.version',
+    ]);
   });
 
   test('the missing value of a decoded library is absent', () {

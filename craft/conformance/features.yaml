@@ -299,3 +299,57 @@
   blueprintAnchor: blueprints/features/craft_functions.blueprint.md#13-optional-values
   claimedBy:
     - dart-craft
+- id: F-CRAFT-REG-01
+  title: "Template Registry: registration"
+  specAnchor: blueprints/features/craft_template_registry.blueprint.md#1-registration
+  blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#1-registration
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-REG-02
+  title: "Template Registry: evaluation"
+  specAnchor: blueprints/features/craft_template_registry.blueprint.md#2-evaluation
+  blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#2-evaluation
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-REG-03
+  title: "Template Registry: widget introspection"
+  specAnchor: blueprints/features/craft_template_registry.blueprint.md#3-widget-introspection
+  blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#3-widget-introspection
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-REG-04
+  title: "Template Registry: function introspection"
+  specAnchor: blueprints/features/craft_template_registry.blueprint.md#4-function-introspection
+  blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#4-function-introspection
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-REG-05
+  title: "Template Registry: symbol references"
+  specAnchor: blueprints/features/craft_template_registry.blueprint.md#5-symbol-references
+  blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#5-symbol-references
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-REG-06
+  title: "Template Registry: versions"
+  specAnchor: blueprints/features/craft_template_registry.blueprint.md#6-versions
+  blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#6-versions
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-REG-07
+  title: "Template Registry: dependency declarations"
+  specAnchor: blueprints/features/craft_template_registry.blueprint.md#7-dependency-declarations
+  blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#7-dependency-declarations
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-REG-08
+  title: "Template Registry: availability"
+  specAnchor: blueprints/features/craft_template_registry.blueprint.md#8-availability
+  blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#8-availability
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-REG-09
+  title: "Template Registry: offered components"
+  specAnchor: blueprints/features/craft_template_registry.blueprint.md#9-offered-components
+  blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#9-offered-components
+  claimedBy:
+    - dart-craft
