@@ -14,17 +14,44 @@
  * limitations under the License.
  */
 
-import {STREAM_EVENT_SNAPSHOT, StoreLine, parseStoreLine} from '@a2ui-pane/protocol';
+import {
+  STREAM_EVENT_LINE,
+  STREAM_EVENT_RESET,
+  STREAM_EVENT_SNAPSHOT,
+  STREAM_SSE_PATH,
+  STREAM_WS_PATH,
+  StoreLine,
+  StreamEvent,
+  parseSnapshotLineArray,
+  parseStoreLine,
+  parseWsEvent,
+} from '@a2ui-pane/protocol';
 import {LineApplier} from '@a2ui-pane/renderer';
 
-/** Lifecycle states of the SSE connection to the sidecar stream endpoint. */
+/** Lifecycle states of the connection to the sidecar stream endpoint. */
 export type ConnectionStatus = 'connecting' | 'connected' | 'reconnecting' | 'disconnected';
+
+/** The transport carrying the stream: a WebSocket, or Server-Sent Events as the fallback. */
+export type StreamTransport = 'websocket' | 'sse';
 
 /** Minimum time between two build-change callbacks, so a flapping `buildId` cannot loop reloads. */
 export const BUILD_RELOAD_MIN_INTERVAL_MS = 30_000;
 
 /** `sessionStorage` key holding the time of the last build-change callback (epoch ms). */
 export const BUILD_RELOAD_STORAGE_KEY = 'a2ui-pane:last-build-reload';
+
+/**
+ * How long a WebSocket may stay in `CONNECTING` before the client gives up on it.
+ *
+ * Some proxies (and the Vite dev server, which owns the upgrade path for HMR)
+ * accept the TCP connection but never finish the handshake.
+ */
+export const DEFAULT_WS_CONNECT_TIMEOUT_MS = 3_000;
+
+/** Number of consecutive WebSocket failures, after one opened, that switch the client to SSE. */
+export const MAX_CONSECUTIVE_WS_FAILURES = 3;
+
+const DEFAULT_RECONNECT_DELAY_MS = 3_000;
 
 /** The subset of `Storage` the reload guard needs; `sessionStorage` satisfies it. */
 export interface BuildReloadStorage {
@@ -36,12 +63,28 @@ export interface BuildReloadStorage {
 export interface StreamClientOptions {
   conversationId: string;
   token?: string;
+  /** URL of the SSE endpoint. Defaults to `./api/stream`. */
   baseUrl?: string;
   applier: LineApplier;
   reconnectDelayMs?: number;
   onStatusChange?: (status: ConnectionStatus) => void;
   onError?: (error: Event | Error) => void;
   eventSourceFactory?: (url: string) => EventSource;
+  /**
+   * URL of the WebSocket endpoint, resolved against the page URL with `http`
+   * mapped to `ws` and `https` to `wss`. Defaults to `./api/ws`.
+   */
+  wsBaseUrl?: string;
+  /** Handshake timeout for each WebSocket. Defaults to `DEFAULT_WS_CONNECT_TIMEOUT_MS`. */
+  wsConnectTimeoutMs?: number;
+  /**
+   * Creates the WebSocket. When set, the client tries a WebSocket first. When
+   * neither this nor `eventSourceFactory` is set, the client tries the global
+   * `WebSocket` if one exists. Passing only `eventSourceFactory` keeps the client on SSE.
+   */
+  webSocketFactory?: (url: string) => WebSocket;
+  /** Called when the active transport changes, including the fallback from WebSocket to SSE. */
+  onTransportChange?: (transport: StreamTransport) => void;
   /** Called once when the sidecar starts serving a different pane build than this page loaded. */
   onBuildChanged?: () => void;
   /** URL of the config endpoint that reports `buildId`. Defaults to `./api/config`. */
@@ -74,20 +117,49 @@ export function parseSnapshotLines(data: string): StoreLine[] {
   if (!payload || !Array.isArray(payload.lines)) {
     throw new Error('Snapshot event has no lines array');
   }
-  const lines: StoreLine[] = [];
-  for (const raw of payload.lines) {
-    try {
-      lines.push(parseStoreLine(JSON.stringify(raw)));
-    } catch (err) {
-      console.error('[StreamClient] Skipping malformed snapshot line:', err);
-    }
-  }
-  return lines;
+  return parseSnapshotLineArray(payload.lines);
+}
+
+/** The page URL to resolve relative endpoints against, or a placeholder outside a page. */
+function pageHref(): string {
+  const href = typeof window !== 'undefined' ? window.location?.href : undefined;
+  return href && /^https?:/i.test(href) ? href : 'http://localhost/';
 }
 
 /**
- * Manages the Server-Sent Events (SSE) connection between the pane frontend and the sidecar backend.
+ * Builds the WebSocket stream URL: resolves `base` against `href`, maps
+ * `http:` to `ws:` and `https:` to `wss:`, and adds the query parameters.
+ * An absolute `ws://` or `wss://` base is used as is.
+ */
+export function resolveWsUrl(
+  base: string,
+  conversationId: string,
+  token?: string,
+  href: string = pageHref(),
+): string {
+  const url = new URL(base, href);
+  if (url.protocol === 'http:') {
+    url.protocol = 'ws:';
+  } else if (url.protocol === 'https:') {
+    url.protocol = 'wss:';
+  }
+  url.searchParams.set('conversationId', conversationId);
+  if (token) {
+    url.searchParams.set('token', token);
+  }
+  return url.toString();
+}
+
+/**
+ * Manages the stream connection between the pane frontend and the sidecar backend.
  * Reconnects on drops, applies incoming lines, and triggers resets.
+ *
+ * The client prefers a WebSocket (`/api/ws`) and falls back to Server-Sent
+ * Events (`/api/stream`). A WebSocket that fails before it ever opens (or
+ * stays in `CONNECTING` past the handshake timeout) switches the client to SSE
+ * at once. After a WebSocket has opened, drops reconnect over WebSocket, and
+ * `MAX_CONSECUTIVE_WS_FAILURES` failures in a row switch the client to SSE.
+ * The switch to SSE lasts for the life of the client.
  *
  * Each connection starts with a `snapshot` event that lists every live surface; the client
  * reconciles the processor with it, which removes surfaces deleted while it was disconnected.
@@ -100,9 +172,15 @@ export function parseSnapshotLines(data: string): StoreLine[] {
  */
 export class StreamClient {
   private eventSource: EventSource | null = null;
+  private webSocket: WebSocket | null = null;
   private status: ConnectionStatus = 'disconnected';
+  private transport: StreamTransport | null = null;
   private closedExplicitly = false;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private wsHandshakeTimer: ReturnType<typeof setTimeout> | null = null;
+  private wsDisabled = false;
+  private everOpenedWs = false;
+  private consecutiveWsFailures = 0;
   private knownBuildId: string | null = null;
   private memoryLastReload = 0;
 
@@ -112,11 +190,29 @@ export class StreamClient {
     return this.status;
   }
 
+  /** The transport of the last opened connection, or null before any connection opened. */
+  getTransport(): StreamTransport | null {
+    return this.transport;
+  }
+
   private setStatus(newStatus: ConnectionStatus): void {
     if (this.status !== newStatus) {
       this.status = newStatus;
       this.options.onStatusChange?.(newStatus);
     }
+  }
+
+  private setTransport(transport: StreamTransport): void {
+    if (this.transport !== transport) {
+      this.transport = transport;
+      this.options.onTransportChange?.(transport);
+    }
+  }
+
+  /** The status to show while a new connection opens. */
+  private openingStatus(): ConnectionStatus {
+    if (this.status === 'disconnected') return 'connecting';
+    return this.status === 'connecting' ? 'connecting' : 'reconnecting';
   }
 
   connect(): void {
@@ -129,6 +225,23 @@ export class StreamClient {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+  }
+
+  private clearHandshakeTimer(): void {
+    if (this.wsHandshakeTimer) {
+      clearTimeout(this.wsHandshakeTimer);
+      this.wsHandshakeTimer = null;
+    }
+  }
+
+  private scheduleReconnect(): void {
+    if (this.reconnectTimer) return;
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      if (!this.closedExplicitly) {
+        this.openStream();
+      }
+    }, this.options.reconnectDelayMs ?? DEFAULT_RECONNECT_DELAY_MS);
   }
 
   /** Reads the served `buildId`; undefined when the endpoint is unavailable or has none. */
@@ -178,16 +291,152 @@ export class StreamClient {
     this.options.onBuildChanged();
   }
 
+  private shouldUseWebSocket(): boolean {
+    if (this.wsDisabled) return false;
+    if (this.options.webSocketFactory) return true;
+    return !this.options.eventSourceFactory && typeof WebSocket === 'function';
+  }
+
   private openStream(): void {
+    if (this.shouldUseWebSocket()) {
+      this.openWebSocket();
+    } else {
+      this.openSseStream();
+    }
+  }
+
+  private closeEventSource(): void {
+    const es = this.eventSource;
+    if (!es) return;
+    this.eventSource = null;
+    es.onopen = null;
+    es.onerror = null;
+    es.close();
+  }
+
+  private closeWebSocket(): void {
+    const ws = this.webSocket;
+    if (!ws) return;
+    this.webSocket = null;
+    ws.onopen = null;
+    ws.onmessage = null;
+    ws.onerror = null;
+    ws.onclose = null;
+    try {
+      ws.close();
+    } catch {
+      // Closing a socket that never connected can throw in some environments.
+    }
+  }
+
+  private openWebSocket(): void {
     if (this.closedExplicitly) return;
     this.clearReconnectTimer();
+    this.clearHandshakeTimer();
+    this.closeWebSocket();
+    this.closeEventSource();
+    this.setStatus(this.openingStatus());
 
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
+    const url = resolveWsUrl(
+      this.options.wsBaseUrl ?? `.${STREAM_WS_PATH}`,
+      this.options.conversationId,
+      this.options.token,
+    );
+    const createWs = this.options.webSocketFactory ?? ((wsUrl: string) => new WebSocket(wsUrl));
+    let ws: WebSocket;
+    try {
+      ws = createWs(url);
+    } catch (err) {
+      this.handleWsFailure(err instanceof Error ? err : new Error(String(err)));
+      return;
     }
+    this.webSocket = ws;
 
-    const base = this.options.baseUrl ?? './api/stream';
+    // `error` is usually followed by `close`; settle each socket only once.
+    let settled = false;
+    const settle = (evt: Event | Error) => {
+      if (settled) return;
+      settled = true;
+      this.clearHandshakeTimer();
+      if (this.webSocket === ws) this.closeWebSocket();
+      this.handleWsFailure(evt);
+    };
+
+    this.wsHandshakeTimer = setTimeout(() => {
+      this.wsHandshakeTimer = null;
+      settle(new Error('WebSocket handshake timed out'));
+    }, this.options.wsConnectTimeoutMs ?? DEFAULT_WS_CONNECT_TIMEOUT_MS);
+
+    ws.onopen = () => this.handleWsOpen();
+    ws.onmessage = (event: MessageEvent) => this.handleWsMessage(event);
+    ws.onerror = settle;
+    ws.onclose = settle;
+  }
+
+  private handleWsOpen(): void {
+    this.clearHandshakeTimer();
+    this.everOpenedWs = true;
+    this.consecutiveWsFailures = 0;
+    this.setTransport('websocket');
+    if (this.closedExplicitly) return;
+    void this.checkBuild();
+    this.setStatus('connected');
+  }
+
+  private handleWsMessage(event: MessageEvent): void {
+    let evt: StreamEvent;
+    try {
+      evt = parseWsEvent(String(event.data));
+    } catch (err) {
+      console.error('[StreamClient] Failed to parse WebSocket event:', err);
+      return;
+    }
+    this.applyStreamEvent(evt);
+  }
+
+  private applyStreamEvent(evt: StreamEvent): void {
+    if (evt.type === STREAM_EVENT_LINE) {
+      this.options.applier.apply([evt.line]);
+    } else if (evt.type === STREAM_EVENT_SNAPSHOT) {
+      this.options.applier.reconcile(evt.lines);
+    } else {
+      this.handleReset();
+    }
+  }
+
+  /** Handles a WebSocket that errored, closed, or timed out. */
+  private handleWsFailure(evt: Event | Error): void {
+    if (this.closedExplicitly) return;
+    if (!this.everOpenedWs) {
+      this.fallBackToSse();
+      return;
+    }
+    this.consecutiveWsFailures += 1;
+    if (this.consecutiveWsFailures >= MAX_CONSECUTIVE_WS_FAILURES) {
+      this.fallBackToSse();
+      return;
+    }
+    this.setStatus('reconnecting');
+    this.options.onError?.(evt);
+    this.scheduleReconnect();
+  }
+
+  /** Switches to SSE for the rest of the client's life and opens it at once. */
+  private fallBackToSse(): void {
+    this.wsDisabled = true;
+    this.setTransport('sse');
+    // The transport callback may have disconnected the client; openSseStream checks.
+    this.openSseStream();
+  }
+
+  private openSseStream(): void {
+    if (this.closedExplicitly) return;
+    this.clearReconnectTimer();
+    this.clearHandshakeTimer();
+    this.closeWebSocket();
+    this.closeEventSource();
+
+    const base = this.options.baseUrl ?? `.${STREAM_SSE_PATH}`;
     const params = new URLSearchParams();
     params.set('conversationId', this.options.conversationId);
     if (this.options.token) {
@@ -195,13 +444,15 @@ export class StreamClient {
     }
 
     const streamUrl = `${base}?${params.toString()}`;
-    this.setStatus(this.status === 'disconnected' ? 'connecting' : 'reconnecting');
+    this.setStatus(this.openingStatus());
 
     const createEs = this.options.eventSourceFactory ?? ((url: string) => new EventSource(url));
     const es = createEs(streamUrl);
     this.eventSource = es;
 
     es.onopen = () => {
+      this.setTransport('sse');
+      if (this.closedExplicitly) return;
       void this.checkBuild();
       this.setStatus('connected');
     };
@@ -211,14 +462,8 @@ export class StreamClient {
       this.setStatus('reconnecting');
       this.options.onError?.(evt);
       // EventSource.CLOSED === 2: browser halted automatic retries
-      if ((es as any).readyState === 2 && !this.reconnectTimer) {
-        const delay = this.options.reconnectDelayMs ?? 3000;
-        this.reconnectTimer = setTimeout(() => {
-          this.reconnectTimer = null;
-          if (!this.closedExplicitly) {
-            this.openStream();
-          }
-        }, delay);
+      if ((es as any).readyState === 2) {
+        this.scheduleReconnect();
       }
     };
 
@@ -227,7 +472,7 @@ export class StreamClient {
 
   /** Routes `line`, `snapshot`, and legacy `reset` events to the applier. */
   private addDataListeners(es: EventSource): void {
-    es.addEventListener('line', (event: MessageEvent) => {
+    es.addEventListener(STREAM_EVENT_LINE, (event: MessageEvent) => {
       try {
         const line = parseStoreLine(event.data);
         this.options.applier.apply([line]);
@@ -245,23 +490,24 @@ export class StreamClient {
     });
 
     // Sent only by sidecars built before the per-surface store; kept for one release.
-    es.addEventListener('reset', () => {
-      console.warn(
-        '[StreamClient] Received reset event from server. Resetting applier and reconnecting.',
-      );
-      this.options.applier.reset();
-      // Reopening creates a new EventSource instance, clearing Last-Event-ID to restart from seq 1
-      this.openStream();
-    });
+    es.addEventListener(STREAM_EVENT_RESET, () => this.handleReset());
+  }
+
+  private handleReset(): void {
+    console.warn(
+      '[StreamClient] Received reset event from server. Resetting applier and reconnecting.',
+    );
+    this.options.applier.reset();
+    // Reopening creates a new connection, which restarts the stream from a fresh snapshot.
+    this.openStream();
   }
 
   disconnect(): void {
     this.closedExplicitly = true;
     this.clearReconnectTimer();
-    if (this.eventSource) {
-      this.eventSource.close();
-      this.eventSource = null;
-    }
+    this.clearHandshakeTimer();
+    this.closeWebSocket();
+    this.closeEventSource();
     this.setStatus('disconnected');
   }
 }
