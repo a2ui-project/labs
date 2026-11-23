@@ -550,7 +550,7 @@
             count:
               $: int
               value: 0
-            label: n
+            label: "n"
           root:
             $: call
             name: Text

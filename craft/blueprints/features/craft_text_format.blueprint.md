@@ -19,7 +19,7 @@ The format is the RFW 2.0.0 text format plus three kinds of reference: theme ref
 ### **1. Base format**
 
 - Library files and data files MUST parse as in the RFW 2.0.0 text format, except where this blueprint says otherwise. This covers imports, widget declarations, initial state, literals, lists, maps, widget calls, `args`, `data` and `state` references, loops, switches, event handlers, state setters and widget builders.
-- A source that RFW 2.0.0 rejects MUST be rejected, unless it is valid under requirements 2–4 or under a feature that extends the format (`craft_libraries_and_names` adds qualified names and the `export` keyword, which RFW 2.0.0 rejects). A source that is valid in RFW 2.0.0 MUST parse to the same library, unless requirements 2–4 change its meaning (they only affect names spelled `theme` or `media`, and an identifier followed by `.` in a value position).
+- A source that RFW 2.0.0 rejects MUST be rejected, unless it is valid under requirements 2–4 or under a feature that extends the format (`craft_libraries_and_names` adds qualified names and the `export` keyword, and `craft_language_extensions` adds `absent`, `call`, `...if` and `let`, which RFW 2.0.0 rejects). A source that is valid in RFW 2.0.0 MUST parse to the same library, unless requirements 2–4 or `craft_language_extensions` change its meaning (requirements 2–4 only affect names spelled `theme` or `media`, and an identifier followed by `.` in a value position; `craft_language_extensions` lists the sources it changes).
 - A rejection MUST report the source position (line and column) where it was detected.
 
 ### **2. Theme references**
@@ -35,10 +35,10 @@ The format is the RFW 2.0.0 text format plus three kinds of reference: theme ref
 
 ### **4. Symbol references**
 
-- In a value position, an identifier that is not a reserved word, a loop variable or a builder argument, and is followed by `.`, MUST parse to a symbol reference: the identifier as the symbol and the following segments as its parts. For example, `Location.args.latLong` has the symbol `Location` and the parts `args`, `latLong`. A symbol reference names a host symbol's static metadata.
+- In a value position, an identifier that is not a reserved word, a loop variable, a builder argument or a `let` binding (see `craft_language_extensions`), and is followed by `.`, MUST parse to a symbol reference: the identifier as the symbol and the following segments as its parts. For example, `Location.args.latLong` has the symbol `Location` and the parts `args`, `latLong`. A symbol reference names a host symbol's static metadata.
 - A builder argument or loop variable followed by `.` MUST still parse to a builder argument reference or loop reference, even when it is spelled like a symbol.
 - The words `default`, `for`, `import`, `in`, `null` and `widget` MUST NOT name a symbol: an engine MUST reject them followed by `.` in a value position.
-- An identifier followed by `(` MUST still parse to a widget call, as in RFW.
+- An identifier followed by `(` MUST still parse to a widget call, as in RFW, except the words `absent` and `call` and the names of `let` bindings in a value position (see `craft_language_extensions`).
 
 ### **5. Canonical JSON form**
 

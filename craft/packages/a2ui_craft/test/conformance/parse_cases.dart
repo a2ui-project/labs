@@ -22,7 +22,7 @@ import 'conformance_harness.dart';
 /// The handlers of parse_library and parse_data.
 final Map<String, ConformanceAction> parseActions = <String, ConformanceAction>{
   'parse_library': ConformanceAction(
-    const <String>{'source', 'sources', 'expect'},
+    const <String>{'source', 'sources', 'expect', 'binary_round_trip'},
     (ConformanceTestCase c) => _run(c, 'library'),
     variants: ('sources', 'source'),
   ),
@@ -56,4 +56,14 @@ void _run(ConformanceTestCase c, String kind) {
     return;
   }
   expect(<String, Object?>{kind: parse()}, expected);
+  if (c['binary_round_trip'] == true) {
+    final RemoteWidgetLibrary decoded = decodeLibraryBlob(
+      encodeLibraryBlob(parseLibraryFile(source)),
+    );
+    expect(
+      canonicalLibrary(decoded),
+      expected['library'],
+      reason: 'binary round trip',
+    );
+  }
 }

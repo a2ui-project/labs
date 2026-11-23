@@ -6,6 +6,7 @@ implemented_features:
   craft_text_format: null
   craft_libraries_and_names: null
   craft_binary_format: null
+  craft_language_extensions: null
 local_development:
   test_command: 'dart test'
   lint_command: 'dart analyze --fatal-infos'
@@ -19,6 +20,7 @@ local_development:
 The Dart implementation of the framework-independent part of the Craft engine (`a2ui_craft`). It has no UI-framework dependency; framework adapters build on it.
 
 - **Library model and text format**: `lib/src/rfw/model.dart` and `lib/src/rfw/text.dart`, forked from RFW 2.0.0 (`third_party/rfw/`). They keep RFW's BSD license (`LICENSE` in this package); `tool/diff_rfw.sh` shows exactly what changed, ignoring formatting.
+- **Language extensions**: also in `lib/src/rfw/text.dart`. The parser reads `absent`, `call`, `...if` and `let` straight into existing nodes (calls, loops and switches, and the bound values), so the model and the binary format are unchanged. `NameResolver` never resolves the names `absent` and `call` to a widget, and lists standard functions with those names only bare.
 - **Binary format**: `lib/src/rfw/binary.dart`, forked from RFW 2.0.0 like the text format. It writes the Craft signatures, version header and declaration flags, decodes RFW blobs as version 0, skips extension values, and reports every decoding error as a `BlobFormatException` with a `BlobErrorKind` and a byte offset.
 - **Name resolution**: `lib/src/name_resolution.dart`. `NameResolver` applies the `craft_libraries_and_names` rules over a live map of registered libraries (template libraries and `PrimitiveLibrary` implementations provided by framework adapters) and caches results until `invalidate`.
 - **Canonical JSON form**: `lib/src/canonical_json.dart`, used by the conformance harness.
