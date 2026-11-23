@@ -4,6 +4,7 @@ associated_module: craft_engine
 module_blueprint_commit: null
 implemented_features:
   craft_text_format: null
+  craft_libraries_and_names: null
 local_development:
   test_command: 'dart test'
   lint_command: 'dart analyze --fatal-infos'
@@ -17,8 +18,9 @@ local_development:
 The Dart implementation of the framework-independent part of the Craft engine (`a2ui_craft`). It has no UI-framework dependency; framework adapters build on it.
 
 - **Library model and text format**: `lib/src/rfw/model.dart` and `lib/src/rfw/text.dart`, forked from RFW 2.0.0 (`third_party/rfw/`). They keep RFW's BSD license (`LICENSE` in this package); `tool/diff_rfw.sh` shows exactly what changed, ignoring formatting.
+- **Name resolution**: `lib/src/name_resolution.dart`. `NameResolver` applies the `craft_libraries_and_names` rules over a live map of registered libraries (template libraries and `PrimitiveLibrary` implementations provided by framework adapters) and caches results until `invalidate`.
 - **Canonical JSON form**: `lib/src/canonical_json.dart`, used by the conformance harness.
-- **Conformance harness** (`dart-craft`): `test/conformance/conformance_harness.dart` loads each suite of `conformance/craft/`, runs every case with the handler of its `action` (handlers shared by several suites are in `parse_cases.dart`), fails a case with an unknown action or key, and writes an executed-case manifest when `A2UI_CONFORMANCE_MANIFEST_DIR` is set. `suite_registry.dart` names the test file of each suite.
+- **Conformance harness** (`dart-craft`): `test/conformance/conformance_harness.dart` loads each suite of `conformance/craft/`, runs every case with the handler of its `action` (handlers shared by several suites are in `parse_cases.dart` and `resolution_cases.dart`), fails a case with an unknown action or key, and writes an executed-case manifest when `A2UI_CONFORMANCE_MANIFEST_DIR` is set. `suite_registry.dart` names the test file of each suite.
 
 ## **Local Technical Decisions & Overrides**
 

@@ -10,9 +10,10 @@ each of them. The suite follows the conventions of A2UI's conformance suite
 `craft/` holds one suite per feature blueprint, named after the feature:
 `craft/<feature>.yaml` covers `blueprints/features/<feature>.blueprint.md`.
 
-| Suite                          | Actions                       |
-| ------------------------------ | ----------------------------- |
-| `craft/craft_text_format.yaml` | `parse_library`, `parse_data` |
+| Suite                                  | Actions                          |
+| -------------------------------------- | -------------------------------- |
+| `craft/craft_text_format.yaml`         | `parse_library`, `parse_data`    |
+| `craft/craft_libraries_and_names.yaml` | `parse_library`, `resolve_names` |
 
 Each suite's header describes its actions and the inputs and expectations
 they take. Every case has a `name`, a `description`, an `action` and the

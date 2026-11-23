@@ -652,6 +652,14 @@ const Set<String> _symbolKeywords = <String>{
   'widget',
 };
 
+/// Words that cannot be part of a library qualifier (`lib::Name`): in a value
+/// position each of them starts some other construct.
+const Set<String> _qualifierExcludedWords = <String>{
+  ..._reservedWords,
+  ..._symbolKeywords,
+  'switch',
+};
+
 void _checkIsNotReservedWord(String identifier, _Token identifierToken) {
   if (_reservedWords.contains(identifier)) {
     throw ParserException._fromToken(
@@ -690,9 +698,13 @@ class _SymbolToken extends _Token {
   static const int openBrace = 0x7B; // U+007B LEFT CURLY BRACKET character ({)
   static const int closeBrace =
       0x7D; // U+007D RIGHT CURLY BRACKET character (})
+  // `::` (two adjacent colons), the library qualifier in `core::Button`. Merged
+  // from two colon tokens by [_Parser._mergeQualifiers]; U+2237 PROPORTION.
+  static const int doubleColon = 0x2237;
 
   @override
-  String toString() => String.fromCharCode(symbol);
+  String toString() =>
+      symbol == doubleColon ? '::' : String.fromCharCode(symbol);
 }
 
 class _IntegerToken extends _Token {
@@ -2468,7 +2480,40 @@ Iterable<_Token> _tokenize(String file) sync* {
 /// Test library files can be parsed by using [readLibraryFile].
 class _Parser {
   _Parser(Iterable<_Token> source, this.sourceIdentifier)
-    : _source = source.iterator..moveNext();
+    : _source = _mergeQualifiers(source).iterator..moveNext();
+
+  /// Merges two adjacent `:` tokens into one `::` token, so the parser can
+  /// tell `core::Button` from a `key: value` separator without lookahead.
+  static Iterable<_Token> _mergeQualifiers(Iterable<_Token> source) sync* {
+    _SymbolToken? pendingColon;
+    for (final _Token token in source) {
+      final bool isColon =
+          token is _SymbolToken && token.symbol == _SymbolToken.colon;
+      if (pendingColon != null) {
+        if (isColon && token.start == pendingColon.end) {
+          yield _SymbolToken(
+            _SymbolToken.doubleColon,
+            pendingColon.line,
+            pendingColon.column,
+            pendingColon.start,
+            token.end,
+          );
+          pendingColon = null;
+          continue;
+        }
+        yield pendingColon;
+        pendingColon = null;
+      }
+      if (isColon) {
+        pendingColon = token;
+      } else {
+        yield token;
+      }
+    }
+    if (pendingColon != null) {
+      yield pendingColon;
+    }
+  }
 
   final Iterator<_Token> _source;
   final Object? sourceIdentifier;
@@ -2708,7 +2753,7 @@ class _Parser {
     return _withSourceRange(Switch(value, cases), start);
   }
 
-  List<Object> _readParts({bool optional = false}) {
+  List<Object> _readParts({bool optional = false, List<_Token>? tokens}) {
     if (optional && !_foundSymbol(_SymbolToken.dot)) {
       return const <Object>[];
     }
@@ -2724,6 +2769,7 @@ class _Parser {
       } else {
         throw ParserException._unexpected(_source.current);
       }
+      tokens?.add(_source.current);
       _advance();
     } while (_foundSymbol(_SymbolToken.dot));
     return results;
@@ -2860,6 +2906,7 @@ class _Parser {
       final SourceLocation? start = _getSourceLocation();
       final _Token identifierToken = _source.current;
       _advance();
+      String name = identifier;
       if (_foundSymbol(_SymbolToken.dot)) {
         if (_symbolKeywords.contains(identifier)) {
           throw ParserException._fromToken(
@@ -2867,10 +2914,20 @@ class _Parser {
             identifierToken,
           );
         }
-        return _withSourceRange(
-          SymbolReference(identifier, _readParts()),
-          start,
-        );
+        final List<_Token> partTokens = <_Token>[];
+        final List<Object> parts = _readParts(tokens: partTokens);
+        if (!_foundSymbol(_SymbolToken.doubleColon)) {
+          return _withSourceRange(SymbolReference(identifier, parts), start);
+        }
+        name = _qualifierFrom(<_Token>[identifierToken, ...partTokens]);
+      } else if (_foundSymbol(_SymbolToken.doubleColon)) {
+        name = _qualifierFrom(<_Token>[identifierToken]);
+      }
+      if (_maybeReadSymbol(_SymbolToken.doubleColon)) {
+        name = '$name::${_readQualifiedMember()}';
+        if (_foundSymbol(_SymbolToken.dot)) {
+          return _withSourceRange(SymbolReference(name, _readParts()), start);
+        }
       }
       _expectSymbol(_SymbolToken.openParen);
       final DynamicMap arguments = _readMapBody(
@@ -2878,9 +2935,58 @@ class _Parser {
         widgetBuilderScope: widgetBuilderScope,
       );
       _expectSymbol(_SymbolToken.closeParen);
-      return _withSourceRange(ConstructorCall(identifier, arguments), start);
+      return _withSourceRange(ConstructorCall(name, arguments), start);
     }
     throw ParserException._unexpected(_source.current);
+  }
+
+  /// Joins the parts of a library qualifier (as in `a.b::Widget`).
+  String _qualifierFrom(List<_Token> parts) =>
+      parts.map(_qualifiedNamePart).join('.');
+
+  /// Reads the name after `::`, which follows the rule of qualifier parts.
+  String _readQualifiedMember() {
+    final String name = _qualifiedNamePart(_source.current);
+    _advance();
+    return name;
+  }
+
+  /// A part of a qualified name: an identifier other than
+  /// [_qualifierExcludedWords].
+  String _qualifiedNamePart(_Token part) {
+    if (part is! _IdentifierToken ||
+        _qualifierExcludedWords.contains(part.value)) {
+      throw ParserException._fromToken(
+        'A qualified name may only contain identifiers that are not '
+        'reserved words',
+        part,
+      );
+    }
+    return part.value;
+  }
+
+  /// Reads a widget name, optionally library-qualified (`core::Button`,
+  /// `a.b::Widget`). A dotted name without `::` fails where RFW fails: at the
+  /// first dot, which RFW expects to be "(".
+  String _readQualifiedName() {
+    final List<_Token> parts = <_Token>[_source.current];
+    final String first = _readIdentifier();
+    final _Token firstDot = _source.current;
+    while (_foundSymbol(_SymbolToken.dot)) {
+      _advance();
+      if (_source.current is! _IdentifierToken) {
+        throw ParserException._expected('symbol "("', firstDot);
+      }
+      parts.add(_source.current);
+      _advance();
+    }
+    if (_maybeReadSymbol(_SymbolToken.doubleColon)) {
+      return '${_qualifierFrom(parts)}::${_readQualifiedMember()}';
+    }
+    if (parts.length > 1) {
+      throw ParserException._expected('symbol "("', firstDot);
+    }
+    return first;
   }
 
   WidgetBuilderDeclaration _readWidgetBuilderDeclaration({
@@ -2911,7 +3017,7 @@ class _Parser {
     List<String> widgetBuilderScope = const <String>[],
   }) {
     final SourceLocation? start = _getSourceLocation();
-    final String name = _readIdentifier();
+    final String name = _readQualifiedName();
     _expectSymbol(_SymbolToken.openParen);
     final DynamicMap arguments = _readMapBody(
       extended: true,
@@ -2923,6 +3029,10 @@ class _Parser {
 
   WidgetDeclaration _readWidgetDeclaration() {
     final SourceLocation? start = _getSourceLocation();
+    final bool exported = _foundIdentifier('export');
+    if (exported) {
+      _advance();
+    }
     _expectIdentifier('widget');
     final String name = _readIdentifier();
     DynamicMap? initialState;
@@ -2939,11 +3049,14 @@ class _Parser {
       root = _readConstructorCall();
     }
     _expectSymbol(_SymbolToken.semicolon);
-    return _withSourceRange(WidgetDeclaration(name, initialState, root), start);
+    return _withSourceRange(
+      WidgetDeclaration(name, initialState, root, exported: exported),
+      start,
+    );
   }
 
   Iterable<WidgetDeclaration> _readWidgetDeclarations() sync* {
-    while (_foundIdentifier('widget')) {
+    while (_foundIdentifier('widget') || _foundIdentifier('export')) {
       yield _readWidgetDeclaration();
     }
   }

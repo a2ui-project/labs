@@ -1,0 +1,926 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Conformance cases for the craft_libraries_and_names feature
+# (blueprints/features/craft_libraries_and_names.blueprint.md).
+#
+# Every case has a `name`, a `description`, the `features` it exercises (IDs
+# from conformance/features.yaml) and an `action`; conformance_schema.json
+# lists the fields of each action.
+#
+# action: parse_library   parses `source` as a library file, as in
+#   craft_text_format.yaml. `expect` is either `library` (the canonical JSON
+#   form of the parsed library) or `error` (the source is rejected; `line`,
+#   when given, is the 1-based line the engine reports).
+#
+# action: resolve_names   registers libraries and asks questions about names:
+#   libraries: template libraries, library name -> library source.
+#   primitives: primitive libraries, library name -> list of primitive names.
+#   queries: a list of questions, each with an `expect`:
+#     query: resolve           name (as written) from library `from`, with
+#                              `excluding` naming the declaration being bound;
+#     query: resolveImported   name from `from`'s imports only;
+#     query: catalogComponent  name as a component of `catalog`;
+#       expect: {library, name, kind: template | primitive}, or
+#               {error: notFound | notQualified | notImported | notExported};
+#     query: functionKey       function name from `from`, given the registered
+#                              `functions`; expect: {key: <key or null>};
+#     query: visibleFunctions  from `from`, given the registered `functions`;
+#                              expect: callable name -> registered key;
+#     query: visibleNames      from `from`; expect: name -> resolution, as for
+#                              resolve.
+
+# Qualified names.
+
+- name: qualified_call_names
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description:
+    "lib::Name and a.b::Name parse to widget calls whose name is the qualified string, both as a
+    declaration's root and inside values."
+  source: |
+    import core;
+    import acme.ui;
+    widget root = core::Column(children: [acme.ui::Card(), Text(text: "a")]);
+  expect:
+    library:
+      imports: [core, acme.ui]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: core::Column
+            args:
+              children:
+                - {$: call, name: acme.ui::Card, args: {}}
+                - {$: call, name: Text, args: {text: a}}
+- name: qualifier_in_a_value
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: "Control for the rejected qualifiers below: a dotted qualifier inside a value."
+  source: |
+    import core;
+    widget root = Box(child: a.b::Text());
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root: {$: call, name: Box, args: {child: {$: call, name: a.b::Text, args: {}}}}
+- name: qualifier_in_a_root
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: "Control for the rejected qualifiers below: a dotted qualifier as a declaration's root."
+  source: |
+    import core;
+    widget root = a.b::Text();
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root: {$: call, name: a.b::Text, args: {}}
+- name: whitespace_around_the_separator
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: Whitespace may surround "::", as around other symbols.
+  source: |
+    import core;
+    widget root = Box(child: a.b :: Text());
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root: {$: call, name: Box, args: {child: {$: call, name: a.b::Text, args: {}}}}
+- name: separated_colons_are_not_a_qualifier
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: The two colons of "::" must be adjacent.
+  source: |
+    import core;
+    widget root = Box(child: a.b: :Text());
+  expect:
+    error:
+      line: 2
+- name: integer_qualifier_part_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: A qualifier part must be an identifier, not an integer.
+  source: |
+    import core;
+    widget root = Box(child: a.0::Text());
+  expect:
+    error:
+      line: 2
+- name: string_qualifier_part_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: A qualifier part must be an identifier, not a string.
+  source: |
+    import core;
+    widget root = Box(child: a."b"::Text());
+  expect:
+    error:
+      line: 2
+- name: keyword_qualifier_part_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: A qualifier part cannot be a keyword, here `null`.
+  source: |
+    import core;
+    widget root = Box(child: a.null::Text());
+  expect:
+    error:
+      line: 2
+- name: keyword_qualifier_in_a_value_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: A qualifier cannot start with a keyword, here `default`.
+  source: |
+    import core;
+    widget root = Box(child: default::Text());
+  expect:
+    error:
+      line: 2
+- name: reserved_word_qualifier_in_a_root_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: A qualifier cannot be a reserved word, here `args`.
+  source: |
+    import core;
+    widget root = args::Text();
+  expect:
+    error:
+      line: 2
+- name: switch_qualifier_part_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: "A qualifier part cannot be `switch` (compare qualifier_in_a_value)."
+  source: |
+    import core;
+    widget root = Box(child: a.switch::Text());
+  expect:
+    error:
+      line: 2
+- name: reserved_word_after_the_separator_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: "The name after `::` follows the rule of qualifier parts, so it cannot be a reserved word, here `theme` (compare qualifier_in_a_value)."
+  source: |
+    import core;
+    widget root = Box(child: a.b::theme());
+  expect:
+    error:
+      line: 2
+- name: switch_after_the_separator_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: "The name after `::` cannot be `switch` either, here in a root (compare qualifier_in_a_root)."
+  source: |
+    import core;
+    widget root = a.b::switch();
+  expect:
+    error:
+      line: 2
+- name: keyword_after_the_separator_in_a_symbol_reference_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: "The rule also holds when the qualified name starts a symbol reference, here `null` (compare qualified_symbol_reference)."
+  source: |
+    import core;
+    widget root = Text(text: scan::null.version);
+  expect:
+    error:
+      line: 2
+- name: loop_variable_control
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: "Control for the next case: a call qualified with a library inside a loop."
+  source: |
+    import core;
+    widget root = Column(children: [...for item in data.items: ui::Text()]);
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            {
+              $: call,
+              name: Column,
+              args:
+                {
+                  children:
+                    [
+                      {
+                        $: loop,
+                        input: {$: dataRef, parts: [items]},
+                        output: {$: call, name: ui::Text, args: {}},
+                      },
+                    ],
+                },
+            }
+- name: loop_variable_cannot_start_a_qualifier
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: In a value position, a loop variable in scope reads as a loop reference, so it cannot start a qualifier.
+  source: |
+    import core;
+    widget root = Column(children: [...for ui in data.items: ui::Text()]);
+  expect:
+    error:
+      line: 2
+- name: builder_argument_control
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: Control for the next case, a qualified call inside a widget builder.
+  source: |
+    import core;
+    widget root = List(itemBuilder: (row) => ui::Text());
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: List
+            args:
+              itemBuilder: {$: builder, arg: row, widget: {$: call, name: ui::Text, args: {}}}
+- name: builder_argument_cannot_start_a_qualifier
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: In a value position, a builder argument in scope reads as a reference, so it cannot start a qualifier.
+  source: |
+    import core;
+    widget root = List(itemBuilder: (ui) => ui::Text());
+  expect:
+    error:
+      line: 2
+- name: qualified_symbol_reference
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: A qualified name followed by a dot is a symbol reference whose symbol keeps the qualifier.
+  source: |
+    import scan;
+    widget root = Text(text: scan::Scanner.version);
+  expect:
+    library:
+      imports: [scan]
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text: {$: symbolRef, symbol: scan::Scanner, parts: [version]}
+- name: colons_in_maps_are_unaffected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: A single colon still separates a key from its value, and an unqualified symbol reference is unchanged.
+  source: |
+    import core;
+    widget root = Box(a: Scanner.formats, b: {c: 1});
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: root
+          root:
+            {
+              $: call,
+              name: Box,
+              args:
+                {a: {$: symbolRef, symbol: Scanner, parts: [formats]}, b: {c: {$: int, value: 1}}},
+            }
+- name: dotted_name_without_qualifier_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: As a declaration's root, a dotted name followed by "(" without "::" is not a widget call (compare qualifier_in_a_root).
+  source: |
+    import core;
+    widget root = a.b(x: 1);
+  expect:
+    error:
+      line: 2
+
+- name: dotted_name_in_a_value_without_qualifier_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: In a value position, a dotted name without "::" is a symbol reference, which cannot be followed by "(" (compare qualifier_in_a_value).
+  source: |
+    import core;
+    widget root = Box(child: a.b());
+  expect:
+    error:
+      line: 2
+# The export keyword.
+
+- name: export_keyword
+  action: parse_library
+  features: [F-CRAFT-NAMES-02]
+  description:
+    "`export widget` marks a declaration exported; declarations are private by default, and the
+    canonical form omits `exported` for them. Also the control for the rejected cases below."
+  source: |
+    import core;
+    export widget Card { open: false } = Box();
+    widget Helper = Box();
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: Card
+          exported: true
+          state: {open: false}
+          root: {$: call, name: Box, args: {}}
+        - name: Helper
+          root: {$: call, name: Box, args: {}}
+- name: export_requires_widget
+  action: parse_library
+  features: [F-CRAFT-NAMES-02]
+  description: "`export` must be followed by `widget`."
+  source: |
+    import core;
+    export Card { open: false } = Box();
+  expect:
+    error:
+      line: 2
+- name: export_cannot_repeat
+  action: parse_library
+  features: [F-CRAFT-NAMES-02]
+  description: "`export` must be followed by `widget`, not another `export`."
+  source: |
+    import core;
+    export export widget Card { open: false } = Box();
+  expect:
+    error:
+      line: 2
+- name: export_is_not_reserved
+  action: parse_library
+  features: [F-CRAFT-NAMES-02]
+  description: "`export` is not reserved: it can name a declaration, and that declaration can be called."
+  source: |
+    import core;
+    widget export = Box();
+    widget root = export();
+  expect:
+    library:
+      imports: [core]
+      widgets:
+        - name: export
+          root: {$: call, name: Box, args: {}}
+        - name: root
+          root: {$: call, name: export, args: {}}
+
+# Resolution.
+
+- name: own_declarations_first
+  action: resolve_names
+  features: [F-CRAFT-NAMES-03]
+  description:
+    A library's own declaration, exported or not, shadows core; qualifying with the library's own
+    name also finds it.
+  libraries:
+    main: |
+      import core;
+      widget Text = core::Text(text: "mine");
+      widget root = Text();
+  primitives:
+    core: [Text]
+  queries:
+    - query: resolve
+      from: main
+      name: Text
+      expect: {library: main, name: Text, kind: template}
+    - query: resolve
+      from: main
+      name: main::Text
+      expect: {library: main, name: Text, kind: template}
+    - query: resolve
+      from: main
+      name: core::Text
+      expect: {library: core, name: Text, kind: primitive}
+- name: declaration_never_resolves_to_itself
+  action: resolve_names
+  features: [F-CRAFT-NAMES-03]
+  description:
+    "Inside `widget Button = Button(...)` the name Button skips the declaration being bound and
+    wraps core's Button; another declaration's body still sees the wrapper. A qualified self
+    reference is skipped as well."
+  libraries:
+    main: |
+      import core;
+      widget Button = Button(child: Text(text: "x"));
+      widget Solo = main::Solo();
+      widget root = Button();
+  primitives:
+    core: [Button, Text]
+  queries:
+    - query: resolve
+      from: main
+      name: Button
+      excluding: Button
+      expect: {library: core, name: Button, kind: primitive}
+    - query: resolve
+      from: main
+      name: Button
+      excluding: root
+      expect: {library: main, name: Button, kind: template}
+    - query: resolve
+      from: main
+      name: main::Solo
+      excluding: Solo
+      expect: {error: notFound}
+    - query: resolve
+      from: main
+      name: Solo
+      excluding: Solo
+      expect: {error: notFound}
+- name: core_names_unqualified
+  action: resolve_names
+  features: [F-CRAFT-NAMES-04]
+  description: A library that imports core uses core's names unqualified or as core::Name.
+  libraries:
+    main: |
+      import core;
+      widget root = Text();
+  primitives:
+    core: [Text]
+  queries:
+    - query: resolve
+      from: main
+      name: Text
+      expect: {library: core, name: Text, kind: primitive}
+    - query: resolve
+      from: main
+      name: core::Text
+      expect: {library: core, name: Text, kind: primitive}
+- name: core_must_be_imported
+  action: resolve_names
+  features: [F-CRAFT-NAMES-04]
+  description: Without `import core;` core's names are not visible, qualified or not.
+  libraries:
+    main: |
+      import acme;
+      widget root = acme::Card();
+  primitives:
+    core: [Text]
+    acme: [Card]
+  queries:
+    - query: resolve
+      from: main
+      name: Text
+      expect: {error: notFound}
+    - query: resolve
+      from: main
+      name: core::Text
+      expect: {error: notImported}
+- name: core_template_library
+  action: resolve_names
+  features: [F-CRAFT-NAMES-04]
+  description: Core can be a template library; its exported declarations are then core names.
+  libraries:
+    core: |
+      export widget Card = Box();
+      widget Hidden = Box();
+    main: |
+      import core;
+      widget root = Card();
+  queries:
+    - query: resolve
+      from: main
+      name: Card
+      expect: {library: core, name: Card, kind: template}
+    - query: resolve
+      from: main
+      name: Hidden
+      expect: {error: notFound}
+- name: other_imports_must_be_qualified
+  action: resolve_names
+  features: [F-CRAFT-NAMES-05]
+  description: A name that only a non-core import defines must be qualified.
+  libraries:
+    main: |
+      import core;
+      import maps;
+      widget root = maps::Map();
+  primitives:
+    core: [Text]
+    maps: [Map]
+  queries:
+    - query: resolve
+      from: main
+      name: Map
+      expect: {error: notQualified}
+    - query: resolve
+      from: main
+      name: maps::Map
+      expect: {library: maps, name: Map, kind: primitive}
+- name: core_wins_over_other_imports
+  action: resolve_names
+  features: [F-CRAFT-NAMES-05]
+  description: When core and another import both define a name, the bare name is core's and the other needs its qualifier.
+  libraries:
+    main: |
+      import core;
+      import fancy;
+      widget root = Button();
+  primitives:
+    core: [Button]
+    fancy: [Button]
+  queries:
+    - query: resolve
+      from: main
+      name: Button
+      expect: {library: core, name: Button, kind: primitive}
+    - query: resolve
+      from: main
+      name: fancy::Button
+      expect: {library: fancy, name: Button, kind: primitive}
+- name: ambiguity_between_two_imports
+  action: resolve_names
+  features: [F-CRAFT-NAMES-05]
+  description: A name defined by two non-core imports is an error unqualified; each qualified form picks one.
+  libraries:
+    main: |
+      import core;
+      import acme;
+      import globex;
+      widget root = acme::Badge();
+  primitives:
+    core: [Text]
+    acme: [Badge]
+    globex: [Badge]
+  queries:
+    - query: resolve
+      from: main
+      name: Badge
+      expect: {error: notQualified}
+    - query: resolve
+      from: main
+      name: acme::Badge
+      expect: {library: acme, name: Badge, kind: primitive}
+    - query: resolve
+      from: main
+      name: globex::Badge
+      expect: {library: globex, name: Badge, kind: primitive}
+- name: qualifier_must_be_imported
+  action: resolve_names
+  features: [F-CRAFT-NAMES-05]
+  description: A qualifier must name the calling library or one of its imports, even when that library is registered.
+  libraries:
+    main: |
+      import core;
+      widget root = Text();
+  primitives:
+    core: [Text]
+    maps: [Map]
+  queries:
+    - query: resolve
+      from: main
+      name: maps::Map
+      expect: {error: notImported}
+    - query: resolve
+      from: main
+      name: nowhere::Map
+      expect: {error: notImported}
+- name: qualified_name_looks_only_in_its_library
+  action: resolve_names
+  features: [F-CRAFT-NAMES-05]
+  description: lib::Name looks only in lib; a name it does not define, or a library that is not registered, is not found.
+  libraries:
+    main: |
+      import core;
+      import maps;
+      import missing.lib;
+      widget root = Text();
+  primitives:
+    core: [Text]
+    maps: [Map]
+  queries:
+    - query: resolve
+      from: main
+      name: maps::Text
+      expect: {error: notFound}
+    - query: resolve
+      from: main
+      name: missing.lib::Thing
+      expect: {error: notFound}
+    - query: resolve
+      from: main
+      name: Nope
+      expect: {error: notFound}
+- name: imports_are_not_transitive
+  action: resolve_names
+  features: [F-CRAFT-NAMES-06]
+  description: A library does not see what its imports import, qualified or not.
+  libraries:
+    cards: |
+      import core;
+      import acme;
+      export widget Card = acme::Badge();
+    main: |
+      import core;
+      import cards;
+      widget root = cards::Card();
+  primitives:
+    core: [Text]
+    acme: [Badge]
+  queries:
+    - query: resolve
+      from: main
+      name: Badge
+      expect: {error: notFound}
+    - query: resolve
+      from: main
+      name: acme::Badge
+      expect: {error: notImported}
+    - query: resolve
+      from: main
+      name: cards::Badge
+      expect: {error: notFound}
+    - query: resolve
+      from: cards
+      name: acme::Badge
+      expect: {library: acme, name: Badge, kind: primitive}
+- name: private_declarations
+  action: resolve_names
+  features: [F-CRAFT-NAMES-07]
+  description:
+    Another library's private declaration is an error when qualified and absent when not; its own
+    library uses it freely.
+  libraries:
+    cards: |
+      import core;
+      export widget Card = Secret();
+      widget Secret = Text();
+    main: |
+      import core;
+      import cards;
+      widget root = cards::Card();
+  primitives:
+    core: [Text]
+  queries:
+    - query: resolve
+      from: main
+      name: cards::Card
+      expect: {library: cards, name: Card, kind: template}
+    - query: resolve
+      from: main
+      name: cards::Secret
+      expect: {error: notExported}
+    - query: resolve
+      from: main
+      name: Secret
+      expect: {error: notFound}
+    - query: resolve
+      from: cards
+      name: Secret
+      expect: {library: cards, name: Secret, kind: template}
+    - query: resolve
+      from: cards
+      name: cards::Secret
+      expect: {library: cards, name: Secret, kind: template}
+- name: resolve_imported_ignores_own_declarations
+  action: resolve_names
+  features: [F-CRAFT-NAMES-08]
+  description: Resolving among imports only skips the library's own declarations, bare or qualified.
+  libraries:
+    main: |
+      import core;
+      import maps;
+      widget Button = Button();
+      widget root = Button();
+  primitives:
+    core: [Button]
+    maps: [Map]
+  queries:
+    - query: resolveImported
+      from: main
+      name: Button
+      expect: {library: core, name: Button, kind: primitive}
+    - query: resolveImported
+      from: main
+      name: main::Button
+      expect: {error: notFound}
+    - query: resolveImported
+      from: main
+      name: maps::Map
+      expect: {library: maps, name: Map, kind: primitive}
+    - query: resolveImported
+      from: main
+      name: Map
+      expect: {error: notQualified}
+- name: resolving_from_a_primitive_library
+  action: resolve_names
+  features: [F-CRAFT-NAMES-09]
+  description: From a primitive library, a bare name resolves among that library's own primitives only.
+  primitives:
+    core: [Text, Column]
+    maps: [Map]
+  queries:
+    - query: resolve
+      from: core
+      name: Text
+      expect: {library: core, name: Text, kind: primitive}
+    - query: resolve
+      from: core
+      name: core::Column
+      expect: {library: core, name: Column, kind: primitive}
+    - query: resolveImported
+      from: core
+      name: Text
+      expect: {library: core, name: Text, kind: primitive}
+    - query: resolveImported
+      from: core
+      name: core::Text
+      expect: {library: core, name: Text, kind: primitive}
+    - query: resolve
+      from: core
+      name: Map
+      expect: {error: notFound}
+    - query: resolve
+      from: core
+      name: maps::Map
+      expect: {error: notImported}
+- name: catalog_components_are_exported_declarations
+  action: resolve_names
+  features: [F-CRAFT-NAMES-10]
+  description: A template library used as a catalog offers only its own exported declarations, never private ones or its imports.
+  libraries:
+    catalog: |
+      import core;
+      export widget Card = Text();
+      widget Helper = Text();
+  primitives:
+    core: [Text]
+  queries:
+    - query: catalogComponent
+      catalog: catalog
+      name: Card
+      expect: {library: catalog, name: Card, kind: template}
+    - query: catalogComponent
+      catalog: catalog
+      name: Helper
+      expect: {error: notExported}
+    - query: catalogComponent
+      catalog: catalog
+      name: Text
+      expect: {error: notFound}
+    - query: catalogComponent
+      catalog: nowhere
+      name: Card
+      expect: {error: notFound}
+- name: primitive_library_as_catalog
+  action: resolve_names
+  features: [F-CRAFT-NAMES-10]
+  description: A primitive library used as a catalog offers all its primitives.
+  primitives:
+    core: [Text, Button]
+  queries:
+    - query: catalogComponent
+      catalog: core
+      name: Button
+      expect: {library: core, name: Button, kind: primitive}
+    - query: catalogComponent
+      catalog: core
+      name: Card
+      expect: {error: notFound}
+- name: function_keys
+  action: resolve_names
+  features: [F-CRAFT-NAMES-11]
+  description:
+    Standard functions are called bare or as core::name from any library; a host function is called
+    by its qualified key, only from a library that imports its library.
+  libraries:
+    main: |
+      import core;
+      import fmt;
+      widget root = Text();
+    other: |
+      import core;
+      widget root = Text();
+    fmt: |
+      import core;
+      widget root = Text();
+    nocore: |
+      import fmt;
+      widget root = fmt::Text();
+  primitives:
+    core: [Text]
+  queries:
+    - query: functionKey
+      from: main
+      name: add
+      functions: [add, fmt::price]
+      expect: {key: add}
+    - query: functionKey
+      from: main
+      name: core::add
+      functions: [add, fmt::price]
+      expect: {key: add}
+    - query: functionKey
+      from: other
+      name: add
+      functions: [add, fmt::price]
+      expect: {key: add}
+    - query: functionKey
+      from: main
+      name: fmt::price
+      functions: [add, fmt::price]
+      expect: {key: fmt::price}
+    - query: functionKey
+      from: main
+      name: price
+      functions: [add, fmt::price]
+      expect: {key: null}
+    - query: functionKey
+      from: other
+      name: fmt::price
+      functions: [add, fmt::price]
+      expect: {key: null}
+    - query: functionKey
+      from: fmt
+      name: fmt::price
+      functions: [add, fmt::price]
+      expect: {key: fmt::price}
+    - query: functionKey
+      from: main
+      name: sub
+      functions: [add, fmt::price]
+      expect: {key: null}
+    - query: functionKey
+      from: main
+      name: core::price
+      functions: [add, fmt::price]
+      expect: {key: null}
+    - query: functionKey
+      from: nocore
+      name: core::add
+      functions: [add, fmt::price]
+      expect: {key: add}
+    - query: functionKey
+      from: main
+      name: core::x
+      functions: [core::x]
+      expect: {key: null}
+    - query: functionKey
+      from: main
+      name: x
+      functions: [core::x]
+      expect: {key: null}
+- name: visible_functions
+  action: resolve_names
+  features: [F-CRAFT-NAMES-11]
+  description: The callable function names of a library, each mapped to its registered key. A key qualified with core is never callable.
+  libraries:
+    main: |
+      import core;
+      import fmt;
+      widget root = Text();
+  queries:
+    - query: visibleFunctions
+      from: main
+      functions: [add, fmt::price, geo::dist, core::x]
+      expect:
+        add: add
+        core::add: add
+        fmt::price: fmt::price
+- name: visible_names
+  action: resolve_names
+  features: [F-CRAFT-NAMES-12]
+  description:
+    Every name a library and its imports define, bare and qualified, with its resolution from the
+    library.
+  libraries:
+    main: |
+      import core;
+      import maps;
+      widget Text = core::Text();
+  primitives:
+    core: [Text, Column]
+    maps: [Map]
+  queries:
+    - query: visibleNames
+      from: main
+      expect:
+        core::Text: {library: core, name: Text, kind: primitive}
+        core::Column: {library: core, name: Column, kind: primitive}
+        Text: {library: main, name: Text, kind: template}
+        Column: {library: core, name: Column, kind: primitive}
+        maps::Map: {library: maps, name: Map, kind: primitive}
+        Map: {error: notQualified}
+        main::Text: {library: main, name: Text, kind: template}
