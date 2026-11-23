@@ -221,3 +221,81 @@
   blueprintAnchor: blueprints/features/craft_language_extensions.blueprint.md#6-binary-round-trip
   claimedBy:
     - dart-craft
+- id: F-CRAFT-FUNC-01
+  title: "Functions: values"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#1-values
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#1-values
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-02
+  title: "Functions: absent and call"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#2-absent-and-call
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#2-absent-and-call
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-03
+  title: "Functions: function or widget"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#3-function-or-widget
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#3-function-or-widget
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-04
+  title: "Functions: arguments"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#4-arguments
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#4-arguments
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-05
+  title: "Functions: host functions"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#5-host-functions
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#5-host-functions
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-06
+  title: "Functions: errors"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#6-errors
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#6-errors
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-07
+  title: "Functions: numbers"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#7-numbers
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#7-numbers
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-08
+  title: "Functions: arithmetic"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#8-arithmetic
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#8-arithmetic
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-09
+  title: "Functions: comparison and equality"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#9-comparison-and-equality
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#9-comparison-and-equality
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-10
+  title: "Functions: logic"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#10-logic
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#10-logic
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-11
+  title: "Functions: strings"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#11-strings
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#11-strings
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-12
+  title: "Functions: lists"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#12-lists
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#12-lists
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-FUNC-13
+  title: "Functions: optional values"
+  specAnchor: blueprints/features/craft_functions.blueprint.md#13-optional-values
+  blueprintAnchor: blueprints/features/craft_functions.blueprint.md#13-optional-values
+  claimedBy:
+    - dart-craft
