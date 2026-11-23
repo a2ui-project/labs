@@ -353,3 +353,81 @@
   blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#9-offered-components
   claimedBy:
     - dart-craft
+- id: F-CRAFT-RT-01
+  title: "Runtime: expansion"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#1-expansion
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#1-expansion
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-02
+  title: "Runtime: expansion tree"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#2-expansion-tree
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#2-expansion-tree
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-03
+  title: "Runtime: primitive calls"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#3-primitive-calls
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#3-primitive-calls
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-04
+  title: "Runtime: template calls"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#4-template-calls
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#4-template-calls
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-05
+  title: "Runtime: references and values"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#5-references-and-values
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#5-references-and-values
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-06
+  title: "Runtime: lists and loops"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#6-lists-and-loops
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#6-lists-and-loops
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-07
+  title: "Runtime: switches"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#7-switches
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#7-switches
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-08
+  title: "Runtime: handlers"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#8-handlers
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#8-handlers
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-09
+  title: "Runtime: firing"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#9-firing
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#9-firing
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-10
+  title: "Runtime: local state"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#10-local-state
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#10-local-state
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-11
+  title: "Runtime: widget builders"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#11-widget-builders
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#11-widget-builders
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-12
+  title: "Runtime: errors"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#12-errors
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#12-errors
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-RT-13
+  title: "Runtime: updates"
+  specAnchor: blueprints/features/craft_runtime.blueprint.md#13-updates
+  blueprintAnchor: blueprints/features/craft_runtime.blueprint.md#13-updates
+  claimedBy:
+    - dart-craft

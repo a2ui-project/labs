@@ -235,7 +235,7 @@ class _Evaluation {
       declaration: declaration,
     )) {
       case AbsentCall():
-        _checkArguments(call, const <String>{});
+        checkCallArguments(call, const <String>{});
         return missing;
       case HandlerApplication() || WidgetCall():
         throw EvaluationException(
@@ -251,39 +251,56 @@ class _Evaluation {
       case FunctionCall(key: final String functionKey):
         key = functionKey;
     }
-    final FunctionRegistry functions = evaluator.functions;
-    final LocalFunction function = functions[key]!;
-    _checkArguments(call, function.arguments.keys.toSet());
-    final Map<String, Object> values = <String, Object>{
+    final LocalFunction function = evaluator.functions[key]!;
+    checkCallArguments(call, function.arguments.keys.toSet());
+    return invokeFunction(key, function, <String, Object>{
       for (final MapEntry<String, Object?> e in call.arguments.entries)
         e.key: eval(e.value),
-    };
-    final DynamicMap arguments = <String, Object?>{};
-    for (final MapEntry<String, FunctionArgType> parameter
-        in function.arguments.entries) {
-      final Object value = values[parameter.key] ?? missing;
-      if (value is! Missing && !parameter.value.accepts(value)) return missing;
-      arguments[parameter.key] = value;
-    }
-    try {
-      return toValue(function.implementation(arguments));
-    } catch (error) {
+    });
+  }
+}
+
+/// Throws an [EvaluationException] of kind
+/// [EvaluationErrorKind.invalidArgument] when [call] passes an argument that
+/// is not among [parameters].
+void checkCallArguments(ConstructorCall call, Set<String> parameters) {
+  for (final String argument in call.arguments.keys) {
+    if (!parameters.contains(argument)) {
       throw EvaluationException(
-        EvaluationErrorKind.functionFailed,
-        'Function $key failed: $error',
+        EvaluationErrorKind.invalidArgument,
+        '${call.name} has no argument named $argument. '
+        '${parameters.isEmpty ? 'It takes none.' : 'It takes ${parameters.join(', ')}.'}',
       );
     }
   }
+}
 
-  static void _checkArguments(ConstructorCall call, Set<String> parameters) {
-    for (final String argument in call.arguments.keys) {
-      if (!parameters.contains(argument)) {
-        throw EvaluationException(
-          EvaluationErrorKind.invalidArgument,
-          '${call.name} has no argument named $argument. '
-          '${parameters.isEmpty ? 'It takes none.' : 'It takes ${parameters.join(', ')}.'}',
-        );
-      }
-    }
+/// Calls [function], registered as [key], with the evaluated arguments
+/// [values] (see the `craft_functions` blueprint, requirements 4 and 5): absent
+/// when an argument is present and not of its parameter's kind, otherwise
+/// the function's result as a value.
+///
+/// Throws an [EvaluationException] of kind
+/// [EvaluationErrorKind.functionFailed] when the function throws or returns
+/// something that is not a value.
+Object invokeFunction(
+  String key,
+  LocalFunction function,
+  Map<String, Object> values,
+) {
+  final DynamicMap arguments = <String, Object?>{};
+  for (final MapEntry<String, FunctionArgType> parameter
+      in function.arguments.entries) {
+    final Object value = values[parameter.key] ?? missing;
+    if (value is! Missing && !parameter.value.accepts(value)) return missing;
+    arguments[parameter.key] = value;
+  }
+  try {
+    return toValue(function.implementation(arguments));
+  } catch (error) {
+    throw EvaluationException(
+      EvaluationErrorKind.functionFailed,
+      'Function $key failed: $error',
+    );
   }
 }
