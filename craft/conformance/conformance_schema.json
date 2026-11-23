@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://a2ui.org/conformance/craft/conformance_schema.json",
+  "title": "Craft Conformance Test Suite Schema",
+  "description": "JSON schema validating the Craft conformance test suites in craft/.",
+  "type": "array",
+  "minItems": 1,
+  "items": {
+    "$ref": "#/$defs/CraftTestCase"
+  },
+  "$defs": {
+    "CraftTestCase": {
+      "type": "object",
+      "required": ["action"],
+      "properties": {
+        "action": {
+          "enum": ["parse_library", "parse_data"],
+          "description": "The conformance test action to perform."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "parse_library"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftParseLibraryTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "parse_data"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftParseDataTest"
+          }
+        }
+      ]
+    },
+    "CraftFeatureTags": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^F-CRAFT-[A-Z0-9]+-[0-9]{2}$"
+      },
+      "description": "Feature registry IDs (features.yaml) exercised by this test case."
+    },
+    "CraftCaseMetadata": {
+      "type": "object",
+      "required": ["name", "action", "features", "description"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "features": {
+          "$ref": "#/$defs/CraftFeatureTags"
+        },
+        "action": {
+          "type": "string"
+        }
+      },
+      "description": "The fields every Craft test case has."
+    },
+    "CraftSource": {
+      "type": "string",
+      "description": "A library file or a data file in the Craft text format."
+    },
+    "CraftLibrarySources": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/$defs/CraftSource"
+      },
+      "description": "Template libraries: library name (dotted) -> library source."
+    },
+    "CraftPath": {
+      "type": "array",
+      "items": {
+        "type": ["string", "integer"]
+      },
+      "description": "Argument names, map keys and list indexes from the root node of an expansion."
+    },
+    "CraftParseError": {
+      "type": "object",
+      "properties": {
+        "line": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false,
+      "description": "The source is rejected; line, when given, is the 1-based line the engine reports."
+    },
+    "CraftParseLibraryTest": {
+      "type": "object",
+      "description": "Parses source as a library file and compares its canonical JSON form, or expects a rejection.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "parse_library"
+        },
+        "source": {
+          "$ref": "#/$defs/CraftSource"
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/CraftSource"
+          },
+          "description": "Several sources, each of which must meet the expectation."
+        },
+        "expect": {
+          "type": "object",
+          "properties": {
+            "library": {},
+            "error": {
+              "$ref": "#/$defs/CraftParseError"
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1,
+          "maxProperties": 1
+        }
+      },
+      "required": ["expect"],
+      "unevaluatedProperties": false,
+      "oneOf": [
+        {
+          "required": ["source"]
+        },
+        {
+          "required": ["sources"]
+        }
+      ]
+    },
+    "CraftParseDataTest": {
+      "type": "object",
+      "description": "Parses source as a data file and compares its canonical JSON form, or expects a rejection.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "parse_data"
+        },
+        "source": {
+          "$ref": "#/$defs/CraftSource"
+        },
+        "sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/CraftSource"
+          },
+          "description": "Several sources, each of which must meet the expectation."
+        },
+        "expect": {
+          "type": "object",
+          "properties": {
+            "data": {},
+            "error": {
+              "$ref": "#/$defs/CraftParseError"
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1,
+          "maxProperties": 1
+        }
+      },
+      "required": ["expect"],
+      "unevaluatedProperties": false,
+      "oneOf": [
+        {
+          "required": ["source"]
+        },
+        {
+          "required": ["sources"]
+        }
+      ]
+    }
+  }
+}
