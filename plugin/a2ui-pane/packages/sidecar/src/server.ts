@@ -320,7 +320,8 @@ export function createSidecarServer(
     injectedDeps,
     activeStreams: new Map<string, number>(),
   };
-  const wss = new WebSocketServer({noServer: true});
+  // The stream is server-to-client push only; cap client payload size to 4 KiB.
+  const wss = new WebSocketServer({noServer: true, maxPayload: 4096});
   const server = http.createServer((req: IncomingMessage, res: ServerResponse) =>
     handleRequest(req, res, ctx),
   );

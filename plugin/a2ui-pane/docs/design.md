@@ -107,17 +107,17 @@ sequenceDiagram
 
 The repository is organized as Yarn workspaces under `packages/*`:
 
-| Package               | Purpose                                                                                                             | Dependencies                                              |
-| :-------------------- | :------------------------------------------------------------------------------------------------------------------ | :-------------------------------------------------------- |
-| `packages/protocol`   | Store line types, the surface fold, SSE stream events, action formatting, and the node-only `store-fs` store.       | None                                                      |
-| `packages/theme`      | CSS stylesheet and utilities mapping host tokens (`--background`, `--card`, `--primary`, `--border`) to `--a2ui-*`. | None                                                      |
-| `packages/renderer`   | Lit multi-surface container (`<a2ui-pane-view>`) wrapping `@a2ui/lit` and `@a2ui/web_core`.                         | `protocol`, `theme`, `@a2ui/lit`, `@a2ui/web_core`        |
-| `packages/pane-app`   | Standalone Vite SPA loaded in the AuxPane iframe; consumes WebSocket stream with SSE fallback.                      | `renderer`, `protocol`                                    |
-| `packages/embed`      | Self-contained IIFE bundle for inline `<agent-embed>` cards.                                                        | `renderer`, `protocol`                                    |
-| `packages/sidecar`    | Standalone Node HTTP server serving the pane app, WebSocket/SSE updates, and action dispatching.                    | `protocol`, `ws`                                          |
-| `packages/mcp-server` | Stdio MCP server bundling validation, store writing, and prompt generation.                                         | `protocol`, `@a2ui/web_core`, `@modelcontextprotocol/sdk` |
-| `plugin/`             | Output directory symlinked into `~/.gemini/config/plugins/a2ui-pane`.                                               | Build outputs + manifests                                 |
-| `catalogs/`           | Bundled A2UI component catalog schemas.                                                                             | None                                                      |
+| Package               | Purpose                                                                                                                     | Dependencies                                              |
+| :-------------------- | :-------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------- |
+| `packages/protocol`   | Store line types, the surface fold, WebSocket and SSE stream events, action formatting, and the node-only `store-fs` store. | None                                                      |
+| `packages/theme`      | CSS stylesheet and utilities mapping host tokens (`--background`, `--card`, `--primary`, `--border`) to `--a2ui-*`.         | None                                                      |
+| `packages/renderer`   | Lit multi-surface container (`<a2ui-pane-view>`) wrapping `@a2ui/lit` and `@a2ui/web_core`.                                 | `protocol`, `theme`, `@a2ui/lit`, `@a2ui/web_core`        |
+| `packages/pane-app`   | Standalone Vite SPA loaded in the AuxPane iframe; consumes WebSocket stream with SSE fallback.                              | `renderer`, `protocol`                                    |
+| `packages/embed`      | Self-contained IIFE bundle for inline `<agent-embed>` cards.                                                                | `renderer`, `protocol`                                    |
+| `packages/sidecar`    | Standalone Node HTTP server serving the pane app, WebSocket/SSE updates, and action dispatching.                            | `protocol`, `ws`                                          |
+| `packages/mcp-server` | Stdio MCP server bundling validation, store writing, and prompt generation.                                                 | `protocol`, `@a2ui/web_core`, `@modelcontextprotocol/sdk` |
+| `plugin/`             | Output directory symlinked into `~/.gemini/config/plugins/a2ui-pane`.                                                       | Build outputs + manifests                                 |
+| `catalogs/`           | Bundled A2UI component catalog schemas.                                                                                     | None                                                      |
 
 ---
 
@@ -155,7 +155,7 @@ The on-disk contract, including the lock protocol that the Python `/monitor` wri
   - The legacy `reset` event is still understood by the pane for one release, but the sidecar no longer sends it.
 - Pane client transport & visibility lifecycle (`StreamClient` and `main.ts`):
   - Hidden hoisted iframes (such as unused `/?full=1` Full Pane slots or inactive conversations mounted with `0x0` dimensions) do not open a stream until first shown, holding 0 sockets while unused.
-  - `StreamClient` attempts WebSocket first with a 3 s handshake timeout. If the first attempt fails or times out before opening, it latches SSE mode immediately for that page and connects to `/api/stream`. Transient drops after a successful WebSocket open retry WebSocket and fall back to SSE only after 3 consecutive failed reconnects.
+  - `StreamClient` attempts WebSocket first with a 3 s handshake timeout. If the first attempt fails or times out before opening, it latches SSE mode immediately for that page and connects to `/api/stream`. Once a WebSocket has opened, transient drops keep retrying WebSocket so a prolonged sidecar restart cannot downgrade active panes back onto the HTTP/1.1 pool.
   - Once connected over WebSocket, the pane stays connected across iframe hide and window minimize (eliminating status-badge flicker and stale-frame paint on re-show) and disconnects on `pagehide` (reconnecting on `pageshow` when `persisted`).
   - When running on the HTTP/1.1 SSE fallback, the pane disconnects immediately on iframe hide (`0x0` / `display: none`) and `document.visibilityState === 'hidden'` before posting `POST /api/visibility {visible: false}`, and suppresses the `Offline` badge while paused with a 250 ms resume grace timer so fast localhost reconnects stay `Live`.
 - `POST /api/surfaces/delete` (token-checked) with `{conversationId, surfaceId, reason}` unlinks one surface file under the async lock. It returns `200 {deleted}`, or `423` when the lock is busy.

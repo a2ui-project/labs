@@ -803,26 +803,27 @@ describe('StreamClient', () => {
       client.disconnect();
     });
 
-    it('falls back to SSE after three consecutive WebSocket failures', () => {
+    it('stays on WebSocket across prolonged outages after a prior open and recovers on WebSocket', () => {
       vi.useFakeTimers();
       const {client, transports} = setup();
       client.connect();
       lastWs().triggerOpen();
 
-      lastWs().triggerClose();
-      vi.advanceTimersByTime(500);
-      lastWs().triggerError();
-      lastWs().triggerClose();
-      vi.advanceTimersByTime(500);
-      expect(MockWebSocket.instances).toHaveLength(3);
+      // Simulate a sidecar restart lasting longer than 3 failed reconnect attempts.
+      for (let i = 0; i < 4; i++) {
+        lastWs().triggerError();
+        lastWs().triggerClose();
+        vi.advanceTimersByTime(500);
+      }
+      expect(MockWebSocket.instances).toHaveLength(5);
       expect(MockEventSource.instances).toHaveLength(0);
+      expect(transports).toEqual(['websocket']);
 
-      lastWs().triggerClose();
-      expect(transports).toEqual(['websocket', 'sse']);
-      expect(MockEventSource.instances).toHaveLength(1);
-
-      vi.advanceTimersByTime(10_000);
-      expect(MockWebSocket.instances).toHaveLength(3);
+      // Sidecar comes back up: client reconnects cleanly over WebSocket.
+      lastWs().triggerOpen();
+      expect(client.getTransport()).toBe('websocket');
+      expect(client.getStatus()).toBe('connected');
+      expect(MockEventSource.instances).toHaveLength(0);
       client.disconnect();
     });
 

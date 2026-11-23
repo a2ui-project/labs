@@ -783,24 +783,23 @@ describe('initPaneApp', () => {
 
     it('disconnects at once when the stream falls back to SSE while hidden', async () => {
       const {client, sockets, streams} = await initWith('conv_fallback_hidden', true);
-      sockets()[0].triggerOpen();
-      hide();
-      vi.useFakeTimers();
 
-      // Three consecutive WebSocket failures switch the client to SSE.
+      // Pane becomes hidden before the initial WebSocket handshake rejects.
+      Object.defineProperty(window, 'innerWidth', {value: 0, configurable: true});
+      Object.defineProperty(window, 'innerHeight', {value: 0, configurable: true});
+
+      // Pre-open WebSocket failure switches to SSE; onTransportChange sees hidden and disconnects.
       sockets()[0].triggerClose();
-      vi.advanceTimersByTime(3_000);
-      sockets()[1].triggerClose();
-      vi.advanceTimersByTime(3_000);
-      sockets()[2].triggerClose();
 
       expect(client.getTransport()).toBe('sse');
       expect(client.getStatus()).toBe('disconnected');
       expect(streams()).toHaveLength(0);
 
+      // Deferred resize settles visibility to hidden, then showing opens the SSE fallback.
+      hide();
       show();
       expect(streams()).toHaveLength(1);
-      expect(sockets()).toHaveLength(3);
+      expect(sockets()).toHaveLength(1);
     });
 
     it('keeps the badge Live across a long hide when the stream resumes quickly', async () => {

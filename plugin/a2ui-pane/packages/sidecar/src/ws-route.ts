@@ -79,10 +79,10 @@ export function handleWsStream(
   const unsubscribe = notifier.subscribe(conversationId, () => {
     try {
       const update = storeReader.diff(conversationId, known);
-      known = update.known;
       for (const line of update.lines) {
         sendIfOpen(ws, formatWsEvent({type: 'line', line}));
       }
+      known = update.known;
     } catch (err) {
       console.error(`[ws-route] Error processing update for ${conversationId}:`, err);
     }
@@ -91,8 +91,8 @@ export function handleWsStream(
   // 2. Send the complete current set of surfaces.
   try {
     const lines = storeReader.snapshot(conversationId);
-    known = knownFromLines(lines);
     sendIfOpen(ws, formatWsEvent({type: 'snapshot', lines}));
+    known = knownFromLines(lines);
   } catch (err) {
     // The next tick's diff sends every surface, because `known` is still empty.
     console.error(`[ws-route] Error reading snapshot for ${conversationId}:`, err);

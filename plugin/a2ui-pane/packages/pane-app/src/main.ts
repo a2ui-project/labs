@@ -328,7 +328,7 @@ function setupVisibilityTracking(
     reannounce: () => {
       syncVisibility(true);
     },
-    isVisible: () => lastVisible,
+    isVisible: () => isCurrentlyVisible(),
   };
 }
 

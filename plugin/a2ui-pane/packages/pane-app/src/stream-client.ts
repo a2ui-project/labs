@@ -48,9 +48,6 @@ export const BUILD_RELOAD_STORAGE_KEY = 'a2ui-pane:last-build-reload';
  */
 export const DEFAULT_WS_CONNECT_TIMEOUT_MS = 3_000;
 
-/** Number of consecutive WebSocket failures, after one opened, that switch the client to SSE. */
-export const MAX_CONSECUTIVE_WS_FAILURES = 3;
-
 const DEFAULT_RECONNECT_DELAY_MS = 3_000;
 
 /** The subset of `Storage` the reload guard needs; `sessionStorage` satisfies it. */
@@ -157,9 +154,9 @@ export function resolveWsUrl(
  * The client prefers a WebSocket (`/api/ws`) and falls back to Server-Sent
  * Events (`/api/stream`). A WebSocket that fails before it ever opens (or
  * stays in `CONNECTING` past the handshake timeout) switches the client to SSE
- * at once. After a WebSocket has opened, drops reconnect over WebSocket, and
- * `MAX_CONSECUTIVE_WS_FAILURES` failures in a row switch the client to SSE.
- * The switch to SSE lasts for the life of the client.
+ * at once for the life of the client. Once a WebSocket has opened, subsequent
+ * drops keep retrying WebSocket so a prolonged sidecar restart cannot downgrade
+ * active panes back onto the HTTP/1.1 connection pool.
  *
  * Each connection starts with a `snapshot` event that lists every live surface; the client
  * reconciles the processor with it, which removes surfaces deleted while it was disconnected.
@@ -180,7 +177,6 @@ export class StreamClient {
   private wsHandshakeTimer: ReturnType<typeof setTimeout> | null = null;
   private wsDisabled = false;
   private everOpenedWs = false;
-  private consecutiveWsFailures = 0;
   private knownBuildId: string | null = null;
   private memoryLastReload = 0;
 
@@ -376,7 +372,6 @@ export class StreamClient {
   private handleWsOpen(): void {
     this.clearHandshakeTimer();
     this.everOpenedWs = true;
-    this.consecutiveWsFailures = 0;
     this.setTransport('websocket');
     if (this.closedExplicitly) return;
     void this.checkBuild();
@@ -408,11 +403,6 @@ export class StreamClient {
   private handleWsFailure(evt: Event | Error): void {
     if (this.closedExplicitly) return;
     if (!this.everOpenedWs) {
-      this.fallBackToSse();
-      return;
-    }
-    this.consecutiveWsFailures += 1;
-    if (this.consecutiveWsFailures >= MAX_CONSECUTIVE_WS_FAILURES) {
       this.fallBackToSse();
       return;
     }
