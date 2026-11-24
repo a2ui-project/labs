@@ -1,0 +1,227 @@
+{
+  "request": "Which newsletters can I subscribe to? Show them on a card.",
+  "responses": [
+    [
+      {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "functionCall": {
+                    "name": "listNewsletters",
+                    "args": {},
+                    "id": "call_11426420479476696983"
+                  },
+                  "thoughtSignature": "EuQDCuEDAWkUfROY5UUgndAeJNd6irwCSyWZGoDFRzaLTVJNm+L4NHqEVTYOpB6TS3SFiLKaB2bs4SQcj/+2ANCb1o9iCZf9czxgaLeetzboHJzLhOIxFl4gOo6nF58s0dEWHJLL71UHG0/3wUdrReFgwQqVhPZP0njW2JzgBdy/JuTSv5YxiLQFMURQsl3qOiMEeGE1wrGKLJ2WMns5rBnO/t4TO6zi3KVs8w1U0QDtsHtJZLYkAa1kBtfzwtGN94fLtYFqOddbm0XIrGe+vPfKxuvFcT2QO/CeEVuca7lfeGa0rQUe4h8ET1mFXSOU5V0thbaZkWvT74HcB/pBF4i5e60HVddLmQ05oC2vdOyXQxjY23tq0GfOobVOiEQiV8G542R24fwbVHLoZIvtBTccMkGy82v/LgZzjDjBnekBIdy+aXXo8KysKxFNH54sGSdfgrh9tQGX9F7UP28xqKeKZPE9HaIMmxGtEmsbm+xn3qbJsU4RFSeRt6ulms0fwjbq8MuJNwm3B2lQi1suep5MMSzLXRcrJiultphkW7DnZ1wsx1ASAyV9r6jtAxQuosSlcPXzoVX7mOGi+msz0q6I8RaFt2moO2I+5kRX5o+8nU8dTqp0lu5c8ZbJKpmbWRkZWsFWhQ=="
+                }
+              ],
+              "role": "model"
+            },
+            "index": 0
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 6558,
+          "candidatesTokenCount": 10,
+          "totalTokenCount": 6646,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 6558
+            }
+          ],
+          "thoughtsTokenCount": 78,
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.6-flash",
+        "responseId": "ukP3aqKmG-CjvdIP-uz50Ac"
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "text": ""
+                }
+              ],
+              "role": "model"
+            },
+            "finishReason": "STOP",
+            "index": 0
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 6558,
+          "candidatesTokenCount": 10,
+          "totalTokenCount": 6646,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 6558
+            }
+          ],
+          "thoughtsTokenCount": 78,
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.6-flash",
+        "responseId": "ukP3aqKmG-CjvdIP-uz50Ac"
+      }
+    ],
+    [
+      {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "text": "Here are the newsletters available for subscription.\n\n<a2ui>\nsurface(\"newsletters-card\")\n$/"
+                }
+              ],
+              "role": "model"
+            },
+            "index": 0
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 6586,
+          "candidatesTokenCount": 24,
+          "totalTokenCount": 7347,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 6586
+            }
+          ],
+          "thoughtsTokenCount": 737,
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.6-flash",
+        "responseId": "u0P3apyxKOv3xN8P6JLquQc"
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "text": "newsletters = [{name: \"Weekly digest\"}]\nroot = Card(cardContent)\ncardContent = Column"
+                }
+              ],
+              "role": "model"
+            },
+            "index": 0
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 6586,
+          "candidatesTokenCount": 48,
+          "totalTokenCount": 7371,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 6586
+            }
+          ],
+          "thoughtsTokenCount": 737,
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.6-flash",
+        "responseId": "u0P3apyxKOv3xN8P6JLquQc"
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "text": "([headerText, newsletterList])\nheaderText = Text(\"Available Newsletters\")\nnewsletterList = List(_template($/"
+                }
+              ],
+              "role": "model"
+            },
+            "index": 0
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 6586,
+          "candidatesTokenCount": 74,
+          "totalTokenCount": 7397,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 6586
+            }
+          ],
+          "thoughtsTokenCount": 737,
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.6-flash",
+        "responseId": "u0P3apyxKOv3xN8P6JLquQc"
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "text": "newsletters, itemTemplate))\nitemTemplate = Text($name)\n</a2ui>"
+                }
+              ],
+              "role": "model"
+            },
+            "index": 0
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 6586,
+          "candidatesTokenCount": 94,
+          "totalTokenCount": 7417,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 6586
+            }
+          ],
+          "thoughtsTokenCount": 737,
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.6-flash",
+        "responseId": "u0P3apyxKOv3xN8P6JLquQc"
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "parts": [
+                {
+                  "text": "",
+                  "thoughtSignature": "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"
+                }
+              ],
+              "role": "model"
+            },
+            "finishReason": "STOP",
+            "index": 0
+          }
+        ],
+        "usageMetadata": {
+          "promptTokenCount": 6664,
+          "candidatesTokenCount": 94,
+          "totalTokenCount": 7495,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 6664
+            }
+          ],
+          "thoughtsTokenCount": 737,
+          "serviceTier": "standard"
+        },
+        "modelVersion": "gemini-3.6-flash",
+        "responseId": "u0P3apyxKOv3xN8P6JLquQc"
+      }
+    ]
+  ]
+}

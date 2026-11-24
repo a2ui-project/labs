@@ -1,0 +1,35 @@
+{
+  "request": "Show one surface for the top of the home screen, in a block that starts with surface(\"home-1\"). Write no text outside the block. Today is 2026-11-13. Bind $/today and $/selected_count and show each value.",
+  "responses": [
+    [
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [
+                {
+                  "text": "<a2ui>\nsurface(\"home-1\")\nroot = Card(col)\ncol = Column([d, n])\nd = Text($/today)\n"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [
+                {
+                  "text": "n = Text($/selected_count)\n</a2ui>"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  ]
+}

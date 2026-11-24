@@ -1,0 +1,187 @@
+{
+  "request": "Show a newsletter sign-up form with an email field and a \"Subscribe\" button.",
+  "responses": [
+    [
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"functionCall": {"name": "listNewsletters", "args": {}}}]
+            }
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "Here is a sign-up form for the newsletter.\n\n<"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "a2ui>\nsurface(\"newsletter-signup\", sendDataMo"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "del=true)\n$/email = \"\"\nroot = Card(body)\nbody"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": " = Column([title, digest, emailInput, subscri"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "beBtn])\ntitle = Text(\"Subscribe to our newsle"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "tter\")\ndigest = StatusBadge(\"Weekly digest\", "}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "\"info\")\nemailInput = TextField(\"Email address"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "\", $/email)\nsubscribeBtn = Button(Text(\"Subsc"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "ribe\"), action=Event(\"subscribe\", {email: $/e"}]
+            }
+          }
+        ]
+      },
+      {"candidates": [{"content": {"role": "model", "parts": [{"text": "mail}))\n</a2ui>"}]}}]}
+    ],
+    [
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "Thank you for subscribing. We sent a "}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "confirmation email to ada@example.com"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": ".\n\n<a2ui>\nsurface(\"newsletter-signup\""}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": ", update=true)\nroot = Card(done)\ndone"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": " = Column([doneTitle, doneBadge])\ndon"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "eTitle = Text(\"You're subscribed!\")\nd"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {
+            "content": {
+              "role": "model",
+              "parts": [{"text": "oneBadge = StatusBadge(\"ada@example.c"}]
+            }
+          }
+        ]
+      },
+      {
+        "candidates": [
+          {"content": {"role": "model", "parts": [{"text": "om\", \"success\")\n</a2ui>"}]}}
+        ]
+      }
+    ]
+  ]
+}

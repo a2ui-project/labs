@@ -1,0 +1,8 @@
+{
+  "name": "a2ui-genui-plugin",
+  "private": true,
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "node --test tests/ && node tests/check-skill.mjs"
+  }
+}

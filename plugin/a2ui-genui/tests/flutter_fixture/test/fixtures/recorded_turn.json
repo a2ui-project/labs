@@ -1,0 +1,24 @@
+{
+  "request": "Show a form to add a task, and my open task.",
+  "replies": [
+    [
+      "Here is a form for your new task.\n\n<a2ui>",
+      "\nsurface(\"new-task\", sendDataModel=true)\n",
+      "$/title = \"\"\nroot = Card(column)\ncolumn =",
+      " Column([heading, badge, titleInput, addB",
+      "tn])\nheading = Text(\"### New task\")\nbadge",
+      " = StatusBadge(\"Water plants\", \"open\")\ntitle",
+      "Input = TextField(\"Title\", $/title)\naddBt",
+      "n = Button(addText, \"primary\", Event(\"add",
+      "Task\", {title: $/title}))\naddText = Text(",
+      "\"Add\")\n</a2ui>"
+    ],
+    [
+      "Added the task.\n\n<a2ui>\nsurface(\"new-task",
+      "\", update=true)\nroot = Card(column)\ncolum",
+      "n = Column([heading, badge])\nheading = Te",
+      "xt(\"### Task added\")\nbadge = StatusBadge(",
+      "\"Buy milk\", \"done\")\n</a2ui>"
+    ]
+  ]
+}
