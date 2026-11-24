@@ -18,6 +18,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
 import 'primitive_widgets.dart';
+import 'space_builder.dart';
 
 /// A node of an expansion that the adapter cannot render: a primitive with
 /// no [PrimitiveWidget] in the libraries given to [CraftView].
@@ -38,9 +39,10 @@ class MissingPrimitiveWidget {
 enum MediaSource {
   /// The space the view is given: the maximum width and height of its
   /// layout constraints, an unbounded one replaced by that of the size of
-  /// the nearest [MediaQuery]. Like every [LayoutBuilder], the view then
-  /// cannot answer intrinsic size queries; use [window] or [host] where a
-  /// parent asks them.
+  /// the nearest [MediaQuery]. Before its first layout the view takes the
+  /// [MediaQuery] size, and it answers intrinsic size queries (as in
+  /// [IntrinsicWidth]) with the expansion it last rendered, so at first with
+  /// the one for the [MediaQuery] size.
   layout,
 
   /// The size of the nearest [MediaQuery]: the window in an app.
@@ -51,7 +53,10 @@ enum MediaSource {
 }
 
 /// Renders the expansion of [runtime] with the widgets of [libraries], and
-/// expands it again whenever the runtime notifies a change.
+/// expands it again whenever the runtime notifies a change. When the
+/// runtime's registry notifies a change, the view calls
+/// [CraftRuntime.refresh], so that templates on screen follow new
+/// registrations.
 ///
 /// Unless [media] is [MediaSource.host], the view sets the runtime's media
 /// context before it renders (see [MediaContext.fromSize]): a size from
@@ -113,7 +118,14 @@ class CraftView extends StatefulWidget {
 class _CraftViewState extends State<CraftView> {
   /// The expansion rendered; null when the runtime changed since.
   Expansion? _expansion;
-  final List<Object> _pendingErrors = <Object>[];
+
+  /// The errors to report after the frame, each with the expansion it was
+  /// found in (null for a firing's errors).
+  final List<(Expansion?, Object)> _pendingErrors = <(Expansion?, Object)>[];
+
+  /// The last expansion of the root; errors of earlier ones that are still
+  /// pending were superseded in the same frame and are not reported.
+  Expansion? _latest;
   bool _expansionScheduled = false;
 
   /// Whether the view is notifying of its own media change, so that it
@@ -131,29 +143,42 @@ class _CraftViewState extends State<CraftView> {
   @override
   void initState() {
     super.initState();
-    widget.runtime.addListener(_changed);
+    _listen(widget.runtime);
   }
 
   @override
   void didUpdateWidget(CraftView oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.runtime, widget.runtime)) {
-      oldWidget.runtime.removeListener(_changed);
-      widget.runtime.addListener(_changed);
+      _stopListening(oldWidget.runtime);
+      _listen(widget.runtime);
       _expansion = null;
     }
   }
 
   @override
   void dispose() {
-    widget.runtime.removeListener(_changed);
+    _stopListening(widget.runtime);
     super.dispose();
   }
 
+  void _listen(CraftRuntime runtime) {
+    runtime.addListener(_changed);
+    runtime.registry.addListener(_registryChanged);
+  }
+
+  void _stopListening(CraftRuntime runtime) {
+    runtime.removeListener(_changed);
+    runtime.registry.removeListener(_registryChanged);
+  }
+
+  /// Tells the runtime, which drops stale state at once and notifies.
+  void _registryChanged() => widget.runtime.refresh();
+
   Expansion _expand() {
-    final Expansion expansion = widget.runtime.expand();
+    final Expansion expansion = _latest = widget.runtime.expand();
     _reported.clear();
-    _report(expansion.errors);
+    _report(expansion.errors, of: expansion);
     return expansion;
   }
 
@@ -213,16 +238,21 @@ class _CraftViewState extends State<CraftView> {
 
   /// Reports [error] unless it was already reported for this expansion.
   void _reportOnce(String key, Object error) {
-    if (_reported.add(key)) _report(<Object>[error]);
+    if (_reported.add(key)) _report(<Object>[error], of: _latest);
   }
 
-  void _report(Iterable<Object> errors) {
+  void _report(Iterable<Object> errors, {required Expansion? of}) {
     if (errors.isEmpty || widget.onError == null) return;
     final bool schedule = _pendingErrors.isEmpty;
-    _pendingErrors.addAll(errors);
+    _pendingErrors.addAll(<(Expansion?, Object)>[
+      for (final Object error in errors) (of, error),
+    ]);
     if (!schedule) return;
     SchedulerBinding.instance.addPostFrameCallback((Duration _) {
-      final List<Object> errors = List<Object>.of(_pendingErrors);
+      final List<Object> errors = <Object>[
+        for (final (Expansion? of, Object error) in _pendingErrors)
+          if (of == null || identical(of, _latest)) error,
+      ];
       _pendingErrors.clear();
       final ValueChanged<Object>? onError = widget.onError;
       if (mounted && onError != null) errors.forEach(onError);
@@ -235,7 +265,7 @@ class _CraftViewState extends State<CraftView> {
     if (widget.onEvent case final ValueChanged<HostEvent> onEvent) {
       result.events.forEach(onEvent);
     }
-    _report(result.errors);
+    _report(result.errors, of: null);
   }
 
   Widget _buildOutput(BuilderNode builder, Object key, Object? argument) {
@@ -276,20 +306,15 @@ class _CraftViewState extends State<CraftView> {
         _setMedia(context, MediaQuery.sizeOf(context));
         return _renderRoot();
       case MediaSource.layout:
-        return LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            final Size window = MediaQuery.sizeOf(context);
-            _setMedia(
-              context,
-              Size(
-                constraints.hasBoundedWidth
-                    ? constraints.maxWidth
-                    : window.width,
-                constraints.hasBoundedHeight
-                    ? constraints.maxHeight
-                    : window.height,
-              ),
-            );
+        final Size window = MediaQuery.sizeOf(context);
+        return SpaceBuilder(
+          window: window,
+          builder: (BuildContext context, Size? space) {
+            // Before the first layout, keep a media context set earlier (by
+            // another view of the runtime), so that no state is dropped.
+            if (space != null || widget.runtime.media == null) {
+              _setMedia(context, space ?? window);
+            }
             return _renderRoot();
           },
         );

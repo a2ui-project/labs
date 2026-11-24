@@ -141,11 +141,16 @@ const String _templates = '''
 
   export widget Broken = Column(children: [Nope()]);
 
+  export widget Media = Text(text: concat(a: "width ", b: media.width));
+
   export widget StoreMap = maps::Map();
 ''';
 
 class _Harness {
-  _Harness() {
+  _Harness({
+    MediaSource media = MediaSource.layout,
+    Widget Function(BuildContext context, ErrorNode node)? errorBuilder,
+  }) {
     registry
       ..setPrimitiveLibrary(coreLibrary, _core)
       ..setTemplateLibrary(
@@ -167,6 +172,8 @@ class _Harness {
       primitives: <LibraryName, PrimitiveWidgetLibrary>{coreLibrary: _core},
       functions: basicCatalog().functions.values.toList(),
       onError: (String id, Object error) => templateErrors.add((id, error)),
+      media: media,
+      errorBuilder: errorBuilder,
     );
     processor = MessageProcessor<ComponentImplementation>(
       catalogs: <CatalogImplementation>[catalog, basicCatalog()],
@@ -201,6 +208,7 @@ class _Harness {
     WidgetTester tester,
     List<Map<String, Object?>> components, {
     Map<String, Object?>? data,
+    Widget Function(Widget surface)? wrap,
   }) async {
     addTearDown(processor.model.dispose);
     send('createSurface', <String, Object?>{
@@ -210,7 +218,9 @@ class _Harness {
     send('updateComponents', <String, Object?>{'components': components});
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(body: A2uiSurface(surface: surface)),
+        home: Scaffold(
+          body: (wrap ?? (Widget s) => s)(A2uiSurface(surface: surface)),
+        ),
       ),
     );
   }
@@ -229,6 +239,7 @@ void main() {
       'Counter',
       'Card',
       'Broken',
+      'Media',
     ]);
     expect(
       h.catalog.components['Card']!.schema.value,
@@ -502,5 +513,129 @@ void main() {
     expect(h.templateErrors, hasLength(1));
     expect(h.templateErrors.single.$1, 'root');
     expect(h.templateErrors.single.$2, isA<ExpansionError>());
+  });
+
+  testWidgets('template components size themselves inside intrinsic widgets', (
+    WidgetTester tester,
+  ) async {
+    for (final MediaSource media in MediaSource.values) {
+      for (final bool width in <bool>[true, false]) {
+        final _Harness h = _Harness(media: media);
+        await h.pump(
+          tester,
+          <Map<String, Object?>>[
+            <String, Object?>{
+              'id': 'root',
+              'component': 'Counter',
+              'title': 'Clicks',
+            },
+          ],
+          wrap: (Widget surface) => Align(
+            alignment: Alignment.topLeft,
+            child: width
+                ? IntrinsicWidth(child: surface)
+                : IntrinsicHeight(child: surface),
+          ),
+        );
+        final String reason = '${media.name} ${width ? 'width' : 'height'}';
+        expect(tester.takeException(), isNull, reason: reason);
+        expect(find.text('Clicks: 0'), findsOneWidget, reason: reason);
+        final Size text = tester.getSize(find.text('Clicks: 0'));
+        final Size box = tester.getSize(
+          find.byType(width ? IntrinsicWidth : IntrinsicHeight),
+        );
+        expect(text.width, greaterThan(0), reason: reason);
+        if (width) {
+          expect(box.width, greaterThanOrEqualTo(text.width), reason: reason);
+          expect(box.width, lessThan(400), reason: '$reason: not the window');
+        } else {
+          expect(
+            box.height,
+            greaterThanOrEqualTo(2 * text.height),
+            reason: '$reason: the text and the button, not 0 px',
+          );
+          expect(box.height, lessThan(200), reason: '$reason: not the window');
+        }
+        await tester.pumpWidget(const SizedBox());
+      }
+    }
+  });
+
+  testWidgets('a library registered again renders at once with fresh state', (
+    WidgetTester tester,
+  ) async {
+    final _Harness h = _Harness();
+    await h.pump(tester, <Map<String, Object?>>[
+      <String, Object?>{'id': 'root', 'component': 'Counter', 'title': 'x'},
+    ]);
+    await tester.tap(find.byKey(const ValueKey<String?>('inc')));
+    await tester.pump();
+    expect(find.text('x: 1'), findsOneWidget);
+
+    h.registry.setTemplateLibrary(
+      _main,
+      parseLibraryFile(_templates.replaceFirst('a: ": "', 'a: " = "')),
+    );
+    await tester.pump();
+    expect(find.text('x = 0'), findsOneWidget);
+  });
+
+  testWidgets('the first tap after a registration counts', (
+    WidgetTester tester,
+  ) async {
+    final _Harness h = _Harness();
+    await h.pump(tester, <Map<String, Object?>>[
+      <String, Object?>{'id': 'root', 'component': 'Counter', 'title': 'x'},
+    ]);
+    await tester.tap(find.byKey(const ValueKey<String?>('inc')));
+    await tester.pump();
+    h.registry.setTemplateLibrary(_main, parseLibraryFile(_templates));
+    await tester.pump();
+    expect(find.text('x: 0'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey<String?>('inc')));
+    await tester.pump();
+    expect(find.text('x: 1'), findsOneWidget);
+  });
+
+  testWidgets('a host builds the placeholder of a failed widget', (
+    WidgetTester tester,
+  ) async {
+    final _Harness h = _Harness(
+      errorBuilder: (BuildContext context, ErrorNode node) =>
+          Text('failed: ${node.kind.name}'),
+    );
+    await h.pump(tester, <Map<String, Object?>>[
+      <String, Object?>{'id': 'root', 'component': 'Broken'},
+    ]);
+    expect(find.text('failed: unknownFunction'), findsOneWidget);
+    expect(find.byType(ErrorWidget), findsNothing);
+  });
+
+  testWidgets('the catalog renders with its media source', (
+    WidgetTester tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(800, 600)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    for (final (MediaSource media, String text) in <(MediaSource, String)>[
+      (MediaSource.layout, 'width compact'),
+      (MediaSource.window, 'width medium'),
+      (MediaSource.host, 'width '),
+    ]) {
+      final _Harness h = _Harness(media: media);
+      await h.pump(
+        tester,
+        <Map<String, Object?>>[
+          <String, Object?>{'id': 'root', 'component': 'Media'},
+        ],
+        wrap: (Widget surface) => Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(width: 300, height: 300, child: surface),
+        ),
+      );
+      expect(find.text(text), findsOneWidget, reason: media.name);
+      await tester.pumpWidget(const SizedBox());
+    }
   });
 }

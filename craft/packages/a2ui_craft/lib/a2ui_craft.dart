@@ -15,20 +15,41 @@
 /// The framework-independent core of Craft: the template language, its data
 /// model, its formats and the runtime that expands templates. It has no
 /// UI-framework dependency, so any framework adapter can build on it.
+///
+/// Of the library model it exports a library's structure (imports and
+/// declarations) and the types that its other declarations name; the nodes
+/// of a declaration's body (`Switch`, `Loop`, `ConstructorCall`, ...) are in
+/// `package:a2ui_craft/model.dart`, so that hosts can import this library
+/// next to Flutter's without hiding names.
 library;
 
 export 'src/a2ui_catalog.dart';
 export 'src/a2ui_props.dart';
 export 'src/canonical_json.dart';
 export 'src/dependencies.dart';
-export 'src/evaluator.dart';
+export 'src/evaluator.dart' hide checkCallArguments;
 export 'src/expansion.dart';
 export 'src/functions.dart';
 export 'src/limits.dart';
 export 'src/media_context.dart';
 export 'src/name_resolution.dart';
 export 'src/rfw/binary.dart';
-export 'src/rfw/model.dart';
+export 'src/rfw/model.dart'
+    show
+        BlobNode,
+        DynamicList,
+        DynamicMap,
+        FullyQualifiedWidgetName,
+        Import,
+        LibraryName,
+        Missing,
+        RemoteWidgetLibrary,
+        SourceLocation,
+        SourceRange,
+        SymbolReference,
+        WidgetDeclaration,
+        WidgetLibrary,
+        missing;
 export 'src/rfw/text.dart';
 export 'src/runtime.dart';
 export 'src/standard_functions.dart';

@@ -18,7 +18,10 @@
 // declaration taken at registration, and the function table the registry builds
 // for each library.
 
+import 'dart:async';
+
 import 'package:a2ui_craft/a2ui_craft.dart';
+import 'package:a2ui_craft/model.dart';
 import 'package:test/test.dart';
 
 const LibraryName _core = LibraryName(<String>['core']);
@@ -47,6 +50,65 @@ Object _probe(TemplateRegistry registry, String expression) {
 }
 
 void main() {
+  test('a listener removed during a notification is not called', () {
+    final TemplateRegistry registry = TemplateRegistry();
+    final List<String> calls = <String>[];
+    void second() => calls.add('second');
+    void added() => calls.add('added');
+    registry
+      ..addListener(() {
+        calls.add('first');
+        registry
+          ..removeListener(second)
+          ..addListener(added);
+      })
+      ..addListener(second)
+      ..appVersion = '1';
+    expect(calls, <String>['first']);
+    registry.appVersion = '2';
+    expect(calls, <String>['first', 'first', 'added']);
+  });
+
+  test('a throwing listener neither fails the change nor stops others', () {
+    final List<Object> reported = <Object>[];
+    final TemplateRegistry registry = TemplateRegistry(
+      onListenerError: (Object error, StackTrace stackTrace) =>
+          reported.add(error),
+    );
+    int later = 0;
+    registry
+      ..addListener(() => throw StateError('listener'))
+      ..addListener(() => later += 1);
+    expect(() => registry.appVersion = '1', returnsNormally);
+    expect(registry.appVersion, '1');
+    expect(later, 1);
+    expect(reported.single, isA<StateError>());
+  });
+
+  test('without a callback a listener failure goes to the zone', () {
+    final List<Object> uncaught = <Object>[];
+    runZonedGuarded(() {
+      final TemplateRegistry registry = TemplateRegistry()
+        ..addListener(() => throw StateError('listener'));
+      registry.appVersion = '1';
+      expect(registry.appVersion, '1');
+    }, (Object error, StackTrace stackTrace) => uncaught.add(error));
+    expect(uncaught.single, isA<StateError>());
+  });
+
+  test('listeners hear each change, already applied, until removed', () {
+    final TemplateRegistry registry = TemplateRegistry();
+    final List<bool> seen = <bool>[];
+    void listener() => seen.add(registry.availability(_main) != null);
+    registry
+      ..addListener(listener)
+      ..setTemplateLibrary(_main, parseLibraryFile('widget A = B();'))
+      ..removeLibrary(_main)
+      ..removeListener(listener)
+      ..setTemplateLibrary(_main, parseLibraryFile('widget A = B();'));
+    expect(seen, <bool>[true, false]);
+  });
+
   test('metadata that is not a value is rejected at registration', () {
     final TemplateRegistry registry = TemplateRegistry()
       ..setPrimitiveLibrary(

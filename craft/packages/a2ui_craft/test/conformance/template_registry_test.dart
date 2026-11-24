@@ -17,6 +17,7 @@
 // documents the case format.
 
 import 'package:a2ui_craft/a2ui_craft.dart';
+import 'package:a2ui_craft/model.dart';
 import 'package:test/test.dart';
 
 import 'conformance_harness.dart';
@@ -56,8 +57,12 @@ class _Engine {
       'remove_functions',
       'app_version',
       'rejected',
+      'notifications',
       'queries',
     }, 'step');
+    int notifications = 0;
+    void listener() => notifications += 1;
+    registry.addListener(listener);
     final List<void Function()> registrations = <void Function()>[
       for (final MapEntry<String, Object?> p in _entries(step['primitives']))
         () => registry.setPrimitiveLibrary(
@@ -106,6 +111,10 @@ class _Engine {
       for (final void Function() register in registrations) {
         register();
       }
+    }
+    registry.removeListener(listener);
+    if (step.containsKey('notifications')) {
+      expect(notifications, step['notifications'], reason: 'notifications');
     }
     for (final Object? q in step['queries'] as List<Object?>? ?? []) {
       query(q! as Map<String, Object?>);

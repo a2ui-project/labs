@@ -17,6 +17,7 @@
 // requirement 12, and craft_text_format, requirement 6).
 
 import 'package:a2ui_craft/a2ui_craft.dart';
+import 'package:a2ui_craft/model.dart';
 import 'package:test/test.dart';
 
 const LibraryName _main = LibraryName(<String>['main']);

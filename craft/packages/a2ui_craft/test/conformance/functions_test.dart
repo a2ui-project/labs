@@ -17,6 +17,7 @@
 // the case format, the primitive libraries and the test host functions.
 
 import 'package:a2ui_craft/a2ui_craft.dart';
+import 'package:a2ui_craft/model.dart';
 import 'package:test/test.dart';
 
 import 'conformance_harness.dart';

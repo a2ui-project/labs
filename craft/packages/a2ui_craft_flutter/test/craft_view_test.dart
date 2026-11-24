@@ -423,6 +423,50 @@ void main() {
     expect(find.text('b2#${before + 1}'), findsOneWidget);
   });
 
+  testWidgets('a registration renders again, until the view is gone', (
+    WidgetTester tester,
+  ) async {
+    final _Harness h = _Harness('import core; widget root = Text(text: "v1");');
+    await tester.pumpWidget(h.view());
+    expect(find.text('v1'), findsOneWidget);
+    h.registry.setTemplateLibrary(
+      _main,
+      parseLibraryFile('import core; widget root = Text(text: "v2");'),
+    );
+    await tester.pump();
+    expect(find.text('v2'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox());
+    int notified = 0;
+    h.runtime.addListener(() => notified += 1);
+    h.registry.setTemplateLibrary(
+      _main,
+      parseLibraryFile('import core; widget root = Text(text: "v3");'),
+    );
+    expect(notified, 0, reason: 'the view no longer refreshes the runtime');
+  });
+
+  testWidgets('errors of an expansion replaced in the same frame are dropped', (
+    WidgetTester tester,
+  ) async {
+    final _Harness h = _Harness('''
+      import core;
+      widget root = switch media.width { "compact": Text(text: "phone") };
+    ''');
+    await tester.pumpWidget(
+      MediaQuery(
+        data: const MediaQueryData(size: Size(1300, 1000)),
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(width: 400, height: 800, child: h.view()),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('phone'), findsOneWidget);
+    expect(h.errors, isEmpty, reason: 'the expansion for the window failed');
+  });
+
   testWidgets('errors are not reported once the view is gone', (
     WidgetTester tester,
   ) async {

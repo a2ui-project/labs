@@ -92,7 +92,7 @@ widget Inbox = switch atLeast(a: media.width, b: "expanded") {
 
 On a phone in portrait (`compact`), `Inbox` is one column, with a hint on iOS; on a tablet in landscape (`expanded`) or wider, two panes. When the surface is resized across 840 logical pixels, the host gives the runtime a new media context; the runtime notifies, and the next expansion has the other layout. A template must not assume a media context: without one, `media.width` is absent, `atLeast` gives absent and the switch takes its default.
 
-The width breakpoints are those of Material 3's window size classes, and the height breakpoints those of Android's window size classes; here they apply to the space that the host measures for the surface, which need not be the whole window. A host that renders into a part of the screen (a pane, a card in a list) can measure that part, so that a template adapts to the space it actually gets.
+The width breakpoints are those of Material 3's window size classes, and the height breakpoints those of Android's window size classes; here they apply to the space that the host measures for the surface, which need not be the whole window. A host that renders into a part of the screen (a pane, a card in a list) can measure that part, so that a template adapts to the space it actually gets. Measuring takes a layout, so a host that measures must still have something to show before it: a framework that asks a widget for its intrinsic size before laying it out (Flutter's `IntrinsicWidth`, dialogs, tables) needs the template's expansion for some media context first. The Flutter adapter uses the window's size until the first layout and the measured space after it (see the `a2ui_craft_flutter` codebase blueprint).
 
 Compared with the prototype:
 
