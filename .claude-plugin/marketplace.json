@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "a2ui-genui",
-      "source": "./plugin",
+      "source": "./plugin/a2ui-genui",
       "description": "Adds A2UI generative UI to an existing React or Flutter app, and proves it with flow tests."
     }
   ]

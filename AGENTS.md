@@ -3,8 +3,11 @@
 This repository holds starter projects, samples, and tools for [A2UI](https://a2ui.org).
 Each top-level folder is a separate area or project:
 
-1. `plugin/`: the Gen UI plugin for coding agents.
-2. `samples/`: runnable samples and starter projects, each in its own folder with a `README.md`:
+1. `plugin/`: Gen UI plugins for coding agents:
+   - `plugin/a2ui-pane/`: the A2UI viewer plugin and `genui` skill (`README.md`).
+   - `plugin/a2ui-genui/`: the `a2ui-genui` skill, its evals and fixtures (`README.md`).
+2. `craft/`: Craft, an experimental client-side template system for A2UI (`README.md`).
+3. `samples/`: runnable samples and starter projects, each in its own folder with a `README.md`:
    - `samples/typescript-starter/`: the TypeScript starter project. Read its own
      `AGENTS.md` before working in it.
    - `samples/flutter-starter/`: the Flutter starter project.
