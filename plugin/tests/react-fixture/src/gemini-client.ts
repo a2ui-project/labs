@@ -71,14 +71,13 @@ export class GeminiClient implements ChatClient {
       contents.push({
         role: 'user',
         parts: await Promise.all(
-          calls.map(async ({functionCall}) => ({
-            functionResponse: {
-              name: functionCall!.name,
-              response: {
-                result: await readTools[functionCall!.name!].run(functionCall!.args ?? {}),
-              },
-            },
-          })),
+          calls.map(async ({functionCall}) => {
+            const name = functionCall!.name!;
+            const response = Object.hasOwn(readTools, name)
+              ? {result: await readTools[name].run(functionCall!.args ?? {})}
+              : {error: `No tool is named ${name}.`};
+            return {functionResponse: {name, response}};
+          }),
         ),
       });
     }

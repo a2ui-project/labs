@@ -84,6 +84,7 @@ Request heading of the placement file says.
 - Return small results. Limit the rows, and return only the fields that a
   surface can show.
 - Resolve tool calls inside `generate`. Only text leaves the model client.
+  Answer a call to an unknown tool with an error result, not a throw.
 
 ## Writes belong to the host
 

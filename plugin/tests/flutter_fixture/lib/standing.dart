@@ -154,7 +154,9 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (_) => Scaffold(appBar: AppBar(), body: screen),
         ),
       )
-      .then((_) => _showToday());
+      .then((_) {
+        if (mounted) _showToday();
+      });
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -266,6 +268,7 @@ class _SidebarState extends State<Sidebar> {
   // A change inside the context key is data only; a new key starts one
   // generation.
   void _showContext() {
+    if (!mounted) return;
     final int count = widget.store.selected.value.length;
     final String selection = count == 0 ? 'none' : 'some';
     widget.session.setData('sidebar', '/context/selected_count', count);
