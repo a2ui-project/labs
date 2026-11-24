@@ -641,7 +641,12 @@ RemoteWidgetLibrary parseLibraryFile(
 }) {
   final CraftLimits checked = limits ?? CraftLimits.defaults;
   _checkSourceSize(file, checked);
-  final parser = _Parser(_tokenize(file), sourceIdentifier, checked);
+  final parser = _Parser(
+    _tokenize(file),
+    sourceIdentifier,
+    checked,
+    lineStarts: sourceIdentifier == null ? null : _lineStarts(file),
+  );
   return parser.readLibraryFile();
 }
 
@@ -656,8 +661,19 @@ void _checkSourceSize(String file, CraftLimits limits) {
   var bytes = 0;
   var line = 1;
   var column = 0;
+  var previous = -1;
+  (int, int) position = (1, 0);
   for (final int rune in file.runes) {
-    column += 1;
+    // The LF of a CR LF line break is at the position of its CR.
+    if (rune != 0x0A || previous != 0x0D) {
+      column += 1;
+      position = (line, column);
+      if (rune == 0x0A || rune == 0x0D) {
+        line += 1;
+        column = 0;
+      }
+    }
+    previous = rune;
     bytes += rune < 0x80
         ? 1
         : rune < 0x800
@@ -666,17 +682,28 @@ void _checkSourceSize(String file, CraftLimits limits) {
         ? 3
         : 4;
     if (bytes > limits.maxSourceBytes) break;
-    if (rune == 0x0A) {
-      line += 1;
-      column = 0;
-    }
   }
   throw ParserException(
     'The source is longer than ${limits.maxSourceBytes} bytes',
-    line,
-    column,
+    position.$1,
+    position.$2,
     limit: CraftLimit.maxSourceBytes,
   );
+}
+
+/// The offset of the first character of each line of [file], in the
+/// characters (Unicode code points) that the tokenizer reads; CR LF, CR and LF
+/// each end a line.
+List<int> _lineStarts(String file) {
+  final List<int> characters = file.runes.toList();
+  final List<int> starts = <int>[0];
+  for (int i = 0; i < characters.length; i += 1) {
+    final int c = characters[i];
+    if (c == 0x0A || (c == 0x0D && characters.elementAtOrNull(i + 1) != 0x0A)) {
+      starts.add(i + 1);
+    }
+  }
+  return starts;
 }
 
 const Set<String> _reservedWords = <String>{
@@ -929,10 +956,12 @@ Iterable<_Token> _tokenize(String file) sync* {
       current = -1;
     } else {
       current = characters[index];
-      if (current == 0x0A) {
+      if (current == 0x0D ||
+          (current == 0x0A && (index == 0 || characters[index - 1] != 0x0D))) {
+        // CR LF is one line break; its LF does not start another line.
         line += 1;
         column = 0;
-      } else {
+      } else if (current != 0x0A) {
         column += 1;
       }
     }
@@ -944,6 +973,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, start, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             start = index;
           case 0x28: // U+0028 LEFT PARENTHESIS character (()
@@ -1090,6 +1120,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, index - 1, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             yield _IntegerToken(0, line, column, start, index - 1);
             buffer.clear();
@@ -1154,6 +1185,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, index - 1, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             yield _IntegerToken(
               int.parse(String.fromCharCodes(buffer), radix: 10),
@@ -1227,6 +1259,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, index - 1, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             yield _IntegerToken(
               int.parse(String.fromCharCodes(buffer), radix: 10),
@@ -1299,6 +1332,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, index - 1, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             yield _IntegerToken(
               int.parse(String.fromCharCodes(buffer), radix: 10),
@@ -1404,6 +1438,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, index - 1, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             yield _DoubleToken(
               double.parse(String.fromCharCodes(buffer)),
@@ -1534,6 +1569,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, index - 1, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             yield _DoubleToken(
               double.parse(String.fromCharCodes(buffer)),
@@ -1638,6 +1674,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, index - 1, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             yield _IntegerToken(
               int.parse(String.fromCharCodes(buffer), radix: 16),
@@ -1708,6 +1745,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, index - 1, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             yield _SymbolToken(0x2E, line, column, start, index - 1);
             start = index;
@@ -1858,6 +1896,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, index - 1, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             yield _IdentifierToken(
               String.fromCharCodes(buffer),
@@ -1982,6 +2021,7 @@ Iterable<_Token> _tokenize(String file) sync* {
               column,
             );
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
             throw ParserException(
               'Unexpected end of line inside string',
               line,
@@ -2215,6 +2255,7 @@ Iterable<_Token> _tokenize(String file) sync* {
               column,
             );
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
             throw ParserException(
               'Unexpected end of line inside string',
               line,
@@ -2445,6 +2486,7 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, start, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
           case 0x20: // U+0020 SPACE character
             start = index;
             mode = _TokenizerMode.main;
@@ -2497,6 +2539,8 @@ Iterable<_Token> _tokenize(String file) sync* {
             yield _EofToken(line, column, start, index);
             return;
           case 0x0A: // U+000A LINE FEED (LF)
+          case 0x0D: // U+000D CARRIAGE RETURN (CR)
+            start = index;
             mode = _TokenizerMode.main;
           default:
             // ignored, comment
@@ -2527,6 +2571,7 @@ Iterable<_Token> _tokenize(String file) sync* {
               column,
             );
           case 0x2F: // U+002F SOLIDUS character (/)
+            start = index;
             mode = _TokenizerMode.main;
           default:
             // ignored, comment
@@ -2543,8 +2588,16 @@ Iterable<_Token> _tokenize(String file) sync* {
 ///
 /// Test library files can be parsed by using [readLibraryFile].
 class _Parser {
-  _Parser(Iterable<_Token> source, this.sourceIdentifier, this._limits)
-    : _source = _mergeQualifiers(source).iterator..moveNext();
+  _Parser(
+    Iterable<_Token> source,
+    this.sourceIdentifier,
+    this._limits, {
+    List<int>? lineStarts,
+  }) : _lineStarts = lineStarts,
+       _source = _mergeQualifiers(source).iterator..moveNext();
+
+  /// See [_lineStarts]; null when source locations are not tracked.
+  final List<int>? _lineStarts;
 
   final CraftLimits _limits;
 
@@ -2642,16 +2695,35 @@ class _Parser {
 
   SourceLocation? _getSourceLocation() {
     if (sourceIdentifier != null) {
-      return SourceLocation(sourceIdentifier!, _source.current.start);
+      return _location(_source.current.start);
     }
     return null;
   }
 
+  /// The location at [offset], with its line and column.
+  SourceLocation _location(int offset) {
+    final List<int> starts = _lineStarts!;
+    int low = 0;
+    int high = starts.length - 1;
+    while (low < high) {
+      final int middle = (low + high + 1) ~/ 2;
+      if (starts[middle] <= offset) {
+        low = middle;
+      } else {
+        high = middle - 1;
+      }
+    }
+    return SourceLocation(
+      sourceIdentifier!,
+      offset,
+      line: low + 1,
+      column: offset - starts[low] + 1,
+    );
+  }
+
   T _withSourceRange<T extends BlobNode>(T node, SourceLocation? start) {
     if (sourceIdentifier != null && start != null) {
-      node.associateSource(
-        SourceRange(start, SourceLocation(sourceIdentifier!, _previousEnd)),
-      );
+      node.associateSource(SourceRange(start, _location(_previousEnd)));
     }
     return node;
   }
@@ -2783,47 +2855,7 @@ class _Parser {
     _expectSymbol(_SymbolToken.openBracket);
     while (!_foundSymbol(_SymbolToken.closeBracket)) {
       if (extended && _foundSymbol(_SymbolToken.tripleDot)) {
-        final SourceLocation? start = _getSourceLocation();
-        final _Token dots = _source.current;
-        _advance();
-        if (_foundIdentifier('if')) {
-          _advance();
-          // The loop, its switch, the key `true`, `[true]`, `true` and `[]`.
-          _account(dots, depth: _depth + 4, nodes: 6);
-          results.add(
-            _withSourceRange(
-              _readConditionalElement(widgetBuilderScope),
-              start,
-            ),
-          );
-          if (_foundSymbol(_SymbolToken.comma)) {
-            _advance();
-          } else if (!_foundSymbol(_SymbolToken.closeBracket)) {
-            throw ParserException._expected('comma', _source.current);
-          }
-          continue;
-        }
-        _expectIdentifier('for');
-        _depth += 1;
-        _account(dots, depth: _depth);
-        final _Token loopIdentifierToken = _source.current;
-        final String loopIdentifier = _readIdentifier();
-        _checkIsNotReservedWord(loopIdentifier, loopIdentifierToken);
-        _expectIdentifier('in');
-        final Object collection = _readValue(
-          widgetBuilderScope: widgetBuilderScope,
-          extended: true,
-        );
-        _expectSymbol(_SymbolToken.colon);
-        _loopIdentifiers.add(loopIdentifier);
-        final Object template = _readValue(
-          widgetBuilderScope: widgetBuilderScope,
-          extended: extended,
-        );
-        assert(_loopIdentifiers.last == loopIdentifier);
-        _loopIdentifiers.removeLast();
-        _depth -= 1;
-        results.add(_withSourceRange(Loop(collection, template), start));
+        results.add(_readSpread(widgetBuilderScope));
       } else {
         final Object value = _readValue(
           widgetBuilderScope: widgetBuilderScope,
@@ -2841,6 +2873,47 @@ class _Parser {
     return results;
   }
 
+  /// Reads a `...for` or `...if` element, at the current depth plus one.
+  Loop _readSpread(List<String> widgetBuilderScope) {
+    final SourceLocation? start = _getSourceLocation();
+    final _Token dots = _source.current;
+    _expectSymbol(_SymbolToken.tripleDot);
+    if (_foundIdentifier('if')) {
+      _advance();
+      // The loop, its switch, the key `true`, `[true]`, `true` and `[]`.
+      _account(dots, depth: _depth + 4, nodes: 6);
+      return _withSourceRange(
+        _readConditionalElement(widgetBuilderScope),
+        start,
+      );
+    }
+    _expectIdentifier('for');
+    _depth += 1;
+    _account(dots, depth: _depth);
+    final _Token loopIdentifierToken = _source.current;
+    final String loopIdentifier = _readIdentifier();
+    _checkIsNotReservedWord(loopIdentifier, loopIdentifierToken);
+    _expectIdentifier('in');
+    final Object collection = _readValue(
+      widgetBuilderScope: widgetBuilderScope,
+      extended: true,
+    );
+    _expectSymbol(_SymbolToken.colon);
+    _loopIdentifiers.add(loopIdentifier);
+    final Object template = _readElement(widgetBuilderScope);
+    assert(_loopIdentifiers.last == loopIdentifier);
+    _loopIdentifiers.removeLast();
+    _depth -= 1;
+    return _withSourceRange(Loop(collection, template), start);
+  }
+
+  /// Reads the element of a `...for` or `...if`, the output of its loop at
+  /// the current depth: a value, or a nested `...for` or `...if`.
+  Object _readElement(List<String> widgetBuilderScope) =>
+      _foundSymbol(_SymbolToken.tripleDot)
+      ? _readSpread(widgetBuilderScope)
+      : _readValue(widgetBuilderScope: widgetBuilderScope, extended: true);
+
   /// Reads `cond: element` after `...if` as the loop
   /// `...for _ in switch cond { true: [true], default: [] }: element`, whose
   /// unnamed loop variable counts like any other in loop references.
@@ -2857,10 +2930,7 @@ class _Parser {
     // Not an identifier, so no reference can name it.
     const String hiddenLoopVariable = ' if';
     _loopIdentifiers.add(hiddenLoopVariable);
-    final Object element = _readValue(
-      widgetBuilderScope: widgetBuilderScope,
-      extended: true,
-    );
+    final Object element = _readElement(widgetBuilderScope);
     _depth -= 1;
     _loopIdentifiers.removeLast();
     final Switch input = _withSourceRange(
@@ -3104,6 +3174,13 @@ class _Parser {
       if (widgetBuilderScope.contains(identifier)) {
         final SourceLocation? start = _getSourceLocation();
         _advance();
+        if (!_foundSymbol(_SymbolToken.dot)) {
+          throw ParserException._fromToken(
+            'The builder argument $identifier must be read with parts, as in '
+            '$identifier.name; unlike a loop variable it cannot be used whole',
+            _source.current,
+          );
+        }
         return _withSourceRange(
           WidgetBuilderArgReference(identifier, _readParts()),
           start,
@@ -3150,6 +3227,7 @@ class _Parser {
           return _withSourceRange(SymbolReference(name, _readParts()), start);
         }
       }
+      _checkIsNotMisplacedLet(name, identifierToken);
       _expectSymbol(_SymbolToken.openParen);
       final DynamicMap arguments = _readMapBody(
         extended: true,
@@ -3244,7 +3322,9 @@ class _Parser {
     final SourceLocation? start = first == null
         ? _getSourceLocation()
         : firstLocation;
+    final _Token nameToken = first ?? _source.current;
     final String name = _readQualifiedName(first: first);
+    _checkIsNotMisplacedLet(name, nameToken);
     _expectSymbol(_SymbolToken.openParen);
     final DynamicMap arguments = _readMapBody(
       extended: true,
@@ -3318,6 +3398,19 @@ class _Parser {
       _readLetBindings();
     }
     return null;
+  }
+
+  /// Rejects `let` followed by a name where it cannot start bindings (after
+  /// the bindings of a declaration, or inside a value), which would otherwise
+  /// fail as a call named `let` without "(".
+  void _checkIsNotMisplacedLet(String name, _Token token) {
+    if (name == 'let' && _source.current is _IdentifierToken) {
+      throw ParserException._fromToken(
+        'let can only start the body of a widget declaration, once, with its '
+        'bindings separated by commas: let a = 1, b = 2 in ...',
+        token,
+      );
+    }
   }
 
   /// Reads `a = <value>, b = <value> in` after `let` at the start of a

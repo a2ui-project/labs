@@ -329,6 +329,20 @@
           more: DynamicValue,
           extra: Child,
         }
+- name: nested_loops_place_their_elements
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-02]
+  description: "A loop whose output is a loop places the inner loop as an element of the same list: a loop over a whole argument with its variable as output, inside ...if, gives a child list; an element inside ...if inside ...for is a child."
+  libraries:
+    main: |
+      import core;
+      export widget Nested = Column(children: [
+        Row(children: [...if args.show: ...for c in args.items: c]),
+        Row(children: [...for r in args.rows: ...if r.on: args.extra]),
+      ]);
+  expect:
+    properties:
+      Nested: {show: DynamicValue, items: ChildList, rows: DynamicValue, extra: Child}
 - name: template_calls_pass_kinds_on
   action: derive_catalog_schema
   features: [F-CRAFT-A2UI-02]

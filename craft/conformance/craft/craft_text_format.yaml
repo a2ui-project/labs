@@ -637,3 +637,82 @@
                                 loop: 0
                                 parts:
                                   - value
+- name: cr_lf_and_cr_line_breaks
+  action: parse_library
+  features: [F-CRAFT-TEXT-06]
+  description:
+    "CR LF and CR are line breaks like LF: between tokens, at the end of an end-of-line comment
+    and inside a block comment. Each source parses to the library of its LF form."
+  sources:
+    - "import core;\r\n// greeting\r\nwidget root = Text(\r\n  /* a\r\n  b */ text: \"Hello\",\r\n);\r\n"
+    - "import core;\r// greeting\rwidget root = Text(\r  /* a\r  b */ text: \"Hello\",\r);\r"
+    - "import core;\r\n// greeting\rwidget root = Text(\n  /* a\r\n  b */ text: \"Hello\",\r\n);"
+    - "import core;\n// greeting\nwidget root = Text(\n  /* a\n  b */ text: \"Hello\",\n);\n"
+  expect:
+    library:
+      imports:
+        - core
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text: Hello
+- name: cr_lf_in_a_data_file
+  action: parse_data
+  features: [F-CRAFT-TEXT-06]
+  description: A data file with CR LF line breaks parses like its LF form.
+  source: "{\r\n  name: \"Ada\", // the name\r\n  count: 3,\r\n}\r\n"
+  expect:
+    data:
+      name: Ada
+      count:
+        $: int
+        value: 3
+- name: a_line_break_is_one_line_in_error_positions
+  action: parse_library
+  features: [F-CRAFT-TEXT-06]
+  description:
+    "CR LF counts as one line break, as do CR and LF: after two line breaks of any kind the
+    missing semicolon is reported on line 3. The LF form is the control."
+  sources:
+    - "import core\r\n\r\nwidget root = Text();\r\n"
+    - "import core\r\rwidget root = Text();\r"
+    - "import core\n\r\nwidget root = Text();\n"
+    - "import core\r\n\rwidget root = Text();"
+    - "import core\n\nwidget root = Text();\n"
+  expect:
+    error:
+      line: 3
+- name: a_line_break_inside_a_string_is_rejected
+  action: parse_library
+  features: [F-CRAFT-TEXT-06]
+  description:
+    A CR LF, a CR or an LF inside a double- or single-quoted string literal is rejected, as RFW
+    rejects an LF there; the error is on the line after the break.
+  sources:
+    - "widget root = Text(text: \"a\r\nb\");"
+    - "widget root = Text(text: \"a\rb\");"
+    - "widget root = Text(text: \"a\nb\");"
+    - "widget root = Text(text: 'a\r\nb');"
+    - "widget root = Text(text: 'a\rb');"
+  expect:
+    error:
+      line: 2
+- name: escaped_line_breaks_in_a_string
+  action: parse_library
+  features: [F-CRAFT-TEXT-06]
+  description: 'Control for the rejected line breaks in strings: the escapes \r and \n write CR and LF into a string.'
+  source: |
+    widget root = Text(text: "a\r\nb");
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Text
+            args:
+              text: "a\r\nb"

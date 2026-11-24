@@ -120,7 +120,7 @@ class RuntimeEngine {
     for (final MapEntry<String, Object?> l in _entries(libraries)) {
       registry.setTemplateLibrary(
         _library(l.key),
-        parseLibraryFile(l.value! as String),
+        parseLibraryFile(l.value! as String, sourceIdentifier: l.key),
       );
     }
   }
@@ -213,11 +213,38 @@ class RuntimeEngine {
       expected['states'] ?? <Object?>[],
       reason: '$label: states',
     );
-    expect(
-      actual['errors'],
-      expected['errors'] ?? <Object?>[],
-      reason: '$label: errors',
-    );
+    final List<Object?> errors = expected['errors'] as List<Object?>? ?? [];
+    expect(actual['errors'], <Object?>[
+      for (final Object? e in errors)
+        <String, Object?>{
+          for (final MapEntry<String, Object?> entry
+              in (e! as Map<String, Object?>).entries)
+            if (entry.key == 'at' || entry.key == 'kind')
+              entry.key: entry.value,
+        },
+    ], reason: '$label: errors');
+    for (int i = 0; i < errors.length; i += 1) {
+      final Map<String, Object?> error = errors[i]! as Map<String, Object?>;
+      assertKnownKeys(error, _errorKeys, '$label: errors.$i');
+      final ExpansionError actualError = expansion.errors[i];
+      if (error.containsKey('template')) {
+        expect(
+          switch (actualError.template) {
+            final FullyQualifiedWidgetName t => widgetNameString(t),
+            null => null,
+          },
+          error['template'],
+          reason: '$label: errors.$i: template',
+        );
+      }
+      if (error.containsKey('line')) {
+        expect(
+          actualError.source?.start.line,
+          error['line'],
+          reason: '$label: errors.$i: line',
+        );
+      }
+    }
   }
 
   /// The node or value at [path] of the last root expansion, continuing into
@@ -242,6 +269,8 @@ class RuntimeEngine {
 }
 
 const Set<String> _expansionKeys = <String>{'tree', 'states', 'errors'};
+
+const Set<String> _errorKeys = <String>{'at', 'kind', 'template', 'line'};
 
 const Set<String> _stepKeys = <String>{
   'fire',

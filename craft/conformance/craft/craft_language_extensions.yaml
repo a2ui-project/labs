@@ -1339,3 +1339,189 @@
                       $: call
                       name: absent
                       args: {}
+
+# nested_list_elements
+
+- name: if_inside_for
+  action: parse_library
+  features: [F-CRAFT-LANG-07]
+  description:
+    "...for x in L: ...if C: E is a loop whose output is the loop of the ...if; the loop variable
+    has the index 0 in C and 1 in E."
+  binary_round_trip: true
+  source: |
+    widget root = Column(children: [
+      ...for item in args.items: ...if item.on: Text(text: item.label),
+    ]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input: {$: argsRef, parts: [items]}
+                  output:
+                    $: loop
+                    input:
+                      $: switch
+                      input: {$: loopRef, loop: 0, parts: ["on"]}
+                      cases:
+                        - {key: true, value: [true]}
+                        - {default: true, value: []}
+                    output:
+                      $: call
+                      name: Text
+                      args:
+                        text: {$: loopRef, loop: 1, parts: [label]}
+- name: for_inside_for
+  action: parse_library
+  features: [F-CRAFT-LANG-07]
+  description:
+    "...for inside ...for: the outer variable has the index 0 in the inner input and 1 in the
+    element, the inner variable 0 in the element."
+  binary_round_trip: true
+  source: |
+    widget root = Column(children: [
+      ...for row in args.rows: ...for cell in row.cells: Text(text: cell, row: row.name),
+    ]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input: {$: argsRef, parts: [rows]}
+                  output:
+                    $: loop
+                    input: {$: loopRef, loop: 0, parts: [cells]}
+                    output:
+                      $: call
+                      name: Text
+                      args:
+                        text: {$: loopRef, loop: 0, parts: []}
+                        row: {$: loopRef, loop: 1, parts: [name]}
+- name: for_and_if_inside_if
+  action: parse_library
+  features: [F-CRAFT-LANG-07]
+  description: "...for inside ...if and ...if inside ...if; the list goes on after each."
+  binary_round_trip: true
+  source: |
+    widget root = Column(children: [
+      ...if args.a: ...for x in args.xs: Text(text: x),
+      ...if args.b: ...if args.c: Text(text: "bc"),
+      Text(text: "last"),
+    ]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input:
+                    $: switch
+                    input: {$: argsRef, parts: [a]}
+                    cases:
+                      - {key: true, value: [true]}
+                      - {default: true, value: []}
+                  output:
+                    $: loop
+                    input: {$: argsRef, parts: [xs]}
+                    output:
+                      $: call
+                      name: Text
+                      args:
+                        text: {$: loopRef, loop: 0, parts: []}
+                - $: loop
+                  input:
+                    $: switch
+                    input: {$: argsRef, parts: [b]}
+                    cases:
+                      - {key: true, value: [true]}
+                      - {default: true, value: []}
+                  output:
+                    $: loop
+                    input:
+                      $: switch
+                      input: {$: argsRef, parts: [c]}
+                      cases:
+                        - {key: true, value: [true]}
+                        - {default: true, value: []}
+                    output: {$: call, name: Text, args: {text: bc}}
+                - {$: call, name: Text, args: {text: last}}
+- name: three_levels_of_nested_elements
+  action: parse_library
+  features: [F-CRAFT-LANG-07]
+  description:
+    "...for, ...if, ...for: each nested loop counts as an enclosing loop, so the outer variable has
+    the index 0 in the condition, 1 in the inner input and 2 in the element."
+  binary_round_trip: true
+  source: |
+    widget root = Column(children: [
+      ...for r in args.rows: ...if r.on: ...for c in r.cells: Text(text: c, row: r.name),
+    ]);
+  expect:
+    library:
+      imports: []
+      widgets:
+        - name: root
+          root:
+            $: call
+            name: Column
+            args:
+              children:
+                - $: loop
+                  input: {$: argsRef, parts: [rows]}
+                  output:
+                    $: loop
+                    input:
+                      $: switch
+                      input: {$: loopRef, loop: 0, parts: ["on"]}
+                      cases:
+                        - {key: true, value: [true]}
+                        - {default: true, value: []}
+                    output:
+                      $: loop
+                      input: {$: loopRef, loop: 1, parts: [cells]}
+                      output:
+                        $: call
+                        name: Text
+                        args:
+                          text: {$: loopRef, loop: 0, parts: []}
+                          row: {$: loopRef, loop: 2, parts: [name]}
+- name: misplaced_nested_elements_are_rejected
+  action: parse_library
+  features: [F-CRAFT-LANG-07]
+  description:
+    "Something after the innermost element is rejected, as after any list element, and ...if
+    outside a list element (here an argument value) is rejected as in RFW."
+  sources:
+    - |
+      widget root = Column(children: [
+        ...for x in args.l: ...if x: Text() Text(),
+      ]);
+    - |
+      widget root = Column(children: [
+        ...for x in args.l: ...if x: Text() else Text(),
+      ]);
+    - |
+      widget root = Box(
+        child: ...if args.a: Text(),
+      );
+  expect:
+    error:
+      line: 2

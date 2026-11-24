@@ -82,7 +82,7 @@ final class WidgetNode {
 /// The placeholder for a widget whose expansion failed.
 final class ErrorNode {
   /// Creates a placeholder at [path].
-  ErrorNode(this.kind, this.message, this.path);
+  ErrorNode(this.kind, this.message, this.path, {this.template, this.source});
 
   /// The kind of failure.
   final ExpansionErrorKind kind;
@@ -92,6 +92,14 @@ final class ErrorNode {
 
   /// Where the node is.
   final ExpansionPath path;
+
+  /// The declaration whose body holds the node that failed, or null when no
+  /// node failed (see the `craft_runtime` blueprint, requirement 12).
+  final FullyQualifiedWidgetName? template;
+
+  /// Where the node that failed is written, when its library was parsed with
+  /// a source identifier; its start has the line and column.
+  final SourceRange? source;
 }
 
 /// A [HostWidget] placed in an expansion; the adapter renders the host's
@@ -258,9 +266,33 @@ final class ExpansionError {
   /// Where the placeholder is.
   ExpansionPath get path => node.path;
 
+  /// See [ErrorNode.template].
+  FullyQualifiedWidgetName? get template => node.template;
+
+  /// See [ErrorNode.source].
+  SourceRange? get source => node.source;
+
+  /// The template and position of the failure, as in
+  /// `main::Card, line 3 column 5 of main.craft`, or null when unknown.
+  String? get location {
+    final FullyQualifiedWidgetName? template = this.template;
+    if (template == null) return null;
+    final SourceLocation? start = source?.start;
+    return switch (start) {
+      SourceLocation(:final int line, :final int column) =>
+        '${widgetNameString(template)}, line $line column $column of '
+            '${start.source}',
+      _ => widgetNameString(template),
+    };
+  }
+
   @override
-  String toString() =>
-      'ExpansionError(${kind.name} at ${path.join('.')}): ${node.message}';
+  String toString() {
+    final String? location = this.location;
+    final String at = path.isEmpty ? 'the root' : path.join('.');
+    return 'ExpansionError(${kind.name} at $at'
+        '${location == null ? '' : ' in $location'}): ${node.message}';
+  }
 }
 
 /// The result of expanding a template, or a builder's output.

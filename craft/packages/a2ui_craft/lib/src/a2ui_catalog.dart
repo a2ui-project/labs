@@ -287,7 +287,8 @@ class _Walk {
   }
 
   /// A loop that is a list element at [element]: `...for x in args.a: x`
-  /// gives `a` the list form of [element]; anything else is visited.
+  /// gives `a` the list form of [element]; anything else is visited, and an
+  /// output that is a loop is an element at [element] too.
   void _loop(Loop loop, ArgKind element) {
     if ((loop.input, loop.output) case (
       ArgsReference(parts: [final String arg]),
@@ -301,7 +302,11 @@ class _Walk {
       return;
     }
     visit(loop.input, ArgKind.value);
-    visit(loop.output, element);
+    if (loop.output case final Loop inner) {
+      _loop(inner, element);
+    } else {
+      visit(loop.output, element);
+    }
   }
 
   void _call(ConstructorCall call) {

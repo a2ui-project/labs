@@ -114,6 +114,20 @@
   expect:
     error:
       line: 2
+- name: a_comment_between_the_colons_is_rejected
+  action: parse_library
+  features: [F-CRAFT-NAMES-01]
+  description: A block comment or an end-of-line comment between the two colons of "::" separates them too.
+  sources:
+    - |
+      import core;
+      widget root = Box(child: ui:/*c*/:Card());
+    - |
+      import core;
+      widget root = Box(child: ui:// c
+        :Card());
+  expect:
+    error: {}
 - name: integer_qualifier_part_is_rejected
   action: parse_library
   features: [F-CRAFT-NAMES-01]

@@ -24,7 +24,8 @@
 #     name to its metadata (null for none). By default
 #       core: {Column, Row, Text, Button, Box, List}, without metadata.
 #     The runtime does not know what a primitive does: these are only names.
-#   libraries: template libraries, library name -> source in the text format.
+#   libraries: template libraries, library name -> source in the text format,
+#     parsed with source positions.
 #   root: {library, widget}: the root widget name, as a call written in that
 #     library would give it (default library main, widget root).
 #   args: the root's arguments, a text format data file (default none).
@@ -41,7 +42,11 @@
 #   tree: the canonical JSON form of the root node (craft_runtime,
 #     requirement 2);
 #   states: the list of stateful instances, each {at, widget, value};
-#   errors: the list of errors, each {at, kind}.
+#   errors: the list of errors, each {at, kind}; an error may also give
+#     `template` ("lib::Name" of the declaration holding the failing node, or
+#     null for none) and `line` (the 1-based line of the error's position, or
+#     null for none), which are checked only when given (craft_runtime,
+#     requirement 12).
 # `states` and `errors` are checked even when not given: then they must be
 # empty.
 #
@@ -816,6 +821,74 @@
                 {$: widget, name: "core::Row", args: {children: []}},
               ],
           },
+      }
+
+- name: an_if_inside_a_loop_filters_its_items
+  action: expand_template
+  features: [F-CRAFT-RT-06]
+  description: "...for x in L: ...if C: E gives E for each item for which C is true, in order, between the other elements."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [
+        ...for x in data.items: ...if x.visible: Text(text: x.name),
+        Text(text: "end"),
+      ]);
+  data: '{ items: [{ visible: true, name: "a" }, { visible: false, name: "b" }, { name: "c" }, { visible: true, name: "d" }] }'
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: "a"}},
+                {$: widget, name: "core::Text", args: {text: "d"}},
+                {$: widget, name: "core::Text", args: {text: "end"}},
+              ],
+          },
+      }
+- name: a_for_inside_a_loop_flattens
+  action: expand_template
+  features: [F-CRAFT-RT-06]
+  description: "...for r in L: ...for c in r.cells: E gives one element per cell of every row, in one list; each variable reads its own item."
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for r in data.rows: ...for c in r.cells: Text(text: c, row: r.name)]);
+  data: '{ rows: [{ name: "r1", cells: ["a", "b"] }, { name: "r2", cells: [] }, { name: "r3", cells: ["c"] }] }'
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: "a", row: "r1"}},
+                {$: widget, name: "core::Text", args: {text: "b", row: "r1"}},
+                {$: widget, name: "core::Text", args: {text: "c", row: "r3"}},
+              ],
+          },
+      }
+- name: a_for_inside_an_if
+  action: expand_template
+  features: [F-CRAFT-RT-06]
+  description: "...if C: ...for x in L: E gives the elements of the loop when C is true, and nothing otherwise."
+  libraries:
+    main: |
+      import core;
+      widget root = Box(a: [...if data.yes: ...for x in data.l: x], b: [0, ...if data.no: ...for x in data.l: x]);
+  data: "{ yes: true, no: false, l: [1, 2] }"
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Box",
+        args: {a: [{$: int, value: 1}, {$: int, value: 2}], b: [{$: int, value: 0}]},
       }
 
 # switches
@@ -2169,3 +2242,172 @@
       expect:
         tree: {$: widget, name: "core::Box", args: {child: {$: error, kind: recursiveWidget}}}
         errors: [{at: [children, 1, item, 0, child], kind: recursiveWidget}]
+- name: an_error_names_the_template_and_line_of_its_failing_node
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "An error gives the declaration and line of its failing node: a failure in an argument belongs to the declaration that wrote the call (root), not to the template that reads it (Card); a function argument that is no value fails at the function call."
+  libraries:
+    main: |
+      import core;
+      import fmt;
+      widget Card = Column(children: [
+        Text(text: args.title),
+        Text(text: nope()),
+      ]);
+      widget root = Column(children: [
+        Card(title: fmt::fail()),
+        Box(items: [
+          1,
+          concat(a: Text()),
+        ]),
+      ]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {
+                  $: widget,
+                  name: "core::Column",
+                  args:
+                    {
+                      children:
+                        [{$: error, kind: functionFailed}, {$: error, kind: unknownFunction}],
+                    },
+                },
+                {$: error, kind: invalidValue},
+              ],
+          },
+      }
+    errors:
+      - {at: [children, 0, children, 0], kind: functionFailed, template: "main::root", line: 8}
+      - {at: [children, 0, children, 1], kind: unknownFunction, template: "main::Card", line: 5}
+      - {at: [children, 1], kind: invalidValue, template: "main::root", line: 11}
+- name: recursion_and_self_calls_name_the_calling_template
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "A recursive call's failing node is the call, in the declaration that writes it (B calls A inside A); a self-call is an unknown call in its own declaration."
+  libraries:
+    main: |
+      import core;
+      widget A = Column(children: [
+        B(),
+      ]);
+      widget B = Box(
+        child: A(),
+      );
+      widget Self = Column(children: [Self()]);
+      widget root = Column(children: [A(), Self()]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {
+                  $: widget,
+                  name: "core::Column",
+                  args:
+                    {
+                      children:
+                        [
+                          {
+                            $: widget,
+                            name: "core::Box",
+                            args: {child: {$: error, kind: recursiveWidget}},
+                          },
+                        ],
+                    },
+                },
+                {$: error, kind: unknownFunction},
+              ],
+          },
+      }
+    errors:
+      - {at: [children, 0, children, 0, child], kind: recursiveWidget, template: "main::B", line: 6}
+      - {at: [children, 1], kind: unknownFunction, template: "main::Self", line: 8}
+- name: a_root_or_builder_without_a_widget_names_its_declaration
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "A template root that gives no widget fails at that root, in the template's declaration; a builder's output belongs to the declaration that writes the builder, and an output that gives no widget fails at that output (here the switch)."
+  libraries:
+    main: |
+      import core;
+      widget Empty = switch args.x {
+        1: Text(),
+      };
+      widget root = Column(children: [
+        Empty(x: 2),
+        List(item: (i) =>
+          Text(text: nope(v: i.v)),
+          empty: (i) =>
+            switch i.k { default: 1 }),
+      ]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: error, kind: notAWidget},
+                {$: widget, name: "core::List", args: {item: {$: builder}, empty: {$: builder}}},
+              ],
+          },
+      }
+    errors:
+      - {at: [children, 0], kind: notAWidget, template: "main::Empty", line: 2}
+  steps:
+    - build: [children, 1, item]
+      key: 0
+      arg: "{ v: 1 }"
+      expect:
+        tree: {$: error, kind: unknownFunction}
+        errors:
+          - {at: [children, 1, item, 0], kind: unknownFunction, template: "main::root", line: 8}
+    - build: [children, 1, empty]
+      key: 0
+      arg: "{ k: 1 }"
+      expect:
+        tree: {$: error, kind: notAWidget}
+        errors:
+          - {at: [children, 1, empty, 0], kind: notAWidget, template: "main::root", line: 10}
+- name: a_root_that_names_no_widget_has_no_template
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "When the root names no widget there is no failing node: the error has neither a template nor a position."
+  libraries:
+    main: |
+      import core;
+      widget unused = Text();
+  root: {widget: Nothing}
+  expect:
+    tree: {$: error, kind: notAWidget}
+    errors:
+      - {at: [], kind: notAWidget, template: null, line: null}
+- name: a_literal_takes_the_line_of_the_call_around_it
+  action: expand_template
+  features: [F-CRAFT-RT-12]
+  description: "Lists and literals carry no position: a list too deep (maxDepth 8, within it for registration) has the position of the primitive call whose arguments hold it, on the line before the list."
+  limits: {maxDepth: 8}
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [
+        Text(
+          text: [[[[1]]]],
+        ),
+      ]);
+  expect:
+    tree: {$: widget, name: "core::Column", args: {children: [{$: error, kind: depthExceeded}]}}
+    errors:
+      - {at: [children, 0], kind: depthExceeded, template: "main::root", line: 3}
