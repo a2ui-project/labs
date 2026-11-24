@@ -1,0 +1,236 @@
+/*
+ * Copyright 2024 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 340px;
+  min-width: 300px;
+  max-width: 380px;
+  background: #ffffff;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.inspector-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.inspector-header {
+  padding: 10px 12px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e5e8ec;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inspector-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2328;
+}
+
+.inspector-subtitle {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: #57606a;
+}
+
+.inspector-tabs {
+  display: flex;
+  gap: 4px;
+}
+
+.tab-btn {
+  flex: 1 1 0;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 5px 6px;
+  background: #ffffff;
+  color: #57606a;
+  border: 1px solid #d0d7de;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.tab-btn.active {
+  background: #1f2328;
+  color: #ffffff;
+  border-color: #1f2328;
+}
+
+.inspector-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 10px 12px;
+}
+
+.section-note {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #57606a;
+  padding: 8px;
+  background: #f6f8fa;
+  border: 1px solid #e5e8ec;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.node-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.node-row {
+  padding: 7px 8px;
+  border: 1px solid #e5e8ec;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.node-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.node-path {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 11px;
+  color: #1f2328;
+  word-break: break-all;
+}
+
+.crdt-type-tag {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid #d0d7de;
+  color: #24292f;
+  background: #f6f8fa;
+  flex-shrink: 0;
+}
+
+.crdt-type-tag[data-kind='Y.Text'] {
+  color: #0969da;
+  border-color: #b6e3ff;
+  background: #ddf4ff;
+}
+
+.crdt-type-tag[data-kind='Y.Array'] {
+  color: #8250df;
+  border-color: #d8b9ff;
+  background: #fbefff;
+}
+
+.crdt-type-tag[data-kind='LocalOnly'] {
+  color: #9a6700;
+  border-color: #eac54f;
+  background: #fff8c5;
+}
+
+.node-preview {
+  margin-top: 4px;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 11px;
+  color: #57606a;
+  word-break: break-word;
+}
+
+.ctrl-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #1f2328;
+}
+
+.ctrl-meta {
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: #57606a;
+}
+
+.sub-heading {
+  margin: 8px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #57606a;
+}
+
+.log-row {
+  padding: 6px 8px;
+  border: 1px solid #e5e8ec;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+
+.log-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #57606a;
+  margin-bottom: 2px;
+}
+
+.log-actor {
+  font-weight: 600;
+  color: #1f2328;
+}
+
+.log-summary {
+  font-size: 12px;
+  color: #24292f;
+  line-height: 1.4;
+}
+
+.wire-row {
+  display: grid;
+  grid-template-columns: 78px 34px 1fr auto;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
+  padding: 4px 6px;
+  border-bottom: 1px solid #f0f2f4;
+  color: #57606a;
+}
+
+.wire-dir {
+  font-weight: 600;
+  color: #1f2328;
+}
+
+.empty-note {
+  font-size: 12px;
+  color: #6e7781;
+  margin: 8px 0;
+}

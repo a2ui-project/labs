@@ -1,0 +1,135 @@
+<!--
+ Copyright 2024 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<aside class="inspector-panel" aria-label="Y.Doc CRDT Inspector">
+  <header class="inspector-header">
+    <div>
+      <h2 class="inspector-title">Y.Doc &amp; Binding Inspector</h2>
+      <p class="inspector-subtitle">
+        Surface:
+        <code>{{ snapshot()?.surfaceId || 'none' }}</code>
+        ({{ snapshot()?.componentCount ?? 0 }} components)
+      </p>
+    </div>
+    <nav class="inspector-tabs" aria-label="Inspector sections">
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'crdt'"
+        (click)="selectTab('crdt')"
+      >
+        CRDT Tree ({{ crdtNodes().length }})
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'bindings'"
+        (click)="selectTab('bindings')"
+      >
+        Bindings ({{ controls().length }})
+      </button>
+      <button
+        type="button"
+        class="tab-btn"
+        [class.active]="activeTab() === 'stream'"
+        (click)="selectTab('stream')"
+      >
+        Wire &amp; Log
+      </button>
+    </nav>
+  </header>
+
+  <div class="inspector-body">
+    @switch (activeTab()) {
+      @case ('crdt') {
+        <div class="section-note">
+          <code>TextField</code> paths bind to character-merging <code>Y.Text</code>; enum
+          selections stay atomic <code>Y.Map(LWW)</code> values.
+        </div>
+        <div class="node-list">
+          @for (node of crdtNodes(); track node.path) {
+            <div class="node-row">
+              <div class="node-row-top">
+                <code class="node-path">{{ node.path }}</code>
+                <span class="crdt-type-tag" [attr.data-kind]="node.crdtType">
+                  {{ node.crdtType }}
+                </span>
+              </div>
+              <div class="node-preview">{{ node.preview }}</div>
+            </div>
+          } @empty {
+            <p class="empty-note">No Y.Doc entries loaded yet.</p>
+          }
+        </div>
+      }
+
+      @case ('bindings') {
+        <div class="section-note">
+          <code>/me/*</code> aliases per peer to <code>/users/&lt;actorId&gt;/*</code>;
+          <code>/local/*</code> never leaves the local DataModel.
+        </div>
+        <div class="node-list">
+          @for (ctrl of controls(); track ctrl.componentId) {
+            <div class="node-row">
+              <div class="node-row-top">
+                <span class="ctrl-name">{{ ctrl.label }}</span>
+                <span class="crdt-type-tag" [attr.data-kind]="ctrl.crdtKind">
+                  {{ ctrl.crdtKind }}
+                </span>
+              </div>
+              <div class="ctrl-meta">
+                <code>{{ ctrl.componentType }}#{{ ctrl.componentId }}</code>
+                <span>-&gt;</span>
+                <code>{{ ctrl.boundPath }}</code>
+              </div>
+            </div>
+          } @empty {
+            <p class="empty-note">No bound A2UI controls found.</p>
+          }
+        </div>
+      }
+
+      @case ('stream') {
+        <div class="stream-section">
+          <h3 class="sub-heading">Recent Agent &amp; Room Activity</h3>
+          @for (entry of activityLog(); track entry.id) {
+            <div class="log-row">
+              <div class="log-meta">
+                <span class="log-actor">{{ entry.actorName }}</span>
+                <span class="log-kind">{{ entry.kind }}</span>
+              </div>
+              <div class="log-summary">{{ entry.summary }}</div>
+            </div>
+          } @empty {
+            <p class="empty-note">No activity recorded yet.</p>
+          }
+
+          <h3 class="sub-heading">Recent Binary y-protocols Frames</h3>
+          @for (frame of wireFrames(); track $index) {
+            <div class="wire-row">
+              <code>{{ frame.timestamp }}</code>
+              <span class="wire-dir">{{ frame.direction === 'in' ? 'IN' : 'OUT' }}</span>
+              <span>{{ frame.kind }}</span>
+              <code>{{ frame.byteLength }} B</code>
+            </div>
+          } @empty {
+            <p class="empty-note">Waiting for WebSocket frames.</p>
+          }
+        </div>
+      }
+    }
+  </div>
+</aside>

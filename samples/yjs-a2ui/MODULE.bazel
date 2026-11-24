@@ -1,0 +1,33 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+module(
+    name = "yjs_a2ui",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "rules_go", version = "0.59.0")
+bazel_dep(name = "gazelle", version = "0.47.0")
+
+go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
+go_sdk.download(version = "1.25.0")
+
+go_deps = use_extension("@gazelle//:extensions.bzl", "go_deps")
+go_deps.from_file(go_mod = "//:go.mod")
+use_repo(
+    go_deps,
+    "com_github_gorilla_websocket",
+    "com_github_reearth_ygo",
+    "org_golang_google_genai",
+)
