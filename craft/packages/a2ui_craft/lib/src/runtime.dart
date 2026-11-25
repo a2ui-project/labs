@@ -17,6 +17,7 @@ import 'dart:convert';
 import 'evaluator.dart';
 import 'expansion.dart';
 import 'functions.dart';
+import 'media_context.dart';
 import 'name_resolution.dart';
 import 'rfw/model.dart';
 import 'template_registry.dart';
@@ -118,8 +119,10 @@ class CraftRuntime {
     required this.widget,
     Map<String, Object?> args = const <String, Object?>{},
     Object? data,
+    MediaContext? media,
   }) : _args = _hostArguments(args),
-       _data = _hostData(data);
+       _data = _hostData(data),
+       _media = media;
 
   /// The libraries and functions templates use.
   final TemplateRegistry registry;
@@ -132,6 +135,7 @@ class CraftRuntime {
 
   Map<String, Object> _args;
   Object _data;
+  MediaContext? _media;
   final Map<String, StateInstance> _instances = <String, StateInstance>{};
   final List<void Function()> _listeners = <void Function()>[];
 
@@ -150,14 +154,31 @@ class CraftRuntime {
     _notify();
   }
 
+  /// The media context that `media.` references read (see the
+  /// `craft_media_context` blueprint), or null when the host gives none.
+  /// Setting a different one notifies listeners; setting an equal one does not.
+  MediaContext? get media => _media;
+  set media(MediaContext? value) => setMedia(value);
+
+  /// Sets [media] to [value], notifying listeners when it changes unless
+  /// [notify] is false; a host that passes false calls [refresh] later.
+  /// Returns whether it changed.
+  bool setMedia(MediaContext? value, {bool notify = true}) {
+    if (value == _media) return false;
+    _media = value;
+    if (notify) _notify();
+    return true;
+  }
+
   /// Calls [listener] whenever an expansion may have changed: after a change
-  /// of [args] or [data], a [fire] that set state, and [refresh].
+  /// of [args], [data] or [media], a [fire] that set state, and [refresh].
   void addListener(void Function() listener) => _listeners.add(listener);
 
   /// Stops calling [listener].
   void removeListener(void Function() listener) => _listeners.remove(listener);
 
-  /// Tells listeners that the registry changed.
+  /// Tells listeners that the registry changed, or that an expansion may
+  /// have changed for another reason (see [setMedia]).
   void refresh() => _notify();
 
   void _notify() {
@@ -672,7 +693,8 @@ class _Pass {
       List<Object>.unmodifiable(node.stateReference.parts),
       _values(eval(node.value, env)),
     ),
-    ThemeReference() || MediaReference() => throw _Failure(
+    MediaReference() => readMedia(runtime._media, node.parts),
+    ThemeReference() => throw _Failure(
       ExpansionErrorKind.notEvaluated,
       '$node is not evaluated by this engine.',
     ),

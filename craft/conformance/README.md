@@ -20,6 +20,7 @@ each of them. The suite follows the conventions of A2UI's conformance suite
 | `craft/craft_template_registry.yaml`   | `update_registry`                                                |
 | `craft/craft_runtime.yaml`             | `expand_template`                                                |
 | `craft/craft_a2ui_integration.yaml`    | `derive_catalog_schema`, `map_props`                             |
+| `craft/craft_media_context.yaml`       | `media_map`, `media_sizes`, `evaluate_media`, `expand_template`  |
 
 Each suite's header describes its actions and the inputs and expectations
 they take. Every case has a `name`, a `description`, an `action` and the

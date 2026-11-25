@@ -1,0 +1,536 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Conformance cases for the craft_media_context feature
+# (blueprints/features/craft_media_context.blueprint.md).
+#
+# Every case has a `name`, a `description`, the `features` it exercises (IDs
+# from conformance/features.yaml) and an `action`; conformance_schema.json
+# lists the fields of each action.
+#
+# A media context is given to a case in one of two forms:
+#   media: its properties, {width, height, orientation} as names, and
+#     optionally platform (a name) and reducedMotion (a boolean). A property
+#     that is not given has its default (requirement 1).
+#   size: {width, height} in logical pixels (YAML numbers, .inf for
+#     infinity, .nan for NaN), and optionally platform and reducedMotion as
+#     above; the media context of that size (requirement 2).
+# A case that gives neither has no media context.
+#
+# The actions:
+#
+# 1. action: media_sizes   `sizes` is a list of [width, height] pairs, with
+#    `platform` and `reducedMotion` for all of them. `expect` is
+#      maps: the media map of the media context of each size, in order, or
+#      error: hostError, when the host must be refused every one of them.
+#
+# 2. action: evaluate_media   the `expression` is evaluated by the evaluator
+#    of `craft_functions` with the case's media context, in a library
+#    registered as `test` holding
+#        import core;         (left out when `core: false`)
+#        widget test = Result(value: <expression>);
+#    with a registry (craft_template_registry) whose only other library is
+#    the primitive library core: [Text]. `expect` is
+#      value: the canonical JSON form (see craft_text_format) of the result,
+#        or
+#      error: the kind of evaluation error.
+#
+# 3. action: media_map   `expect` is
+#      map: the media map of the case's media context.
+#
+# 4. action: expand_template   sets up a registry and a runtime and runs
+#    steps in the format of craft_runtime.yaml (see its header), with the
+#    case's media context as the runtime's media context, plus a step
+#      media: properties | size: size | media: null
+#                      replaces the runtime's media context (null: none);
+#                      the root is then expanded again and checked.
+#    The expect of any step may also hold
+#      notified: whether the runtime notified the host during the step.
+#
+# Media maps hold only strings and booleans, which are their own canonical
+# JSON form. Scalars that YAML 1.1 reads as booleans are quoted wherever
+# they mean strings.
+
+# media_properties
+
+- name: the_media_map_holds_every_property
+  action: media_map
+  features: [F-CRAFT-MEDIA-01]
+  description: "The media map has each property by name: classes, orientation and platform as names, reducedMotion as a boolean."
+  media:
+    {width: expanded, height: compact, orientation: landscape, platform: ios, reducedMotion: true}
+  expect:
+    map:
+      {width: expanded, height: compact, orientation: landscape, platform: ios, reducedMotion: true}
+- name: platform_and_reduced_motion_have_defaults
+  action: media_map
+  features: [F-CRAFT-MEDIA-01]
+  description: "Without a platform the map has no platform entry; reducedMotion defaults to false."
+  media: {width: compact, height: medium, orientation: portrait}
+  expect:
+    map: {width: compact, height: medium, orientation: portrait, reducedMotion: false}
+- name: every_platform_name
+  action: expand_template
+  features: [F-CRAFT-MEDIA-01]
+  description: "Each platform is in the media map under its name."
+  libraries:
+    main: |
+      import core;
+      widget root = Text(text: media.platform);
+  media: {width: compact, height: medium, orientation: portrait, platform: android}
+  expect:
+    tree: {$: widget, name: "core::Text", args: {text: android}}
+  steps:
+    - media: {width: compact, height: medium, orientation: portrait, platform: fuchsia}
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: fuchsia}}
+    - media: {width: compact, height: medium, orientation: portrait, platform: ios}
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: ios}}
+    - media: {width: compact, height: medium, orientation: portrait, platform: linux}
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: linux}}
+    - media: {width: compact, height: medium, orientation: portrait, platform: macos}
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: macos}}
+    - media: {width: compact, height: medium, orientation: portrait, platform: web}
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: web}}
+    - media: {width: compact, height: medium, orientation: portrait, platform: windows}
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: windows}}
+
+# size_classes
+
+- name: width_classes_at_each_breakpoint
+  action: media_sizes
+  features: [F-CRAFT-MEDIA-02]
+  description: "Width classes change at 600, 840, 1200 and 1600 logical pixels; a boundary belongs to the larger class, and infinity is extraLarge."
+  sizes:
+    [
+      [0, 0],
+      [599.99, 0],
+      [600, 0],
+      [839.99, 0],
+      [840, 0],
+      [1199.99, 0],
+      [1200, 0],
+      [1599.99, 0],
+      [1600, 0],
+      [.inf, 0],
+    ]
+  expect:
+    maps:
+      - {width: compact, height: compact, orientation: portrait, reducedMotion: false}
+      - {width: compact, height: compact, orientation: landscape, reducedMotion: false}
+      - {width: medium, height: compact, orientation: landscape, reducedMotion: false}
+      - {width: medium, height: compact, orientation: landscape, reducedMotion: false}
+      - {width: expanded, height: compact, orientation: landscape, reducedMotion: false}
+      - {width: expanded, height: compact, orientation: landscape, reducedMotion: false}
+      - {width: large, height: compact, orientation: landscape, reducedMotion: false}
+      - {width: large, height: compact, orientation: landscape, reducedMotion: false}
+      - {width: extraLarge, height: compact, orientation: landscape, reducedMotion: false}
+      - {width: extraLarge, height: compact, orientation: landscape, reducedMotion: false}
+- name: height_classes_at_each_breakpoint
+  action: media_sizes
+  features: [F-CRAFT-MEDIA-02]
+  description: "Height classes change at 480 and 900 logical pixels; a boundary belongs to the larger class, and infinity is expanded."
+  sizes: [[0, 479.99], [0, 480], [0, 899.99], [0, 900], [0, .inf]]
+  expect:
+    maps:
+      - {width: compact, height: compact, orientation: portrait, reducedMotion: false}
+      - {width: compact, height: medium, orientation: portrait, reducedMotion: false}
+      - {width: compact, height: medium, orientation: portrait, reducedMotion: false}
+      - {width: compact, height: expanded, orientation: portrait, reducedMotion: false}
+      - {width: compact, height: expanded, orientation: portrait, reducedMotion: false}
+- name: orientation_from_the_size
+  action: media_sizes
+  features: [F-CRAFT-MEDIA-02]
+  description: "Landscape only when wider than tall; a square, also an infinite one, is portrait."
+  sizes: [[600, 600], [600.5, 600], [600, 600.5], [.inf, .inf], [.inf, 1000]]
+  expect:
+    maps:
+      - {width: medium, height: medium, orientation: portrait, reducedMotion: false}
+      - {width: medium, height: medium, orientation: landscape, reducedMotion: false}
+      - {width: medium, height: medium, orientation: portrait, reducedMotion: false}
+      - {width: extraLarge, height: expanded, orientation: portrait, reducedMotion: false}
+      - {width: extraLarge, height: expanded, orientation: landscape, reducedMotion: false}
+- name: negative_zero_is_zero
+  action: media_sizes
+  features: [F-CRAFT-MEDIA-02]
+  description: "Negative zero is accepted and gives the classes of zero."
+  sizes: [[-0.0, -0.0], [-0.0, 600]]
+  expect:
+    maps:
+      - {width: compact, height: compact, orientation: portrait, reducedMotion: false}
+      - {width: compact, height: medium, orientation: portrait, reducedMotion: false}
+- name: a_size_with_platform_and_reduced_motion
+  action: media_sizes
+  features: [F-CRAFT-MEDIA-02]
+  description: "Platform and reducedMotion given with a size are kept."
+  sizes: [[412, 915]]
+  platform: android
+  reducedMotion: true
+  expect:
+    maps:
+      - {
+          width: compact,
+          height: expanded,
+          orientation: portrait,
+          platform: android,
+          reducedMotion: true,
+        }
+- name: negative_and_nan_sizes_are_refused
+  action: media_sizes
+  features: [F-CRAFT-MEDIA-02]
+  description: "A negative or NaN width or height is a host error (zero and infinity are accepted above)."
+  sizes: [[-1, 0], [0, -0.5], [-.inf, 0], [.nan, 0], [0, .nan]]
+  expect:
+    error: hostError
+
+# media_references
+
+- name: media_references_read_the_media_map
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-03]
+  description: "Each media reference reads its property of the media context."
+  media:
+    {width: expanded, height: compact, orientation: landscape, platform: ios, reducedMotion: true}
+  expression: "[media.width, media.height, media.orientation, media.platform, media.reducedMotion]"
+  expect:
+    value: [expanded, compact, landscape, ios, true]
+- name: other_parts_read_absent
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-03]
+  description: "Unknown properties (also spelled with another case), integer parts and parts after a property are absent."
+  media:
+    {width: expanded, height: compact, orientation: landscape, platform: ios, reducedMotion: true}
+  expression: "[media.pixelWidth, media.Width, media.theme, media.0, media.width.name, media.width.0, media.reducedMotion.x]"
+  expect:
+    value:
+      [
+        {$: missing},
+        {$: missing},
+        {$: missing},
+        {$: missing},
+        {$: missing},
+        {$: missing},
+        {$: missing},
+      ]
+- name: platform_is_absent_when_not_given
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-03]
+  description: "Without a platform, media.platform is absent; reducedMotion reads its default."
+  media: {width: compact, height: medium, orientation: portrait}
+  expression: "[media.platform, isSet(value: media.platform), media.reducedMotion]"
+  expect:
+    value: [{$: missing}, false, false]
+- name: without_a_media_context_references_are_absent
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-03]
+  description: "Without a media context, every media reference is absent."
+  expression: "[media.width, media.reducedMotion, isSet(value: media.width)]"
+  expect:
+    value: [{$: missing}, {$: missing}, false]
+- name: media_references_are_values
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-03]
+  description: "A media reference is a value: function arguments receive it."
+  size: {width: 390, height: 844}
+  expression: '[concat(a: media.width, b: "!"), equals(a: media.orientation, b: "portrait"), contains(list: ["medium", "expanded"], value: media.height)]'
+  expect:
+    value: ["compact!", true, true]
+- name: a_switch_on_media_width
+  action: expand_template
+  features: [F-CRAFT-MEDIA-03]
+  description: "In the runtime, a switch branches on media.width, with the template's default for unlisted classes and without a media context."
+  libraries:
+    main: |
+      import core;
+      widget root = Text(text: switch media.width { "compact": "S", "expanded": "L", default: "M" });
+  media: {width: compact, height: medium, orientation: portrait}
+  expect:
+    tree: {$: widget, name: "core::Text", args: {text: S}}
+  steps:
+    - media: {width: expanded, height: medium, orientation: landscape}
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: L}}
+    - media: {width: medium, height: medium, orientation: portrait}
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: M}}
+    - media: null
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: M}}
+- name: media_references_in_arguments_and_templates
+  action: expand_template
+  features: [F-CRAFT-MEDIA-03]
+  description: "Media references read the runtime's media context in primitive arguments, in a template's root and in an argument passed to a template."
+  libraries:
+    main: |
+      import core;
+      widget Label = Text(text: args.t, tall: media.height);
+      widget root = Column(children: [Label(t: media.width), Box(value: { o: media.orientation, m: media.reducedMotion })]);
+  size: {width: 1300, height: 700, reducedMotion: true}
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: large, tall: medium}},
+                {$: widget, name: "core::Box", args: {value: {o: landscape, m: true}}},
+              ],
+          },
+      }
+
+# comparing_size_classes
+
+- name: at_least_orders_the_size_classes
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-04]
+  description: "atLeast compares names in the order compact < medium < expanded < large < extraLarge."
+  expression: >-
+    [atLeast(a: "compact", b: "compact"), atLeast(a: "compact", b: "medium"),
+    atLeast(a: "medium", b: "compact"), atLeast(a: "expanded", b: "expanded"),
+    atLeast(a: "large", b: "extraLarge"), atLeast(a: "extraLarge", b: "large"),
+    atLeast(a: "compact", b: "extraLarge"), atLeast(a: "extraLarge", b: "compact"),
+    atLeast(a: "large", b: "expanded"), atLeast(a: "expanded", b: "large")]
+  expect:
+    value: [true, false, true, true, false, true, false, true, true, false]
+- name: at_least_is_absent_for_other_values
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-04]
+  description: "atLeast is absent when an argument is absent, not a string, or not one of the five names (names are case-sensitive)."
+  expression: >-
+    [atLeast(a: "huge", b: "compact"), atLeast(a: "compact", b: "Compact"),
+    atLeast(a: "portrait", b: "compact"), atLeast(a: "extraLarge", b: ""),
+    atLeast(a: 1, b: "compact"), atLeast(a: true, b: "large"),
+    atLeast(b: "compact"), atLeast(a: "large"), atLeast(a: "large", b: absent)]
+  expect:
+    value:
+      [
+        {$: missing},
+        {$: missing},
+        {$: missing},
+        {$: missing},
+        {$: missing},
+        {$: missing},
+        {$: missing},
+        {$: missing},
+        {$: missing},
+      ]
+- name: a_height_class_is_below_large
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-04]
+  description: "By design, a height class compared with the width-only names large and extraLarge is below them."
+  media: {width: compact, height: expanded, orientation: portrait}
+  expression: '[atLeast(a: media.height, b: "large"), atLeast(a: media.height, b: "extraLarge"), atLeast(a: "large", b: media.height)]'
+  expect:
+    value: [false, false, true]
+- name: at_least_on_media_classes
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-04]
+  description: "atLeast compares media.width, and media.height in the same order; an orientation is no size class."
+  media: {width: large, height: compact, orientation: landscape}
+  expression: '[atLeast(a: media.width, b: "expanded"), atLeast(a: media.width, b: "extraLarge"), atLeast(a: media.height, b: "medium"), atLeast(a: media.height, b: "compact"), atLeast(a: media.orientation, b: "compact")]'
+  expect:
+    value: [true, false, false, true, {$: missing}]
+- name: at_least_without_a_media_context
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-04]
+  description: "Without a media context, atLeast on media.width is absent."
+  expression: 'atLeast(a: media.width, b: "compact")'
+  expect:
+    value: {$: missing}
+- name: at_least_is_a_standard_function
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-04]
+  description: "atLeast is called bare or as core::atLeast, and hasFunction lists it."
+  expression: '[core::atLeast(a: "medium", b: "medium"), hasFunction(name: "atLeast"), hasFunction(name: "core::atLeast")]'
+  expect:
+    value: [true, true, true]
+- name: at_least_without_importing_core
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-04]
+  description: "Like every standard function, atLeast is callable from a library that does not import core."
+  core: false
+  expression: 'atLeast(a: "large", b: "medium")'
+  expect:
+    value: true
+- name: at_least_has_only_a_and_b
+  action: evaluate_media
+  features: [F-CRAFT-MEDIA-04]
+  description: "Another argument name fails with invalidArgument."
+  expression: 'atLeast(a: "large", c: "medium")'
+  expect:
+    error: invalidArgument
+- name: a_widget_named_at_least_wins
+  action: expand_template
+  features: [F-CRAFT-MEDIA-04]
+  description: "A visible widget named atLeast is called instead, while core::atLeast still calls the function."
+  libraries:
+    main: |
+      import core;
+      widget atLeast = Text(text: "widget");
+      widget root = Column(children: [atLeast(a: "large", b: "medium"), Text(text: core::atLeast(a: "large", b: "medium"))]);
+  expect:
+    tree:
+      {
+        $: widget,
+        name: "core::Column",
+        args:
+          {
+            children:
+              [
+                {$: widget, name: "core::Text", args: {text: widget}},
+                {$: widget, name: "core::Text", args: {text: true}},
+              ],
+          },
+      }
+
+# media_changes
+
+- name: a_media_change_notifies_and_expands_again
+  action: expand_template
+  features: [F-CRAFT-MEDIA-05]
+  description: "Replacing the media context with a different one notifies; with an equal one, whichever form gives it, it does not."
+  libraries:
+    main: |
+      import core;
+      widget root = Text(text: media.width, motion: media.reducedMotion);
+  size: {width: 700, height: 500}
+  expect:
+    tree: {$: widget, name: "core::Text", args: {text: medium, motion: false}}
+  steps:
+    - media: {width: medium, height: medium, orientation: landscape}
+      expect:
+        notified: false
+        tree: {$: widget, name: "core::Text", args: {text: medium, motion: false}}
+    - size: {width: 839, height: 500}
+      expect:
+        notified: false
+        tree: {$: widget, name: "core::Text", args: {text: medium, motion: false}}
+    - size: {width: 840, height: 500}
+      expect:
+        notified: true
+        tree: {$: widget, name: "core::Text", args: {text: expanded, motion: false}}
+    - size: {width: 840, height: 500, reducedMotion: true}
+      expect:
+        notified: true
+        tree: {$: widget, name: "core::Text", args: {text: expanded, motion: true}}
+    - size: {width: 840, height: 500, reducedMotion: true, platform: linux}
+      expect:
+        notified: true
+        tree: {$: widget, name: "core::Text", args: {text: expanded, motion: true}}
+    - media: null
+      expect:
+        notified: true
+        tree: {$: widget, name: "core::Text", args: {text: {$: missing}, motion: {$: missing}}}
+    - media: null
+      expect:
+        notified: false
+        tree: {$: widget, name: "core::Text", args: {text: {$: missing}, motion: {$: missing}}}
+- name: state_arguments_and_data_survive_a_media_change
+  action: expand_template
+  features: [F-CRAFT-MEDIA-05]
+  description: "A media change keeps the state of a template still in the expansion, the arguments and the data."
+  libraries:
+    main: |
+      import core;
+      widget Counter { count: 0 } = Button(
+        onPressed: set state.count = add(a: state.count, b: 1),
+        child: Text(text: concat(a: media.width, b: state.count), label: data.label, title: args.title),
+      );
+      widget root = Counter(title: args.title);
+  args: '{ title: "T" }'
+  data: '{ label: "L" }'
+  media: {width: compact, height: medium, orientation: portrait}
+  expect:
+    states: [{at: [], widget: "main::Counter", value: {count: {$: int, value: 0}}}]
+  steps:
+    - fire: [onPressed]
+      expect:
+        notified: true
+        states: [{at: [], widget: "main::Counter", value: {count: {$: int, value: 1}}}]
+    - media: {width: expanded, height: medium, orientation: landscape}
+      expect:
+        notified: true
+        tree:
+          {
+            $: widget,
+            name: "core::Button",
+            args:
+              {
+                onPressed:
+                  {
+                    $: setState,
+                    state: {at: [], widget: "main::Counter"},
+                    parts: [count],
+                    value: {$: int, value: 2},
+                  },
+                child: {$: widget, name: "core::Text", args: {text: expanded1, label: L, title: T}},
+              },
+          }
+        states: [{at: [], widget: "main::Counter", value: {count: {$: int, value: 1}}}]
+- name: a_template_that_leaves_on_a_media_change_starts_again
+  action: expand_template
+  features: [F-CRAFT-MEDIA-05]
+  description: "A template that a media change removes from the expansion loses its state, as in the runtime; when a later change brings it back it starts from its initial state."
+  libraries:
+    main: |
+      import core;
+      widget Counter { count: 0 } = Button(onPressed: set state.count = add(a: state.count, b: 1), child: Text(text: state.count));
+      widget root = switch media.width { "compact": Counter(), default: Text(text: "wide") };
+  media: {width: compact, height: medium, orientation: portrait}
+  expect:
+    states: [{at: [], widget: "main::Counter", value: {count: {$: int, value: 0}}}]
+  steps:
+    - fire: [onPressed]
+      expect:
+        states: [{at: [], widget: "main::Counter", value: {count: {$: int, value: 1}}}]
+    - media: {width: expanded, height: medium, orientation: landscape}
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: wide}}
+    - media: {width: compact, height: medium, orientation: portrait}
+      expect:
+        states: [{at: [], widget: "main::Counter", value: {count: {$: int, value: 0}}}]
+- name: builder_outputs_read_the_current_media_context
+  action: expand_template
+  features: [F-CRAFT-MEDIA-05]
+  description: "A builder's output expanded after a media change reads the new media context."
+  libraries:
+    main: |
+      import core;
+      widget root = List(item: (i) => Text(text: concat(a: media.width, b: i.k)));
+  media: {width: compact, height: medium, orientation: portrait}
+  expect:
+    tree: {$: widget, name: "core::List", args: {item: {$: builder}}}
+  steps:
+    - build: [item]
+      key: 0
+      arg: '{ k: "!" }'
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: "compact!"}}
+    - media: {width: large, height: medium, orientation: landscape}
+      expect:
+        notified: true
+        tree: {$: widget, name: "core::List", args: {item: {$: builder}}}
+    - build: [item]
+      key: 0
+      arg: '{ k: "!" }'
+      expect:
+        tree: {$: widget, name: "core::Text", args: {text: "large!"}}

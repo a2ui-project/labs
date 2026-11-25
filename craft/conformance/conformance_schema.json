@@ -27,7 +27,10 @@
             "update_registry",
             "expand_template",
             "derive_catalog_schema",
-            "map_props"
+            "map_props",
+            "media_map",
+            "media_sizes",
+            "evaluate_media"
           ],
           "description": "The conformance test action to perform."
         }
@@ -200,6 +203,45 @@
           },
           "then": {
             "$ref": "#/$defs/CraftMapPropsTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "media_map"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftMediaMapTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "media_sizes"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftMediaSizesTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "evaluate_media"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftEvaluateMediaTest"
           }
         }
       ]
@@ -1280,6 +1322,9 @@
                     "type": "string",
                     "pattern": "^[a-z][A-Za-z0-9]*$"
                   }
+                },
+                "notified": {
+                  "type": "boolean"
                 }
               },
               "unevaluatedProperties": false
@@ -1303,7 +1348,10 @@
               "properties": {
                 "tree": true,
                 "states": true,
-                "errors": true
+                "errors": true,
+                "notified": {
+                  "type": "boolean"
+                }
               },
               "unevaluatedProperties": false
             }
@@ -1348,7 +1396,10 @@
               "properties": {
                 "tree": true,
                 "states": true,
-                "errors": true
+                "errors": true,
+                "notified": {
+                  "type": "boolean"
+                }
               },
               "unevaluatedProperties": false
             }
@@ -1371,7 +1422,10 @@
               "properties": {
                 "tree": true,
                 "states": true,
-                "errors": true
+                "errors": true,
+                "notified": {
+                  "type": "boolean"
+                }
               },
               "unevaluatedProperties": false
             }
@@ -1426,6 +1480,65 @@
             }
           },
           "required": ["runnable", "expect"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "media": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/CraftMedia"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "expect": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/CraftExpansionExpect"
+                }
+              ],
+              "properties": {
+                "tree": true,
+                "states": true,
+                "errors": true,
+                "notified": {
+                  "type": "boolean"
+                }
+              },
+              "unevaluatedProperties": false
+            }
+          },
+          "required": ["media", "expect"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "size": {
+              "$ref": "#/$defs/CraftSize"
+            },
+            "expect": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/CraftExpansionExpect"
+                }
+              ],
+              "properties": {
+                "tree": true,
+                "states": true,
+                "errors": true,
+                "notified": {
+                  "type": "boolean"
+                }
+              },
+              "unevaluatedProperties": false
+            }
+          },
+          "required": ["size", "expect"],
           "additionalProperties": false
         }
       ],
@@ -1504,6 +1617,12 @@
           "items": {
             "$ref": "#/$defs/CraftRuntimeStep"
           }
+        },
+        "media": {
+          "$ref": "#/$defs/CraftMedia"
+        },
+        "size": {
+          "$ref": "#/$defs/CraftSize"
         }
       },
       "required": ["libraries", "expect"],
@@ -1705,6 +1824,172 @@
       },
       "required": ["libraries", "component", "expect"],
       "unevaluatedProperties": false
+    },
+    "CraftMedia": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "enum": ["compact", "medium", "expanded", "large", "extraLarge"]
+        },
+        "height": {
+          "enum": ["compact", "medium", "expanded"]
+        },
+        "orientation": {
+          "enum": ["portrait", "landscape"]
+        },
+        "platform": {
+          "enum": ["android", "fuchsia", "ios", "linux", "macos", "windows", "web"]
+        },
+        "reducedMotion": {
+          "type": "boolean"
+        }
+      },
+      "required": ["width", "height", "orientation"],
+      "additionalProperties": false,
+      "description": "A media context by its properties."
+    },
+    "CraftSize": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "platform": {
+          "enum": ["android", "fuchsia", "ios", "linux", "macos", "windows", "web"]
+        },
+        "reducedMotion": {
+          "type": "boolean"
+        }
+      },
+      "required": ["width", "height"],
+      "additionalProperties": false,
+      "description": "The media context of a size in logical pixels."
+    },
+    "CraftMediaMapTest": {
+      "type": "object",
+      "description": "Checks the media map of a media context.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "media_map"
+        },
+        "media": {
+          "$ref": "#/$defs/CraftMedia"
+        },
+        "size": {
+          "$ref": "#/$defs/CraftSize"
+        },
+        "expect": {
+          "type": "object",
+          "properties": {
+            "map": {
+              "type": "object"
+            }
+          },
+          "required": ["map"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["expect"],
+      "unevaluatedProperties": false,
+      "oneOf": [
+        {
+          "required": ["media"]
+        },
+        {
+          "required": ["size"]
+        }
+      ]
+    },
+    "CraftMediaSizesTest": {
+      "type": "object",
+      "description": "Checks the media contexts of sizes, or that the host is refused them.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "media_sizes"
+        },
+        "sizes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "platform": {
+          "enum": ["android", "fuchsia", "ios", "linux", "macos", "windows", "web"]
+        },
+        "reducedMotion": {
+          "type": "boolean"
+        },
+        "expect": {
+          "type": "object",
+          "properties": {
+            "maps": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              }
+            },
+            "error": {
+              "const": "hostError"
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1,
+          "maxProperties": 1
+        }
+      },
+      "required": ["sizes", "expect"],
+      "unevaluatedProperties": false
+    },
+    "CraftEvaluateMediaTest": {
+      "type": "object",
+      "description": "Evaluates an expression with a media context.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "evaluate_media"
+        },
+        "expression": {
+          "type": "string"
+        },
+        "core": {
+          "type": "boolean"
+        },
+        "media": {
+          "$ref": "#/$defs/CraftMedia"
+        },
+        "size": {
+          "$ref": "#/$defs/CraftSize"
+        },
+        "expect": {
+          "type": "object",
+          "properties": {
+            "value": {},
+            "error": {
+              "type": "string",
+              "pattern": "^[a-z][A-Za-z0-9]*$"
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1,
+          "maxProperties": 1
+        }
+      },
+      "required": ["expression", "expect"],
+      "unevaluatedProperties": false,
+      "not": {
+        "required": ["media", "size"]
+      }
     }
   }
 }

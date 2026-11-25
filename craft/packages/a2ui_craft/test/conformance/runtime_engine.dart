@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The expand_template action (see craft_runtime.yaml), which the suites of
-// later features share.
+// The expand_template action, shared by the suites of craft_runtime and
+// craft_media_context.
 
 import 'dart:convert';
 
@@ -21,6 +21,7 @@ import 'package:a2ui_craft/a2ui_craft.dart';
 import 'package:test/test.dart';
 
 import 'conformance_harness.dart';
+import 'media_input.dart';
 
 const Map<String, Object?> _defaultPrimitives = <String, Object?>{
   'core': <String, Object?>{
@@ -45,10 +46,13 @@ final ConformanceAction expandTemplateAction = ConformanceAction(const <String>{
   'data_json',
   'expect',
   'steps',
+  'media',
+  'size',
 }, (ConformanceTestCase c) => RuntimeEngine(c).run(c));
 
 /// One registry and runtime set up by a case in the format of
-/// `craft_runtime.yaml` (its header documents it).
+/// `craft_runtime.yaml`, extended with the media inputs and steps of
+/// `craft_media_context.yaml` (both headers document them).
 class RuntimeEngine {
   /// Sets up the registry and runtime of [c].
   RuntimeEngine(ConformanceTestCase c) {
@@ -79,7 +83,9 @@ class RuntimeEngine {
       widget: root['widget'] as String? ?? 'root',
       args: _args(c['args'], c['host_handlers'], c['host_widgets']),
       data: c['data_json'] ?? _data(c['data']),
+      media: mediaInput(c['media'], c['size']),
     );
+    runtime.addListener(() => _notified = true);
   }
 
   /// Checks the initial expansion against `expect`, then runs the steps.
@@ -98,6 +104,7 @@ class RuntimeEngine {
   Expansion? _current;
   Expansion? _previous;
   final Map<String, Expansion> _builds = <String, Expansion>{};
+  bool _notified = false;
 
   void _register(Object? libraries) {
     for (final MapEntry<String, Object?> l in _entries(libraries)) {
@@ -113,6 +120,7 @@ class RuntimeEngine {
     final Map<String, Object?> expected =
         step['expect']! as Map<String, Object?>;
     assertKnownKeys(expected, _stepExpectKeys, '$label: expect');
+    _notified = false;
     if (step.containsKey('fire')) {
       final FireResult result = runtime.fire(
         _at(
@@ -166,8 +174,13 @@ class RuntimeEngine {
     } else if (step.containsKey('register')) {
       _register(step['register']);
       runtime.refresh();
+    } else if (step.containsKey('media') || step.containsKey('size')) {
+      runtime.media = mediaInput(step['media'], step['size']);
     } else {
       throw StateError('Unknown step: $step');
+    }
+    if (expected.containsKey('notified')) {
+      expect(_notified, expected['notified'], reason: '$label: notified');
     }
     checkRoot(expected, label);
   }
@@ -233,6 +246,8 @@ const Set<String> _stepKeys = <String>{
   'key',
   'arg',
   'runnable',
+  'media',
+  'size',
   'expect',
 };
 
@@ -241,6 +256,7 @@ const Set<String> _stepExpectKeys = <String>{
   'events',
   'fire_errors',
   'runnable',
+  'notified',
 };
 
 Object? _event(HostEvent event) => switch (event) {

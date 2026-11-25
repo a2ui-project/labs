@@ -68,13 +68,9 @@ String? _errorKind(Expansion expansion) => switch (expansion.root) {
 
 void main() {
   group('nodes the text format does not produce', () {
-    test('theme and media references are not evaluated', () {
+    test('theme references are not evaluated', () {
       expect(
         _errorKind(_boxOf(const ThemeReference(<Object>['color'])).expand()),
-        'notEvaluated',
-      );
-      expect(
-        _errorKind(_boxOf(const MediaReference(<Object>['width'])).expand()),
         'notEvaluated',
       );
     });
