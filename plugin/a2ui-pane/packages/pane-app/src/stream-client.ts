@@ -124,6 +124,26 @@ function pageHref(): string {
 }
 
 /**
+ * Returns whether `href` (defaulting to `window.location.href`) uses a non-HTTP custom scheme
+ * such as Electron's `plugin://` proxy where relative WebSocket URLs cannot resolve against the
+ * page origin.
+ */
+export function isCustomOriginScheme(href?: string): boolean {
+  const raw = href ?? (typeof window !== 'undefined' ? window.location?.href : undefined);
+  if (!raw) return false;
+  try {
+    const protocol = new URL(raw).protocol;
+    return !/^(https?|about):$/i.test(protocol);
+  } catch {
+    return false;
+  }
+}
+
+function isAbsoluteNetworkUrl(url: string | undefined): boolean {
+  return typeof url === 'string' && /^(wss?|https?):\/\//i.test(url);
+}
+
+/**
  * Builds the WebSocket stream URL: resolves `base` against `href`, maps
  * `http:` to `ws:` and `https:` to `wss:`, and adds the query parameters.
  * An absolute `ws://` or `wss://` base is used as is.
@@ -289,6 +309,7 @@ export class StreamClient {
 
   private shouldUseWebSocket(): boolean {
     if (this.wsDisabled) return false;
+    if (!isAbsoluteNetworkUrl(this.options.wsBaseUrl) && isCustomOriginScheme()) return false;
     if (this.options.webSocketFactory) return true;
     return !this.options.eventSourceFactory && typeof WebSocket === 'function';
   }

@@ -802,6 +802,93 @@ describe('initPaneApp', () => {
       expect(sockets()).toHaveLength(1);
     });
 
+    it('discovers wsBaseUrl from /api/config under plugin:// origins and falls back when absent', async () => {
+      const originalLocation = window.location;
+      Object.defineProperty(window, 'location', {
+        value: {
+          href: 'plugin://a2ui-pane/?conversationId=conv_plugin_ws&token=tok_p',
+          search: '?conversationId=conv_plugin_ws&token=tok_p',
+        },
+        configurable: true,
+      });
+      try {
+        const configFetch = vi.fn().mockImplementation(async (url: string) => {
+          if (url === './api/config') {
+            return {
+              ok: true,
+              json: async () => ({wsBaseUrl: 'ws://localhost:54288/api/ws'}),
+            };
+          }
+          return {ok: true, json: async () => ({ok: true})};
+        });
+
+        const withWs = await initPaneApp({
+          container,
+          search: '?conversationId=conv_plugin_ws&token=tok_p',
+          fetchFn: configFetch as any,
+          webSocketFactory: url => new FakeWebSocket(url) as any,
+          eventSourceFactory: url => new FakeEventSource(url) as any,
+        });
+        expect(configFetch).toHaveBeenCalledWith('./api/config');
+        const wsList = connectionsFor(FakeWebSocket.instances, 'conv_plugin_ws');
+        expect(wsList).toHaveLength(1);
+        expect(wsList[0].url).toBe(
+          'ws://localhost:54288/api/ws?conversationId=conv_plugin_ws&token=tok_p',
+        );
+        expect(connectionsFor(FakeEventSource.instances, 'conv_plugin_ws')).toHaveLength(0);
+        withWs?.client?.disconnect();
+
+        // When /api/config omits wsBaseUrl (or returns a non-ws scheme), skip port-80 WS and use SSE.
+        const noWsFetch = vi.fn().mockImplementation(async (url: string) => {
+          if (url === './api/config') {
+            return {ok: true, json: async () => ({wsBaseUrl: 'javascript:alert(1)'})};
+          }
+          return {ok: true, json: async () => ({ok: true})};
+        });
+        const sseFallback = await initPaneApp({
+          container,
+          search: '?conversationId=conv_plugin_sse&token=tok_p',
+          fetchFn: noWsFetch as any,
+          webSocketFactory: url => new FakeWebSocket(url) as any,
+          eventSourceFactory: url => new FakeEventSource(url) as any,
+        });
+        expect(connectionsFor(FakeWebSocket.instances, 'conv_plugin_sse')).toHaveLength(0);
+        expect(connectionsFor(FakeEventSource.instances, 'conv_plugin_sse')).toHaveLength(1);
+        sseFallback?.client?.disconnect();
+      } finally {
+        Object.defineProperty(window, 'location', {
+          value: originalLocation,
+          configurable: true,
+        });
+      }
+    });
+
+    it('treats a hidden-on-mount iframe with zero client rects as hidden even when innerWidth is positive', async () => {
+      const origGetClientRects = document.documentElement.getClientRects;
+      document.documentElement.getClientRects = (() => [] as unknown as DOMRectList) as any;
+      try {
+        setViewport(420, 600);
+        const {client, streams} = await initWith('conv_zero_rects');
+        expect(streams()).toHaveLength(0);
+        expect(client.getStatus()).toBe('disconnected');
+        expect(lastVisibilityBody(mockFetch)).toEqual({
+          conversationId: 'conv_zero_rects',
+          visible: false,
+        });
+
+        document.documentElement.getClientRects = origGetClientRects;
+        window.dispatchEvent(new Event('resize'));
+        expect(streams()).toHaveLength(1);
+        expect(lastVisibilityBody(mockFetch)).toEqual({
+          conversationId: 'conv_zero_rects',
+          visible: true,
+        });
+        client.disconnect();
+      } finally {
+        document.documentElement.getClientRects = origGetClientRects;
+      }
+    });
+
     it('keeps the badge Live across a long hide when the stream resumes quickly', async () => {
       const {streams} = await initWith('conv_badge_fast');
       streams()[0].triggerOpen();
@@ -1018,7 +1105,7 @@ describe('initPaneApp', () => {
       expect(toggleSpy).toHaveBeenCalledWith({open: false});
     });
 
-    it('keeps the surface and skips the delete when the send fails', async () => {
+    it('keeps the surface, clears submitted button state, and skips the delete when the send fails', async () => {
       const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       const {instance, paneView, log} = await setup({sendFails: true});
       const surface = instance.applier.getProcessor().getSurface('surf');
@@ -1029,6 +1116,7 @@ describe('initPaneApp', () => {
       expect(log).toEqual(['send']);
       expect(paneView.isSurfaceDismissed('surf')).toBe(false);
       expect(instance.applier.getProcessor().getSurface('surf')).toBeDefined();
+      expect(surface?.dataModel.get('/_submitted/submit_btn')).toBeUndefined();
       error.mockRestore();
     });
 

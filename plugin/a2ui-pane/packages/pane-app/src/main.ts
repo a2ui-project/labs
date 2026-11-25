@@ -22,7 +22,7 @@ import {
   type A2uiLinkClickDetail,
   openLink,
 } from '@a2ui-pane/renderer';
-import {StreamClient, ConnectionStatus} from './stream-client.js';
+import {StreamClient, ConnectionStatus, isCustomOriginScheme} from './stream-client.js';
 import {ActionSender} from './action-sender.js';
 import {showToast} from './toast.js';
 
@@ -37,7 +37,11 @@ export interface InitOptions {
   eventSourceFactory?: (url: string) => EventSource;
   /** Creates the stream WebSocket. When set, the pane tries a WebSocket before SSE. */
   webSocketFactory?: (url: string) => WebSocket;
+  /** Explicit WebSocket base URL, overriding `/api/config` discovery. */
+  wsBaseUrl?: string;
   sendMessageFn?: (text: string) => Promise<any>;
+  /** Maximum milliseconds to wait for an action send before timing out. */
+  actionTimeoutMs?: number;
   onAction?: (action: any, dataModel?: Record<string, unknown>) => void;
   /** Replaces the page reload that runs when the sidecar serves a new pane build. */
   reloadFn?: () => void;
@@ -255,7 +259,11 @@ function createVisibilityProbe(): () => boolean {
     if (isDocumentHidden()) return false;
     if (!(window.innerWidth > 0 && window.innerHeight > 0)) return false;
     if (typeof document === 'undefined' || !document.documentElement) return true;
-    const box = documentElementBox(document.documentElement);
+    const docEl = document.documentElement;
+    if (typeof docEl.getClientRects === 'function' && docEl.getClientRects().length === 0) {
+      return false;
+    }
+    const box = documentElementBox(docEl);
     if (box.width > 0 && box.height > 0) {
       seenPositiveClientBox = true;
       return true;
@@ -341,24 +349,35 @@ function normalizeConversationId(id: string | null | undefined): string | null {
   return trimmed;
 }
 
-async function resolveConversationId(
+function parseWsBaseUrl(raw: unknown): string | undefined {
+  return typeof raw === 'string' && /^wss?:\/\//i.test(raw) ? raw : undefined;
+}
+
+async function resolvePaneConfig(
   initialId: string | null,
+  needWsBaseUrl: boolean,
   fetchImpl?: typeof fetch,
-): Promise<string | null> {
-  if (initialId !== null) {
-    return normalizeConversationId(initialId);
+): Promise<{conversationId: string | null; wsBaseUrl?: string}> {
+  const fromQuery = initialId !== null ? normalizeConversationId(initialId) : null;
+  if (initialId !== null && (!fromQuery || !needWsBaseUrl)) {
+    return {conversationId: fromQuery};
   }
-  if (!fetchImpl) return null;
+  if (!fetchImpl) {
+    return {conversationId: fromQuery};
+  }
   try {
     const resp = await fetchImpl('./api/config');
     if (resp.ok) {
-      const config = (await resp.json()) as any;
-      return normalizeConversationId(config?.conversationId);
+      const config = (await resp.json()) as Record<string, unknown>;
+      return {
+        conversationId: fromQuery ?? normalizeConversationId(config?.conversationId as string),
+        wsBaseUrl: parseWsBaseUrl(config?.wsBaseUrl),
+      };
     }
   } catch {
     // Configuration fallback
   }
-  return null;
+  return {conversationId: fromQuery};
 }
 
 function resolveSearch(options: InitOptions): string {
@@ -492,13 +511,25 @@ function createActionHandler(
   return (action: any, dataModel?: Record<string, unknown>) => {
     const surfaceId = typeof action?.surfaceId === 'string' ? action.surfaceId : undefined;
     if (surfaceId && paneView.isSurfaceDismissed(surfaceId)) return;
+    const sourceId =
+      typeof action?.sourceComponentId === 'string' ? action.sourceComponentId : undefined;
     const isOneShot = action?.oneShot !== false;
+    const rollbackIfIdle = () => {
+      if (isOneShot && surfaceId && !(sourceId && actionSender.isPending(sourceId))) {
+        paneView.clearSubmittedState(surfaceId);
+      }
+    };
     actionSender
       .sendAction(action, dataModel)
       .then(sent => {
-        if (sent) onSent(isOneShot, surfaceId);
+        if (sent) {
+          onSent(isOneShot, surfaceId);
+        } else {
+          rollbackIfIdle();
+        }
       })
       .catch(err => {
+        rollbackIfIdle();
         console.error('[main] sendAction failed:', err);
       });
   };
@@ -507,6 +538,7 @@ function createActionHandler(
 interface StreamWiring {
   conversationId: string;
   token: string | undefined;
+  wsBaseUrl?: string;
   fetchImpl: typeof fetch;
   applier: LineApplier;
   updateStatus: (status: ConnectionStatus) => void;
@@ -617,13 +649,14 @@ function wirePageLifecycle(client: StreamClient, visibilityTracker: VisibilityTr
 }
 
 function connectStream(options: InitOptions, wiring: StreamWiring): StreamClient {
-  const {conversationId, token, fetchImpl, applier, updateStatus, updateErrors} = wiring;
+  const {conversationId, token, wsBaseUrl, fetchImpl, applier, updateStatus, updateErrors} = wiring;
   const badge = createResumeBadgeGate(updateStatus);
 
   // The client callbacks below read `visibilityTracker`; they first run after `connect()`.
   const client = new StreamClient({
     conversationId,
     token,
+    wsBaseUrl,
     applier,
     eventSourceFactory: options.eventSourceFactory,
     webSocketFactory: options.webSocketFactory,
@@ -676,7 +709,13 @@ export async function initPaneApp(options: InitOptions = {}): Promise<PaneAppIns
   const urlParams = new URLSearchParams(resolveSearch(options));
   const token = urlParams.get('token') || undefined;
   const fetchImpl = options.fetchFn ?? fetch;
-  const conversationId = await resolveConversationId(urlParams.get('conversationId'), fetchImpl);
+  const needWsBaseUrl = !options.wsBaseUrl && isCustomOriginScheme();
+  const {conversationId, wsBaseUrl: configWsBaseUrl} = await resolvePaneConfig(
+    urlParams.get('conversationId'),
+    needWsBaseUrl,
+    fetchImpl,
+  );
+  const wsBaseUrl = options.wsBaseUrl ?? configWsBaseUrl;
 
   appContainer.innerHTML = paneTemplate(conversationId);
 
@@ -698,6 +737,7 @@ export async function initPaneApp(options: InitOptions = {}): Promise<PaneAppIns
   const actionSender = new ActionSender({
     conversationId,
     sendMessageFn: options.sendMessageFn,
+    timeoutMs: options.actionTimeoutMs,
     onPendingChange: pending => {
       paneView.pendingComponents = pending;
     },
@@ -745,6 +785,7 @@ export async function initPaneApp(options: InitOptions = {}): Promise<PaneAppIns
   const client = connectStream(options, {
     conversationId,
     token,
+    wsBaseUrl,
     fetchImpl,
     applier,
     updateStatus,

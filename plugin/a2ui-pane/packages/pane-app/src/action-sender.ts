@@ -17,12 +17,30 @@
 import {formatActionText, A2uiActionDetails} from '@a2ui-pane/protocol';
 import {showToast} from './toast.js';
 
+/** Default timeout in milliseconds when waiting for `sendMessage` to resolve. */
+export const DEFAULT_ACTION_TIMEOUT_MS = 35_000;
+
 /** Configuration and dependency injection hooks for `ActionSender`. */
 export interface ActionSenderOptions {
   conversationId?: string | null;
   onPendingChange?: (pendingComponents: ReadonlySet<string>) => void;
   showToastFn?: (message: string, isError?: boolean) => void;
   sendMessageFn?: (text: string, conversationId?: string) => Promise<any>;
+  /** Maximum milliseconds to wait for `sendMessage` before failing. Defaults to 35000. */
+  timeoutMs?: number;
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) return promise;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeoutPromise = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error('Timed out waiting for agent response'));
+    }, timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    if (timer !== undefined) clearTimeout(timer);
+  });
 }
 
 /**
@@ -91,11 +109,10 @@ export class ActionSender {
     }
 
     try {
-      if (this.options.conversationId) {
-        await sendFn(text, this.options.conversationId);
-      } else {
-        await sendFn(text);
-      }
+      const sendPromise = this.options.conversationId
+        ? sendFn(text, this.options.conversationId)
+        : sendFn(text);
+      await withTimeout(sendPromise, this.options.timeoutMs ?? DEFAULT_ACTION_TIMEOUT_MS);
       this.releaseComponent(sourceId);
       return true;
     } catch (err: any) {

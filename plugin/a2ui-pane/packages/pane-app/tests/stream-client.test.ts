@@ -22,6 +22,7 @@ import {
   ConnectionStatus,
   BUILD_RELOAD_MIN_INTERVAL_MS,
   BUILD_RELOAD_STORAGE_KEY,
+  isCustomOriginScheme,
   resolveWsUrl,
 } from '../src/stream-client.js';
 import {LineApplier} from '@a2ui-pane/renderer';
@@ -869,6 +870,45 @@ describe('StreamClient', () => {
         client.disconnect();
       } finally {
         (globalThis as any).WebSocket = original;
+      }
+    });
+
+    it('detects custom non-HTTP origin schemes and skips relative WebSocket URLs under them', () => {
+      expect(isCustomOriginScheme('plugin://a2ui-pane/?conversationId=c1')).toBe(true);
+      expect(isCustomOriginScheme('vscode-webview://abc/index.html')).toBe(true);
+      expect(isCustomOriginScheme('http://localhost:54288/')).toBe(false);
+      expect(isCustomOriginScheme('https://sidecar.example.com/')).toBe(false);
+      expect(isCustomOriginScheme('about:blank')).toBe(false);
+      expect(isCustomOriginScheme('')).toBe(false);
+      expect(isCustomOriginScheme('not a url')).toBe(false);
+
+      const originalLocation = window.location;
+      Object.defineProperty(window, 'location', {
+        value: {href: 'plugin://a2ui-pane/?conversationId=conv_plugin&token=tok1'},
+        configurable: true,
+      });
+      try {
+        // Without an absolute wsBaseUrl, skips doomed port-80 WebSocket and goes straight to SSE.
+        const sseOnly = setup({wsBaseUrl: undefined});
+        sseOnly.client.connect();
+        expect(MockWebSocket.instances).toHaveLength(0);
+        expect(MockEventSource.instances).toHaveLength(1);
+        sseOnly.client.disconnect();
+
+        // With an explicit wsBaseUrl from /api/config, connects directly over WebSocket.
+        const directWs = setup({wsBaseUrl: 'ws://localhost:54288/api/ws'});
+        directWs.client.connect();
+        expect(MockWebSocket.instances).toHaveLength(1);
+        expect(MockWebSocket.instances[0].url).toBe(
+          'ws://localhost:54288/api/ws?conversationId=conv_ws&token=tok_ws',
+        );
+        expect(MockEventSource.instances).toHaveLength(1);
+        directWs.client.disconnect();
+      } finally {
+        Object.defineProperty(window, 'location', {
+          value: originalLocation,
+          configurable: true,
+        });
       }
     });
   });

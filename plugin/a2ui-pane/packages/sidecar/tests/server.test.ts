@@ -15,7 +15,7 @@
  */
 
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
-import {createSidecarServer, SidecarDeps} from '../src/server.js';
+import {createSidecarServer, resolveConfigWsBaseUrl, SidecarDeps} from '../src/server.js';
 import {StoreReader} from '../src/store-reader.js';
 import {ChangeNotifier} from '../src/change-notifier.js';
 import {parseWsEvent, type StreamEvent} from '@a2ui-pane/protocol';
@@ -152,12 +152,58 @@ describe('SidecarServer', () => {
     expect(typeof data.uptime).toBe('number');
   });
 
-  it('serves GET /api/config with configured conversationId', async () => {
+  it('serves GET /api/config with configured conversationId and loopback wsBaseUrl', async () => {
     const res = await request('/api/config');
     expect(res.status).toBe(200);
     const data = JSON.parse(res.body);
     expect(data.conversationId).toBe('default-conv-id');
     expect(data.projectId).toBe('test-project');
+    expect(data.wsBaseUrl).toBe(`ws://127.0.0.1:${port}/api/ws`);
+  });
+
+  it('derives wsBaseUrl from getBaseUrl in /api/config without leaking query tokens', async () => {
+    let gatewayUrl: string | undefined =
+      'https://proxy.example.com/sidecar/a2ui/?token=secret-tok#frag';
+    const customServer = createSidecarServer(env, {
+      storeReader,
+      notifier,
+      staticDir,
+      getBaseUrl: () => gatewayUrl,
+    });
+    await new Promise<void>(resolve => customServer.listen(0, '127.0.0.1', resolve));
+    const customPort = (customServer.address() as any).port;
+    try {
+      const fetchConfig = async () =>
+        new Promise<Record<string, unknown>>((resolve, reject) => {
+          http
+            .get(`http://127.0.0.1:${customPort}/api/config`, res => {
+              let body = '';
+              res.on('data', chunk => {
+                body += chunk.toString('utf-8');
+              });
+              res.on('end', () => resolve(JSON.parse(body)));
+            })
+            .on('error', reject);
+        });
+
+      expect((await fetchConfig()).wsBaseUrl).toBe('wss://proxy.example.com/sidecar/a2ui/api/ws');
+
+      gatewayUrl = 'http://localhost:54288?token=secret-tok';
+      expect((await fetchConfig()).wsBaseUrl).toBe('ws://localhost:54288/api/ws');
+
+      gatewayUrl = undefined;
+      expect((await fetchConfig()).wsBaseUrl).toBe(`ws://127.0.0.1:${customPort}/api/ws`);
+    } finally {
+      await new Promise<void>(resolve => customServer.close(() => resolve()));
+    }
+  });
+
+  it('resolveConfigWsBaseUrl handles malformed URLs, non-http schemes, and zero port', () => {
+    expect(resolveConfigWsBaseUrl('not-a-url', 54286)).toBe('ws://127.0.0.1:54286/api/ws');
+    expect(resolveConfigWsBaseUrl('plugin://a2ui-pane/', 54286)).toBe(
+      'ws://127.0.0.1:54286/api/ws',
+    );
+    expect(resolveConfigWsBaseUrl(undefined, 0)).toBeUndefined();
   });
 
   it('reports a buildId from index.html mtime that changes after a repackage', async () => {

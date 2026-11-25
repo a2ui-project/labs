@@ -43,6 +43,8 @@ export interface SidecarDeps {
   execFileFn?: ExecFileFn;
   keepaliveIntervalMs?: number;
   onVisibilityChange?: (conversationId: string, visible: boolean) => void;
+  /** Returns the browser-reachable gateway base URL (e.g. from `GetSidecars`), if resolved. */
+  getBaseUrl?: () => string | undefined;
 }
 
 function isAttachedConversationId(id: unknown): id is string {
@@ -120,6 +122,38 @@ interface RouteContext {
   staticDir: string;
   injectedDeps?: Partial<SidecarDeps>;
   activeStreams: Map<string, number>;
+  getListenPort: () => number;
+}
+
+/**
+ * Derives the public WebSocket stream base URL (without query tokens) advertised by `/api/config`.
+ *
+ * Prefers the gateway `baseUrl` when resolved (supporting port-forwarded and proxied hosts while
+ * preserving any base path prefix), and falls back to the sidecar's direct loopback port.
+ */
+export function resolveConfigWsBaseUrl(
+  baseUrl: string | undefined,
+  listenPort: number,
+): string | undefined {
+  if (baseUrl) {
+    try {
+      const parsed = new URL(baseUrl);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        parsed.protocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
+        const prefix = parsed.pathname.replace(/\/+$/, '');
+        parsed.pathname = `${prefix}${STREAM_WS_PATH}`;
+        parsed.search = '';
+        parsed.hash = '';
+        return parsed.toString();
+      }
+    } catch {
+      // Fall through to the loopback port when baseUrl is malformed.
+    }
+  }
+  if (listenPort > 0) {
+    return `ws://127.0.0.1:${listenPort}${STREAM_WS_PATH}`;
+  }
+  return undefined;
 }
 
 /** A token-protected API route. */
@@ -259,13 +293,19 @@ function handlePublicRoute(res: ServerResponse, url: URL, ctx: RouteContext): bo
     case '/api/health':
       sendJson(res, 200, {status: 'ok', uptime: process.uptime()});
       return true;
-    case '/api/config':
+    case '/api/config': {
+      const wsBaseUrl = resolveConfigWsBaseUrl(
+        ctx.injectedDeps?.getBaseUrl?.(),
+        ctx.getListenPort(),
+      );
       sendJson(res, 200, {
         conversationId: ctx.env.conversationId,
         projectId: ctx.env.projectId,
         buildId: currentBuildId(ctx.staticDir),
+        ...(wsBaseUrl ? {wsBaseUrl} : {}),
       });
       return true;
+    }
     case '/preload.js':
       handlePreload(res);
       return true;
@@ -319,12 +359,17 @@ export function createSidecarServer(
     staticDir: injectedDeps?.staticDir ?? defaultStaticDir(),
     injectedDeps,
     activeStreams: new Map<string, number>(),
+    getListenPort: () => env.port,
   };
   // The stream is server-to-client push only; cap client payload size to 4 KiB.
   const wss = new WebSocketServer({noServer: true, maxPayload: 4096});
   const server = http.createServer((req: IncomingMessage, res: ServerResponse) =>
     handleRequest(req, res, ctx),
   );
+  ctx.getListenPort = () => {
+    const addr = server.address();
+    return addr && typeof addr === 'object' ? addr.port : env.port;
+  };
   server.on('upgrade', (req, socket, head) => handleUpgrade(req, socket, head, wss, ctx));
 
   const originalClose = server.close.bind(server);
