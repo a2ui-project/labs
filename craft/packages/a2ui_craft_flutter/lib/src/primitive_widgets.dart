@@ -88,13 +88,13 @@ class PrimitiveArguments {
     _ => null,
   };
 
-  /// The widget of the argument [name] when it is a widget or an error
-  /// placeholder, otherwise null.
+  /// The widget of the argument [name] when it is a widget, a host widget or
+  /// an error placeholder, otherwise null.
   Widget? child(String name) => _widget(this[name]);
 
   /// The widgets of the list in the argument [name]: one for each element
-  /// that is a widget or an error placeholder, skipping the others (an
-  /// absent element is no child).
+  /// that is a widget, a host widget or an error placeholder, skipping the
+  /// others (an absent element is no child).
   List<Widget> children(String name) => switch (this[name]) {
     final List<Object> list => <Widget>[
       for (final Object element in list)
@@ -104,7 +104,9 @@ class PrimitiveArguments {
   };
 
   Widget? _widget(Object value) =>
-      value is WidgetNode || value is ErrorNode ? _render(value) : null;
+      value is WidgetNode || value is HostWidgetNode || value is ErrorNode
+      ? _render(value)
+      : null;
 
   /// A callback that fires the argument [name] with no event arguments, or
   /// null when firing it would do nothing (see `isRunnableHandler`), so that

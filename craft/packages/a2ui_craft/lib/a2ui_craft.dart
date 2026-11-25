@@ -17,6 +17,8 @@
 /// UI-framework dependency, so any framework adapter can build on it.
 library;
 
+export 'src/a2ui_catalog.dart';
+export 'src/a2ui_props.dart';
 export 'src/canonical_json.dart';
 export 'src/dependencies.dart';
 export 'src/evaluator.dart';

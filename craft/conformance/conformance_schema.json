@@ -25,7 +25,9 @@
             "evaluate",
             "classify",
             "update_registry",
-            "expand_template"
+            "expand_template",
+            "derive_catalog_schema",
+            "map_props"
           ],
           "description": "The conformance test action to perform."
         }
@@ -172,6 +174,32 @@
           },
           "then": {
             "$ref": "#/$defs/CraftExpandTemplateTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "derive_catalog_schema"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftDeriveCatalogSchemaTest"
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "map_props"
+              }
+            },
+            "required": ["action"]
+          },
+          "then": {
+            "$ref": "#/$defs/CraftMapPropsTest"
           }
         }
       ]
@@ -1295,6 +1323,22 @@
                 "type": "string"
               }
             },
+            "host_widgets": {
+              "type": "object",
+              "additionalProperties": {
+                "oneOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                ]
+              }
+            },
             "expect": {
               "allOf": [
                 {
@@ -1422,6 +1466,22 @@
             "type": "string"
           }
         },
+        "host_widgets": {
+          "type": "object",
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        },
         "data": {
           "$ref": "#/$defs/CraftSource"
         },
@@ -1451,6 +1511,200 @@
       "not": {
         "required": ["data", "data_json"]
       }
+    },
+    "CraftDeriveCatalogSchemaTest": {
+      "type": "object",
+      "description": "Checks the component schemas of a template catalog.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "derive_catalog_schema"
+        },
+        "primitives": {
+          "$ref": "#/$defs/CraftPrimitiveMetadata"
+        },
+        "libraries": {
+          "$ref": "#/$defs/CraftLibrarySources"
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "components": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "widget": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["widget"],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "catalog": {
+          "type": "string"
+        },
+        "expect": {
+          "type": "object",
+          "properties": {
+            "schemas": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object"
+              }
+            },
+            "properties": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              }
+            },
+            "checkable": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false,
+          "minProperties": 1,
+          "dependentRequired": {
+            "checkable": ["properties"]
+          }
+        }
+      },
+      "required": ["libraries", "expect"],
+      "unevaluatedProperties": false
+    },
+    "CraftMapPropsTest": {
+      "type": "object",
+      "description": "Maps a component node's resolved props to arguments, expands the template and fires its handlers.",
+      "$ref": "#/$defs/CraftCaseMetadata",
+      "properties": {
+        "action": {
+          "const": "map_props"
+        },
+        "primitives": {
+          "$ref": "#/$defs/CraftPrimitiveMetadata"
+        },
+        "libraries": {
+          "$ref": "#/$defs/CraftLibrarySources"
+        },
+        "dependencies": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "components": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "widget": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["widget"],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "catalog": {
+          "type": "string"
+        },
+        "component": {
+          "type": "string"
+        },
+        "props": {
+          "type": "object"
+        },
+        "expect": {
+          "type": "object",
+          "properties": {
+            "args": {},
+            "widgets": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "tree": {}
+          },
+          "required": ["args"],
+          "additionalProperties": false
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "fire": {
+                    "$ref": "#/$defs/CraftPath"
+                  },
+                  "event_args": {
+                    "$ref": "#/$defs/CraftSource"
+                  },
+                  "expect": {
+                    "type": "object",
+                    "properties": {
+                      "effects": {
+                        "type": "array"
+                      }
+                    },
+                    "required": ["effects"],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["fire", "expect"],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "runnable": {
+                    "$ref": "#/$defs/CraftPath"
+                  },
+                  "expect": {
+                    "type": "object",
+                    "properties": {
+                      "runnable": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": ["runnable"],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["runnable", "expect"],
+                "additionalProperties": false
+              }
+            ]
+          }
+        }
+      },
+      "required": ["libraries", "component", "expect"],
+      "unevaluatedProperties": false
     }
   }
 }

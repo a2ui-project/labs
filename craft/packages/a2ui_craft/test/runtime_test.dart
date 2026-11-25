@@ -142,16 +142,28 @@ void main() {
         throwsArgumentError,
         reason: 'host handlers are allowed only in arguments',
       );
+      expect(
+        () => CraftRuntime(
+          registry,
+          library: _main,
+          widget: 'root',
+          data: <Object?>[const HostWidget('id')],
+        ),
+        throwsArgumentError,
+        reason: 'host widgets are allowed only in arguments',
+      );
       final CraftRuntime runtime = CraftRuntime(
         registry,
         library: _main,
         widget: 'root',
         args: <String, Object?>{
           'h': <Object?>[const HostHandler('id'), null],
+          'w': <String, Object?>{'a': const HostWidget('w')},
         },
         data: <Object?, Object?>{'untyped': 1},
       );
       expect(runtime.args['h'], <Object>[const HostHandler('id'), missing]);
+      expect(runtime.args['w'], <String, Object>{'a': const HostWidget('w')});
       expect(() => runtime.data = <int, Object?>{1: 2}, throwsArgumentError);
       expect(
         () => runtime.fire(missing, <String, Object?>{'x': Object()}),
@@ -159,7 +171,7 @@ void main() {
       );
     });
 
-    test('a builder key is a string or an integer', () {
+    test('a builder key is a string or an integer, its argument a value', () {
       final CraftRuntime runtime = _parsed(
         'import core; widget root = Box(b: (x) => Text());',
       );
@@ -170,6 +182,11 @@ void main() {
         throwsArgumentError,
       );
       expect(runtime.expandBuilder(builder, 'k', null).root, isA<WidgetNode>());
+      expect(
+        () => runtime.expandBuilder(builder, 'k', const HostWidget('w')),
+        throwsArgumentError,
+        reason: 'a builder argument is a value',
+      );
     });
   });
 

@@ -1,0 +1,789 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Conformance cases for the craft_a2ui_integration feature
+# (blueprints/features/craft_a2ui_integration.blueprint.md).
+#
+# Every case has a `name`, a `description`, the `features` it exercises (IDs
+# from conformance/features.yaml) and an `action`; conformance_schema.json
+# lists the fields of each action.
+#
+# Each case sets up one registry:
+#   primitives: primitive libraries, library name -> map from each primitive
+#     name to its metadata. By default `core` with these primitives, whose
+#     metadata lists the kind of each argument under `args`:
+#       Column, Row:  {args: {children: widgets}}
+#       Text:         {args: {text: string}}
+#       Button:       {args: {child: widget, onPressed: handler}}
+#       Field:        {args: {value: string, onChanged: handler, error: string}}
+#       Toggle:       {args: {value: boolean, onChanged: handler}}
+#       Slider:       {args: {value: number, onChanged: handler}}
+#       Box:          {args: {child: widget, style: true}}
+#       List:         {args: {builder: true}}
+#   libraries: template libraries, library name -> source in the text format.
+#   dependencies: library name -> {components: {Name: [{widget: N}]}}, the
+#     component requirements declared for that template library (see
+#     craft_template_registry).
+# The template catalog is the library `catalog` (default main).
+#
+# A case does one of:
+# - action: derive_catalog_schema   checks the catalog's component schemas
+#   (requirements 1 to 4):
+#     expect:
+#       schemas: the schema of each component, by name (the whole JSON);
+#       properties: for each component, by name, each property with the
+#         common type its schema references (`DynamicString` for
+#         {"$ref": "common_types.json#/$defs/DynamicString"});
+#       checkable: the components whose schema has the Checkable mixin
+#         (checked whenever `properties` is given; default none).
+#     With `properties`, the components listed must be exactly the catalog's.
+# - action: map_props   checks the arguments that the props of a component
+#   node give (requirement 5), and what firing the template's handlers does
+#   (requirement 6):
+#     component: the component's name.
+#     props: the node's resolved props, property name -> one of
+#       {value: V}           a dynamic value resolved to V (JSON; null for none)
+#       {value: V, path: P}  the same, bound to the data path P
+#       action               an action
+#       {child: N}           a child node, N standing for the renderer's node
+#       {children: [N...]}   a list of child nodes
+#       any other JSON       as the renderer gives it (for `isValid` and
+#                            `validationErrors`)
+#     expect:
+#       args: the arguments in the canonical form of the craft_runtime
+#         blueprint;
+#       widgets: host widget id -> the node it stands for (default none);
+#       tree: the canonical form of the root node of the component's
+#         expansion with these arguments (optional).
+#     steps: each fires the value at `fire` (a path into that expansion,
+#       as in craft_runtime.yaml) with the event arguments `event_args` (a
+#       text format data file, default none), and expects
+#       {effects: [...]}: in order, {dispatch: action payload},
+#       {run: property} or {write: {path, value}}.
+#
+# Integers and doubles in args and trees are in canonical JSON form
+# ({$: int, value: 1}), the absent value is {$: missing}; props and effects
+# are plain JSON. Scalars that YAML 1.1 reads as booleans are quoted
+# wherever they mean strings.
+
+# catalog components
+
+- name: a_component_schema_in_catalog_form
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-04]
+  description: "Each offered component's schema is an object schema with the component's name as the const `component`, required, and one property per argument referencing an A2UI common type."
+  libraries:
+    main: |
+      import core;
+      export widget Greeting = Column(children: [Text(text: args.title), Button(child: args.icon, onPressed: args.onTap), Box(style: args.style)]);
+  expect:
+    schemas:
+      Greeting:
+        type: object
+        allOf:
+          - type: object
+            properties:
+              component: {const: Greeting}
+              title: {$ref: "common_types.json#/$defs/DynamicString"}
+              icon: {$ref: "common_types.json#/$defs/Child"}
+              onTap: {$ref: "common_types.json#/$defs/Action"}
+              style: {$ref: "common_types.json#/$defs/DynamicValue"}
+            required: [component]
+- name: a_checkable_component_schema
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-04]
+  description: "A component that reads a check result has the Checkable mixin before its properties; the check results are no properties."
+  libraries:
+    main: |
+      import core;
+      export widget NameField = Column(children: [
+        Field(value: args.value, onChanged: args.setValue),
+        ...if switch args.isValid { false: true, default: false }: Text(text: args.validationErrors.0),
+      ]);
+  expect:
+    schemas:
+      NameField:
+        type: object
+        allOf:
+          - {$ref: "common_types.json#/$defs/Checkable"}
+          - type: object
+            properties:
+              component: {const: NameField}
+              value: {$ref: "common_types.json#/$defs/DynamicString"}
+            required: [component]
+- name: only_offered_components_have_schemas
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-01]
+  description: "The catalog has a component for each offered component of the library, in order: private declarations and unavailable components are left out."
+  libraries:
+    main: |
+      import core;
+      import maps;
+      export widget Card = Box(child: args.body);
+      widget Helper = Text(text: args.t);
+      export widget StoreMap = Box(child: maps::Map());
+      export widget Label = Helper(t: args.text);
+  dependencies:
+    main: {components: {StoreMap: [{widget: "maps::Map"}]}}
+  primitives:
+    core: {Box: {args: {child: widget}}, Text: {args: {text: string}}}
+    maps: {}
+  expect:
+    properties:
+      Card: {body: Child}
+      Label: {text: DynamicString}
+- name: a_component_that_reads_no_argument
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-01]
+  description: "A component that reads no argument has only the component property; a reference whose first part is an index reads no argument."
+  libraries:
+    main: |
+      import core;
+      export widget Divider = Box(style: args.0);
+  expect:
+    properties:
+      Divider: {}
+- name: an_unavailable_library_has_no_components
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-01]
+  description: "A library with an unprovided required import offers no component, so its catalog is empty."
+  catalog: other
+  libraries:
+    other: |
+      import core;
+      import missing;
+      export widget Gone = Text(text: args.t);
+  expect:
+    properties: {}
+- name: a_primitive_library_has_no_template_components
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-01]
+  description: "A primitive library is no template catalog: it has no template components."
+  catalog: core
+  libraries:
+    main: |
+      import core;
+      export widget Unused = Box();
+  expect:
+    properties: {}
+
+# argument kinds
+
+- name: primitive_metadata_gives_the_kind
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-02]
+  description: "A whole argument placed as an argument of a primitive takes the kind its metadata lists under args: widget, widgets, handler, string, number, boolean; anything else, a missing entry or no metadata is an untyped value."
+  primitives:
+    core:
+      Kinds:
+        {
+          args:
+            {
+              w: widget,
+              ws: widgets,
+              h: handler,
+              s: string,
+              "n": number,
+              b: boolean,
+              other: "map",
+              flag: true,
+              "off": false,
+            },
+        }
+      Bare: {}
+  libraries:
+    main: |
+      import core;
+      export widget All = Kinds(w: args.a, ws: args.b, h: args.c, s: args.d, n: args.e, b: args.f, other: args.g, flag: args.h, off: args.i, unlisted: args.j, child: Bare(text: args.k));
+  expect:
+    properties:
+      All:
+        {
+          a: Child,
+          b: ChildList,
+          c: Action,
+          d: DynamicString,
+          e: DynamicNumber,
+          f: DynamicBoolean,
+          g: DynamicValue,
+          h: DynamicValue,
+          i: DynamicValue,
+          j: DynamicValue,
+          k: DynamicValue,
+        }
+- name: a_part_of_an_argument_is_a_value
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-02]
+  description: "An argument read with parts is an untyped value, whatever the position of the reference."
+  libraries:
+    main: |
+      import core;
+      export widget Profile = Column(children: [Text(text: args.user.name), Button(child: args.icons.0, onPressed: args.actions.tap)]);
+  expect:
+    properties:
+      Profile: {user: DynamicValue, icons: DynamicValue, actions: DynamicValue}
+- name: value_positions
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-02]
+  description: "Function arguments, map entries, switch inputs and keys, event arguments, state setter values and handler application arguments are untyped value positions, whatever surrounds them."
+  libraries:
+    main: |
+      import core;
+      export widget Values { n: 0 } = Column(children: [
+        Text(text: concat(a: args.first, b: "!")),
+        Box(style: { color: args.color }),
+        Text(text: switch args.mode { args.key: "same", default: "other" }),
+        Button(child: Text(text: "a"), onPressed: event "e" { v: args.payload }),
+        Button(child: Text(text: "b"), onPressed: set state.n = args.count),
+        Button(child: Text(text: "c"), onPressed: call args.onGo { id: args.id2 }),
+      ]);
+  expect:
+    properties:
+      Values:
+        {
+          first: DynamicValue,
+          color: DynamicValue,
+          mode: DynamicValue,
+          key: DynamicValue,
+          payload: DynamicValue,
+          count: DynamicValue,
+          onGo: Action,
+          id2: DynamicValue,
+        }
+- name: positions_that_hold_widgets
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-02]
+  description: "A declaration's root, a switch case value (which takes the position of the switch) and a widget builder's output are widget positions."
+  libraries:
+    main: |
+      import core;
+      export widget Slot = switch args.on { true: args.content, default: Box(child: switch args.mode { "a": args.first, default: Text(text: args.label) }) };
+      export widget Rows = List(builder: (i) => switch i.kind { default: args.row });
+  expect:
+    properties:
+      Slot:
+        {"on": DynamicValue, content: Child, mode: DynamicValue, first: Child, label: DynamicString}
+      Rows: {row: Child}
+- name: list_elements
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-02]
+  description: "A list in a widgets position holds widgets, a list in a handler position holds handlers, any other list holds untyped values; a whole argument in a widgets position is a child list."
+  libraries:
+    main: |
+      import core;
+      export widget Lists { x: 0 } = Column(children: [
+        Row(children: [args.header, Text(text: "x")]),
+        Row(children: args.items),
+        Button(child: Text(text: "go"), onPressed: [args.onA, set state.x = args.v]),
+        Text(text: [args.plain]),
+        Box(child: [args.notAChild]),
+      ]);
+  expect:
+    properties:
+      Lists:
+        {
+          header: Child,
+          items: ChildList,
+          onA: Action,
+          v: DynamicValue,
+          plain: DynamicValue,
+          notAChild: DynamicValue,
+        }
+- name: loops_over_an_argument
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-02]
+  description: "A loop over a whole argument whose output is its loop variable gives the argument the list form of the element position (a child list among widgets, a handler among handlers, otherwise a value); any other loop reads its input as a value and places its output as an element."
+  libraries:
+    main: |
+      import core;
+      export widget Loops = Column(children: [
+        Row(children: [...for c in args.items: c]),
+        Button(child: Text(text: "go"), onPressed: [...for h in args.handlers: h]),
+        Text(text: [...for t in args.texts: t]),
+        Row(children: [...for t in args.tags: Text(text: t)]),
+        Row(children: [...for c in args.boxed: Box(child: c)]),
+        Row(children: [...if args.show: Text(text: args.label), ...if args.more: args.extra]),
+      ]);
+  expect:
+    properties:
+      Loops:
+        {
+          items: ChildList,
+          handlers: Action,
+          texts: DynamicValue,
+          tags: DynamicValue,
+          boxed: DynamicValue,
+          show: DynamicValue,
+          label: DynamicString,
+          more: DynamicValue,
+          extra: Child,
+        }
+- name: template_calls_pass_kinds_on
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-02]
+  description: "A whole argument passed to a template, of this or an imported library, takes the kind that template gives the argument it is passed as; an argument the template does not read gives an untyped value."
+  libraries:
+    ui: |
+      import core;
+      export widget Frame = Box(child: Column(children: [args.body, Text(text: args.caption)]));
+    main: |
+      import core;
+      import ui;
+      widget Labelled = Column(children: [Text(text: args.label), ...for c in args.rows: c]);
+      export widget Card = ui::Frame(body: Labelled(label: args.title, rows: args.lines, unused: args.extra), caption: args.subtitle);
+  expect:
+    properties:
+      Card: {title: DynamicString, lines: ChildList, extra: DynamicValue, subtitle: DynamicString}
+- name: calls_back_into_a_template_under_analysis
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-02]
+  description: "A call to a template whose analysis is in progress, in the chain that led to the call, passes untyped values; each component's kinds follow from its own chain, whatever the order of analysis."
+  libraries:
+    main: |
+      import core;
+      export widget A = Column(children: [args.p, B(x: args.p)]);
+      export widget B = Box(child: A(p: args.x));
+  expect:
+    properties:
+      A: {p: Child}
+      B: {x: Child}
+- name: unknown_calls_and_functions_take_values
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-02]
+  description: "The arguments of a call that names no widget and of a function are untyped value positions."
+  libraries:
+    main: |
+      import core;
+      export widget Odd = Column(children: [Unknown(child: args.a), Text(text: orElse(value: args.b, otherwise: "x"))]);
+  expect:
+    properties:
+      Odd: {a: DynamicValue, b: DynamicValue}
+
+# joining uses
+
+- name: handler_child_list_and_child_uses_win
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-03]
+  description: "An argument used in several positions takes the first of action, child list and child among its uses."
+  libraries:
+    main: |
+      import core;
+      export widget Mixed = Column(children: [
+        Button(child: args.x, onPressed: args.x),
+        Row(children: args.y), Box(child: args.y),
+        Box(child: args.z), Text(text: args.z),
+      ]);
+  expect:
+    properties:
+      Mixed: {x: Action, "y": ChildList, z: Child}
+- name: typed_uses_must_agree
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-03]
+  description: "Otherwise an argument takes the value type that its typed uses agree on, ignoring untyped uses; typed uses that disagree, or none, give an untyped value."
+  libraries:
+    main: |
+      import core;
+      export widget Typed = Column(children: [
+        Text(text: args.s), Text(text: concat(a: args.s, b: "")),
+        Toggle(value: args.b), Toggle(value: args.b),
+        Text(text: args.mixed), Slider(value: args.mixed),
+        Box(style: args.untyped),
+      ]);
+  expect:
+    properties:
+      Typed: {s: DynamicString, b: DynamicBoolean, mixed: DynamicValue, untyped: DynamicValue}
+
+# component schema
+
+- name: setters_of_values_are_left_out
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-04]
+  description: "The setter of a value argument (`set` and the argument's name with its first letter in upper case) is supplied by two-way binding and is no property; a setter whose argument is not read, or is not a value, and names that only look alike, remain properties."
+  libraries:
+    main: |
+      import core;
+      export widget Setters = Column(children: [
+        Field(value: args.value, onChanged: args.setValue),
+        Toggle(value: args.on, onChanged: args.setOn),
+        Button(child: Text(text: "a"), onPressed: args.setAlone),
+        Box(child: args.body), Button(child: Text(text: "b"), onPressed: args.setBody),
+        Button(child: Text(text: "c"), onPressed: args.setvalue),
+        Text(text: args.setup), Text(text: args.up),
+        Field(value: args._v, onChanged: args.set_v),
+      ]);
+  expect:
+    properties:
+      Setters:
+        {
+          _v: DynamicString,
+          value: DynamicString,
+          "on": DynamicBoolean,
+          setAlone: Action,
+          body: Child,
+          setBody: Action,
+          setvalue: Action,
+          setup: DynamicString,
+          up: DynamicString,
+        }
+- name: a_setter_name_read_as_a_value_is_a_property
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-04]
+  description: "An argument named like the setter of a value property is a setter only when it is a handler: read as a value it remains a property; the control uses it as a handler."
+  libraries:
+    main: |
+      import core;
+      export widget Plain = Column(children: [Text(text: args.foo), Text(text: args.setFoo)]);
+      export widget Control = Field(value: args.foo, onChanged: args.setFoo);
+  expect:
+    properties:
+      Plain: {foo: DynamicString, setFoo: DynamicString}
+      Control: {foo: DynamicString}
+- name: reserved_arguments_are_no_properties
+  action: derive_catalog_schema
+  features: [F-CRAFT-A2UI-04]
+  description: "The arguments id, component and validationResults are no properties; isValid and validationErrors make the component checkable instead."
+  libraries:
+    main: |
+      import core;
+      export widget Reserved = Column(children: [Text(text: args.id), Text(text: args.component), Text(text: args.validationResults.0), Text(text: args.title)]);
+      export widget Checked = Toggle(value: args.isValid);
+      export widget ErrorsOnly = Text(text: args.validationErrors.0);
+  expect:
+    properties:
+      Reserved: {title: DynamicString}
+      Checked: {}
+      ErrorsOnly: {}
+    checkable: [Checked, ErrorsOnly]
+
+# props to arguments
+
+- name: dynamic_values_become_arguments
+  action: map_props
+  features: [F-CRAFT-A2UI-05]
+  description: "A value property gives its resolved value as the argument, null being absent also inside lists and maps; a property without a value gives no argument."
+  libraries:
+    main: |
+      import core;
+      export widget Show = Column(children: [Text(text: args.title), Slider(value: args.count), Box(style: args.style), Text(text: args.empty), Text(text: args.unset)]);
+  component: Show
+  props:
+    title: {value: "Hi"}
+    count: {value: 2.5}
+    style: {value: {color: "red", size: 3, tags: [1, null], gone: null}}
+    empty: {value: null}
+  expect:
+    args:
+      title: "Hi"
+      count: {$: double, value: 2.5}
+      style:
+        {
+          color: "red",
+          size: {$: int, value: 3},
+          tags: [{$: int, value: 1}, {$: missing}],
+          gone: {$: missing},
+        }
+    tree:
+      $: widget
+      name: "core::Column"
+      args:
+        children:
+          - {$: widget, name: "core::Text", args: {text: "Hi"}}
+          - {$: widget, name: "core::Slider", args: {value: {$: double, value: 2.5}}}
+          - {
+              $: widget,
+              name: "core::Box",
+              args:
+                {
+                  style:
+                    {
+                      color: "red",
+                      size: {$: int, value: 3},
+                      tags: [{$: int, value: 1}, {$: missing}],
+                      gone: {$: missing},
+                    },
+                },
+            }
+          - {$: widget, name: "core::Text", args: {text: {$: missing}}}
+          - {$: widget, name: "core::Text", args: {text: {$: missing}}}
+- name: a_path_bound_value_also_gives_its_setter
+  action: map_props
+  features: [F-CRAFT-A2UI-05]
+  description: "A value property bound to a data path also gives the host handler setX, also when the path holds no value yet; an unbound value gives no setter, so a template can fall back to its own state."
+  libraries:
+    main: |
+      import core;
+      export widget Form = Column(children: [
+        Field(value: args.name, onChanged: args.setName),
+        Field(value: args.email, onChanged: args.setEmail),
+        Field(value: args.note, onChanged: args.setNote),
+      ]);
+  component: Form
+  props:
+    name: {value: "Ann", path: "/user/name"}
+    email: {value: null, path: "/user/email"}
+    note: {value: "fixed"}
+  expect:
+    args:
+      name: "Ann"
+      setName: {$: hostHandler, id: setName}
+      setEmail: {$: hostHandler, id: setEmail}
+      note: "fixed"
+  steps:
+    - runnable: [children, 2, onChanged]
+      expect: {runnable: false}
+- name: a_setter_property_is_not_overwritten_by_binding
+  action: map_props
+  features: [F-CRAFT-A2UI-05]
+  description: "When setP is a property of its own, a path-bound p gives no host handler setP: setP keeps the value of its own prop, whatever order the template reads them in, and is absent without one."
+  libraries:
+    main: |
+      import core;
+      export widget Plain = Column(children: [Text(text: args.setFoo), Text(text: args.foo)]);
+  component: Plain
+  props:
+    foo: {value: "a", path: "/foo"}
+    setFoo: {value: "literal"}
+  expect:
+    args: {foo: "a", setFoo: "literal"}
+- name: a_setter_property_without_a_prop_stays_absent
+  action: map_props
+  features: [F-CRAFT-A2UI-05]
+  description: "A setter name that is a property gets no host handler from a path-bound value when its own prop is missing."
+  libraries:
+    main: |
+      import core;
+      export widget Unset = Column(children: [Text(text: args.foo), Text(text: args.setFoo)]);
+  component: Unset
+  props:
+    foo: {value: "a", path: "/foo"}
+  expect:
+    args: {foo: "a"}
+- name: a_handler_setter_gets_the_binding
+  action: map_props
+  features: [F-CRAFT-A2UI-05]
+  description: "Control: when setP is used as a handler, a path-bound p gives the host handler setP, and a setP prop is no property."
+  libraries:
+    main: |
+      import core;
+      export widget Control = Field(value: args.foo, onChanged: args.setFoo);
+  component: Control
+  props:
+    foo: {value: "a", path: "/foo"}
+    setFoo: {value: "literal"}
+  expect:
+    args: {foo: "a", setFoo: {$: hostHandler, id: setFoo}}
+- name: actions_and_children_become_host_values
+  action: map_props
+  features: [F-CRAFT-A2UI-05]
+  description: "An action property gives a host handler named like the property; a child gives a host widget named like the property, and a child list one host widget per child, named by the property and the child's index, which stand for the renderer's nodes."
+  libraries:
+    main: |
+      import core;
+      export widget Panel = Column(children: [Button(child: args.icon, onPressed: args.onTap), Row(children: args.items)]);
+  component: Panel
+  props:
+    onTap: action
+    icon: {child: nodeA}
+    items: {children: [nodeB, nodeC]}
+  expect:
+    args:
+      onTap: {$: hostHandler, id: onTap}
+      icon: {$: hostWidget, id: icon}
+      items: [{$: hostWidget, id: items.0}, {$: hostWidget, id: items.1}]
+    widgets: {icon: nodeA, items.0: nodeB, items.1: nodeC}
+    tree:
+      $: widget
+      name: "core::Column"
+      args:
+        children:
+          - {
+              $: widget,
+              name: "core::Button",
+              args: {child: {$: hostWidget, id: icon}, onPressed: {$: hostHandler, id: onTap}},
+            }
+          - {
+              $: widget,
+              name: "core::Row",
+              args: {children: [{$: hostWidget, id: items.0}, {$: hostWidget, id: items.1}]},
+            }
+- name: props_of_another_shape_are_ignored
+  action: map_props
+  features: [F-CRAFT-A2UI-05]
+  description: "A prop whose shape does not match its property's kind, and a prop that is no property (such as a setter given directly), give no argument."
+  libraries:
+    main: |
+      import core;
+      export widget Strict = Column(children: [Text(text: args.title), Button(child: args.icon, onPressed: args.onTap), Row(children: args.items), Field(value: args.v, onChanged: args.setV)]);
+  component: Strict
+  props:
+    title: action
+    icon: {value: "c1"}
+    onTap: {value: "tap"}
+    items: {child: nodeA}
+    setV: action
+    extra: {value: 1}
+  expect:
+    args: {}
+- name: check_results_reach_a_checkable_template
+  action: map_props
+  features: [F-CRAFT-A2UI-05]
+  description: "A checkable component receives isValid when the props hold a boolean and validationErrors, the strings of the list the props hold; other shapes give nothing."
+  libraries:
+    main: |
+      import core;
+      export widget Checked = Field(value: args.value, error: args.validationErrors.0, valid: args.isValid);
+  component: Checked
+  props:
+    value: {value: ""}
+    isValid: false
+    validationErrors: ["Required", 3]
+  expect:
+    args:
+      value: ""
+      isValid: false
+      validationErrors: ["Required"]
+- name: check_results_of_other_shapes_are_ignored
+  action: map_props
+  features: [F-CRAFT-A2UI-05]
+  description: "isValid that is not a boolean and validationErrors that is not a list give nothing."
+  libraries:
+    main: |
+      import core;
+      export widget Checked = Field(value: args.value, error: args.validationErrors.0, valid: args.isValid);
+  component: Checked
+  props:
+    isValid: "no"
+    validationErrors: "Required"
+  expect:
+    args: {}
+- name: a_template_that_is_not_checkable_gets_no_check_results
+  action: map_props
+  features: [F-CRAFT-A2UI-05]
+  description: "Check results are no arguments of a component that does not read them."
+  libraries:
+    main: |
+      import core;
+      export widget Plain = Field(value: args.value);
+  component: Plain
+  props:
+    value: {value: "x"}
+    isValid: false
+    validationErrors: ["Required"]
+  expect:
+    args: {value: "x"}
+
+# firing to A2UI
+
+- name: a_template_event_dispatches_an_action
+  action: map_props
+  features: [F-CRAFT-A2UI-06]
+  description: "An event that firing gives dispatches an action whose event has the event's name and its arguments, merged with the event arguments, as JSON context: absent map entries left out, absent list elements null."
+  libraries:
+    main: |
+      import core;
+      export widget Submit = Button(child: Text(text: "Send"), onPressed: event "submit" { name: args.name, n: 1, x: 1.5, l: [1, absent], m: { a: absent, b: true }, gone: absent });
+  component: Submit
+  props:
+    name: {value: "Ann"}
+  expect:
+    args: {name: "Ann"}
+  steps:
+    - fire: [onPressed]
+      event_args: "{ value: 2 }"
+      expect:
+        effects:
+          - dispatch:
+              {
+                event:
+                  {
+                    name: submit,
+                    context: {name: "Ann", "n": 1, x: 1.5, l: [1, null], m: {b: true}, value: 2},
+                  },
+              }
+- name: an_action_property_runs
+  action: map_props
+  features: [F-CRAFT-A2UI-06]
+  description: "Firing the host handler of an action property runs that action, whatever the event arguments and the arguments of a handler application around it."
+  libraries:
+    main: |
+      import core;
+      export widget Go = Column(children: [Button(child: Text(text: "a"), onPressed: args.onGo), Button(child: Text(text: "b"), onPressed: call args.onGo { x: 1 })]);
+  component: Go
+  props:
+    onGo: action
+  expect:
+    args: {onGo: {$: hostHandler, id: onGo}}
+  steps:
+    - fire: [children, 0, onPressed]
+      event_args: "{ value: true }"
+      expect:
+        effects: [{run: onGo}]
+    - fire: [children, 1, onPressed]
+      expect:
+        effects: [{run: onGo}]
+- name: a_setter_writes_the_value_to_its_path
+  action: map_props
+  features: [F-CRAFT-A2UI-06]
+  description: "Firing a setter writes the value event argument, as JSON, to the property's data path; without a value event argument it writes nothing."
+  libraries:
+    main: |
+      import core;
+      export widget Edit = Column(children: [
+        Field(value: args.name, onChanged: args.setName),
+        Button(child: Text(text: "clear"), onPressed: call args.setName { value: "" }),
+        Button(child: Text(text: "list"), onPressed: call args.setName { value: [1, absent, { k: absent }] }),
+        Button(child: Text(text: "none"), onPressed: args.setName),
+      ]);
+  component: Edit
+  props:
+    name: {value: "Ann", path: "/user/name"}
+  expect:
+    args: {name: "Ann", setName: {$: hostHandler, id: setName}}
+  steps:
+    - fire: [children, 0, onChanged]
+      event_args: '{ value: "Bo" }'
+      expect:
+        effects: [{write: {path: "/user/name", value: "Bo"}}]
+    - fire: [children, 1, onPressed]
+      expect:
+        effects: [{write: {path: "/user/name", value: ""}}]
+    - fire: [children, 2, onPressed]
+      expect:
+        effects: [{write: {path: "/user/name", value: [1, null, {}]}}]
+    - fire: [children, 3, onPressed]
+      expect:
+        effects: []
+- name: a_handler_list_gives_effects_in_order
+  action: map_props
+  features: [F-CRAFT-A2UI-06]
+  description: "Firing a list gives the effects of its elements in order; local state setters give none."
+  libraries:
+    main: |
+      import core;
+      export widget Many { n: 0 } = Column(children: [Slider(value: args.v), Button(child: Text(text: "go"), onPressed: [args.onGo, set state.n = 1, event "e" {}, args.setV])]);
+  component: Many
+  props:
+    onGo: action
+    v: {value: 0, path: "/v"}
+  expect:
+    args:
+      {onGo: {$: hostHandler, id: onGo}, v: {$: int, value: 0}, setV: {$: hostHandler, id: setV}}
+  steps:
+    - fire: [children, 1, onPressed]
+      event_args: "{ value: 5 }"
+      expect:
+        effects:
+          - {run: onGo}
+          - {dispatch: {event: {name: e, context: {value: 5}}}}
+          - {write: {path: "/v", value: 5}}
