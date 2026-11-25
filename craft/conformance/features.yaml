@@ -504,3 +504,57 @@
   blueprintAnchor: blueprints/features/craft_media_context.blueprint.md#5-media-changes
   claimedBy:
     - dart-craft
+- id: F-CRAFT-LIMIT-01
+  title: "Limits: limits"
+  specAnchor: blueprints/features/craft_limits.blueprint.md#1-limits
+  blueprintAnchor: blueprints/features/craft_limits.blueprint.md#1-limits
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LIMIT-02
+  title: "Limits: library measures"
+  specAnchor: blueprints/features/craft_limits.blueprint.md#2-library-measures
+  blueprintAnchor: blueprints/features/craft_limits.blueprint.md#2-library-measures
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LIMIT-03
+  title: "Limits: text sources"
+  specAnchor: blueprints/features/craft_limits.blueprint.md#3-text-sources
+  blueprintAnchor: blueprints/features/craft_limits.blueprint.md#3-text-sources
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LIMIT-04
+  title: "Limits: binary blobs"
+  specAnchor: blueprints/features/craft_limits.blueprint.md#4-binary-blobs
+  blueprintAnchor: blueprints/features/craft_limits.blueprint.md#4-binary-blobs
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LIMIT-05
+  title: "Limits: registration"
+  specAnchor: blueprints/features/craft_limits.blueprint.md#5-registration
+  blueprintAnchor: blueprints/features/craft_limits.blueprint.md#5-registration
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LIMIT-06
+  title: "Limits: values"
+  specAnchor: blueprints/features/craft_limits.blueprint.md#6-values
+  blueprintAnchor: blueprints/features/craft_limits.blueprint.md#6-values
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LIMIT-07
+  title: "Limits: evaluation depth"
+  specAnchor: blueprints/features/craft_limits.blueprint.md#7-evaluation-depth
+  blueprintAnchor: blueprints/features/craft_limits.blueprint.md#7-evaluation-depth
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LIMIT-08
+  title: "Limits: expansion budget"
+  specAnchor: blueprints/features/craft_limits.blueprint.md#8-expansion-budget
+  blueprintAnchor: blueprints/features/craft_limits.blueprint.md#8-expansion-budget
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LIMIT-09
+  title: "Limits: firing"
+  specAnchor: blueprints/features/craft_limits.blueprint.md#9-firing
+  blueprintAnchor: blueprints/features/craft_limits.blueprint.md#9-firing
+  claimedBy:
+    - dart-craft

@@ -13,7 +13,7 @@ date_added: 2026-11-20
 
 This document specifies functions: pure computations that a template calls in a value position with the call syntax of widgets (`add(a: 1, b: 2)`). The host registers them; the engine offers a fixed set of standard functions under bare names, and hosts add their own under qualified names. The `craft_template_registry` feature adds its eight introspection functions to these 28 standard functions, and `craft_media_context` adds `atLeast`. It also specifies the evaluator for the values that do not need a runtime: literals, lists, maps, the absent value, references to the args, data and state values the caller supplies, and function calls.
 
-Templates are untrusted. Within the nesting limits of the engine, which the `craft_limits` feature defines (see the module blueprint), no template can make evaluation crash or behave differently on different engines: every value this feature defines evaluates to either a value or an evaluation error.
+Templates are untrusted. No template can make evaluation crash or behave differently on different engines with the same limits: every value this feature defines evaluates to either a value or an evaluation error, including the errors of the `craft_limits` feature for nesting and string length.
 
 ---
 
@@ -66,7 +66,7 @@ The host registers each host function under a key `lib::name`. Like a standard f
 
 ### **6. Errors**
 
-The evaluation errors are `unknownFunction`, `invalidArgument`, `functionFailed` and `notEvaluated`.
+The evaluation errors are `unknownFunction`, `invalidArgument`, `functionFailed` and `notEvaluated`, and the `craft_limits` errors `depthExceeded` and `stringTooLong`.
 
 - An error anywhere in a value MUST be the result of the whole evaluation. An error is not a value: `isSet` and `orElse` never see it.
 - When a value contains several errors, the engine MUST report the first one met when evaluating list elements, map values and call arguments in their order, a call's classification and argument-name check (requirements 2–4) coming before its arguments.

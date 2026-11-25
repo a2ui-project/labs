@@ -17,7 +17,7 @@ This document specifies the runtime: how an engine expands a template, with its 
 
 The runtime knows no UI framework. Its output is the **expansion**: a tree of resolved primitive calls with their argument values, in which handlers are plain descriptions of what firing them does. A framework adapter renders the expansion with its own widgets and fires the handlers it finds in it. So every requirement here is checked on the expansion and on the events that firing gives, without rendering anything.
 
-Within the nesting limits of the engine, which the `craft_limits` feature defines (see the module blueprint), expanding a template never fails as a whole: every failure becomes an error node in the tree, and is reported.
+Expanding a template never fails with an exception: every failure becomes an error node in the tree, and is reported. Only the limits of the `craft_limits` feature on a whole expansion (its steps, its nodes and the host's input) stop it, and then the expansion is a single error node.
 
 ---
 
@@ -34,7 +34,7 @@ A **runtime** expands one root, given:
 
 Requirements:
 
-- In arguments and data, null (no value) MUST be the absent value, also inside lists and maps. Arguments or data that are not values (host handlers and host widgets apart, which only arguments may hold) MUST be rejected as a host error.
+- In arguments and data, null (no value) MUST be the absent value, also inside lists and maps. Arguments or data that are not values (host handlers and host widgets apart, which only arguments may hold) MUST be rejected as a host error (values beyond the engine's limits are no host error; see `craft_limits`).
 - The root MUST be classified as `craft_functions` (requirement 3) classifies a call named `N` written in `L` outside any declaration. When it is a widget call, the expansion MUST be the expansion of that widget at the root position, with the host's arguments as its arguments (requirements 3 and 4). Otherwise the root MUST be an error node `notAWidget`.
 - An expansion MUST give the root node, the stateful instances it expanded (requirement 10), and its errors (requirement 12).
 
@@ -142,6 +142,7 @@ Because an instance is identified by its path and template:
 | `recursiveWidget`                                      | a template is called inside its own expansion                                                                |
 | `invalidValue`                                         | a widget, builder or handler where a value is required, or a node the text format never produces where it is |
 | `noState`                                              | a setter without a stateful instance                                                                         |
+| `depthExceeded`, `stringTooLong`                       | a node evaluated too deep, or a value beyond the limits (`craft_limits`)                                     |
 
 - A failure while evaluating a primitive's arguments MUST make that primitive's position an error node; a failure while evaluating a template's root, or a root that gives no widget, the template's position; for a builder's output, the output's position. The kind MUST be that of the first failure in evaluation order (arguments in the order the call writes them, then as `craft_functions`, requirement 6, orders them). Nodes elsewhere are not affected: an unknown call inside a primitive's arguments fails that primitive, and its parent and siblings expand as usual.
 - A widget call of a template `D` MUST be an error node `recursiveWidget` when `D`'s root is already being expanded in the scope of the call (the chain of template roots that led to the call, not counting templates that only received it as an argument). A builder output continues the chain of the scope where the builder is written. Since a declaration's own name never resolves to it, a template cannot call itself, not even in a builder (`widget Tree = List(item: (i) => Tree())` fails with `unknownFunction` when the output is expanded); through other templates it is `recursiveWidget`.

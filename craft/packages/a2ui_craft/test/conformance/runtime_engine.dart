@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The expand_template action, shared by the suites of craft_runtime and
-// craft_media_context.
+// The expand_template action, shared by the suites of craft_runtime,
+// craft_media_context and craft_limits.
 
 import 'dart:convert';
 
@@ -48,14 +48,24 @@ final ConformanceAction expandTemplateAction = ConformanceAction(const <String>{
   'steps',
   'media',
   'size',
+  'limits',
 }, (ConformanceTestCase c) => RuntimeEngine(c).run(c));
+
+/// The limits that [c] sets in `limits` (see `craft_limits.yaml`), or null
+/// for the engine's defaults.
+CraftLimits? caseLimits(ConformanceTestCase c) => switch (c['limits']) {
+  final Map<String, Object?> json => CraftLimits.fromJson(json),
+  _ => null,
+};
 
 /// One registry and runtime set up by a case in the format of
 /// `craft_runtime.yaml`, extended with the media inputs and steps of
 /// `craft_media_context.yaml` (both headers document them).
 class RuntimeEngine {
-  /// Sets up the registry and runtime of [c].
-  RuntimeEngine(ConformanceTestCase c) {
+  /// Sets up the registry and runtime of [c], under the case's `limits`
+  /// (see `craft_limits.yaml`).
+  RuntimeEngine(ConformanceTestCase c)
+    : registry = TemplateRegistry(limits: caseLimits(c)) {
     for (final MapEntry<String, Object?> p in _entries(
       c['primitives'] ?? _defaultPrimitives,
     )) {
@@ -99,7 +109,7 @@ class RuntimeEngine {
     }
   }
 
-  final TemplateRegistry registry = TemplateRegistry();
+  final TemplateRegistry registry;
   late final CraftRuntime runtime;
   Expansion? _current;
   Expansion? _previous;

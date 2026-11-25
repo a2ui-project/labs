@@ -15,6 +15,7 @@
 import 'dependencies.dart';
 import 'evaluator.dart';
 import 'functions.dart';
+import 'limits.dart';
 import 'name_resolution.dart';
 import 'rfw/model.dart';
 import 'media_context.dart';
@@ -45,8 +46,16 @@ const Set<String> introspectionFunctionNames = <String>{
 /// Every query reflects the current registrations: each change drops what
 /// was derived from the previous ones.
 class TemplateRegistry {
-  /// Creates an empty registry that reports [appVersion] to templates.
-  TemplateRegistry({String appVersion = ''}) : _appVersion = appVersion;
+  /// Creates an empty registry that reports [appVersion] to templates and
+  /// checks libraries and expansions against [limits] (by default
+  /// [CraftLimits.defaults]).
+  TemplateRegistry({String appVersion = '', CraftLimits? limits})
+    : _appVersion = appVersion,
+      limits = limits ?? CraftLimits.defaults;
+
+  /// The limits of the libraries registered here, and of evaluations and
+  /// expansions over them (see the `craft_limits` blueprint).
+  final CraftLimits limits;
 
   final Map<LibraryName, WidgetLibrary> _libraries =
       <LibraryName, WidgetLibrary>{};
@@ -76,12 +85,14 @@ class TemplateRegistry {
   ///
   /// The registry keeps a copy of [dependencies] as they are now. Throws an
   /// [ArgumentError], leaving the registry unchanged, when they do not fit
-  /// [library] (see [LibraryDependencies.checkedCopy]).
+  /// [library] (see [LibraryDependencies.checkedCopy]), and a
+  /// [CraftLimitException] when [library] exceeds [limits].
   void setTemplateLibrary(
     LibraryName name,
     RemoteWidgetLibrary library, {
     LibraryDependencies dependencies = const LibraryDependencies(),
   }) {
+    checkLibraryLimits(library, limits);
     final LibraryDependencies copy = dependencies.checkedCopy(name, library);
     _libraries[name] = library;
     _dependencies[name] = copy;
@@ -218,7 +229,12 @@ class TemplateRegistry {
     Object? state,
     MediaContext? media,
   }) =>
-      Evaluator(resolver, functionsFor(library), symbols: readSymbol).evaluate(
+      Evaluator(
+        resolver,
+        functionsFor(library),
+        symbols: readSymbol,
+        limits: limits,
+      ).evaluate(
         value,
         library: library,
         declaration: declaration,
