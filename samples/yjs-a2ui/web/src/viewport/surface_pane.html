@@ -1,0 +1,80 @@
+<!--
+ Copyright 2026 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<section
+  class="pane-container"
+  (focusin)="recordControlInteraction($event)"
+  (input)="recordControlInteraction($event)"
+  (keyup)="recordControlInteraction($event)"
+  (mouseup)="recordControlInteraction($event)"
+  (select)="recordControlInteraction($event)"
+  (focusout)="clearFocusedElement($event)"
+>
+  <header class="pane-header">
+    <div class="persona-cluster">
+      <span class="persona-dot" [style.background-color]="actorColor()" aria-hidden="true"></span>
+      @if (personaOptions().length > 1) {
+        <select
+          class="persona-select"
+          [value]="actorId()"
+          aria-label="Active collaborator persona"
+          (change)="changePersona($event)"
+        >
+          @for (opt of personaOptions(); track opt.actorId) {
+            <option [value]="opt.actorId" [selected]="opt.actorId === actorId()">
+              {{ opt.displayName }} ({{ opt.roleLabel }})
+            </option>
+          }
+        </select>
+      } @else {
+        <span class="persona-name">{{ displayName() }}</span>
+      }
+    </div>
+
+    <div class="status-cluster">
+      @for (peer of remoteFocusedPeers(); track peer.clientId) {
+        <span class="peer-focus-tag" [style.border-color]="peer.color" [style.color]="peer.color">
+          {{ peer.displayName }} editing {{ peer.focusedLabel }}
+        </span>
+      }
+      <span class="sync-indicator" [class.online]="connected()">
+        <span class="sync-dot"></span>
+        {{ connected() ? 'Yjs Synced' : 'Connecting' }}
+      </span>
+    </div>
+  </header>
+
+  @if (actionBanner()) {
+    <div class="action-status-bar" [class.busy]="actionBusy()">
+      <span>{{ actionBanner() }}</span>
+    </div>
+  }
+
+  <div class="surface-scroll-body">
+    @if (surfaceId()) {
+      <div class="a2ui-surface-host">
+        <a2ui-v09-surface [surfaceId]="surfaceId()" />
+      </div>
+    } @else {
+      <div class="empty-surface-state">
+        <p class="empty-title">Synchronizing Y.Doc room "{{ roomId() }}"...</p>
+        <p class="empty-subtitle">
+          Waiting for initial SyncStep2 A2UI v1.0 surface state over WebSocket.
+        </p>
+      </div>
+    }
+  </div>
+</section>

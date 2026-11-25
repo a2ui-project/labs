@@ -1,0 +1,210 @@
+<!--
+ Copyright 2026 Google LLC
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     https://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<div class="yjs-a2ui-shell">
+  <header class="topbar">
+    <div class="brand-group">
+      <span class="brand-mark" aria-hidden="true">Y</span>
+      <div>
+        <h1 class="brand-title">Yjs + A2UI</h1>
+        <p class="brand-subtitle">Multi-User A2UI + Yjs CRDT</p>
+      </div>
+    </div>
+
+    <div class="room-selector-group">
+      <label class="field-label" for="roomSelect">Room</label>
+      <select
+        id="roomSelect"
+        class="room-select"
+        [value]="activeRoomId()"
+        (change)="changeRoomFromSelect($event)"
+      >
+        @for (room of rooms(); track room.id) {
+          <option [value]="room.id" [selected]="room.id === activeRoomId()">
+            {{ room.title }}
+          </option>
+        }
+      </select>
+      <button type="button" class="toolbar-btn" (click)="toggleCreateRoomDialog()">
+        + New Room
+      </button>
+    </div>
+
+    <div class="layout-controls" role="group" aria-label="Peer layout">
+      <button
+        type="button"
+        class="segment-btn"
+        [class.active]="splitCount() === 1"
+        (click)="setSplitMode(1)"
+      >
+        Single View
+      </button>
+      <button
+        type="button"
+        class="segment-btn"
+        [class.active]="splitCount() === 2"
+        (click)="setSplitMode(2)"
+      >
+        Side-by-Side
+      </button>
+    </div>
+
+    <div class="right-controls">
+      <div class="presence-strip" aria-label="Connected collaborators">
+        @for (collab of activeCollaborators(); track collab.actorId) {
+          <span
+            class="presence-chip"
+            [style.border-color]="collab.color"
+            [title]="
+              collab.focusedLabel
+                ? collab.displayName + ' editing ' + collab.focusedLabel
+                : collab.displayName
+            "
+          >
+            <span class="presence-dot" [style.background-color]="collab.color"></span>
+            {{ collab.displayName }}
+          </span>
+        }
+      </div>
+
+      <button type="button" class="toolbar-btn" (click)="openPeerWindow()">Open Peer Tab</button>
+      <button
+        type="button"
+        class="toolbar-btn"
+        [disabled]="agentBusy()"
+        (click)="resetActiveRoom()"
+      >
+        Reset Room
+      </button>
+      <button
+        type="button"
+        class="toolbar-btn"
+        [class.active-toggle]="inspectorOpen()"
+        (click)="toggleInspector()"
+      >
+        CRDT Inspector
+      </button>
+    </div>
+  </header>
+
+  @if (createDialogOpen()) {
+    <section class="create-room-bar" aria-label="Create collaborative room">
+      <input
+        type="text"
+        class="text-input"
+        placeholder="Room title (e.g. Q4 Capacity Triage)"
+        [value]="newRoomTitle()"
+        (input)="updateNewRoomTitle($event)"
+      />
+      <input
+        type="text"
+        class="text-input prompt-wide"
+        placeholder="Optional initial prompt for Yjs + A2UI Agent (e.g. Add a GPU quota slider and sign-off checklist)"
+        [value]="newRoomPrompt()"
+        (input)="updateNewRoomPrompt($event)"
+      />
+      <button
+        type="button"
+        class="primary-btn"
+        [disabled]="!newRoomTitle().trim() || agentBusy()"
+        (click)="createNewRoom()"
+      >
+        Create Room
+      </button>
+      <button type="button" class="toolbar-btn" (click)="toggleCreateRoomDialog()">Cancel</button>
+    </section>
+  }
+
+  <main class="workspace-stage">
+    <div class="panes-grid" [attr.data-columns]="splitCount()">
+      @for (persona of visiblePanes(); track $index) {
+        <yjs-a2ui-surface-pane
+          [roomId]="activeRoomId()"
+          [actorId]="persona.actorId"
+          [displayName]="persona.displayName"
+          [roleLabel]="persona.roleLabel"
+          [personaOptions]="personaRoster"
+          [disableNetwork]="disableNetwork()"
+          (personaSelected)="updatePanePersona($index, $event)"
+          (snapshotUpdated)="recordSnapshot($index, $event)"
+          (wireFrameRecorded)="recordWireFrame($event)"
+          (actionDispatched)="recordSurfaceAction($event)"
+        />
+      }
+    </div>
+
+    @if (inspectorOpen()) {
+      <yjs-a2ui-crdt-inspector
+        [snapshot]="latestSnapshot()"
+        [wireFrames]="wireFrames()"
+        [activityLog]="activityLog()"
+      />
+    }
+  </main>
+
+  <footer class="composer-bar">
+    <div class="quick-prompts-row">
+      <span class="quick-label">Agent Co-Edit:</span>
+      @for (qp of quickPrompts; track qp) {
+        <button
+          type="button"
+          class="quick-chip"
+          [disabled]="agentBusy()"
+          (click)="applyQuickPrompt(qp)"
+        >
+          {{ qp }}
+        </button>
+      }
+      @if (statusMessage()) {
+        <span class="composer-status">{{ statusMessage() }}</span>
+      }
+    </div>
+
+    <div class="composer-input-row">
+      <select
+        class="actor-select"
+        aria-label="Prompt sender persona"
+        [value]="promptActorId()"
+        (change)="updatePromptActor($event)"
+      >
+        @for (p of personaRoster; track p.actorId) {
+          <option [value]="p.actorId" [selected]="p.actorId === promptActorId()">
+            As {{ p.displayName }}
+          </option>
+        }
+      </select>
+
+      <input
+        type="text"
+        class="composer-input"
+        placeholder="Ask Yjs + A2UI Agent to add A2UI components or update shared CRDT fields without clobbering peer edits..."
+        [value]="promptDraft()"
+        [disabled]="agentBusy()"
+        (input)="updatePromptDraft($event)"
+        (keydown)="handlePromptKeydown($event)"
+      />
+
+      <button
+        type="button"
+        class="primary-btn"
+        [disabled]="!promptDraft().trim() || agentBusy()"
+        (click)="submitAgentPrompt()"
+      >
+        {{ agentBusy() ? 'Applying...' : 'Send to Room Agent' }}
+      </button>
+    </div>
+  </footer>
+</div>
