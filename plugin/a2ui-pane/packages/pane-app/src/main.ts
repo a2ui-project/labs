@@ -22,7 +22,7 @@ import {
   type A2uiLinkClickDetail,
   openLink,
 } from '@a2ui-pane/renderer';
-import {StreamClient, ConnectionStatus} from './stream-client.js';
+import {StreamClient, ConnectionStatus, isCustomOriginScheme} from './stream-client.js';
 import {ActionSender} from './action-sender.js';
 import {showToast} from './toast.js';
 
@@ -35,7 +35,13 @@ export interface InitOptions {
   search?: string;
   fetchFn?: typeof fetch;
   eventSourceFactory?: (url: string) => EventSource;
+  /** Creates the stream WebSocket. When set, the pane tries a WebSocket before SSE. */
+  webSocketFactory?: (url: string) => WebSocket;
+  /** Explicit WebSocket base URL, overriding `/api/config` discovery. */
+  wsBaseUrl?: string;
   sendMessageFn?: (text: string) => Promise<any>;
+  /** Maximum milliseconds to wait for an action send before timing out. */
+  actionTimeoutMs?: number;
   onAction?: (action: any, dataModel?: Record<string, unknown>) => void;
   /** Replaces the page reload that runs when the sidecar serves a new pane build. */
   reloadFn?: () => void;
@@ -52,6 +58,12 @@ export interface PaneAppInstance {
 
 /** How long the "new build" toast shows before the page reloads itself. */
 const BUILD_RELOAD_TOAST_MS = 1200;
+
+/**
+ * How long a stream resuming after a visibility pause may take to connect
+ * before the badge shows "Connecting...". A faster resume keeps "Live".
+ */
+const RESUME_BADGE_GRACE_MS = 250;
 
 const STATUS_STYLES: Readonly<Record<ConnectionStatus, {text: string; bg: string; color: string}>> =
   {
@@ -102,7 +114,9 @@ async function deleteSurfaceOnDisk(
 ): Promise<boolean> {
   if (!fetchImpl) return false;
   try {
-    const headers: Record<string, string> = {'Content-Type': 'application/json'};
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
     if (token) {
       headers['X-Sidecar-Token'] = token;
     }
@@ -138,7 +152,9 @@ async function reportPaneVisibility(
 ): Promise<void> {
   if (!fetchImpl) return;
   try {
-    const headers: Record<string, string> = {'Content-Type': 'application/json'};
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
     if (token) {
       headers['X-Sidecar-Token'] = token;
     }
@@ -152,63 +168,56 @@ async function reportPaneVisibility(
   }
 }
 
-function setupVisibilityTracking(
-  conversationId: string,
-  token: string | undefined,
-  fetchImpl?: typeof fetch,
-): {reannounce: () => void} {
-  let seenPositiveClientBox = false;
-  const isCurrentlyVisible = () => {
-    if (typeof window === 'undefined') return true;
-    const winVisible = window.innerWidth > 0 && window.innerHeight > 0;
-    if (!winVisible) return false;
-    if (typeof document !== 'undefined' && document.documentElement) {
-      const docEl = document.documentElement;
-      const rect =
-        typeof docEl.getBoundingClientRect === 'function'
-          ? docEl.getBoundingClientRect()
-          : undefined;
-      const clientW = Math.max(docEl.clientWidth || 0, rect?.width || 0);
-      const clientH = Math.max(docEl.clientHeight || 0, rect?.height || 0);
-      if (clientW > 0 && clientH > 0) {
-        seenPositiveClientBox = true;
-        return true;
-      }
-      if (seenPositiveClientBox) {
-        // In Chromium, hiding an ancestor slot with `display: none` leaves
-        // `window.innerWidth`/`innerHeight` at their last open dimensions
-        // while collapsing `documentElement` client/bounding rects to 0x0.
-        return false;
-      }
+/** Handle returned by `setupVisibilityTracking`. */
+interface VisibilityTracker {
+  /** Re-sends the current visibility to the sidecar. */
+  reannounce: () => void;
+  /** The visibility last reported to the sidecar. */
+  isVisible: () => boolean;
+}
+
+function isDocumentHidden(): boolean {
+  return typeof document !== 'undefined' && document.visibilityState === 'hidden';
+}
+
+/** Width and height of `documentElement`, taking the larger of client and bounding sizes. */
+function documentElementBox(docEl: HTMLElement): {
+  width: number;
+  height: number;
+} {
+  const rect =
+    typeof docEl.getBoundingClientRect === 'function' ? docEl.getBoundingClientRect() : undefined;
+  return {
+    width: Math.max(docEl.clientWidth || 0, rect?.width || 0),
+    height: Math.max(docEl.clientHeight || 0, rect?.height || 0),
+  };
+}
+
+/** Calls `onChange` whenever `documentElement` resizes or changes intersection. */
+function observeDocumentElement(onChange: () => void): void {
+  if (typeof document === 'undefined' || !document.documentElement) return;
+  const docEl = document.documentElement;
+  if (typeof ResizeObserver !== 'undefined') {
+    try {
+      new ResizeObserver(onChange).observe(docEl);
+    } catch {
+      // Ignore ResizeObserver errors in restricted environments
     }
-    return true;
-  };
-
-  let lastVisible = isCurrentlyVisible();
-  let inFlightCount = 0;
-  let lastSettledVisible: boolean | undefined;
-
-  const sendVisibility = (visible: boolean) => {
-    inFlightCount += 1;
-    void reportPaneVisibility(conversationId, visible, token, fetchImpl).finally(() => {
-      inFlightCount -= 1;
-      lastSettledVisible = visible;
-      if (inFlightCount === 0 && lastSettledVisible !== lastVisible) {
-        sendVisibility(lastVisible);
-      }
-    });
-  };
-
-  const syncVisibility = (force = false) => {
-    const nextVisible = isCurrentlyVisible();
-    if (force || nextVisible !== lastVisible) {
-      lastVisible = nextVisible;
-      sendVisibility(nextVisible);
+  }
+  if (typeof IntersectionObserver !== 'undefined') {
+    try {
+      new IntersectionObserver(onChange).observe(docEl);
+    } catch {
+      // Ignore IntersectionObserver errors in restricted environments
     }
-  };
+  }
+}
 
-  sendVisibility(lastVisible);
-
+/** Wires the window and document events that can change pane visibility. */
+function listenForVisibilityEvents(
+  syncVisibility: (force?: boolean) => void,
+  isCurrentlyVisible: () => boolean,
+): void {
   if (typeof window !== 'undefined') {
     window.addEventListener('resize', () => {
       syncVisibility();
@@ -227,35 +236,107 @@ function setupVisibilityTracking(
       }
     });
   }
-
-  if (typeof document !== 'undefined' && document.documentElement) {
-    const docEl = document.documentElement;
-    if (typeof ResizeObserver !== 'undefined') {
-      try {
-        const ro = new ResizeObserver(() => {
-          syncVisibility();
-        });
-        ro.observe(docEl);
-      } catch {
-        // Ignore ResizeObserver errors in restricted environments
-      }
-    }
-    if (typeof IntersectionObserver !== 'undefined') {
-      try {
-        const io = new IntersectionObserver(() => {
-          syncVisibility();
-        });
-        io.observe(docEl);
-      } catch {
-        // Ignore IntersectionObserver errors in restricted environments
-      }
-    }
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+      syncVisibility();
+    });
   }
+  observeDocumentElement(() => {
+    syncVisibility();
+  });
+}
+
+/**
+ * Returns a probe that reports whether the pane is visible now.
+ *
+ * The probe remembers whether `documentElement` ever had a positive size, so
+ * it can tell a collapsed slot from an environment that never reports layout.
+ */
+function createVisibilityProbe(): () => boolean {
+  let seenPositiveClientBox = false;
+  return () => {
+    if (typeof window === 'undefined') return true;
+    if (isDocumentHidden()) return false;
+    if (!(window.innerWidth > 0 && window.innerHeight > 0)) return false;
+    if (typeof document === 'undefined' || !document.documentElement) return true;
+    const docEl = document.documentElement;
+    if (typeof docEl.getClientRects === 'function' && docEl.getClientRects().length === 0) {
+      return false;
+    }
+    const box = documentElementBox(docEl);
+    if (box.width > 0 && box.height > 0) {
+      seenPositiveClientBox = true;
+      return true;
+    }
+    // In Chromium, hiding an ancestor slot with `display: none` leaves
+    // `window.innerWidth`/`innerHeight` at their last open dimensions
+    // while collapsing `documentElement` client/bounding rects to 0x0.
+    return !seenPositiveClientBox;
+  };
+}
+
+/**
+ * Returns a sender that POSTs visibility to the sidecar. When requests settle
+ * out of order and the last one to settle disagrees with `latest()`, it sends
+ * `latest()` again so the sidecar ends on the current value.
+ */
+function createVisibilityReporter(
+  conversationId: string,
+  token: string | undefined,
+  fetchImpl: typeof fetch | undefined,
+  latest: () => boolean,
+): (visible: boolean) => void {
+  let inFlightCount = 0;
+  const sendVisibility = (visible: boolean) => {
+    inFlightCount += 1;
+    void reportPaneVisibility(conversationId, visible, token, fetchImpl).finally(() => {
+      inFlightCount -= 1;
+      if (inFlightCount === 0 && visible !== latest()) {
+        sendVisibility(latest());
+      }
+    });
+  };
+  return sendVisibility;
+}
+
+/**
+ * Tracks whether the pane is visible and reports changes to the sidecar.
+ *
+ * `onVisibilityChange` runs before the visibility POST, so a stream the
+ * caller closes on hide frees its connection before the POST needs one.
+ */
+function setupVisibilityTracking(
+  conversationId: string,
+  token: string | undefined,
+  fetchImpl?: typeof fetch,
+  onVisibilityChange?: (visible: boolean) => void,
+): VisibilityTracker {
+  const isCurrentlyVisible = createVisibilityProbe();
+  let lastVisible = isCurrentlyVisible();
+  const sendVisibility = createVisibilityReporter(
+    conversationId,
+    token,
+    fetchImpl,
+    () => lastVisible,
+  );
+
+  const syncVisibility = (force = false) => {
+    const nextVisible = isCurrentlyVisible();
+    const changed = nextVisible !== lastVisible;
+    if (!force && !changed) return;
+    lastVisible = nextVisible;
+    if (changed) onVisibilityChange?.(nextVisible);
+    sendVisibility(nextVisible);
+  };
+
+  sendVisibility(lastVisible);
+  listenForVisibilityEvents(syncVisibility, isCurrentlyVisible);
 
   return {
     reannounce: () => {
       syncVisibility(true);
     },
+    isVisible: () => isCurrentlyVisible(),
   };
 }
 
@@ -268,24 +349,35 @@ function normalizeConversationId(id: string | null | undefined): string | null {
   return trimmed;
 }
 
-async function resolveConversationId(
+function parseWsBaseUrl(raw: unknown): string | undefined {
+  return typeof raw === 'string' && /^wss?:\/\//i.test(raw) ? raw : undefined;
+}
+
+async function resolvePaneConfig(
   initialId: string | null,
+  needWsBaseUrl: boolean,
   fetchImpl?: typeof fetch,
-): Promise<string | null> {
-  if (initialId !== null) {
-    return normalizeConversationId(initialId);
+): Promise<{conversationId: string | null; wsBaseUrl?: string}> {
+  const fromQuery = initialId !== null ? normalizeConversationId(initialId) : null;
+  if (initialId !== null && (!fromQuery || !needWsBaseUrl)) {
+    return {conversationId: fromQuery};
   }
-  if (!fetchImpl) return null;
+  if (!fetchImpl) {
+    return {conversationId: fromQuery};
+  }
   try {
     const resp = await fetchImpl('./api/config');
     if (resp.ok) {
-      const config = (await resp.json()) as any;
-      return normalizeConversationId(config?.conversationId);
+      const config = (await resp.json()) as Record<string, unknown>;
+      return {
+        conversationId: fromQuery ?? normalizeConversationId(config?.conversationId as string),
+        wsBaseUrl: parseWsBaseUrl(config?.wsBaseUrl),
+      };
     }
   } catch {
     // Configuration fallback
   }
-  return null;
+  return {conversationId: fromQuery};
 }
 
 function resolveSearch(options: InitOptions): string {
@@ -419,13 +511,25 @@ function createActionHandler(
   return (action: any, dataModel?: Record<string, unknown>) => {
     const surfaceId = typeof action?.surfaceId === 'string' ? action.surfaceId : undefined;
     if (surfaceId && paneView.isSurfaceDismissed(surfaceId)) return;
+    const sourceId =
+      typeof action?.sourceComponentId === 'string' ? action.sourceComponentId : undefined;
     const isOneShot = action?.oneShot !== false;
+    const rollbackIfIdle = () => {
+      if (isOneShot && surfaceId && !(sourceId && actionSender.isPending(sourceId))) {
+        paneView.clearSubmittedState(surfaceId);
+      }
+    };
     actionSender
       .sendAction(action, dataModel)
       .then(sent => {
-        if (sent) onSent(isOneShot, surfaceId);
+        if (sent) {
+          onSent(isOneShot, surfaceId);
+        } else {
+          rollbackIfIdle();
+        }
       })
       .catch(err => {
+        rollbackIfIdle();
         console.error('[main] sendAction failed:', err);
       });
   };
@@ -434,25 +538,140 @@ function createActionHandler(
 interface StreamWiring {
   conversationId: string;
   token: string | undefined;
+  wsBaseUrl?: string;
   fetchImpl: typeof fetch;
   applier: LineApplier;
   updateStatus: (status: ConnectionStatus) => void;
   updateErrors: () => void;
 }
 
+/** Controls status badge repaints around a stream paused because the pane was hidden. */
+interface ResumeBadgeGate {
+  /**
+   * Called when the stream closes because the pane was hidden. Keeps the
+   * current badge while hidden and briefly while resuming, if the stream was
+   * connected or an earlier pause is still resuming.
+   */
+  pauseForHide: (wasConnected: boolean) => void;
+  /** Ends a pause without repainting. */
+  unpause: () => void;
+  /** Forwards a stream status, holding it back while paused. */
+  onStatus: (status: ConnectionStatus) => void;
+}
+
+/**
+ * Returns a gate that keeps a hidden-and-shown pane from flashing its badge.
+ *
+ * While paused it drops `disconnected` so a hidden pane never paints
+ * "Offline". On resume, `connecting` paints only if the stream has not
+ * connected within `RESUME_BADGE_GRACE_MS`; `connected` and `reconnecting`
+ * paint at once and end the pause.
+ */
+function createResumeBadgeGate(updateStatus: (status: ConnectionStatus) => void): ResumeBadgeGate {
+  let paused = false;
+  let latest: ConnectionStatus | undefined;
+  let graceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const clearGraceTimer = () => {
+    if (graceTimer) {
+      clearTimeout(graceTimer);
+      graceTimer = null;
+    }
+  };
+
+  const unpause = () => {
+    paused = false;
+    clearGraceTimer();
+  };
+
+  const onPausedStatus = (status: ConnectionStatus) => {
+    if (status === 'disconnected') return;
+    if (status !== 'connecting') {
+      unpause();
+      updateStatus(status);
+      return;
+    }
+    graceTimer ??= setTimeout(() => {
+      graceTimer = null;
+      paused = false;
+      if (latest) updateStatus(latest);
+    }, RESUME_BADGE_GRACE_MS);
+  };
+
+  return {
+    pauseForHide: wasConnected => {
+      if (!wasConnected && !paused) return;
+      clearGraceTimer();
+      paused = true;
+    },
+    unpause,
+    onStatus: status => {
+      latest = status;
+      if (paused) {
+        onPausedStatus(status);
+      } else {
+        updateStatus(status);
+      }
+    },
+  };
+}
+
+/**
+ * Opens or closes the stream when the pane is shown or hidden. An SSE stream
+ * closes on hide to free its HTTP/1.1 connection slot; a WebSocket holds no
+ * slot, so it stays open and the pane resumes without a reconnect.
+ */
+function applyVisibilityToStream(
+  client: StreamClient,
+  badge: ResumeBadgeGate,
+  visible: boolean,
+): void {
+  if (visible) {
+    if (client.getStatus() === 'disconnected') client.connect();
+    return;
+  }
+  if (client.getTransport() === 'websocket') return;
+  badge.pauseForHide(client.getStatus() === 'connected');
+  client.disconnect();
+}
+
+/** Closes the stream when the page is unloaded or frozen and reopens it from the back/forward cache. */
+function wirePageLifecycle(client: StreamClient, visibilityTracker: VisibilityTracker): void {
+  if (typeof window === 'undefined') return;
+  window.addEventListener('pagehide', () => {
+    client.disconnect();
+  });
+  window.addEventListener('pageshow', (evt: PageTransitionEvent) => {
+    if (evt.persisted && visibilityTracker.isVisible() && client.getStatus() === 'disconnected') {
+      client.connect();
+    }
+  });
+}
+
 function connectStream(options: InitOptions, wiring: StreamWiring): StreamClient {
-  const {conversationId, token, fetchImpl, applier, updateStatus, updateErrors} = wiring;
-  const visibilityTracker = setupVisibilityTracking(conversationId, token, fetchImpl);
+  const {conversationId, token, wsBaseUrl, fetchImpl, applier, updateStatus, updateErrors} = wiring;
+  const badge = createResumeBadgeGate(updateStatus);
+
+  // The client callbacks below read `visibilityTracker`; they first run after `connect()`.
   const client = new StreamClient({
     conversationId,
     token,
+    wsBaseUrl,
     applier,
     eventSourceFactory: options.eventSourceFactory,
+    webSocketFactory: options.webSocketFactory,
     onStatusChange: status => {
-      updateStatus(status);
+      badge.onStatus(status);
       updateErrors();
       if (status === 'connected') {
         visibilityTracker.reannounce();
+      }
+    },
+    onTransportChange: transport => {
+      // Falling back to SSE while hidden would hold a connection slot for nothing.
+      if (transport === 'sse' && !visibilityTracker.isVisible()) {
+        badge.unpause();
+        client.disconnect();
       }
     },
     onError: () => {
@@ -465,7 +684,17 @@ function connectStream(options: InitOptions, wiring: StreamWiring): StreamClient
       setTimeout(reload, BUILD_RELOAD_TOAST_MS);
     },
   });
-  client.connect();
+
+  const visibilityTracker = setupVisibilityTracking(conversationId, token, fetchImpl, visible =>
+    applyVisibilityToStream(client, badge, visible),
+  );
+
+  wirePageLifecycle(client, visibilityTracker);
+
+  // A pane mounted hidden holds no connection until it is first shown.
+  if (visibilityTracker.isVisible()) {
+    client.connect();
+  }
   return client;
 }
 
@@ -480,7 +709,13 @@ export async function initPaneApp(options: InitOptions = {}): Promise<PaneAppIns
   const urlParams = new URLSearchParams(resolveSearch(options));
   const token = urlParams.get('token') || undefined;
   const fetchImpl = options.fetchFn ?? fetch;
-  const conversationId = await resolveConversationId(urlParams.get('conversationId'), fetchImpl);
+  const needWsBaseUrl = !options.wsBaseUrl && isCustomOriginScheme();
+  const {conversationId, wsBaseUrl: configWsBaseUrl} = await resolvePaneConfig(
+    urlParams.get('conversationId'),
+    needWsBaseUrl,
+    fetchImpl,
+  );
+  const wsBaseUrl = options.wsBaseUrl ?? configWsBaseUrl;
 
   appContainer.innerHTML = paneTemplate(conversationId);
 
@@ -502,6 +737,7 @@ export async function initPaneApp(options: InitOptions = {}): Promise<PaneAppIns
   const actionSender = new ActionSender({
     conversationId,
     sendMessageFn: options.sendMessageFn,
+    timeoutMs: options.actionTimeoutMs,
     onPendingChange: pending => {
       paneView.pendingComponents = pending;
     },
@@ -549,6 +785,7 @@ export async function initPaneApp(options: InitOptions = {}): Promise<PaneAppIns
   const client = connectStream(options, {
     conversationId,
     token,
+    wsBaseUrl,
     fetchImpl,
     applier,
     updateStatus,

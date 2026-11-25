@@ -144,6 +144,57 @@ describe('ActionSender', () => {
     consoleSpy.mockRestore();
   });
 
+  it('times out a stalled sendMessage, releases pending state, and shows an error toast', async () => {
+    vi.useFakeTimers();
+    const pendingChanges: number[] = [];
+    const toastSpy = vi.fn();
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const neverResolves = vi.fn(() => new Promise(() => {}));
+
+    const sender = new ActionSender({
+      sendMessageFn: neverResolves,
+      showToastFn: toastSpy,
+      timeoutMs: 250,
+      onPendingChange: set => pendingChanges.push(set.size),
+    });
+
+    const promise = sender.sendAction({
+      name: 'submit',
+      surfaceId: 'surfTimeout',
+      sourceComponentId: 'btnStuck',
+    });
+
+    expect(sender.isPending('btnStuck')).toBe(true);
+    await vi.advanceTimersByTimeAsync(250);
+
+    const result = await promise;
+    expect(result).toBe(false);
+    expect(sender.isPending('btnStuck')).toBe(false);
+    expect(pendingChanges).toEqual([1, 0]);
+    expect(toastSpy).toHaveBeenCalledWith(
+      'Action failed: Timed out waiting for agent response',
+      true,
+    );
+
+    consoleSpy.mockRestore();
+    vi.useRealTimers();
+  });
+
+  it('disables the timeout when timeoutMs is zero', async () => {
+    const mockSend = vi.fn().mockResolvedValue({ok: true});
+    const sender = new ActionSender({
+      sendMessageFn: mockSend,
+      timeoutMs: 0,
+    });
+    const result = await sender.sendAction({
+      name: 'submit',
+      surfaceId: 'surfNoTimeout',
+      sourceComponentId: 'btnOk',
+    });
+    expect(result).toBe(true);
+    expect(mockSend).toHaveBeenCalledTimes(1);
+  });
+
   it('provides access to pending components set and uses window.sidecar when available', async () => {
     const mockSend = vi.fn().mockResolvedValue({ok: true});
     (window as any).sidecar = {agent: {sendMessage: mockSend}};

@@ -17,14 +17,17 @@
 import fs from 'node:fs';
 import http, {IncomingMessage, ServerResponse} from 'node:http';
 import path from 'node:path';
+import type {Duplex} from 'node:stream';
 import {fileURLToPath} from 'node:url';
-import {isValidId} from '@a2ui-pane/protocol';
+import {WebSocketServer} from 'ws';
+import {isValidId, STREAM_SSE_PATH, STREAM_WS_PATH} from '@a2ui-pane/protocol';
 import {SurfaceStore} from '@a2ui-pane/protocol/store-fs';
 import {SidecarEnv} from './env.js';
 import {checkToken} from './auth.js';
 import {StoreReader} from './store-reader.js';
 import {ChangeNotifier} from './change-notifier.js';
 import {handleStream} from './sse-route.js';
+import {handleWsStream} from './ws-route.js';
 import {handlePreload} from './preload-route.js';
 import {handleSendMessage, ExecFileFn} from './send-message-route.js';
 import {handleSurfaceDelete} from './surfaces-route.js';
@@ -40,6 +43,8 @@ export interface SidecarDeps {
   execFileFn?: ExecFileFn;
   keepaliveIntervalMs?: number;
   onVisibilityChange?: (conversationId: string, visible: boolean) => void;
+  /** Returns the browser-reachable gateway base URL (e.g. from `GetSidecars`), if resolved. */
+  getBaseUrl?: () => string | undefined;
 }
 
 function isAttachedConversationId(id: unknown): id is string {
@@ -117,6 +122,38 @@ interface RouteContext {
   staticDir: string;
   injectedDeps?: Partial<SidecarDeps>;
   activeStreams: Map<string, number>;
+  getListenPort: () => number;
+}
+
+/**
+ * Derives the public WebSocket stream base URL (without query tokens) advertised by `/api/config`.
+ *
+ * Prefers the gateway `baseUrl` when resolved (supporting port-forwarded and proxied hosts while
+ * preserving any base path prefix), and falls back to the sidecar's direct loopback port.
+ */
+export function resolveConfigWsBaseUrl(
+  baseUrl: string | undefined,
+  listenPort: number,
+): string | undefined {
+  if (baseUrl) {
+    try {
+      const parsed = new URL(baseUrl);
+      if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+        parsed.protocol = parsed.protocol === 'https:' ? 'wss:' : 'ws:';
+        const prefix = parsed.pathname.replace(/\/+$/, '');
+        parsed.pathname = `${prefix}${STREAM_WS_PATH}`;
+        parsed.search = '';
+        parsed.hash = '';
+        return parsed.toString();
+      }
+    } catch {
+      // Fall through to the loopback port when baseUrl is malformed.
+    }
+  }
+  if (listenPort > 0) {
+    return `ws://127.0.0.1:${listenPort}${STREAM_WS_PATH}`;
+  }
+  return undefined;
 }
 
 /** A token-protected API route. */
@@ -126,11 +163,17 @@ interface ProtectedRoute {
   handle: (req: IncomingMessage, res: ServerResponse, url: URL, ctx: RouteContext) => void;
 }
 
-/** Counts open streams per conversation and reports a hidden pane when the last one closes. */
-function trackStream(req: IncomingMessage, convId: string, ctx: RouteContext): void {
+/**
+ * Registers an open SSE or WebSocket stream for a conversation and returns an
+ * idempotent release callback that reports a hidden pane when the last stream closes.
+ */
+function registerActiveStream(convId: string, ctx: RouteContext): () => void {
   const {activeStreams} = ctx;
   activeStreams.set(convId, (activeStreams.get(convId) ?? 0) + 1);
-  req.on('close', () => {
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
     const remaining = (activeStreams.get(convId) ?? 1) - 1;
     if (remaining <= 0) {
       activeStreams.delete(convId);
@@ -138,7 +181,13 @@ function trackStream(req: IncomingMessage, convId: string, ctx: RouteContext): v
     } else {
       activeStreams.set(convId, remaining);
     }
-  });
+  };
+}
+
+function resolveConversationId(url: URL, ctx: RouteContext): string | null | undefined {
+  return url.searchParams.has('conversationId')
+    ? url.searchParams.get('conversationId')
+    : ctx.env.conversationId;
 }
 
 function handleStreamRoute(
@@ -147,22 +196,67 @@ function handleStreamRoute(
   url: URL,
   ctx: RouteContext,
 ): void {
-  const rawConvId = url.searchParams.has('conversationId')
-    ? url.searchParams.get('conversationId')
-    : ctx.env.conversationId;
+  const rawConvId = resolveConversationId(url, ctx);
   if (!isAttachedConversationId(rawConvId)) {
-    sendJson(res, 400, {error: `Invalid or missing conversationId: ${String(rawConvId)}`});
+    sendJson(res, 400, {
+      error: `Invalid or missing conversationId: ${String(rawConvId)}`,
+    });
     return;
   }
-  trackStream(req, rawConvId, ctx);
+  const release = registerActiveStream(rawConvId, ctx);
+  req.on('close', release);
   handleStream(req, res, rawConvId, ctx.storeReader, ctx.notifier, {
     keepaliveIntervalMs: ctx.injectedDeps?.keepaliveIntervalMs,
   });
 }
 
+function rejectUpgrade(socket: Duplex, status: number, reason: string): void {
+  socket.once('finish', () => socket.destroy());
+  socket.end(`HTTP/1.1 ${status} ${reason}\r\nConnection: close\r\n\r\n`);
+}
+
+function handleUpgrade(
+  req: IncomingMessage,
+  socket: Duplex,
+  head: Buffer,
+  wss: WebSocketServer,
+  ctx: RouteContext,
+): void {
+  socket.on('error', () => {});
+  const host = req.headers.host || 'localhost';
+  let url: URL;
+  try {
+    url = new URL(req.url ?? '/', `http://${host}`);
+  } catch {
+    rejectUpgrade(socket, 400, 'Bad Request');
+    return;
+  }
+  if (url.pathname !== STREAM_WS_PATH) {
+    rejectUpgrade(socket, 404, 'Not Found');
+    return;
+  }
+  if (!checkToken(req, url, ctx.env.uiToken)) {
+    rejectUpgrade(socket, 401, 'Unauthorized');
+    return;
+  }
+  const rawConvId = resolveConversationId(url, ctx);
+  if (!isAttachedConversationId(rawConvId)) {
+    rejectUpgrade(socket, 400, 'Bad Request');
+    return;
+  }
+  wss.handleUpgrade(req, socket, head, ws => {
+    const release = registerActiveStream(rawConvId, ctx);
+    ws.on('close', release);
+    ws.on('error', release);
+    handleWsStream(ws, rawConvId, ctx.storeReader, ctx.notifier, {
+      keepaliveIntervalMs: ctx.injectedDeps?.keepaliveIntervalMs,
+    });
+  });
+}
+
 const PROTECTED_ROUTES: ProtectedRoute[] = [
   // SSE Stream endpoint
-  {method: 'GET', path: '/api/stream', handle: handleStreamRoute},
+  {method: 'GET', path: STREAM_SSE_PATH, handle: handleStreamRoute},
   // Pane visibility reporting endpoint
   {
     method: 'POST',
@@ -175,7 +269,10 @@ const PROTECTED_ROUTES: ProtectedRoute[] = [
     method: 'POST',
     path: '/api/surfaces/delete',
     handle: (req, res, _url, ctx) =>
-      handleSurfaceDelete(req, res, {dataDir: ctx.env.dataDir, store: ctx.surfaceStore}),
+      handleSurfaceDelete(req, res, {
+        dataDir: ctx.env.dataDir,
+        store: ctx.surfaceStore,
+      }),
   },
   // Action dispatch endpoint
   {
@@ -196,13 +293,19 @@ function handlePublicRoute(res: ServerResponse, url: URL, ctx: RouteContext): bo
     case '/api/health':
       sendJson(res, 200, {status: 'ok', uptime: process.uptime()});
       return true;
-    case '/api/config':
+    case '/api/config': {
+      const wsBaseUrl = resolveConfigWsBaseUrl(
+        ctx.injectedDeps?.getBaseUrl?.(),
+        ctx.getListenPort(),
+      );
       sendJson(res, 200, {
         conversationId: ctx.env.conversationId,
         projectId: ctx.env.projectId,
         buildId: currentBuildId(ctx.staticDir),
+        ...(wsBaseUrl ? {wsBaseUrl} : {}),
       });
       return true;
+    }
     case '/preload.js':
       handlePreload(res);
       return true;
@@ -256,8 +359,26 @@ export function createSidecarServer(
     staticDir: injectedDeps?.staticDir ?? defaultStaticDir(),
     injectedDeps,
     activeStreams: new Map<string, number>(),
+    getListenPort: () => env.port,
   };
-  return http.createServer((req: IncomingMessage, res: ServerResponse) =>
+  // The stream is server-to-client push only; cap client payload size to 4 KiB.
+  const wss = new WebSocketServer({noServer: true, maxPayload: 4096});
+  const server = http.createServer((req: IncomingMessage, res: ServerResponse) =>
     handleRequest(req, res, ctx),
   );
+  ctx.getListenPort = () => {
+    const addr = server.address();
+    return addr && typeof addr === 'object' ? addr.port : env.port;
+  };
+  server.on('upgrade', (req, socket, head) => handleUpgrade(req, socket, head, wss, ctx));
+
+  const originalClose = server.close.bind(server);
+  server.close = (cb?: (err?: Error) => void) => {
+    for (const client of wss.clients) {
+      client.terminate();
+    }
+    wss.close();
+    return originalClose(cb);
+  };
+  return server;
 }

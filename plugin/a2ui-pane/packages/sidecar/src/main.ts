@@ -134,6 +134,7 @@ export function run(): void {
         visibleConversations[convId] = visible;
         persistEndpoint();
       },
+      getBaseUrl: () => resolvedBaseUrl,
     });
 
     server.listen(env.port, '127.0.0.1', () => {

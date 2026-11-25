@@ -55,6 +55,57 @@ class FakeEventSource {
   }
 }
 
+class FakeWebSocket {
+  static instances: FakeWebSocket[] = [];
+  url: string;
+  onopen: ((event: Event) => void) | null = null;
+  onmessage: ((event: MessageEvent) => void) | null = null;
+  onerror: ((event: Event) => void) | null = null;
+  onclose: ((event: Event) => void) | null = null;
+  closed = false;
+
+  constructor(url: string) {
+    this.url = url;
+    FakeWebSocket.instances.push(this);
+  }
+
+  triggerOpen() {
+    this.onopen?.(new Event('open'));
+  }
+
+  triggerClose() {
+    this.onclose?.(new Event('close'));
+  }
+
+  close() {
+    this.closed = true;
+  }
+}
+
+/** Connections opened for `conversationId`; earlier tests' panes keep listening to window events. */
+function connectionsFor<T extends {url: string}>(instances: T[], conversationId: string): T[] {
+  return instances.filter(
+    conn =>
+      new URL(conn.url, 'http://localhost/').searchParams.get('conversationId') === conversationId,
+  );
+}
+
+function setViewport(width: number, height: number): void {
+  Object.defineProperty(window, 'innerWidth', {
+    value: width,
+    configurable: true,
+  });
+  Object.defineProperty(window, 'innerHeight', {
+    value: height,
+    configurable: true,
+  });
+}
+
+function lastVisibilityBody(mockFetch: ReturnType<typeof vi.fn>): unknown {
+  const calls = mockFetch.mock.calls.filter(call => call[0] === './api/visibility');
+  return JSON.parse(String(calls[calls.length - 1][1].body));
+}
+
 describe('initPaneApp', () => {
   let container: HTMLElement;
   let originalFetch: typeof fetch;
@@ -67,6 +118,7 @@ describe('initPaneApp', () => {
       json: async () => ({ok: true}),
     }) as any;
     FakeEventSource.instances = [];
+    FakeWebSocket.instances = [];
     container = document.createElement('div');
     container.id = 'app';
     document.body.appendChild(container);
@@ -377,10 +429,9 @@ describe('initPaneApp', () => {
     });
   });
 
-  it('reports pane visibility on init, resize across 0x0, and SSE reconnect', async () => {
+  it('reports pane visibility on init, closes SSE on resize to 0x0, and reconnects on restore', async () => {
     const mockFetch = vi.fn().mockResolvedValue({ok: true, json: async () => ({ok: true})});
-    Object.defineProperty(window, 'innerWidth', {value: 420, configurable: true});
-    Object.defineProperty(window, 'innerHeight', {value: 600, configurable: true});
+    setViewport(420, 600);
 
     await initPaneApp({
       container,
@@ -400,12 +451,14 @@ describe('initPaneApp', () => {
         body: JSON.stringify({conversationId: 'conv_vis', visible: true}),
       }),
     );
+    const streams = () => connectionsFor(FakeEventSource.instances, 'conv_vis');
+    expect(streams()).toHaveLength(1);
 
-    // Resize to 0x0 (AuxPane hidden)
-    Object.defineProperty(window, 'innerWidth', {value: 0, configurable: true});
-    Object.defineProperty(window, 'innerHeight', {value: 0, configurable: true});
+    // Resize to 0x0 (AuxPane hidden) closes the SSE stream before reporting.
+    setViewport(0, 0);
     window.dispatchEvent(new Event('resize'));
 
+    expect(streams()[0].closed).toBe(true);
     expect(mockFetch).toHaveBeenLastCalledWith(
       './api/visibility',
       expect.objectContaining({
@@ -413,10 +466,12 @@ describe('initPaneApp', () => {
       }),
     );
 
-    // Restore size and trigger SSE open to verify reannounce
-    Object.defineProperty(window, 'innerWidth', {value: 420, configurable: true});
-    Object.defineProperty(window, 'innerHeight', {value: 600, configurable: true});
-    FakeEventSource.instances[0].triggerOpen();
+    // Restoring the size opens a new stream; its open re-announces visibility.
+    setViewport(420, 600);
+    window.dispatchEvent(new Event('resize'));
+    expect(streams()).toHaveLength(2);
+    expect(streams()[1].closed).toBe(false);
+    streams()[1].triggerOpen();
 
     expect(mockFetch).toHaveBeenLastCalledWith(
       './api/visibility',
@@ -459,8 +514,14 @@ describe('initPaneApp', () => {
         }),
     );
 
-    Object.defineProperty(window, 'innerWidth', {value: 0, configurable: true});
-    Object.defineProperty(window, 'innerHeight', {value: 0, configurable: true});
+    Object.defineProperty(window, 'innerWidth', {
+      value: 0,
+      configurable: true,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      value: 0,
+      configurable: true,
+    });
     Object.defineProperty(document.documentElement, 'clientWidth', {
       value: 0,
       configurable: true,
@@ -477,6 +538,10 @@ describe('initPaneApp', () => {
       eventSourceFactory: url => new FakeEventSource(url) as any,
     });
 
+    // Mounted hidden: no stream until the pane is first shown.
+    const streams = () => connectionsFor(FakeEventSource.instances, 'conv_hoisted');
+    expect(streams()).toHaveLength(0);
+
     // Request #1: initial visible=false (still in flight)
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(JSON.parse(mockFetch.mock.calls[0][1].body)).toEqual({
@@ -485,8 +550,14 @@ describe('initPaneApp', () => {
     });
 
     // Slot opens to 420x600 while Request #1 is still in flight
-    Object.defineProperty(window, 'innerWidth', {value: 420, configurable: true});
-    Object.defineProperty(window, 'innerHeight', {value: 600, configurable: true});
+    Object.defineProperty(window, 'innerWidth', {
+      value: 420,
+      configurable: true,
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      value: 600,
+      configurable: true,
+    });
     Object.defineProperty(document.documentElement, 'clientWidth', {
       value: 420,
       configurable: true,
@@ -498,6 +569,7 @@ describe('initPaneApp', () => {
     roCallback?.();
 
     // Request #2: visible=true sent while Request #1 is still in flight
+    expect(streams()).toHaveLength(1);
     expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(JSON.parse(mockFetch.mock.calls[1][1].body)).toEqual({
       conversationId: 'conv_hoisted',
@@ -529,6 +601,7 @@ describe('initPaneApp', () => {
       configurable: true,
     });
     ioCallback?.();
+    expect(streams()[0].closed).toBe(true);
     expect(mockFetch).toHaveBeenCalledTimes(4);
     expect(JSON.parse(mockFetch.mock.calls[3][1].body)).toEqual({
       conversationId: 'conv_hoisted',
@@ -547,6 +620,8 @@ describe('initPaneApp', () => {
       configurable: true,
     });
     window.dispatchEvent(new MessageEvent('message', {data: {type: 'theme-change'}}));
+    expect(streams()).toHaveLength(2);
+    expect(streams()[1].closed).toBe(false);
     expect(mockFetch).toHaveBeenCalledTimes(5);
     expect(JSON.parse(mockFetch.mock.calls[4][1].body)).toEqual({
       conversationId: 'conv_hoisted',
@@ -577,6 +652,291 @@ describe('initPaneApp', () => {
     });
   });
 
+  describe('stream visibility lifecycle', () => {
+    let mockFetch: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      setViewport(420, 600);
+      mockFetch = vi.fn().mockResolvedValue({ok: true, json: async () => ({ok: true})});
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+      setViewport(420, 600);
+    });
+
+    const badgeText = () => container.querySelector('#status-badge')?.textContent?.trim();
+
+    async function initWith(conversationId: string, withWebSocket = false) {
+      const instance = await initPaneApp({
+        container,
+        search: `?conversationId=${conversationId}`,
+        fetchFn: mockFetch as any,
+        eventSourceFactory: url => new FakeEventSource(url) as any,
+        webSocketFactory: withWebSocket ? url => new FakeWebSocket(url) as any : undefined,
+      });
+      return {
+        client: instance!.client!,
+        streams: () => connectionsFor(FakeEventSource.instances, conversationId),
+        sockets: () => connectionsFor(FakeWebSocket.instances, conversationId),
+      };
+    }
+
+    function hide() {
+      setViewport(0, 0);
+      window.dispatchEvent(new Event('resize'));
+    }
+
+    function show() {
+      setViewport(420, 600);
+      window.dispatchEvent(new Event('resize'));
+    }
+
+    it('creates no stream for a pane mounted hidden', async () => {
+      setViewport(0, 0);
+      const {client, streams, sockets} = await initWith('conv_hidden_mount', true);
+      expect(streams()).toHaveLength(0);
+      expect(sockets()).toHaveLength(0);
+      expect(client.getStatus()).toBe('disconnected');
+
+      show();
+      expect(sockets()).toHaveLength(1);
+      client.disconnect();
+    });
+
+    it('closes SSE when the document is hidden and reconnects when it is visible', async () => {
+      const {client, streams} = await initWith('conv_doc_hidden');
+      streams()[0].triggerOpen();
+      try {
+        Object.defineProperty(document, 'visibilityState', {
+          value: 'hidden',
+          configurable: true,
+        });
+        document.dispatchEvent(new Event('visibilitychange'));
+        expect(streams()[0].closed).toBe(true);
+        expect(client.getStatus()).toBe('disconnected');
+        expect(lastVisibilityBody(mockFetch)).toEqual({
+          conversationId: 'conv_doc_hidden',
+          visible: false,
+        });
+      } finally {
+        // happy-dom defines visibilityState as a prototype getter.
+        delete (document as any).visibilityState;
+      }
+      document.dispatchEvent(new Event('visibilitychange'));
+      expect(streams()).toHaveLength(2);
+      expect(client.getStatus()).toBe('connecting');
+      expect(lastVisibilityBody(mockFetch)).toEqual({
+        conversationId: 'conv_doc_hidden',
+        visible: true,
+      });
+    });
+
+    it('keeps a WebSocket open across hide and show while still reporting visibility', async () => {
+      const {client, sockets, streams} = await initWith('conv_ws_hide', true);
+      expect(streams()).toHaveLength(0);
+      sockets()[0].triggerOpen();
+      expect(client.getTransport()).toBe('websocket');
+      expect(badgeText()).toBe('Live');
+
+      hide();
+      expect(sockets()[0].closed).toBe(false);
+      expect(client.getStatus()).toBe('connected');
+      expect(badgeText()).toBe('Live');
+      expect(lastVisibilityBody(mockFetch)).toEqual({
+        conversationId: 'conv_ws_hide',
+        visible: false,
+      });
+
+      show();
+      expect(sockets()).toHaveLength(1);
+      expect(lastVisibilityBody(mockFetch)).toEqual({
+        conversationId: 'conv_ws_hide',
+        visible: true,
+      });
+    });
+
+    it('disconnects on pagehide and reconnects on a persisted pageshow', async () => {
+      const sse = await initWith('conv_page_sse');
+      sse.streams()[0].triggerOpen();
+      const ws = await initWith('conv_page_ws', true);
+      ws.sockets()[0].triggerOpen();
+
+      window.dispatchEvent(new Event('pagehide'));
+      expect(sse.streams()[0].closed).toBe(true);
+      expect(ws.sockets()[0].closed).toBe(true);
+      expect(sse.client.getStatus()).toBe('disconnected');
+      expect(ws.client.getStatus()).toBe('disconnected');
+
+      window.dispatchEvent(new Event('pageshow'));
+      expect(sse.streams()).toHaveLength(1);
+      expect(ws.sockets()).toHaveLength(1);
+
+      const restored = new Event('pageshow');
+      Object.defineProperty(restored, 'persisted', {value: true});
+      window.dispatchEvent(restored);
+      expect(sse.streams()).toHaveLength(2);
+      expect(ws.sockets()).toHaveLength(2);
+      sse.client.disconnect();
+      ws.client.disconnect();
+    });
+
+    it('disconnects at once when the stream falls back to SSE while hidden', async () => {
+      const {client, sockets, streams} = await initWith('conv_fallback_hidden', true);
+
+      // Pane becomes hidden before the initial WebSocket handshake rejects.
+      Object.defineProperty(window, 'innerWidth', {value: 0, configurable: true});
+      Object.defineProperty(window, 'innerHeight', {value: 0, configurable: true});
+
+      // Pre-open WebSocket failure switches to SSE; onTransportChange sees hidden and disconnects.
+      sockets()[0].triggerClose();
+
+      expect(client.getTransport()).toBe('sse');
+      expect(client.getStatus()).toBe('disconnected');
+      expect(streams()).toHaveLength(0);
+
+      // Deferred resize settles visibility to hidden, then showing opens the SSE fallback.
+      hide();
+      show();
+      expect(streams()).toHaveLength(1);
+      expect(sockets()).toHaveLength(1);
+    });
+
+    it('discovers wsBaseUrl from /api/config under plugin:// origins and falls back when absent', async () => {
+      const originalLocation = window.location;
+      Object.defineProperty(window, 'location', {
+        value: {
+          href: 'plugin://a2ui-pane/?conversationId=conv_plugin_ws&token=tok_p',
+          search: '?conversationId=conv_plugin_ws&token=tok_p',
+        },
+        configurable: true,
+      });
+      try {
+        const configFetch = vi.fn().mockImplementation(async (url: string) => {
+          if (url === './api/config') {
+            return {
+              ok: true,
+              json: async () => ({wsBaseUrl: 'ws://localhost:54288/api/ws'}),
+            };
+          }
+          return {ok: true, json: async () => ({ok: true})};
+        });
+
+        const withWs = await initPaneApp({
+          container,
+          search: '?conversationId=conv_plugin_ws&token=tok_p',
+          fetchFn: configFetch as any,
+          webSocketFactory: url => new FakeWebSocket(url) as any,
+          eventSourceFactory: url => new FakeEventSource(url) as any,
+        });
+        expect(configFetch).toHaveBeenCalledWith('./api/config');
+        const wsList = connectionsFor(FakeWebSocket.instances, 'conv_plugin_ws');
+        expect(wsList).toHaveLength(1);
+        expect(wsList[0].url).toBe(
+          'ws://localhost:54288/api/ws?conversationId=conv_plugin_ws&token=tok_p',
+        );
+        expect(connectionsFor(FakeEventSource.instances, 'conv_plugin_ws')).toHaveLength(0);
+        withWs?.client?.disconnect();
+
+        // When /api/config omits wsBaseUrl (or returns a non-ws scheme), skip port-80 WS and use SSE.
+        const noWsFetch = vi.fn().mockImplementation(async (url: string) => {
+          if (url === './api/config') {
+            return {ok: true, json: async () => ({wsBaseUrl: 'javascript:alert(1)'})};
+          }
+          return {ok: true, json: async () => ({ok: true})};
+        });
+        const sseFallback = await initPaneApp({
+          container,
+          search: '?conversationId=conv_plugin_sse&token=tok_p',
+          fetchFn: noWsFetch as any,
+          webSocketFactory: url => new FakeWebSocket(url) as any,
+          eventSourceFactory: url => new FakeEventSource(url) as any,
+        });
+        expect(connectionsFor(FakeWebSocket.instances, 'conv_plugin_sse')).toHaveLength(0);
+        expect(connectionsFor(FakeEventSource.instances, 'conv_plugin_sse')).toHaveLength(1);
+        sseFallback?.client?.disconnect();
+      } finally {
+        Object.defineProperty(window, 'location', {
+          value: originalLocation,
+          configurable: true,
+        });
+      }
+    });
+
+    it('treats a hidden-on-mount iframe with zero client rects as hidden even when innerWidth is positive', async () => {
+      const origGetClientRects = document.documentElement.getClientRects;
+      document.documentElement.getClientRects = (() => [] as unknown as DOMRectList) as any;
+      try {
+        setViewport(420, 600);
+        const {client, streams} = await initWith('conv_zero_rects');
+        expect(streams()).toHaveLength(0);
+        expect(client.getStatus()).toBe('disconnected');
+        expect(lastVisibilityBody(mockFetch)).toEqual({
+          conversationId: 'conv_zero_rects',
+          visible: false,
+        });
+
+        document.documentElement.getClientRects = origGetClientRects;
+        window.dispatchEvent(new Event('resize'));
+        expect(streams()).toHaveLength(1);
+        expect(lastVisibilityBody(mockFetch)).toEqual({
+          conversationId: 'conv_zero_rects',
+          visible: true,
+        });
+        client.disconnect();
+      } finally {
+        document.documentElement.getClientRects = origGetClientRects;
+      }
+    });
+
+    it('keeps the badge Live across a long hide when the stream resumes quickly', async () => {
+      const {streams} = await initWith('conv_badge_fast');
+      streams()[0].triggerOpen();
+      expect(badgeText()).toBe('Live');
+      vi.useFakeTimers();
+
+      hide();
+      expect(streams()[0].closed).toBe(true);
+      vi.advanceTimersByTime(5_000);
+      expect(badgeText()).toBe('Live');
+
+      show();
+      expect(streams()).toHaveLength(2);
+      vi.advanceTimersByTime(200);
+      expect(badgeText()).toBe('Live');
+      streams()[1].triggerOpen();
+      vi.advanceTimersByTime(500);
+      expect(badgeText()).toBe('Live');
+    });
+
+    it('shows Connecting... when a resume takes longer than the grace period', async () => {
+      const {streams} = await initWith('conv_badge_slow');
+      streams()[0].triggerOpen();
+      vi.useFakeTimers();
+
+      hide();
+      vi.advanceTimersByTime(5_000);
+      show();
+      vi.advanceTimersByTime(249);
+      expect(badgeText()).toBe('Live');
+      vi.advanceTimersByTime(1);
+      expect(badgeText()).toBe('Connecting...');
+
+      streams()[1].triggerOpen();
+      expect(badgeText()).toBe('Live');
+    });
+
+    it('shows Reconnecting... at once when a resumed stream errors', async () => {
+      const {streams} = await initWith('conv_badge_err');
+      streams()[0].triggerOpen();
+      hide();
+      show();
+      expect(badgeText()).toBe('Live');
+      streams()[1].triggerError();
+      expect(badgeText()).toBe('Reconnecting...');
+    });
+  });
+
   describe('surface removal on dismiss and submit', () => {
     interface Harness {
       instance: NonNullable<Awaited<ReturnType<typeof initPaneApp>>>;
@@ -594,7 +954,10 @@ describe('initPaneApp', () => {
           seq: 1,
           ts: new Date().toISOString(),
           callId: 'c1',
-          message: {version: 'v0.9', createSurface: {surfaceId, catalogId: 'basic'}},
+          message: {
+            version: 'v0.9',
+            createSurface: {surfaceId, catalogId: 'basic'},
+          },
         },
         {
           seq: 2,
@@ -605,7 +968,11 @@ describe('initPaneApp', () => {
             updateComponents: {
               surfaceId,
               components: [
-                {id: 'root', component: 'Row', children: ['submit_btn', 'helper_btn']},
+                {
+                  id: 'root',
+                  component: 'Row',
+                  children: ['submit_btn', 'helper_btn'],
+                },
                 {id: 'submit_txt', component: 'Text', text: 'Submit'},
                 {id: 'helper_txt', component: 'Text', text: 'Filter'},
                 {
@@ -613,14 +980,18 @@ describe('initPaneApp', () => {
                   component: 'Button',
                   variant: 'primary',
                   child: 'submit_txt',
-                  action: {event: {name: 'submit', context: {label: 'Submit'}}},
+                  action: {
+                    event: {name: 'submit', context: {label: 'Submit'}},
+                  },
                 },
                 {
                   id: 'helper_btn',
                   component: 'Button',
                   variant: 'borderless',
                   child: 'helper_txt',
-                  action: {event: {name: 'filter', context: {_oneShot: false}}},
+                  action: {
+                    event: {name: 'filter', context: {_oneShot: false}},
+                  },
                 },
               ],
             },
@@ -630,7 +1001,11 @@ describe('initPaneApp', () => {
     }
 
     async function setup(
-      opts: {sendFails?: boolean; deleteStatus?: number; surfaceId?: string} = {},
+      opts: {
+        sendFails?: boolean;
+        deleteStatus?: number;
+        surfaceId?: string;
+      } = {},
     ): Promise<Harness> {
       const log: string[] = [];
       const deleteBodies: Array<Record<string, unknown>> = [];
@@ -641,7 +1016,11 @@ describe('initPaneApp', () => {
           deleteBodies.push(JSON.parse(String(init?.body)));
           deleteHeaders.push(init?.headers as Record<string, string>);
           const status = opts.deleteStatus ?? 200;
-          return {ok: status === 200, status, json: async () => ({deleted: true})};
+          return {
+            ok: status === 200,
+            status,
+            json: async () => ({deleted: true}),
+          };
         }
         return {ok: true, status: 200, json: async () => ({})};
       });
@@ -659,7 +1038,13 @@ describe('initPaneApp', () => {
       instance!.applier.apply(buttonSurfaceLines(opts.surfaceId ?? 'surf') as any);
       const paneView = container.querySelector('#pane-view') as A2uiPaneView;
       await paneView.updateComplete;
-      return {instance: instance!, paneView, log, deleteBodies, deleteHeaders};
+      return {
+        instance: instance!,
+        paneView,
+        log,
+        deleteBodies,
+        deleteHeaders,
+      };
     }
 
     afterEach(() => {
@@ -678,7 +1063,11 @@ describe('initPaneApp', () => {
 
       expect(log).toEqual(['delete', 'send:dismiss']);
       expect(deleteBodies).toEqual([
-        {conversationId: 'conv_remove', surfaceId: 'surf', reason: 'dismissed'},
+        {
+          conversationId: 'conv_remove',
+          surfaceId: 'surf',
+          reason: 'dismissed',
+        },
       ]);
       expect(deleteHeaders[0]['X-Sidecar-Token']).toBe('tok_remove');
     });
@@ -706,13 +1095,17 @@ describe('initPaneApp', () => {
 
       expect(log).toEqual(['send', 'delete']);
       expect(deleteBodies).toEqual([
-        {conversationId: 'conv_remove', surfaceId: 'surf', reason: 'submitted'},
+        {
+          conversationId: 'conv_remove',
+          surfaceId: 'surf',
+          reason: 'submitted',
+        },
       ]);
       expect(paneView.isSurfaceDismissed('surf')).toBe(true);
       expect(toggleSpy).toHaveBeenCalledWith({open: false});
     });
 
-    it('keeps the surface and skips the delete when the send fails', async () => {
+    it('keeps the surface, clears submitted button state, and skips the delete when the send fails', async () => {
       const error = vi.spyOn(console, 'error').mockImplementation(() => {});
       const {instance, paneView, log} = await setup({sendFails: true});
       const surface = instance.applier.getProcessor().getSurface('surf');
@@ -723,6 +1116,7 @@ describe('initPaneApp', () => {
       expect(log).toEqual(['send']);
       expect(paneView.isSurfaceDismissed('surf')).toBe(false);
       expect(instance.applier.getProcessor().getSurface('surf')).toBeDefined();
+      expect(surface?.dataModel.get('/_submitted/submit_btn')).toBeUndefined();
       error.mockRestore();
     });
 
@@ -778,7 +1172,10 @@ describe('initPaneApp', () => {
           seq: 4,
           ts: new Date().toISOString(),
           callId: 'c2',
-          message: {version: 'v0.9', createSurface: {surfaceId: 'surf', catalogId: 'basic'}},
+          message: {
+            version: 'v0.9',
+            createSurface: {surfaceId: 'surf', catalogId: 'basic'},
+          },
         },
       ]);
       await paneView.updateComplete;

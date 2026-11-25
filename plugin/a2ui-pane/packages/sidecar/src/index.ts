@@ -26,6 +26,7 @@ export {
 } from './store-reader.js';
 export {ChangeNotifier, conversationIdForPath, type ChangeCallback} from './change-notifier.js';
 export {handleStream, type SseStreamOptions} from './sse-route.js';
+export {handleWsStream, type WsStreamOptions} from './ws-route.js';
 export {
   handleSurfaceDelete,
   type SurfaceDeleteOptions,

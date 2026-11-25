@@ -15,10 +15,12 @@
  */
 
 import {describe, it, expect, beforeEach, afterEach, vi} from 'vitest';
-import {createSidecarServer, SidecarDeps} from '../src/server.js';
+import {createSidecarServer, resolveConfigWsBaseUrl, SidecarDeps} from '../src/server.js';
 import {StoreReader} from '../src/store-reader.js';
 import {ChangeNotifier} from '../src/change-notifier.js';
+import {parseWsEvent, type StreamEvent} from '@a2ui-pane/protocol';
 import {SurfaceStore} from '@a2ui-pane/protocol/store-fs';
+import {WebSocket} from 'ws';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -87,7 +89,11 @@ describe('SidecarServer', () => {
       headers?: Record<string, string>;
       body?: string;
     } = {},
-  ): Promise<{status: number; headers: http.IncomingHttpHeaders; body: string}> => {
+  ): Promise<{
+    status: number;
+    headers: http.IncomingHttpHeaders;
+    body: string;
+  }> => {
     const method = options.method || 'GET';
     const headers: Record<string, string> = {...(options.headers || {})};
     if (method === 'POST' && !headers['Content-Type'] && !headers['content-type']) {
@@ -146,12 +152,58 @@ describe('SidecarServer', () => {
     expect(typeof data.uptime).toBe('number');
   });
 
-  it('serves GET /api/config with configured conversationId', async () => {
+  it('serves GET /api/config with configured conversationId and loopback wsBaseUrl', async () => {
     const res = await request('/api/config');
     expect(res.status).toBe(200);
     const data = JSON.parse(res.body);
     expect(data.conversationId).toBe('default-conv-id');
     expect(data.projectId).toBe('test-project');
+    expect(data.wsBaseUrl).toBe(`ws://127.0.0.1:${port}/api/ws`);
+  });
+
+  it('derives wsBaseUrl from getBaseUrl in /api/config without leaking query tokens', async () => {
+    let gatewayUrl: string | undefined =
+      'https://proxy.example.com/sidecar/a2ui/?token=secret-tok#frag';
+    const customServer = createSidecarServer(env, {
+      storeReader,
+      notifier,
+      staticDir,
+      getBaseUrl: () => gatewayUrl,
+    });
+    await new Promise<void>(resolve => customServer.listen(0, '127.0.0.1', resolve));
+    const customPort = (customServer.address() as any).port;
+    try {
+      const fetchConfig = async () =>
+        new Promise<Record<string, unknown>>((resolve, reject) => {
+          http
+            .get(`http://127.0.0.1:${customPort}/api/config`, res => {
+              let body = '';
+              res.on('data', chunk => {
+                body += chunk.toString('utf-8');
+              });
+              res.on('end', () => resolve(JSON.parse(body)));
+            })
+            .on('error', reject);
+        });
+
+      expect((await fetchConfig()).wsBaseUrl).toBe('wss://proxy.example.com/sidecar/a2ui/api/ws');
+
+      gatewayUrl = 'http://localhost:54288?token=secret-tok';
+      expect((await fetchConfig()).wsBaseUrl).toBe('ws://localhost:54288/api/ws');
+
+      gatewayUrl = undefined;
+      expect((await fetchConfig()).wsBaseUrl).toBe(`ws://127.0.0.1:${customPort}/api/ws`);
+    } finally {
+      await new Promise<void>(resolve => customServer.close(() => resolve()));
+    }
+  });
+
+  it('resolveConfigWsBaseUrl handles malformed URLs, non-http schemes, and zero port', () => {
+    expect(resolveConfigWsBaseUrl('not-a-url', 54286)).toBe('ws://127.0.0.1:54286/api/ws');
+    expect(resolveConfigWsBaseUrl('plugin://a2ui-pane/', 54286)).toBe(
+      'ws://127.0.0.1:54286/api/ws',
+    );
+    expect(resolveConfigWsBaseUrl(undefined, 0)).toBeUndefined();
   });
 
   it('reports a buildId from index.html mtime that changes after a repackage', async () => {
@@ -195,7 +247,10 @@ describe('SidecarServer', () => {
     it('connects to SSE stream and sends the snapshot of existing surfaces', async () => {
       const convId = 'default-conv-id';
       new SurfaceStore(tmpDir).commit(convId, 'c1', [
-        {version: 'v0.9', createSurface: {surfaceId: 's1', catalogId: 'basic'}},
+        {
+          version: 'v0.9',
+          createSurface: {surfaceId: 's1', catalogId: 'basic'},
+        },
       ]);
 
       return new Promise<void>((resolve, reject) => {
@@ -244,7 +299,11 @@ describe('SidecarServer', () => {
 
     it('returns 401 without a valid token and leaves the file', async () => {
       seed('conv-del', 'main');
-      const body = {conversationId: 'conv-del', surfaceId: 'main', reason: 'dismissed'};
+      const body = {
+        conversationId: 'conv-del',
+        surfaceId: 'main',
+        reason: 'dismissed',
+      };
       expect((await postDelete(body, null)).status).toBe(401);
       expect((await postDelete(body, 'wrong')).status).toBe(401);
       expect(fs.existsSync(surfaceFile('conv-del', 'main'))).toBe(true);
@@ -254,7 +313,11 @@ describe('SidecarServer', () => {
       const cases: unknown[] = [
         {conversationId: '../x', surfaceId: 'main', reason: 'dismissed'},
         {conversationId: '_new', surfaceId: 'main', reason: 'dismissed'},
-        {conversationId: 'conv-del', surfaceId: '../main', reason: 'dismissed'},
+        {
+          conversationId: 'conv-del',
+          surfaceId: '../main',
+          reason: 'dismissed',
+        },
         {conversationId: 'conv-del', surfaceId: 'main', reason: 'other'},
         {conversationId: 'conv-del', surfaceId: 'main'},
         '{not json',
@@ -274,7 +337,9 @@ describe('SidecarServer', () => {
         pad: 'x'.repeat(5000),
       });
       expect(res.status).toBe(413);
-      expect(JSON.parse(res.body)).toEqual({error: 'Payload Too Large: Maximum size 4KB'});
+      expect(JSON.parse(res.body)).toEqual({
+        error: 'Payload Too Large: Maximum size 4KB',
+      });
     });
 
     it('reports deleted false for an unknown conversation without creating its directory', async () => {
@@ -293,7 +358,10 @@ describe('SidecarServer', () => {
         seq: 1,
         callId: 'c1',
         ts: 't',
-        message: {version: '1.0', createSurface: {surfaceId: 'main', catalogId: 'basic'}},
+        message: {
+          version: '1.0',
+          createSurface: {surfaceId: 'main', catalogId: 'basic'},
+        },
       };
       fs.writeFileSync(path.join(convDir, 'conv-legacy.jsonl'), JSON.stringify(line) + '\n');
       const res = await postDelete({
@@ -341,7 +409,10 @@ describe('SidecarServer', () => {
         const res = await new Promise<{status: number; body: string}>((resolve, reject) => {
           const req = http.request(
             `http://127.0.0.1:${lockedPort}/api/surfaces/delete?token=test-secret-token`,
-            {method: 'POST', headers: {'Content-Type': 'application/json'}},
+            {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+            },
             r => {
               let data = '';
               r.on('data', c => (data += c));
@@ -388,7 +459,13 @@ describe('SidecarServer', () => {
             },
           );
           req.on('error', reject);
-          req.end(JSON.stringify({conversationId: 'c', surfaceId: 's', reason: 'dismissed'}));
+          req.end(
+            JSON.stringify({
+              conversationId: 'c',
+              surfaceId: 's',
+              reason: 'dismissed',
+            }),
+          );
         });
         expect(status).toBe(500);
       } finally {
@@ -402,7 +479,10 @@ describe('SidecarServer', () => {
     it('returns 401 when token is missing or invalid', async () => {
       const res = await request('/_sidecar/send-message', {
         method: 'POST',
-        body: JSON.stringify({conversationId: 'default-conv-id', message: 'hello'}),
+        body: JSON.stringify({
+          conversationId: 'default-conv-id',
+          message: 'hello',
+        }),
       });
       expect(res.status).toBe(401);
     });
@@ -411,7 +491,10 @@ describe('SidecarServer', () => {
       const res = await request('/_sidecar/send-message?token=test-secret-token', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: JSON.stringify({conversationId: 'default-conv-id', message: 'hello'}),
+        body: JSON.stringify({
+          conversationId: 'default-conv-id',
+          message: 'hello',
+        }),
       });
       expect(res.status).toBe(415);
       expect(res.body).toContain('Unsupported Media Type');
@@ -444,7 +527,10 @@ describe('SidecarServer', () => {
     it('returns 400 when message is empty or missing', async () => {
       const res = await request('/_sidecar/send-message?token=test-secret-token', {
         method: 'POST',
-        body: JSON.stringify({conversationId: 'default-conv-id', message: '   '}),
+        body: JSON.stringify({
+          conversationId: 'default-conv-id',
+          message: '   ',
+        }),
       });
       expect(res.status).toBe(400);
       expect(res.body).toContain("Missing required 'message'");
@@ -593,7 +679,10 @@ describe('SidecarServer', () => {
           `http://127.0.0.1:${customPort}/_sidecar/send-message?token=test-secret-token`,
           {
             method: 'POST',
-            headers: {'Content-Type': 'text/plain;charset=UTF-8', Origin: 'null'},
+            headers: {
+              'Content-Type': 'text/plain;charset=UTF-8',
+              Origin: 'null',
+            },
           },
           r => {
             let data = '';
@@ -620,7 +709,11 @@ describe('SidecarServer', () => {
     });
 
     it('invokes agentapi with fallback command when agentapiExe is not configured', async () => {
-      const envNoExe = {...env, agentapiExe: undefined, conversationId: undefined};
+      const envNoExe = {
+        ...env,
+        agentapiExe: undefined,
+        conversationId: undefined,
+      };
       const mockExec = vi.fn((file, args, _opts, cb) => {
         expect(file).toBe('agentapi');
         expect(args).toEqual(['send-message', 'c_no_exe', 'msg']);
@@ -684,7 +777,12 @@ describe('SidecarServer', () => {
             r.on('end', () => resolve({status: r.statusCode, body: d}));
           },
         );
-        req.write(JSON.stringify({conversationId: 'default-conv-id', message: 'hello'}));
+        req.write(
+          JSON.stringify({
+            conversationId: 'default-conv-id',
+            message: 'hello',
+          }),
+        );
         req.end();
       });
       expect(res.status).toBe(200);
@@ -695,7 +793,10 @@ describe('SidecarServer', () => {
     it('returns 400 when message is not a string or body is null', async () => {
       const res1 = await request('/_sidecar/send-message?token=test-secret-token', {
         method: 'POST',
-        body: JSON.stringify({conversationId: 'default-conv-id', message: 123}),
+        body: JSON.stringify({
+          conversationId: 'default-conv-id',
+          message: 123,
+        }),
       });
       expect(res1.status).toBe(400);
 
@@ -743,7 +844,10 @@ describe('SidecarServer', () => {
         const resp = await new Promise<{status: number; body: string}>(resolve => {
           const req = http.request(
             `http://127.0.0.1:${p}/_sidecar/send-message?token=test-secret-token`,
-            {method: 'POST', headers: {'Content-Type': 'application/json'}},
+            {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+            },
             r => {
               let d = '';
               r.on('data', c => (d += c));
@@ -913,7 +1017,10 @@ describe('SidecarServer', () => {
         JSON.stringify({conversationId: 'conv-vis', visible: true}),
       );
       expect(okTrue.status).toBe(200);
-      expect(visibilityEvents).toContainEqual({convId: 'conv-vis', visible: true});
+      expect(visibilityEvents).toContainEqual({
+        convId: 'conv-vis',
+        visible: true,
+      });
 
       // Open two overlapping SSE streams for conv-vis; closing the first must not mark false, closing the second must mark false
       const openSse = () =>
@@ -933,9 +1040,235 @@ describe('SidecarServer', () => {
 
       sse2.destroy();
       await new Promise(r => setTimeout(r, 30));
-      expect(visibilityEvents).toContainEqual({convId: 'conv-vis', visible: false});
+      expect(visibilityEvents).toContainEqual({
+        convId: 'conv-vis',
+        visible: false,
+      });
 
       await new Promise<void>(resolve => custom.close(() => resolve()));
+    });
+  });
+
+  describe('GET /api/ws', () => {
+    const expectUpgradeRejection = (
+      targetPort: number,
+      urlPath: string,
+      headers?: Record<string, string>,
+    ): Promise<number> =>
+      new Promise((resolve, reject) => {
+        const ws = new WebSocket(`ws://127.0.0.1:${targetPort}${urlPath}`, {
+          headers,
+        });
+        ws.once('open', () => {
+          ws.close();
+          reject(new Error(`Expected upgrade rejection for ${urlPath}, but connection opened`));
+        });
+        ws.once('unexpected-response', (_req, res) => {
+          res.resume();
+          resolve(res.statusCode ?? 0);
+        });
+        ws.once('error', err => {
+          reject(err);
+        });
+      });
+
+    const connectWs = (
+      targetPort: number,
+      urlPath: string,
+      headers?: Record<string, string>,
+    ): Promise<{ws: WebSocket; firstEvent: StreamEvent}> =>
+      new Promise((resolve, reject) => {
+        const ws = new WebSocket(`ws://127.0.0.1:${targetPort}${urlPath}`, {
+          headers,
+        });
+        ws.once('message', data => {
+          resolve({ws, firstEvent: parseWsEvent(data.toString('utf-8'))});
+        });
+        ws.once('unexpected-response', (_req, res) => {
+          res.resume();
+          reject(new Error(`Unexpected HTTP status ${res.statusCode} for ${urlPath}`));
+        });
+        ws.once('error', reject);
+      });
+
+    it('rejects unknown upgrade paths with 404', async () => {
+      const status = await expectUpgradeRejection(port, '/api/not-ws?token=test-secret-token');
+      expect(status).toBe(404);
+    });
+
+    it('rejects missing or invalid token with 401', async () => {
+      expect(await expectUpgradeRejection(port, '/api/ws')).toBe(401);
+      expect(await expectUpgradeRejection(port, '/api/ws?token=wrong-token')).toBe(401);
+    });
+
+    it('rejects invalid or _new conversationId with 400', async () => {
+      expect(
+        await expectUpgradeRejection(
+          port,
+          '/api/ws?token=test-secret-token&conversationId=../bad/id',
+        ),
+      ).toBe(400);
+      expect(
+        await expectUpgradeRejection(port, '/api/ws?token=test-secret-token&conversationId=_new'),
+      ).toBe(400);
+    });
+
+    it('falls back to env.conversationId when query parameter is omitted', async () => {
+      new SurfaceStore(tmpDir).commit('default-conv-id', 'c1', [
+        {
+          version: '1.0',
+          createSurface: {surfaceId: 'fallback_s1', catalogId: 'basic'},
+        },
+      ]);
+
+      const {ws, firstEvent} = await connectWs(port, '/api/ws', {
+        'x-sidecar-token': 'test-secret-token',
+      });
+      try {
+        expect(firstEvent.type).toBe('snapshot');
+        if (firstEvent.type === 'snapshot') {
+          expect(firstEvent.lines).toHaveLength(1);
+          expect((firstEvent.lines[0].message as any).createSurface.surfaceId).toBe('fallback_s1');
+        }
+      } finally {
+        ws.close();
+      }
+    });
+
+    it('streams initial snapshot and live line updates over WebSocket', async () => {
+      const convId = 'conv-ws-live';
+      const store = new SurfaceStore(tmpDir);
+      store.commit(convId, 'c1', [
+        {
+          version: '1.0',
+          createSurface: {surfaceId: 's1', catalogId: 'basic'},
+        },
+      ]);
+
+      const {ws, firstEvent} = await connectWs(
+        port,
+        `/api/ws?token=test-secret-token&conversationId=${convId}`,
+      );
+      try {
+        expect(firstEvent.type).toBe('snapshot');
+        if (firstEvent.type === 'snapshot') {
+          expect(firstEvent.lines).toHaveLength(1);
+          expect((firstEvent.lines[0].message as any).createSurface.surfaceId).toBe('s1');
+        }
+
+        const nextEventPromise = new Promise<StreamEvent>(resolve => {
+          ws.once('message', data => resolve(parseWsEvent(data.toString('utf-8'))));
+        });
+
+        store.commit(convId, 'c2', [
+          {
+            version: '1.0',
+            createSurface: {surfaceId: 's2', catalogId: 'basic'},
+          },
+        ]);
+
+        const nextEvent = await nextEventPromise;
+        expect(nextEvent.type).toBe('line');
+        if (nextEvent.type === 'line') {
+          expect((nextEvent.line.message as any).createSurface.surfaceId).toBe('s2');
+        }
+      } finally {
+        ws.close();
+      }
+    });
+
+    it('shares activeStreams visibility tracking across SSE and WebSocket streams', async () => {
+      const visibilityEvents: Array<{convId: string; visible: boolean}> = [];
+      const custom = createSidecarServer(env, {
+        storeReader,
+        notifier,
+        staticDir,
+        onVisibilityChange: (convId, visible) => {
+          visibilityEvents.push({convId, visible});
+        },
+      });
+
+      const customPort = await new Promise<number>(resolve => {
+        custom.listen(0, '127.0.0.1', () => resolve((custom.address() as any).port));
+      });
+
+      try {
+        const sseReq = await new Promise<http.ClientRequest>(resolve => {
+          const req = http.get(
+            `http://127.0.0.1:${customPort}/api/stream?conversationId=conv-mixed&token=test-secret-token`,
+            () => resolve(req),
+          );
+        });
+        const {ws} = await connectWs(
+          customPort,
+          '/api/ws?conversationId=conv-mixed&token=test-secret-token',
+        );
+
+        // Closing the SSE stream while WS is still open must not emit visible: false.
+        sseReq.destroy();
+        await new Promise(r => setTimeout(r, 40));
+        expect(visibilityEvents.filter(e => !e.visible)).toHaveLength(0);
+
+        // Closing the final WS stream must emit visible: false exactly once.
+        ws.terminate();
+        await new Promise(r => setTimeout(r, 40));
+        expect(visibilityEvents.filter(e => e.convId === 'conv-mixed' && !e.visible)).toHaveLength(
+          1,
+        );
+
+        // Reverse order: closing WS first while SSE remains open must not emit visible: false.
+        const sseReq2 = await new Promise<http.ClientRequest>(resolve => {
+          const req = http.get(
+            `http://127.0.0.1:${customPort}/api/stream?conversationId=conv-mixed-2&token=test-secret-token`,
+            () => resolve(req),
+          );
+        });
+        const {ws: ws2} = await connectWs(
+          customPort,
+          '/api/ws?conversationId=conv-mixed-2&token=test-secret-token',
+        );
+
+        ws2.terminate();
+        await new Promise(r => setTimeout(r, 40));
+        expect(
+          visibilityEvents.filter(e => e.convId === 'conv-mixed-2' && !e.visible),
+        ).toHaveLength(0);
+
+        sseReq2.destroy();
+        await new Promise(r => setTimeout(r, 40));
+        expect(
+          visibilityEvents.filter(e => e.convId === 'conv-mixed-2' && !e.visible),
+        ).toHaveLength(1);
+      } finally {
+        await new Promise<void>(resolve => custom.close(() => resolve()));
+      }
+    });
+
+    it('resolves server.close() promptly while a WebSocket client is connected', async () => {
+      const custom = createSidecarServer(env, {
+        storeReader,
+        notifier,
+        staticDir,
+      });
+      const customPort = await new Promise<number>(resolve => {
+        custom.listen(0, '127.0.0.1', () => resolve((custom.address() as any).port));
+      });
+
+      const {ws} = await connectWs(
+        customPort,
+        '/api/ws?token=test-secret-token&conversationId=conv-close-test',
+      );
+      const clientClosed = new Promise<void>(resolve => {
+        ws.once('close', () => resolve());
+      });
+
+      const closeResult = await Promise.race([
+        new Promise<'closed'>(resolve => custom.close(() => resolve('closed'))),
+        new Promise<'timeout'>(resolve => setTimeout(() => resolve('timeout'), 1000)),
+      ]);
+
+      expect(closeResult).toBe('closed');
+      await clientClosed;
     });
   });
 });
