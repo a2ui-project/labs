@@ -154,6 +154,20 @@
     - "widget A = T(a: [...for i in data.l: [i]]);"
     - "widget A = T(a: [...for i in [data.l]: i]);"
   expect: {limit: maxDepth}
+- name: depth_of_nested_loops
+  action: check_limits
+  features: [F-CRAFT-LIMIT-02]
+  description:
+    "With maxDepth 7, a loop that is the output of another is one level deeper than it: in
+    `[...for i in data.l: ...if i: i]` the inner loop is 4 deep and its `true` key's list element 7;
+    one more nested `...if` is too deep."
+  limits: {maxDepth: 7}
+  input: register
+  within:
+    - "widget A = T(a: [...for i in data.l: ...if i: i]);"
+  beyond:
+    - "widget A = T(a: [...for i in data.l: ...if i: ...if i: i]);"
+  expect: {limit: maxDepth}
 - name: nodes_of_a_declaration
   action: check_limits
   features: [F-CRAFT-LIMIT-02]
@@ -212,16 +226,20 @@
   features: [F-CRAFT-LIMIT-03]
   description:
     "With maxSourceBytes 20, a source of 20 bytes parses; a longer one is rejected at the line of
-    its first character beyond the limit. Characters count in UTF-8 bytes."
+    its first character beyond the limit. Characters count in UTF-8 bytes; a CR LF line break is
+    two bytes, and its LF is on the line of its CR."
   limits: {maxSourceBytes: 20}
   input: parse_library
   within:
     - "import a;\nimport b;"
     - "widget A=T(b:\"\u00E9\");"
+    - "import a;\r\nimport b;"
   beyond:
     - {source: "import a;\nimport bcd;", line: 2}
     - {source: "widget A=T(b:\"\u00E9\u00E9\");", line: 1}
     - {source: "import core;\n\n\nwidget A = T();", line: 4}
+    - {source: "import core;\r\n\r\n\r\nwidget A = T();", line: 4}
+    - {source: "import abcdefghijk;\r\n", line: 1}
   expect: {limit: maxSourceBytes}
 - name: source_declarations
   action: check_limits
@@ -271,6 +289,19 @@
     - "widget A = T(a: [\n  ...for i in data.l: [i]\n]);"
   beyond:
     - {source: "widget A = T(a: [\n  ...if true: 1\n]);", line: 2}
+  expect: {limit: maxDepth}
+- name: source_depth_of_nested_elements
+  action: check_limits
+  features: [F-CRAFT-LIMIT-03]
+  description:
+    "A `...for` or `...if` that is the element of another starts its loop one level deeper than
+    that loop: with maxDepth 7 one nested `...if` fits, and a second one is too deep at its `...`."
+  limits: {maxDepth: 7}
+  input: parse_library
+  within:
+    - "widget A = T(a: [\n  ...for i in data.l: ...if i: i\n]);"
+  beyond:
+    - {source: "widget A = T(a: [\n  ...for i in data.l:\n    ...if i: ...if i: i\n]);", line: 3}
   expect: {limit: maxDepth}
 - name: source_depth_of_call_arguments
   action: check_limits
@@ -939,6 +970,40 @@
       import core;
       widget root = Column(children: [...for i in data.l: Text()]);
   data: "{l: [1]}"
+  expect:
+    tree:
+      $: widget
+      name: core::Column
+      args:
+        children:
+          - {$: widget, name: core::Text, args: {}}
+- name: depth_of_nested_loops_in_an_expansion
+  action: expand_template
+  features: [F-CRAFT-LIMIT-07]
+  description:
+    "A loop that is the output of another is evaluated one level deeper than it, and its input and
+    outputs one more: with maxDepth 5 the inner loop's outputs fail Column; with maxDepth 6 it
+    expands."
+  limits: {maxDepth: 5}
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for i in data.l: ...for j in i: Text()]);
+  data: "{l: [[1]]}"
+  expect:
+    tree: {$: error, kind: depthExceeded}
+    errors:
+      - {at: [], kind: depthExceeded}
+- name: depth_of_nested_loops_in_an_expansion_control
+  action: expand_template
+  features: [F-CRAFT-LIMIT-07]
+  description: "Control case for depth_of_nested_loops_in_an_expansion, with maxDepth 6."
+  limits: {maxDepth: 6}
+  libraries:
+    main: |
+      import core;
+      widget root = Column(children: [...for i in data.l: ...for j in i: Text()]);
+  data: "{l: [[1]]}"
   expect:
     tree:
       $: widget

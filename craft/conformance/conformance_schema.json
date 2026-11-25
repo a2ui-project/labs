@@ -1308,6 +1308,16 @@
               "kind": {
                 "type": "string",
                 "pattern": "^[a-z][A-Za-z0-9]*$"
+              },
+              "template": {
+                "type": ["string", "null"],
+                "pattern": "^[^:]+::[^:]+$",
+                "description": "The declaration holding the failing node (lib::Name), or null for none; checked only when given."
+              },
+              "line": {
+                "type": ["integer", "null"],
+                "minimum": 1,
+                "description": "The 1-based line of the error's position, or null for none; checked only when given."
               }
             },
             "required": ["at", "kind"],

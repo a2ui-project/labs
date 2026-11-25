@@ -82,6 +82,19 @@ void main() {
       );
     });
 
+    test('a loop whose output is a loop gives the inner elements', () {
+      final Object value =
+          (_boxOf(<Object?>[
+                    const Loop(<Object?>[
+                      1,
+                      2,
+                    ], Loop(<Object?>['a', 'b'], LoopReference(1, <Object>[]))),
+                  ]).expand().root
+                  as WidgetNode)
+              .arguments['value']!;
+      expect(value, <Object>[1, 1, 2, 2]);
+    });
+
     test('a loop reference without its loop is an invalid value', () {
       expect(
         _errorKind(_boxOf(const LoopReference(0, <Object>[])).expand()),

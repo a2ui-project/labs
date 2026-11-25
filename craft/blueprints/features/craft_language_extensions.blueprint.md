@@ -11,7 +11,7 @@ date_added: 2026-11-20
 
 # **Language Extensions Feature Blueprint**
 
-This document specifies four constructs that Craft adds to the text format: the `absent` value, handler application with `call`, conditional list elements with `...if`, and local values with `let`. Each one is written with new syntax but parses to node kinds that `craft_text_format` already defines, so neither the canonical JSON form nor the binary format changes.
+This document specifies four constructs that Craft adds to the text format: the `absent` value, handler application with `call`, conditional list elements with `...if`, and local values with `let`. It also lets a `...for` or `...if` element be the element of another one, as in `...for x in l: ...if c: e`. Each one is written with new syntax but parses to node kinds that `craft_text_format` already defines, so neither the canonical JSON form nor the binary format changes.
 
 This blueprint specifies only what each construct parses to. How the resulting nodes evaluate (what the call `absent()` yields, what applying a handler does, how loops and switches expand) is specified by the features that evaluate libraries: `craft_functions` (the absent value) and the runtime.
 
@@ -68,6 +68,13 @@ In this blueprint, a **value position** is a place where `craft_text_format` all
 
 - Every construct parses only to node kinds of the `craft_text_format` canonical form, so `craft_binary_format` encodes it without a new tag or version. For every library accepted by this feature, encoding it with `craft_binary_format` and decoding the result MUST give the same canonical form.
 
+### **7. Nested list elements**
+
+- The element of a `...for` or `...if` (what follows its `:`) MAY itself be a `...for` or `...if` element, nested to any depth. The inner element MUST parse to the loop it gives as a list element, and that loop MUST be the output of the enclosing loop: `...for x in L: ...if C: E` parses to `{"$": "loop", "input": L, "output": {"$": "loop", "input": <switch on C>, "output": E}}`.
+- Each nested loop counts as an enclosing loop exactly as it would directly in a list: inside `...for x in L: ...if C: E`, `x` has the loop index 0 in `C` and 1 in `E`; inside `...for x in L: ...for y in x.items: E`, `x` has the index 0 in `x.items` and 1 in `E`, and `y` the index 0 in `E`.
+- After the innermost element, anything other than `,` or `]` MUST be rejected, as after any list element. `...` anywhere else outside a list element or such an element's element (as in `Box(child: ...if C: E)`) MUST be rejected, as in RFW 2.0.0.
+- The `craft_runtime` feature specifies how a loop whose output is a loop expands: for each item, the elements the inner loop gives, so `...for x in L: ...if C: E` keeps the items for which `C` is `true`.
+
 ---
 
 ## **Detailed Description of Changes**
@@ -87,6 +94,16 @@ widget Pick = let label = Text(text: args.label) in Column(children: [
 - `...if args.more: Button(...)` is a loop over `switch args.more { true: [true], default: [] }`, so the button is in the list only when `args.more` is `true`. Because it is a loop, it shifts the indices of outer loop references inside the element, exactly like a written `...for`.
 - `let label = ...` is replaced by its value at both uses, so the library holds two copies of `Text(text: args.label)` and no binding.
 
+Elements nest, which filters a list without a host function:
+
+```craft
+widget Visible = Column(children: [
+  ...for item in data.items: ...if item.visible: Text(text: item.name),
+]);
+```
+
+The inner `...if` is the output of the loop over `data.items`, so the column holds one `Text` for each visible item.
+
 Since the constructs reuse existing nodes, an engine that does not know them still decodes their binary form: it sees calls named `absent` and `call`, loops and switches.
 
 Compared with RFW 2.0.0 and the earlier features, these sources change meaning:
@@ -95,6 +112,7 @@ Compared with RFW 2.0.0 and the earlier features, these sources change meaning:
 - In a value position, `absent(...)` with arguments and `call(...)`, which RFW reads as widget calls, are rejected; `absent()` is the same call as in RFW.
 - `absent.x`, `call.x`, and a binding's name followed by `.`, which `craft_text_format` reads as symbol references, are rejected.
 - A widget declared with the name `absent` or `call` still parses but no longer resolves (requirement 5).
+- `...for` or `...if` as the element of a `...for` or `...if`, which RFW 2.0.0 rejects, parses to a loop whose output is a loop (requirement 7).
 
 ---
 
@@ -117,6 +135,7 @@ The shared cases are in `conformance/craft/craft_language_extensions.yaml`. Each
 - **Local values**: a binding used twice and by a later binding, and a key spelled like a binding; a binding as the root (a call and a switch) and in a root switch; a root binding that is not a widget is rejected; a loop variable and a builder argument shadow a binding; a binding's value is parsed where it is written; an unused binding and the next declaration; a binding as a switch key; a use followed by `.`, `(` or `::` is rejected, in a value and as the root; duplicate bindings are rejected; each reserved word, keyword and `switch` as a binding name is rejected, with a control case for `export`, `let` and `if`; a missing binding and a missing `in` are rejected; a `null` binding is rejected; `let(x: 1)`, `let::Card()` and `let.ui::Card()` as the root keep their meaning, and `let(x: 1)` in a value position is a call; `let` inside a value is rejected.
 - **Construct names**: widgets named `absent` and `call`, declared by the library, an import and core, never resolve, bare or qualified, also in imported-only resolution, in the visible names and as catalog components (of a template catalog exporting `call` and of a primitive catalog defining `absent`); `Box` is the control. The function-key cases are in `craft_libraries_and_names.yaml`.
 - **Binary round trip**: one library with all four constructs, in addition to the check on every accepted case.
+- **Nested list elements**: `...if` in `...for`, `...for` in `...for`, `...for` in `...if` and `...if` in `...if`, with the loop indices of each variable in conditions, inputs and elements; three levels of nesting; something after the innermost element and `...if` as an argument value are rejected.
 
 Resolution cases use the format of `craft_libraries_and_names.yaml`. In addition, the engine's unit tests check the same constructs in terms of its library model, and the message for a binding used with `.`, `(` or `::`.
 
@@ -128,4 +147,5 @@ Resolution cases use the format of `craft_libraries_and_names.yaml`. In addition
 2. Parse `...if` in lists as a loop over a switch, with an unnamed loop variable.
 3. Parse `let` bindings at the start of declaration bodies and substitute their values at each use.
 4. Make widget name resolution fail for `absent` and `call`, and list standard functions with these names only bare.
-5. Run the conformance cases, including the binary round trip.
+5. Read a `...for` or `...if` after the `:` of another as that loop's output.
+6. Run the conformance cases, including the binary round trip.

@@ -34,8 +34,8 @@ class SourceLocation implements Comparable<SourceLocation> {
   /// Create a [SourceLocation] object.
   ///
   /// The [source] and [offset] properties are initialized from the
-  /// given arguments.
-  const SourceLocation(this.source, this.offset);
+  /// given arguments, and so are [line] and [column] when known.
+  const SourceLocation(this.source, this.offset, {this.line, this.column});
 
   /// An object that identifies the file or other origin of the source.
   ///
@@ -45,6 +45,15 @@ class SourceLocation implements Comparable<SourceLocation> {
 
   /// The offset of the given source location, in UTF-16 code units.
   final int offset;
+
+  /// The 1-based line of the location, as the `craft_text_format` blueprint
+  /// counts lines (requirement 6), or null when unknown. Derived from
+  /// [offset], so it takes no part in comparisons or equality.
+  final int? line;
+
+  /// The 1-based column of the location in its [line], counting Unicode
+  /// code points, or null when unknown.
+  final int? column;
 
   @override
   int compareTo(SourceLocation other) {

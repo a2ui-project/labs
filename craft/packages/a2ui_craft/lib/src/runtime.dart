@@ -304,9 +304,11 @@ class CraftRuntime {
           () => switch (output) {
             _Thunk() => pass.expandWidget(output, path),
             HostWidget() => pass.place(output, path),
-            _ => throw _Failure(
+            _ => throw _Pass._failure(
               ExpansionErrorKind.notAWidget,
               'The builder did not give a widget.',
+              closure.env,
+              closure.node.widget,
             ),
           },
         );
@@ -513,8 +515,36 @@ class _PlacedBuilder {
 class _Failure implements Exception {
   _Failure(this.kind, this.message);
 
+  _Failure.of(EvaluationException failure)
+    : kind = ExpansionErrorKind.values.byName(failure.kind.name),
+      message = failure.message;
+
   final ExpansionErrorKind kind;
   final String message;
+
+  /// The scope of the failing node (see the `craft_runtime` blueprint,
+  /// requirement 12); null until [locate] is first called.
+  _Env? _scope;
+  SourceRange? source;
+
+  FullyQualifiedWidgetName? get template => switch (_scope) {
+    _Env(:final LibraryName library, :final String declaration) =>
+      FullyQualifiedWidgetName(library, declaration),
+    _ => null,
+  };
+
+  /// Records that [node], evaluated in [env], failed or holds what failed:
+  /// the first call names the failing node's scope, and the innermost node of
+  /// that scope with a source range gives the position.
+  void locate(_Env env, Object? node) {
+    final _Env scope = _scope ??= env;
+    if (source == null &&
+        node is BlobNode &&
+        scope.library == env.library &&
+        scope.declaration == env.declaration) {
+      source = node.source;
+    }
+  }
 }
 
 /// A template argument, evaluated when first read in the scope of the call.
@@ -587,21 +617,24 @@ class _Env {
 
 /// A widget call, evaluated but not yet placed in the tree.
 sealed class _Thunk {
-  _Thunk(this.site);
+  _Thunk(this.site, this.call);
 
   /// The scope of the call.
   final _Env site;
+
+  /// The call as written, or null for the root.
+  final ConstructorCall? call;
 }
 
 class _PrimitiveThunk extends _Thunk {
-  _PrimitiveThunk(this.name, this.arguments, super.site);
+  _PrimitiveThunk(this.name, this.arguments, super.site, super.call);
 
   final FullyQualifiedWidgetName name;
   final Map<String, Object?> arguments;
 }
 
 class _TemplateThunk extends _Thunk {
-  _TemplateThunk(this.resolved, this.arguments, super.site);
+  _TemplateThunk(this.resolved, this.arguments, super.site, super.call);
 
   final ResolvedName resolved;
   final Map<String, _Argument> arguments;
@@ -688,12 +721,20 @@ class _Pass {
     ]);
   }
 
-  ErrorNode fail(ExpansionPath path, ExpansionErrorKind kind, String message) {
+  ErrorNode fail(
+    ExpansionPath path,
+    ExpansionErrorKind kind,
+    String message, {
+    FullyQualifiedWidgetName? template,
+    SourceRange? source,
+  }) {
     _node();
     final ErrorNode node = ErrorNode(
       kind,
       message,
       List<Object>.unmodifiable(path),
+      template: template,
+      source: source,
     );
     errors.add(ExpansionError(node));
     return node;
@@ -704,34 +745,53 @@ class _Pass {
     try {
       return expand();
     } on _Failure catch (failure) {
-      return fail(path, failure.kind, failure.message);
-    } on EvaluationException catch (failure) {
       return fail(
         path,
-        ExpansionErrorKind.values.byName(failure.kind.name),
+        failure.kind,
         failure.message,
+        template: failure.template,
+        source: failure.source,
       );
     }
   }
+
+  /// A failure of [node], evaluated in [env].
+  static _Failure _failure(
+    ExpansionErrorKind kind,
+    String message,
+    _Env env,
+    Object? node,
+  ) => _Failure(kind, message)..locate(env, node);
 
   /// The root as a thunk whose arguments are the host's values.
   _Thunk thunk(ResolvedName resolved, Map<String, Object> arguments) {
     final _Env env = _Env(library: resolved.library);
     return resolved.isPrimitive
-        ? _PrimitiveThunk(resolved.fullName, arguments, env)
-        : _TemplateThunk(resolved, <String, _Argument>{
-            for (final MapEntry<String, Object> a in arguments.entries)
-              a.key: _Argument.value(a.value),
-          }, env);
+        ? _PrimitiveThunk(resolved.fullName, arguments, env, null)
+        : _TemplateThunk(
+            resolved,
+            <String, _Argument>{
+              for (final MapEntry<String, Object> a in arguments.entries)
+                a.key: _Argument.value(a.value),
+            },
+            env,
+            null,
+          );
   }
 
   Object expandWidget(_Thunk thunk, ExpansionPath path) => guard(path, () {
     switch (thunk) {
       case _PrimitiveThunk():
-        final Map<String, Object> arguments = <String, Object>{
-          for (final MapEntry<String, Object?> a in thunk.arguments.entries)
-            a.key: eval(a.value, thunk.site),
-        };
+        final Map<String, Object> arguments;
+        try {
+          arguments = <String, Object>{
+            for (final MapEntry<String, Object?> a in thunk.arguments.entries)
+              a.key: eval(a.value, thunk.site),
+          };
+        } on _Failure catch (failure) {
+          failure.locate(thunk.site, thunk.call);
+          rethrow;
+        }
         final WidgetNode node = WidgetNode(
           thunk.name,
           deeper(
@@ -749,10 +809,12 @@ class _Pass {
         if (thunk.site.chain.any(
           (WidgetDeclaration d) => identical(d, declaration),
         )) {
-          throw _Failure(
+          throw _failure(
             ExpansionErrorKind.recursiveWidget,
             '${widgetNameString(thunk.resolved.fullName)} is called inside '
             'its own expansion.',
+            thunk.site,
+            thunk.call,
           );
         }
         StateInstance? own;
@@ -764,24 +826,24 @@ class _Pass {
             states.add(ExpandedState(own));
           }
         }
-        final Object root = eval(
-          declaration.root,
-          _Env(
-            library: thunk.resolved.library,
-            declaration: declaration.name,
-            arguments: thunk.arguments,
-            instance: own ?? thunk.site.instance,
-            chain: <WidgetDeclaration>[...thunk.site.chain, declaration],
-          ),
+        final _Env scope = _Env(
+          library: thunk.resolved.library,
+          declaration: declaration.name,
+          arguments: thunk.arguments,
+          instance: own ?? thunk.site.instance,
+          chain: <WidgetDeclaration>[...thunk.site.chain, declaration],
         );
+        final Object root = eval(declaration.root, scope);
         return deeper(
           () => switch (root) {
             _Thunk() => expandWidget(root, path),
             HostWidget() => place(root, path),
-            _ => throw _Failure(
+            _ => throw _failure(
               ExpansionErrorKind.notAWidget,
               'The root of ${widgetNameString(thunk.resolved.fullName)} did '
               'not give a widget.',
+              scope,
+              declaration.root,
             ),
           },
         );
@@ -822,7 +884,16 @@ class _Pass {
   }
 
   /// Evaluates [node] in [env], one level deeper, as one step.
-  Object eval(Object? node, _Env env) => _evaluating(() => _eval(node, env));
+  Object eval(Object? node, _Env env) {
+    try {
+      return _evaluating(() => _eval(node, env));
+    } on _Failure catch (failure) {
+      failure.locate(env, node);
+      rethrow;
+    } on EvaluationException catch (failure) {
+      throw _Failure.of(failure)..locate(env, node);
+    }
+  }
 
   Object _eval(Object? node, _Env env) => switch (node) {
     null || Missing() => missing,
@@ -865,7 +936,7 @@ class _Pass {
             for (final MapEntry<String, Object?> e
                 in node.eventArguments.entries)
               e.key: eval(e.value, env),
-          })
+          }, 'An argument of event "${node.eventName}"')
           as Map<String, Object>,
     ),
     SetStateHandler() => SetStateValue(
@@ -875,7 +946,7 @@ class _Pass {
             'set ${node.stateReference} has no stateful template around it.',
           )),
       List<Object>.unmodifiable(node.stateReference.parts),
-      _values(eval(node.value, env)),
+      _values(eval(node.value, env), 'The value of set ${node.stateReference}'),
     ),
     MediaReference() => readMedia(runtime._media, node.parts),
     ThemeReference() => throw _Failure(
@@ -891,19 +962,25 @@ class _Pass {
   List<Object> _list(List<Object?> list, _Env env) {
     final List<Object> result = <Object>[];
     for (final Object? element in list) {
-      if (element is Loop) {
-        _evaluating(() {
-          if (eval(element.input, env) case final List<Object> items) {
-            for (final Object item in items) {
-              result.add(eval(element.output, env.withLoop(item)));
-            }
-          }
-        });
-      } else {
-        result.add(eval(element, env));
-      }
+      _addElement(result, element, env);
     }
     return result;
+  }
+
+  /// Adds the elements that [element] gives: a loop one per item, a loop
+  /// whose output is a loop those of the inner loop for each item.
+  void _addElement(List<Object> result, Object? element, _Env env) {
+    if (element is! Loop) {
+      result.add(eval(element, env));
+      return;
+    }
+    _evaluating(() {
+      if (eval(element.input, env) case final List<Object> items) {
+        for (final Object item in items) {
+          _addElement(result, element.output, env.withLoop(item));
+        }
+      }
+    });
   }
 
   Object _readArgs(List<Object> parts, _Env env) {
@@ -933,26 +1010,36 @@ class _Pass {
     return current;
   }
 
-  /// [value] when it holds only values, otherwise an `invalidValue` failure.
-  /// Each node checked is one step.
-  Object _values(Object value, {bool handlers = false}) {
+  /// [value] when it holds only values, otherwise an `invalidValue` failure
+  /// whose message says that what it found is not allowed in [place] (such
+  /// as "the argument value of orElse"). Each node checked is one step.
+  Object _values(Object value, String place, {bool handlers = false}) {
     _step();
     switch (value) {
       case List<Object>():
         for (final Object e in value) {
-          _values(e, handlers: handlers);
+          _values(e, place, handlers: handlers);
         }
       case Map<String, Object>():
         for (final Object e in value.values) {
-          _values(e, handlers: handlers);
+          _values(e, place, handlers: handlers);
         }
       case HandlerValue() when handlers:
         break;
       case _Thunk() || HostWidget() || _Builder() || HandlerValue():
+        final String found = switch (value) {
+          _PrimitiveThunk(:final FullyQualifiedWidgetName name) =>
+            'the widget ${widgetNameString(name)}',
+          _TemplateThunk(:final ResolvedName resolved) =>
+            'the widget ${widgetNameString(resolved.fullName)}',
+          HostWidget() => 'a host widget',
+          _Builder() => 'a widget builder',
+          _ => 'a handler',
+        };
         throw _Failure(
           ExpansionErrorKind.invalidValue,
-          'A ${handlers ? 'widget or builder' : 'widget, builder or handler'} '
-          'is not allowed here.',
+          '$place is $found, but must be a value'
+          '${handlers ? ' or a handler' : ''}.',
         );
     }
     return value;
@@ -969,14 +1056,18 @@ class _Pass {
         return missing;
       case HandlerApplication():
         checkCallArguments(call, const <String>{'handler', 'arguments'});
-        final Object handler = _values(switch (call.arguments['handler']) {
-          final Object node => eval(node, env),
-          null => missing,
-        }, handlers: true);
+        final Object handler = _values(
+          switch (call.arguments['handler']) {
+            final Object node => eval(node, env),
+            null => missing,
+          },
+          'The handler of call',
+          handlers: true,
+        );
         final Object arguments = _values(switch (call.arguments['arguments']) {
           final Object node => eval(node, env),
           null => const <String, Object>{},
-        });
+        }, 'An argument of call');
         if (arguments is! Map<String, Object>) {
           throw _Failure(
             ExpansionErrorKind.invalidValue,
@@ -986,20 +1077,36 @@ class _Pass {
         return HandlerCallValue(handler, arguments);
       case WidgetCall(widget: final ResolvedName resolved):
         return resolved.isPrimitive
-            ? _PrimitiveThunk(resolved.fullName, call.arguments, env)
-            : _TemplateThunk(resolved, <String, _Argument>{
-                for (final MapEntry<String, Object?> a
-                    in call.arguments.entries)
-                  a.key: _Argument.lazy(a.value, env),
-              }, env);
+            ? _PrimitiveThunk(resolved.fullName, call.arguments, env, call)
+            : _TemplateThunk(
+                resolved,
+                <String, _Argument>{
+                  for (final MapEntry<String, Object?> a
+                      in call.arguments.entries)
+                    a.key: _Argument.lazy(a.value, env),
+                },
+                env,
+                call,
+              );
       case FunctionCall(:final String key):
         final LocalFunction function = registry.functionsFor(env.library)[key]!;
         checkCallArguments(call, function.arguments.keys.toSet());
         return invokeFunction(key, function, <String, Object>{
           for (final MapEntry<String, Object?> a in call.arguments.entries)
-            a.key: _values(eval(a.value, env)),
+            a.key: _values(
+              eval(a.value, env),
+              'The argument ${a.key} of ${call.name}',
+            ),
         }, limits);
       case UnknownCall():
+        if (call.name == env.declaration ||
+            call.name == '${env.library}::${env.declaration}') {
+          throw EvaluationException(
+            EvaluationErrorKind.unknownFunction,
+            '${call.name} calls itself, but a declaration cannot: its own '
+            'name never resolves to it, so templates are not recursive.',
+          );
+        }
         throw EvaluationException(
           EvaluationErrorKind.unknownFunction,
           '${call.name} is neither a widget nor a function callable from '
@@ -1009,10 +1116,10 @@ class _Pass {
   }
 
   Object _switch(Switch node, _Env env) {
-    final Object input = _values(eval(node.input, env));
+    final Object input = _values(eval(node.input, env), 'The input of switch');
     for (final MapEntry<Object?, Object> c in node.outputs.entries) {
       if (c.key == null) continue;
-      if (valueEquals(input, _values(eval(c.key, env)))) {
+      if (valueEquals(input, _values(eval(c.key, env), 'A key of switch'))) {
         return eval(c.value, env);
       }
     }

@@ -10,7 +10,7 @@ date_added: 2026-11-20
 
 This document specifies the Craft text format: the source form in which developers write template libraries and data files, and the library that parsing produces. It also specifies the canonical JSON form of a library, which conformance cases use to compare libraries across engines.
 
-The format is the RFW 2.0.0 text format plus three kinds of reference: theme references, media references and symbol references. This blueprint specifies only how they parse; how they evaluate belongs to the features that use them.
+The format is the RFW 2.0.0 text format plus three kinds of reference: theme references, media references and symbol references, and with CR LF and CR line breaks besides LF. This blueprint specifies only how the references parse; how they evaluate belongs to the features that use them.
 
 ---
 
@@ -19,8 +19,8 @@ The format is the RFW 2.0.0 text format plus three kinds of reference: theme ref
 ### **1. Base format**
 
 - Library files and data files MUST parse as in the RFW 2.0.0 text format, except where this blueprint says otherwise. This covers imports, widget declarations, initial state, literals, lists, maps, widget calls, `args`, `data` and `state` references, loops, switches, event handlers, state setters and widget builders.
-- A source that RFW 2.0.0 rejects MUST be rejected, unless it is valid under requirements 2–4 or under a feature that extends the format (`craft_libraries_and_names` adds qualified names and the `export` keyword, and `craft_language_extensions` adds `absent`, `call`, `...if` and `let`, which RFW 2.0.0 rejects). A source that is valid in RFW 2.0.0 MUST parse to the same library, unless requirements 2–4 or `craft_language_extensions` change its meaning (requirements 2–4 only affect names spelled `theme` or `media`, and an identifier followed by `.` in a value position; `craft_language_extensions` lists the sources it changes).
-- A rejection MUST report the source position (line and column) where it was detected.
+- A source that RFW 2.0.0 rejects MUST be rejected, unless it is valid under requirements 2–4 and 6 or under a feature that extends the format (`craft_libraries_and_names` adds qualified names and the `export` keyword, and `craft_language_extensions` adds `absent`, `call`, `...if`, `let` and nested `...for` and `...if` elements, which RFW 2.0.0 rejects). A source that is valid in RFW 2.0.0 MUST parse to the same library, unless requirements 2–4 and 6 or `craft_language_extensions` change its meaning (requirements 2–4 only affect names spelled `theme` or `media`, and an identifier followed by `.` in a value position, and requirement 6 only a CR inside a string literal or an end-of-line comment; `craft_language_extensions` lists the sources it changes).
+- A rejection MUST report the source position (line and column) where it was detected. Lines are counted as requirement 6 specifies.
 - A source beyond the engine's limits (its size, nesting depth, node count, string length or number of declarations) MUST be rejected as the `craft_limits` feature specifies, also when it is otherwise valid.
 
 ### **2. Theme references**
@@ -67,6 +67,13 @@ The canonical JSON form of a library is how conformance cases state an expected 
 | builder argument reference                              | `{"$": "builderArgRef", "arg": ..., "parts": [...]}`                                                                                        |
 | symbol reference                                        | `{"$": "symbolRef", "symbol": ..., "parts": [...]}`                                                                                         |
 
+### **6. Line breaks**
+
+- A line break MUST be any of: LF (U+000A); CR (U+000D) followed by LF, which is one line break; CR not followed by LF. A source with CR LF or CR line breaks MUST parse to the same library as the source in which each line break is replaced by one LF, and a source that this replacement makes invalid MUST be rejected. So a line break separates tokens, ends an end-of-line comment, may appear in a block comment, and inside a string literal MUST be rejected (the escapes `\r` and `\n` still write CR and LF into a string).
+- Positions MUST be those of the source with each line break replaced by one LF: the line of a position is one more than the number of line breaks before it, and a rejection MUST report the same line and column as in that source. The one exception is a source longer than `craft_limits` allows, which is measured as given: its first character beyond the limit may be the LF of a CR LF, which is at the position of its CR.
+- The line and column of a node of the library (where an engine tracks them, see `craft_runtime`, requirement 12) are those of its first character: the line as above, and the column the 1-based position of that character in its line, counting Unicode code points.
+- This is a deliberate difference from RFW 2.0.0, which rejects a CR between tokens, ignores it in comments and keeps it inside a string literal as part of the string. Sources saved with Windows line endings, or checked out with them, must load. Two RFW-valid sources therefore change: a CR inside a string literal is rejected, and a CR ends an end-of-line comment, so what follows it is read as source. Other characters RFW 2.0.0 rejects, such as tabs, stay rejected.
+
 ---
 
 ## **Detailed Description of Changes**
@@ -89,6 +96,8 @@ widget Badge = Box(
 
 Each parses to its own node, so later stages can tell them apart without looking at names. Because `theme` and `media` become reserved words, a library that used either as a loop variable or builder argument name no longer parses. Libraries that use `Name.part` in a value position, which RFW rejected, now parse to symbol references.
 
+Line breaks may also be CR LF or CR (requirement 6), which RFW rejects. A library saved on Windows parses to the library its LF form gives, and errors report the lines an editor shows: CR LF counts as one line break, not two.
+
 ---
 
 ## **Links**
@@ -107,6 +116,7 @@ The shared cases are in `conformance/craft/craft_text_format.yaml`. Each case is
 - **Media references**: a media reference inside a switch; a builder argument and a loop variable named `media` are rejected, and a control case with a similar name parses.
 - **Symbol references**: a symbol reference with several parts; a widget call is still a call; a loop variable or builder argument followed by `.` keeps its meaning; `default.x`, `for.x`, `import.x`, `in.x`, `null.x` and `widget.x` are rejected.
 - **Canonical form**: a declaration with initial state; integers and doubles stay distinct; nested loops count from the innermost.
+- **Line breaks**: a library with CR LF, with CR and with mixed line breaks, with an end-of-line comment ended by each and a block comment holding them, parses like its LF form; a data file with CR LF; a rejection after CR LF, CR, LF CR LF and LF line breaks reports the line counted with each as one line break (the LF form is the control); a CR LF, a CR and an LF inside a double- or single-quoted string are rejected, and the escapes `\r\n` are the control.
 
 Error cases check that the source is rejected and, where the position is meaningful, the reported line. In addition, the engine's tests include RFW 2.0.0's own text and model tests, adapted only to run outside Flutter (imports, and `testWidgets` replaced by `test`); they MUST pass.
 
@@ -117,3 +127,4 @@ Error cases check that the source is rejected and, where the position is meaning
 1. Add the theme, media and symbol reference nodes to the library model.
 2. Reserve `theme` and `media`, parse the three references in value positions, and reject keywords as symbol names.
 3. Implement the canonical JSON form and run the conformance cases against it.
+4. Treat CR LF and CR as line breaks in the tokenizer and in every count of lines.

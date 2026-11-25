@@ -47,6 +47,12 @@
   blueprintAnchor: blueprints/features/craft_text_format.blueprint.md#5-canonical-json-form
   claimedBy:
     - dart-craft
+- id: F-CRAFT-TEXT-06
+  title: "Text Format: line breaks"
+  specAnchor: blueprints/features/craft_text_format.blueprint.md#6-line-breaks
+  blueprintAnchor: blueprints/features/craft_text_format.blueprint.md#6-line-breaks
+  claimedBy:
+    - dart-craft
 - id: F-CRAFT-NAMES-01
   title: "Libraries and Names: qualified names"
   specAnchor: blueprints/features/craft_libraries_and_names.blueprint.md#1-qualified-names
@@ -219,6 +225,12 @@
   title: "Language Extensions: binary round trip"
   specAnchor: blueprints/features/craft_language_extensions.blueprint.md#6-binary-round-trip
   blueprintAnchor: blueprints/features/craft_language_extensions.blueprint.md#6-binary-round-trip
+  claimedBy:
+    - dart-craft
+- id: F-CRAFT-LANG-07
+  title: "Language Extensions: nested list elements"
+  specAnchor: blueprints/features/craft_language_extensions.blueprint.md#7-nested-list-elements
+  blueprintAnchor: blueprints/features/craft_language_extensions.blueprint.md#7-nested-list-elements
   claimedBy:
     - dart-craft
 - id: F-CRAFT-FUNC-01
