@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ import (
 )
 
 const (
-	defaultGeminiModel = "gemini-2.5-flash"
-	defaultRPCTimeout  = 15 * time.Second
+	defaultGeminiModel = "gemini-flash-latest"
+	defaultRPCTimeout  = 45 * time.Second
 )
 
 // JSONGenerator executes a structured JSON-mode prompt against an LLM backend.
@@ -38,8 +38,7 @@ type JSONGenerator interface {
 }
 
 // GeminiGenerator calls the public Gemini Developer API via google.golang.org/genai
-// when GEMINI_API_KEY is configured. When unset, GenerateJSON returns an error so
-// Orchestrator transparently falls back to the deterministic local synthesizer.
+// when GEMINI_API_KEY is configured.
 type GeminiGenerator struct {
 	APIKey     string
 	Model      string
@@ -62,7 +61,7 @@ func NewGeminiGenerator() *GeminiGenerator {
 	}
 }
 
-func (g *GeminiGenerator) ensureClient(ctx context.Context) (*genai.Client, error) {
+func (g *GeminiGenerator) ensureClient() (*genai.Client, error) {
 	if g.APIKey == "" {
 		return nil, fmt.Errorf("GEMINI_API_KEY not set")
 	}
@@ -71,9 +70,10 @@ func (g *GeminiGenerator) ensureClient(ctx context.Context) (*genai.Client, erro
 	if g.client != nil {
 		return g.client, nil
 	}
-	client, err := genai.NewClient(ctx, &genai.ClientConfig{
-		APIKey:  g.APIKey,
-		Backend: genai.BackendGeminiAPI,
+	client, err := genai.NewClient(context.Background(), &genai.ClientConfig{
+		APIKey:      g.APIKey,
+		Backend:     genai.BackendGeminiAPI,
+		HTTPOptions: genai.HTTPOptions{APIVersion: "v1beta"},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("creating genai client: %w", err)
@@ -84,7 +84,7 @@ func (g *GeminiGenerator) ensureClient(ctx context.Context) (*genai.Client, erro
 
 // GenerateJSON calls Gemini with application/json structured output.
 func (g *GeminiGenerator) GenerateJSON(ctx context.Context, systemInstruction, userPrompt string) (string, error) {
-	client, err := g.ensureClient(ctx)
+	client, err := g.ensureClient()
 	if err != nil {
 		return "", err
 	}
@@ -105,10 +105,13 @@ func (g *GeminiGenerator) GenerateJSON(ctx context.Context, systemInstruction, u
 		Temperature:       &temp,
 		ResponseMIMEType:  "application/json",
 		SystemInstruction: genai.NewContentFromText(systemInstruction, genai.RoleUser),
+		ThinkingConfig: &genai.ThinkingConfig{
+			ThinkingLevel: genai.ThinkingLevelLow,
+		},
 	}
 	resp, err := client.Models.GenerateContent(callCtx, model, genai.Text(userPrompt), cfg)
 	if err != nil {
-		log.Printf("Gemini call on %s failed (falling back to local synthesizer): %v", model, err)
+		log.Printf("Gemini call on %s failed: %v", model, err)
 		return "", err
 	}
 	text := strings.TrimSpace(resp.Text())

@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -138,9 +138,13 @@ func (m *Manager) WebSocketHandler() http.Handler {
 }
 
 func (m *Manager) ensureSeeded(ctx context.Context, roomID string, seed SurfaceSeed) error {
+	var seedErr error
 	err := m.ws.Apply(ctx, roomID, func(doc *crdt.Doc, transact func(func(*crdt.Transaction))) {
-		_ = SeedSurface(doc, transact, seed)
+		seedErr = SeedSurface(doc, transact, seed)
 	})
+	if seedErr != nil {
+		return seedErr
+	}
 	if errors.Is(err, websocket.ErrNoChanges) {
 		return nil
 	}

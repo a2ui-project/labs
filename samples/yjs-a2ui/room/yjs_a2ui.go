@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -217,6 +217,9 @@ func ApplyA2uiOperations(doc *crdt.Doc, transact TransactFunc, ops []A2uiOperati
 	return nil
 }
 
+// applyUpdateComponents reads existing keys outside transact because ygo's
+// YMap.Get/Keys acquire doc.mu.RLock (calling them inside transact deadlocks);
+// websocket.Server.Apply already serializes per-room callbacks.
 func applyUpdateComponents(doc *crdt.Doc, transact TransactFunc, comps []map[string]any) {
 	compRoot := doc.GetMap(rootComponentsKey)
 	orderArr := doc.GetArray(rootComponentOrderKey)

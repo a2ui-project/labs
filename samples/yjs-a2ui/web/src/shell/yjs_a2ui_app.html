@@ -1,5 +1,5 @@
 <!--
- Copyright 2024 Google LLC
+ Copyright 2026 Google LLC
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
@@ -43,22 +43,22 @@
       </button>
     </div>
 
-    <div class="layout-controls" role="group" aria-label="Peer split layout">
+    <div class="layout-controls" role="group" aria-label="Peer layout">
+      <button
+        type="button"
+        class="segment-btn"
+        [class.active]="splitCount() === 1"
+        (click)="setSplitMode(1)"
+      >
+        Single View
+      </button>
       <button
         type="button"
         class="segment-btn"
         [class.active]="splitCount() === 2"
         (click)="setSplitMode(2)"
       >
-        Split: 2 Peers
-      </button>
-      <button
-        type="button"
-        class="segment-btn"
-        [class.active]="splitCount() === 3"
-        (click)="setSplitMode(3)"
-      >
-        Split: 3 Peers
+        Side-by-Side
       </button>
     </div>
 

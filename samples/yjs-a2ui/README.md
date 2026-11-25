@@ -17,11 +17,23 @@ Stock A2UI assumes a 1:1 `Agent <-> Renderer` loop. This experiment binds `@a2ui
   - `/local/...`: Client-only viewport state kept purely in the local `DataModel`.
 - **Presence & AI Co-Editing**: `y-protocols/awareness` tracks peer presence and field focus, while the Go backend agent joins the room as a native CRDT peer and applies granular leaf `updateDataModel` and `updateComponents` mutations without clobbering concurrent human typing.
 
+## Demos
+
+> Note: This sample is an experimental prototype demo and is not intended for production use.
+
+### Single-User Side-by-Side Demo
+
+![Single-User Side-by-Side Demo](docs/side-by-side-demo.gif)
+
+### Multi-User Demo
+
+![Multi-User Demo](docs/multi-user-demo.gif)
+
 ## Prerequisites
 
-- **Go** 1.24+ (or **Bazel** 8+ via Bzlmod)
-- **Node.js** 22.22.3+ and **npm**
-- **Optional**: `GEMINI_API_KEY` environment variable to enable live Gemini co-editing via `google.golang.org/genai` (defaults to `gemini-2.5-flash`; override with `GEMINI_MODEL`). Without an API key, the server automatically falls back to a deterministic local synthesizer so the demo works completely offline.
+- **Go** 1.25+ (or **Bazel** 8+ via Bzlmod)
+- **Node.js** 22.22.3+ and **pnpm** (via `corepack`)
+- **Optional**: `GEMINI_API_KEY` environment variable to enable live Gemini co-editing via `google.golang.org/genai` (defaults to `gemini-flash-latest`; override with `GEMINI_MODEL`). Multi-user Yjs sync works without an API key; agent prompts/actions require `GEMINI_API_KEY` and return an error without mutating the surface when unavailable.
 
 > Note: Optional use of the Gemini API is subject to the [Gemini API Additional Terms of Service](https://ai.google.dev/gemini-api/terms).
 
@@ -49,7 +61,10 @@ Or with Bazel:
 bazel run //:yjs-a2ui -- --port=8890 --web_dir="$PWD/web/dist/browser"
 ```
 
-Open http://localhost:8890 in your browser (or open two tabs / use the 1/2/3 split-peer toolbar to test live concurrent editing).
+Open http://localhost:8890 in your browser to collaborate in either mode:
+
+1. **Multi-window / multi-user**: Share the server URL (or switch to **Single View** / click **Open Peer Tab**) so each participant connects from their own browser window.
+2. **Side-by-side**: Use **Side-by-Side** to try a live 2-peer connection in a single window.
 
 ## Running Tests
 

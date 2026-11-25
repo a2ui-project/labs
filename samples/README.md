@@ -19,4 +19,4 @@ Each sample is organized in its own sub-folder with a dedicated `README.md` cont
 
 - [`flutter-starter`](./flutter-starter/): Starter project for building A2UI client applications with Flutter.
 - [`typescript-starter`](./typescript-starter/): Starter project for building A2UI client applications with TypeScript and Node.js.
-- [`yjs-a2ui`](./yjs-a2ui/): Experimental multi-user A2UI + Yjs CRDT collaboration sample with an Angular frontend and Go (`ygo`) backend.
+- [`yjs-a2ui`](./yjs-a2ui/): Experimental real-time collaboration sample where multiple users and an AI agent can co-edit an A2UI interface simultaneously, powered by an Angular frontend and a Go (`ygo`) backend, using Yjs CRDT.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 Google LLC
+ * Copyright 2026 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -71,8 +71,8 @@ const FALLBACK_ROOMS: readonly RoomSummary[] = [
 ];
 
 /**
- * Root Yjs + A2UI workspace shell orchestrating multi-room navigation, 1/2/3-peer
- * split viewports, live CRDT inspection, and shared Gemini A2UI agent prompts.
+ * Root Yjs + A2UI workspace shell orchestrating multi-room navigation, 1-peer
+ * or 2-peer split viewports, live CRDT inspection, and shared Gemini A2UI agent prompts.
  */
 @Component({
   selector: 'yjs-a2ui-app',
@@ -88,14 +88,13 @@ export class YjsA2uiApp implements OnInit {
 
   protected readonly rooms = signal<readonly RoomSummary[]>(FALLBACK_ROOMS);
   protected readonly activeRoomId = signal<string>('arch-tradeoff');
-  protected readonly splitCount = signal<1 | 2 | 3>(2);
+  protected readonly splitCount = signal<1 | 2>(2);
   protected readonly inspectorOpen = signal<boolean>(true);
   protected readonly createDialogOpen = signal<boolean>(false);
 
   protected readonly panePersonas = signal<readonly PersonaOption[]>([
     PERSONA_ROSTER[0],
     PERSONA_ROSTER[1],
-    PERSONA_ROSTER[2],
   ]);
 
   protected readonly latestSnapshot = signal<BinderSnapshot | null>(null);
@@ -167,7 +166,7 @@ export class YjsA2uiApp implements OnInit {
     this.selectRoom(event.target.value);
   }
 
-  protected setSplitMode(count: 1 | 2 | 3): void {
+  protected setSplitMode(count: 1 | 2): void {
     this.splitCount.set(count);
   }
 
@@ -209,8 +208,9 @@ export class YjsA2uiApp implements OnInit {
   protected openPeerWindow(): void {
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
+    const nextPersona = this.panePersonas()[0]?.actorId === 'bob' ? 'alice' : 'bob';
     url.searchParams.set('room', this.activeRoomId());
-    url.searchParams.set('persona', 'bob');
+    url.searchParams.set('persona', nextPersona);
     url.searchParams.set('split', '1');
     window.open(url.toString(), '_blank', 'noopener,noreferrer');
   }
@@ -369,7 +369,6 @@ export class YjsA2uiApp implements OnInit {
     const splitParam = params.get('split');
     if (splitParam === '1') this.splitCount.set(1);
     if (splitParam === '2') this.splitCount.set(2);
-    if (splitParam === '3') this.splitCount.set(3);
 
     const personaParam = params.get('persona');
     if (personaParam) {

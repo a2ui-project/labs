@@ -1,4 +1,4 @@
-// Copyright 2024 Google LLC
+// Copyright 2026 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package agent
 import (
 	"context"
 	"errors"
-	"strings"
 	"testing"
 
 	"github.com/a2ui-project/labs/samples/yjs-a2ui/room"
@@ -32,7 +31,7 @@ func (f fakeGenerator) GenerateJSON(_ context.Context, _, _ string) (string, err
 	return f.reply, f.err
 }
 
-func TestRespondToActionSynthesizesConsensusOnFallback(t *testing.T) {
+func TestRespondToActionReturnsErrorWhenGeneratorUnavailable(t *testing.T) {
 	ctx := context.Background()
 	mgr, err := room.NewManager(ctx, nil)
 	if err != nil {
@@ -53,21 +52,11 @@ func TestRespondToActionSynthesizesConsensusOnFallback(t *testing.T) {
 		ActionName: "synthesize_consensus",
 		Snapshot:   snap,
 	})
-	if err != nil {
-		t.Fatalf("RespondToAction() error = %v", err)
+	if err == nil {
+		t.Fatalf("RespondToAction() expected error when generator fails, got %+v", res)
 	}
-	if res.Source != "deterministic" {
-		t.Fatalf("Source = %q, want deterministic", res.Source)
-	}
-	if len(res.Operations) != 1 || res.Operations[0].UpdateDataModel == nil {
-		t.Fatalf("expected 1 leaf UpdateDataModel op, got %+v", res.Operations)
-	}
-	if res.Operations[0].UpdateDataModel.Path != "/shared/agentSummary" {
-		t.Fatalf("Path = %q, want /shared/agentSummary", res.Operations[0].UpdateDataModel.Path)
-	}
-	val, _ := res.Operations[0].UpdateDataModel.Value.(string)
-	if !strings.Contains(val, "yjs_crdt: 2") {
-		t.Fatalf("expected consensus tally in %q", val)
+	if len(res.Operations) != 0 {
+		t.Fatalf("expected 0 fallback operations on error, got %+v", res.Operations)
 	}
 }
 
@@ -107,7 +96,18 @@ func TestSanitizeLLMOperationsRejectsRootWipesAndValidatesBasicCatalog(t *testin
 
 func TestRespondToPromptAppendsValidCollaborativeCardIntoYDoc(t *testing.T) {
 	ctx := context.Background()
-	orch := NewOrchestrator(fakeGenerator{err: errors.New("offline")})
+	reply := `{
+		"summary": "Added security signoff checklist card",
+		"operations": [
+			{"updateComponents": {"surfaceId": "arch_tradeoff_surface", "components": [
+				{"id": "sec_card", "component": "Card", "child": "sec_col"},
+				{"id": "sec_col", "component": "Column", "children": ["sec_check"]},
+				{"id": "sec_check", "component": "CheckBox", "label": "Security signoff", "value": {"path": "/shared/secSignoff"}}
+			]}},
+			{"updateDataModel": {"surfaceId": "arch_tradeoff_surface", "path": "/shared/secSignoff", "value": false}}
+		]
+	}`
+	orch := NewOrchestrator(fakeGenerator{reply: reply})
 	mgr, err := room.NewManager(ctx, orch)
 	if err != nil {
 		t.Fatalf("NewManager() error = %v", err)
