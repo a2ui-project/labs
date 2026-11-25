@@ -41,6 +41,9 @@
 #   app_version: the application version string (initially "").
 #   rejected: true when the step's single registration must be rejected,
 #     leaving the registry unchanged.
+#   notifications: how many times the step's registrations, applied in the
+#     order above, notify the registry's listeners (not checked when not
+#     given).
 #   queries: checked after the step's registrations, each with an `expect`:
 #     evaluate: L         evaluates the `value` argument of the root of the
 #                         declaration `declaration` (default `probe`) of
@@ -1202,3 +1205,37 @@
         expect: [Text, Box]
       - offered: nope
         expect: []
+
+# change_notifications
+
+- name: each_accepted_change_notifies_once
+  action: update_registry
+  features: [F-CRAFT-REG-10]
+  description: "Each accepted registration, removal and new app version notifies the listeners once, also when the same source is registered again; a rejected registration, removing nothing and setting the same app version notify nothing."
+  register:
+    primitives:
+      core: {Text: {}}
+    functions:
+      fmt: {price: {amount: number}}
+    libraries:
+      main: |
+        import core;
+        export widget A = Text();
+    notifications: 3
+  changes:
+    - libraries:
+        main: |
+          import core;
+          export widget A = Text();
+      notifications: 1
+    - functions:
+        core: {f: {}}
+      rejected: true
+      notifications: 0
+    - remove_libraries: [main, nope]
+      remove_functions: [fmt, nope]
+      notifications: 2
+    - app_version: "2.0"
+      notifications: 1
+    - app_version: "2.0"
+      notifications: 0

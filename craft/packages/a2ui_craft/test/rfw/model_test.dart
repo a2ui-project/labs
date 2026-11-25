@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 import 'package:test/test.dart';
-import 'package:a2ui_craft/a2ui_craft.dart';
+import 'package:a2ui_craft/model.dart';
 
 void main() {
   test('$LibraryName', () async {

@@ -215,8 +215,17 @@ class CraftRuntime {
   void removeListener(void Function() listener) => _listeners.remove(listener);
 
   /// Tells listeners that the registry changed, or that an expansion may
-  /// have changed for another reason (see [setMedia]).
-  void refresh() => _notify();
+  /// have changed for another reason (see [setMedia]). First drops the state
+  /// of every instance whose template's library was registered again or
+  /// removed, so that its old handlers set nothing (see the `craft_runtime`
+  /// blueprint, requirement 10).
+  void refresh() {
+    _instances.removeWhere(
+      (String key, StateInstance instance) =>
+          instance.generation != registry.generation(instance.widget.library),
+    );
+    _notify();
+  }
 
   void _notify() {
     for (final void Function() listener in List<void Function()>.of(

@@ -1234,6 +1234,11 @@
         "rejected": {
           "const": true
         },
+        "notifications": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "How many times the step's registrations notified the registry's listeners."
+        },
         "queries": {
           "type": "array",
           "items": {

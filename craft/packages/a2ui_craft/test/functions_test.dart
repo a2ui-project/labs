@@ -19,6 +19,7 @@
 // without a symbol reader.
 
 import 'package:a2ui_craft/a2ui_craft.dart';
+import 'package:a2ui_craft/model.dart';
 import 'package:test/test.dart';
 
 const LibraryName _test = LibraryName(<String>['test']);

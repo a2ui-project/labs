@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import 'dependencies.dart';
 import 'evaluator.dart';
 import 'functions.dart';
@@ -48,10 +50,18 @@ const Set<String> introspectionFunctionNames = <String>{
 class TemplateRegistry {
   /// Creates an empty registry that reports [appVersion] to templates and
   /// checks libraries and expansions against [limits] (by default
-  /// [CraftLimits.defaults]).
-  TemplateRegistry({String appVersion = '', CraftLimits? limits})
-    : _appVersion = appVersion,
-      limits = limits ?? CraftLimits.defaults;
+  /// [CraftLimits.defaults]). A listener that throws is reported to
+  /// [onListenerError], by default to the current zone's uncaught error
+  /// handler.
+  TemplateRegistry({
+    String appVersion = '',
+    CraftLimits? limits,
+    this.onListenerError,
+  }) : _appVersion = appVersion,
+       limits = limits ?? CraftLimits.defaults;
+
+  /// Receives what a listener throws (see [addListener]).
+  final void Function(Object error, StackTrace stackTrace)? onListenerError;
 
   /// The limits of the libraries registered here, and of evaluations and
   /// expansions over them (see the `craft_limits` blueprint).
@@ -76,9 +86,27 @@ class TemplateRegistry {
   /// The string that `appVersion()` gives.
   String get appVersion => _appVersion;
   set appVersion(String value) {
+    if (value == _appVersion) return;
     _appVersion = value;
     _invalidate();
   }
+
+  final List<void Function()> _listeners = <void Function()>[];
+
+  /// Calls [listener] after each change of the registrations: a library or
+  /// host functions registered (also again, unchanged) or removed, and a new
+  /// [appVersion]. A rejected registration and a removal of nothing change
+  /// nothing. Runtimes over this registry are told with
+  /// `CraftRuntime.refresh`; `CraftView` does that while it shows one.
+  ///
+  /// A listener removed while listeners are being called is not called any
+  /// more, one added is first called for the next change. What a listener
+  /// throws goes to [onListenerError]: the change stays applied, and the
+  /// other listeners are called.
+  void addListener(void Function() listener) => _listeners.add(listener);
+
+  /// Stops calling [listener].
+  void removeListener(void Function() listener) => _listeners.remove(listener);
 
   /// Registers the template library [library] as [name], replacing any
   /// library of that name, with its declared [dependencies].
@@ -179,6 +207,19 @@ class TemplateRegistry {
     resolver.invalidate();
     _functionTables.clear();
     _availability = null;
+    for (final void Function() listener in List<void Function()>.of(
+      _listeners,
+    )) {
+      if (!_listeners.contains(listener)) continue;
+      try {
+        listener();
+      } on Object catch (error, stackTrace) {
+        (onListenerError ?? Zone.current.handleUncaughtError)(
+          error,
+          stackTrace,
+        );
+      }
+    }
   }
 
   // --- Functions and evaluation ---------------------------------------------

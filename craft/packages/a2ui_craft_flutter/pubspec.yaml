@@ -32,6 +32,8 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
+  cupertino_ui: ^1.1.7
   flutter_test:
     sdk: flutter
   lints: ^6.0.0
+  material_ui: ^1.11.1

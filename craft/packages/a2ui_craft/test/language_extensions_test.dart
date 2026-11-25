@@ -16,6 +16,7 @@
 // nodes the parser builds for them.
 
 import 'package:a2ui_craft/a2ui_craft.dart';
+import 'package:a2ui_craft/model.dart';
 import 'package:test/test.dart';
 
 Object? _rootArg(String source, String arg) =>

@@ -17,6 +17,7 @@
 // host input, and the runtime's notifications and snapshots.
 
 import 'package:a2ui_craft/a2ui_craft.dart';
+import 'package:a2ui_craft/model.dart';
 import 'package:test/test.dart';
 
 const LibraryName _main = LibraryName(<String>['main']);
@@ -274,6 +275,35 @@ void main() {
       runtime.removeListener(listener);
       runtime.refresh();
       expect(calls, 4);
+    });
+
+    test('refresh drops the state of a library registered again', () {
+      final RemoteWidgetLibrary library = parseLibraryFile(counter);
+      final TemplateRegistry registry = _registry(library);
+      final CraftRuntime runtime = CraftRuntime(
+        registry,
+        library: _main,
+        widget: 'root',
+      );
+      final WidgetNode box = runtime.expand().root as WidgetNode;
+      registry.setPrimitiveLibrary(
+        const LibraryName(<String>['other']),
+        _Core(),
+      );
+      runtime.refresh();
+      expect(
+        runtime.fire(box.arguments['inc']!).stateChanged,
+        isTrue,
+        reason: 'another registration keeps the state',
+      );
+      registry.setTemplateLibrary(_main, library);
+      runtime.refresh();
+      final FireResult result = runtime.fire(box.arguments['inc']!);
+      expect(result.stateChanged, isFalse);
+      expect(result.errors.single.kind, FireErrorKind.unknownState);
+      expect(runtime.expand().states.single.value, <String, Object>{
+        'list': <Object>[0],
+      });
     });
 
     test('an expansion keeps what it read when state changes', () {

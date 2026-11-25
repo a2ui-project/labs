@@ -32,9 +32,15 @@ typedef TemplateErrorCallback = void Function(String componentId, Object error);
 /// templates.
 ///
 /// Each component expands its template with the Flutter widgets of
-/// [primitives]. [functions] are what dynamic values and `@checks` on these
-/// components may call; the catalog is made from the registrations as they
-/// are now.
+/// [primitives], in a [CraftView] that takes its media context from [media]
+/// and builds the placeholder of a failed widget with [errorBuilder] (by
+/// default a small error box). [functions] are what dynamic values and
+/// `@checks` on these components may call.
+///
+/// The catalog's components and schemas are made from the registrations as
+/// they are now. Components on screen follow later registrations: when
+/// [registry] notifies a change, they render again, and a template whose
+/// library was registered again starts from its initial state.
 CatalogImplementation templateCatalog({
   required String id,
   required TemplateRegistry registry,
@@ -42,6 +48,8 @@ CatalogImplementation templateCatalog({
   required Map<LibraryName, PrimitiveWidgetLibrary> primitives,
   List<FunctionImplementation> functions = const <FunctionImplementation>[],
   TemplateErrorCallback? onError,
+  MediaSource media = MediaSource.layout,
+  Widget Function(BuildContext context, ErrorNode node)? errorBuilder,
 }) => CatalogImplementation(
   id: id,
   protocolVersion: A2uiProtocolVersion.v1_0,
@@ -68,6 +76,8 @@ CatalogImplementation templateCatalog({
                 c.value,
                 primitives,
                 onError,
+                media,
+                errorBuilder,
               ),
               node: node,
               props: props,
@@ -86,6 +96,8 @@ class _Template {
     this.interface,
     this.primitives,
     this.onError,
+    this.media,
+    this.errorBuilder,
   );
 
   final TemplateRegistry registry;
@@ -94,6 +106,8 @@ class _Template {
   final TemplateInterface interface;
   final Map<LibraryName, PrimitiveWidgetLibrary> primitives;
   final TemplateErrorCallback? onError;
+  final MediaSource media;
+  final Widget Function(BuildContext context, ErrorNode node)? errorBuilder;
 
   /// The arguments that [props] give (requirement 5).
   TemplateArgs args(ComponentProps props) =>
@@ -195,6 +209,8 @@ class _TemplateComponentState extends State<_TemplateComponent> {
     runtime: _runtime,
     libraries: widget.template.primitives,
     onEvent: _onEvent,
+    media: widget.template.media,
+    errorBuilder: widget.template.errorBuilder,
     onError: switch (widget.template.onError) {
       final TemplateErrorCallback onError => (Object error) => onError(
         widget.node.componentId,

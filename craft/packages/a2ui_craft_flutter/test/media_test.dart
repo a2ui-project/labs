@@ -105,11 +105,27 @@ void main() {
     final _Harness h = _Harness();
     await tester.pumpWidget(_sized(h.view(), width: 599, height: 480));
     expect(find.text('compact medium landscape android false'), findsOneWidget);
-    expect(h.expansions, 1, reason: 'no expansion without the media context');
+    expect(
+      h.expansions,
+      2,
+      reason: 'before its first layout the view expands for the window',
+    );
     expect(
       h.runtime.media,
       MediaContext.fromSize(599, 480, platform: HostPlatform.android),
     );
+
+    final _Harness same = _Harness();
+    await tester.pumpWidget(
+      _sized(
+        same.view(),
+        width: 599,
+        height: 480,
+        window: const Size(560, 500),
+      ),
+    );
+    expect(find.text('compact medium landscape android false'), findsOneWidget);
+    expect(same.expansions, 1, reason: 'the window has the same classes');
   });
 
   testWidgets('layout: a resize across a class renders in the same frame', (
@@ -125,17 +141,18 @@ void main() {
       findsOneWidget,
     );
     expect(notified, 1);
+    h.expansions = 0;
 
     await tester.pumpWidget(_sized(h.view(), width: 590, height: 900));
-    expect(h.expansions, 1, reason: 'the same classes');
+    expect(h.expansions, 0, reason: 'the same classes');
     expect(notified, 1);
 
     await tester.pumpWidget(_sized(h.view(), width: 1200, height: 900));
     expect(find.text('large expanded landscape android false'), findsOneWidget);
-    expect(h.expansions, 2);
+    expect(h.expansions, 1);
     expect(notified, 2);
     await tester.pump();
-    expect(h.expansions, 2, reason: 'nothing left for the next frame');
+    expect(h.expansions, 1, reason: 'nothing left for the next frame');
   });
 
   testWidgets('host listeners hear of a media change after the frame', (
@@ -247,22 +264,83 @@ void main() {
     );
   });
 
-  testWidgets('window and host answer intrinsic size queries; layout not', (
+  testWidgets('every media source answers intrinsic size queries', (
+    WidgetTester tester,
+  ) async {
+    _largeSurface(tester);
+    for (final MediaSource media in MediaSource.values) {
+      for (final bool width in <bool>[true, false]) {
+        final _Harness h = _Harness();
+        if (media == MediaSource.host) {
+          h.runtime.media = MediaContext.fromSize(
+            1300,
+            1000,
+            platform: HostPlatform.android,
+          );
+        }
+        final Widget view = h.view(media: media);
+        await tester.pumpWidget(
+          _sized(
+            width ? IntrinsicWidth(child: view) : IntrinsicHeight(child: view),
+          ),
+        );
+        final String reason = '${media.name} ${width ? 'width' : 'height'}';
+        expect(tester.takeException(), isNull, reason: reason);
+        final Size text = tester.getSize(find.byType(Text));
+        final Size box = tester.getSize(
+          find.byType(width ? IntrinsicWidth : IntrinsicHeight),
+        );
+        expect(text.width, greaterThan(100), reason: reason);
+        if (width) {
+          expect(box.width, text.width, reason: '$reason: sized to the text');
+        } else {
+          expect(box.height, text.height, reason: '$reason: not 0 px');
+        }
+
+        final RenderBox render = tester.renderObject(find.byType(CraftView));
+        final double line = text.height;
+        expect(
+          render.getMinIntrinsicWidth(double.infinity),
+          greaterThan(0),
+          reason: '$reason: min intrinsic width',
+        );
+        expect(
+          render.getMaxIntrinsicWidth(double.infinity),
+          greaterThan(100),
+          reason: '$reason: max intrinsic width',
+        );
+        expect(
+          render.getMinIntrinsicHeight(2000),
+          inInclusiveRange(1, line),
+          reason: '$reason: min intrinsic height',
+        );
+        expect(
+          render.getMaxIntrinsicHeight(2000),
+          inInclusiveRange(1, line),
+          reason: '$reason: max intrinsic height',
+        );
+        final Size dry = render.getDryLayout(BoxConstraints.loose(box));
+        expect(dry.height, greaterThan(0), reason: '$reason: dry layout');
+        expect(dry.width, greaterThan(0), reason: '$reason: dry layout');
+        await tester.pumpWidget(const SizedBox());
+      }
+    }
+  });
+
+  testWidgets('layout: a new view keeps the media context of the runtime', (
     WidgetTester tester,
   ) async {
     _largeSurface(tester);
     final _Harness h = _Harness();
-    for (final MediaSource media in <MediaSource>[
-      MediaSource.window,
-      MediaSource.host,
-    ]) {
-      await tester.pumpWidget(
-        _sized(IntrinsicWidth(child: h.view(media: media))),
-      );
-      expect(tester.takeException(), isNull, reason: media.name);
-    }
-    await tester.pumpWidget(_sized(IntrinsicWidth(child: h.view())));
-    expect(tester.takeException(), isNotNull);
+    await tester.pumpWidget(_sized(h.view(), width: 500, height: 900));
+    await tester.pumpWidget(const SizedBox());
+    h.expansions = 0;
+    await tester.pumpWidget(_sized(h.view(), width: 500, height: 900));
+    expect(
+      find.text('compact expanded portrait android false'),
+      findsOneWidget,
+    );
+    expect(h.expansions, 1, reason: 'no expansion for the window first');
   });
 
   testWidgets('host: the view leaves the media context alone', (

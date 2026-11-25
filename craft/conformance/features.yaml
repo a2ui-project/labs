@@ -365,6 +365,12 @@
   blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#9-offered-components
   claimedBy:
     - dart-craft
+- id: F-CRAFT-REG-10
+  title: "Template Registry: change notifications"
+  specAnchor: blueprints/features/craft_template_registry.blueprint.md#10-change-notifications
+  blueprintAnchor: blueprints/features/craft_template_registry.blueprint.md#10-change-notifications
+  claimedBy:
+    - dart-craft
 - id: F-CRAFT-RT-01
   title: "Runtime: expansion"
   specAnchor: blueprints/features/craft_runtime.blueprint.md#1-expansion

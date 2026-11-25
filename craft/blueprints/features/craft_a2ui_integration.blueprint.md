@@ -95,7 +95,8 @@ A renderer MUST render a node of a template component as the expansion of the ro
 - keep one runtime per node, so the template's local state lives as long as the node and survives updates of its properties; when its properties change, the runtime's arguments MUST be replaced (which keeps the state);
 - render each host widget node as the renderer renders the child node it stands for;
 - apply the effects of requirement 6 with the renderer's own mechanisms: dispatch an action from the node's component on the node's surface, invoke the action synchronously in the gesture that fired it, write through the property's binding;
-- report the expansion's errors to the host.
+- report the expansion's errors to the host;
+- when the registry notifies a change (`craft_template_registry`, requirement 10), tell the runtime of every node it renders that the registrations changed, so that template components on screen render the new registrations, with fresh state where their library was registered again, without waiting for an unrelated update.
 
 ---
 
@@ -128,7 +129,7 @@ The template receives `label`, the current value of `/user/name` as `value`, the
 
 The metadata vocabulary of requirement 2 is a convention between a host's primitives and this feature: `craft_template_registry` reads `args` entries only for being present and not `false`, so they keep their meaning there.
 
-Left out of this feature: v0.9 catalogs (the schemas are v1.0); templates calling components of other catalogs from inside a template (an agent can still pass any catalog's component as a child); `default` values and descriptions in schemas; mapping the surface theme to templates; forwarding expansion errors, including those of `craft_limits`, to the agent (they reach the host's error callback only); and rebuilding a catalog when the registry changes (a host makes a new catalog).
+Left out of this feature: v0.9 catalogs (the schemas are v1.0); templates calling components of other catalogs from inside a template (an agent can still pass any catalog's component as a child); `default` values and descriptions in schemas; mapping the surface theme to templates; forwarding expansion errors, including those of `craft_limits`, to the agent (they reach the host's error callback only); and rebuilding a catalog's components and schemas when the registry changes (a host makes a new catalog; components already on screen render the new registrations, requirement 7).
 
 ---
 
@@ -154,7 +155,7 @@ The shared cases are in `conformance/craft/craft_a2ui_integration.yaml`. Each ca
 - **Props to arguments**: values with nulls inside, a null value and no prop; a path-bound value and its setter, also without a value, and an unbound value without one; a path-bound value whose setter name is a property of its own, with and without its own prop; actions, a child and a child list as host values; props of another shape and props that are no property; check results of a checkable component, of other shapes, and of a component that is not checkable.
 - **Firing to A2UI**: an event's context as JSON, merged with the event arguments; an action run with and without a handler application; setters writing values, structured values, and nothing without a value; a handler list in order.
 
-The engine's unit tests additionally cover what the YAML cannot express: a resolved value that is not JSON, a host handler that stands for nothing, a setter fired with an absent value, the renderer's objects carried by the effects, and resolved values beyond the limits (100,000 deep, and 100 deep as an entry of the arguments, with a control just within). Requirement 7 is covered by widget tests of the Flutter template catalog: an A2UI surface rendering a template from `createSurface`, `updateComponents` and `updateDataModel` messages, data and property updates keeping local state, a two-way write seen by another component, an agent action, a template event, a child of another catalog, check results, a bound value beyond the limits (reported, shown as the placeholder, and recovered from with local state kept), and the schemas of the catalog.
+The engine's unit tests additionally cover what the YAML cannot express: a resolved value that is not JSON, a host handler that stands for nothing, a setter fired with an absent value, the renderer's objects carried by the effects, and resolved values beyond the limits (100,000 deep, and 100 deep as an entry of the arguments, with a control just within). Requirement 7 is covered by widget tests of the Flutter template catalog: an A2UI surface rendering a template from `createSurface`, `updateComponents` and `updateDataModel` messages, data and property updates keeping local state, a two-way write seen by another component, an agent action, a template event, a child of another catalog, check results, a bound value beyond the limits (reported, shown as the placeholder, and recovered from with local state kept), the schemas of the catalog, a template library registered again while its component is on screen (re-rendered in the next frame with fresh state, and the first tap after it counted), the media class a template component sees with each media source of the catalog, a template component inside `IntrinsicWidth` and `IntrinsicHeight` with each media source, and a host's error placeholder.
 
 ---
 

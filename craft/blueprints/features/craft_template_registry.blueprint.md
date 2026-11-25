@@ -88,6 +88,15 @@ The **components** of a template library are its exported declarations, in decla
 
 - The components offered to the agent for a library MUST be its available components, in declaration order: for a primitive library, all its primitives; for an unavailable template library or a name with no registered library, none. Components that are not offered MUST NOT be presented to the agent.
 
+### **10. Change notifications**
+
+- A host MUST be able to listen to a registry for changes, and to stop listening.
+- The registry MUST notify its listeners once after each change of its registrations: each registration of a template library, a primitive library or host functions that is accepted (also when it registers the same library or functions again), each removal of a library or host functions that was registered, and each change of the application version to a different string.
+- A rejected registration, a removal of a name with nothing registered and setting the application version it already has MUST NOT notify.
+- A listener removed while the registry notifies MUST NOT be called in that notification if it has not been called yet; a listener added while it notifies is first called for the next change.
+- A listener that fails MUST NOT undo the change, fail the registration that made it, or keep the other listeners from being called. The registry MUST report the failure to the host (in this engine, to an error callback given to the registry, by default the zone's uncaught error handler).
+- When it notifies, every result of this document MUST already reflect the change. This is how a host learns to tell its runtimes that the registrations changed (`craft_runtime`, requirement 13), for example to update the templates that are on screen after a new version of a library arrives.
+
 ---
 
 ## **Detailed Description of Changes**
@@ -141,8 +150,9 @@ The shared cases are in `conformance/craft/craft_template_registry.yaml`. Each c
 - **Dependency declarations**: an optional library that is not an import, requirements for a private or unknown declaration, and widget requirements qualified with the library's own name, rejected, each with a different source than the registered one and a query showing the registry unchanged; control steps.
 - **Availability**: all imports provided; missing imports (once, in import order), then provided; optional imports; a function library as an import; an unavailable imported template library, then available; host functions providing the name of an unavailable template library, then removed; libraries importing each other; library requirements of each kind, met and unmet, in order; requirements seen from the library; component requirements; `hasWidget` and requirements seeing only available components; primitive and unregistered libraries.
 - **Offered components**: declaration order, private and unavailable components left out, an unavailable library, a primitive library and an unregistered name.
+- **Change notifications**: registrations of each kind, a library registered again, a rejected registration, removals of a registered and an unregistered name, a new and the same application version.
 
-The engine's unit tests additionally cover what the YAML cannot express: metadata that is not a value, null in metadata, the copies of a primitive library and of a dependency declaration taken at registration, the per-library function table, and, for `craft_functions`, that the evaluator leaves symbol references unevaluated when no registry reads them.
+The engine's unit tests additionally cover what the YAML cannot express: metadata that is not a value, null in metadata, the copies of a primitive library and of a dependency declaration taken at registration, the per-library function table, a listener removed, a listener removed and one added during a notification, a listener that throws (reported to the registry's callback or the zone, the change applied and later listeners called) and a listener that reads the registry when notified, and, for `craft_functions`, that the evaluator leaves symbol references unevaluated when no registry reads them.
 
 ---
 
@@ -151,4 +161,5 @@ The engine's unit tests additionally cover what the YAML cannot express: metadat
 1. Let the evaluator read symbol references through a reader the caller supplies.
 2. Implement the registry: registration with its rejections, the per-library function table with the introspection functions, symbol references and the application version, dropping derived results on every change.
 3. Implement dependency declarations, the availability fixed point, the reports and the offered components.
-4. Run the conformance cases.
+4. Notify listeners after each change.
+5. Run the conformance cases.
